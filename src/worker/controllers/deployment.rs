@@ -177,12 +177,14 @@ impl DeploymentController {
                 status: Some(resources_proto::ResourceStatus {
                     kind: Some(resources_proto::resource_status::Kind::DeploymentReplica(
                         resources_proto::DeploymentReplicaStatus {
+                            observed_generation: 0,
+                            phase: "Ready".to_string(),
+                            conditions: Vec::new(),
                             rendered_resources: rendered_refs,
                             rendered_hashes,
                             conflicts: Vec::new(),
                             last_rendered_json,
                             owned_json_pointers: Vec::new(),
-                            phase: "Ready".to_string(),
                         },
                     )),
                 }),

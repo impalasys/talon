@@ -34,10 +34,12 @@ message DeploymentStatus {
 }
 
 message DeploymentReplicaStatus {
-  repeated string rendered_resources = 1;
-  map<string, string> rendered_hashes = 2;
-  repeated string conflicts = 3;
-  map<string, string> last_rendered_json = 4;
-  repeated string owned_json_pointers = 5;
-  string phase = 6;
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  repeated string rendered_resources = 4;
+  map<string, string> rendered_hashes = 5;
+  repeated string conflicts = 6;
+  map<string, string> last_rendered_json = 7;
+  repeated string owned_json_pointers = 8;
 }

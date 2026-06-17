@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/resources/deployments.proto.
  */
 export const file_proto_resources_deployments: GenFile = /*@__PURE__*/
-  fileDesc("CiFwcm90by9yZXNvdXJjZXMvZGVwbG95bWVudHMucHJvdG8SD3RhbG9uLnJlc291cmNlcyJgCgxUZW1wbGF0ZVNwZWMSDAoEa2luZBgBIAEoCRIvCghtZXRhZGF0YRgCIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESEQoJc3BlY19qc29uGAMgASgJIlUKE0RlcGxveW1lbnRQbGFjZW1lbnQSPgoSbmFtZXNwYWNlX3NlbGVjdG9yGAEgASgLMiIudGFsb24ucmVzb3VyY2VzLk5hbWVzcGFjZVNlbGVjdG9yIlwKDkRlcGxveW1lbnRTcGVjEjcKCXBsYWNlbWVudBgBIAEoCzIkLnRhbG9uLnJlc291cmNlcy5EZXBsb3ltZW50UGxhY2VtZW50EhEKCXRlbXBsYXRlcxgCIAMoCSJnChVEZXBsb3ltZW50UmVwbGljYVNwZWMSNAoOZGVwbG95bWVudF9yZWYYASABKAsyHC50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VSZWYSGAoQdGFyZ2V0X25hbWVzcGFjZRgCIAEoCSKmAQoQRGVwbG95bWVudFN0YXR1cxIbChNvYnNlcnZlZF9nZW5lcmF0aW9uGAEgASgEEg0KBXBoYXNlGAIgASgJEjYKCmNvbmRpdGlvbnMYAyADKAsyIi50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VDb25kaXRpb24SLgoIcmVwbGljYXMYBCADKAsyHC50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VSZWYilwMKF0RlcGxveW1lbnRSZXBsaWNhU3RhdHVzEhoKEnJlbmRlcmVkX3Jlc291cmNlcxgBIAMoCRJVCg9yZW5kZXJlZF9oYXNoZXMYAiADKAsyPC50YWxvbi5yZXNvdXJjZXMuRGVwbG95bWVudFJlcGxpY2FTdGF0dXMuUmVuZGVyZWRIYXNoZXNFbnRyeRIRCgljb25mbGljdHMYAyADKAkSWgoSbGFzdF9yZW5kZXJlZF9qc29uGAQgAygLMj4udGFsb24ucmVzb3VyY2VzLkRlcGxveW1lbnRSZXBsaWNhU3RhdHVzLkxhc3RSZW5kZXJlZEpzb25FbnRyeRIbChNvd25lZF9qc29uX3BvaW50ZXJzGAUgAygJEg0KBXBoYXNlGAYgASgJGjUKE1JlbmRlcmVkSGFzaGVzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARo3ChVMYXN0UmVuZGVyZWRKc29uRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4AWIGcHJvdG8z", [file_proto_resources_common]);
+  fileDesc("CiFwcm90by9yZXNvdXJjZXMvZGVwbG95bWVudHMucHJvdG8SD3RhbG9uLnJlc291cmNlcyJgCgxUZW1wbGF0ZVNwZWMSDAoEa2luZBgBIAEoCRIvCghtZXRhZGF0YRgCIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESEQoJc3BlY19qc29uGAMgASgJIlUKE0RlcGxveW1lbnRQbGFjZW1lbnQSPgoSbmFtZXNwYWNlX3NlbGVjdG9yGAEgASgLMiIudGFsb24ucmVzb3VyY2VzLk5hbWVzcGFjZVNlbGVjdG9yIlwKDkRlcGxveW1lbnRTcGVjEjcKCXBsYWNlbWVudBgBIAEoCzIkLnRhbG9uLnJlc291cmNlcy5EZXBsb3ltZW50UGxhY2VtZW50EhEKCXRlbXBsYXRlcxgCIAMoCSJnChVEZXBsb3ltZW50UmVwbGljYVNwZWMSNAoOZGVwbG95bWVudF9yZWYYASABKAsyHC50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VSZWYSGAoQdGFyZ2V0X25hbWVzcGFjZRgCIAEoCSKmAQoQRGVwbG95bWVudFN0YXR1cxIbChNvYnNlcnZlZF9nZW5lcmF0aW9uGAEgASgEEg0KBXBoYXNlGAIgASgJEjYKCmNvbmRpdGlvbnMYAyADKAsyIi50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VDb25kaXRpb24SLgoIcmVwbGljYXMYBCADKAsyHC50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VSZWYi7AMKF0RlcGxveW1lbnRSZXBsaWNhU3RhdHVzEhsKE29ic2VydmVkX2dlbmVyYXRpb24YASABKAQSDQoFcGhhc2UYAiABKAkSNgoKY29uZGl0aW9ucxgDIAMoCzIiLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZUNvbmRpdGlvbhIaChJyZW5kZXJlZF9yZXNvdXJjZXMYBCADKAkSVQoPcmVuZGVyZWRfaGFzaGVzGAUgAygLMjwudGFsb24ucmVzb3VyY2VzLkRlcGxveW1lbnRSZXBsaWNhU3RhdHVzLlJlbmRlcmVkSGFzaGVzRW50cnkSEQoJY29uZmxpY3RzGAYgAygJEloKEmxhc3RfcmVuZGVyZWRfanNvbhgHIAMoCzI+LnRhbG9uLnJlc291cmNlcy5EZXBsb3ltZW50UmVwbGljYVN0YXR1cy5MYXN0UmVuZGVyZWRKc29uRW50cnkSGwoTb3duZWRfanNvbl9wb2ludGVycxgIIAMoCRo1ChNSZW5kZXJlZEhhc2hlc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaNwoVTGFzdFJlbmRlcmVkSnNvbkVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAFiBnByb3RvMw", [file_proto_resources_common]);
 
 /**
  * @generated from message talon.resources.TemplateSpec
@@ -142,34 +142,44 @@ export const DeploymentStatusSchema: GenMessage<DeploymentStatus> = /*@__PURE__*
  */
 export type DeploymentReplicaStatus = Message<"talon.resources.DeploymentReplicaStatus"> & {
   /**
-   * @generated from field: repeated string rendered_resources = 1;
+   * @generated from field: uint64 observed_generation = 1;
+   */
+  observedGeneration: bigint;
+
+  /**
+   * @generated from field: string phase = 2;
+   */
+  phase: string;
+
+  /**
+   * @generated from field: repeated talon.resources.ResourceCondition conditions = 3;
+   */
+  conditions: ResourceCondition[];
+
+  /**
+   * @generated from field: repeated string rendered_resources = 4;
    */
   renderedResources: string[];
 
   /**
-   * @generated from field: map<string, string> rendered_hashes = 2;
+   * @generated from field: map<string, string> rendered_hashes = 5;
    */
   renderedHashes: { [key: string]: string };
 
   /**
-   * @generated from field: repeated string conflicts = 3;
+   * @generated from field: repeated string conflicts = 6;
    */
   conflicts: string[];
 
   /**
-   * @generated from field: map<string, string> last_rendered_json = 4;
+   * @generated from field: map<string, string> last_rendered_json = 7;
    */
   lastRenderedJson: { [key: string]: string };
 
   /**
-   * @generated from field: repeated string owned_json_pointers = 5;
+   * @generated from field: repeated string owned_json_pointers = 8;
    */
   ownedJsonPointers: string[];
-
-  /**
-   * @generated from field: string phase = 6;
-   */
-  phase: string;
 };
 
 /**

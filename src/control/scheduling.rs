@@ -1056,6 +1056,9 @@ mod tests {
     async fn initialize_schedule_preserves_last_successful_run_context() {
         let mut schedule = schedule("cron");
         schedule.status = Some(resources_proto::ScheduleStatus {
+            observed_generation: 0,
+            phase: String::new(),
+            conditions: Vec::new(),
             revision: 4,
             next_run_at: Some(123),
             backend_handle: Some("old-handle".to_string()),
@@ -1661,6 +1664,9 @@ mod tests {
     fn release_claim_and_event_log_helpers_reset_and_trim() {
         let mut schedule = schedule("every");
         schedule.status = Some(resources_proto::ScheduleStatus {
+            observed_generation: 0,
+            phase: String::new(),
+            conditions: Vec::new(),
             revision: 1,
             next_run_at: Some(1),
             backend_handle: None,

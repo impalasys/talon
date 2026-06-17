@@ -198,19 +198,22 @@ func (x *ScheduleSpec) GetInputJson() string {
 }
 
 type ScheduleStatus struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Revision       uint64                 `protobuf:"varint,1,opt,name=revision,proto3" json:"revision,omitempty"`
-	NextRunAt      *int64                 `protobuf:"varint,2,opt,name=next_run_at,json=nextRunAt,proto3,oneof" json:"next_run_at,omitempty"`
-	BackendHandle  *string                `protobuf:"bytes,3,opt,name=backend_handle,json=backendHandle,proto3,oneof" json:"backend_handle,omitempty"`
-	BackendArmed   bool                   `protobuf:"varint,4,opt,name=backend_armed,json=backendArmed,proto3" json:"backend_armed,omitempty"`
-	LastRunAt      *int64                 `protobuf:"varint,5,opt,name=last_run_at,json=lastRunAt,proto3,oneof" json:"last_run_at,omitempty"`
-	LastSessionId  *string                `protobuf:"bytes,6,opt,name=last_session_id,json=lastSessionId,proto3,oneof" json:"last_session_id,omitempty"`
-	LastError      *string                `protobuf:"bytes,7,opt,name=last_error,json=lastError,proto3,oneof" json:"last_error,omitempty"`
-	ClaimedRunAt   *int64                 `protobuf:"varint,8,opt,name=claimed_run_at,json=claimedRunAt,proto3,oneof" json:"claimed_run_at,omitempty"`
-	ClaimExpiresAt *int64                 `protobuf:"varint,9,opt,name=claim_expires_at,json=claimExpiresAt,proto3,oneof" json:"claim_expires_at,omitempty"`
-	RecentEvents   []*ScheduleEvent       `protobuf:"bytes,10,rep,name=recent_events,json=recentEvents,proto3" json:"recent_events,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	ObservedGeneration uint64                 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
+	Phase              string                 `protobuf:"bytes,2,opt,name=phase,proto3" json:"phase,omitempty"`
+	Conditions         []*ResourceCondition   `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	Revision           uint64                 `protobuf:"varint,4,opt,name=revision,proto3" json:"revision,omitempty"`
+	NextRunAt          *int64                 `protobuf:"varint,5,opt,name=next_run_at,json=nextRunAt,proto3,oneof" json:"next_run_at,omitempty"`
+	BackendHandle      *string                `protobuf:"bytes,6,opt,name=backend_handle,json=backendHandle,proto3,oneof" json:"backend_handle,omitempty"`
+	BackendArmed       bool                   `protobuf:"varint,7,opt,name=backend_armed,json=backendArmed,proto3" json:"backend_armed,omitempty"`
+	LastRunAt          *int64                 `protobuf:"varint,8,opt,name=last_run_at,json=lastRunAt,proto3,oneof" json:"last_run_at,omitempty"`
+	LastSessionId      *string                `protobuf:"bytes,9,opt,name=last_session_id,json=lastSessionId,proto3,oneof" json:"last_session_id,omitempty"`
+	LastError          *string                `protobuf:"bytes,10,opt,name=last_error,json=lastError,proto3,oneof" json:"last_error,omitempty"`
+	ClaimedRunAt       *int64                 `protobuf:"varint,11,opt,name=claimed_run_at,json=claimedRunAt,proto3,oneof" json:"claimed_run_at,omitempty"`
+	ClaimExpiresAt     *int64                 `protobuf:"varint,12,opt,name=claim_expires_at,json=claimExpiresAt,proto3,oneof" json:"claim_expires_at,omitempty"`
+	RecentEvents       []*ScheduleEvent       `protobuf:"bytes,13,rep,name=recent_events,json=recentEvents,proto3" json:"recent_events,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *ScheduleStatus) Reset() {
@@ -241,6 +244,27 @@ func (x *ScheduleStatus) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ScheduleStatus.ProtoReflect.Descriptor instead.
 func (*ScheduleStatus) Descriptor() ([]byte, []int) {
 	return file_proto_resources_schedules_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ScheduleStatus) GetObservedGeneration() uint64 {
+	if x != nil {
+		return x.ObservedGeneration
+	}
+	return 0
+}
+
+func (x *ScheduleStatus) GetPhase() string {
+	if x != nil {
+		return x.Phase
+	}
+	return ""
+}
+
+func (x *ScheduleStatus) GetConditions() []*ResourceCondition {
+	if x != nil {
+		return x.Conditions
+	}
+	return nil
 }
 
 func (x *ScheduleStatus) GetRevision() uint64 {
@@ -462,20 +486,25 @@ const file_proto_resources_schedules_proto_rawDesc = "" +
 	"\rinput_message\x18\a \x01(\tR\finputMessage\x12\x18\n" +
 	"\aenabled\x18\b \x01(\bR\aenabled\x12\x1d\n" +
 	"\n" +
-	"input_json\x18\t \x01(\tR\tinputJson\"\xb5\x04\n" +
-	"\x0eScheduleStatus\x12\x1a\n" +
-	"\brevision\x18\x01 \x01(\x04R\brevision\x12#\n" +
-	"\vnext_run_at\x18\x02 \x01(\x03H\x00R\tnextRunAt\x88\x01\x01\x12*\n" +
-	"\x0ebackend_handle\x18\x03 \x01(\tH\x01R\rbackendHandle\x88\x01\x01\x12#\n" +
-	"\rbackend_armed\x18\x04 \x01(\bR\fbackendArmed\x12#\n" +
-	"\vlast_run_at\x18\x05 \x01(\x03H\x02R\tlastRunAt\x88\x01\x01\x12+\n" +
-	"\x0flast_session_id\x18\x06 \x01(\tH\x03R\rlastSessionId\x88\x01\x01\x12\"\n" +
+	"input_json\x18\t \x01(\tR\tinputJson\"\xc0\x05\n" +
+	"\x0eScheduleStatus\x12/\n" +
+	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x12\x14\n" +
+	"\x05phase\x18\x02 \x01(\tR\x05phase\x12B\n" +
 	"\n" +
-	"last_error\x18\a \x01(\tH\x04R\tlastError\x88\x01\x01\x12)\n" +
-	"\x0eclaimed_run_at\x18\b \x01(\x03H\x05R\fclaimedRunAt\x88\x01\x01\x12-\n" +
-	"\x10claim_expires_at\x18\t \x01(\x03H\x06R\x0eclaimExpiresAt\x88\x01\x01\x12C\n" +
-	"\rrecent_events\x18\n" +
-	" \x03(\v2\x1e.talon.resources.ScheduleEventR\frecentEventsB\x0e\n" +
+	"conditions\x18\x03 \x03(\v2\".talon.resources.ResourceConditionR\n" +
+	"conditions\x12\x1a\n" +
+	"\brevision\x18\x04 \x01(\x04R\brevision\x12#\n" +
+	"\vnext_run_at\x18\x05 \x01(\x03H\x00R\tnextRunAt\x88\x01\x01\x12*\n" +
+	"\x0ebackend_handle\x18\x06 \x01(\tH\x01R\rbackendHandle\x88\x01\x01\x12#\n" +
+	"\rbackend_armed\x18\a \x01(\bR\fbackendArmed\x12#\n" +
+	"\vlast_run_at\x18\b \x01(\x03H\x02R\tlastRunAt\x88\x01\x01\x12+\n" +
+	"\x0flast_session_id\x18\t \x01(\tH\x03R\rlastSessionId\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"last_error\x18\n" +
+	" \x01(\tH\x04R\tlastError\x88\x01\x01\x12)\n" +
+	"\x0eclaimed_run_at\x18\v \x01(\x03H\x05R\fclaimedRunAt\x88\x01\x01\x12-\n" +
+	"\x10claim_expires_at\x18\f \x01(\x03H\x06R\x0eclaimExpiresAt\x88\x01\x01\x12C\n" +
+	"\rrecent_events\x18\r \x03(\v2\x1e.talon.resources.ScheduleEventR\frecentEventsB\x0e\n" +
 	"\f_next_run_atB\x11\n" +
 	"\x0f_backend_handleB\x0e\n" +
 	"\f_last_run_atB\x12\n" +
@@ -507,24 +536,26 @@ func file_proto_resources_schedules_proto_rawDescGZIP() []byte {
 
 var file_proto_resources_schedules_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_resources_schedules_proto_goTypes = []any{
-	(*ScheduleTarget)(nil), // 0: talon.resources.ScheduleTarget
-	(*ScheduleSpec)(nil),   // 1: talon.resources.ScheduleSpec
-	(*ScheduleStatus)(nil), // 2: talon.resources.ScheduleStatus
-	(*ScheduleEvent)(nil),  // 3: talon.resources.ScheduleEvent
-	(*Schedule)(nil),       // 4: talon.resources.Schedule
-	(*ResourceMeta)(nil),   // 5: talon.resources.ResourceMeta
+	(*ScheduleTarget)(nil),    // 0: talon.resources.ScheduleTarget
+	(*ScheduleSpec)(nil),      // 1: talon.resources.ScheduleSpec
+	(*ScheduleStatus)(nil),    // 2: talon.resources.ScheduleStatus
+	(*ScheduleEvent)(nil),     // 3: talon.resources.ScheduleEvent
+	(*Schedule)(nil),          // 4: talon.resources.Schedule
+	(*ResourceCondition)(nil), // 5: talon.resources.ResourceCondition
+	(*ResourceMeta)(nil),      // 6: talon.resources.ResourceMeta
 }
 var file_proto_resources_schedules_proto_depIdxs = []int32{
 	0, // 0: talon.resources.ScheduleSpec.target:type_name -> talon.resources.ScheduleTarget
-	3, // 1: talon.resources.ScheduleStatus.recent_events:type_name -> talon.resources.ScheduleEvent
-	5, // 2: talon.resources.Schedule.metadata:type_name -> talon.resources.ResourceMeta
-	1, // 3: talon.resources.Schedule.spec:type_name -> talon.resources.ScheduleSpec
-	2, // 4: talon.resources.Schedule.status:type_name -> talon.resources.ScheduleStatus
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	5, // 1: talon.resources.ScheduleStatus.conditions:type_name -> talon.resources.ResourceCondition
+	3, // 2: talon.resources.ScheduleStatus.recent_events:type_name -> talon.resources.ScheduleEvent
+	6, // 3: talon.resources.Schedule.metadata:type_name -> talon.resources.ResourceMeta
+	1, // 4: talon.resources.Schedule.spec:type_name -> talon.resources.ScheduleSpec
+	2, // 5: talon.resources.Schedule.status:type_name -> talon.resources.ScheduleStatus
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_schedules_proto_init() }

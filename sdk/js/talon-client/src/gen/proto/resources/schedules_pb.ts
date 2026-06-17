@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { ResourceMeta } from "./common_pb.js";
+import { ResourceCondition, ResourceMeta } from "./common_pb.js";
 
 /**
  * @generated from message talon.resources.ScheduleTarget
@@ -152,52 +152,67 @@ export class ScheduleSpec extends Message<ScheduleSpec> {
  */
 export class ScheduleStatus extends Message<ScheduleStatus> {
   /**
-   * @generated from field: uint64 revision = 1;
+   * @generated from field: uint64 observed_generation = 1;
+   */
+  observedGeneration = protoInt64.zero;
+
+  /**
+   * @generated from field: string phase = 2;
+   */
+  phase = "";
+
+  /**
+   * @generated from field: repeated talon.resources.ResourceCondition conditions = 3;
+   */
+  conditions: ResourceCondition[] = [];
+
+  /**
+   * @generated from field: uint64 revision = 4;
    */
   revision = protoInt64.zero;
 
   /**
-   * @generated from field: optional int64 next_run_at = 2;
+   * @generated from field: optional int64 next_run_at = 5;
    */
   nextRunAt?: bigint;
 
   /**
-   * @generated from field: optional string backend_handle = 3;
+   * @generated from field: optional string backend_handle = 6;
    */
   backendHandle?: string;
 
   /**
-   * @generated from field: bool backend_armed = 4;
+   * @generated from field: bool backend_armed = 7;
    */
   backendArmed = false;
 
   /**
-   * @generated from field: optional int64 last_run_at = 5;
+   * @generated from field: optional int64 last_run_at = 8;
    */
   lastRunAt?: bigint;
 
   /**
-   * @generated from field: optional string last_session_id = 6;
+   * @generated from field: optional string last_session_id = 9;
    */
   lastSessionId?: string;
 
   /**
-   * @generated from field: optional string last_error = 7;
+   * @generated from field: optional string last_error = 10;
    */
   lastError?: string;
 
   /**
-   * @generated from field: optional int64 claimed_run_at = 8;
+   * @generated from field: optional int64 claimed_run_at = 11;
    */
   claimedRunAt?: bigint;
 
   /**
-   * @generated from field: optional int64 claim_expires_at = 9;
+   * @generated from field: optional int64 claim_expires_at = 12;
    */
   claimExpiresAt?: bigint;
 
   /**
-   * @generated from field: repeated talon.resources.ScheduleEvent recent_events = 10;
+   * @generated from field: repeated talon.resources.ScheduleEvent recent_events = 13;
    */
   recentEvents: ScheduleEvent[] = [];
 
@@ -209,16 +224,19 @@ export class ScheduleStatus extends Message<ScheduleStatus> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.resources.ScheduleStatus";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "revision", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 2, name: "next_run_at", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
-    { no: 3, name: "backend_handle", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 4, name: "backend_armed", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 5, name: "last_run_at", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
-    { no: 6, name: "last_session_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 7, name: "last_error", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 8, name: "claimed_run_at", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
-    { no: 9, name: "claim_expires_at", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
-    { no: 10, name: "recent_events", kind: "message", T: ScheduleEvent, repeated: true },
+    { no: 1, name: "observed_generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "phase", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "conditions", kind: "message", T: ResourceCondition, repeated: true },
+    { no: 4, name: "revision", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 5, name: "next_run_at", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 6, name: "backend_handle", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 7, name: "backend_armed", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 8, name: "last_run_at", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 9, name: "last_session_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 10, name: "last_error", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 11, name: "claimed_run_at", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 12, name: "claim_expires_at", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 13, name: "recent_events", kind: "message", T: ScheduleEvent, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ScheduleStatus {

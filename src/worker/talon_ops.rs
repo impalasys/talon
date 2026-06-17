@@ -2225,6 +2225,9 @@ mod tests {
                 enabled: true,
             },
             resources_proto::ScheduleStatus {
+                observed_generation: 0,
+                phase: String::new(),
+                conditions: Vec::new(),
                 revision: 7,
                 next_run_at: Some(111),
                 backend_handle: Some("handle-1".to_string()),

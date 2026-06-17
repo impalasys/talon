@@ -4383,24 +4383,66 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated string rendered_resources = 1;</code>
+     * <code>uint64 observed_generation = 1;</code>
+     * @return The observedGeneration.
+     */
+    long getObservedGeneration();
+
+    /**
+     * <code>string phase = 2;</code>
+     * @return The phase.
+     */
+    java.lang.String getPhase();
+    /**
+     * <code>string phase = 2;</code>
+     * @return The bytes for phase.
+     */
+    com.google.protobuf.ByteString
+        getPhaseBytes();
+
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    java.util.List<talon.resources.Common.ResourceCondition>
+        getConditionsList();
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    talon.resources.Common.ResourceCondition getConditions(int index);
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    int getConditionsCount();
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    java.util.List<? extends talon.resources.Common.ResourceConditionOrBuilder>
+        getConditionsOrBuilderList();
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    talon.resources.Common.ResourceConditionOrBuilder getConditionsOrBuilder(
+        int index);
+
+    /**
+     * <code>repeated string rendered_resources = 4;</code>
      * @return A list containing the renderedResources.
      */
     java.util.List<java.lang.String>
         getRenderedResourcesList();
     /**
-     * <code>repeated string rendered_resources = 1;</code>
+     * <code>repeated string rendered_resources = 4;</code>
      * @return The count of renderedResources.
      */
     int getRenderedResourcesCount();
     /**
-     * <code>repeated string rendered_resources = 1;</code>
+     * <code>repeated string rendered_resources = 4;</code>
      * @param index The index of the element to return.
      * @return The renderedResources at the given index.
      */
     java.lang.String getRenderedResources(int index);
     /**
-     * <code>repeated string rendered_resources = 1;</code>
+     * <code>repeated string rendered_resources = 4;</code>
      * @param index The index of the value to return.
      * @return The bytes of the renderedResources at the given index.
      */
@@ -4408,11 +4450,11 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
         getRenderedResourcesBytes(int index);
 
     /**
-     * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+     * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
      */
     int getRenderedHashesCount();
     /**
-     * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+     * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
      */
     boolean containsRenderedHashes(
         java.lang.String key);
@@ -4423,12 +4465,12 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
     java.util.Map<java.lang.String, java.lang.String>
     getRenderedHashes();
     /**
-     * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+     * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
      */
     java.util.Map<java.lang.String, java.lang.String>
     getRenderedHashesMap();
     /**
-     * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+     * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
      */
     /* nullable */
 java.lang.String getRenderedHashesOrDefault(
@@ -4436,30 +4478,30 @@ java.lang.String getRenderedHashesOrDefault(
         /* nullable */
 java.lang.String defaultValue);
     /**
-     * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+     * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
      */
     java.lang.String getRenderedHashesOrThrow(
         java.lang.String key);
 
     /**
-     * <code>repeated string conflicts = 3;</code>
+     * <code>repeated string conflicts = 6;</code>
      * @return A list containing the conflicts.
      */
     java.util.List<java.lang.String>
         getConflictsList();
     /**
-     * <code>repeated string conflicts = 3;</code>
+     * <code>repeated string conflicts = 6;</code>
      * @return The count of conflicts.
      */
     int getConflictsCount();
     /**
-     * <code>repeated string conflicts = 3;</code>
+     * <code>repeated string conflicts = 6;</code>
      * @param index The index of the element to return.
      * @return The conflicts at the given index.
      */
     java.lang.String getConflicts(int index);
     /**
-     * <code>repeated string conflicts = 3;</code>
+     * <code>repeated string conflicts = 6;</code>
      * @param index The index of the value to return.
      * @return The bytes of the conflicts at the given index.
      */
@@ -4467,11 +4509,11 @@ java.lang.String defaultValue);
         getConflictsBytes(int index);
 
     /**
-     * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+     * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
      */
     int getLastRenderedJsonCount();
     /**
-     * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+     * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
      */
     boolean containsLastRenderedJson(
         java.lang.String key);
@@ -4482,12 +4524,12 @@ java.lang.String defaultValue);
     java.util.Map<java.lang.String, java.lang.String>
     getLastRenderedJson();
     /**
-     * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+     * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
      */
     java.util.Map<java.lang.String, java.lang.String>
     getLastRenderedJsonMap();
     /**
-     * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+     * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
      */
     /* nullable */
 java.lang.String getLastRenderedJsonOrDefault(
@@ -4495,47 +4537,35 @@ java.lang.String getLastRenderedJsonOrDefault(
         /* nullable */
 java.lang.String defaultValue);
     /**
-     * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+     * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
      */
     java.lang.String getLastRenderedJsonOrThrow(
         java.lang.String key);
 
     /**
-     * <code>repeated string owned_json_pointers = 5;</code>
+     * <code>repeated string owned_json_pointers = 8;</code>
      * @return A list containing the ownedJsonPointers.
      */
     java.util.List<java.lang.String>
         getOwnedJsonPointersList();
     /**
-     * <code>repeated string owned_json_pointers = 5;</code>
+     * <code>repeated string owned_json_pointers = 8;</code>
      * @return The count of ownedJsonPointers.
      */
     int getOwnedJsonPointersCount();
     /**
-     * <code>repeated string owned_json_pointers = 5;</code>
+     * <code>repeated string owned_json_pointers = 8;</code>
      * @param index The index of the element to return.
      * @return The ownedJsonPointers at the given index.
      */
     java.lang.String getOwnedJsonPointers(int index);
     /**
-     * <code>repeated string owned_json_pointers = 5;</code>
+     * <code>repeated string owned_json_pointers = 8;</code>
      * @param index The index of the value to return.
      * @return The bytes of the ownedJsonPointers at the given index.
      */
     com.google.protobuf.ByteString
         getOwnedJsonPointersBytes(int index);
-
-    /**
-     * <code>string phase = 6;</code>
-     * @return The phase.
-     */
-    java.lang.String getPhase();
-    /**
-     * <code>string phase = 6;</code>
-     * @return The bytes for phase.
-     */
-    com.google.protobuf.ByteString
-        getPhaseBytes();
   }
   /**
    * Protobuf type {@code talon.resources.DeploymentReplicaStatus}
@@ -4559,13 +4589,14 @@ java.lang.String defaultValue);
       super(builder);
     }
     private DeploymentReplicaStatus() {
+      phase_ = "";
+      conditions_ = java.util.Collections.emptyList();
       renderedResources_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
       conflicts_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
       ownedJsonPointers_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
-      phase_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -4583,9 +4614,9 @@ java.lang.String defaultValue);
     protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
         int number) {
       switch (number) {
-        case 2:
+        case 5:
           return internalGetRenderedHashes();
-        case 4:
+        case 7:
           return internalGetLastRenderedJson();
         default:
           throw new RuntimeException(
@@ -4600,12 +4631,103 @@ java.lang.String defaultValue);
               talon.resources.Deployments.DeploymentReplicaStatus.class, talon.resources.Deployments.DeploymentReplicaStatus.Builder.class);
     }
 
-    public static final int RENDERED_RESOURCES_FIELD_NUMBER = 1;
+    public static final int OBSERVED_GENERATION_FIELD_NUMBER = 1;
+    private long observedGeneration_ = 0L;
+    /**
+     * <code>uint64 observed_generation = 1;</code>
+     * @return The observedGeneration.
+     */
+    @java.lang.Override
+    public long getObservedGeneration() {
+      return observedGeneration_;
+    }
+
+    public static final int PHASE_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object phase_ = "";
+    /**
+     * <code>string phase = 2;</code>
+     * @return The phase.
+     */
+    @java.lang.Override
+    public java.lang.String getPhase() {
+      java.lang.Object ref = phase_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        phase_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string phase = 2;</code>
+     * @return The bytes for phase.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPhaseBytes() {
+      java.lang.Object ref = phase_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        phase_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CONDITIONS_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private java.util.List<talon.resources.Common.ResourceCondition> conditions_;
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    @java.lang.Override
+    public java.util.List<talon.resources.Common.ResourceCondition> getConditionsList() {
+      return conditions_;
+    }
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    @java.lang.Override
+    public java.util.List<? extends talon.resources.Common.ResourceConditionOrBuilder>
+        getConditionsOrBuilderList() {
+      return conditions_;
+    }
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    @java.lang.Override
+    public int getConditionsCount() {
+      return conditions_.size();
+    }
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceCondition getConditions(int index) {
+      return conditions_.get(index);
+    }
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceConditionOrBuilder getConditionsOrBuilder(
+        int index) {
+      return conditions_.get(index);
+    }
+
+    public static final int RENDERED_RESOURCES_FIELD_NUMBER = 4;
     @SuppressWarnings("serial")
     private com.google.protobuf.LazyStringArrayList renderedResources_ =
         com.google.protobuf.LazyStringArrayList.emptyList();
     /**
-     * <code>repeated string rendered_resources = 1;</code>
+     * <code>repeated string rendered_resources = 4;</code>
      * @return A list containing the renderedResources.
      */
     public com.google.protobuf.ProtocolStringList
@@ -4613,14 +4735,14 @@ java.lang.String defaultValue);
       return renderedResources_;
     }
     /**
-     * <code>repeated string rendered_resources = 1;</code>
+     * <code>repeated string rendered_resources = 4;</code>
      * @return The count of renderedResources.
      */
     public int getRenderedResourcesCount() {
       return renderedResources_.size();
     }
     /**
-     * <code>repeated string rendered_resources = 1;</code>
+     * <code>repeated string rendered_resources = 4;</code>
      * @param index The index of the element to return.
      * @return The renderedResources at the given index.
      */
@@ -4628,7 +4750,7 @@ java.lang.String defaultValue);
       return renderedResources_.get(index);
     }
     /**
-     * <code>repeated string rendered_resources = 1;</code>
+     * <code>repeated string rendered_resources = 4;</code>
      * @param index The index of the value to return.
      * @return The bytes of the renderedResources at the given index.
      */
@@ -4637,7 +4759,7 @@ java.lang.String defaultValue);
       return renderedResources_.getByteString(index);
     }
 
-    public static final int RENDERED_HASHES_FIELD_NUMBER = 2;
+    public static final int RENDERED_HASHES_FIELD_NUMBER = 5;
     private static final class RenderedHashesDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
           java.lang.String, java.lang.String> defaultEntry =
@@ -4664,7 +4786,7 @@ java.lang.String defaultValue);
       return internalGetRenderedHashes().getMap().size();
     }
     /**
-     * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+     * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
      */
     @java.lang.Override
     public boolean containsRenderedHashes(
@@ -4681,14 +4803,14 @@ java.lang.String defaultValue);
       return getRenderedHashesMap();
     }
     /**
-     * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+     * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
      */
     @java.lang.Override
     public java.util.Map<java.lang.String, java.lang.String> getRenderedHashesMap() {
       return internalGetRenderedHashes().getMap();
     }
     /**
-     * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+     * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
      */
     @java.lang.Override
     public /* nullable */
@@ -4702,7 +4824,7 @@ java.lang.String defaultValue) {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+     * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
      */
     @java.lang.Override
     public java.lang.String getRenderedHashesOrThrow(
@@ -4716,12 +4838,12 @@ java.lang.String defaultValue) {
       return map.get(key);
     }
 
-    public static final int CONFLICTS_FIELD_NUMBER = 3;
+    public static final int CONFLICTS_FIELD_NUMBER = 6;
     @SuppressWarnings("serial")
     private com.google.protobuf.LazyStringArrayList conflicts_ =
         com.google.protobuf.LazyStringArrayList.emptyList();
     /**
-     * <code>repeated string conflicts = 3;</code>
+     * <code>repeated string conflicts = 6;</code>
      * @return A list containing the conflicts.
      */
     public com.google.protobuf.ProtocolStringList
@@ -4729,14 +4851,14 @@ java.lang.String defaultValue) {
       return conflicts_;
     }
     /**
-     * <code>repeated string conflicts = 3;</code>
+     * <code>repeated string conflicts = 6;</code>
      * @return The count of conflicts.
      */
     public int getConflictsCount() {
       return conflicts_.size();
     }
     /**
-     * <code>repeated string conflicts = 3;</code>
+     * <code>repeated string conflicts = 6;</code>
      * @param index The index of the element to return.
      * @return The conflicts at the given index.
      */
@@ -4744,7 +4866,7 @@ java.lang.String defaultValue) {
       return conflicts_.get(index);
     }
     /**
-     * <code>repeated string conflicts = 3;</code>
+     * <code>repeated string conflicts = 6;</code>
      * @param index The index of the value to return.
      * @return The bytes of the conflicts at the given index.
      */
@@ -4753,7 +4875,7 @@ java.lang.String defaultValue) {
       return conflicts_.getByteString(index);
     }
 
-    public static final int LAST_RENDERED_JSON_FIELD_NUMBER = 4;
+    public static final int LAST_RENDERED_JSON_FIELD_NUMBER = 7;
     private static final class LastRenderedJsonDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
           java.lang.String, java.lang.String> defaultEntry =
@@ -4780,7 +4902,7 @@ java.lang.String defaultValue) {
       return internalGetLastRenderedJson().getMap().size();
     }
     /**
-     * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+     * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
      */
     @java.lang.Override
     public boolean containsLastRenderedJson(
@@ -4797,14 +4919,14 @@ java.lang.String defaultValue) {
       return getLastRenderedJsonMap();
     }
     /**
-     * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+     * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
      */
     @java.lang.Override
     public java.util.Map<java.lang.String, java.lang.String> getLastRenderedJsonMap() {
       return internalGetLastRenderedJson().getMap();
     }
     /**
-     * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+     * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
      */
     @java.lang.Override
     public /* nullable */
@@ -4818,7 +4940,7 @@ java.lang.String defaultValue) {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+     * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
      */
     @java.lang.Override
     public java.lang.String getLastRenderedJsonOrThrow(
@@ -4832,12 +4954,12 @@ java.lang.String defaultValue) {
       return map.get(key);
     }
 
-    public static final int OWNED_JSON_POINTERS_FIELD_NUMBER = 5;
+    public static final int OWNED_JSON_POINTERS_FIELD_NUMBER = 8;
     @SuppressWarnings("serial")
     private com.google.protobuf.LazyStringArrayList ownedJsonPointers_ =
         com.google.protobuf.LazyStringArrayList.emptyList();
     /**
-     * <code>repeated string owned_json_pointers = 5;</code>
+     * <code>repeated string owned_json_pointers = 8;</code>
      * @return A list containing the ownedJsonPointers.
      */
     public com.google.protobuf.ProtocolStringList
@@ -4845,14 +4967,14 @@ java.lang.String defaultValue) {
       return ownedJsonPointers_;
     }
     /**
-     * <code>repeated string owned_json_pointers = 5;</code>
+     * <code>repeated string owned_json_pointers = 8;</code>
      * @return The count of ownedJsonPointers.
      */
     public int getOwnedJsonPointersCount() {
       return ownedJsonPointers_.size();
     }
     /**
-     * <code>repeated string owned_json_pointers = 5;</code>
+     * <code>repeated string owned_json_pointers = 8;</code>
      * @param index The index of the element to return.
      * @return The ownedJsonPointers at the given index.
      */
@@ -4860,52 +4982,13 @@ java.lang.String defaultValue) {
       return ownedJsonPointers_.get(index);
     }
     /**
-     * <code>repeated string owned_json_pointers = 5;</code>
+     * <code>repeated string owned_json_pointers = 8;</code>
      * @param index The index of the value to return.
      * @return The bytes of the ownedJsonPointers at the given index.
      */
     public com.google.protobuf.ByteString
         getOwnedJsonPointersBytes(int index) {
       return ownedJsonPointers_.getByteString(index);
-    }
-
-    public static final int PHASE_FIELD_NUMBER = 6;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object phase_ = "";
-    /**
-     * <code>string phase = 6;</code>
-     * @return The phase.
-     */
-    @java.lang.Override
-    public java.lang.String getPhase() {
-      java.lang.Object ref = phase_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        phase_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string phase = 6;</code>
-     * @return The bytes for phase.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getPhaseBytes() {
-      java.lang.Object ref = phase_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        phase_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
     }
 
     private byte memoizedIsInitialized = -1;
@@ -4922,29 +5005,35 @@ java.lang.String defaultValue) {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      if (observedGeneration_ != 0L) {
+        output.writeUInt64(1, observedGeneration_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(phase_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, phase_);
+      }
+      for (int i = 0; i < conditions_.size(); i++) {
+        output.writeMessage(3, conditions_.get(i));
+      }
       for (int i = 0; i < renderedResources_.size(); i++) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, renderedResources_.getRaw(i));
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, renderedResources_.getRaw(i));
       }
       com.google.protobuf.GeneratedMessage
         .serializeStringMapTo(
           output,
           internalGetRenderedHashes(),
           RenderedHashesDefaultEntryHolder.defaultEntry,
-          2);
+          5);
       for (int i = 0; i < conflicts_.size(); i++) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, conflicts_.getRaw(i));
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, conflicts_.getRaw(i));
       }
       com.google.protobuf.GeneratedMessage
         .serializeStringMapTo(
           output,
           internalGetLastRenderedJson(),
           LastRenderedJsonDefaultEntryHolder.defaultEntry,
-          4);
+          7);
       for (int i = 0; i < ownedJsonPointers_.size(); i++) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 5, ownedJsonPointers_.getRaw(i));
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(phase_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 6, phase_);
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, ownedJsonPointers_.getRaw(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -4955,6 +5044,22 @@ java.lang.String defaultValue) {
       if (size != -1) return size;
 
       size = 0;
+      if (observedGeneration_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(1, observedGeneration_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(phase_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, phase_);
+      }
+
+          {
+            final int count = conditions_.size();
+            for (int i = 0; i < count; i++) {
+              size += com.google.protobuf.CodedOutputStream
+                .computeMessageSizeNoTag(conditions_.get(i));
+            }
+            size += 1 * count;
+          }
       {
         int dataSize = 0;
         for (int i = 0; i < renderedResources_.size(); i++) {
@@ -4971,7 +5076,7 @@ java.lang.String defaultValue) {
             .setValue(entry.getValue())
             .buildPartial();
         size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(2, renderedHashes__);
+            .computeMessageSize(5, renderedHashes__);
       }
       {
         int dataSize = 0;
@@ -4989,7 +5094,7 @@ java.lang.String defaultValue) {
             .setValue(entry.getValue())
             .buildPartial();
         size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(4, lastRenderedJson__);
+            .computeMessageSize(7, lastRenderedJson__);
       }
       {
         int dataSize = 0;
@@ -4998,9 +5103,6 @@ java.lang.String defaultValue) {
         }
         size += dataSize;
         size += 1 * getOwnedJsonPointersList().size();
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(phase_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, phase_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -5017,6 +5119,12 @@ java.lang.String defaultValue) {
       }
       talon.resources.Deployments.DeploymentReplicaStatus other = (talon.resources.Deployments.DeploymentReplicaStatus) obj;
 
+      if (getObservedGeneration()
+          != other.getObservedGeneration()) return false;
+      if (!getPhase()
+          .equals(other.getPhase())) return false;
+      if (!getConditionsList()
+          .equals(other.getConditionsList())) return false;
       if (!getRenderedResourcesList()
           .equals(other.getRenderedResourcesList())) return false;
       if (!internalGetRenderedHashes().equals(
@@ -5027,8 +5135,6 @@ java.lang.String defaultValue) {
           other.internalGetLastRenderedJson())) return false;
       if (!getOwnedJsonPointersList()
           .equals(other.getOwnedJsonPointersList())) return false;
-      if (!getPhase()
-          .equals(other.getPhase())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -5040,6 +5146,15 @@ java.lang.String defaultValue) {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + OBSERVED_GENERATION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getObservedGeneration());
+      hash = (37 * hash) + PHASE_FIELD_NUMBER;
+      hash = (53 * hash) + getPhase().hashCode();
+      if (getConditionsCount() > 0) {
+        hash = (37 * hash) + CONDITIONS_FIELD_NUMBER;
+        hash = (53 * hash) + getConditionsList().hashCode();
+      }
       if (getRenderedResourcesCount() > 0) {
         hash = (37 * hash) + RENDERED_RESOURCES_FIELD_NUMBER;
         hash = (53 * hash) + getRenderedResourcesList().hashCode();
@@ -5060,8 +5175,6 @@ java.lang.String defaultValue) {
         hash = (37 * hash) + OWNED_JSON_POINTERS_FIELD_NUMBER;
         hash = (53 * hash) + getOwnedJsonPointersList().hashCode();
       }
-      hash = (37 * hash) + PHASE_FIELD_NUMBER;
-      hash = (53 * hash) + getPhase().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -5175,9 +5288,9 @@ java.lang.String defaultValue) {
       protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
           int number) {
         switch (number) {
-          case 2:
+          case 5:
             return internalGetRenderedHashes();
-          case 4:
+          case 7:
             return internalGetLastRenderedJson();
           default:
             throw new RuntimeException(
@@ -5188,9 +5301,9 @@ java.lang.String defaultValue) {
       protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
           int number) {
         switch (number) {
-          case 2:
+          case 5:
             return internalGetMutableRenderedHashes();
-          case 4:
+          case 7:
             return internalGetMutableLastRenderedJson();
           default:
             throw new RuntimeException(
@@ -5219,6 +5332,15 @@ java.lang.String defaultValue) {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
+        observedGeneration_ = 0L;
+        phase_ = "";
+        if (conditionsBuilder_ == null) {
+          conditions_ = java.util.Collections.emptyList();
+        } else {
+          conditions_ = null;
+          conditionsBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000004);
         renderedResources_ =
             com.google.protobuf.LazyStringArrayList.emptyList();
         internalGetMutableRenderedHashes().clear();
@@ -5227,7 +5349,6 @@ java.lang.String defaultValue) {
         internalGetMutableLastRenderedJson().clear();
         ownedJsonPointers_ =
             com.google.protobuf.LazyStringArrayList.emptyList();
-        phase_ = "";
         return this;
       }
 
@@ -5254,35 +5375,51 @@ java.lang.String defaultValue) {
       @java.lang.Override
       public talon.resources.Deployments.DeploymentReplicaStatus buildPartial() {
         talon.resources.Deployments.DeploymentReplicaStatus result = new talon.resources.Deployments.DeploymentReplicaStatus(this);
+        buildPartialRepeatedFields(result);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
+      private void buildPartialRepeatedFields(talon.resources.Deployments.DeploymentReplicaStatus result) {
+        if (conditionsBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0)) {
+            conditions_ = java.util.Collections.unmodifiableList(conditions_);
+            bitField0_ = (bitField0_ & ~0x00000004);
+          }
+          result.conditions_ = conditions_;
+        } else {
+          result.conditions_ = conditionsBuilder_.build();
+        }
+      }
+
       private void buildPartial0(talon.resources.Deployments.DeploymentReplicaStatus result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.observedGeneration_ = observedGeneration_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.phase_ = phase_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
           renderedResources_.makeImmutable();
           result.renderedResources_ = renderedResources_;
         }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
+        if (((from_bitField0_ & 0x00000010) != 0)) {
           result.renderedHashes_ = internalGetRenderedHashes();
           result.renderedHashes_.makeImmutable();
         }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
+        if (((from_bitField0_ & 0x00000020) != 0)) {
           conflicts_.makeImmutable();
           result.conflicts_ = conflicts_;
         }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
+        if (((from_bitField0_ & 0x00000040) != 0)) {
           result.lastRenderedJson_ = internalGetLastRenderedJson();
           result.lastRenderedJson_.makeImmutable();
         }
-        if (((from_bitField0_ & 0x00000010) != 0)) {
+        if (((from_bitField0_ & 0x00000080) != 0)) {
           ownedJsonPointers_.makeImmutable();
           result.ownedJsonPointers_ = ownedJsonPointers_;
-        }
-        if (((from_bitField0_ & 0x00000020) != 0)) {
-          result.phase_ = phase_;
         }
       }
 
@@ -5298,10 +5435,44 @@ java.lang.String defaultValue) {
 
       public Builder mergeFrom(talon.resources.Deployments.DeploymentReplicaStatus other) {
         if (other == talon.resources.Deployments.DeploymentReplicaStatus.getDefaultInstance()) return this;
+        if (other.getObservedGeneration() != 0L) {
+          setObservedGeneration(other.getObservedGeneration());
+        }
+        if (!other.getPhase().isEmpty()) {
+          phase_ = other.phase_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (conditionsBuilder_ == null) {
+          if (!other.conditions_.isEmpty()) {
+            if (conditions_.isEmpty()) {
+              conditions_ = other.conditions_;
+              bitField0_ = (bitField0_ & ~0x00000004);
+            } else {
+              ensureConditionsIsMutable();
+              conditions_.addAll(other.conditions_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.conditions_.isEmpty()) {
+            if (conditionsBuilder_.isEmpty()) {
+              conditionsBuilder_.dispose();
+              conditionsBuilder_ = null;
+              conditions_ = other.conditions_;
+              bitField0_ = (bitField0_ & ~0x00000004);
+              conditionsBuilder_ =
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   internalGetConditionsFieldBuilder() : null;
+            } else {
+              conditionsBuilder_.addAllMessages(other.conditions_);
+            }
+          }
+        }
         if (!other.renderedResources_.isEmpty()) {
           if (renderedResources_.isEmpty()) {
             renderedResources_ = other.renderedResources_;
-            bitField0_ |= 0x00000001;
+            bitField0_ |= 0x00000008;
           } else {
             ensureRenderedResourcesIsMutable();
             renderedResources_.addAll(other.renderedResources_);
@@ -5310,11 +5481,11 @@ java.lang.String defaultValue) {
         }
         internalGetMutableRenderedHashes().mergeFrom(
             other.internalGetRenderedHashes());
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000010;
         if (!other.conflicts_.isEmpty()) {
           if (conflicts_.isEmpty()) {
             conflicts_ = other.conflicts_;
-            bitField0_ |= 0x00000004;
+            bitField0_ |= 0x00000020;
           } else {
             ensureConflictsIsMutable();
             conflicts_.addAll(other.conflicts_);
@@ -5323,20 +5494,15 @@ java.lang.String defaultValue) {
         }
         internalGetMutableLastRenderedJson().mergeFrom(
             other.internalGetLastRenderedJson());
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000040;
         if (!other.ownedJsonPointers_.isEmpty()) {
           if (ownedJsonPointers_.isEmpty()) {
             ownedJsonPointers_ = other.ownedJsonPointers_;
-            bitField0_ |= 0x00000010;
+            bitField0_ |= 0x00000080;
           } else {
             ensureOwnedJsonPointersIsMutable();
             ownedJsonPointers_.addAll(other.ownedJsonPointers_);
           }
-          onChanged();
-        }
-        if (!other.getPhase().isEmpty()) {
-          phase_ = other.phase_;
-          bitField0_ |= 0x00000020;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -5365,44 +5531,62 @@ java.lang.String defaultValue) {
               case 0:
                 done = true;
                 break;
-              case 10: {
+              case 8: {
+                observedGeneration_ = input.readUInt64();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 8
+              case 18: {
+                phase_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                talon.resources.Common.ResourceCondition m =
+                    input.readMessage(
+                        talon.resources.Common.ResourceCondition.parser(),
+                        extensionRegistry);
+                if (conditionsBuilder_ == null) {
+                  ensureConditionsIsMutable();
+                  conditions_.add(m);
+                } else {
+                  conditionsBuilder_.addMessage(m);
+                }
+                break;
+              } // case 26
+              case 34: {
                 ensureRenderedResourcesIsMutable();
                 renderedResources_.add(input.readStringRequireUtf8());
                 break;
-              } // case 10
-              case 18: {
+              } // case 34
+              case 42: {
                 com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
                 renderedHashes__ = input.readMessage(
                     RenderedHashesDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
                 internalGetMutableRenderedHashes().getMutableMap().put(
                     renderedHashes__.getKey(), renderedHashes__.getValue());
-                bitField0_ |= 0x00000002;
+                bitField0_ |= 0x00000010;
                 break;
-              } // case 18
-              case 26: {
+              } // case 42
+              case 50: {
                 ensureConflictsIsMutable();
                 conflicts_.add(input.readStringRequireUtf8());
                 break;
-              } // case 26
-              case 34: {
+              } // case 50
+              case 58: {
                 com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
                 lastRenderedJson__ = input.readMessage(
                     LastRenderedJsonDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
                 internalGetMutableLastRenderedJson().getMutableMap().put(
                     lastRenderedJson__.getKey(), lastRenderedJson__.getValue());
-                bitField0_ |= 0x00000008;
+                bitField0_ |= 0x00000040;
                 break;
-              } // case 34
-              case 42: {
+              } // case 58
+              case 66: {
                 ensureOwnedJsonPointersIsMutable();
                 ownedJsonPointers_.add(input.readStringRequireUtf8());
                 break;
-              } // case 42
-              case 50: {
-                phase_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000020;
-                break;
-              } // case 50
+              } // case 66
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -5420,16 +5604,360 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
+      private long observedGeneration_ ;
+      /**
+       * <code>uint64 observed_generation = 1;</code>
+       * @return The observedGeneration.
+       */
+      @java.lang.Override
+      public long getObservedGeneration() {
+        return observedGeneration_;
+      }
+      /**
+       * <code>uint64 observed_generation = 1;</code>
+       * @param value The observedGeneration to set.
+       * @return This builder for chaining.
+       */
+      public Builder setObservedGeneration(long value) {
+
+        observedGeneration_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 observed_generation = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearObservedGeneration() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        observedGeneration_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object phase_ = "";
+      /**
+       * <code>string phase = 2;</code>
+       * @return The phase.
+       */
+      public java.lang.String getPhase() {
+        java.lang.Object ref = phase_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          phase_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string phase = 2;</code>
+       * @return The bytes for phase.
+       */
+      public com.google.protobuf.ByteString
+          getPhaseBytes() {
+        java.lang.Object ref = phase_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          phase_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string phase = 2;</code>
+       * @param value The phase to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPhase(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        phase_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string phase = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPhase() {
+        phase_ = getDefaultInstance().getPhase();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string phase = 2;</code>
+       * @param value The bytes for phase to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPhaseBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        phase_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<talon.resources.Common.ResourceCondition> conditions_ =
+        java.util.Collections.emptyList();
+      private void ensureConditionsIsMutable() {
+        if (!((bitField0_ & 0x00000004) != 0)) {
+          conditions_ = new java.util.ArrayList<talon.resources.Common.ResourceCondition>(conditions_);
+          bitField0_ |= 0x00000004;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.resources.Common.ResourceCondition, talon.resources.Common.ResourceCondition.Builder, talon.resources.Common.ResourceConditionOrBuilder> conditionsBuilder_;
+
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public java.util.List<talon.resources.Common.ResourceCondition> getConditionsList() {
+        if (conditionsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(conditions_);
+        } else {
+          return conditionsBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public int getConditionsCount() {
+        if (conditionsBuilder_ == null) {
+          return conditions_.size();
+        } else {
+          return conditionsBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public talon.resources.Common.ResourceCondition getConditions(int index) {
+        if (conditionsBuilder_ == null) {
+          return conditions_.get(index);
+        } else {
+          return conditionsBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder setConditions(
+          int index, talon.resources.Common.ResourceCondition value) {
+        if (conditionsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureConditionsIsMutable();
+          conditions_.set(index, value);
+          onChanged();
+        } else {
+          conditionsBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder setConditions(
+          int index, talon.resources.Common.ResourceCondition.Builder builderForValue) {
+        if (conditionsBuilder_ == null) {
+          ensureConditionsIsMutable();
+          conditions_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          conditionsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder addConditions(talon.resources.Common.ResourceCondition value) {
+        if (conditionsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureConditionsIsMutable();
+          conditions_.add(value);
+          onChanged();
+        } else {
+          conditionsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder addConditions(
+          int index, talon.resources.Common.ResourceCondition value) {
+        if (conditionsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureConditionsIsMutable();
+          conditions_.add(index, value);
+          onChanged();
+        } else {
+          conditionsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder addConditions(
+          talon.resources.Common.ResourceCondition.Builder builderForValue) {
+        if (conditionsBuilder_ == null) {
+          ensureConditionsIsMutable();
+          conditions_.add(builderForValue.build());
+          onChanged();
+        } else {
+          conditionsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder addConditions(
+          int index, talon.resources.Common.ResourceCondition.Builder builderForValue) {
+        if (conditionsBuilder_ == null) {
+          ensureConditionsIsMutable();
+          conditions_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          conditionsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder addAllConditions(
+          java.lang.Iterable<? extends talon.resources.Common.ResourceCondition> values) {
+        if (conditionsBuilder_ == null) {
+          ensureConditionsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, conditions_);
+          onChanged();
+        } else {
+          conditionsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder clearConditions() {
+        if (conditionsBuilder_ == null) {
+          conditions_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000004);
+          onChanged();
+        } else {
+          conditionsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder removeConditions(int index) {
+        if (conditionsBuilder_ == null) {
+          ensureConditionsIsMutable();
+          conditions_.remove(index);
+          onChanged();
+        } else {
+          conditionsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public talon.resources.Common.ResourceCondition.Builder getConditionsBuilder(
+          int index) {
+        return internalGetConditionsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public talon.resources.Common.ResourceConditionOrBuilder getConditionsOrBuilder(
+          int index) {
+        if (conditionsBuilder_ == null) {
+          return conditions_.get(index);  } else {
+          return conditionsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public java.util.List<? extends talon.resources.Common.ResourceConditionOrBuilder>
+           getConditionsOrBuilderList() {
+        if (conditionsBuilder_ != null) {
+          return conditionsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(conditions_);
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public talon.resources.Common.ResourceCondition.Builder addConditionsBuilder() {
+        return internalGetConditionsFieldBuilder().addBuilder(
+            talon.resources.Common.ResourceCondition.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public talon.resources.Common.ResourceCondition.Builder addConditionsBuilder(
+          int index) {
+        return internalGetConditionsFieldBuilder().addBuilder(
+            index, talon.resources.Common.ResourceCondition.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public java.util.List<talon.resources.Common.ResourceCondition.Builder>
+           getConditionsBuilderList() {
+        return internalGetConditionsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.resources.Common.ResourceCondition, talon.resources.Common.ResourceCondition.Builder, talon.resources.Common.ResourceConditionOrBuilder>
+          internalGetConditionsFieldBuilder() {
+        if (conditionsBuilder_ == null) {
+          conditionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              talon.resources.Common.ResourceCondition, talon.resources.Common.ResourceCondition.Builder, talon.resources.Common.ResourceConditionOrBuilder>(
+                  conditions_,
+                  ((bitField0_ & 0x00000004) != 0),
+                  getParentForChildren(),
+                  isClean());
+          conditions_ = null;
+        }
+        return conditionsBuilder_;
+      }
+
       private com.google.protobuf.LazyStringArrayList renderedResources_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
       private void ensureRenderedResourcesIsMutable() {
         if (!renderedResources_.isModifiable()) {
           renderedResources_ = new com.google.protobuf.LazyStringArrayList(renderedResources_);
         }
-        bitField0_ |= 0x00000001;
+        bitField0_ |= 0x00000008;
       }
       /**
-       * <code>repeated string rendered_resources = 1;</code>
+       * <code>repeated string rendered_resources = 4;</code>
        * @return A list containing the renderedResources.
        */
       public com.google.protobuf.ProtocolStringList
@@ -5438,14 +5966,14 @@ java.lang.String defaultValue) {
         return renderedResources_;
       }
       /**
-       * <code>repeated string rendered_resources = 1;</code>
+       * <code>repeated string rendered_resources = 4;</code>
        * @return The count of renderedResources.
        */
       public int getRenderedResourcesCount() {
         return renderedResources_.size();
       }
       /**
-       * <code>repeated string rendered_resources = 1;</code>
+       * <code>repeated string rendered_resources = 4;</code>
        * @param index The index of the element to return.
        * @return The renderedResources at the given index.
        */
@@ -5453,7 +5981,7 @@ java.lang.String defaultValue) {
         return renderedResources_.get(index);
       }
       /**
-       * <code>repeated string rendered_resources = 1;</code>
+       * <code>repeated string rendered_resources = 4;</code>
        * @param index The index of the value to return.
        * @return The bytes of the renderedResources at the given index.
        */
@@ -5462,7 +5990,7 @@ java.lang.String defaultValue) {
         return renderedResources_.getByteString(index);
       }
       /**
-       * <code>repeated string rendered_resources = 1;</code>
+       * <code>repeated string rendered_resources = 4;</code>
        * @param index The index to set the value at.
        * @param value The renderedResources to set.
        * @return This builder for chaining.
@@ -5472,12 +6000,12 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         ensureRenderedResourcesIsMutable();
         renderedResources_.set(index, value);
-        bitField0_ |= 0x00000001;
+        bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string rendered_resources = 1;</code>
+       * <code>repeated string rendered_resources = 4;</code>
        * @param value The renderedResources to add.
        * @return This builder for chaining.
        */
@@ -5486,12 +6014,12 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         ensureRenderedResourcesIsMutable();
         renderedResources_.add(value);
-        bitField0_ |= 0x00000001;
+        bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string rendered_resources = 1;</code>
+       * <code>repeated string rendered_resources = 4;</code>
        * @param values The renderedResources to add.
        * @return This builder for chaining.
        */
@@ -5500,23 +6028,23 @@ java.lang.String defaultValue) {
         ensureRenderedResourcesIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
             values, renderedResources_);
-        bitField0_ |= 0x00000001;
+        bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string rendered_resources = 1;</code>
+       * <code>repeated string rendered_resources = 4;</code>
        * @return This builder for chaining.
        */
       public Builder clearRenderedResources() {
         renderedResources_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000001);;
+        bitField0_ = (bitField0_ & ~0x00000008);;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string rendered_resources = 1;</code>
+       * <code>repeated string rendered_resources = 4;</code>
        * @param value The bytes of the renderedResources to add.
        * @return This builder for chaining.
        */
@@ -5526,7 +6054,7 @@ java.lang.String defaultValue) {
         checkByteStringIsUtf8(value);
         ensureRenderedResourcesIsMutable();
         renderedResources_.add(value);
-        bitField0_ |= 0x00000001;
+        bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
@@ -5550,7 +6078,7 @@ java.lang.String defaultValue) {
         if (!renderedHashes_.isMutable()) {
           renderedHashes_ = renderedHashes_.copy();
         }
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000010;
         onChanged();
         return renderedHashes_;
       }
@@ -5558,7 +6086,7 @@ java.lang.String defaultValue) {
         return internalGetRenderedHashes().getMap().size();
       }
       /**
-       * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+       * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
        */
       @java.lang.Override
       public boolean containsRenderedHashes(
@@ -5575,14 +6103,14 @@ java.lang.String defaultValue) {
         return getRenderedHashesMap();
       }
       /**
-       * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+       * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
        */
       @java.lang.Override
       public java.util.Map<java.lang.String, java.lang.String> getRenderedHashesMap() {
         return internalGetRenderedHashes().getMap();
       }
       /**
-       * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+       * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
        */
       @java.lang.Override
       public /* nullable */
@@ -5596,7 +6124,7 @@ java.lang.String defaultValue) {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
-       * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+       * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
        */
       @java.lang.Override
       public java.lang.String getRenderedHashesOrThrow(
@@ -5610,13 +6138,13 @@ java.lang.String defaultValue) {
         return map.get(key);
       }
       public Builder clearRenderedHashes() {
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000010);
         internalGetMutableRenderedHashes().getMutableMap()
             .clear();
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+       * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
        */
       public Builder removeRenderedHashes(
           java.lang.String key) {
@@ -5631,11 +6159,11 @@ java.lang.String defaultValue) {
       @java.lang.Deprecated
       public java.util.Map<java.lang.String, java.lang.String>
           getMutableRenderedHashes() {
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000010;
         return internalGetMutableRenderedHashes().getMutableMap();
       }
       /**
-       * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+       * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
        */
       public Builder putRenderedHashes(
           java.lang.String key,
@@ -5644,17 +6172,17 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException("map value"); }
         internalGetMutableRenderedHashes().getMutableMap()
             .put(key, value);
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000010;
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; rendered_hashes = 2;</code>
+       * <code>map&lt;string, string&gt; rendered_hashes = 5;</code>
        */
       public Builder putAllRenderedHashes(
           java.util.Map<java.lang.String, java.lang.String> values) {
         internalGetMutableRenderedHashes().getMutableMap()
             .putAll(values);
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000010;
         return this;
       }
 
@@ -5664,10 +6192,10 @@ java.lang.String defaultValue) {
         if (!conflicts_.isModifiable()) {
           conflicts_ = new com.google.protobuf.LazyStringArrayList(conflicts_);
         }
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000020;
       }
       /**
-       * <code>repeated string conflicts = 3;</code>
+       * <code>repeated string conflicts = 6;</code>
        * @return A list containing the conflicts.
        */
       public com.google.protobuf.ProtocolStringList
@@ -5676,14 +6204,14 @@ java.lang.String defaultValue) {
         return conflicts_;
       }
       /**
-       * <code>repeated string conflicts = 3;</code>
+       * <code>repeated string conflicts = 6;</code>
        * @return The count of conflicts.
        */
       public int getConflictsCount() {
         return conflicts_.size();
       }
       /**
-       * <code>repeated string conflicts = 3;</code>
+       * <code>repeated string conflicts = 6;</code>
        * @param index The index of the element to return.
        * @return The conflicts at the given index.
        */
@@ -5691,7 +6219,7 @@ java.lang.String defaultValue) {
         return conflicts_.get(index);
       }
       /**
-       * <code>repeated string conflicts = 3;</code>
+       * <code>repeated string conflicts = 6;</code>
        * @param index The index of the value to return.
        * @return The bytes of the conflicts at the given index.
        */
@@ -5700,7 +6228,7 @@ java.lang.String defaultValue) {
         return conflicts_.getByteString(index);
       }
       /**
-       * <code>repeated string conflicts = 3;</code>
+       * <code>repeated string conflicts = 6;</code>
        * @param index The index to set the value at.
        * @param value The conflicts to set.
        * @return This builder for chaining.
@@ -5710,12 +6238,12 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         ensureConflictsIsMutable();
         conflicts_.set(index, value);
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string conflicts = 3;</code>
+       * <code>repeated string conflicts = 6;</code>
        * @param value The conflicts to add.
        * @return This builder for chaining.
        */
@@ -5724,12 +6252,12 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         ensureConflictsIsMutable();
         conflicts_.add(value);
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string conflicts = 3;</code>
+       * <code>repeated string conflicts = 6;</code>
        * @param values The conflicts to add.
        * @return This builder for chaining.
        */
@@ -5738,23 +6266,23 @@ java.lang.String defaultValue) {
         ensureConflictsIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
             values, conflicts_);
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string conflicts = 3;</code>
+       * <code>repeated string conflicts = 6;</code>
        * @return This builder for chaining.
        */
       public Builder clearConflicts() {
         conflicts_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000004);;
+        bitField0_ = (bitField0_ & ~0x00000020);;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string conflicts = 3;</code>
+       * <code>repeated string conflicts = 6;</code>
        * @param value The bytes of the conflicts to add.
        * @return This builder for chaining.
        */
@@ -5764,7 +6292,7 @@ java.lang.String defaultValue) {
         checkByteStringIsUtf8(value);
         ensureConflictsIsMutable();
         conflicts_.add(value);
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
@@ -5788,7 +6316,7 @@ java.lang.String defaultValue) {
         if (!lastRenderedJson_.isMutable()) {
           lastRenderedJson_ = lastRenderedJson_.copy();
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000040;
         onChanged();
         return lastRenderedJson_;
       }
@@ -5796,7 +6324,7 @@ java.lang.String defaultValue) {
         return internalGetLastRenderedJson().getMap().size();
       }
       /**
-       * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+       * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
        */
       @java.lang.Override
       public boolean containsLastRenderedJson(
@@ -5813,14 +6341,14 @@ java.lang.String defaultValue) {
         return getLastRenderedJsonMap();
       }
       /**
-       * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+       * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
        */
       @java.lang.Override
       public java.util.Map<java.lang.String, java.lang.String> getLastRenderedJsonMap() {
         return internalGetLastRenderedJson().getMap();
       }
       /**
-       * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+       * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
        */
       @java.lang.Override
       public /* nullable */
@@ -5834,7 +6362,7 @@ java.lang.String defaultValue) {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
-       * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+       * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
        */
       @java.lang.Override
       public java.lang.String getLastRenderedJsonOrThrow(
@@ -5848,13 +6376,13 @@ java.lang.String defaultValue) {
         return map.get(key);
       }
       public Builder clearLastRenderedJson() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000040);
         internalGetMutableLastRenderedJson().getMutableMap()
             .clear();
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+       * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
        */
       public Builder removeLastRenderedJson(
           java.lang.String key) {
@@ -5869,11 +6397,11 @@ java.lang.String defaultValue) {
       @java.lang.Deprecated
       public java.util.Map<java.lang.String, java.lang.String>
           getMutableLastRenderedJson() {
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000040;
         return internalGetMutableLastRenderedJson().getMutableMap();
       }
       /**
-       * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+       * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
        */
       public Builder putLastRenderedJson(
           java.lang.String key,
@@ -5882,17 +6410,17 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException("map value"); }
         internalGetMutableLastRenderedJson().getMutableMap()
             .put(key, value);
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000040;
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; last_rendered_json = 4;</code>
+       * <code>map&lt;string, string&gt; last_rendered_json = 7;</code>
        */
       public Builder putAllLastRenderedJson(
           java.util.Map<java.lang.String, java.lang.String> values) {
         internalGetMutableLastRenderedJson().getMutableMap()
             .putAll(values);
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000040;
         return this;
       }
 
@@ -5902,10 +6430,10 @@ java.lang.String defaultValue) {
         if (!ownedJsonPointers_.isModifiable()) {
           ownedJsonPointers_ = new com.google.protobuf.LazyStringArrayList(ownedJsonPointers_);
         }
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000080;
       }
       /**
-       * <code>repeated string owned_json_pointers = 5;</code>
+       * <code>repeated string owned_json_pointers = 8;</code>
        * @return A list containing the ownedJsonPointers.
        */
       public com.google.protobuf.ProtocolStringList
@@ -5914,14 +6442,14 @@ java.lang.String defaultValue) {
         return ownedJsonPointers_;
       }
       /**
-       * <code>repeated string owned_json_pointers = 5;</code>
+       * <code>repeated string owned_json_pointers = 8;</code>
        * @return The count of ownedJsonPointers.
        */
       public int getOwnedJsonPointersCount() {
         return ownedJsonPointers_.size();
       }
       /**
-       * <code>repeated string owned_json_pointers = 5;</code>
+       * <code>repeated string owned_json_pointers = 8;</code>
        * @param index The index of the element to return.
        * @return The ownedJsonPointers at the given index.
        */
@@ -5929,7 +6457,7 @@ java.lang.String defaultValue) {
         return ownedJsonPointers_.get(index);
       }
       /**
-       * <code>repeated string owned_json_pointers = 5;</code>
+       * <code>repeated string owned_json_pointers = 8;</code>
        * @param index The index of the value to return.
        * @return The bytes of the ownedJsonPointers at the given index.
        */
@@ -5938,7 +6466,7 @@ java.lang.String defaultValue) {
         return ownedJsonPointers_.getByteString(index);
       }
       /**
-       * <code>repeated string owned_json_pointers = 5;</code>
+       * <code>repeated string owned_json_pointers = 8;</code>
        * @param index The index to set the value at.
        * @param value The ownedJsonPointers to set.
        * @return This builder for chaining.
@@ -5948,12 +6476,12 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         ensureOwnedJsonPointersIsMutable();
         ownedJsonPointers_.set(index, value);
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000080;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string owned_json_pointers = 5;</code>
+       * <code>repeated string owned_json_pointers = 8;</code>
        * @param value The ownedJsonPointers to add.
        * @return This builder for chaining.
        */
@@ -5962,12 +6490,12 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         ensureOwnedJsonPointersIsMutable();
         ownedJsonPointers_.add(value);
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000080;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string owned_json_pointers = 5;</code>
+       * <code>repeated string owned_json_pointers = 8;</code>
        * @param values The ownedJsonPointers to add.
        * @return This builder for chaining.
        */
@@ -5976,23 +6504,23 @@ java.lang.String defaultValue) {
         ensureOwnedJsonPointersIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
             values, ownedJsonPointers_);
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000080;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string owned_json_pointers = 5;</code>
+       * <code>repeated string owned_json_pointers = 8;</code>
        * @return This builder for chaining.
        */
       public Builder clearOwnedJsonPointers() {
         ownedJsonPointers_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000010);;
+        bitField0_ = (bitField0_ & ~0x00000080);;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string owned_json_pointers = 5;</code>
+       * <code>repeated string owned_json_pointers = 8;</code>
        * @param value The bytes of the ownedJsonPointers to add.
        * @return This builder for chaining.
        */
@@ -6002,79 +6530,7 @@ java.lang.String defaultValue) {
         checkByteStringIsUtf8(value);
         ensureOwnedJsonPointersIsMutable();
         ownedJsonPointers_.add(value);
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object phase_ = "";
-      /**
-       * <code>string phase = 6;</code>
-       * @return The phase.
-       */
-      public java.lang.String getPhase() {
-        java.lang.Object ref = phase_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          phase_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string phase = 6;</code>
-       * @return The bytes for phase.
-       */
-      public com.google.protobuf.ByteString
-          getPhaseBytes() {
-        java.lang.Object ref = phase_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          phase_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string phase = 6;</code>
-       * @param value The phase to set.
-       * @return This builder for chaining.
-       */
-      public Builder setPhase(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        phase_ = value;
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string phase = 6;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearPhase() {
-        phase_ = getDefaultInstance().getPhase();
-        bitField0_ = (bitField0_ & ~0x00000020);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string phase = 6;</code>
-       * @param value The bytes for phase to set.
-       * @return This builder for chaining.
-       */
-      public Builder setPhaseBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        phase_ = value;
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000080;
         onChanged();
         return this;
       }
@@ -6194,18 +6650,20 @@ java.lang.String defaultValue) {
       "tStatus\022\033\n\023observed_generation\030\001 \001(\004\022\r\n\005" +
       "phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\".talon." +
       "resources.ResourceCondition\022.\n\010replicas\030" +
-      "\004 \003(\0132\034.talon.resources.ResourceRef\"\227\003\n\027" +
-      "DeploymentReplicaStatus\022\032\n\022rendered_reso" +
-      "urces\030\001 \003(\t\022U\n\017rendered_hashes\030\002 \003(\0132<.t" +
-      "alon.resources.DeploymentReplicaStatus.R" +
-      "enderedHashesEntry\022\021\n\tconflicts\030\003 \003(\t\022Z\n" +
-      "\022last_rendered_json\030\004 \003(\0132>.talon.resour" +
-      "ces.DeploymentReplicaStatus.LastRendered" +
-      "JsonEntry\022\033\n\023owned_json_pointers\030\005 \003(\t\022\r" +
-      "\n\005phase\030\006 \001(\t\0325\n\023RenderedHashesEntry\022\013\n\003" +
-      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\0327\n\025LastRend" +
-      "eredJsonEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
-      "\t:\0028\001b\006proto3"
+      "\004 \003(\0132\034.talon.resources.ResourceRef\"\354\003\n\027" +
+      "DeploymentReplicaStatus\022\033\n\023observed_gene" +
+      "ration\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\ncondition" +
+      "s\030\003 \003(\0132\".talon.resources.ResourceCondit" +
+      "ion\022\032\n\022rendered_resources\030\004 \003(\t\022U\n\017rende" +
+      "red_hashes\030\005 \003(\0132<.talon.resources.Deplo" +
+      "ymentReplicaStatus.RenderedHashesEntry\022\021" +
+      "\n\tconflicts\030\006 \003(\t\022Z\n\022last_rendered_json\030" +
+      "\007 \003(\0132>.talon.resources.DeploymentReplic" +
+      "aStatus.LastRenderedJsonEntry\022\033\n\023owned_j" +
+      "son_pointers\030\010 \003(\t\0325\n\023RenderedHashesEntr" +
+      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\0327\n\025Las" +
+      "tRenderedJsonEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value" +
+      "\030\002 \001(\t:\0028\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -6247,7 +6705,7 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_DeploymentReplicaStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_DeploymentReplicaStatus_descriptor,
-        new java.lang.String[] { "RenderedResources", "RenderedHashes", "Conflicts", "LastRenderedJson", "OwnedJsonPointers", "Phase", });
+        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "RenderedResources", "RenderedHashes", "Conflicts", "LastRenderedJson", "OwnedJsonPointers", });
     internal_static_talon_resources_DeploymentReplicaStatus_RenderedHashesEntry_descriptor =
       internal_static_talon_resources_DeploymentReplicaStatus_descriptor.getNestedType(0);
     internal_static_talon_resources_DeploymentReplicaStatus_RenderedHashesEntry_fieldAccessorTable = new

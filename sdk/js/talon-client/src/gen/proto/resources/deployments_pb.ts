@@ -242,34 +242,44 @@ export class DeploymentStatus extends Message<DeploymentStatus> {
  */
 export class DeploymentReplicaStatus extends Message<DeploymentReplicaStatus> {
   /**
-   * @generated from field: repeated string rendered_resources = 1;
+   * @generated from field: uint64 observed_generation = 1;
+   */
+  observedGeneration = protoInt64.zero;
+
+  /**
+   * @generated from field: string phase = 2;
+   */
+  phase = "";
+
+  /**
+   * @generated from field: repeated talon.resources.ResourceCondition conditions = 3;
+   */
+  conditions: ResourceCondition[] = [];
+
+  /**
+   * @generated from field: repeated string rendered_resources = 4;
    */
   renderedResources: string[] = [];
 
   /**
-   * @generated from field: map<string, string> rendered_hashes = 2;
+   * @generated from field: map<string, string> rendered_hashes = 5;
    */
   renderedHashes: { [key: string]: string } = {};
 
   /**
-   * @generated from field: repeated string conflicts = 3;
+   * @generated from field: repeated string conflicts = 6;
    */
   conflicts: string[] = [];
 
   /**
-   * @generated from field: map<string, string> last_rendered_json = 4;
+   * @generated from field: map<string, string> last_rendered_json = 7;
    */
   lastRenderedJson: { [key: string]: string } = {};
 
   /**
-   * @generated from field: repeated string owned_json_pointers = 5;
+   * @generated from field: repeated string owned_json_pointers = 8;
    */
   ownedJsonPointers: string[] = [];
-
-  /**
-   * @generated from field: string phase = 6;
-   */
-  phase = "";
 
   constructor(data?: PartialMessage<DeploymentReplicaStatus>) {
     super();
@@ -279,12 +289,14 @@ export class DeploymentReplicaStatus extends Message<DeploymentReplicaStatus> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.resources.DeploymentReplicaStatus";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "rendered_resources", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 2, name: "rendered_hashes", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-    { no: 3, name: "conflicts", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 4, name: "last_rendered_json", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-    { no: 5, name: "owned_json_pointers", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 6, name: "phase", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "observed_generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "phase", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "conditions", kind: "message", T: ResourceCondition, repeated: true },
+    { no: 4, name: "rendered_resources", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 5, name: "rendered_hashes", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 6, name: "conflicts", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 7, name: "last_rendered_json", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 8, name: "owned_json_pointers", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeploymentReplicaStatus {

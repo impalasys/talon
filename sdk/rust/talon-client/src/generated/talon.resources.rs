@@ -518,24 +518,30 @@ pub struct ScheduleSpec {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ScheduleStatus {
     #[prost(uint64, tag = "1")]
+    pub observed_generation: u64,
+    #[prost(string, tag = "2")]
+    pub phase: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "3")]
+    pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    #[prost(uint64, tag = "4")]
     pub revision: u64,
-    #[prost(int64, optional, tag = "2")]
-    pub next_run_at: ::core::option::Option<i64>,
-    #[prost(string, optional, tag = "3")]
-    pub backend_handle: ::core::option::Option<::prost::alloc::string::String>,
-    #[prost(bool, tag = "4")]
-    pub backend_armed: bool,
     #[prost(int64, optional, tag = "5")]
-    pub last_run_at: ::core::option::Option<i64>,
+    pub next_run_at: ::core::option::Option<i64>,
     #[prost(string, optional, tag = "6")]
-    pub last_session_id: ::core::option::Option<::prost::alloc::string::String>,
-    #[prost(string, optional, tag = "7")]
-    pub last_error: ::core::option::Option<::prost::alloc::string::String>,
+    pub backend_handle: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bool, tag = "7")]
+    pub backend_armed: bool,
     #[prost(int64, optional, tag = "8")]
+    pub last_run_at: ::core::option::Option<i64>,
+    #[prost(string, optional, tag = "9")]
+    pub last_session_id: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "10")]
+    pub last_error: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(int64, optional, tag = "11")]
     pub claimed_run_at: ::core::option::Option<i64>,
-    #[prost(int64, optional, tag = "9")]
+    #[prost(int64, optional, tag = "12")]
     pub claim_expires_at: ::core::option::Option<i64>,
-    #[prost(message, repeated, tag = "10")]
+    #[prost(message, repeated, tag = "13")]
     pub recent_events: ::prost::alloc::vec::Vec<ScheduleEvent>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -685,24 +691,28 @@ pub struct DeploymentStatus {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeploymentReplicaStatus {
-    #[prost(string, repeated, tag = "1")]
+    #[prost(uint64, tag = "1")]
+    pub observed_generation: u64,
+    #[prost(string, tag = "2")]
+    pub phase: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "3")]
+    pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    #[prost(string, repeated, tag = "4")]
     pub rendered_resources: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(map = "string, string", tag = "2")]
+    #[prost(map = "string, string", tag = "5")]
     pub rendered_hashes: ::std::collections::HashMap<
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
-    #[prost(string, repeated, tag = "3")]
+    #[prost(string, repeated, tag = "6")]
     pub conflicts: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(map = "string, string", tag = "4")]
+    #[prost(map = "string, string", tag = "7")]
     pub last_rendered_json: ::std::collections::HashMap<
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
-    #[prost(string, repeated, tag = "5")]
+    #[prost(string, repeated, tag = "8")]
     pub owned_json_pointers: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(string, tag = "6")]
-    pub phase: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SandboxClassSpec {

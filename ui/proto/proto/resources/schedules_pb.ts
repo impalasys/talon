@@ -4,7 +4,7 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { ResourceMeta } from "./common_pb";
+import type { ResourceCondition, ResourceMeta } from "./common_pb";
 import { file_proto_resources_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/resources/schedules.proto.
  */
 export const file_proto_resources_schedules: GenFile = /*@__PURE__*/
-  fileDesc("Ch9wcm90by9yZXNvdXJjZXMvc2NoZWR1bGVzLnByb3RvEg90YWxvbi5yZXNvdXJjZXMiWwoOU2NoZWR1bGVUYXJnZXQSDQoFYWdlbnQYASABKAkSFAoMc2Vzc2lvbl9tb2RlGAIgASgJEhIKCnNlc3Npb25faWQYAyABKAkSEAoId29ya2Zsb3cYBCABKAki0wEKDFNjaGVkdWxlU3BlYxIMCgRraW5kGAEgASgJEgwKBGNyb24YAiABKAkSGAoQaW50ZXJ2YWxfc2Vjb25kcxgDIAEoDRIOCgZydW5fYXQYBCABKAkSEAoIdGltZXpvbmUYBSABKAkSLwoGdGFyZ2V0GAYgASgLMh8udGFsb24ucmVzb3VyY2VzLlNjaGVkdWxlVGFyZ2V0EhUKDWlucHV0X21lc3NhZ2UYByABKAkSDwoHZW5hYmxlZBgIIAEoCBISCgppbnB1dF9qc29uGAkgASgJIrIDCg5TY2hlZHVsZVN0YXR1cxIQCghyZXZpc2lvbhgBIAEoBBIYCgtuZXh0X3J1bl9hdBgCIAEoA0gAiAEBEhsKDmJhY2tlbmRfaGFuZGxlGAMgASgJSAGIAQESFQoNYmFja2VuZF9hcm1lZBgEIAEoCBIYCgtsYXN0X3J1bl9hdBgFIAEoA0gCiAEBEhwKD2xhc3Rfc2Vzc2lvbl9pZBgGIAEoCUgDiAEBEhcKCmxhc3RfZXJyb3IYByABKAlIBIgBARIbCg5jbGFpbWVkX3J1bl9hdBgIIAEoA0gFiAEBEh0KEGNsYWltX2V4cGlyZXNfYXQYCSABKANIBogBARI1Cg1yZWNlbnRfZXZlbnRzGAogAygLMh4udGFsb24ucmVzb3VyY2VzLlNjaGVkdWxlRXZlbnRCDgoMX25leHRfcnVuX2F0QhEKD19iYWNrZW5kX2hhbmRsZUIOCgxfbGFzdF9ydW5fYXRCEgoQX2xhc3Rfc2Vzc2lvbl9pZEINCgtfbGFzdF9lcnJvckIRCg9fY2xhaW1lZF9ydW5fYXRCEwoRX2NsYWltX2V4cGlyZXNfYXQiUgoNU2NoZWR1bGVFdmVudBIRCgl0aW1lc3RhbXAYASABKAMSDQoFcGhhc2UYAiABKAkSDwoHb3V0Y29tZRgDIAEoCRIOCgZkZXRhaWwYBCABKAkimQEKCFNjaGVkdWxlEi8KCG1ldGFkYXRhGAEgASgLMh0udGFsb24ucmVzb3VyY2VzLlJlc291cmNlTWV0YRIrCgRzcGVjGAIgASgLMh0udGFsb24ucmVzb3VyY2VzLlNjaGVkdWxlU3BlYxIvCgZzdGF0dXMYAyABKAsyHy50YWxvbi5yZXNvdXJjZXMuU2NoZWR1bGVTdGF0dXNiBnByb3RvMw", [file_proto_resources_common]);
+  fileDesc("Ch9wcm90by9yZXNvdXJjZXMvc2NoZWR1bGVzLnByb3RvEg90YWxvbi5yZXNvdXJjZXMiWwoOU2NoZWR1bGVUYXJnZXQSDQoFYWdlbnQYASABKAkSFAoMc2Vzc2lvbl9tb2RlGAIgASgJEhIKCnNlc3Npb25faWQYAyABKAkSEAoId29ya2Zsb3cYBCABKAki0wEKDFNjaGVkdWxlU3BlYxIMCgRraW5kGAEgASgJEgwKBGNyb24YAiABKAkSGAoQaW50ZXJ2YWxfc2Vjb25kcxgDIAEoDRIOCgZydW5fYXQYBCABKAkSEAoIdGltZXpvbmUYBSABKAkSLwoGdGFyZ2V0GAYgASgLMh8udGFsb24ucmVzb3VyY2VzLlNjaGVkdWxlVGFyZ2V0EhUKDWlucHV0X21lc3NhZ2UYByABKAkSDwoHZW5hYmxlZBgIIAEoCBISCgppbnB1dF9qc29uGAkgASgJIpYECg5TY2hlZHVsZVN0YXR1cxIbChNvYnNlcnZlZF9nZW5lcmF0aW9uGAEgASgEEg0KBXBoYXNlGAIgASgJEjYKCmNvbmRpdGlvbnMYAyADKAsyIi50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VDb25kaXRpb24SEAoIcmV2aXNpb24YBCABKAQSGAoLbmV4dF9ydW5fYXQYBSABKANIAIgBARIbCg5iYWNrZW5kX2hhbmRsZRgGIAEoCUgBiAEBEhUKDWJhY2tlbmRfYXJtZWQYByABKAgSGAoLbGFzdF9ydW5fYXQYCCABKANIAogBARIcCg9sYXN0X3Nlc3Npb25faWQYCSABKAlIA4gBARIXCgpsYXN0X2Vycm9yGAogASgJSASIAQESGwoOY2xhaW1lZF9ydW5fYXQYCyABKANIBYgBARIdChBjbGFpbV9leHBpcmVzX2F0GAwgASgDSAaIAQESNQoNcmVjZW50X2V2ZW50cxgNIAMoCzIeLnRhbG9uLnJlc291cmNlcy5TY2hlZHVsZUV2ZW50Qg4KDF9uZXh0X3J1bl9hdEIRCg9fYmFja2VuZF9oYW5kbGVCDgoMX2xhc3RfcnVuX2F0QhIKEF9sYXN0X3Nlc3Npb25faWRCDQoLX2xhc3RfZXJyb3JCEQoPX2NsYWltZWRfcnVuX2F0QhMKEV9jbGFpbV9leHBpcmVzX2F0IlIKDVNjaGVkdWxlRXZlbnQSEQoJdGltZXN0YW1wGAEgASgDEg0KBXBoYXNlGAIgASgJEg8KB291dGNvbWUYAyABKAkSDgoGZGV0YWlsGAQgASgJIpkBCghTY2hlZHVsZRIvCghtZXRhZGF0YRgBIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESKwoEc3BlYxgCIAEoCzIdLnRhbG9uLnJlc291cmNlcy5TY2hlZHVsZVNwZWMSLwoGc3RhdHVzGAMgASgLMh8udGFsb24ucmVzb3VyY2VzLlNjaGVkdWxlU3RhdHVzYgZwcm90bzM", [file_proto_resources_common]);
 
 /**
  * @generated from message talon.resources.ScheduleTarget
@@ -108,52 +108,67 @@ export const ScheduleSpecSchema: GenMessage<ScheduleSpec> = /*@__PURE__*/
  */
 export type ScheduleStatus = Message<"talon.resources.ScheduleStatus"> & {
   /**
-   * @generated from field: uint64 revision = 1;
+   * @generated from field: uint64 observed_generation = 1;
+   */
+  observedGeneration: bigint;
+
+  /**
+   * @generated from field: string phase = 2;
+   */
+  phase: string;
+
+  /**
+   * @generated from field: repeated talon.resources.ResourceCondition conditions = 3;
+   */
+  conditions: ResourceCondition[];
+
+  /**
+   * @generated from field: uint64 revision = 4;
    */
   revision: bigint;
 
   /**
-   * @generated from field: optional int64 next_run_at = 2;
+   * @generated from field: optional int64 next_run_at = 5;
    */
   nextRunAt?: bigint;
 
   /**
-   * @generated from field: optional string backend_handle = 3;
+   * @generated from field: optional string backend_handle = 6;
    */
   backendHandle?: string;
 
   /**
-   * @generated from field: bool backend_armed = 4;
+   * @generated from field: bool backend_armed = 7;
    */
   backendArmed: boolean;
 
   /**
-   * @generated from field: optional int64 last_run_at = 5;
+   * @generated from field: optional int64 last_run_at = 8;
    */
   lastRunAt?: bigint;
 
   /**
-   * @generated from field: optional string last_session_id = 6;
+   * @generated from field: optional string last_session_id = 9;
    */
   lastSessionId?: string;
 
   /**
-   * @generated from field: optional string last_error = 7;
+   * @generated from field: optional string last_error = 10;
    */
   lastError?: string;
 
   /**
-   * @generated from field: optional int64 claimed_run_at = 8;
+   * @generated from field: optional int64 claimed_run_at = 11;
    */
   claimedRunAt?: bigint;
 
   /**
-   * @generated from field: optional int64 claim_expires_at = 9;
+   * @generated from field: optional int64 claim_expires_at = 12;
    */
   claimExpiresAt?: bigint;
 
   /**
-   * @generated from field: repeated talon.resources.ScheduleEvent recent_events = 10;
+   * @generated from field: repeated talon.resources.ScheduleEvent recent_events = 13;
    */
   recentEvents: ScheduleEvent[];
 };

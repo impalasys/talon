@@ -29,8 +29,16 @@ struct ResourceYamlDocument {
     metadata: ObjectMetaManifest,
     #[serde(default)]
     spec: serde_yaml::Value,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_yaml_value")]
     status: serde_yaml::Value,
+}
+
+fn is_empty_yaml_value(value: &serde_yaml::Value) -> bool {
+    match value {
+        serde_yaml::Value::Null => true,
+        serde_yaml::Value::Mapping(mapping) => mapping.is_empty(),
+        _ => false,
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -726,6 +734,11 @@ pub fn resource_spec_status_from_json(
         "Agent" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Agent(agent_status_from_value(status_value)?)),
         },
+        "Schedule" => resources_proto::ResourceStatus {
+            kind: Some(StatusKind::Schedule(schedule_status_from_value(
+                status_value,
+            )?)),
+        },
         "Deployment" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Deployment(deployment_status_from_value(
                 status_value,
@@ -828,36 +841,123 @@ fn resource_spec_status_to_yaml_values(
         .as_ref()
         .and_then(|status| status.kind.as_ref())
     {
-        Some(StatusKind::Agent(status)) => serde_json::to_string(&serde_json::json!({
-            "observedGeneration": status.observed_generation,
-            "phase": status.phase,
-            "lastSessionId": status.last_session_id,
-        }))?,
-        Some(StatusKind::Deployment(status)) => serde_json::to_string(&serde_json::json!({
-            "observedGeneration": status.observed_generation,
-            "phase": status.phase,
-            "replicas": status.replicas.iter().map(resource_ref_json).collect::<Vec<_>>(),
-        }))?,
-        Some(StatusKind::DeploymentReplica(status)) => serde_json::to_string(&serde_json::json!({
-            "renderedResources": status.rendered_resources,
-            "renderedHashes": status.rendered_hashes,
-            "conflicts": status.conflicts,
-            "lastRenderedJson": status.last_rendered_json,
-            "ownedJsonPointers": status.owned_json_pointers,
-            "phase": status.phase,
-        }))?,
-        Some(StatusKind::Sandbox(status)) => serde_json::to_string(&serde_json::json!({
-            "observedGeneration": status.observed_generation,
-            "phase": status.phase,
-            "backendId": status.backend_id,
-        }))?,
-        Some(StatusKind::PermissionRequest(status)) => serde_json::to_string(&serde_json::json!({
-            "observedGeneration": status.observed_generation,
-            "phase": status.phase,
-            "decision": status.decision,
-            "decidedBy": status.decided_by,
-            "decidedAt": status.decided_at,
-        }))?,
+        Some(StatusKind::Agent(status)) => {
+            let mut json = common_status_map(
+                status.observed_generation,
+                &status.phase,
+                &status.conditions,
+            );
+            if let Some(last_session_id) = &status.last_session_id {
+                if !last_session_id.is_empty() {
+                    json.insert(
+                        "lastSessionId".to_string(),
+                        serde_json::Value::String(last_session_id.clone()),
+                    );
+                }
+            }
+            serde_json::to_string(&serde_json::Value::Object(json))?
+        }
+        Some(StatusKind::Schedule(status)) => {
+            serde_json::to_string(&schedule_status_to_json(status))?
+        }
+        Some(StatusKind::Deployment(status)) => {
+            let mut json = common_status_map(
+                status.observed_generation,
+                &status.phase,
+                &status.conditions,
+            );
+            if !status.replicas.is_empty() {
+                json.insert(
+                    "replicas".to_string(),
+                    serde_json::Value::Array(
+                        status
+                            .replicas
+                            .iter()
+                            .map(resource_ref_json)
+                            .collect::<Vec<_>>(),
+                    ),
+                );
+            }
+            serde_json::to_string(&serde_json::Value::Object(json))?
+        }
+        Some(StatusKind::DeploymentReplica(status)) => {
+            let mut json = common_status_map(
+                status.observed_generation,
+                &status.phase,
+                &status.conditions,
+            );
+            if !status.rendered_resources.is_empty() {
+                json.insert(
+                    "renderedResources".to_string(),
+                    serde_json::to_value(&status.rendered_resources)?,
+                );
+            }
+            if !status.rendered_hashes.is_empty() {
+                json.insert(
+                    "renderedHashes".to_string(),
+                    serde_json::to_value(&status.rendered_hashes)?,
+                );
+            }
+            if !status.conflicts.is_empty() {
+                json.insert(
+                    "conflicts".to_string(),
+                    serde_json::to_value(&status.conflicts)?,
+                );
+            }
+            if !status.last_rendered_json.is_empty() {
+                json.insert(
+                    "lastRenderedJson".to_string(),
+                    serde_json::to_value(&status.last_rendered_json)?,
+                );
+            }
+            if !status.owned_json_pointers.is_empty() {
+                json.insert(
+                    "ownedJsonPointers".to_string(),
+                    serde_json::to_value(&status.owned_json_pointers)?,
+                );
+            }
+            serde_json::to_string(&serde_json::Value::Object(json))?
+        }
+        Some(StatusKind::Sandbox(status)) => {
+            let mut json = common_status_map(
+                status.observed_generation,
+                &status.phase,
+                &status.conditions,
+            );
+            if !status.backend_id.is_empty() {
+                json.insert(
+                    "backendId".to_string(),
+                    serde_json::Value::String(status.backend_id.clone()),
+                );
+            }
+            serde_json::to_string(&serde_json::Value::Object(json))?
+        }
+        Some(StatusKind::PermissionRequest(status)) => {
+            let mut json = common_status_map(
+                status.observed_generation,
+                &status.phase,
+                &status.conditions,
+            );
+            if !status.decision.is_empty() {
+                json.insert(
+                    "decision".to_string(),
+                    serde_json::Value::String(status.decision.clone()),
+                );
+            }
+            if !status.decided_by.is_empty() {
+                json.insert(
+                    "decidedBy".to_string(),
+                    serde_json::Value::String(status.decided_by.clone()),
+                );
+            }
+            if status.decided_at != 0 {
+                json.insert(
+                    "decidedAt".to_string(),
+                    serde_json::Value::Number(status.decided_at.into()),
+                );
+            }
+            serde_json::to_string(&serde_json::Value::Object(json))?
+        }
         Some(StatusKind::Template(status))
         | Some(StatusKind::SandboxClass(status))
         | Some(StatusKind::SandboxPolicy(status)) => {
@@ -1208,7 +1308,7 @@ fn deployment_status_from_value(
             .and_then(|value| value.as_str())
             .unwrap_or_default()
             .to_string(),
-        conditions: Vec::new(),
+        conditions: conditions_from_value(&value),
         replicas: value
             .get("replicas")
             .and_then(|value| value.as_array())
@@ -1222,10 +1322,135 @@ fn deployment_status_from_value(
     })
 }
 
+fn schedule_status_from_value(value: serde_json::Value) -> Result<resources_proto::ScheduleStatus> {
+    Ok(resources_proto::ScheduleStatus {
+        observed_generation: value
+            .get("observedGeneration")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0),
+        phase: value
+            .get("phase")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        conditions: conditions_from_value(&value),
+        revision: value
+            .get("revision")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0),
+        next_run_at: value.get("nextRunAt").and_then(|value| value.as_i64()),
+        backend_handle: value
+            .get("backendHandle")
+            .and_then(|value| value.as_str())
+            .map(str::to_string),
+        backend_armed: value
+            .get("backendArmed")
+            .and_then(|value| value.as_bool())
+            .unwrap_or(false),
+        last_run_at: value.get("lastRunAt").and_then(|value| value.as_i64()),
+        last_session_id: value
+            .get("lastSessionId")
+            .and_then(|value| value.as_str())
+            .map(str::to_string),
+        last_error: value
+            .get("lastError")
+            .and_then(|value| value.as_str())
+            .map(str::to_string),
+        claimed_run_at: value.get("claimedRunAt").and_then(|value| value.as_i64()),
+        claim_expires_at: value.get("claimExpiresAt").and_then(|value| value.as_i64()),
+        recent_events: value
+            .get("recentEvents")
+            .and_then(|value| serde_json::from_value(value.clone()).ok())
+            .unwrap_or_default(),
+    })
+}
+
+fn schedule_status_to_json(status: &resources_proto::ScheduleStatus) -> serde_json::Value {
+    let mut json = common_status_map(
+        status.observed_generation,
+        &status.phase,
+        &status.conditions,
+    );
+    if status.revision != 0 {
+        json.insert(
+            "revision".to_string(),
+            serde_json::Value::Number(status.revision.into()),
+        );
+    }
+    if let Some(next_run_at) = status.next_run_at {
+        json.insert(
+            "nextRunAt".to_string(),
+            serde_json::Value::Number(next_run_at.into()),
+        );
+    }
+    if let Some(backend_handle) = &status.backend_handle {
+        if !backend_handle.is_empty() {
+            json.insert(
+                "backendHandle".to_string(),
+                serde_json::Value::String(backend_handle.clone()),
+            );
+        }
+    }
+    if status.backend_armed {
+        json.insert("backendArmed".to_string(), serde_json::Value::Bool(true));
+    }
+    if let Some(last_run_at) = status.last_run_at {
+        json.insert(
+            "lastRunAt".to_string(),
+            serde_json::Value::Number(last_run_at.into()),
+        );
+    }
+    if let Some(last_session_id) = &status.last_session_id {
+        if !last_session_id.is_empty() {
+            json.insert(
+                "lastSessionId".to_string(),
+                serde_json::Value::String(last_session_id.clone()),
+            );
+        }
+    }
+    if let Some(last_error) = &status.last_error {
+        if !last_error.is_empty() {
+            json.insert(
+                "lastError".to_string(),
+                serde_json::Value::String(last_error.clone()),
+            );
+        }
+    }
+    if let Some(claimed_run_at) = status.claimed_run_at {
+        json.insert(
+            "claimedRunAt".to_string(),
+            serde_json::Value::Number(claimed_run_at.into()),
+        );
+    }
+    if let Some(claim_expires_at) = status.claim_expires_at {
+        json.insert(
+            "claimExpiresAt".to_string(),
+            serde_json::Value::Number(claim_expires_at.into()),
+        );
+    }
+    if !status.recent_events.is_empty() {
+        json.insert(
+            "recentEvents".to_string(),
+            serde_json::to_value(&status.recent_events).unwrap_or_default(),
+        );
+    }
+    serde_json::Value::Object(json)
+}
+
 fn deployment_replica_status_from_value(
     value: serde_json::Value,
 ) -> Result<resources_proto::DeploymentReplicaStatus> {
     Ok(resources_proto::DeploymentReplicaStatus {
+        observed_generation: value
+            .get("observedGeneration")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0),
+        phase: value
+            .get("phase")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        conditions: conditions_from_value(&value),
         rendered_resources: value
             .get("renderedResources")
             .and_then(|value| serde_json::from_value(value.clone()).ok())
@@ -1246,11 +1471,6 @@ fn deployment_replica_status_from_value(
             .get("ownedJsonPointers")
             .and_then(|value| serde_json::from_value(value.clone()).ok())
             .unwrap_or_default(),
-        phase: value
-            .get("phase")
-            .and_then(|value| value.as_str())
-            .unwrap_or_default()
-            .to_string(),
     })
 }
 
@@ -1265,7 +1485,7 @@ fn sandbox_status_from_value(value: serde_json::Value) -> Result<resources_proto
             .and_then(|value| value.as_str())
             .unwrap_or_default()
             .to_string(),
-        conditions: Vec::new(),
+        conditions: conditions_from_value(&value),
         backend_id: value
             .get("backendId")
             .and_then(|value| value.as_str())
@@ -1289,7 +1509,7 @@ fn permission_request_status_from_value(
             .and_then(|value| value.as_str())
             .unwrap_or_default()
             .to_string(),
-        conditions: Vec::new(),
+        conditions: conditions_from_value(&value),
         decision: value
             .get("decision")
             .and_then(|value| value.as_str())
@@ -1318,7 +1538,7 @@ fn agent_status_from_value(value: serde_json::Value) -> Result<resources_proto::
             .and_then(|value| value.as_str())
             .unwrap_or_default()
             .to_string(),
-        conditions: Vec::new(),
+        conditions: conditions_from_value(&value),
         last_session_id: value
             .get("lastSessionId")
             .and_then(|value| value.as_str())
@@ -1339,15 +1559,126 @@ fn common_status_from_value(
             .and_then(|value| value.as_str())
             .unwrap_or_default()
             .to_string(),
-        conditions: Vec::new(),
+        conditions: conditions_from_value(&value),
     })
 }
 
 fn common_status_to_json(status: &resources_proto::CommonResourceStatus) -> serde_json::Value {
-    serde_json::json!({
-        "observedGeneration": status.observed_generation,
-        "phase": status.phase,
-    })
+    serde_json::Value::Object(common_status_map(
+        status.observed_generation,
+        &status.phase,
+        &status.conditions,
+    ))
+}
+
+fn common_status_map(
+    observed_generation: u64,
+    phase: &str,
+    conditions: &[resources_proto::ResourceCondition],
+) -> serde_json::Map<String, serde_json::Value> {
+    let mut json = serde_json::Map::new();
+    if observed_generation != 0 {
+        json.insert(
+            "observedGeneration".to_string(),
+            serde_json::Value::Number(observed_generation.into()),
+        );
+    }
+    if !phase.is_empty() {
+        json.insert(
+            "phase".to_string(),
+            serde_json::Value::String(phase.to_string()),
+        );
+    }
+    if !conditions.is_empty() {
+        json.insert(
+            "conditions".to_string(),
+            serde_json::Value::Array(conditions.iter().map(condition_to_json).collect()),
+        );
+    }
+    json
+}
+
+fn conditions_from_value(value: &serde_json::Value) -> Vec<resources_proto::ResourceCondition> {
+    value
+        .get("conditions")
+        .and_then(|value| value.as_array())
+        .map(|conditions| {
+            conditions
+                .iter()
+                .map(|condition| resources_proto::ResourceCondition {
+                    r#type: condition
+                        .get("type")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or_default()
+                        .to_string(),
+                    status: condition
+                        .get("status")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or_default()
+                        .to_string(),
+                    reason: condition
+                        .get("reason")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or_default()
+                        .to_string(),
+                    message: condition
+                        .get("message")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or_default()
+                        .to_string(),
+                    last_transition_time: condition
+                        .get("lastTransitionTime")
+                        .and_then(|value| value.as_i64())
+                        .unwrap_or_default(),
+                    observed_generation: condition
+                        .get("observedGeneration")
+                        .and_then(|value| value.as_u64())
+                        .unwrap_or_default(),
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn condition_to_json(condition: &resources_proto::ResourceCondition) -> serde_json::Value {
+    let mut json = serde_json::Map::new();
+    if !condition.r#type.is_empty() {
+        json.insert(
+            "type".to_string(),
+            serde_json::Value::String(condition.r#type.clone()),
+        );
+    }
+    if !condition.status.is_empty() {
+        json.insert(
+            "status".to_string(),
+            serde_json::Value::String(condition.status.clone()),
+        );
+    }
+    if !condition.reason.is_empty() {
+        json.insert(
+            "reason".to_string(),
+            serde_json::Value::String(condition.reason.clone()),
+        );
+    }
+    if !condition.message.is_empty() {
+        json.insert(
+            "message".to_string(),
+            serde_json::Value::String(condition.message.clone()),
+        );
+    }
+    if condition.last_transition_time != 0 {
+        json.insert(
+            "lastTransitionTime".to_string(),
+            serde_json::Value::Number(condition.last_transition_time.into()),
+        );
+    }
+    if condition.observed_generation != 0 {
+        json.insert(
+            "observedGeneration".to_string(),
+            serde_json::Value::Number(condition.observed_generation.into()),
+        );
+    }
+    serde_json::Value::Object(json)
 }
 
 fn resource_ref_from_value(value: &serde_json::Value) -> Result<resources_proto::ResourceRef> {
@@ -2383,6 +2714,55 @@ spec:
         assert_eq!(
             rendered_yaml["spec"]["template"]["workspace"]["mountPath"].as_str(),
             Some("/workspace")
+        );
+        assert!(rendered_yaml.get("status").is_none());
+    }
+
+    #[test]
+    fn resource_yaml_renders_common_status_conditions_when_present() {
+        let rendered = render_resource_yaml(&resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Agent".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "coding".to_string(),
+                namespace: "customers:acme".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resource_spec::Kind::Agent(Default::default())),
+            }),
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resource_status::Kind::Agent(resources_proto::AgentStatus {
+                    observed_generation: 3,
+                    phase: "Ready".to_string(),
+                    conditions: vec![resources_proto::ResourceCondition {
+                        r#type: "Available".to_string(),
+                        status: "True".to_string(),
+                        reason: "RuntimeReady".to_string(),
+                        message: "agent runtime is ready".to_string(),
+                        last_transition_time: 42,
+                        observed_generation: 3,
+                    }],
+                    last_session_id: None,
+                })),
+            }),
+        })
+        .expect("render resource YAML");
+
+        let rendered_yaml: serde_yaml::Value =
+            serde_yaml::from_str(&rendered).expect("rendered YAML parses");
+        assert_eq!(
+            rendered_yaml["status"]["observedGeneration"].as_u64(),
+            Some(3)
+        );
+        assert_eq!(rendered_yaml["status"]["phase"].as_str(), Some("Ready"));
+        assert_eq!(
+            rendered_yaml["status"]["conditions"][0]["type"].as_str(),
+            Some("Available")
+        );
+        assert_eq!(
+            rendered_yaml["status"]["conditions"][0]["observedGeneration"].as_u64(),
+            Some(3)
         );
     }
 

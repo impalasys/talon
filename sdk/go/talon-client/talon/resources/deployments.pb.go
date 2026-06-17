@@ -300,15 +300,17 @@ func (x *DeploymentStatus) GetReplicas() []*ResourceRef {
 }
 
 type DeploymentReplicaStatus struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	RenderedResources []string               `protobuf:"bytes,1,rep,name=rendered_resources,json=renderedResources,proto3" json:"rendered_resources,omitempty"`
-	RenderedHashes    map[string]string      `protobuf:"bytes,2,rep,name=rendered_hashes,json=renderedHashes,proto3" json:"rendered_hashes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Conflicts         []string               `protobuf:"bytes,3,rep,name=conflicts,proto3" json:"conflicts,omitempty"`
-	LastRenderedJson  map[string]string      `protobuf:"bytes,4,rep,name=last_rendered_json,json=lastRenderedJson,proto3" json:"last_rendered_json,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	OwnedJsonPointers []string               `protobuf:"bytes,5,rep,name=owned_json_pointers,json=ownedJsonPointers,proto3" json:"owned_json_pointers,omitempty"`
-	Phase             string                 `protobuf:"bytes,6,opt,name=phase,proto3" json:"phase,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	ObservedGeneration uint64                 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
+	Phase              string                 `protobuf:"bytes,2,opt,name=phase,proto3" json:"phase,omitempty"`
+	Conditions         []*ResourceCondition   `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	RenderedResources  []string               `protobuf:"bytes,4,rep,name=rendered_resources,json=renderedResources,proto3" json:"rendered_resources,omitempty"`
+	RenderedHashes     map[string]string      `protobuf:"bytes,5,rep,name=rendered_hashes,json=renderedHashes,proto3" json:"rendered_hashes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Conflicts          []string               `protobuf:"bytes,6,rep,name=conflicts,proto3" json:"conflicts,omitempty"`
+	LastRenderedJson   map[string]string      `protobuf:"bytes,7,rep,name=last_rendered_json,json=lastRenderedJson,proto3" json:"last_rendered_json,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	OwnedJsonPointers  []string               `protobuf:"bytes,8,rep,name=owned_json_pointers,json=ownedJsonPointers,proto3" json:"owned_json_pointers,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *DeploymentReplicaStatus) Reset() {
@@ -339,6 +341,27 @@ func (x *DeploymentReplicaStatus) ProtoReflect() protoreflect.Message {
 // Deprecated: Use DeploymentReplicaStatus.ProtoReflect.Descriptor instead.
 func (*DeploymentReplicaStatus) Descriptor() ([]byte, []int) {
 	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *DeploymentReplicaStatus) GetObservedGeneration() uint64 {
+	if x != nil {
+		return x.ObservedGeneration
+	}
+	return 0
+}
+
+func (x *DeploymentReplicaStatus) GetPhase() string {
+	if x != nil {
+		return x.Phase
+	}
+	return ""
+}
+
+func (x *DeploymentReplicaStatus) GetConditions() []*ResourceCondition {
+	if x != nil {
+		return x.Conditions
+	}
+	return nil
 }
 
 func (x *DeploymentReplicaStatus) GetRenderedResources() []string {
@@ -376,13 +399,6 @@ func (x *DeploymentReplicaStatus) GetOwnedJsonPointers() []string {
 	return nil
 }
 
-func (x *DeploymentReplicaStatus) GetPhase() string {
-	if x != nil {
-		return x.Phase
-	}
-	return ""
-}
-
 var File_proto_resources_deployments_proto protoreflect.FileDescriptor
 
 const file_proto_resources_deployments_proto_rawDesc = "" +
@@ -406,14 +422,18 @@ const file_proto_resources_deployments_proto_rawDesc = "" +
 	"\n" +
 	"conditions\x18\x03 \x03(\v2\".talon.resources.ResourceConditionR\n" +
 	"conditions\x128\n" +
-	"\breplicas\x18\x04 \x03(\v2\x1c.talon.resources.ResourceRefR\breplicas\"\x89\x04\n" +
-	"\x17DeploymentReplicaStatus\x12-\n" +
-	"\x12rendered_resources\x18\x01 \x03(\tR\x11renderedResources\x12e\n" +
-	"\x0frendered_hashes\x18\x02 \x03(\v2<.talon.resources.DeploymentReplicaStatus.RenderedHashesEntryR\x0erenderedHashes\x12\x1c\n" +
-	"\tconflicts\x18\x03 \x03(\tR\tconflicts\x12l\n" +
-	"\x12last_rendered_json\x18\x04 \x03(\v2>.talon.resources.DeploymentReplicaStatus.LastRenderedJsonEntryR\x10lastRenderedJson\x12.\n" +
-	"\x13owned_json_pointers\x18\x05 \x03(\tR\x11ownedJsonPointers\x12\x14\n" +
-	"\x05phase\x18\x06 \x01(\tR\x05phase\x1aA\n" +
+	"\breplicas\x18\x04 \x03(\v2\x1c.talon.resources.ResourceRefR\breplicas\"\xfe\x04\n" +
+	"\x17DeploymentReplicaStatus\x12/\n" +
+	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x12\x14\n" +
+	"\x05phase\x18\x02 \x01(\tR\x05phase\x12B\n" +
+	"\n" +
+	"conditions\x18\x03 \x03(\v2\".talon.resources.ResourceConditionR\n" +
+	"conditions\x12-\n" +
+	"\x12rendered_resources\x18\x04 \x03(\tR\x11renderedResources\x12e\n" +
+	"\x0frendered_hashes\x18\x05 \x03(\v2<.talon.resources.DeploymentReplicaStatus.RenderedHashesEntryR\x0erenderedHashes\x12\x1c\n" +
+	"\tconflicts\x18\x06 \x03(\tR\tconflicts\x12l\n" +
+	"\x12last_rendered_json\x18\a \x03(\v2>.talon.resources.DeploymentReplicaStatus.LastRenderedJsonEntryR\x10lastRenderedJson\x12.\n" +
+	"\x13owned_json_pointers\x18\b \x03(\tR\x11ownedJsonPointers\x1aA\n" +
 	"\x13RenderedHashesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aC\n" +
@@ -455,13 +475,14 @@ var file_proto_resources_deployments_proto_depIdxs = []int32{
 	10, // 3: talon.resources.DeploymentReplicaSpec.deployment_ref:type_name -> talon.resources.ResourceRef
 	11, // 4: talon.resources.DeploymentStatus.conditions:type_name -> talon.resources.ResourceCondition
 	10, // 5: talon.resources.DeploymentStatus.replicas:type_name -> talon.resources.ResourceRef
-	6,  // 6: talon.resources.DeploymentReplicaStatus.rendered_hashes:type_name -> talon.resources.DeploymentReplicaStatus.RenderedHashesEntry
-	7,  // 7: talon.resources.DeploymentReplicaStatus.last_rendered_json:type_name -> talon.resources.DeploymentReplicaStatus.LastRenderedJsonEntry
-	8,  // [8:8] is the sub-list for method output_type
-	8,  // [8:8] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	11, // 6: talon.resources.DeploymentReplicaStatus.conditions:type_name -> talon.resources.ResourceCondition
+	6,  // 7: talon.resources.DeploymentReplicaStatus.rendered_hashes:type_name -> talon.resources.DeploymentReplicaStatus.RenderedHashesEntry
+	7,  // 8: talon.resources.DeploymentReplicaStatus.last_rendered_json:type_name -> talon.resources.DeploymentReplicaStatus.LastRenderedJsonEntry
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_deployments_proto_init() }

@@ -2598,132 +2598,174 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>uint64 revision = 1;</code>
+     * <code>uint64 observed_generation = 1;</code>
+     * @return The observedGeneration.
+     */
+    long getObservedGeneration();
+
+    /**
+     * <code>string phase = 2;</code>
+     * @return The phase.
+     */
+    java.lang.String getPhase();
+    /**
+     * <code>string phase = 2;</code>
+     * @return The bytes for phase.
+     */
+    com.google.protobuf.ByteString
+        getPhaseBytes();
+
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    java.util.List<talon.resources.Common.ResourceCondition>
+        getConditionsList();
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    talon.resources.Common.ResourceCondition getConditions(int index);
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    int getConditionsCount();
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    java.util.List<? extends talon.resources.Common.ResourceConditionOrBuilder>
+        getConditionsOrBuilderList();
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    talon.resources.Common.ResourceConditionOrBuilder getConditionsOrBuilder(
+        int index);
+
+    /**
+     * <code>uint64 revision = 4;</code>
      * @return The revision.
      */
     long getRevision();
 
     /**
-     * <code>optional int64 next_run_at = 2;</code>
+     * <code>optional int64 next_run_at = 5;</code>
      * @return Whether the nextRunAt field is set.
      */
     boolean hasNextRunAt();
     /**
-     * <code>optional int64 next_run_at = 2;</code>
+     * <code>optional int64 next_run_at = 5;</code>
      * @return The nextRunAt.
      */
     long getNextRunAt();
 
     /**
-     * <code>optional string backend_handle = 3;</code>
+     * <code>optional string backend_handle = 6;</code>
      * @return Whether the backendHandle field is set.
      */
     boolean hasBackendHandle();
     /**
-     * <code>optional string backend_handle = 3;</code>
+     * <code>optional string backend_handle = 6;</code>
      * @return The backendHandle.
      */
     java.lang.String getBackendHandle();
     /**
-     * <code>optional string backend_handle = 3;</code>
+     * <code>optional string backend_handle = 6;</code>
      * @return The bytes for backendHandle.
      */
     com.google.protobuf.ByteString
         getBackendHandleBytes();
 
     /**
-     * <code>bool backend_armed = 4;</code>
+     * <code>bool backend_armed = 7;</code>
      * @return The backendArmed.
      */
     boolean getBackendArmed();
 
     /**
-     * <code>optional int64 last_run_at = 5;</code>
+     * <code>optional int64 last_run_at = 8;</code>
      * @return Whether the lastRunAt field is set.
      */
     boolean hasLastRunAt();
     /**
-     * <code>optional int64 last_run_at = 5;</code>
+     * <code>optional int64 last_run_at = 8;</code>
      * @return The lastRunAt.
      */
     long getLastRunAt();
 
     /**
-     * <code>optional string last_session_id = 6;</code>
+     * <code>optional string last_session_id = 9;</code>
      * @return Whether the lastSessionId field is set.
      */
     boolean hasLastSessionId();
     /**
-     * <code>optional string last_session_id = 6;</code>
+     * <code>optional string last_session_id = 9;</code>
      * @return The lastSessionId.
      */
     java.lang.String getLastSessionId();
     /**
-     * <code>optional string last_session_id = 6;</code>
+     * <code>optional string last_session_id = 9;</code>
      * @return The bytes for lastSessionId.
      */
     com.google.protobuf.ByteString
         getLastSessionIdBytes();
 
     /**
-     * <code>optional string last_error = 7;</code>
+     * <code>optional string last_error = 10;</code>
      * @return Whether the lastError field is set.
      */
     boolean hasLastError();
     /**
-     * <code>optional string last_error = 7;</code>
+     * <code>optional string last_error = 10;</code>
      * @return The lastError.
      */
     java.lang.String getLastError();
     /**
-     * <code>optional string last_error = 7;</code>
+     * <code>optional string last_error = 10;</code>
      * @return The bytes for lastError.
      */
     com.google.protobuf.ByteString
         getLastErrorBytes();
 
     /**
-     * <code>optional int64 claimed_run_at = 8;</code>
+     * <code>optional int64 claimed_run_at = 11;</code>
      * @return Whether the claimedRunAt field is set.
      */
     boolean hasClaimedRunAt();
     /**
-     * <code>optional int64 claimed_run_at = 8;</code>
+     * <code>optional int64 claimed_run_at = 11;</code>
      * @return The claimedRunAt.
      */
     long getClaimedRunAt();
 
     /**
-     * <code>optional int64 claim_expires_at = 9;</code>
+     * <code>optional int64 claim_expires_at = 12;</code>
      * @return Whether the claimExpiresAt field is set.
      */
     boolean hasClaimExpiresAt();
     /**
-     * <code>optional int64 claim_expires_at = 9;</code>
+     * <code>optional int64 claim_expires_at = 12;</code>
      * @return The claimExpiresAt.
      */
     long getClaimExpiresAt();
 
     /**
-     * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+     * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
      */
     java.util.List<talon.resources.Schedules.ScheduleEvent>
         getRecentEventsList();
     /**
-     * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+     * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
      */
     talon.resources.Schedules.ScheduleEvent getRecentEvents(int index);
     /**
-     * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+     * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
      */
     int getRecentEventsCount();
     /**
-     * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+     * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
      */
     java.util.List<? extends talon.resources.Schedules.ScheduleEventOrBuilder>
         getRecentEventsOrBuilderList();
     /**
-     * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+     * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
      */
     talon.resources.Schedules.ScheduleEventOrBuilder getRecentEventsOrBuilder(
         int index);
@@ -2750,6 +2792,8 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       super(builder);
     }
     private ScheduleStatus() {
+      phase_ = "";
+      conditions_ = java.util.Collections.emptyList();
       backendHandle_ = "";
       lastSessionId_ = "";
       lastError_ = "";
@@ -2775,10 +2819,101 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
     }
 
     private int bitField0_;
-    public static final int REVISION_FIELD_NUMBER = 1;
+    public static final int OBSERVED_GENERATION_FIELD_NUMBER = 1;
+    private long observedGeneration_ = 0L;
+    /**
+     * <code>uint64 observed_generation = 1;</code>
+     * @return The observedGeneration.
+     */
+    @java.lang.Override
+    public long getObservedGeneration() {
+      return observedGeneration_;
+    }
+
+    public static final int PHASE_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object phase_ = "";
+    /**
+     * <code>string phase = 2;</code>
+     * @return The phase.
+     */
+    @java.lang.Override
+    public java.lang.String getPhase() {
+      java.lang.Object ref = phase_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        phase_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string phase = 2;</code>
+     * @return The bytes for phase.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPhaseBytes() {
+      java.lang.Object ref = phase_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        phase_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CONDITIONS_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private java.util.List<talon.resources.Common.ResourceCondition> conditions_;
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    @java.lang.Override
+    public java.util.List<talon.resources.Common.ResourceCondition> getConditionsList() {
+      return conditions_;
+    }
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    @java.lang.Override
+    public java.util.List<? extends talon.resources.Common.ResourceConditionOrBuilder>
+        getConditionsOrBuilderList() {
+      return conditions_;
+    }
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    @java.lang.Override
+    public int getConditionsCount() {
+      return conditions_.size();
+    }
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceCondition getConditions(int index) {
+      return conditions_.get(index);
+    }
+    /**
+     * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceConditionOrBuilder getConditionsOrBuilder(
+        int index) {
+      return conditions_.get(index);
+    }
+
+    public static final int REVISION_FIELD_NUMBER = 4;
     private long revision_ = 0L;
     /**
-     * <code>uint64 revision = 1;</code>
+     * <code>uint64 revision = 4;</code>
      * @return The revision.
      */
     @java.lang.Override
@@ -2786,10 +2921,10 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return revision_;
     }
 
-    public static final int NEXT_RUN_AT_FIELD_NUMBER = 2;
+    public static final int NEXT_RUN_AT_FIELD_NUMBER = 5;
     private long nextRunAt_ = 0L;
     /**
-     * <code>optional int64 next_run_at = 2;</code>
+     * <code>optional int64 next_run_at = 5;</code>
      * @return Whether the nextRunAt field is set.
      */
     @java.lang.Override
@@ -2797,7 +2932,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>optional int64 next_run_at = 2;</code>
+     * <code>optional int64 next_run_at = 5;</code>
      * @return The nextRunAt.
      */
     @java.lang.Override
@@ -2805,11 +2940,11 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return nextRunAt_;
     }
 
-    public static final int BACKEND_HANDLE_FIELD_NUMBER = 3;
+    public static final int BACKEND_HANDLE_FIELD_NUMBER = 6;
     @SuppressWarnings("serial")
     private volatile java.lang.Object backendHandle_ = "";
     /**
-     * <code>optional string backend_handle = 3;</code>
+     * <code>optional string backend_handle = 6;</code>
      * @return Whether the backendHandle field is set.
      */
     @java.lang.Override
@@ -2817,7 +2952,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
-     * <code>optional string backend_handle = 3;</code>
+     * <code>optional string backend_handle = 6;</code>
      * @return The backendHandle.
      */
     @java.lang.Override
@@ -2834,7 +2969,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
-     * <code>optional string backend_handle = 3;</code>
+     * <code>optional string backend_handle = 6;</code>
      * @return The bytes for backendHandle.
      */
     @java.lang.Override
@@ -2852,10 +2987,10 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       }
     }
 
-    public static final int BACKEND_ARMED_FIELD_NUMBER = 4;
+    public static final int BACKEND_ARMED_FIELD_NUMBER = 7;
     private boolean backendArmed_ = false;
     /**
-     * <code>bool backend_armed = 4;</code>
+     * <code>bool backend_armed = 7;</code>
      * @return The backendArmed.
      */
     @java.lang.Override
@@ -2863,10 +2998,10 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return backendArmed_;
     }
 
-    public static final int LAST_RUN_AT_FIELD_NUMBER = 5;
+    public static final int LAST_RUN_AT_FIELD_NUMBER = 8;
     private long lastRunAt_ = 0L;
     /**
-     * <code>optional int64 last_run_at = 5;</code>
+     * <code>optional int64 last_run_at = 8;</code>
      * @return Whether the lastRunAt field is set.
      */
     @java.lang.Override
@@ -2874,7 +3009,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000004) != 0);
     }
     /**
-     * <code>optional int64 last_run_at = 5;</code>
+     * <code>optional int64 last_run_at = 8;</code>
      * @return The lastRunAt.
      */
     @java.lang.Override
@@ -2882,11 +3017,11 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return lastRunAt_;
     }
 
-    public static final int LAST_SESSION_ID_FIELD_NUMBER = 6;
+    public static final int LAST_SESSION_ID_FIELD_NUMBER = 9;
     @SuppressWarnings("serial")
     private volatile java.lang.Object lastSessionId_ = "";
     /**
-     * <code>optional string last_session_id = 6;</code>
+     * <code>optional string last_session_id = 9;</code>
      * @return Whether the lastSessionId field is set.
      */
     @java.lang.Override
@@ -2894,7 +3029,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000008) != 0);
     }
     /**
-     * <code>optional string last_session_id = 6;</code>
+     * <code>optional string last_session_id = 9;</code>
      * @return The lastSessionId.
      */
     @java.lang.Override
@@ -2911,7 +3046,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
-     * <code>optional string last_session_id = 6;</code>
+     * <code>optional string last_session_id = 9;</code>
      * @return The bytes for lastSessionId.
      */
     @java.lang.Override
@@ -2929,11 +3064,11 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       }
     }
 
-    public static final int LAST_ERROR_FIELD_NUMBER = 7;
+    public static final int LAST_ERROR_FIELD_NUMBER = 10;
     @SuppressWarnings("serial")
     private volatile java.lang.Object lastError_ = "";
     /**
-     * <code>optional string last_error = 7;</code>
+     * <code>optional string last_error = 10;</code>
      * @return Whether the lastError field is set.
      */
     @java.lang.Override
@@ -2941,7 +3076,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000010) != 0);
     }
     /**
-     * <code>optional string last_error = 7;</code>
+     * <code>optional string last_error = 10;</code>
      * @return The lastError.
      */
     @java.lang.Override
@@ -2958,7 +3093,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
-     * <code>optional string last_error = 7;</code>
+     * <code>optional string last_error = 10;</code>
      * @return The bytes for lastError.
      */
     @java.lang.Override
@@ -2976,10 +3111,10 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       }
     }
 
-    public static final int CLAIMED_RUN_AT_FIELD_NUMBER = 8;
+    public static final int CLAIMED_RUN_AT_FIELD_NUMBER = 11;
     private long claimedRunAt_ = 0L;
     /**
-     * <code>optional int64 claimed_run_at = 8;</code>
+     * <code>optional int64 claimed_run_at = 11;</code>
      * @return Whether the claimedRunAt field is set.
      */
     @java.lang.Override
@@ -2987,7 +3122,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000020) != 0);
     }
     /**
-     * <code>optional int64 claimed_run_at = 8;</code>
+     * <code>optional int64 claimed_run_at = 11;</code>
      * @return The claimedRunAt.
      */
     @java.lang.Override
@@ -2995,10 +3130,10 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return claimedRunAt_;
     }
 
-    public static final int CLAIM_EXPIRES_AT_FIELD_NUMBER = 9;
+    public static final int CLAIM_EXPIRES_AT_FIELD_NUMBER = 12;
     private long claimExpiresAt_ = 0L;
     /**
-     * <code>optional int64 claim_expires_at = 9;</code>
+     * <code>optional int64 claim_expires_at = 12;</code>
      * @return Whether the claimExpiresAt field is set.
      */
     @java.lang.Override
@@ -3006,7 +3141,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000040) != 0);
     }
     /**
-     * <code>optional int64 claim_expires_at = 9;</code>
+     * <code>optional int64 claim_expires_at = 12;</code>
      * @return The claimExpiresAt.
      */
     @java.lang.Override
@@ -3014,18 +3149,18 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return claimExpiresAt_;
     }
 
-    public static final int RECENT_EVENTS_FIELD_NUMBER = 10;
+    public static final int RECENT_EVENTS_FIELD_NUMBER = 13;
     @SuppressWarnings("serial")
     private java.util.List<talon.resources.Schedules.ScheduleEvent> recentEvents_;
     /**
-     * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+     * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
      */
     @java.lang.Override
     public java.util.List<talon.resources.Schedules.ScheduleEvent> getRecentEventsList() {
       return recentEvents_;
     }
     /**
-     * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+     * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
      */
     @java.lang.Override
     public java.util.List<? extends talon.resources.Schedules.ScheduleEventOrBuilder>
@@ -3033,21 +3168,21 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       return recentEvents_;
     }
     /**
-     * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+     * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
      */
     @java.lang.Override
     public int getRecentEventsCount() {
       return recentEvents_.size();
     }
     /**
-     * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+     * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
      */
     @java.lang.Override
     public talon.resources.Schedules.ScheduleEvent getRecentEvents(int index) {
       return recentEvents_.get(index);
     }
     /**
-     * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+     * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
      */
     @java.lang.Override
     public talon.resources.Schedules.ScheduleEventOrBuilder getRecentEventsOrBuilder(
@@ -3069,35 +3204,44 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      if (observedGeneration_ != 0L) {
+        output.writeUInt64(1, observedGeneration_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(phase_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, phase_);
+      }
+      for (int i = 0; i < conditions_.size(); i++) {
+        output.writeMessage(3, conditions_.get(i));
+      }
       if (revision_ != 0L) {
-        output.writeUInt64(1, revision_);
+        output.writeUInt64(4, revision_);
       }
       if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeInt64(2, nextRunAt_);
+        output.writeInt64(5, nextRunAt_);
       }
       if (((bitField0_ & 0x00000002) != 0)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, backendHandle_);
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, backendHandle_);
       }
       if (backendArmed_ != false) {
-        output.writeBool(4, backendArmed_);
+        output.writeBool(7, backendArmed_);
       }
       if (((bitField0_ & 0x00000004) != 0)) {
-        output.writeInt64(5, lastRunAt_);
+        output.writeInt64(8, lastRunAt_);
       }
       if (((bitField0_ & 0x00000008) != 0)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 6, lastSessionId_);
+        com.google.protobuf.GeneratedMessage.writeString(output, 9, lastSessionId_);
       }
       if (((bitField0_ & 0x00000010) != 0)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 7, lastError_);
+        com.google.protobuf.GeneratedMessage.writeString(output, 10, lastError_);
       }
       if (((bitField0_ & 0x00000020) != 0)) {
-        output.writeInt64(8, claimedRunAt_);
+        output.writeInt64(11, claimedRunAt_);
       }
       if (((bitField0_ & 0x00000040) != 0)) {
-        output.writeInt64(9, claimExpiresAt_);
+        output.writeInt64(12, claimExpiresAt_);
       }
       for (int i = 0; i < recentEvents_.size(); i++) {
-        output.writeMessage(10, recentEvents_.get(i));
+        output.writeMessage(13, recentEvents_.get(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -3108,38 +3252,54 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       if (size != -1) return size;
 
       size = 0;
+      if (observedGeneration_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(1, observedGeneration_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(phase_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, phase_);
+      }
+
+          {
+            final int count = conditions_.size();
+            for (int i = 0; i < count; i++) {
+              size += com.google.protobuf.CodedOutputStream
+                .computeMessageSizeNoTag(conditions_.get(i));
+            }
+            size += 1 * count;
+          }
       if (revision_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(1, revision_);
+          .computeUInt64Size(4, revision_);
       }
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(2, nextRunAt_);
+          .computeInt64Size(5, nextRunAt_);
       }
       if (((bitField0_ & 0x00000002) != 0)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, backendHandle_);
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, backendHandle_);
       }
       if (backendArmed_ != false) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(4, backendArmed_);
+          .computeBoolSize(7, backendArmed_);
       }
       if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(5, lastRunAt_);
+          .computeInt64Size(8, lastRunAt_);
       }
       if (((bitField0_ & 0x00000008) != 0)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, lastSessionId_);
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(9, lastSessionId_);
       }
       if (((bitField0_ & 0x00000010) != 0)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, lastError_);
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(10, lastError_);
       }
       if (((bitField0_ & 0x00000020) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(8, claimedRunAt_);
+          .computeInt64Size(11, claimedRunAt_);
       }
       if (((bitField0_ & 0x00000040) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(9, claimExpiresAt_);
+          .computeInt64Size(12, claimExpiresAt_);
       }
 
           {
@@ -3165,6 +3325,12 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       }
       talon.resources.Schedules.ScheduleStatus other = (talon.resources.Schedules.ScheduleStatus) obj;
 
+      if (getObservedGeneration()
+          != other.getObservedGeneration()) return false;
+      if (!getPhase()
+          .equals(other.getPhase())) return false;
+      if (!getConditionsList()
+          .equals(other.getConditionsList())) return false;
       if (getRevision()
           != other.getRevision()) return false;
       if (hasNextRunAt() != other.hasNextRunAt()) return false;
@@ -3217,6 +3383,15 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + OBSERVED_GENERATION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getObservedGeneration());
+      hash = (37 * hash) + PHASE_FIELD_NUMBER;
+      hash = (53 * hash) + getPhase().hashCode();
+      if (getConditionsCount() > 0) {
+        hash = (37 * hash) + CONDITIONS_FIELD_NUMBER;
+        hash = (53 * hash) + getConditionsList().hashCode();
+      }
       hash = (37 * hash) + REVISION_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getRevision());
@@ -3390,6 +3565,15 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
+        observedGeneration_ = 0L;
+        phase_ = "";
+        if (conditionsBuilder_ == null) {
+          conditions_ = java.util.Collections.emptyList();
+        } else {
+          conditions_ = null;
+          conditionsBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000004);
         revision_ = 0L;
         nextRunAt_ = 0L;
         backendHandle_ = "";
@@ -3405,7 +3589,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
           recentEvents_ = null;
           recentEventsBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000200);
+        bitField0_ = (bitField0_ & ~0x00001000);
         return this;
       }
 
@@ -3439,10 +3623,19 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       }
 
       private void buildPartialRepeatedFields(talon.resources.Schedules.ScheduleStatus result) {
+        if (conditionsBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0)) {
+            conditions_ = java.util.Collections.unmodifiableList(conditions_);
+            bitField0_ = (bitField0_ & ~0x00000004);
+          }
+          result.conditions_ = conditions_;
+        } else {
+          result.conditions_ = conditionsBuilder_.build();
+        }
         if (recentEventsBuilder_ == null) {
-          if (((bitField0_ & 0x00000200) != 0)) {
+          if (((bitField0_ & 0x00001000) != 0)) {
             recentEvents_ = java.util.Collections.unmodifiableList(recentEvents_);
-            bitField0_ = (bitField0_ & ~0x00000200);
+            bitField0_ = (bitField0_ & ~0x00001000);
           }
           result.recentEvents_ = recentEvents_;
         } else {
@@ -3453,37 +3646,43 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       private void buildPartial0(talon.resources.Schedules.ScheduleStatus result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.observedGeneration_ = observedGeneration_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.phase_ = phase_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
           result.revision_ = revision_;
         }
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000002) != 0)) {
+        if (((from_bitField0_ & 0x00000010) != 0)) {
           result.nextRunAt_ = nextRunAt_;
           to_bitField0_ |= 0x00000001;
         }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
+        if (((from_bitField0_ & 0x00000020) != 0)) {
           result.backendHandle_ = backendHandle_;
           to_bitField0_ |= 0x00000002;
         }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
+        if (((from_bitField0_ & 0x00000040) != 0)) {
           result.backendArmed_ = backendArmed_;
         }
-        if (((from_bitField0_ & 0x00000010) != 0)) {
+        if (((from_bitField0_ & 0x00000080) != 0)) {
           result.lastRunAt_ = lastRunAt_;
           to_bitField0_ |= 0x00000004;
         }
-        if (((from_bitField0_ & 0x00000020) != 0)) {
+        if (((from_bitField0_ & 0x00000100) != 0)) {
           result.lastSessionId_ = lastSessionId_;
           to_bitField0_ |= 0x00000008;
         }
-        if (((from_bitField0_ & 0x00000040) != 0)) {
+        if (((from_bitField0_ & 0x00000200) != 0)) {
           result.lastError_ = lastError_;
           to_bitField0_ |= 0x00000010;
         }
-        if (((from_bitField0_ & 0x00000080) != 0)) {
+        if (((from_bitField0_ & 0x00000400) != 0)) {
           result.claimedRunAt_ = claimedRunAt_;
           to_bitField0_ |= 0x00000020;
         }
-        if (((from_bitField0_ & 0x00000100) != 0)) {
+        if (((from_bitField0_ & 0x00000800) != 0)) {
           result.claimExpiresAt_ = claimExpiresAt_;
           to_bitField0_ |= 0x00000040;
         }
@@ -3502,6 +3701,40 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
 
       public Builder mergeFrom(talon.resources.Schedules.ScheduleStatus other) {
         if (other == talon.resources.Schedules.ScheduleStatus.getDefaultInstance()) return this;
+        if (other.getObservedGeneration() != 0L) {
+          setObservedGeneration(other.getObservedGeneration());
+        }
+        if (!other.getPhase().isEmpty()) {
+          phase_ = other.phase_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (conditionsBuilder_ == null) {
+          if (!other.conditions_.isEmpty()) {
+            if (conditions_.isEmpty()) {
+              conditions_ = other.conditions_;
+              bitField0_ = (bitField0_ & ~0x00000004);
+            } else {
+              ensureConditionsIsMutable();
+              conditions_.addAll(other.conditions_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.conditions_.isEmpty()) {
+            if (conditionsBuilder_.isEmpty()) {
+              conditionsBuilder_.dispose();
+              conditionsBuilder_ = null;
+              conditions_ = other.conditions_;
+              bitField0_ = (bitField0_ & ~0x00000004);
+              conditionsBuilder_ =
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   internalGetConditionsFieldBuilder() : null;
+            } else {
+              conditionsBuilder_.addAllMessages(other.conditions_);
+            }
+          }
+        }
         if (other.getRevision() != 0L) {
           setRevision(other.getRevision());
         }
@@ -3510,7 +3743,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         }
         if (other.hasBackendHandle()) {
           backendHandle_ = other.backendHandle_;
-          bitField0_ |= 0x00000004;
+          bitField0_ |= 0x00000020;
           onChanged();
         }
         if (other.getBackendArmed() != false) {
@@ -3521,12 +3754,12 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         }
         if (other.hasLastSessionId()) {
           lastSessionId_ = other.lastSessionId_;
-          bitField0_ |= 0x00000020;
+          bitField0_ |= 0x00000100;
           onChanged();
         }
         if (other.hasLastError()) {
           lastError_ = other.lastError_;
-          bitField0_ |= 0x00000040;
+          bitField0_ |= 0x00000200;
           onChanged();
         }
         if (other.hasClaimedRunAt()) {
@@ -3539,7 +3772,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
           if (!other.recentEvents_.isEmpty()) {
             if (recentEvents_.isEmpty()) {
               recentEvents_ = other.recentEvents_;
-              bitField0_ = (bitField0_ & ~0x00000200);
+              bitField0_ = (bitField0_ & ~0x00001000);
             } else {
               ensureRecentEventsIsMutable();
               recentEvents_.addAll(other.recentEvents_);
@@ -3552,7 +3785,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
               recentEventsBuilder_.dispose();
               recentEventsBuilder_ = null;
               recentEvents_ = other.recentEvents_;
-              bitField0_ = (bitField0_ & ~0x00000200);
+              bitField0_ = (bitField0_ & ~0x00001000);
               recentEventsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetRecentEventsFieldBuilder() : null;
@@ -3588,51 +3821,74 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
                 done = true;
                 break;
               case 8: {
-                revision_ = input.readUInt64();
+                observedGeneration_ = input.readUInt64();
                 bitField0_ |= 0x00000001;
                 break;
               } // case 8
-              case 16: {
-                nextRunAt_ = input.readInt64();
+              case 18: {
+                phase_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000002;
                 break;
-              } // case 16
+              } // case 18
               case 26: {
-                backendHandle_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000004;
+                talon.resources.Common.ResourceCondition m =
+                    input.readMessage(
+                        talon.resources.Common.ResourceCondition.parser(),
+                        extensionRegistry);
+                if (conditionsBuilder_ == null) {
+                  ensureConditionsIsMutable();
+                  conditions_.add(m);
+                } else {
+                  conditionsBuilder_.addMessage(m);
+                }
                 break;
               } // case 26
               case 32: {
-                backendArmed_ = input.readBool();
+                revision_ = input.readUInt64();
                 bitField0_ |= 0x00000008;
                 break;
               } // case 32
               case 40: {
-                lastRunAt_ = input.readInt64();
+                nextRunAt_ = input.readInt64();
                 bitField0_ |= 0x00000010;
                 break;
               } // case 40
               case 50: {
-                lastSessionId_ = input.readStringRequireUtf8();
+                backendHandle_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000020;
                 break;
               } // case 50
-              case 58: {
-                lastError_ = input.readStringRequireUtf8();
+              case 56: {
+                backendArmed_ = input.readBool();
                 bitField0_ |= 0x00000040;
                 break;
-              } // case 58
+              } // case 56
               case 64: {
-                claimedRunAt_ = input.readInt64();
+                lastRunAt_ = input.readInt64();
                 bitField0_ |= 0x00000080;
                 break;
               } // case 64
-              case 72: {
-                claimExpiresAt_ = input.readInt64();
+              case 74: {
+                lastSessionId_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000100;
                 break;
-              } // case 72
+              } // case 74
               case 82: {
+                lastError_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000200;
+                break;
+              } // case 82
+              case 88: {
+                claimedRunAt_ = input.readInt64();
+                bitField0_ |= 0x00000400;
+                break;
+              } // case 88
+              case 96: {
+                claimExpiresAt_ = input.readInt64();
+                bitField0_ |= 0x00000800;
+                break;
+              } // case 96
+              case 106: {
                 talon.resources.Schedules.ScheduleEvent m =
                     input.readMessage(
                         talon.resources.Schedules.ScheduleEvent.parser(),
@@ -3644,7 +3900,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
                   recentEventsBuilder_.addMessage(m);
                 }
                 break;
-              } // case 82
+              } // case 106
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3662,9 +3918,353 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
+      private long observedGeneration_ ;
+      /**
+       * <code>uint64 observed_generation = 1;</code>
+       * @return The observedGeneration.
+       */
+      @java.lang.Override
+      public long getObservedGeneration() {
+        return observedGeneration_;
+      }
+      /**
+       * <code>uint64 observed_generation = 1;</code>
+       * @param value The observedGeneration to set.
+       * @return This builder for chaining.
+       */
+      public Builder setObservedGeneration(long value) {
+
+        observedGeneration_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 observed_generation = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearObservedGeneration() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        observedGeneration_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object phase_ = "";
+      /**
+       * <code>string phase = 2;</code>
+       * @return The phase.
+       */
+      public java.lang.String getPhase() {
+        java.lang.Object ref = phase_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          phase_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string phase = 2;</code>
+       * @return The bytes for phase.
+       */
+      public com.google.protobuf.ByteString
+          getPhaseBytes() {
+        java.lang.Object ref = phase_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          phase_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string phase = 2;</code>
+       * @param value The phase to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPhase(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        phase_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string phase = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPhase() {
+        phase_ = getDefaultInstance().getPhase();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string phase = 2;</code>
+       * @param value The bytes for phase to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPhaseBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        phase_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<talon.resources.Common.ResourceCondition> conditions_ =
+        java.util.Collections.emptyList();
+      private void ensureConditionsIsMutable() {
+        if (!((bitField0_ & 0x00000004) != 0)) {
+          conditions_ = new java.util.ArrayList<talon.resources.Common.ResourceCondition>(conditions_);
+          bitField0_ |= 0x00000004;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.resources.Common.ResourceCondition, talon.resources.Common.ResourceCondition.Builder, talon.resources.Common.ResourceConditionOrBuilder> conditionsBuilder_;
+
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public java.util.List<talon.resources.Common.ResourceCondition> getConditionsList() {
+        if (conditionsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(conditions_);
+        } else {
+          return conditionsBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public int getConditionsCount() {
+        if (conditionsBuilder_ == null) {
+          return conditions_.size();
+        } else {
+          return conditionsBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public talon.resources.Common.ResourceCondition getConditions(int index) {
+        if (conditionsBuilder_ == null) {
+          return conditions_.get(index);
+        } else {
+          return conditionsBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder setConditions(
+          int index, talon.resources.Common.ResourceCondition value) {
+        if (conditionsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureConditionsIsMutable();
+          conditions_.set(index, value);
+          onChanged();
+        } else {
+          conditionsBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder setConditions(
+          int index, talon.resources.Common.ResourceCondition.Builder builderForValue) {
+        if (conditionsBuilder_ == null) {
+          ensureConditionsIsMutable();
+          conditions_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          conditionsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder addConditions(talon.resources.Common.ResourceCondition value) {
+        if (conditionsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureConditionsIsMutable();
+          conditions_.add(value);
+          onChanged();
+        } else {
+          conditionsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder addConditions(
+          int index, talon.resources.Common.ResourceCondition value) {
+        if (conditionsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureConditionsIsMutable();
+          conditions_.add(index, value);
+          onChanged();
+        } else {
+          conditionsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder addConditions(
+          talon.resources.Common.ResourceCondition.Builder builderForValue) {
+        if (conditionsBuilder_ == null) {
+          ensureConditionsIsMutable();
+          conditions_.add(builderForValue.build());
+          onChanged();
+        } else {
+          conditionsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder addConditions(
+          int index, talon.resources.Common.ResourceCondition.Builder builderForValue) {
+        if (conditionsBuilder_ == null) {
+          ensureConditionsIsMutable();
+          conditions_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          conditionsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder addAllConditions(
+          java.lang.Iterable<? extends talon.resources.Common.ResourceCondition> values) {
+        if (conditionsBuilder_ == null) {
+          ensureConditionsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, conditions_);
+          onChanged();
+        } else {
+          conditionsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder clearConditions() {
+        if (conditionsBuilder_ == null) {
+          conditions_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000004);
+          onChanged();
+        } else {
+          conditionsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public Builder removeConditions(int index) {
+        if (conditionsBuilder_ == null) {
+          ensureConditionsIsMutable();
+          conditions_.remove(index);
+          onChanged();
+        } else {
+          conditionsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public talon.resources.Common.ResourceCondition.Builder getConditionsBuilder(
+          int index) {
+        return internalGetConditionsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public talon.resources.Common.ResourceConditionOrBuilder getConditionsOrBuilder(
+          int index) {
+        if (conditionsBuilder_ == null) {
+          return conditions_.get(index);  } else {
+          return conditionsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public java.util.List<? extends talon.resources.Common.ResourceConditionOrBuilder>
+           getConditionsOrBuilderList() {
+        if (conditionsBuilder_ != null) {
+          return conditionsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(conditions_);
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public talon.resources.Common.ResourceCondition.Builder addConditionsBuilder() {
+        return internalGetConditionsFieldBuilder().addBuilder(
+            talon.resources.Common.ResourceCondition.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public talon.resources.Common.ResourceCondition.Builder addConditionsBuilder(
+          int index) {
+        return internalGetConditionsFieldBuilder().addBuilder(
+            index, talon.resources.Common.ResourceCondition.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
+       */
+      public java.util.List<talon.resources.Common.ResourceCondition.Builder>
+           getConditionsBuilderList() {
+        return internalGetConditionsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.resources.Common.ResourceCondition, talon.resources.Common.ResourceCondition.Builder, talon.resources.Common.ResourceConditionOrBuilder>
+          internalGetConditionsFieldBuilder() {
+        if (conditionsBuilder_ == null) {
+          conditionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              talon.resources.Common.ResourceCondition, talon.resources.Common.ResourceCondition.Builder, talon.resources.Common.ResourceConditionOrBuilder>(
+                  conditions_,
+                  ((bitField0_ & 0x00000004) != 0),
+                  getParentForChildren(),
+                  isClean());
+          conditions_ = null;
+        }
+        return conditionsBuilder_;
+      }
+
       private long revision_ ;
       /**
-       * <code>uint64 revision = 1;</code>
+       * <code>uint64 revision = 4;</code>
        * @return The revision.
        */
       @java.lang.Override
@@ -3672,23 +4272,23 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return revision_;
       }
       /**
-       * <code>uint64 revision = 1;</code>
+       * <code>uint64 revision = 4;</code>
        * @param value The revision to set.
        * @return This builder for chaining.
        */
       public Builder setRevision(long value) {
 
         revision_ = value;
-        bitField0_ |= 0x00000001;
+        bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
       /**
-       * <code>uint64 revision = 1;</code>
+       * <code>uint64 revision = 4;</code>
        * @return This builder for chaining.
        */
       public Builder clearRevision() {
-        bitField0_ = (bitField0_ & ~0x00000001);
+        bitField0_ = (bitField0_ & ~0x00000008);
         revision_ = 0L;
         onChanged();
         return this;
@@ -3696,15 +4296,15 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
 
       private long nextRunAt_ ;
       /**
-       * <code>optional int64 next_run_at = 2;</code>
+       * <code>optional int64 next_run_at = 5;</code>
        * @return Whether the nextRunAt field is set.
        */
       @java.lang.Override
       public boolean hasNextRunAt() {
-        return ((bitField0_ & 0x00000002) != 0);
+        return ((bitField0_ & 0x00000010) != 0);
       }
       /**
-       * <code>optional int64 next_run_at = 2;</code>
+       * <code>optional int64 next_run_at = 5;</code>
        * @return The nextRunAt.
        */
       @java.lang.Override
@@ -3712,23 +4312,23 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return nextRunAt_;
       }
       /**
-       * <code>optional int64 next_run_at = 2;</code>
+       * <code>optional int64 next_run_at = 5;</code>
        * @param value The nextRunAt to set.
        * @return This builder for chaining.
        */
       public Builder setNextRunAt(long value) {
 
         nextRunAt_ = value;
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 next_run_at = 2;</code>
+       * <code>optional int64 next_run_at = 5;</code>
        * @return This builder for chaining.
        */
       public Builder clearNextRunAt() {
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000010);
         nextRunAt_ = 0L;
         onChanged();
         return this;
@@ -3736,14 +4336,14 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object backendHandle_ = "";
       /**
-       * <code>optional string backend_handle = 3;</code>
+       * <code>optional string backend_handle = 6;</code>
        * @return Whether the backendHandle field is set.
        */
       public boolean hasBackendHandle() {
-        return ((bitField0_ & 0x00000004) != 0);
+        return ((bitField0_ & 0x00000020) != 0);
       }
       /**
-       * <code>optional string backend_handle = 3;</code>
+       * <code>optional string backend_handle = 6;</code>
        * @return The backendHandle.
        */
       public java.lang.String getBackendHandle() {
@@ -3759,7 +4359,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>optional string backend_handle = 3;</code>
+       * <code>optional string backend_handle = 6;</code>
        * @return The bytes for backendHandle.
        */
       public com.google.protobuf.ByteString
@@ -3776,7 +4376,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>optional string backend_handle = 3;</code>
+       * <code>optional string backend_handle = 6;</code>
        * @param value The backendHandle to set.
        * @return This builder for chaining.
        */
@@ -3784,22 +4384,22 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         backendHandle_ = value;
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string backend_handle = 3;</code>
+       * <code>optional string backend_handle = 6;</code>
        * @return This builder for chaining.
        */
       public Builder clearBackendHandle() {
         backendHandle_ = getDefaultInstance().getBackendHandle();
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000020);
         onChanged();
         return this;
       }
       /**
-       * <code>optional string backend_handle = 3;</code>
+       * <code>optional string backend_handle = 6;</code>
        * @param value The bytes for backendHandle to set.
        * @return This builder for chaining.
        */
@@ -3808,14 +4408,14 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         backendHandle_ = value;
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
 
       private boolean backendArmed_ ;
       /**
-       * <code>bool backend_armed = 4;</code>
+       * <code>bool backend_armed = 7;</code>
        * @return The backendArmed.
        */
       @java.lang.Override
@@ -3823,23 +4423,23 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return backendArmed_;
       }
       /**
-       * <code>bool backend_armed = 4;</code>
+       * <code>bool backend_armed = 7;</code>
        * @param value The backendArmed to set.
        * @return This builder for chaining.
        */
       public Builder setBackendArmed(boolean value) {
 
         backendArmed_ = value;
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000040;
         onChanged();
         return this;
       }
       /**
-       * <code>bool backend_armed = 4;</code>
+       * <code>bool backend_armed = 7;</code>
        * @return This builder for chaining.
        */
       public Builder clearBackendArmed() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000040);
         backendArmed_ = false;
         onChanged();
         return this;
@@ -3847,15 +4447,15 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
 
       private long lastRunAt_ ;
       /**
-       * <code>optional int64 last_run_at = 5;</code>
+       * <code>optional int64 last_run_at = 8;</code>
        * @return Whether the lastRunAt field is set.
        */
       @java.lang.Override
       public boolean hasLastRunAt() {
-        return ((bitField0_ & 0x00000010) != 0);
+        return ((bitField0_ & 0x00000080) != 0);
       }
       /**
-       * <code>optional int64 last_run_at = 5;</code>
+       * <code>optional int64 last_run_at = 8;</code>
        * @return The lastRunAt.
        */
       @java.lang.Override
@@ -3863,23 +4463,23 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return lastRunAt_;
       }
       /**
-       * <code>optional int64 last_run_at = 5;</code>
+       * <code>optional int64 last_run_at = 8;</code>
        * @param value The lastRunAt to set.
        * @return This builder for chaining.
        */
       public Builder setLastRunAt(long value) {
 
         lastRunAt_ = value;
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000080;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 last_run_at = 5;</code>
+       * <code>optional int64 last_run_at = 8;</code>
        * @return This builder for chaining.
        */
       public Builder clearLastRunAt() {
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000080);
         lastRunAt_ = 0L;
         onChanged();
         return this;
@@ -3887,14 +4487,14 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object lastSessionId_ = "";
       /**
-       * <code>optional string last_session_id = 6;</code>
+       * <code>optional string last_session_id = 9;</code>
        * @return Whether the lastSessionId field is set.
        */
       public boolean hasLastSessionId() {
-        return ((bitField0_ & 0x00000020) != 0);
+        return ((bitField0_ & 0x00000100) != 0);
       }
       /**
-       * <code>optional string last_session_id = 6;</code>
+       * <code>optional string last_session_id = 9;</code>
        * @return The lastSessionId.
        */
       public java.lang.String getLastSessionId() {
@@ -3910,7 +4510,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>optional string last_session_id = 6;</code>
+       * <code>optional string last_session_id = 9;</code>
        * @return The bytes for lastSessionId.
        */
       public com.google.protobuf.ByteString
@@ -3927,7 +4527,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>optional string last_session_id = 6;</code>
+       * <code>optional string last_session_id = 9;</code>
        * @param value The lastSessionId to set.
        * @return This builder for chaining.
        */
@@ -3935,22 +4535,22 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         lastSessionId_ = value;
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000100;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string last_session_id = 6;</code>
+       * <code>optional string last_session_id = 9;</code>
        * @return This builder for chaining.
        */
       public Builder clearLastSessionId() {
         lastSessionId_ = getDefaultInstance().getLastSessionId();
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000100);
         onChanged();
         return this;
       }
       /**
-       * <code>optional string last_session_id = 6;</code>
+       * <code>optional string last_session_id = 9;</code>
        * @param value The bytes for lastSessionId to set.
        * @return This builder for chaining.
        */
@@ -3959,21 +4559,21 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         lastSessionId_ = value;
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000100;
         onChanged();
         return this;
       }
 
       private java.lang.Object lastError_ = "";
       /**
-       * <code>optional string last_error = 7;</code>
+       * <code>optional string last_error = 10;</code>
        * @return Whether the lastError field is set.
        */
       public boolean hasLastError() {
-        return ((bitField0_ & 0x00000040) != 0);
+        return ((bitField0_ & 0x00000200) != 0);
       }
       /**
-       * <code>optional string last_error = 7;</code>
+       * <code>optional string last_error = 10;</code>
        * @return The lastError.
        */
       public java.lang.String getLastError() {
@@ -3989,7 +4589,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>optional string last_error = 7;</code>
+       * <code>optional string last_error = 10;</code>
        * @return The bytes for lastError.
        */
       public com.google.protobuf.ByteString
@@ -4006,7 +4606,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>optional string last_error = 7;</code>
+       * <code>optional string last_error = 10;</code>
        * @param value The lastError to set.
        * @return This builder for chaining.
        */
@@ -4014,22 +4614,22 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         lastError_ = value;
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000200;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string last_error = 7;</code>
+       * <code>optional string last_error = 10;</code>
        * @return This builder for chaining.
        */
       public Builder clearLastError() {
         lastError_ = getDefaultInstance().getLastError();
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000200);
         onChanged();
         return this;
       }
       /**
-       * <code>optional string last_error = 7;</code>
+       * <code>optional string last_error = 10;</code>
        * @param value The bytes for lastError to set.
        * @return This builder for chaining.
        */
@@ -4038,22 +4638,22 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         lastError_ = value;
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000200;
         onChanged();
         return this;
       }
 
       private long claimedRunAt_ ;
       /**
-       * <code>optional int64 claimed_run_at = 8;</code>
+       * <code>optional int64 claimed_run_at = 11;</code>
        * @return Whether the claimedRunAt field is set.
        */
       @java.lang.Override
       public boolean hasClaimedRunAt() {
-        return ((bitField0_ & 0x00000080) != 0);
+        return ((bitField0_ & 0x00000400) != 0);
       }
       /**
-       * <code>optional int64 claimed_run_at = 8;</code>
+       * <code>optional int64 claimed_run_at = 11;</code>
        * @return The claimedRunAt.
        */
       @java.lang.Override
@@ -4061,23 +4661,23 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return claimedRunAt_;
       }
       /**
-       * <code>optional int64 claimed_run_at = 8;</code>
+       * <code>optional int64 claimed_run_at = 11;</code>
        * @param value The claimedRunAt to set.
        * @return This builder for chaining.
        */
       public Builder setClaimedRunAt(long value) {
 
         claimedRunAt_ = value;
-        bitField0_ |= 0x00000080;
+        bitField0_ |= 0x00000400;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 claimed_run_at = 8;</code>
+       * <code>optional int64 claimed_run_at = 11;</code>
        * @return This builder for chaining.
        */
       public Builder clearClaimedRunAt() {
-        bitField0_ = (bitField0_ & ~0x00000080);
+        bitField0_ = (bitField0_ & ~0x00000400);
         claimedRunAt_ = 0L;
         onChanged();
         return this;
@@ -4085,15 +4685,15 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
 
       private long claimExpiresAt_ ;
       /**
-       * <code>optional int64 claim_expires_at = 9;</code>
+       * <code>optional int64 claim_expires_at = 12;</code>
        * @return Whether the claimExpiresAt field is set.
        */
       @java.lang.Override
       public boolean hasClaimExpiresAt() {
-        return ((bitField0_ & 0x00000100) != 0);
+        return ((bitField0_ & 0x00000800) != 0);
       }
       /**
-       * <code>optional int64 claim_expires_at = 9;</code>
+       * <code>optional int64 claim_expires_at = 12;</code>
        * @return The claimExpiresAt.
        */
       @java.lang.Override
@@ -4101,23 +4701,23 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return claimExpiresAt_;
       }
       /**
-       * <code>optional int64 claim_expires_at = 9;</code>
+       * <code>optional int64 claim_expires_at = 12;</code>
        * @param value The claimExpiresAt to set.
        * @return This builder for chaining.
        */
       public Builder setClaimExpiresAt(long value) {
 
         claimExpiresAt_ = value;
-        bitField0_ |= 0x00000100;
+        bitField0_ |= 0x00000800;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 claim_expires_at = 9;</code>
+       * <code>optional int64 claim_expires_at = 12;</code>
        * @return This builder for chaining.
        */
       public Builder clearClaimExpiresAt() {
-        bitField0_ = (bitField0_ & ~0x00000100);
+        bitField0_ = (bitField0_ & ~0x00000800);
         claimExpiresAt_ = 0L;
         onChanged();
         return this;
@@ -4126,9 +4726,9 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       private java.util.List<talon.resources.Schedules.ScheduleEvent> recentEvents_ =
         java.util.Collections.emptyList();
       private void ensureRecentEventsIsMutable() {
-        if (!((bitField0_ & 0x00000200) != 0)) {
+        if (!((bitField0_ & 0x00001000) != 0)) {
           recentEvents_ = new java.util.ArrayList<talon.resources.Schedules.ScheduleEvent>(recentEvents_);
-          bitField0_ |= 0x00000200;
+          bitField0_ |= 0x00001000;
          }
       }
 
@@ -4136,7 +4736,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
           talon.resources.Schedules.ScheduleEvent, talon.resources.Schedules.ScheduleEvent.Builder, talon.resources.Schedules.ScheduleEventOrBuilder> recentEventsBuilder_;
 
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public java.util.List<talon.resources.Schedules.ScheduleEvent> getRecentEventsList() {
         if (recentEventsBuilder_ == null) {
@@ -4146,7 +4746,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public int getRecentEventsCount() {
         if (recentEventsBuilder_ == null) {
@@ -4156,7 +4756,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public talon.resources.Schedules.ScheduleEvent getRecentEvents(int index) {
         if (recentEventsBuilder_ == null) {
@@ -4166,7 +4766,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public Builder setRecentEvents(
           int index, talon.resources.Schedules.ScheduleEvent value) {
@@ -4183,7 +4783,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public Builder setRecentEvents(
           int index, talon.resources.Schedules.ScheduleEvent.Builder builderForValue) {
@@ -4197,7 +4797,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public Builder addRecentEvents(talon.resources.Schedules.ScheduleEvent value) {
         if (recentEventsBuilder_ == null) {
@@ -4213,7 +4813,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public Builder addRecentEvents(
           int index, talon.resources.Schedules.ScheduleEvent value) {
@@ -4230,7 +4830,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public Builder addRecentEvents(
           talon.resources.Schedules.ScheduleEvent.Builder builderForValue) {
@@ -4244,7 +4844,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public Builder addRecentEvents(
           int index, talon.resources.Schedules.ScheduleEvent.Builder builderForValue) {
@@ -4258,7 +4858,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public Builder addAllRecentEvents(
           java.lang.Iterable<? extends talon.resources.Schedules.ScheduleEvent> values) {
@@ -4273,12 +4873,12 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public Builder clearRecentEvents() {
         if (recentEventsBuilder_ == null) {
           recentEvents_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000200);
+          bitField0_ = (bitField0_ & ~0x00001000);
           onChanged();
         } else {
           recentEventsBuilder_.clear();
@@ -4286,7 +4886,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public Builder removeRecentEvents(int index) {
         if (recentEventsBuilder_ == null) {
@@ -4299,14 +4899,14 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public talon.resources.Schedules.ScheduleEvent.Builder getRecentEventsBuilder(
           int index) {
         return internalGetRecentEventsFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public talon.resources.Schedules.ScheduleEventOrBuilder getRecentEventsOrBuilder(
           int index) {
@@ -4316,7 +4916,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public java.util.List<? extends talon.resources.Schedules.ScheduleEventOrBuilder>
            getRecentEventsOrBuilderList() {
@@ -4327,14 +4927,14 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public talon.resources.Schedules.ScheduleEvent.Builder addRecentEventsBuilder() {
         return internalGetRecentEventsFieldBuilder().addBuilder(
             talon.resources.Schedules.ScheduleEvent.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public talon.resources.Schedules.ScheduleEvent.Builder addRecentEventsBuilder(
           int index) {
@@ -4342,7 +4942,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
             index, talon.resources.Schedules.ScheduleEvent.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.resources.ScheduleEvent recent_events = 10;</code>
+       * <code>repeated .talon.resources.ScheduleEvent recent_events = 13;</code>
        */
       public java.util.List<talon.resources.Schedules.ScheduleEvent.Builder>
            getRecentEventsBuilderList() {
@@ -4355,7 +4955,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
           recentEventsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
               talon.resources.Schedules.ScheduleEvent, talon.resources.Schedules.ScheduleEvent.Builder, talon.resources.Schedules.ScheduleEventOrBuilder>(
                   recentEvents_,
-                  ((bitField0_ & 0x00000200) != 0),
+                  ((bitField0_ & 0x00001000) != 0),
                   getParentForChildren(),
                   isClean());
           recentEvents_ = null;
@@ -6316,24 +6916,27 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       " \001(\r\022\016\n\006run_at\030\004 \001(\t\022\020\n\010timezone\030\005 \001(\t\022/" +
       "\n\006target\030\006 \001(\0132\037.talon.resources.Schedul" +
       "eTarget\022\025\n\rinput_message\030\007 \001(\t\022\017\n\007enable" +
-      "d\030\010 \001(\010\022\022\n\ninput_json\030\t \001(\t\"\262\003\n\016Schedule" +
-      "Status\022\020\n\010revision\030\001 \001(\004\022\030\n\013next_run_at\030" +
-      "\002 \001(\003H\000\210\001\001\022\033\n\016backend_handle\030\003 \001(\tH\001\210\001\001\022" +
-      "\025\n\rbackend_armed\030\004 \001(\010\022\030\n\013last_run_at\030\005 " +
-      "\001(\003H\002\210\001\001\022\034\n\017last_session_id\030\006 \001(\tH\003\210\001\001\022\027" +
-      "\n\nlast_error\030\007 \001(\tH\004\210\001\001\022\033\n\016claimed_run_a" +
-      "t\030\010 \001(\003H\005\210\001\001\022\035\n\020claim_expires_at\030\t \001(\003H\006" +
-      "\210\001\001\0225\n\rrecent_events\030\n \003(\0132\036.talon.resou" +
-      "rces.ScheduleEventB\016\n\014_next_run_atB\021\n\017_b" +
-      "ackend_handleB\016\n\014_last_run_atB\022\n\020_last_s" +
-      "ession_idB\r\n\013_last_errorB\021\n\017_claimed_run" +
-      "_atB\023\n\021_claim_expires_at\"R\n\rScheduleEven" +
-      "t\022\021\n\ttimestamp\030\001 \001(\003\022\r\n\005phase\030\002 \001(\t\022\017\n\007o" +
-      "utcome\030\003 \001(\t\022\016\n\006detail\030\004 \001(\t\"\231\001\n\010Schedul" +
-      "e\022/\n\010metadata\030\001 \001(\0132\035.talon.resources.Re" +
-      "sourceMeta\022+\n\004spec\030\002 \001(\0132\035.talon.resourc" +
-      "es.ScheduleSpec\022/\n\006status\030\003 \001(\0132\037.talon." +
-      "resources.ScheduleStatusb\006proto3"
+      "d\030\010 \001(\010\022\022\n\ninput_json\030\t \001(\t\"\226\004\n\016Schedule" +
+      "Status\022\033\n\023observed_generation\030\001 \001(\004\022\r\n\005p" +
+      "hase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\".talon.r" +
+      "esources.ResourceCondition\022\020\n\010revision\030\004" +
+      " \001(\004\022\030\n\013next_run_at\030\005 \001(\003H\000\210\001\001\022\033\n\016backen" +
+      "d_handle\030\006 \001(\tH\001\210\001\001\022\025\n\rbackend_armed\030\007 \001" +
+      "(\010\022\030\n\013last_run_at\030\010 \001(\003H\002\210\001\001\022\034\n\017last_ses" +
+      "sion_id\030\t \001(\tH\003\210\001\001\022\027\n\nlast_error\030\n \001(\tH\004" +
+      "\210\001\001\022\033\n\016claimed_run_at\030\013 \001(\003H\005\210\001\001\022\035\n\020clai" +
+      "m_expires_at\030\014 \001(\003H\006\210\001\001\0225\n\rrecent_events" +
+      "\030\r \003(\0132\036.talon.resources.ScheduleEventB\016" +
+      "\n\014_next_run_atB\021\n\017_backend_handleB\016\n\014_la" +
+      "st_run_atB\022\n\020_last_session_idB\r\n\013_last_e" +
+      "rrorB\021\n\017_claimed_run_atB\023\n\021_claim_expire" +
+      "s_at\"R\n\rScheduleEvent\022\021\n\ttimestamp\030\001 \001(\003" +
+      "\022\r\n\005phase\030\002 \001(\t\022\017\n\007outcome\030\003 \001(\t\022\016\n\006deta" +
+      "il\030\004 \001(\t\"\231\001\n\010Schedule\022/\n\010metadata\030\001 \001(\0132" +
+      "\035.talon.resources.ResourceMeta\022+\n\004spec\030\002" +
+      " \001(\0132\035.talon.resources.ScheduleSpec\022/\n\006s" +
+      "tatus\030\003 \001(\0132\037.talon.resources.ScheduleSt" +
+      "atusb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -6357,7 +6960,7 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
     internal_static_talon_resources_ScheduleStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ScheduleStatus_descriptor,
-        new java.lang.String[] { "Revision", "NextRunAt", "BackendHandle", "BackendArmed", "LastRunAt", "LastSessionId", "LastError", "ClaimedRunAt", "ClaimExpiresAt", "RecentEvents", });
+        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "Revision", "NextRunAt", "BackendHandle", "BackendArmed", "LastRunAt", "LastSessionId", "LastError", "ClaimedRunAt", "ClaimExpiresAt", "RecentEvents", });
     internal_static_talon_resources_ScheduleEvent_descriptor =
       getDescriptor().getMessageType(3);
     internal_static_talon_resources_ScheduleEvent_fieldAccessorTable = new

@@ -24,16 +24,19 @@ message ScheduleSpec {
 }
 
 message ScheduleStatus {
-  uint64 revision = 1;
-  optional int64 next_run_at = 2;
-  optional string backend_handle = 3;
-  bool backend_armed = 4;
-  optional int64 last_run_at = 5;
-  optional string last_session_id = 6;
-  optional string last_error = 7;
-  optional int64 claimed_run_at = 8;
-  optional int64 claim_expires_at = 9;
-  repeated ScheduleEvent recent_events = 10;
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  uint64 revision = 4;
+  optional int64 next_run_at = 5;
+  optional string backend_handle = 6;
+  bool backend_armed = 7;
+  optional int64 last_run_at = 8;
+  optional string last_session_id = 9;
+  optional string last_error = 10;
+  optional int64 claimed_run_at = 11;
+  optional int64 claim_expires_at = 12;
+  repeated ScheduleEvent recent_events = 13;
 }
 
 message ScheduleEvent {
