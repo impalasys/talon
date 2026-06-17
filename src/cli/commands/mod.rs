@@ -8,6 +8,7 @@ mod gen;
 mod get;
 mod knowledge;
 mod render;
+mod session;
 mod workflow;
 
 pub(crate) use apply::ApplyCommand;
@@ -17,6 +18,7 @@ pub(crate) use gen::GenCommand;
 pub(crate) use get::GetCommand;
 pub(crate) use knowledge::KnowledgeCommand;
 pub(crate) use render::RenderCommand;
+pub(crate) use session::SessionCommand;
 pub(crate) use workflow::WorkflowCommand;
 
 use clap::{Parser, Subcommand};
@@ -55,6 +57,8 @@ pub(crate) enum Commands {
     Auth(AuthCommand),
     /// Manage namespace knowledge artifacts directly by path.
     Knowledge(KnowledgeCommand),
+    /// Create sessions, send prompts, and inspect messages.
+    Session(SessionCommand),
     /// Create and inspect workflow runs.
     Workflow(WorkflowCommand),
     /// Applies a manifest file (e.g. Agent, Template, Deployment)
@@ -85,6 +89,7 @@ pub(super) async fn run_cli(cli: &Cli) -> Result<RunOutcome> {
     match &cli.command {
         Commands::Auth(command) => return auth::run(cli, command).await,
         Commands::Knowledge(command) => return knowledge::run(cli, command).await,
+        Commands::Session(command) => return session::run(cli, command).await,
         Commands::Workflow(command) => return workflow::run(cli, command).await,
         Commands::Apply(command) => apply::run(cli, command).await?,
         Commands::Render(command) => return render::run(cli, command).await,
