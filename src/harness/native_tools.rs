@@ -12,6 +12,7 @@ use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{
     manifests, protobuf_value::value::Kind as ProtoValueKind, resources_proto,
 };
+use crate::harness::skills::namespace::{self, NamespaceSkill};
 use crate::harness::skills::registry::ToolRegistry;
 
 pub const CREATE_SCHEDULE_TOOL: &str = "create_schedule";
@@ -23,8 +24,8 @@ pub const CHANNEL_PUBLISH_TOOL: &str = "channel_publish";
 pub const CHANNEL_SKIP_REPLY_TOOL: &str = "channel_skip_reply";
 pub const ACTIVATE_SKILL_TOOL: &str = "activate_skill";
 
-pub fn register_skill_tools(registry: &mut ToolRegistry, skills: &[manifests::Skill]) {
-    let names = crate::skills::namespace::effective_skill_names(skills);
+pub fn register_skill_tools(registry: &mut ToolRegistry, skills: &[NamespaceSkill]) {
+    let names = namespace::effective_skill_names(skills);
     if names.is_empty() {
         return;
     }
@@ -186,12 +187,10 @@ pub async fn execute_tool_for_session(
     match name {
         ACTIVATE_SKILL_TOOL => {
             let skill_name = req_str(args, "name")?;
-            let skills =
-                crate::skills::namespace::load_effective_skills(cp.kv.clone(), current_namespace)
-                    .await?;
-            let skill = crate::skills::namespace::find_effective_skill(&skills, skill_name)
+            let skills = namespace::load_effective_skills(cp.kv.clone(), current_namespace).await?;
+            let skill = namespace::find_effective_skill(&skills, skill_name)
                 .ok_or_else(|| anyhow!("skill '{}' is not available", skill_name))?;
-            let activated = crate::skills::namespace::format_activated_skill(skill)
+            let activated = namespace::format_activated_skill(skill)
                 .ok_or_else(|| anyhow!("skill '{}' has no instructions", skill_name))?;
             Ok(Some(activated))
         }
@@ -595,21 +594,22 @@ mod tests {
         .unwrap();
     }
 
-    fn skill(ns: &str, name: &str, description: &str, instructions: &str) -> manifests::Skill {
-        manifests::Skill {
-            api_version: "talon.impalasys.com/v1".to_string(),
-            kind: "Skill".to_string(),
-            metadata: Some(manifests::ObjectMeta {
-                name: name.to_string(),
-                namespace: ns.to_string(),
-                labels: HashMap::new(),
-                annotations: HashMap::new(),
-            }),
-            spec: Some(manifests::SkillSpec {
-                description: description.to_string(),
-                instructions: instructions.to_string(),
-            }),
+    fn skill(ns: &str, name: &str, description: &str, instructions: &str) -> NamespaceSkill {
+        NamespaceSkill {
+            name: name.to_string(),
+            namespace: ns.to_string(),
+            description: description.to_string(),
+            instructions: instructions.to_string(),
         }
+    }
+
+    fn skill_resource(
+        ns: &str,
+        name: &str,
+        description: &str,
+        instructions: &str,
+    ) -> resources_proto::Resource {
+        namespace::skill_resource(ns, name, description, instructions)
     }
 
     #[test]
@@ -647,10 +647,8 @@ mod tests {
     #[test]
     fn register_skill_tools_skips_empty_catalog() {
         let mut registry = ToolRegistry::new();
-        let mut invalid = skill("acme", "review", "Review code", "parent");
-        invalid.spec = None;
 
-        register_skill_tools(&mut registry, &[invalid]);
+        register_skill_tools(&mut registry, &[]);
 
         assert!(registry.get_tool(ACTIVATE_SKILL_TOOL).is_none());
     }
@@ -681,13 +679,13 @@ mod tests {
         let cp = control_plane(kv.clone(), scheduler);
         kv.set_msg(
             &keys::skill("acme", "review"),
-            &skill("acme", "review", "Review code", "parent instructions"),
+            &skill_resource("acme", "review", "Review code", "parent instructions"),
         )
         .await
         .unwrap();
         kv.set_msg(
             &keys::skill("acme:team", "review"),
-            &skill(
+            &skill_resource(
                 "acme:team",
                 "review",
                 "Review code locally",
@@ -725,7 +723,7 @@ mod tests {
             .unwrap();
         kv.set_msg(
             &keys::skill("acme", "review"),
-            &skill("acme", "review", "Review code", "instructions"),
+            &skill_resource("acme", "review", "Review code", "instructions"),
         )
         .await
         .unwrap();
