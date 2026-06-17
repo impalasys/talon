@@ -478,6 +478,7 @@ mod tests {
     use crate::harness::llm::ChatContentPart;
     use crate::harness::mcp::McpConnectionConfig;
     use futures::stream;
+    use prost::Message;
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
@@ -618,6 +619,37 @@ mod tests {
         name: &str,
         spec: Option<resources_proto::AgentSpec>,
     ) {
+        let agent = resources_proto::Agent {
+            metadata: Some(resources_proto::ResourceMeta {
+                name: name.to_string(),
+                namespace: namespace.to_string(),
+                labels: HashMap::new(),
+                annotations: HashMap::new(),
+                owner_references: Vec::new(),
+                finalizers: Vec::new(),
+                generation: 0,
+                resource_version: String::new(),
+                uid: String::new(),
+                deletion_timestamp: None,
+            }),
+            spec,
+            status: Some(resources_proto::AgentStatus {
+                observed_generation: 0,
+                phase: String::new(),
+                conditions: Vec::new(),
+                last_session_id: None,
+            }),
+        };
+        if agent.spec.is_none() {
+            kv.set(
+                &crate::control::keys::agent(namespace, name),
+                &agent.encode_to_vec(),
+            )
+            .await
+            .unwrap();
+            return;
+        }
+
         let store = crate::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
         store
             .upsert(
@@ -625,29 +657,13 @@ mod tests {
                 resources_proto::Resource {
                     api_version: "talon.impalasys.com/v1".to_string(),
                     kind: "Agent".to_string(),
-                    metadata: Some(resources_proto::ResourceMeta {
-                        name: name.to_string(),
-                        namespace: namespace.to_string(),
-                        labels: HashMap::new(),
-                        annotations: HashMap::new(),
-                        owner_references: Vec::new(),
-                        finalizers: Vec::new(),
-                        generation: 0,
-                        resource_version: String::new(),
-                        uid: String::new(),
-                        deletion_timestamp: None,
-                    }),
-                    spec: spec.map(|spec| resources_proto::ResourceSpec {
+                    metadata: agent.metadata,
+                    spec: agent.spec.map(|spec| resources_proto::ResourceSpec {
                         kind: Some(resources_proto::resource_spec::Kind::Agent(spec)),
                     }),
                     status: Some(resources_proto::ResourceStatus {
                         kind: Some(resources_proto::resource_status::Kind::Agent(
-                            resources_proto::AgentStatus {
-                                observed_generation: 0,
-                                phase: String::new(),
-                                conditions: Vec::new(),
-                                last_session_id: None,
-                            },
+                            agent.status.unwrap_or_default(),
                         )),
                     }),
                 },

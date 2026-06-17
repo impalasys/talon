@@ -227,7 +227,9 @@ impl ResourceStore {
             .await?;
         let mut resources = Vec::with_capacity(entries.len());
         for (key, value) in entries {
-            resources.push(decode_stored_resource(&key.kind, value.as_slice())?);
+            if let Ok(resource) = decode_stored_resource(&key.kind, value.as_slice()) {
+                resources.push(resource);
+            }
         }
         Ok(resources)
     }
@@ -613,8 +615,8 @@ where
         api_version: API_VERSION.to_string(),
         kind: kind.to_string(),
         metadata,
-        spec: Some(resources_proto::ResourceSpec {
-            kind: Some(spec_arm(spec.unwrap_or_default())),
+        spec: spec.map(|spec| resources_proto::ResourceSpec {
+            kind: Some(spec_arm(spec)),
         }),
         status: Some(resources_proto::ResourceStatus {
             kind: Some(status_arm(status.unwrap_or_default())),
