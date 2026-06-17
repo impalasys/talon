@@ -1,29 +1,5 @@
 # syntax=docker/dockerfile:1.7
 
-FROM rust:1.91.1-slim-bookworm AS talon-adapter-builder
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        clang \
-        g++ \
-        libclang-dev \
-        libssl-dev \
-        make \
-        pkg-config \
-        protobuf-compiler \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /usr/src/talon
-
-COPY Cargo.toml Cargo.lock build.rs ./
-COPY third_party ./third_party
-COPY proto ./proto
-COPY src ./src
-
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release --locked --bin talon-codex-acp
-
 FROM node:22-bookworm-slim
 
 ARG CODEX_CLI_VERSION=latest
@@ -59,8 +35,6 @@ RUN npm install -g \
         "@openai/codex@${CODEX_CLI_VERSION}" \
         "@zed-industries/codex-acp@${CODEX_ACP_VERSION}" \
     && npm cache clean --force
-
-COPY --from=talon-adapter-builder /usr/src/talon/target/release/talon-codex-acp /usr/local/bin/talon-codex-acp
 
 RUN useradd --create-home --shell /bin/bash codex \
     && mkdir -p /workspace "${CODEX_HOME}" \

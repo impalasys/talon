@@ -6,5 +6,5 @@ metadata:
 spec:
   provider: docker
   providerConfig:
-    image: talon-codex-acp:local
+    image: talon-zed-codex-acp:local
   credentials: {}

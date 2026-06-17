@@ -781,7 +781,7 @@ mod tests {
         }
         load_dotenv_for_codex_smoke();
         let image = std::env::var("TALON_CODEX_ACP_IMAGE")
-            .unwrap_or_else(|_| "talon-codex-acp:local".into());
+            .unwrap_or_else(|_| "talon-zed-codex-acp:local".into());
         let platform = std::env::var("TALON_CODEX_ACP_PLATFORM").ok();
         let command =
             std::env::var("TALON_CODEX_ACP_COMMAND").unwrap_or_else(|_| "codex-acp".into());

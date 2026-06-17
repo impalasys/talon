@@ -314,7 +314,7 @@ def ensure_docker_codex_image(image):
     )
     if inspect.returncode == 0:
         return
-    if image != "talon-codex-acp:local":
+    if image != "talon-zed-codex-acp:local":
         pytest.skip(f"Docker image {image} is not available locally")
 
     dockerfile = conftest.REPO_ROOT / "dockerfiles" / "codex-acp.Dockerfile"
@@ -498,97 +498,6 @@ def test_cli_apply_acp_deployment_starts_session_sqlite_local_socket(
     assert process.phase == "Succeeded"
 
 
-def test_cli_apply_codex_acp_deployment_starts_session_sqlite_local_socket(
-    gateway_channel_sqlite,
-    sqlite_test_grpc_port,
-    tmp_path,
-):
-    if os.environ.get("TALON_CODEX_E2E") != "1":
-        pytest.skip("set TALON_CODEX_E2E=1 to run the live Codex ACP e2e")
-    codex = shutil.which("codex")
-    dotenv = conftest.load_repo_dotenv_values()
-    if not codex:
-        pytest.skip("codex CLI is not installed")
-    if not os.environ.get("OPENAI_API_KEY") and not dotenv.get("OPENAI_API_KEY"):
-        pytest.skip("OPENAI_API_KEY is not available in environment or repo .env")
-
-    stub = GatewayServiceStub(gateway_channel_sqlite)
-    suffix = uuid.uuid4().hex[:8]
-    source_ns = f"codex-customers-{suffix}"
-    target_ns = f"{source_ns}:acme"
-    deployment_name = f"codex-company-builder-{suffix}"
-    replacements = {
-        "__RUN_ID__": suffix,
-        "__SOURCE_NS__": source_ns,
-        "__TARGET_NS__": target_ns,
-        "__DEPLOYMENT_NAME__": deployment_name,
-        "__CODEX_ACP_COMMAND__": json.dumps(conftest.get_binary_path("talon_codex_acp")),
-        "__CODEX_COMMAND__": json.dumps(codex),
-    }
-    manifests = [
-        render_acp_manifest(tmp_path, "sandbox-class.yaml", replacements),
-        render_acp_manifest(tmp_path, "codex-agent.template.yaml", replacements),
-        render_acp_manifest(tmp_path, "coding-sandbox-policy.template.yaml", replacements),
-        render_acp_manifest(tmp_path, "target-namespace.yaml", replacements),
-        render_acp_manifest(tmp_path, "deployment.yaml", replacements),
-    ]
-
-    for manifest in manifests:
-        apply_manifest_with_cli(manifest, sqlite_test_grpc_port)
-
-    agents = wait_for_resources(stub, target_ns, "Agent", ["coding"])
-    wait_for_resources(stub, target_ns, "SandboxPolicy", ["coding"])
-    wait_for_resources(
-        stub,
-        source_ns,
-        "DeploymentReplica",
-        [f"{deployment_name}--{target_ns.replace(':', '-')}"],
-    )
-    rendered_agent = next(resource for resource in agents if resource.metadata.name == "coding")
-    assert rendered_agent.spec.agent.runtime.acp.command == conftest.get_binary_path(
-        "talon_codex_acp"
-    )
-    assert rendered_agent.spec.agent.runtime.acp.env["TALON_CODEX_COMMAND"] == codex
-
-    session = stub.CreateSession(CreateSessionRequest(agent="coding", ns=target_ns))
-    session_id = session.session_id
-    stub.SendMessage(
-        SendMessageRequest(
-            agent="coding",
-            session_id=session_id,
-            ns=target_ns,
-            message="Say exactly TALON_CODEX_OK and nothing else.",
-        )
-    )
-
-    completed = wait_for_session_reply(
-        stub,
-        target_ns,
-        "coding",
-        session_id,
-        "codex response=TALON_CODEX_OK file=TALON_CODEX_OK terminal=codex-terminal-ok",
-        attempts=180,
-    )
-    assistant = last_assistant_message(completed.messages)
-    assert assistant is not None
-    assistant_text = message_text(assistant)
-    assert "codex response=TALON_CODEX_OK" in assistant_text
-    assert "file=TALON_CODEX_OK" in assistant_text
-    assert "terminal=codex-terminal-ok" in assistant_text
-
-    sandbox = wait_for_sandbox_process(stub, target_ns)
-    sandbox_status = sandbox.status.sandbox
-    assert sandbox_status.phase == "Ready"
-    assert sandbox_status.backend_id.startswith("mock:")
-    assert not sandbox_status.HasField("lease")
-    assert len(sandbox_status.processes) == 1
-    process = sandbox_status.processes[0]
-    assert process.command == "sh"
-    assert list(process.args) == ["-lc", "printf codex-terminal-ok"]
-    assert process.protocol == "terminal"
-    assert process.phase == "Succeeded"
-
-
 def test_cli_apply_zed_codex_acp_deployment_runs_code_in_sandbox_sqlite_local_socket(
     gateway_channel_sqlite,
     sqlite_test_grpc_port,
@@ -601,7 +510,7 @@ def test_cli_apply_zed_codex_acp_deployment_runs_code_in_sandbox_sqlite_local_so
     if not openai_api_key:
         pytest.skip("OPENAI_API_KEY is not available in environment or repo .env")
 
-    image = os.environ.get("TALON_CODEX_ACP_IMAGE", "talon-codex-acp:local")
+    image = os.environ.get("TALON_CODEX_ACP_IMAGE", "talon-zed-codex-acp:local")
     ensure_docker_codex_image(image)
 
     stub = GatewayServiceStub(gateway_channel_sqlite)

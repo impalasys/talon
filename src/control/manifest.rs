@@ -2630,7 +2630,7 @@ metadata:
 spec:
   provider: docker
   providerConfig:
-    image: talon-codex-acp:local
+    image: talon-zed-codex-acp:local
   credentials:
     apiKey:
       source: env
@@ -2648,7 +2648,7 @@ spec:
             serde_json::from_str(&spec.provider_config_json).expect("provider config JSON");
         let credentials: serde_json::Value =
             serde_json::from_str(&spec.credentials_json).expect("credentials JSON");
-        assert_eq!(provider_config["image"], "talon-codex-acp:local");
+        assert_eq!(provider_config["image"], "talon-zed-codex-acp:local");
         assert_eq!(credentials["apiKey"]["key"], "E2B_API_KEY");
     }
 
@@ -2667,7 +2667,7 @@ spec:
     name: docker-code
   template:
     spec:
-      image: talon-codex-acp:local
+      image: talon-zed-codex-acp:local
       workspace:
         mode: customer-repo
         mountPath: /workspace
@@ -2689,7 +2689,7 @@ spec:
         };
         assert_eq!(spec.max_concurrent, 5);
         let template = spec.template.expect("runtime template");
-        assert_eq!(template.image, "talon-codex-acp:local");
+        assert_eq!(template.image, "talon-zed-codex-acp:local");
         assert_eq!(
             template.workspace.expect("workspace").mount_path,
             "/workspace"
@@ -2709,7 +2709,7 @@ spec:
             serde_yaml::from_str(&rendered).expect("rendered YAML parses");
         assert_eq!(
             rendered_yaml["spec"]["template"]["image"].as_str(),
-            Some("talon-codex-acp:local")
+            Some("talon-zed-codex-acp:local")
         );
         assert_eq!(
             rendered_yaml["spec"]["template"]["workspace"]["mountPath"].as_str(),
