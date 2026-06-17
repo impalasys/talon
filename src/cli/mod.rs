@@ -203,10 +203,19 @@ fn rest_get_path(
     namespace: Option<&String>,
 ) -> Result<(String, &'static str)> {
     match kind.to_lowercase().as_str() {
-        "agenttemplate" | "templates" | "template" => Ok((
-            format!("/v1/templates/{}", urlencoding::encode(name)),
-            "template",
-        )),
+        "agenttemplate" | "templates" | "template" => {
+            let ns = namespace
+                .cloned()
+                .unwrap_or_else(|| crate::control::ns::TALON_SYSTEM.to_string());
+            Ok((
+                format!(
+                    "/v2/ns/{}/resources/Template/{}",
+                    urlencoding::encode(&ns),
+                    urlencoding::encode(name)
+                ),
+                "resource",
+            ))
+        }
         "mcpserver" | "mcpservers" | "mcp" => Ok((
             format!("/v1/mcp-servers/{}", urlencoding::encode(name)),
             "server",
@@ -401,6 +410,13 @@ pub(super) async fn rest_get_yaml(
 
 fn render_rest_get_yaml(response_key: &str, value: serde_json::Value) -> Result<String> {
     match response_key {
+        "resource" => {
+            let mut value = value;
+            normalize_manifest_metadata_maps(&mut value);
+            let resource: crate::gateway::rpc::resources_proto::Resource =
+                serde_json::from_value(value).context("Failed to decode Resource JSON")?;
+            crate::control::manifest::render_resource_yaml(&resource)
+        }
         "agent" => render_rest_agent_yaml(value),
         "namespace" => render_rest_namespace_yaml(value),
         "server" => {
@@ -1247,7 +1263,9 @@ fn resource_lookup_target(
             Ok((ns, "Agent".to_string(), agent_name))
         }
         "agenttemplate" | "templates" | "template" => Ok((
-            crate::control::ns::TALON_SYSTEM.to_string(),
+            namespace
+                .cloned()
+                .unwrap_or_else(|| crate::control::ns::TALON_SYSTEM.to_string()),
             "Template".to_string(),
             name.to_string(),
         )),
@@ -1747,6 +1765,24 @@ mod get_list_tests {
             ResourceListTarget::Namespaces {
                 parent: Some("customers:acme".to_string()),
             }
+        );
+    }
+
+    #[test]
+    fn single_template_lookup_honors_explicit_namespace() {
+        let namespace = "__SOURCE_NS__".to_string();
+
+        assert_eq!(
+            resource_lookup_target("template", "coding-sandbox-policy", Some(&namespace)).unwrap(),
+            (
+                "__SOURCE_NS__".to_string(),
+                "Template".to_string(),
+                "coding-sandbox-policy".to_string(),
+            )
+        );
+        assert_eq!(
+            rest_delete_path("template", "coding-sandbox-policy", Some(&namespace)).unwrap(),
+            "/v2/ns/__SOURCE_NS__/resources/Template/coding-sandbox-policy"
         );
     }
 
