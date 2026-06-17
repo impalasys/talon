@@ -6,8 +6,9 @@ use crate::gateway::rpc::manifests::{Knowledge, KnowledgeSpec, ObjectMeta};
 use crate::gateway::rpc::proto::gateway_service_client::GatewayServiceClient;
 use crate::gateway::rpc::proto::{
     CancelWorkflowRunRequest, CreateResourceRequest, CreateWorkflowRunRequest,
-    DeleteResourceRequest, GetResourceRequest, GetWorkflowRunRequest, ListResourcesRequest,
-    ListWorkflowRunsRequest, ResumeWorkflowRunRequest, StreamWorkflowEventsRequest,
+    DeleteResourceRequest, GetResourceRequest, GetWorkflowRunRequest, ListNamespacesRequest,
+    ListResourcesRequest, ListWorkflowRunsRequest, ResumeWorkflowRunRequest,
+    StreamWorkflowEventsRequest,
 };
 use crate::gateway::rpc::{data_proto, resources_proto};
 use anyhow::{Context, Result};
@@ -1325,6 +1326,95 @@ fn resource_lookup_target(
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
+enum ResourceListTarget {
+    Resources { ns: String, kind: Option<String> },
+    Namespaces { parent: Option<String> },
+}
+
+fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<ResourceListTarget> {
+    let ns_or_default = || namespace.cloned().unwrap_or_else(|| "default".to_string());
+    let system_ns = || crate::control::ns::TALON_SYSTEM.to_string();
+    match kind.to_lowercase().as_str() {
+        "resource" | "resources" | "all" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: None,
+        }),
+        "namespace" | "namespaces" => Ok(ResourceListTarget::Namespaces {
+            parent: namespace.cloned(),
+        }),
+        "agent" | "agents" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("Agent".to_string()),
+        }),
+        "agenttemplate" | "templates" | "template" => Ok(ResourceListTarget::Resources {
+            ns: namespace.cloned().unwrap_or_else(system_ns),
+            kind: Some("Template".to_string()),
+        }),
+        "mcpserver" | "mcpservers" | "mcp" => Ok(ResourceListTarget::Resources {
+            ns: system_ns(),
+            kind: Some("McpServer".to_string()),
+        }),
+        "mcpserverbinding" | "mcpbindings" | "mcpbinding" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("McpServerBinding".to_string()),
+        }),
+        "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
+            Ok(ResourceListTarget::Resources {
+                ns: ns_or_default(),
+                kind: Some("Knowledge".to_string()),
+            })
+        }
+        "schedule" | "schedules" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("Schedule".to_string()),
+        }),
+        "channel" | "channels" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("Channel".to_string()),
+        }),
+        "channelsubscription"
+        | "channelsubscriptions"
+        | "channel-subscription"
+        | "channel-subscriptions" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("ChannelSubscription".to_string()),
+        }),
+        "workflow" | "workflows" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("Workflow".to_string()),
+        }),
+        "deployment" | "deployments" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("Deployment".to_string()),
+        }),
+        "deploymentreplica"
+        | "deploymentreplicas"
+        | "deployment-replica"
+        | "deployment-replicas" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("DeploymentReplica".to_string()),
+        }),
+        "sandboxclass" | "sandboxclasses" | "sandbox-class" | "sandbox-classes" => {
+            Ok(ResourceListTarget::Resources {
+                ns: system_ns(),
+                kind: Some("SandboxClass".to_string()),
+            })
+        }
+        "sandboxpolicy" | "sandboxpolicies" | "sandbox-policy" | "sandbox-policies" => {
+            Ok(ResourceListTarget::Resources {
+                ns: ns_or_default(),
+                kind: Some("SandboxPolicy".to_string()),
+            })
+        }
+        "sandbox" | "sandboxes" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("Sandbox".to_string()),
+        }),
+        other => anyhow::bail!("Unsupported resource kind '{}'", other),
+    }
+}
+
 pub(super) fn sdk_methods_from_dir(dir: &str) -> Result<Vec<String>> {
     let mut class_methods = Vec::new();
     for entry in fs::read_dir(dir)? {
@@ -1392,6 +1482,313 @@ pub(super) async fn grpc_get_yaml(
         })?;
     let resource = resp.into_inner().resource.context("Resource not found.")?;
     crate::control::manifest::render_resource_yaml(&resource)
+}
+
+pub(super) async fn grpc_list_resources_table(
+    cli: &Cli,
+    kind: &str,
+    namespace: Option<&String>,
+) -> Result<String> {
+    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
+        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
+        .connect()
+        .await
+        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
+    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+
+    match resource_list_target(kind, namespace)? {
+        ResourceListTarget::Resources { ns, kind } => {
+            let resources = client
+                .list_resources(ListResourcesRequest {
+                    ns: ns.clone(),
+                    kind,
+                })
+                .await
+                .with_context(|| format!("Failed to list resources in '{}'", ns))?
+                .into_inner()
+                .resources;
+            Ok(render_resource_list_table(&resources))
+        }
+        ResourceListTarget::Namespaces { parent } => {
+            let namespaces = client
+                .list_namespaces(ListNamespacesRequest { parent })
+                .await
+                .context("Failed to list namespaces")?
+                .into_inner()
+                .namespaces;
+            Ok(render_namespace_list_table_from_proto(&namespaces))
+        }
+    }
+}
+
+pub(super) async fn rest_list_resources_table(
+    cli: &Cli,
+    kind: &str,
+    namespace: Option<&String>,
+) -> Result<String> {
+    match resource_list_target(kind, namespace)? {
+        ResourceListTarget::Resources { ns, kind } => {
+            let mut path = format!("/v2/ns/{}/resources", urlencoding::encode(&ns));
+            if let Some(kind) = kind {
+                path.push_str(&format!("?kind={}", urlencoding::encode(&kind)));
+            }
+            let resp = rest_request_json(cli, reqwest::Method::GET, &path, None)
+                .await
+                .with_context(|| format!("Failed to list resources in '{}'", ns))?;
+            let resources = resp
+                .get("resources")
+                .and_then(|value| value.as_array())
+                .cloned()
+                .unwrap_or_default()
+                .into_iter()
+                .map(|mut value| {
+                    normalize_manifest_metadata_maps(&mut value);
+                    serde_json::from_value::<resources_proto::Resource>(value)
+                        .context("Failed to decode Resource JSON")
+                })
+                .collect::<Result<Vec<_>>>()?;
+            Ok(render_resource_list_table(&resources))
+        }
+        ResourceListTarget::Namespaces { parent } => {
+            let path = match parent {
+                Some(parent) => format!("/v1/namespaces?parent={}", urlencoding::encode(&parent)),
+                None => "/v1/namespaces".to_string(),
+            };
+            let resp = rest_request_json(cli, reqwest::Method::GET, &path, None)
+                .await
+                .context("Failed to list namespaces")?;
+            Ok(render_namespace_list_table_from_json(&resp))
+        }
+    }
+}
+
+fn render_resource_list_table(resources: &[resources_proto::Resource]) -> String {
+    let mut rows = vec![vec![
+        "KIND".to_string(),
+        "NAMESPACE".to_string(),
+        "NAME".to_string(),
+        "PHASE".to_string(),
+    ]];
+    for resource in resources {
+        let metadata = resource.metadata.as_ref();
+        rows.push(vec![
+            resource.kind.clone(),
+            metadata
+                .map(|meta| meta.namespace.clone())
+                .filter(|value| !value.is_empty())
+                .unwrap_or_else(|| "-".to_string()),
+            metadata
+                .map(|meta| meta.name.clone())
+                .filter(|value| !value.is_empty())
+                .unwrap_or_else(|| "-".to_string()),
+            resource_status_phase(resource)
+                .filter(|value| !value.is_empty())
+                .unwrap_or_else(|| "-".to_string()),
+        ]);
+    }
+    render_table(rows)
+}
+
+fn render_namespace_list_table_from_proto(
+    namespaces: &[crate::gateway::rpc::proto::NamespaceResponse],
+) -> String {
+    let mut rows = vec![vec![
+        "NAME".to_string(),
+        "PARENT".to_string(),
+        "DELETED".to_string(),
+    ]];
+    for namespace in namespaces {
+        rows.push(vec![
+            namespace.name.clone(),
+            namespace.parent.clone().unwrap_or_else(|| "-".to_string()),
+            namespace.is_deleted.to_string(),
+        ]);
+    }
+    render_table(rows)
+}
+
+fn render_namespace_list_table_from_json(value: &serde_json::Value) -> String {
+    let mut rows = vec![vec![
+        "NAME".to_string(),
+        "PARENT".to_string(),
+        "DELETED".to_string(),
+    ]];
+    for namespace in value
+        .get("namespaces")
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+    {
+        rows.push(vec![
+            namespace
+                .get("name")
+                .and_then(|value| value.as_str())
+                .unwrap_or("-")
+                .to_string(),
+            namespace
+                .get("parent")
+                .and_then(|value| value.as_str())
+                .filter(|value| !value.is_empty())
+                .unwrap_or("-")
+                .to_string(),
+            namespace
+                .get("isDeleted")
+                .and_then(|value| value.as_bool())
+                .unwrap_or(false)
+                .to_string(),
+        ]);
+    }
+    render_table(rows)
+}
+
+fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String> {
+    use resources_proto::resource_status::Kind as StatusKind;
+    match resource.status.as_ref()?.kind.as_ref()? {
+        StatusKind::Agent(status) => Some(status.phase.clone()),
+        StatusKind::Workflow(status) => Some(status.phase.clone()),
+        StatusKind::Schedule(status) => {
+            if let Some(error) = &status.last_error {
+                if !error.is_empty() {
+                    return Some("error".to_string());
+                }
+            }
+            Some(if status.backend_armed {
+                "armed".to_string()
+            } else {
+                "pending".to_string()
+            })
+        }
+        StatusKind::Channel(status) => Some(status.phase.clone()),
+        StatusKind::ChannelSubscription(status)
+        | StatusKind::McpServer(status)
+        | StatusKind::McpServerBinding(status)
+        | StatusKind::Knowledge(status)
+        | StatusKind::Template(status)
+        | StatusKind::SandboxClass(status)
+        | StatusKind::SandboxPolicy(status) => Some(status.phase.clone()),
+        StatusKind::Namespace(status) => Some(status.phase.clone()),
+        StatusKind::Session(status) => Some(status.phase.clone()),
+        StatusKind::Deployment(status) => Some(status.phase.clone()),
+        StatusKind::DeploymentReplica(status) => Some(status.phase.clone()),
+        StatusKind::Sandbox(status) => Some(status.phase.clone()),
+        StatusKind::PermissionRequest(status) => Some(status.phase.clone()),
+        StatusKind::Raw(status) => serde_json::from_str::<serde_json::Value>(&status.json)
+            .ok()
+            .and_then(|value| {
+                value
+                    .get("phase")
+                    .and_then(|phase| phase.as_str())
+                    .map(str::to_string)
+            }),
+    }
+}
+
+fn render_table(rows: Vec<Vec<String>>) -> String {
+    if rows.is_empty() {
+        return String::new();
+    }
+    let column_count = rows.iter().map(Vec::len).max().unwrap_or(0);
+    let mut widths = vec![0usize; column_count];
+    for row in &rows {
+        for (index, cell) in row.iter().enumerate() {
+            widths[index] = widths[index].max(cell.len());
+        }
+    }
+    rows.into_iter()
+        .map(|row| {
+            row.into_iter()
+                .enumerate()
+                .map(|(index, cell)| {
+                    if index + 1 == column_count {
+                        cell
+                    } else {
+                        format!("{cell:<width$}", width = widths[index])
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("  ")
+                .trim_end()
+                .to_string()
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+#[cfg(test)]
+mod get_list_tests {
+    use super::*;
+
+    #[test]
+    fn resource_list_target_supports_kubectl_style_aliases() {
+        let namespace = "customers:acme".to_string();
+        assert_eq!(
+            resource_list_target("agents", Some(&namespace)).unwrap(),
+            ResourceListTarget::Resources {
+                ns: "customers:acme".to_string(),
+                kind: Some("Agent".to_string()),
+            }
+        );
+        assert_eq!(
+            resource_list_target("sandbox-policies", Some(&namespace)).unwrap(),
+            ResourceListTarget::Resources {
+                ns: "customers:acme".to_string(),
+                kind: Some("SandboxPolicy".to_string()),
+            }
+        );
+        assert_eq!(
+            resource_list_target("resources", Some(&namespace)).unwrap(),
+            ResourceListTarget::Resources {
+                ns: "customers:acme".to_string(),
+                kind: None,
+            }
+        );
+        assert_eq!(
+            resource_list_target("namespaces", Some(&namespace)).unwrap(),
+            ResourceListTarget::Namespaces {
+                parent: Some("customers:acme".to_string()),
+            }
+        );
+    }
+
+    #[test]
+    fn render_resource_list_table_includes_kind_namespace_name_and_phase() {
+        let resources = vec![resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Agent".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "coding".to_string(),
+                namespace: "customers:acme".to_string(),
+                labels: HashMap::new(),
+                annotations: HashMap::new(),
+                owner_references: Vec::new(),
+                finalizers: Vec::new(),
+                generation: 1,
+                resource_version: "1".to_string(),
+                uid: "uid".to_string(),
+                deletion_timestamp: None,
+            }),
+            spec: None,
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resources_proto::resource_status::Kind::Agent(
+                    resources_proto::AgentStatus {
+                        observed_generation: 1,
+                        phase: "Ready".to_string(),
+                        conditions: Vec::new(),
+                        last_session_id: None,
+                    },
+                )),
+            }),
+        }];
+
+        let table = render_resource_list_table(&resources);
+
+        assert!(table.contains("KIND"));
+        assert!(table.contains("NAMESPACE"));
+        assert!(table.contains("Agent"));
+        assert!(table.contains("customers:acme"));
+        assert!(table.contains("coding"));
+        assert!(table.contains("Ready"));
+    }
 }
 
 pub(super) async fn grpc_delete_resource(
