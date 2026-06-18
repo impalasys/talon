@@ -74,6 +74,7 @@ GO_OPTS=(
   "--go_opt=Mproto/resources/deployments.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/sandboxes.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/sessions.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/skills.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
@@ -90,6 +91,7 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/resources/deployments.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/sandboxes.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/sessions.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/skills.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
@@ -206,7 +208,7 @@ PATH="$NPM_BIN:$PATH" "$PROTOC" -I. -Ithird_party/googleapis \
 
 PYTHON_CODEGEN="${PYTHON_CODEGEN:-python3}"
 PY_TOOLS="$ROOT/.tools/python-codegen"
-"$PYTHON_CODEGEN" -m pip install --quiet --target "$PY_TOOLS" grpcio-tools==1.76.0
+"$PYTHON_CODEGEN" -m pip install --quiet --upgrade --target "$PY_TOOLS" grpcio-tools==1.76.0
 PYTHONPATH="$PY_TOOLS${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON_CODEGEN" -m grpc_tools.protoc -I. -Ithird_party/googleapis \
   --experimental_allow_proto3_optional \
   --python_out=sdk/python/talon-client/src/talon_client \

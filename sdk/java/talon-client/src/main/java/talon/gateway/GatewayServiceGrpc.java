@@ -322,6 +322,37 @@ public final class GatewayServiceGrpc {
     return getAppendSessionMessageMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.AnswerSessionPermissionRequest,
+      talon.gateway.Gateway.AnswerSessionPermissionResponse> getAnswerSessionPermissionMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "AnswerSessionPermission",
+      requestType = talon.gateway.Gateway.AnswerSessionPermissionRequest.class,
+      responseType = talon.gateway.Gateway.AnswerSessionPermissionResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.AnswerSessionPermissionRequest,
+      talon.gateway.Gateway.AnswerSessionPermissionResponse> getAnswerSessionPermissionMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.AnswerSessionPermissionRequest, talon.gateway.Gateway.AnswerSessionPermissionResponse> getAnswerSessionPermissionMethod;
+    if ((getAnswerSessionPermissionMethod = GatewayServiceGrpc.getAnswerSessionPermissionMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getAnswerSessionPermissionMethod = GatewayServiceGrpc.getAnswerSessionPermissionMethod) == null) {
+          GatewayServiceGrpc.getAnswerSessionPermissionMethod = getAnswerSessionPermissionMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.AnswerSessionPermissionRequest, talon.gateway.Gateway.AnswerSessionPermissionResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "AnswerSessionPermission"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.AnswerSessionPermissionRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.AnswerSessionPermissionResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("AnswerSessionPermission"))
+              .build();
+        }
+      }
+    }
+    return getAnswerSessionPermissionMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.StopSessionGenerationRequest,
       talon.gateway.Gateway.StopSessionGenerationResponse> getStopSessionGenerationMethod;
 
@@ -1117,6 +1148,13 @@ public final class GatewayServiceGrpc {
 
     /**
      */
+    default void answerSessionPermission(talon.gateway.Gateway.AnswerSessionPermissionRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AnswerSessionPermissionResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getAnswerSessionPermissionMethod(), responseObserver);
+    }
+
+    /**
+     */
     default void stopSessionGeneration(talon.gateway.Gateway.StopSessionGenerationRequest request,
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.StopSessionGenerationResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getStopSessionGenerationMethod(), responseObserver);
@@ -1389,6 +1427,14 @@ public final class GatewayServiceGrpc {
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.AppendSessionMessageResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getAppendSessionMessageMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void answerSessionPermission(talon.gateway.Gateway.AnswerSessionPermissionRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AnswerSessionPermissionResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getAnswerSessionPermissionMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -1669,6 +1715,13 @@ public final class GatewayServiceGrpc {
 
     /**
      */
+    public talon.gateway.Gateway.AnswerSessionPermissionResponse answerSessionPermission(talon.gateway.Gateway.AnswerSessionPermissionRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getAnswerSessionPermissionMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
     public talon.gateway.Gateway.StopSessionGenerationResponse stopSessionGeneration(talon.gateway.Gateway.StopSessionGenerationRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getStopSessionGenerationMethod(), getCallOptions(), request);
@@ -1928,6 +1981,13 @@ public final class GatewayServiceGrpc {
     public talon.gateway.Gateway.AppendSessionMessageResponse appendSessionMessage(talon.gateway.Gateway.AppendSessionMessageRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getAppendSessionMessageMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.AnswerSessionPermissionResponse answerSessionPermission(talon.gateway.Gateway.AnswerSessionPermissionRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getAnswerSessionPermissionMethod(), getCallOptions(), request);
     }
 
     /**
@@ -2201,6 +2261,14 @@ public final class GatewayServiceGrpc {
 
     /**
      */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.AnswerSessionPermissionResponse> answerSessionPermission(
+        talon.gateway.Gateway.AnswerSessionPermissionRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getAnswerSessionPermissionMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
     public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.StopSessionGenerationResponse> stopSessionGeneration(
         talon.gateway.Gateway.StopSessionGenerationRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
@@ -2358,27 +2426,28 @@ public final class GatewayServiceGrpc {
   private static final int METHODID_CLEAR_SESSION = 7;
   private static final int METHODID_SEND_MESSAGE = 8;
   private static final int METHODID_APPEND_SESSION_MESSAGE = 9;
-  private static final int METHODID_STOP_SESSION_GENERATION = 10;
-  private static final int METHODID_STREAM_SESSION_PARTS = 11;
-  private static final int METHODID_STREAM_SESSION_PARTS_BATCH = 12;
-  private static final int METHODID_POST_CHANNEL_MESSAGE = 13;
-  private static final int METHODID_GET_CHANNEL_MESSAGE = 14;
-  private static final int METHODID_LIST_CHANNEL_MESSAGES = 15;
-  private static final int METHODID_STREAM_CHANNEL_EVENTS = 16;
-  private static final int METHODID_CREATE_WORKFLOW_RUN = 17;
-  private static final int METHODID_GET_WORKFLOW_RUN = 18;
-  private static final int METHODID_LIST_WORKFLOW_RUNS = 19;
-  private static final int METHODID_RESUME_WORKFLOW_RUN = 20;
-  private static final int METHODID_CANCEL_WORKFLOW_RUN = 21;
-  private static final int METHODID_STREAM_WORKFLOW_EVENTS = 22;
-  private static final int METHODID_CREATE_NAMESPACE = 23;
-  private static final int METHODID_GET_NAMESPACE = 24;
-  private static final int METHODID_DELETE_NAMESPACE = 25;
-  private static final int METHODID_LIST_NAMESPACES = 26;
-  private static final int METHODID_CREATE_RESOURCE = 27;
-  private static final int METHODID_GET_RESOURCE = 28;
-  private static final int METHODID_LIST_RESOURCES = 29;
-  private static final int METHODID_DELETE_RESOURCE = 30;
+  private static final int METHODID_ANSWER_SESSION_PERMISSION = 10;
+  private static final int METHODID_STOP_SESSION_GENERATION = 11;
+  private static final int METHODID_STREAM_SESSION_PARTS = 12;
+  private static final int METHODID_STREAM_SESSION_PARTS_BATCH = 13;
+  private static final int METHODID_POST_CHANNEL_MESSAGE = 14;
+  private static final int METHODID_GET_CHANNEL_MESSAGE = 15;
+  private static final int METHODID_LIST_CHANNEL_MESSAGES = 16;
+  private static final int METHODID_STREAM_CHANNEL_EVENTS = 17;
+  private static final int METHODID_CREATE_WORKFLOW_RUN = 18;
+  private static final int METHODID_GET_WORKFLOW_RUN = 19;
+  private static final int METHODID_LIST_WORKFLOW_RUNS = 20;
+  private static final int METHODID_RESUME_WORKFLOW_RUN = 21;
+  private static final int METHODID_CANCEL_WORKFLOW_RUN = 22;
+  private static final int METHODID_STREAM_WORKFLOW_EVENTS = 23;
+  private static final int METHODID_CREATE_NAMESPACE = 24;
+  private static final int METHODID_GET_NAMESPACE = 25;
+  private static final int METHODID_DELETE_NAMESPACE = 26;
+  private static final int METHODID_LIST_NAMESPACES = 27;
+  private static final int METHODID_CREATE_RESOURCE = 28;
+  private static final int METHODID_GET_RESOURCE = 29;
+  private static final int METHODID_LIST_RESOURCES = 30;
+  private static final int METHODID_DELETE_RESOURCE = 31;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -2436,6 +2505,10 @@ public final class GatewayServiceGrpc {
         case METHODID_APPEND_SESSION_MESSAGE:
           serviceImpl.appendSessionMessage((talon.gateway.Gateway.AppendSessionMessageRequest) request,
               (io.grpc.stub.StreamObserver<talon.gateway.Gateway.AppendSessionMessageResponse>) responseObserver);
+          break;
+        case METHODID_ANSWER_SESSION_PERMISSION:
+          serviceImpl.answerSessionPermission((talon.gateway.Gateway.AnswerSessionPermissionRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.AnswerSessionPermissionResponse>) responseObserver);
           break;
         case METHODID_STOP_SESSION_GENERATION:
           serviceImpl.stopSessionGeneration((talon.gateway.Gateway.StopSessionGenerationRequest) request,
@@ -2609,6 +2682,13 @@ public final class GatewayServiceGrpc {
               talon.gateway.Gateway.AppendSessionMessageRequest,
               talon.gateway.Gateway.AppendSessionMessageResponse>(
                 service, METHODID_APPEND_SESSION_MESSAGE)))
+        .addMethod(
+          getAnswerSessionPermissionMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.AnswerSessionPermissionRequest,
+              talon.gateway.Gateway.AnswerSessionPermissionResponse>(
+                service, METHODID_ANSWER_SESSION_PERMISSION)))
         .addMethod(
           getStopSessionGenerationMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
@@ -2814,6 +2894,7 @@ public final class GatewayServiceGrpc {
               .addMethod(getClearSessionMethod())
               .addMethod(getSendMessageMethod())
               .addMethod(getAppendSessionMessageMethod())
+              .addMethod(getAnswerSessionPermissionMethod())
               .addMethod(getStopSessionGenerationMethod())
               .addMethod(getStreamSessionPartsMethod())
               .addMethod(getStreamSessionPartsBatchMethod())

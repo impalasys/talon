@@ -409,6 +409,34 @@ pub struct AppendSessionMessageResponse {
     pub message: ::core::option::Option<super::data::SessionMessage>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AnswerSessionPermissionRequest {
+    #[prost(string, tag = "1")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub request_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub outcome: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub option_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub decided_by: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AnswerSessionPermissionResponse {
+    #[prost(string, tag = "1")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub request_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub outcome: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub option_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StopSessionGenerationRequest {
     #[prost(string, tag = "1")]
     pub session_id: ::prost::alloc::string::String,
@@ -832,6 +860,35 @@ pub mod gateway_service_client {
                     GrpcMethod::new(
                         "talon.gateway.GatewayService",
                         "AppendSessionMessage",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn answer_session_permission(
+            &mut self,
+            request: impl tonic::IntoRequest<super::AnswerSessionPermissionRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::AnswerSessionPermissionResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/AnswerSessionPermission",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "talon.gateway.GatewayService",
+                        "AnswerSessionPermission",
                     ),
                 );
             self.inner.unary(req, path, codec).await

@@ -96,6 +96,16 @@ export enum SessionMessagePartType {
    * @generated from enum value: SESSION_MESSAGE_PART_TYPE_FILE = 10;
    */
   FILE = 10,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION = 11;
+   */
+  REQUEST_PERMISSION = 11,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT = 12;
+   */
+  PERMISSION_RESULT = 12,
 }
 // Retrieve enum metadata with: proto3.getEnumType(SessionMessagePartType)
 proto3.util.setEnumType(SessionMessagePartType, "talon.data.SessionMessagePartType", [
@@ -110,6 +120,8 @@ proto3.util.setEnumType(SessionMessagePartType, "talon.data.SessionMessagePartTy
   { no: 8, name: "SESSION_MESSAGE_PART_TYPE_AUDIO" },
   { no: 9, name: "SESSION_MESSAGE_PART_TYPE_VIDEO" },
   { no: 10, name: "SESSION_MESSAGE_PART_TYPE_FILE" },
+  { no: 11, name: "SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION" },
+  { no: 12, name: "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT" },
 ]);
 
 /**

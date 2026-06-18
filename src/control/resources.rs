@@ -470,14 +470,6 @@ fn decode_stored_resource(kind: &str, bytes: &[u8]) -> Result<resources_proto::R
             resources_proto::resource_spec::Kind::Sandbox,
             resources_proto::resource_status::Kind::Sandbox,
         ),
-        "PermissionRequest" => {
-            decode_typed_resource::<resources_proto::PermissionRequest, _, _, _, _>(
-                kind,
-                bytes,
-                resources_proto::resource_spec::Kind::PermissionRequest,
-                resources_proto::resource_status::Kind::PermissionRequest,
-            )
-        }
         _ => resources_proto::Resource::decode(bytes).map_err(Into::into),
     }
 }
@@ -604,12 +596,6 @@ impl_stored_typed_resource!(
     resources_proto::SandboxSpec,
     resources_proto::SandboxStatus
 );
-impl_stored_typed_resource!(
-    resources_proto::PermissionRequest,
-    resources_proto::PermissionRequestSpec,
-    resources_proto::PermissionRequestStatus
-);
-
 fn decode_typed_resource<W, S, T, SpecArm, StatusArm>(
     kind: &str,
     bytes: &[u8],
@@ -931,23 +917,6 @@ fn encode_stored_resource(resource: &resources_proto::Resource) -> Result<Vec<u8
                 _ => None,
             },
         ),
-        "PermissionRequest" => encode_typed_resource::<
-            resources_proto::PermissionRequest,
-            resources_proto::PermissionRequestSpec,
-            resources_proto::PermissionRequestStatus,
-            _,
-            _,
-        >(
-            resource,
-            |kind| match kind {
-                resources_proto::resource_spec::Kind::PermissionRequest(spec) => Some(spec),
-                _ => None,
-            },
-            |kind| match kind {
-                resources_proto::resource_status::Kind::PermissionRequest(status) => Some(status),
-                _ => None,
-            },
-        ),
         _ => Ok(resource.encode_to_vec()),
     }
 }
@@ -1043,7 +1012,6 @@ fn validate_resource_kind(resource: &resources_proto::Resource) -> Result<()> {
         Kind::SandboxClass(_) => "SandboxClass",
         Kind::SandboxPolicy(_) => "SandboxPolicy",
         Kind::Sandbox(_) => "Sandbox",
-        Kind::PermissionRequest(_) => "PermissionRequest",
         Kind::Raw(_) => return Ok(()),
     };
     if resource.kind != expected {
@@ -1082,7 +1050,6 @@ fn default_status_for_resource(
         Some(SpecKind::SandboxClass(_)) => StatusKind::SandboxClass(Default::default()),
         Some(SpecKind::SandboxPolicy(_)) => StatusKind::SandboxPolicy(Default::default()),
         Some(SpecKind::Sandbox(_)) => StatusKind::Sandbox(Default::default()),
-        Some(SpecKind::PermissionRequest(_)) => StatusKind::PermissionRequest(Default::default()),
         Some(SpecKind::Raw(_)) | None => StatusKind::Raw(resources_proto::RawResourceStatus {
             json: "{}".to_string(),
         }),

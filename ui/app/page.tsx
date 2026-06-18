@@ -29,7 +29,6 @@ import {
   Package,
   ShieldCheck,
   Container,
-  KeyRound,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
@@ -53,7 +52,6 @@ const RESOURCE_KIND_BY_SELECTION: Partial<Record<Selection['type'], string>> = {
   'sandbox-class': 'SandboxClass',
   'sandbox-policy': 'SandboxPolicy',
   sandbox: 'Sandbox',
-  'permission-request': 'PermissionRequest',
   'mcp-server': 'McpServer',
   'mcp-binding': 'McpServerBinding',
   knowledge: 'Knowledge',
@@ -255,8 +253,7 @@ function selectionFromSearchParams(searchParams: URLSearchParams): Selection | n
       type === 'deployment-replica' ||
       type === 'sandbox-class' ||
       type === 'sandbox-policy' ||
-      type === 'sandbox' ||
-      type === 'permission-request'
+      type === 'sandbox'
     ) &&
     ns &&
     resourceName
@@ -340,7 +337,6 @@ function getSelectionSubtitle(selection: Selection | null) {
   if (selection.type === 'sandbox-class') return `${selection.ns} / SandboxClass`;
   if (selection.type === 'sandbox-policy') return `${selection.ns} / SandboxPolicy`;
   if (selection.type === 'sandbox') return `${selection.ns} / Sandbox`;
-  if (selection.type === 'permission-request') return `${selection.ns} / PermissionRequest`;
   return 'Sys / MCPServer';
 }
 
@@ -367,7 +363,6 @@ function selectionIcon(selection: Selection | null) {
   if (selection.type === 'sandbox-class') return <ShieldCheck className="w-4 h-4 text-fuchsia-400" />;
   if (selection.type === 'sandbox-policy') return <Box className="w-4 h-4 text-fuchsia-300" />;
   if (selection.type === 'sandbox') return <Container className="w-4 h-4 text-orange-400" />;
-  if (selection.type === 'permission-request') return <KeyRound className="w-4 h-4 text-rose-400" />;
   return <Plug className="w-4 h-4 text-blue-500" />;
 }
 
@@ -1079,7 +1074,6 @@ function DebuggerPageContent() {
           case 'sandbox-class':
           case 'sandbox-policy':
           case 'sandbox':
-          case 'permission-request':
           case 'mcp-server':
           case 'mcp-binding':
           case 'knowledge': {

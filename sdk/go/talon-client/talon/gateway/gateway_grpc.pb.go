@@ -31,6 +31,7 @@ const (
 	GatewayService_ClearSession_FullMethodName            = "/talon.gateway.GatewayService/ClearSession"
 	GatewayService_SendMessage_FullMethodName             = "/talon.gateway.GatewayService/SendMessage"
 	GatewayService_AppendSessionMessage_FullMethodName    = "/talon.gateway.GatewayService/AppendSessionMessage"
+	GatewayService_AnswerSessionPermission_FullMethodName = "/talon.gateway.GatewayService/AnswerSessionPermission"
 	GatewayService_StopSessionGeneration_FullMethodName   = "/talon.gateway.GatewayService/StopSessionGeneration"
 	GatewayService_StreamSessionParts_FullMethodName      = "/talon.gateway.GatewayService/StreamSessionParts"
 	GatewayService_StreamSessionPartsBatch_FullMethodName = "/talon.gateway.GatewayService/StreamSessionPartsBatch"
@@ -71,6 +72,7 @@ type GatewayServiceClient interface {
 	// Interactive Comm
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
 	AppendSessionMessage(ctx context.Context, in *AppendSessionMessageRequest, opts ...grpc.CallOption) (*AppendSessionMessageResponse, error)
+	AnswerSessionPermission(ctx context.Context, in *AnswerSessionPermissionRequest, opts ...grpc.CallOption) (*AnswerSessionPermissionResponse, error)
 	StopSessionGeneration(ctx context.Context, in *StopSessionGenerationRequest, opts ...grpc.CallOption) (*StopSessionGenerationResponse, error)
 	StreamSessionParts(ctx context.Context, in *StreamSessionPartsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error)
 	StreamSessionPartsBatch(ctx context.Context, in *StreamSessionPartsBatchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error)
@@ -200,6 +202,16 @@ func (c *gatewayServiceClient) AppendSessionMessage(ctx context.Context, in *App
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AppendSessionMessageResponse)
 	err := c.cc.Invoke(ctx, GatewayService_AppendSessionMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) AnswerSessionPermission(ctx context.Context, in *AnswerSessionPermissionRequest, opts ...grpc.CallOption) (*AnswerSessionPermissionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AnswerSessionPermissionResponse)
+	err := c.cc.Invoke(ctx, GatewayService_AnswerSessionPermission_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -469,6 +481,7 @@ type GatewayServiceServer interface {
 	// Interactive Comm
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
 	AppendSessionMessage(context.Context, *AppendSessionMessageRequest) (*AppendSessionMessageResponse, error)
+	AnswerSessionPermission(context.Context, *AnswerSessionPermissionRequest) (*AnswerSessionPermissionResponse, error)
 	StopSessionGeneration(context.Context, *StopSessionGenerationRequest) (*StopSessionGenerationResponse, error)
 	StreamSessionParts(*StreamSessionPartsRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error
 	StreamSessionPartsBatch(*StreamSessionPartsBatchRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error
@@ -533,6 +546,9 @@ func (UnimplementedGatewayServiceServer) SendMessage(context.Context, *SendMessa
 }
 func (UnimplementedGatewayServiceServer) AppendSessionMessage(context.Context, *AppendSessionMessageRequest) (*AppendSessionMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AppendSessionMessage not implemented")
+}
+func (UnimplementedGatewayServiceServer) AnswerSessionPermission(context.Context, *AnswerSessionPermissionRequest) (*AnswerSessionPermissionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AnswerSessionPermission not implemented")
 }
 func (UnimplementedGatewayServiceServer) StopSessionGeneration(context.Context, *StopSessionGenerationRequest) (*StopSessionGenerationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StopSessionGeneration not implemented")
@@ -794,6 +810,24 @@ func _GatewayService_AppendSessionMessage_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GatewayServiceServer).AppendSessionMessage(ctx, req.(*AppendSessionMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_AnswerSessionPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AnswerSessionPermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).AnswerSessionPermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_AnswerSessionPermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).AnswerSessionPermission(ctx, req.(*AnswerSessionPermissionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1194,6 +1228,10 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AppendSessionMessage",
 			Handler:    _GatewayService_AppendSessionMessage_Handler,
+		},
+		{
+			MethodName: "AnswerSessionPermission",
+			Handler:    _GatewayService_AnswerSessionPermission_Handler,
 		},
 		{
 			MethodName: "StopSessionGeneration",

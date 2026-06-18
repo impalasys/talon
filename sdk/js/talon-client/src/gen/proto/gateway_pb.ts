@@ -2139,6 +2139,134 @@ export class AppendSessionMessageResponse extends Message<AppendSessionMessageRe
 }
 
 /**
+ * @generated from message talon.gateway.AnswerSessionPermissionRequest
+ */
+export class AnswerSessionPermissionRequest extends Message<AnswerSessionPermissionRequest> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string ns = 3;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string request_id = 4;
+   */
+  requestId = "";
+
+  /**
+   * @generated from field: string outcome = 5;
+   */
+  outcome = "";
+
+  /**
+   * @generated from field: string option_id = 6;
+   */
+  optionId = "";
+
+  /**
+   * @generated from field: string decided_by = 7;
+   */
+  decidedBy = "";
+
+  constructor(data?: PartialMessage<AnswerSessionPermissionRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.AnswerSessionPermissionRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "request_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "outcome", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "option_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "decided_by", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AnswerSessionPermissionRequest {
+    return new AnswerSessionPermissionRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AnswerSessionPermissionRequest {
+    return new AnswerSessionPermissionRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AnswerSessionPermissionRequest {
+    return new AnswerSessionPermissionRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AnswerSessionPermissionRequest | PlainMessage<AnswerSessionPermissionRequest> | undefined, b: AnswerSessionPermissionRequest | PlainMessage<AnswerSessionPermissionRequest> | undefined): boolean {
+    return proto3.util.equals(AnswerSessionPermissionRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.AnswerSessionPermissionResponse
+ */
+export class AnswerSessionPermissionResponse extends Message<AnswerSessionPermissionResponse> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string request_id = 2;
+   */
+  requestId = "";
+
+  /**
+   * @generated from field: string outcome = 3;
+   */
+  outcome = "";
+
+  /**
+   * @generated from field: string option_id = 4;
+   */
+  optionId = "";
+
+  constructor(data?: PartialMessage<AnswerSessionPermissionResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.AnswerSessionPermissionResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "request_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "outcome", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "option_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AnswerSessionPermissionResponse {
+    return new AnswerSessionPermissionResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AnswerSessionPermissionResponse {
+    return new AnswerSessionPermissionResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AnswerSessionPermissionResponse {
+    return new AnswerSessionPermissionResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AnswerSessionPermissionResponse | PlainMessage<AnswerSessionPermissionResponse> | undefined, b: AnswerSessionPermissionResponse | PlainMessage<AnswerSessionPermissionResponse> | undefined): boolean {
+    return proto3.util.equals(AnswerSessionPermissionResponse, a, b);
+  }
+}
+
+/**
  * @generated from message talon.gateway.StopSessionGenerationRequest
  */
 export class StopSessionGenerationRequest extends Message<StopSessionGenerationRequest> {

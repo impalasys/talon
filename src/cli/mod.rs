@@ -1855,7 +1855,6 @@ fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String>
         StatusKind::Deployment(status) => Some(status.phase.clone()),
         StatusKind::DeploymentReplica(status) => Some(status.phase.clone()),
         StatusKind::Sandbox(status) => Some(status.phase.clone()),
-        StatusKind::PermissionRequest(status) => Some(status.phase.clone()),
         StatusKind::Raw(status) => serde_json::from_str::<serde_json::Value>(&status.json)
             .ok()
             .and_then(|value| {

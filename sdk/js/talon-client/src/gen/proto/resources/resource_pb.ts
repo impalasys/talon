@@ -13,7 +13,8 @@ import { ChannelSpec, ChannelStatus, ChannelSubscriptionSpec } from "./channels_
 import { McpServerBindingSpec, McpServerSpec } from "./mcp_pb.js";
 import { KnowledgeSpec } from "./knowledge_pb.js";
 import { NamespaceSpec, NamespaceStatus } from "./namespaces_pb.js";
-import { PermissionRequestSpec, PermissionRequestStatus, SessionSpec, SessionStatus } from "./sessions_pb.js";
+import { SessionSpec, SessionStatus } from "./sessions_pb.js";
+import { SkillSpec } from "./skills_pb.js";
 import { DeploymentReplicaSpec, DeploymentReplicaStatus, DeploymentSpec, DeploymentStatus, TemplateSpec } from "./deployments_pb.js";
 import { SandboxClassSpec, SandboxPolicySpec, SandboxSpec, SandboxStatus } from "./sandboxes_pb.js";
 
@@ -276,6 +277,12 @@ export class ResourceSpec extends Message<ResourceSpec> {
     case: "session";
   } | {
     /**
+     * @generated from field: talon.resources.SkillSpec skill = 11;
+     */
+    value: SkillSpec;
+    case: "skill";
+  } | {
+    /**
      * @generated from field: talon.resources.TemplateSpec template = 20;
      */
     value: TemplateSpec;
@@ -312,12 +319,6 @@ export class ResourceSpec extends Message<ResourceSpec> {
     case: "sandbox";
   } | {
     /**
-     * @generated from field: talon.resources.PermissionRequestSpec permission_request = 43;
-     */
-    value: PermissionRequestSpec;
-    case: "permissionRequest";
-  } | {
-    /**
      * @generated from field: talon.resources.RawResourceSpec raw = 1000;
      */
     value: RawResourceSpec;
@@ -342,13 +343,13 @@ export class ResourceSpec extends Message<ResourceSpec> {
     { no: 8, name: "knowledge", kind: "message", T: KnowledgeSpec, oneof: "kind" },
     { no: 9, name: "namespace", kind: "message", T: NamespaceSpec, oneof: "kind" },
     { no: 10, name: "session", kind: "message", T: SessionSpec, oneof: "kind" },
+    { no: 11, name: "skill", kind: "message", T: SkillSpec, oneof: "kind" },
     { no: 20, name: "template", kind: "message", T: TemplateSpec, oneof: "kind" },
     { no: 21, name: "deployment", kind: "message", T: DeploymentSpec, oneof: "kind" },
     { no: 22, name: "deployment_replica", kind: "message", T: DeploymentReplicaSpec, oneof: "kind" },
     { no: 40, name: "sandbox_class", kind: "message", T: SandboxClassSpec, oneof: "kind" },
     { no: 41, name: "sandbox_policy", kind: "message", T: SandboxPolicySpec, oneof: "kind" },
     { no: 42, name: "sandbox", kind: "message", T: SandboxSpec, oneof: "kind" },
-    { no: 43, name: "permission_request", kind: "message", T: PermissionRequestSpec, oneof: "kind" },
     { no: 1000, name: "raw", kind: "message", T: RawResourceSpec, oneof: "kind" },
   ]);
 
@@ -438,6 +439,12 @@ export class ResourceStatus extends Message<ResourceStatus> {
     case: "session";
   } | {
     /**
+     * @generated from field: talon.resources.CommonResourceStatus skill = 11;
+     */
+    value: CommonResourceStatus;
+    case: "skill";
+  } | {
+    /**
      * @generated from field: talon.resources.CommonResourceStatus template = 20;
      */
     value: CommonResourceStatus;
@@ -474,12 +481,6 @@ export class ResourceStatus extends Message<ResourceStatus> {
     case: "sandbox";
   } | {
     /**
-     * @generated from field: talon.resources.PermissionRequestStatus permission_request = 43;
-     */
-    value: PermissionRequestStatus;
-    case: "permissionRequest";
-  } | {
-    /**
      * @generated from field: talon.resources.RawResourceStatus raw = 1000;
      */
     value: RawResourceStatus;
@@ -504,13 +505,13 @@ export class ResourceStatus extends Message<ResourceStatus> {
     { no: 8, name: "knowledge", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 9, name: "namespace", kind: "message", T: NamespaceStatus, oneof: "kind" },
     { no: 10, name: "session", kind: "message", T: SessionStatus, oneof: "kind" },
+    { no: 11, name: "skill", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 20, name: "template", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 21, name: "deployment", kind: "message", T: DeploymentStatus, oneof: "kind" },
     { no: 22, name: "deployment_replica", kind: "message", T: DeploymentReplicaStatus, oneof: "kind" },
     { no: 40, name: "sandbox_class", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 41, name: "sandbox_policy", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 42, name: "sandbox", kind: "message", T: SandboxStatus, oneof: "kind" },
-    { no: 43, name: "permission_request", kind: "message", T: PermissionRequestStatus, oneof: "kind" },
     { no: 1000, name: "raw", kind: "message", T: RawResourceStatus, oneof: "kind" },
   ]);
 

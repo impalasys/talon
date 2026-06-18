@@ -267,13 +267,13 @@ type ResourceSpec struct {
 	//	*ResourceSpec_Knowledge
 	//	*ResourceSpec_Namespace
 	//	*ResourceSpec_Session
+	//	*ResourceSpec_Skill
 	//	*ResourceSpec_Template
 	//	*ResourceSpec_Deployment
 	//	*ResourceSpec_DeploymentReplica
 	//	*ResourceSpec_SandboxClass
 	//	*ResourceSpec_SandboxPolicy
 	//	*ResourceSpec_Sandbox
-	//	*ResourceSpec_PermissionRequest
 	//	*ResourceSpec_Raw
 	Kind          isResourceSpec_Kind `protobuf_oneof:"kind"`
 	unknownFields protoimpl.UnknownFields
@@ -407,6 +407,15 @@ func (x *ResourceSpec) GetSession() *SessionSpec {
 	return nil
 }
 
+func (x *ResourceSpec) GetSkill() *SkillSpec {
+	if x != nil {
+		if x, ok := x.Kind.(*ResourceSpec_Skill); ok {
+			return x.Skill
+		}
+	}
+	return nil
+}
+
 func (x *ResourceSpec) GetTemplate() *TemplateSpec {
 	if x != nil {
 		if x, ok := x.Kind.(*ResourceSpec_Template); ok {
@@ -456,15 +465,6 @@ func (x *ResourceSpec) GetSandbox() *SandboxSpec {
 	if x != nil {
 		if x, ok := x.Kind.(*ResourceSpec_Sandbox); ok {
 			return x.Sandbox
-		}
-	}
-	return nil
-}
-
-func (x *ResourceSpec) GetPermissionRequest() *PermissionRequestSpec {
-	if x != nil {
-		if x, ok := x.Kind.(*ResourceSpec_PermissionRequest); ok {
-			return x.PermissionRequest
 		}
 	}
 	return nil
@@ -523,6 +523,10 @@ type ResourceSpec_Session struct {
 	Session *SessionSpec `protobuf:"bytes,10,opt,name=session,proto3,oneof"`
 }
 
+type ResourceSpec_Skill struct {
+	Skill *SkillSpec `protobuf:"bytes,11,opt,name=skill,proto3,oneof"`
+}
+
 type ResourceSpec_Template struct {
 	Template *TemplateSpec `protobuf:"bytes,20,opt,name=template,proto3,oneof"`
 }
@@ -545,10 +549,6 @@ type ResourceSpec_SandboxPolicy struct {
 
 type ResourceSpec_Sandbox struct {
 	Sandbox *SandboxSpec `protobuf:"bytes,42,opt,name=sandbox,proto3,oneof"`
-}
-
-type ResourceSpec_PermissionRequest struct {
-	PermissionRequest *PermissionRequestSpec `protobuf:"bytes,43,opt,name=permission_request,json=permissionRequest,proto3,oneof"`
 }
 
 type ResourceSpec_Raw struct {
@@ -575,6 +575,8 @@ func (*ResourceSpec_Namespace) isResourceSpec_Kind() {}
 
 func (*ResourceSpec_Session) isResourceSpec_Kind() {}
 
+func (*ResourceSpec_Skill) isResourceSpec_Kind() {}
+
 func (*ResourceSpec_Template) isResourceSpec_Kind() {}
 
 func (*ResourceSpec_Deployment) isResourceSpec_Kind() {}
@@ -586,8 +588,6 @@ func (*ResourceSpec_SandboxClass) isResourceSpec_Kind() {}
 func (*ResourceSpec_SandboxPolicy) isResourceSpec_Kind() {}
 
 func (*ResourceSpec_Sandbox) isResourceSpec_Kind() {}
-
-func (*ResourceSpec_PermissionRequest) isResourceSpec_Kind() {}
 
 func (*ResourceSpec_Raw) isResourceSpec_Kind() {}
 
@@ -605,13 +605,13 @@ type ResourceStatus struct {
 	//	*ResourceStatus_Knowledge
 	//	*ResourceStatus_Namespace
 	//	*ResourceStatus_Session
+	//	*ResourceStatus_Skill
 	//	*ResourceStatus_Template
 	//	*ResourceStatus_Deployment
 	//	*ResourceStatus_DeploymentReplica
 	//	*ResourceStatus_SandboxClass
 	//	*ResourceStatus_SandboxPolicy
 	//	*ResourceStatus_Sandbox
-	//	*ResourceStatus_PermissionRequest
 	//	*ResourceStatus_Raw
 	Kind          isResourceStatus_Kind `protobuf_oneof:"kind"`
 	unknownFields protoimpl.UnknownFields
@@ -745,6 +745,15 @@ func (x *ResourceStatus) GetSession() *SessionStatus {
 	return nil
 }
 
+func (x *ResourceStatus) GetSkill() *CommonResourceStatus {
+	if x != nil {
+		if x, ok := x.Kind.(*ResourceStatus_Skill); ok {
+			return x.Skill
+		}
+	}
+	return nil
+}
+
 func (x *ResourceStatus) GetTemplate() *CommonResourceStatus {
 	if x != nil {
 		if x, ok := x.Kind.(*ResourceStatus_Template); ok {
@@ -794,15 +803,6 @@ func (x *ResourceStatus) GetSandbox() *SandboxStatus {
 	if x != nil {
 		if x, ok := x.Kind.(*ResourceStatus_Sandbox); ok {
 			return x.Sandbox
-		}
-	}
-	return nil
-}
-
-func (x *ResourceStatus) GetPermissionRequest() *PermissionRequestStatus {
-	if x != nil {
-		if x, ok := x.Kind.(*ResourceStatus_PermissionRequest); ok {
-			return x.PermissionRequest
 		}
 	}
 	return nil
@@ -861,6 +861,10 @@ type ResourceStatus_Session struct {
 	Session *SessionStatus `protobuf:"bytes,10,opt,name=session,proto3,oneof"`
 }
 
+type ResourceStatus_Skill struct {
+	Skill *CommonResourceStatus `protobuf:"bytes,11,opt,name=skill,proto3,oneof"`
+}
+
 type ResourceStatus_Template struct {
 	Template *CommonResourceStatus `protobuf:"bytes,20,opt,name=template,proto3,oneof"`
 }
@@ -883,10 +887,6 @@ type ResourceStatus_SandboxPolicy struct {
 
 type ResourceStatus_Sandbox struct {
 	Sandbox *SandboxStatus `protobuf:"bytes,42,opt,name=sandbox,proto3,oneof"`
-}
-
-type ResourceStatus_PermissionRequest struct {
-	PermissionRequest *PermissionRequestStatus `protobuf:"bytes,43,opt,name=permission_request,json=permissionRequest,proto3,oneof"`
 }
 
 type ResourceStatus_Raw struct {
@@ -913,6 +913,8 @@ func (*ResourceStatus_Namespace) isResourceStatus_Kind() {}
 
 func (*ResourceStatus_Session) isResourceStatus_Kind() {}
 
+func (*ResourceStatus_Skill) isResourceStatus_Kind() {}
+
 func (*ResourceStatus_Template) isResourceStatus_Kind() {}
 
 func (*ResourceStatus_Deployment) isResourceStatus_Kind() {}
@@ -925,15 +927,13 @@ func (*ResourceStatus_SandboxPolicy) isResourceStatus_Kind() {}
 
 func (*ResourceStatus_Sandbox) isResourceStatus_Kind() {}
 
-func (*ResourceStatus_PermissionRequest) isResourceStatus_Kind() {}
-
 func (*ResourceStatus_Raw) isResourceStatus_Kind() {}
 
 var File_proto_resources_resource_proto protoreflect.FileDescriptor
 
 const file_proto_resources_resource_proto_rawDesc = "" +
 	"\n" +
-	"\x1eproto/resources/resource.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/agents.proto\x1a\x1eproto/resources/channels.proto\x1a\x1cproto/resources/common.proto\x1a!proto/resources/deployments.proto\x1a\x1fproto/resources/knowledge.proto\x1a\x19proto/resources/mcp.proto\x1a proto/resources/namespaces.proto\x1a\x1fproto/resources/sandboxes.proto\x1a\x1fproto/resources/schedules.proto\x1a\x1eproto/resources/sessions.proto\x1a\x1fproto/resources/workflows.proto\"\xe6\x01\n" +
+	"\x1eproto/resources/resource.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/agents.proto\x1a\x1eproto/resources/channels.proto\x1a\x1cproto/resources/common.proto\x1a!proto/resources/deployments.proto\x1a\x1fproto/resources/knowledge.proto\x1a\x19proto/resources/mcp.proto\x1a proto/resources/namespaces.proto\x1a\x1fproto/resources/sandboxes.proto\x1a\x1fproto/resources/schedules.proto\x1a\x1eproto/resources/sessions.proto\x1a\x1cproto/resources/skills.proto\x1a\x1fproto/resources/workflows.proto\"\xe6\x01\n" +
 	"\bResource\x12\x1f\n" +
 	"\vapi_version\x18\x01 \x01(\tR\n" +
 	"apiVersion\x12\x12\n" +
@@ -950,7 +950,7 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\x0fRawResourceSpec\x12\x12\n" +
 	"\x04json\x18\x01 \x01(\tR\x04json\"'\n" +
 	"\x11RawResourceStatus\x12\x12\n" +
-	"\x04json\x18\x01 \x01(\tR\x04json\"\xe9\t\n" +
+	"\x04json\x18\x01 \x01(\tR\x04json\"\xc4\t\n" +
 	"\fResourceSpec\x122\n" +
 	"\x05agent\x18\x01 \x01(\v2\x1a.talon.resources.AgentSpecH\x00R\x05agent\x12;\n" +
 	"\bworkflow\x18\x02 \x01(\v2\x1d.talon.resources.WorkflowSpecH\x00R\bworkflow\x12;\n" +
@@ -963,7 +963,8 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\tknowledge\x18\b \x01(\v2\x1e.talon.resources.KnowledgeSpecH\x00R\tknowledge\x12>\n" +
 	"\tnamespace\x18\t \x01(\v2\x1e.talon.resources.NamespaceSpecH\x00R\tnamespace\x128\n" +
 	"\asession\x18\n" +
-	" \x01(\v2\x1c.talon.resources.SessionSpecH\x00R\asession\x12;\n" +
+	" \x01(\v2\x1c.talon.resources.SessionSpecH\x00R\asession\x122\n" +
+	"\x05skill\x18\v \x01(\v2\x1a.talon.resources.SkillSpecH\x00R\x05skill\x12;\n" +
 	"\btemplate\x18\x14 \x01(\v2\x1d.talon.resources.TemplateSpecH\x00R\btemplate\x12A\n" +
 	"\n" +
 	"deployment\x18\x15 \x01(\v2\x1f.talon.resources.DeploymentSpecH\x00R\n" +
@@ -971,11 +972,9 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\x12deployment_replica\x18\x16 \x01(\v2&.talon.resources.DeploymentReplicaSpecH\x00R\x11deploymentReplica\x12H\n" +
 	"\rsandbox_class\x18( \x01(\v2!.talon.resources.SandboxClassSpecH\x00R\fsandboxClass\x12K\n" +
 	"\x0esandbox_policy\x18) \x01(\v2\".talon.resources.SandboxPolicySpecH\x00R\rsandboxPolicy\x128\n" +
-	"\asandbox\x18* \x01(\v2\x1c.talon.resources.SandboxSpecH\x00R\asandbox\x12W\n" +
-	"\x12permission_request\x18+ \x01(\v2&.talon.resources.PermissionRequestSpecH\x00R\x11permissionRequest\x125\n" +
+	"\asandbox\x18* \x01(\v2\x1c.talon.resources.SandboxSpecH\x00R\asandbox\x125\n" +
 	"\x03raw\x18\xe8\a \x01(\v2 .talon.resources.RawResourceSpecH\x00R\x03rawB\x06\n" +
-	"\x04kind\"\x9b\n" +
-	"\n" +
+	"\x04kind\"\xff\t\n" +
 	"\x0eResourceStatus\x124\n" +
 	"\x05agent\x18\x01 \x01(\v2\x1c.talon.resources.AgentStatusH\x00R\x05agent\x12=\n" +
 	"\bworkflow\x18\x02 \x01(\v2\x1f.talon.resources.WorkflowStatusH\x00R\bworkflow\x12=\n" +
@@ -988,7 +987,8 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\tknowledge\x18\b \x01(\v2%.talon.resources.CommonResourceStatusH\x00R\tknowledge\x12@\n" +
 	"\tnamespace\x18\t \x01(\v2 .talon.resources.NamespaceStatusH\x00R\tnamespace\x12:\n" +
 	"\asession\x18\n" +
-	" \x01(\v2\x1e.talon.resources.SessionStatusH\x00R\asession\x12C\n" +
+	" \x01(\v2\x1e.talon.resources.SessionStatusH\x00R\asession\x12=\n" +
+	"\x05skill\x18\v \x01(\v2%.talon.resources.CommonResourceStatusH\x00R\x05skill\x12C\n" +
 	"\btemplate\x18\x14 \x01(\v2%.talon.resources.CommonResourceStatusH\x00R\btemplate\x12C\n" +
 	"\n" +
 	"deployment\x18\x15 \x01(\v2!.talon.resources.DeploymentStatusH\x00R\n" +
@@ -996,8 +996,7 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\x12deployment_replica\x18\x16 \x01(\v2(.talon.resources.DeploymentReplicaStatusH\x00R\x11deploymentReplica\x12L\n" +
 	"\rsandbox_class\x18( \x01(\v2%.talon.resources.CommonResourceStatusH\x00R\fsandboxClass\x12N\n" +
 	"\x0esandbox_policy\x18) \x01(\v2%.talon.resources.CommonResourceStatusH\x00R\rsandboxPolicy\x12:\n" +
-	"\asandbox\x18* \x01(\v2\x1e.talon.resources.SandboxStatusH\x00R\asandbox\x12Y\n" +
-	"\x12permission_request\x18+ \x01(\v2(.talon.resources.PermissionRequestStatusH\x00R\x11permissionRequest\x127\n" +
+	"\asandbox\x18* \x01(\v2\x1e.talon.resources.SandboxStatusH\x00R\asandbox\x127\n" +
 	"\x03raw\x18\xe8\a \x01(\v2\".talon.resources.RawResourceStatusH\x00R\x03rawB\x06\n" +
 	"\x04kindb\x06proto3"
 
@@ -1032,13 +1031,13 @@ var file_proto_resources_resource_proto_goTypes = []any{
 	(*KnowledgeSpec)(nil),           // 14: talon.resources.KnowledgeSpec
 	(*NamespaceSpec)(nil),           // 15: talon.resources.NamespaceSpec
 	(*SessionSpec)(nil),             // 16: talon.resources.SessionSpec
-	(*TemplateSpec)(nil),            // 17: talon.resources.TemplateSpec
-	(*DeploymentSpec)(nil),          // 18: talon.resources.DeploymentSpec
-	(*DeploymentReplicaSpec)(nil),   // 19: talon.resources.DeploymentReplicaSpec
-	(*SandboxClassSpec)(nil),        // 20: talon.resources.SandboxClassSpec
-	(*SandboxPolicySpec)(nil),       // 21: talon.resources.SandboxPolicySpec
-	(*SandboxSpec)(nil),             // 22: talon.resources.SandboxSpec
-	(*PermissionRequestSpec)(nil),   // 23: talon.resources.PermissionRequestSpec
+	(*SkillSpec)(nil),               // 17: talon.resources.SkillSpec
+	(*TemplateSpec)(nil),            // 18: talon.resources.TemplateSpec
+	(*DeploymentSpec)(nil),          // 19: talon.resources.DeploymentSpec
+	(*DeploymentReplicaSpec)(nil),   // 20: talon.resources.DeploymentReplicaSpec
+	(*SandboxClassSpec)(nil),        // 21: talon.resources.SandboxClassSpec
+	(*SandboxPolicySpec)(nil),       // 22: talon.resources.SandboxPolicySpec
+	(*SandboxSpec)(nil),             // 23: talon.resources.SandboxSpec
 	(*AgentStatus)(nil),             // 24: talon.resources.AgentStatus
 	(*WorkflowStatus)(nil),          // 25: talon.resources.WorkflowStatus
 	(*ScheduleStatus)(nil),          // 26: talon.resources.ScheduleStatus
@@ -1049,7 +1048,6 @@ var file_proto_resources_resource_proto_goTypes = []any{
 	(*DeploymentStatus)(nil),        // 31: talon.resources.DeploymentStatus
 	(*DeploymentReplicaStatus)(nil), // 32: talon.resources.DeploymentReplicaStatus
 	(*SandboxStatus)(nil),           // 33: talon.resources.SandboxStatus
-	(*PermissionRequestStatus)(nil), // 34: talon.resources.PermissionRequestStatus
 }
 var file_proto_resources_resource_proto_depIdxs = []int32{
 	6,  // 0: talon.resources.Resource.metadata:type_name -> talon.resources.ResourceMeta
@@ -1067,13 +1065,13 @@ var file_proto_resources_resource_proto_depIdxs = []int32{
 	14, // 12: talon.resources.ResourceSpec.knowledge:type_name -> talon.resources.KnowledgeSpec
 	15, // 13: talon.resources.ResourceSpec.namespace:type_name -> talon.resources.NamespaceSpec
 	16, // 14: talon.resources.ResourceSpec.session:type_name -> talon.resources.SessionSpec
-	17, // 15: talon.resources.ResourceSpec.template:type_name -> talon.resources.TemplateSpec
-	18, // 16: talon.resources.ResourceSpec.deployment:type_name -> talon.resources.DeploymentSpec
-	19, // 17: talon.resources.ResourceSpec.deployment_replica:type_name -> talon.resources.DeploymentReplicaSpec
-	20, // 18: talon.resources.ResourceSpec.sandbox_class:type_name -> talon.resources.SandboxClassSpec
-	21, // 19: talon.resources.ResourceSpec.sandbox_policy:type_name -> talon.resources.SandboxPolicySpec
-	22, // 20: talon.resources.ResourceSpec.sandbox:type_name -> talon.resources.SandboxSpec
-	23, // 21: talon.resources.ResourceSpec.permission_request:type_name -> talon.resources.PermissionRequestSpec
+	17, // 15: talon.resources.ResourceSpec.skill:type_name -> talon.resources.SkillSpec
+	18, // 16: talon.resources.ResourceSpec.template:type_name -> talon.resources.TemplateSpec
+	19, // 17: talon.resources.ResourceSpec.deployment:type_name -> talon.resources.DeploymentSpec
+	20, // 18: talon.resources.ResourceSpec.deployment_replica:type_name -> talon.resources.DeploymentReplicaSpec
+	21, // 19: talon.resources.ResourceSpec.sandbox_class:type_name -> talon.resources.SandboxClassSpec
+	22, // 20: talon.resources.ResourceSpec.sandbox_policy:type_name -> talon.resources.SandboxPolicySpec
+	23, // 21: talon.resources.ResourceSpec.sandbox:type_name -> talon.resources.SandboxSpec
 	2,  // 22: talon.resources.ResourceSpec.raw:type_name -> talon.resources.RawResourceSpec
 	24, // 23: talon.resources.ResourceStatus.agent:type_name -> talon.resources.AgentStatus
 	25, // 24: talon.resources.ResourceStatus.workflow:type_name -> talon.resources.WorkflowStatus
@@ -1085,13 +1083,13 @@ var file_proto_resources_resource_proto_depIdxs = []int32{
 	28, // 30: talon.resources.ResourceStatus.knowledge:type_name -> talon.resources.CommonResourceStatus
 	29, // 31: talon.resources.ResourceStatus.namespace:type_name -> talon.resources.NamespaceStatus
 	30, // 32: talon.resources.ResourceStatus.session:type_name -> talon.resources.SessionStatus
-	28, // 33: talon.resources.ResourceStatus.template:type_name -> talon.resources.CommonResourceStatus
-	31, // 34: talon.resources.ResourceStatus.deployment:type_name -> talon.resources.DeploymentStatus
-	32, // 35: talon.resources.ResourceStatus.deployment_replica:type_name -> talon.resources.DeploymentReplicaStatus
-	28, // 36: talon.resources.ResourceStatus.sandbox_class:type_name -> talon.resources.CommonResourceStatus
-	28, // 37: talon.resources.ResourceStatus.sandbox_policy:type_name -> talon.resources.CommonResourceStatus
-	33, // 38: talon.resources.ResourceStatus.sandbox:type_name -> talon.resources.SandboxStatus
-	34, // 39: talon.resources.ResourceStatus.permission_request:type_name -> talon.resources.PermissionRequestStatus
+	28, // 33: talon.resources.ResourceStatus.skill:type_name -> talon.resources.CommonResourceStatus
+	28, // 34: talon.resources.ResourceStatus.template:type_name -> talon.resources.CommonResourceStatus
+	31, // 35: talon.resources.ResourceStatus.deployment:type_name -> talon.resources.DeploymentStatus
+	32, // 36: talon.resources.ResourceStatus.deployment_replica:type_name -> talon.resources.DeploymentReplicaStatus
+	28, // 37: talon.resources.ResourceStatus.sandbox_class:type_name -> talon.resources.CommonResourceStatus
+	28, // 38: talon.resources.ResourceStatus.sandbox_policy:type_name -> talon.resources.CommonResourceStatus
+	33, // 39: talon.resources.ResourceStatus.sandbox:type_name -> talon.resources.SandboxStatus
 	3,  // 40: talon.resources.ResourceStatus.raw:type_name -> talon.resources.RawResourceStatus
 	41, // [41:41] is the sub-list for method output_type
 	41, // [41:41] is the sub-list for method input_type
@@ -1115,6 +1113,7 @@ func file_proto_resources_resource_proto_init() {
 	file_proto_resources_sandboxes_proto_init()
 	file_proto_resources_schedules_proto_init()
 	file_proto_resources_sessions_proto_init()
+	file_proto_resources_skills_proto_init()
 	file_proto_resources_workflows_proto_init()
 	file_proto_resources_resource_proto_msgTypes[4].OneofWrappers = []any{
 		(*ResourceSpec_Agent)(nil),
@@ -1127,13 +1126,13 @@ func file_proto_resources_resource_proto_init() {
 		(*ResourceSpec_Knowledge)(nil),
 		(*ResourceSpec_Namespace)(nil),
 		(*ResourceSpec_Session)(nil),
+		(*ResourceSpec_Skill)(nil),
 		(*ResourceSpec_Template)(nil),
 		(*ResourceSpec_Deployment)(nil),
 		(*ResourceSpec_DeploymentReplica)(nil),
 		(*ResourceSpec_SandboxClass)(nil),
 		(*ResourceSpec_SandboxPolicy)(nil),
 		(*ResourceSpec_Sandbox)(nil),
-		(*ResourceSpec_PermissionRequest)(nil),
 		(*ResourceSpec_Raw)(nil),
 	}
 	file_proto_resources_resource_proto_msgTypes[5].OneofWrappers = []any{
@@ -1147,13 +1146,13 @@ func file_proto_resources_resource_proto_init() {
 		(*ResourceStatus_Knowledge)(nil),
 		(*ResourceStatus_Namespace)(nil),
 		(*ResourceStatus_Session)(nil),
+		(*ResourceStatus_Skill)(nil),
 		(*ResourceStatus_Template)(nil),
 		(*ResourceStatus_Deployment)(nil),
 		(*ResourceStatus_DeploymentReplica)(nil),
 		(*ResourceStatus_SandboxClass)(nil),
 		(*ResourceStatus_SandboxPolicy)(nil),
 		(*ResourceStatus_Sandbox)(nil),
-		(*ResourceStatus_PermissionRequest)(nil),
 		(*ResourceStatus_Raw)(nil),
 	}
 	type x struct{}

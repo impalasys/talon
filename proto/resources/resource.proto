@@ -57,7 +57,6 @@ message ResourceSpec {
     SandboxClassSpec sandbox_class = 40;
     SandboxPolicySpec sandbox_policy = 41;
     SandboxSpec sandbox = 42;
-    PermissionRequestSpec permission_request = 43;
     RawResourceSpec raw = 1000;
   }
 }
@@ -81,7 +80,6 @@ message ResourceStatus {
     CommonResourceStatus sandbox_class = 40;
     CommonResourceStatus sandbox_policy = 41;
     SandboxStatus sandbox = 42;
-    PermissionRequestStatus permission_request = 43;
     RawResourceStatus raw = 1000;
   }
 }

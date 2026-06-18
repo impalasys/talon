@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AppendSessionMessageRequest, AppendSessionMessageResponse, CancelWorkflowRunRequest, ChannelMessageResponse, ClearSessionRequest, ClearSessionResponse, CreateNamespaceRequest, CreateResourceRequest, CreateSessionRequest, CreateWorkflowRunRequest, DeleteNamespaceRequest, DeleteResourceRequest, DeleteResourceResponse, DeleteSessionRequest, DeleteSessionResponse, GetChannelMessageRequest, GetKnowledgeRequest, GetNamespaceRequest, GetResourceRequest, GetSessionRequest, GetWorkflowRunRequest, KnowledgeResponse, ListChannelMessagesRequest, ListChannelMessagesResponse, ListNamespacesRequest, ListNamespacesResponse, ListResourcesRequest, ListResourcesResponse, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, ListWorkflowRunsRequest, ListWorkflowRunsResponse, NamespaceResponse, PostChannelMessageRequest, PostChannelMessageResponse, ResourceResponse, ResumeWorkflowRunRequest, SearchKnowledgeRequest, SearchKnowledgeResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamChannelEventsRequest, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, StreamWorkflowEventsRequest, WorkflowRunResponse } from "./gateway_pb.js";
+import { AnswerSessionPermissionRequest, AnswerSessionPermissionResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, CancelWorkflowRunRequest, ChannelMessageResponse, ClearSessionRequest, ClearSessionResponse, CreateNamespaceRequest, CreateResourceRequest, CreateSessionRequest, CreateWorkflowRunRequest, DeleteNamespaceRequest, DeleteResourceRequest, DeleteResourceResponse, DeleteSessionRequest, DeleteSessionResponse, GetChannelMessageRequest, GetKnowledgeRequest, GetNamespaceRequest, GetResourceRequest, GetSessionRequest, GetWorkflowRunRequest, KnowledgeResponse, ListChannelMessagesRequest, ListChannelMessagesResponse, ListNamespacesRequest, ListNamespacesResponse, ListResourcesRequest, ListResourcesResponse, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, ListWorkflowRunsRequest, ListWorkflowRunsResponse, NamespaceResponse, PostChannelMessageRequest, PostChannelMessageResponse, ResourceResponse, ResumeWorkflowRunRequest, SearchKnowledgeRequest, SearchKnowledgeResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamChannelEventsRequest, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, StreamWorkflowEventsRequest, WorkflowRunResponse } from "./gateway_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 import { ChannelEvent, SessionMessagePartEvent } from "./events_pb.js";
 import { WorkflowRunEvent } from "./data/data_pb.js";
@@ -108,6 +108,15 @@ export const GatewayService = {
       name: "AppendSessionMessage",
       I: AppendSessionMessageRequest,
       O: AppendSessionMessageResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.gateway.GatewayService.AnswerSessionPermission
+     */
+    answerSessionPermission: {
+      name: "AnswerSessionPermission",
+      I: AnswerSessionPermissionRequest,
+      O: AnswerSessionPermissionResponse,
       kind: MethodKind.Unary,
     },
     /**

@@ -373,15 +373,6 @@ fn resource_spec_proto_json(spec: &resources_proto::ResourceSpec) -> serde_json:
                 "runtimeTemplate": spec.runtime_template.as_ref().map(sandbox_runtime_template_proto_json),
             }
         }),
-        Some(Kind::PermissionRequest(spec)) => json!({
-            "permissionRequest": {
-                "agent": spec.agent,
-                "sessionId": spec.session_id,
-                "action": spec.action,
-                "prompt": spec.prompt,
-                "payloadJson": spec.payload_json,
-            }
-        }),
         Some(Kind::Skill(spec)) => json!({
             "skill": {
                 "description": spec.description,

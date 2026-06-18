@@ -721,11 +721,6 @@ pub fn resource_spec_status_from_json(
         "Skill" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Skill(skill_spec_from_value(spec_value)?)),
         },
-        "PermissionRequest" => resources_proto::ResourceSpec {
-            kind: Some(SpecKind::PermissionRequest(
-                permission_request_spec_from_value(spec_value)?,
-            )),
-        },
         _ => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Raw(resources_proto::RawResourceSpec {
                 json: spec_json.to_string(),
@@ -756,11 +751,6 @@ pub fn resource_spec_status_from_json(
             kind: Some(StatusKind::Sandbox(sandbox_status_from_value(
                 status_value,
             )?)),
-        },
-        "PermissionRequest" => resources_proto::ResourceStatus {
-            kind: Some(StatusKind::PermissionRequest(
-                permission_request_status_from_value(status_value)?,
-            )),
         },
         "Template" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Template(common_status_from_value(
@@ -830,13 +820,6 @@ fn resource_spec_status_to_yaml_values(
             "policyRef": spec.policy_ref,
             "classRef": spec.class_ref.as_ref().map(resource_ref_json),
             "runtimeTemplate": sandbox_runtime_template_to_json_value(spec.runtime_template.as_ref()),
-        }))?,
-        Some(SpecKind::PermissionRequest(spec)) => serde_json::to_string(&serde_json::json!({
-            "agent": spec.agent,
-            "sessionId": spec.session_id,
-            "action": spec.action,
-            "prompt": spec.prompt,
-            "payload": json_string_to_json_value(&spec.payload_json)?,
         }))?,
         Some(SpecKind::Skill(spec)) => serde_json::to_string(&serde_json::json!({
             "description": spec.description,
@@ -953,32 +936,6 @@ fn resource_spec_status_to_yaml_values(
                             .map(sandbox_process_status_to_json)
                             .collect(),
                     ),
-                );
-            }
-            serde_json::to_string(&serde_json::Value::Object(json))?
-        }
-        Some(StatusKind::PermissionRequest(status)) => {
-            let mut json = common_status_map(
-                status.observed_generation,
-                &status.phase,
-                &status.conditions,
-            );
-            if !status.decision.is_empty() {
-                json.insert(
-                    "decision".to_string(),
-                    serde_json::Value::String(status.decision.clone()),
-                );
-            }
-            if !status.decided_by.is_empty() {
-                json.insert(
-                    "decidedBy".to_string(),
-                    serde_json::Value::String(status.decided_by.clone()),
-                );
-            }
-            if status.decided_at != 0 {
-                json.insert(
-                    "decidedAt".to_string(),
-                    serde_json::Value::Number(status.decided_at.into()),
                 );
             }
             serde_json::to_string(&serde_json::Value::Object(json))?
@@ -1302,36 +1259,6 @@ fn sandbox_spec_from_value(value: serde_json::Value) -> Result<resources_proto::
     })
 }
 
-fn permission_request_spec_from_value(
-    value: serde_json::Value,
-) -> Result<resources_proto::PermissionRequestSpec> {
-    Ok(resources_proto::PermissionRequestSpec {
-        agent: value
-            .get("agent")
-            .and_then(|value| value.as_str())
-            .unwrap_or_default()
-            .to_string(),
-        session_id: value
-            .get("sessionId")
-            .and_then(|value| value.as_str())
-            .unwrap_or_default()
-            .to_string(),
-        action: value
-            .get("action")
-            .and_then(|value| value.as_str())
-            .unwrap_or_default()
-            .to_string(),
-        prompt: value
-            .get("prompt")
-            .and_then(|value| value.as_str())
-            .unwrap_or_default()
-            .to_string(),
-        payload_json: serde_json::to_string(
-            value.get("payload").unwrap_or(&serde_json::Value::Null),
-        )?,
-    })
-}
-
 fn deployment_status_from_value(
     value: serde_json::Value,
 ) -> Result<resources_proto::DeploymentStatus> {
@@ -1610,37 +1537,6 @@ fn sandbox_processes_from_value(
                 .collect()
         })
         .unwrap_or_default()
-}
-
-fn permission_request_status_from_value(
-    value: serde_json::Value,
-) -> Result<resources_proto::PermissionRequestStatus> {
-    Ok(resources_proto::PermissionRequestStatus {
-        observed_generation: value
-            .get("observedGeneration")
-            .and_then(|value| value.as_u64())
-            .unwrap_or(0),
-        phase: value
-            .get("phase")
-            .and_then(|value| value.as_str())
-            .unwrap_or_default()
-            .to_string(),
-        conditions: conditions_from_value(&value),
-        decision: value
-            .get("decision")
-            .and_then(|value| value.as_str())
-            .unwrap_or_default()
-            .to_string(),
-        decided_by: value
-            .get("decidedBy")
-            .and_then(|value| value.as_str())
-            .unwrap_or_default()
-            .to_string(),
-        decided_at: value
-            .get("decidedAt")
-            .and_then(|value| value.as_i64())
-            .unwrap_or(0),
-    })
 }
 
 fn agent_status_from_value(value: serde_json::Value) -> Result<resources_proto::AgentStatus> {

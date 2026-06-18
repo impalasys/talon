@@ -583,12 +583,7 @@ mod tests {
     async fn seed_agent(kv: &MockKvStore, ns: &str, name: &str) {
         kv.set_msg(
             &keys::agent(ns, name),
-            &resource_model::agent_resource(
-                ns,
-                name,
-                manifests::AgentSpec::default(),
-                HashMap::new(),
-            ),
+            &resource_model::agent(ns, name, manifests::AgentSpec::default(), HashMap::new()),
         )
         .await
         .unwrap();

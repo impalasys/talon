@@ -1807,7 +1807,7 @@ mod tests {
     async fn seed_agent(kv: &MockKvStore, namespace: &str, name: &str) {
         kv.set_msg(
             &keys::agent(namespace, name),
-            &crate::control::resource_model::agent_resource(
+            &crate::control::resource_model::agent(
                 namespace,
                 name,
                 manifests::AgentSpec {

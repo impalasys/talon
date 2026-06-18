@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
-import { Box, Activity, ChevronRight, ChevronDown, Folder, Cpu, MessageSquare, Trash2, PlusCircle, Plug, Clock3, FileText, Hash, Radio, Layers3, Package, ShieldCheck, Container, KeyRound } from 'lucide-react';
+import { Box, Activity, ChevronRight, ChevronDown, Folder, Cpu, MessageSquare, Trash2, PlusCircle, Plug, Clock3, FileText, Hash, Radio, Layers3, Package, ShieldCheck, Container } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getGatewayClient } from '../../lib/grpc';
@@ -74,7 +74,6 @@ export type SelectionType =
   | 'sandbox-class'
   | 'sandbox-policy'
   | 'sandbox'
-  | 'permission-request'
   | 'mcp-server'
   | 'mcp-binding'
   | 'knowledge';
@@ -195,7 +194,6 @@ const RESOURCE_KIND_BY_SELECTION: Partial<Record<SelectionType, string>> = {
   'sandbox-class': 'SandboxClass',
   'sandbox-policy': 'SandboxPolicy',
   sandbox: 'Sandbox',
-  'permission-request': 'PermissionRequest',
   'mcp-server': 'McpServer',
   'mcp-binding': 'McpServerBinding',
   knowledge: 'Knowledge',
@@ -372,10 +370,6 @@ function controlResourceFromResource(
       badge = status.lease?.ownerSessionId ? 'leased' : (status.phase || 'sandbox');
       break;
     }
-    case 'PermissionRequest': {
-      badge = resourcePhase(resource, 'permissionRequest') || 'permission';
-      break;
-    }
     default:
       badge = kind;
   }
@@ -413,10 +407,8 @@ function nodeSortWeight(node: TreeNode) {
       return 10;
     case 'schedule':
       return 11;
-    case 'permission-request':
-      return 12;
     case 'session':
-      return 13;
+      return 12;
     default:
       return 20;
   }
@@ -623,7 +615,6 @@ function NamespaceNode({
     'sandbox-class',
     'sandbox-policy',
     'sandbox',
-    'permission-request',
   ].includes(node.selection.type);
   const isExpanded = expanded.has(node.id);
   const isSelected = selectedNodeId === node.id;
@@ -696,7 +687,6 @@ function NamespaceNode({
          {node.selection.type === 'sandbox-class' && <ShieldCheck className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-fuchsia-400")} />}
          {node.selection.type === 'sandbox-policy' && <Box className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-fuchsia-300")} />}
          {node.selection.type === 'sandbox' && <Container className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-orange-400")} />}
-         {node.selection.type === 'permission-request' && <KeyRound className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-rose-400")} />}
          {node.selection.type === 'mcp-binding' && <Plug className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-blue-500")} />}
          {node.selection.type === 'knowledge' && <FileText className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-violet-400")} />}
 
@@ -1120,7 +1110,6 @@ export function NamespaceExplorer({
       { kind: 'SandboxClass', selectionType: 'sandbox-class', sortPrefix: 'sandbox-class' },
       { kind: 'SandboxPolicy', selectionType: 'sandbox-policy', sortPrefix: 'sandbox-policy' },
       { kind: 'Sandbox', selectionType: 'sandbox', sortPrefix: 'sandbox' },
-      { kind: 'PermissionRequest', selectionType: 'permission-request', sortPrefix: 'permission-request' },
     ];
 
     try {

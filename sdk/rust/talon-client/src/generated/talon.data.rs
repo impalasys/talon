@@ -289,6 +289,8 @@ pub enum SessionMessagePartType {
     Audio = 8,
     Video = 9,
     File = 10,
+    RequestPermission = 11,
+    PermissionResult = 12,
 }
 impl SessionMessagePartType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -308,6 +310,8 @@ impl SessionMessagePartType {
             Self::Audio => "SESSION_MESSAGE_PART_TYPE_AUDIO",
             Self::Video => "SESSION_MESSAGE_PART_TYPE_VIDEO",
             Self::File => "SESSION_MESSAGE_PART_TYPE_FILE",
+            Self::RequestPermission => "SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION",
+            Self::PermissionResult => "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -324,6 +328,10 @@ impl SessionMessagePartType {
             "SESSION_MESSAGE_PART_TYPE_AUDIO" => Some(Self::Audio),
             "SESSION_MESSAGE_PART_TYPE_VIDEO" => Some(Self::Video),
             "SESSION_MESSAGE_PART_TYPE_FILE" => Some(Self::File),
+            "SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION" => {
+                Some(Self::RequestPermission)
+            }
+            "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT" => Some(Self::PermissionResult),
             _ => None,
         }
     }

@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/resources/sessions.proto.
  */
 export const file_proto_resources_sessions: GenFile = /*@__PURE__*/
-  fileDesc("Ch5wcm90by9yZXNvdXJjZXMvc2Vzc2lvbnMucHJvdG8SD3RhbG9uLnJlc291cmNlcyKFAQoLU2Vzc2lvblNwZWMSDQoFYWdlbnQYASABKAkSOAoGbGFiZWxzGAIgAygLMigudGFsb24ucmVzb3VyY2VzLlNlc3Npb25TcGVjLkxhYmVsc0VudHJ5Gi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEilgEKB1Nlc3Npb24SLwoIbWV0YWRhdGEYASABKAsyHS50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VNZXRhEioKBHNwZWMYAiABKAsyHC50YWxvbi5yZXNvdXJjZXMuU2Vzc2lvblNwZWMSLgoGc3RhdHVzGAMgASgLMh4udGFsb24ucmVzb3VyY2VzLlNlc3Npb25TdGF0dXMiyQEKDVNlc3Npb25TdGF0dXMSGwoTb2JzZXJ2ZWRfZ2VuZXJhdGlvbhgBIAEoBBINCgVwaGFzZRgCIAEoCRI2Cgpjb25kaXRpb25zGAMgAygLMiIudGFsb24ucmVzb3VyY2VzLlJlc291cmNlQ29uZGl0aW9uEhIKCmNyZWF0ZWRfYXQYBCABKAMSEwoLbGFzdF9hY3RpdmUYBSABKAMSFgoOYWNwX3Nlc3Npb25faWQYBiABKAkSEwoLc2FuZGJveF9yZWYYByABKAkicAoVUGVybWlzc2lvblJlcXVlc3RTcGVjEg0KBWFnZW50GAEgASgJEhIKCnNlc3Npb25faWQYAiABKAkSDgoGYWN0aW9uGAMgASgJEg4KBnByb21wdBgEIAEoCRIUCgxwYXlsb2FkX2pzb24YBSABKAkitAEKEVBlcm1pc3Npb25SZXF1ZXN0Ei8KCG1ldGFkYXRhGAEgASgLMh0udGFsb24ucmVzb3VyY2VzLlJlc291cmNlTWV0YRI0CgRzcGVjGAIgASgLMiYudGFsb24ucmVzb3VyY2VzLlBlcm1pc3Npb25SZXF1ZXN0U3BlYxI4CgZzdGF0dXMYAyABKAsyKC50YWxvbi5yZXNvdXJjZXMuUGVybWlzc2lvblJlcXVlc3RTdGF0dXMitwEKF1Blcm1pc3Npb25SZXF1ZXN0U3RhdHVzEhsKE29ic2VydmVkX2dlbmVyYXRpb24YASABKAQSDQoFcGhhc2UYAiABKAkSNgoKY29uZGl0aW9ucxgDIAMoCzIiLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZUNvbmRpdGlvbhIQCghkZWNpc2lvbhgEIAEoCRISCgpkZWNpZGVkX2J5GAUgASgJEhIKCmRlY2lkZWRfYXQYBiABKANiBnByb3RvMw", [file_proto_resources_common]);
+  fileDesc("Ch5wcm90by9yZXNvdXJjZXMvc2Vzc2lvbnMucHJvdG8SD3RhbG9uLnJlc291cmNlcyKFAQoLU2Vzc2lvblNwZWMSDQoFYWdlbnQYASABKAkSOAoGbGFiZWxzGAIgAygLMigudGFsb24ucmVzb3VyY2VzLlNlc3Npb25TcGVjLkxhYmVsc0VudHJ5Gi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEilgEKB1Nlc3Npb24SLwoIbWV0YWRhdGEYASABKAsyHS50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VNZXRhEioKBHNwZWMYAiABKAsyHC50YWxvbi5yZXNvdXJjZXMuU2Vzc2lvblNwZWMSLgoGc3RhdHVzGAMgASgLMh4udGFsb24ucmVzb3VyY2VzLlNlc3Npb25TdGF0dXMiyQEKDVNlc3Npb25TdGF0dXMSGwoTb2JzZXJ2ZWRfZ2VuZXJhdGlvbhgBIAEoBBINCgVwaGFzZRgCIAEoCRI2Cgpjb25kaXRpb25zGAMgAygLMiIudGFsb24ucmVzb3VyY2VzLlJlc291cmNlQ29uZGl0aW9uEhIKCmNyZWF0ZWRfYXQYBCABKAMSEwoLbGFzdF9hY3RpdmUYBSABKAMSFgoOYWNwX3Nlc3Npb25faWQYBiABKAkSEwoLc2FuZGJveF9yZWYYByABKAliBnByb3RvMw", [file_proto_resources_common]);
 
 /**
  * @generated from message talon.resources.SessionSpec
@@ -111,110 +111,4 @@ export type SessionStatus = Message<"talon.resources.SessionStatus"> & {
  */
 export const SessionStatusSchema: GenMessage<SessionStatus> = /*@__PURE__*/
   messageDesc(file_proto_resources_sessions, 2);
-
-/**
- * @generated from message talon.resources.PermissionRequestSpec
- */
-export type PermissionRequestSpec = Message<"talon.resources.PermissionRequestSpec"> & {
-  /**
-   * @generated from field: string agent = 1;
-   */
-  agent: string;
-
-  /**
-   * @generated from field: string session_id = 2;
-   */
-  sessionId: string;
-
-  /**
-   * @generated from field: string action = 3;
-   */
-  action: string;
-
-  /**
-   * @generated from field: string prompt = 4;
-   */
-  prompt: string;
-
-  /**
-   * @generated from field: string payload_json = 5;
-   */
-  payloadJson: string;
-};
-
-/**
- * Describes the message talon.resources.PermissionRequestSpec.
- * Use `create(PermissionRequestSpecSchema)` to create a new message.
- */
-export const PermissionRequestSpecSchema: GenMessage<PermissionRequestSpec> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sessions, 3);
-
-/**
- * @generated from message talon.resources.PermissionRequest
- */
-export type PermissionRequest = Message<"talon.resources.PermissionRequest"> & {
-  /**
-   * @generated from field: talon.resources.ResourceMeta metadata = 1;
-   */
-  metadata?: ResourceMeta;
-
-  /**
-   * @generated from field: talon.resources.PermissionRequestSpec spec = 2;
-   */
-  spec?: PermissionRequestSpec;
-
-  /**
-   * @generated from field: talon.resources.PermissionRequestStatus status = 3;
-   */
-  status?: PermissionRequestStatus;
-};
-
-/**
- * Describes the message talon.resources.PermissionRequest.
- * Use `create(PermissionRequestSchema)` to create a new message.
- */
-export const PermissionRequestSchema: GenMessage<PermissionRequest> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sessions, 4);
-
-/**
- * @generated from message talon.resources.PermissionRequestStatus
- */
-export type PermissionRequestStatus = Message<"talon.resources.PermissionRequestStatus"> & {
-  /**
-   * @generated from field: uint64 observed_generation = 1;
-   */
-  observedGeneration: bigint;
-
-  /**
-   * @generated from field: string phase = 2;
-   */
-  phase: string;
-
-  /**
-   * @generated from field: repeated talon.resources.ResourceCondition conditions = 3;
-   */
-  conditions: ResourceCondition[];
-
-  /**
-   * @generated from field: string decision = 4;
-   */
-  decision: string;
-
-  /**
-   * @generated from field: string decided_by = 5;
-   */
-  decidedBy: string;
-
-  /**
-   * @generated from field: int64 decided_at = 6;
-   */
-  decidedAt: bigint;
-};
-
-/**
- * Describes the message talon.resources.PermissionRequestStatus.
- * Use `create(PermissionRequestStatusSchema)` to create a new message.
- */
-export const PermissionRequestStatusSchema: GenMessage<PermissionRequestStatus> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sessions, 5);
 

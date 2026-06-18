@@ -84,6 +84,15 @@ pub enum AgentEvent {
         name: String,
         output: String,
     },
+    RequestPermission {
+        id: String,
+        action: String,
+        payload: serde_json::Value,
+    },
+    PermissionResult {
+        id: String,
+        outcome: serde_json::Value,
+    },
     Token(String),
     Usage(ChatUsage),
     Done(String),
@@ -135,6 +144,10 @@ pub trait ExecutionSink: Send + Sync {
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value);
     /// The tool returned a result.
     async fn on_tool_result(&self, id: &str, name: &str, result: &str);
+    /// The agent requested permission from the user/client.
+    async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
+    /// The permission request was answered or cancelled.
+    async fn on_permission_result(&self, _: &str, _: &Value) {}
     /// Usage metadata for the completed model turn.
     async fn on_usage(&self, usage: &ChatUsage);
     /// The execution completed successfully with a final reply.
@@ -152,6 +165,8 @@ impl ExecutionSink for NullSink {
     async fn on_reasoning(&self, _: &str) {}
     async fn on_tool_call(&self, _: &str, _: &str, _: &Value) {}
     async fn on_tool_result(&self, _: &str, _: &str, _: &str) {}
+    async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
+    async fn on_permission_result(&self, _: &str, _: &Value) {}
     async fn on_usage(&self, _: &ChatUsage) {}
     async fn on_done(&self, _: &str) {}
     async fn on_error(&self, _: &str) {}
@@ -201,6 +216,25 @@ impl ExecutionSink for CaptureSink {
             name: name.to_string(),
             output: result.to_string(),
         });
+    }
+    async fn on_request_permission(&self, id: &str, action: &str, payload: &Value) {
+        self.events
+            .lock()
+            .unwrap()
+            .push(AgentEvent::RequestPermission {
+                id: id.to_string(),
+                action: action.to_string(),
+                payload: payload.clone(),
+            });
+    }
+    async fn on_permission_result(&self, id: &str, outcome: &Value) {
+        self.events
+            .lock()
+            .unwrap()
+            .push(AgentEvent::PermissionResult {
+                id: id.to_string(),
+                outcome: outcome.clone(),
+            });
     }
     async fn on_usage(&self, usage: &ChatUsage) {
         self.events

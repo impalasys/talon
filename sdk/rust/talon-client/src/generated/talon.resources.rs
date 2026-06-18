@@ -934,41 +934,20 @@ pub struct SessionStatus {
     pub sandbox_ref: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PermissionRequestSpec {
+pub struct SkillSpec {
     #[prost(string, tag = "1")]
-    pub agent: ::prost::alloc::string::String,
+    pub description: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
-    pub session_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub action: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub prompt: ::prost::alloc::string::String,
-    #[prost(string, tag = "5")]
-    pub payload_json: ::prost::alloc::string::String,
+    pub instructions: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PermissionRequest {
+pub struct Skill {
     #[prost(message, optional, tag = "1")]
     pub metadata: ::core::option::Option<ResourceMeta>,
     #[prost(message, optional, tag = "2")]
-    pub spec: ::core::option::Option<PermissionRequestSpec>,
+    pub spec: ::core::option::Option<SkillSpec>,
     #[prost(message, optional, tag = "3")]
-    pub status: ::core::option::Option<PermissionRequestStatus>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PermissionRequestStatus {
-    #[prost(uint64, tag = "1")]
-    pub observed_generation: u64,
-    #[prost(string, tag = "2")]
-    pub phase: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "3")]
-    pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
-    #[prost(string, tag = "4")]
-    pub decision: ::prost::alloc::string::String,
-    #[prost(string, tag = "5")]
-    pub decided_by: ::prost::alloc::string::String,
-    #[prost(int64, tag = "6")]
-    pub decided_at: i64,
+    pub status: ::core::option::Option<CommonResourceStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Resource {
@@ -1008,7 +987,7 @@ pub struct RawResourceStatus {
 pub struct ResourceSpec {
     #[prost(
         oneof = "resource_spec::Kind",
-        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 21, 22, 40, 41, 42, 43, 1000"
+        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 1000"
     )]
     pub kind: ::core::option::Option<resource_spec::Kind>,
 }
@@ -1036,6 +1015,8 @@ pub mod resource_spec {
         Namespace(super::NamespaceSpec),
         #[prost(message, tag = "10")]
         Session(super::SessionSpec),
+        #[prost(message, tag = "11")]
+        Skill(super::SkillSpec),
         #[prost(message, tag = "20")]
         Template(super::TemplateSpec),
         #[prost(message, tag = "21")]
@@ -1048,8 +1029,6 @@ pub mod resource_spec {
         SandboxPolicy(super::SandboxPolicySpec),
         #[prost(message, tag = "42")]
         Sandbox(super::SandboxSpec),
-        #[prost(message, tag = "43")]
-        PermissionRequest(super::PermissionRequestSpec),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceSpec),
     }
@@ -1058,7 +1037,7 @@ pub mod resource_spec {
 pub struct ResourceStatus {
     #[prost(
         oneof = "resource_status::Kind",
-        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 21, 22, 40, 41, 42, 43, 1000"
+        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 1000"
     )]
     pub kind: ::core::option::Option<resource_status::Kind>,
 }
@@ -1086,6 +1065,8 @@ pub mod resource_status {
         Namespace(super::NamespaceStatus),
         #[prost(message, tag = "10")]
         Session(super::SessionStatus),
+        #[prost(message, tag = "11")]
+        Skill(super::CommonResourceStatus),
         #[prost(message, tag = "20")]
         Template(super::CommonResourceStatus),
         #[prost(message, tag = "21")]
@@ -1098,8 +1079,6 @@ pub mod resource_status {
         SandboxPolicy(super::CommonResourceStatus),
         #[prost(message, tag = "42")]
         Sandbox(super::SandboxStatus),
-        #[prost(message, tag = "43")]
-        PermissionRequest(super::PermissionRequestStatus),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceStatus),
     }

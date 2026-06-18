@@ -25,26 +25,3 @@ message SessionStatus {
   // Sandbox resource name in the same namespace as this Session.
   string sandbox_ref = 7;
 }
-
-message PermissionRequestSpec {
-  string agent = 1;
-  string session_id = 2;
-  string action = 3;
-  string prompt = 4;
-  string payload_json = 5;
-}
-
-message PermissionRequest {
-  ResourceMeta metadata = 1;
-  PermissionRequestSpec spec = 2;
-  PermissionRequestStatus status = 3;
-}
-
-message PermissionRequestStatus {
-  uint64 observed_generation = 1;
-  string phase = 2;
-  repeated ResourceCondition conditions = 3;
-  string decision = 4;
-  string decided_by = 5;
-  int64 decided_at = 6;
-}

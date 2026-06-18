@@ -317,6 +317,20 @@ pub fn session_message_prefix(namespace: &str, agent: &str, session_id: &str) ->
     )
 }
 
+pub fn session_permission_decision(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    request_id: &str,
+) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        "PermissionDecision",
+        request_id,
+    )
+}
+
 pub fn channel(namespace: &str, name: &str) -> ResourceKey {
     resource_key(namespace, &[], "Channel", name)
 }

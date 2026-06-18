@@ -226,226 +226,6 @@ func (x *SessionStatus) GetSandboxRef() string {
 	return ""
 }
 
-type PermissionRequestSpec struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Agent         string                 `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
-	SessionId     string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Action        string                 `protobuf:"bytes,3,opt,name=action,proto3" json:"action,omitempty"`
-	Prompt        string                 `protobuf:"bytes,4,opt,name=prompt,proto3" json:"prompt,omitempty"`
-	PayloadJson   string                 `protobuf:"bytes,5,opt,name=payload_json,json=payloadJson,proto3" json:"payload_json,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PermissionRequestSpec) Reset() {
-	*x = PermissionRequestSpec{}
-	mi := &file_proto_resources_sessions_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PermissionRequestSpec) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PermissionRequestSpec) ProtoMessage() {}
-
-func (x *PermissionRequestSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sessions_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PermissionRequestSpec.ProtoReflect.Descriptor instead.
-func (*PermissionRequestSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sessions_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *PermissionRequestSpec) GetAgent() string {
-	if x != nil {
-		return x.Agent
-	}
-	return ""
-}
-
-func (x *PermissionRequestSpec) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
-}
-
-func (x *PermissionRequestSpec) GetAction() string {
-	if x != nil {
-		return x.Action
-	}
-	return ""
-}
-
-func (x *PermissionRequestSpec) GetPrompt() string {
-	if x != nil {
-		return x.Prompt
-	}
-	return ""
-}
-
-func (x *PermissionRequestSpec) GetPayloadJson() string {
-	if x != nil {
-		return x.PayloadJson
-	}
-	return ""
-}
-
-type PermissionRequest struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Metadata      *ResourceMeta            `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Spec          *PermissionRequestSpec   `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
-	Status        *PermissionRequestStatus `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PermissionRequest) Reset() {
-	*x = PermissionRequest{}
-	mi := &file_proto_resources_sessions_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PermissionRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PermissionRequest) ProtoMessage() {}
-
-func (x *PermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sessions_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PermissionRequest.ProtoReflect.Descriptor instead.
-func (*PermissionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sessions_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *PermissionRequest) GetMetadata() *ResourceMeta {
-	if x != nil {
-		return x.Metadata
-	}
-	return nil
-}
-
-func (x *PermissionRequest) GetSpec() *PermissionRequestSpec {
-	if x != nil {
-		return x.Spec
-	}
-	return nil
-}
-
-func (x *PermissionRequest) GetStatus() *PermissionRequestStatus {
-	if x != nil {
-		return x.Status
-	}
-	return nil
-}
-
-type PermissionRequestStatus struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	ObservedGeneration uint64                 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
-	Phase              string                 `protobuf:"bytes,2,opt,name=phase,proto3" json:"phase,omitempty"`
-	Conditions         []*ResourceCondition   `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
-	Decision           string                 `protobuf:"bytes,4,opt,name=decision,proto3" json:"decision,omitempty"`
-	DecidedBy          string                 `protobuf:"bytes,5,opt,name=decided_by,json=decidedBy,proto3" json:"decided_by,omitempty"`
-	DecidedAt          int64                  `protobuf:"varint,6,opt,name=decided_at,json=decidedAt,proto3" json:"decided_at,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
-}
-
-func (x *PermissionRequestStatus) Reset() {
-	*x = PermissionRequestStatus{}
-	mi := &file_proto_resources_sessions_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PermissionRequestStatus) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PermissionRequestStatus) ProtoMessage() {}
-
-func (x *PermissionRequestStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sessions_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PermissionRequestStatus.ProtoReflect.Descriptor instead.
-func (*PermissionRequestStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sessions_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *PermissionRequestStatus) GetObservedGeneration() uint64 {
-	if x != nil {
-		return x.ObservedGeneration
-	}
-	return 0
-}
-
-func (x *PermissionRequestStatus) GetPhase() string {
-	if x != nil {
-		return x.Phase
-	}
-	return ""
-}
-
-func (x *PermissionRequestStatus) GetConditions() []*ResourceCondition {
-	if x != nil {
-		return x.Conditions
-	}
-	return nil
-}
-
-func (x *PermissionRequestStatus) GetDecision() string {
-	if x != nil {
-		return x.Decision
-	}
-	return ""
-}
-
-func (x *PermissionRequestStatus) GetDecidedBy() string {
-	if x != nil {
-		return x.DecidedBy
-	}
-	return ""
-}
-
-func (x *PermissionRequestStatus) GetDecidedAt() int64 {
-	if x != nil {
-		return x.DecidedAt
-	}
-	return 0
-}
-
 var File_proto_resources_sessions_proto protoreflect.FileDescriptor
 
 const file_proto_resources_sessions_proto_rawDesc = "" +
@@ -473,29 +253,7 @@ const file_proto_resources_sessions_proto_rawDesc = "" +
 	"lastActive\x12$\n" +
 	"\x0eacp_session_id\x18\x06 \x01(\tR\facpSessionId\x12\x1f\n" +
 	"\vsandbox_ref\x18\a \x01(\tR\n" +
-	"sandboxRef\"\x9f\x01\n" +
-	"\x15PermissionRequestSpec\x12\x14\n" +
-	"\x05agent\x18\x01 \x01(\tR\x05agent\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\x02 \x01(\tR\tsessionId\x12\x16\n" +
-	"\x06action\x18\x03 \x01(\tR\x06action\x12\x16\n" +
-	"\x06prompt\x18\x04 \x01(\tR\x06prompt\x12!\n" +
-	"\fpayload_json\x18\x05 \x01(\tR\vpayloadJson\"\xcc\x01\n" +
-	"\x11PermissionRequest\x129\n" +
-	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12:\n" +
-	"\x04spec\x18\x02 \x01(\v2&.talon.resources.PermissionRequestSpecR\x04spec\x12@\n" +
-	"\x06status\x18\x03 \x01(\v2(.talon.resources.PermissionRequestStatusR\x06status\"\xfe\x01\n" +
-	"\x17PermissionRequestStatus\x12/\n" +
-	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x12\x14\n" +
-	"\x05phase\x18\x02 \x01(\tR\x05phase\x12B\n" +
-	"\n" +
-	"conditions\x18\x03 \x03(\v2\".talon.resources.ResourceConditionR\n" +
-	"conditions\x12\x1a\n" +
-	"\bdecision\x18\x04 \x01(\tR\bdecision\x12\x1d\n" +
-	"\n" +
-	"decided_by\x18\x05 \x01(\tR\tdecidedBy\x12\x1d\n" +
-	"\n" +
-	"decided_at\x18\x06 \x01(\x03R\tdecidedAtb\x06proto3"
+	"sandboxRefb\x06proto3"
 
 var (
 	file_proto_resources_sessions_proto_rawDescOnce sync.Once
@@ -509,33 +267,26 @@ func file_proto_resources_sessions_proto_rawDescGZIP() []byte {
 	return file_proto_resources_sessions_proto_rawDescData
 }
 
-var file_proto_resources_sessions_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_resources_sessions_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_proto_resources_sessions_proto_goTypes = []any{
-	(*SessionSpec)(nil),             // 0: talon.resources.SessionSpec
-	(*Session)(nil),                 // 1: talon.resources.Session
-	(*SessionStatus)(nil),           // 2: talon.resources.SessionStatus
-	(*PermissionRequestSpec)(nil),   // 3: talon.resources.PermissionRequestSpec
-	(*PermissionRequest)(nil),       // 4: talon.resources.PermissionRequest
-	(*PermissionRequestStatus)(nil), // 5: talon.resources.PermissionRequestStatus
-	nil,                             // 6: talon.resources.SessionSpec.LabelsEntry
-	(*ResourceMeta)(nil),            // 7: talon.resources.ResourceMeta
-	(*ResourceCondition)(nil),       // 8: talon.resources.ResourceCondition
+	(*SessionSpec)(nil),       // 0: talon.resources.SessionSpec
+	(*Session)(nil),           // 1: talon.resources.Session
+	(*SessionStatus)(nil),     // 2: talon.resources.SessionStatus
+	nil,                       // 3: talon.resources.SessionSpec.LabelsEntry
+	(*ResourceMeta)(nil),      // 4: talon.resources.ResourceMeta
+	(*ResourceCondition)(nil), // 5: talon.resources.ResourceCondition
 }
 var file_proto_resources_sessions_proto_depIdxs = []int32{
-	6, // 0: talon.resources.SessionSpec.labels:type_name -> talon.resources.SessionSpec.LabelsEntry
-	7, // 1: talon.resources.Session.metadata:type_name -> talon.resources.ResourceMeta
+	3, // 0: talon.resources.SessionSpec.labels:type_name -> talon.resources.SessionSpec.LabelsEntry
+	4, // 1: talon.resources.Session.metadata:type_name -> talon.resources.ResourceMeta
 	0, // 2: talon.resources.Session.spec:type_name -> talon.resources.SessionSpec
 	2, // 3: talon.resources.Session.status:type_name -> talon.resources.SessionStatus
-	8, // 4: talon.resources.SessionStatus.conditions:type_name -> talon.resources.ResourceCondition
-	7, // 5: talon.resources.PermissionRequest.metadata:type_name -> talon.resources.ResourceMeta
-	3, // 6: talon.resources.PermissionRequest.spec:type_name -> talon.resources.PermissionRequestSpec
-	5, // 7: talon.resources.PermissionRequest.status:type_name -> talon.resources.PermissionRequestStatus
-	8, // 8: talon.resources.PermissionRequestStatus.conditions:type_name -> talon.resources.ResourceCondition
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	9, // [9:9] is the sub-list for extension type_name
-	9, // [9:9] is the sub-list for extension extendee
-	0, // [0:9] is the sub-list for field type_name
+	5, // 4: talon.resources.SessionStatus.conditions:type_name -> talon.resources.ResourceCondition
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_sessions_proto_init() }
@@ -550,7 +301,7 @@ func file_proto_resources_sessions_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_sessions_proto_rawDesc), len(file_proto_resources_sessions_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -76,17 +76,19 @@ func (MessageRole) EnumDescriptor() ([]byte, []int) {
 type SessionMessagePartType int32
 
 const (
-	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_UNSPECIFIED SessionMessagePartType = 0
-	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_TEXT        SessionMessagePartType = 1
-	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_REASONING   SessionMessagePartType = 2
-	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_TOOL_CALL   SessionMessagePartType = 3
-	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_TOOL_RESULT SessionMessagePartType = 4
-	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_USAGE       SessionMessagePartType = 5
-	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_ERROR       SessionMessagePartType = 6
-	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_IMAGE       SessionMessagePartType = 7
-	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_AUDIO       SessionMessagePartType = 8
-	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_VIDEO       SessionMessagePartType = 9
-	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_FILE        SessionMessagePartType = 10
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_UNSPECIFIED        SessionMessagePartType = 0
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_TEXT               SessionMessagePartType = 1
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_REASONING          SessionMessagePartType = 2
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_TOOL_CALL          SessionMessagePartType = 3
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_TOOL_RESULT        SessionMessagePartType = 4
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_USAGE              SessionMessagePartType = 5
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_ERROR              SessionMessagePartType = 6
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_IMAGE              SessionMessagePartType = 7
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_AUDIO              SessionMessagePartType = 8
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_VIDEO              SessionMessagePartType = 9
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_FILE               SessionMessagePartType = 10
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION SessionMessagePartType = 11
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT  SessionMessagePartType = 12
 )
 
 // Enum value maps for SessionMessagePartType.
@@ -103,19 +105,23 @@ var (
 		8:  "SESSION_MESSAGE_PART_TYPE_AUDIO",
 		9:  "SESSION_MESSAGE_PART_TYPE_VIDEO",
 		10: "SESSION_MESSAGE_PART_TYPE_FILE",
+		11: "SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION",
+		12: "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT",
 	}
 	SessionMessagePartType_value = map[string]int32{
-		"SESSION_MESSAGE_PART_TYPE_UNSPECIFIED": 0,
-		"SESSION_MESSAGE_PART_TYPE_TEXT":        1,
-		"SESSION_MESSAGE_PART_TYPE_REASONING":   2,
-		"SESSION_MESSAGE_PART_TYPE_TOOL_CALL":   3,
-		"SESSION_MESSAGE_PART_TYPE_TOOL_RESULT": 4,
-		"SESSION_MESSAGE_PART_TYPE_USAGE":       5,
-		"SESSION_MESSAGE_PART_TYPE_ERROR":       6,
-		"SESSION_MESSAGE_PART_TYPE_IMAGE":       7,
-		"SESSION_MESSAGE_PART_TYPE_AUDIO":       8,
-		"SESSION_MESSAGE_PART_TYPE_VIDEO":       9,
-		"SESSION_MESSAGE_PART_TYPE_FILE":        10,
+		"SESSION_MESSAGE_PART_TYPE_UNSPECIFIED":        0,
+		"SESSION_MESSAGE_PART_TYPE_TEXT":               1,
+		"SESSION_MESSAGE_PART_TYPE_REASONING":          2,
+		"SESSION_MESSAGE_PART_TYPE_TOOL_CALL":          3,
+		"SESSION_MESSAGE_PART_TYPE_TOOL_RESULT":        4,
+		"SESSION_MESSAGE_PART_TYPE_USAGE":              5,
+		"SESSION_MESSAGE_PART_TYPE_ERROR":              6,
+		"SESSION_MESSAGE_PART_TYPE_IMAGE":              7,
+		"SESSION_MESSAGE_PART_TYPE_AUDIO":              8,
+		"SESSION_MESSAGE_PART_TYPE_VIDEO":              9,
+		"SESSION_MESSAGE_PART_TYPE_FILE":               10,
+		"SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION": 11,
+		"SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT":  12,
 	}
 )
 
@@ -1388,7 +1394,7 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x10ROLE_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tROLE_USER\x10\x01\x12\x12\n" +
 	"\x0eROLE_ASSISTANT\x10\x02\x12\x0f\n" +
-	"\vROLE_SYSTEM\x10\x03*\xc1\x03\n" +
+	"\vROLE_SYSTEM\x10\x03*\xa4\x04\n" +
 	"\x16SessionMessagePartType\x12)\n" +
 	"%SESSION_MESSAGE_PART_TYPE_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eSESSION_MESSAGE_PART_TYPE_TEXT\x10\x01\x12'\n" +
@@ -1401,7 +1407,9 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x1fSESSION_MESSAGE_PART_TYPE_AUDIO\x10\b\x12#\n" +
 	"\x1fSESSION_MESSAGE_PART_TYPE_VIDEO\x10\t\x12\"\n" +
 	"\x1eSESSION_MESSAGE_PART_TYPE_FILE\x10\n" +
-	"b\x06proto3"
+	"\x120\n" +
+	",SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION\x10\v\x12/\n" +
+	"+SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT\x10\fb\x06proto3"
 
 var (
 	file_proto_data_data_proto_rawDescOnce sync.Once

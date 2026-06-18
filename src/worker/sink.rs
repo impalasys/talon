@@ -292,6 +292,37 @@ impl PubSubSessionSink {
                 }))
                 .unwrap_or_else(|_| "{}".to_string()),
             ),
+            AgentEvent::RequestPermission {
+                id,
+                action,
+                payload,
+            } => (
+                SessionMessagePartEventKind::Delta,
+                data_proto::SessionMessagePartType::RequestPermission,
+                action,
+                "Permission requested".to_string(),
+                serde_json::to_string(&serde_json::json!({
+                    "requestId": id,
+                    "status": "pending",
+                    "request": payload,
+                }))
+                .unwrap_or_else(|_| "{}".to_string()),
+            ),
+            AgentEvent::PermissionResult { id, outcome } => (
+                SessionMessagePartEventKind::Delta,
+                data_proto::SessionMessagePartType::PermissionResult,
+                String::new(),
+                "Permission answered".to_string(),
+                serde_json::to_string(&serde_json::json!({
+                    "requestId": id,
+                    "status": outcome
+                        .get("outcome")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or("selected"),
+                    "outcome": outcome,
+                }))
+                .unwrap_or_else(|_| "{}".to_string()),
+            ),
             AgentEvent::Token(content) => (
                 SessionMessagePartEventKind::Delta,
                 data_proto::SessionMessagePartType::Text,
@@ -515,6 +546,52 @@ impl ExecutionSink for PubSubSessionSink {
             id: id.to_string(),
             name: name.to_string(),
             output: result.to_string(),
+        })
+        .await;
+    }
+
+    async fn on_request_permission(&self, id: &str, action: &str, payload: &Value) {
+        self.flush_token_event_buffer().await;
+        self.record_accumulated_text_part();
+        self.flush_reasoning_part_and_event().await;
+        self.record_part(
+            data_proto::SessionMessagePartType::RequestPermission,
+            action.to_string(),
+            "Permission requested".to_string(),
+            serde_json::to_string(&serde_json::json!({
+                "requestId": id,
+                "status": "pending",
+                "request": payload,
+            }))
+            .unwrap_or_else(|_| "{}".to_string()),
+        );
+        self.publish_event(AgentEvent::RequestPermission {
+            id: id.to_string(),
+            action: action.to_string(),
+            payload: payload.clone(),
+        })
+        .await;
+    }
+
+    async fn on_permission_result(&self, id: &str, outcome: &Value) {
+        self.flush_reasoning_part_and_event().await;
+        self.record_part(
+            data_proto::SessionMessagePartType::PermissionResult,
+            String::new(),
+            "Permission answered".to_string(),
+            serde_json::to_string(&serde_json::json!({
+                "requestId": id,
+                "status": outcome
+                    .get("outcome")
+                    .and_then(|value| value.as_str())
+                    .unwrap_or("selected"),
+                "outcome": outcome,
+            }))
+            .unwrap_or_else(|_| "{}".to_string()),
+        );
+        self.publish_event(AgentEvent::PermissionResult {
+            id: id.to_string(),
+            outcome: outcome.clone(),
         })
         .await;
     }

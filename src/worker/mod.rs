@@ -504,7 +504,7 @@ mod tests {
     async fn seed_agent_and_session(kv: &MockKvStore) {
         kv.set_msg(
             &crate::control::keys::agent("conic:test", "assistant"),
-            &crate::control::resource_model::agent_resource(
+            &crate::control::resource_model::agent(
                 "conic:test",
                 "assistant",
                 manifests::AgentSpec::default(),

@@ -210,6 +210,14 @@ public final class Data extends com.google.protobuf.GeneratedFile {
      * <code>SESSION_MESSAGE_PART_TYPE_FILE = 10;</code>
      */
     SESSION_MESSAGE_PART_TYPE_FILE(10),
+    /**
+     * <code>SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION = 11;</code>
+     */
+    SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION(11),
+    /**
+     * <code>SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT = 12;</code>
+     */
+    SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT(12),
     UNRECOGNIZED(-1),
     ;
 
@@ -266,6 +274,14 @@ public final class Data extends com.google.protobuf.GeneratedFile {
      * <code>SESSION_MESSAGE_PART_TYPE_FILE = 10;</code>
      */
     public static final int SESSION_MESSAGE_PART_TYPE_FILE_VALUE = 10;
+    /**
+     * <code>SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION = 11;</code>
+     */
+    public static final int SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION_VALUE = 11;
+    /**
+     * <code>SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT = 12;</code>
+     */
+    public static final int SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT_VALUE = 12;
 
 
     public final int getNumber() {
@@ -303,6 +319,8 @@ public final class Data extends com.google.protobuf.GeneratedFile {
         case 8: return SESSION_MESSAGE_PART_TYPE_AUDIO;
         case 9: return SESSION_MESSAGE_PART_TYPE_VIDEO;
         case 10: return SESSION_MESSAGE_PART_TYPE_FILE;
+        case 11: return SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION;
+        case 12: return SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT;
         default: return null;
       }
     }
@@ -17411,7 +17429,7 @@ java.lang.String defaultValue) {
       "load_json\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013Me" +
       "ssageRole\022\024\n\020ROLE_UNSPECIFIED\020\000\022\r\n\tROLE_" +
       "USER\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022\017\n\013ROLE_SYSTE" +
-      "M\020\003*\301\003\n\026SessionMessagePartType\022)\n%SESSIO" +
+      "M\020\003*\244\004\n\026SessionMessagePartType\022)\n%SESSIO" +
       "N_MESSAGE_PART_TYPE_UNSPECIFIED\020\000\022\"\n\036SES" +
       "SION_MESSAGE_PART_TYPE_TEXT\020\001\022\'\n#SESSION" +
       "_MESSAGE_PART_TYPE_REASONING\020\002\022\'\n#SESSIO" +
@@ -17422,7 +17440,10 @@ java.lang.String defaultValue) {
       "MESSAGE_PART_TYPE_IMAGE\020\007\022#\n\037SESSION_MES" +
       "SAGE_PART_TYPE_AUDIO\020\010\022#\n\037SESSION_MESSAG" +
       "E_PART_TYPE_VIDEO\020\t\022\"\n\036SESSION_MESSAGE_P" +
-      "ART_TYPE_FILE\020\nb\006proto3"
+      "ART_TYPE_FILE\020\n\0220\n,SESSION_MESSAGE_PART_" +
+      "TYPE_REQUEST_PERMISSION\020\013\022/\n+SESSION_MES" +
+      "SAGE_PART_TYPE_PERMISSION_RESULT\020\014b\006prot" +
+      "o3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

@@ -72,6 +72,13 @@ service GatewayService {
     };
   }
 
+  rpc AnswerSessionPermission(AnswerSessionPermissionRequest) returns (AnswerSessionPermissionResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}/permissions/{request_id}:answer"
+      body: "*"
+    };
+  }
+
   rpc StopSessionGeneration(StopSessionGenerationRequest) returns (StopSessionGenerationResponse) {
     option (google.api.http) = {
       post: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}:stop"
@@ -477,6 +484,23 @@ message AppendSessionMessageRequest {
 message AppendSessionMessageResponse {
   string session_id = 1;
   talon.data.SessionMessage message = 2;
+}
+
+message AnswerSessionPermissionRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+  string request_id = 4;
+  string outcome = 5;
+  string option_id = 6;
+  string decided_by = 7;
+}
+
+message AnswerSessionPermissionResponse {
+  string session_id = 1;
+  string request_id = 2;
+  string outcome = 3;
+  string option_id = 4;
 }
 
 message StopSessionGenerationRequest {

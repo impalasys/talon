@@ -38259,6 +38259,2368 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface AnswerSessionPermissionRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.gateway.AnswerSessionPermissionRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The sessionId.
+     */
+    java.lang.String getSessionId();
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The bytes for sessionId.
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+
+    /**
+     * <code>string ns = 3;</code>
+     * @return The ns.
+     */
+    java.lang.String getNs();
+    /**
+     * <code>string ns = 3;</code>
+     * @return The bytes for ns.
+     */
+    com.google.protobuf.ByteString
+        getNsBytes();
+
+    /**
+     * <code>string request_id = 4;</code>
+     * @return The requestId.
+     */
+    java.lang.String getRequestId();
+    /**
+     * <code>string request_id = 4;</code>
+     * @return The bytes for requestId.
+     */
+    com.google.protobuf.ByteString
+        getRequestIdBytes();
+
+    /**
+     * <code>string outcome = 5;</code>
+     * @return The outcome.
+     */
+    java.lang.String getOutcome();
+    /**
+     * <code>string outcome = 5;</code>
+     * @return The bytes for outcome.
+     */
+    com.google.protobuf.ByteString
+        getOutcomeBytes();
+
+    /**
+     * <code>string option_id = 6;</code>
+     * @return The optionId.
+     */
+    java.lang.String getOptionId();
+    /**
+     * <code>string option_id = 6;</code>
+     * @return The bytes for optionId.
+     */
+    com.google.protobuf.ByteString
+        getOptionIdBytes();
+
+    /**
+     * <code>string decided_by = 7;</code>
+     * @return The decidedBy.
+     */
+    java.lang.String getDecidedBy();
+    /**
+     * <code>string decided_by = 7;</code>
+     * @return The bytes for decidedBy.
+     */
+    com.google.protobuf.ByteString
+        getDecidedByBytes();
+  }
+  /**
+   * Protobuf type {@code talon.gateway.AnswerSessionPermissionRequest}
+   */
+  public static final class AnswerSessionPermissionRequest extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.gateway.AnswerSessionPermissionRequest)
+      AnswerSessionPermissionRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "AnswerSessionPermissionRequest");
+    }
+    // Use AnswerSessionPermissionRequest.newBuilder() to construct.
+    private AnswerSessionPermissionRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private AnswerSessionPermissionRequest() {
+      sessionId_ = "";
+      agent_ = "";
+      ns_ = "";
+      requestId_ = "";
+      outcome_ = "";
+      optionId_ = "";
+      decidedBy_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_AnswerSessionPermissionRequest_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_AnswerSessionPermissionRequest_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_AnswerSessionPermissionRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.gateway.Gateway.AnswerSessionPermissionRequest.class, talon.gateway.Gateway.AnswerSessionPermissionRequest.Builder.class);
+    }
+
+    public static final int SESSION_ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sessionId_ = "";
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The sessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSessionId() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The bytes for sessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NS_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ns_ = "";
+    /**
+     * <code>string ns = 3;</code>
+     * @return The ns.
+     */
+    @java.lang.Override
+    public java.lang.String getNs() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ns_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string ns = 3;</code>
+     * @return The bytes for ns.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNsBytes() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ns_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int REQUEST_ID_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object requestId_ = "";
+    /**
+     * <code>string request_id = 4;</code>
+     * @return The requestId.
+     */
+    @java.lang.Override
+    public java.lang.String getRequestId() {
+      java.lang.Object ref = requestId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        requestId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string request_id = 4;</code>
+     * @return The bytes for requestId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getRequestIdBytes() {
+      java.lang.Object ref = requestId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        requestId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OUTCOME_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object outcome_ = "";
+    /**
+     * <code>string outcome = 5;</code>
+     * @return The outcome.
+     */
+    @java.lang.Override
+    public java.lang.String getOutcome() {
+      java.lang.Object ref = outcome_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        outcome_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string outcome = 5;</code>
+     * @return The bytes for outcome.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getOutcomeBytes() {
+      java.lang.Object ref = outcome_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        outcome_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OPTION_ID_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object optionId_ = "";
+    /**
+     * <code>string option_id = 6;</code>
+     * @return The optionId.
+     */
+    @java.lang.Override
+    public java.lang.String getOptionId() {
+      java.lang.Object ref = optionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        optionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string option_id = 6;</code>
+     * @return The bytes for optionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getOptionIdBytes() {
+      java.lang.Object ref = optionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        optionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int DECIDED_BY_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object decidedBy_ = "";
+    /**
+     * <code>string decided_by = 7;</code>
+     * @return The decidedBy.
+     */
+    @java.lang.Override
+    public java.lang.String getDecidedBy() {
+      java.lang.Object ref = decidedBy_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        decidedBy_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string decided_by = 7;</code>
+     * @return The bytes for decidedBy.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getDecidedByBytes() {
+      java.lang.Object ref = decidedBy_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        decidedBy_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(requestId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, requestId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(outcome_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, outcome_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(optionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, optionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(decidedBy_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, decidedBy_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(requestId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, requestId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(outcome_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, outcome_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(optionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, optionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(decidedBy_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, decidedBy_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.gateway.Gateway.AnswerSessionPermissionRequest)) {
+        return super.equals(obj);
+      }
+      talon.gateway.Gateway.AnswerSessionPermissionRequest other = (talon.gateway.Gateway.AnswerSessionPermissionRequest) obj;
+
+      if (!getSessionId()
+          .equals(other.getSessionId())) return false;
+      if (!getAgent()
+          .equals(other.getAgent())) return false;
+      if (!getNs()
+          .equals(other.getNs())) return false;
+      if (!getRequestId()
+          .equals(other.getRequestId())) return false;
+      if (!getOutcome()
+          .equals(other.getOutcome())) return false;
+      if (!getOptionId()
+          .equals(other.getOptionId())) return false;
+      if (!getDecidedBy()
+          .equals(other.getDecidedBy())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSessionId().hashCode();
+      hash = (37 * hash) + AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getAgent().hashCode();
+      hash = (37 * hash) + NS_FIELD_NUMBER;
+      hash = (53 * hash) + getNs().hashCode();
+      hash = (37 * hash) + REQUEST_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getRequestId().hashCode();
+      hash = (37 * hash) + OUTCOME_FIELD_NUMBER;
+      hash = (53 * hash) + getOutcome().hashCode();
+      hash = (37 * hash) + OPTION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getOptionId().hashCode();
+      hash = (37 * hash) + DECIDED_BY_FIELD_NUMBER;
+      hash = (53 * hash) + getDecidedBy().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.gateway.Gateway.AnswerSessionPermissionRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.gateway.Gateway.AnswerSessionPermissionRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.gateway.Gateway.AnswerSessionPermissionRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.gateway.Gateway.AnswerSessionPermissionRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.gateway.AnswerSessionPermissionRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.gateway.AnswerSessionPermissionRequest)
+        talon.gateway.Gateway.AnswerSessionPermissionRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_AnswerSessionPermissionRequest_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_AnswerSessionPermissionRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.gateway.Gateway.AnswerSessionPermissionRequest.class, talon.gateway.Gateway.AnswerSessionPermissionRequest.Builder.class);
+      }
+
+      // Construct using talon.gateway.Gateway.AnswerSessionPermissionRequest.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        sessionId_ = "";
+        agent_ = "";
+        ns_ = "";
+        requestId_ = "";
+        outcome_ = "";
+        optionId_ = "";
+        decidedBy_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_AnswerSessionPermissionRequest_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.AnswerSessionPermissionRequest getDefaultInstanceForType() {
+        return talon.gateway.Gateway.AnswerSessionPermissionRequest.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.AnswerSessionPermissionRequest build() {
+        talon.gateway.Gateway.AnswerSessionPermissionRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.AnswerSessionPermissionRequest buildPartial() {
+        talon.gateway.Gateway.AnswerSessionPermissionRequest result = new talon.gateway.Gateway.AnswerSessionPermissionRequest(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.gateway.Gateway.AnswerSessionPermissionRequest result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.sessionId_ = sessionId_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.agent_ = agent_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.ns_ = ns_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.requestId_ = requestId_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.outcome_ = outcome_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.optionId_ = optionId_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.decidedBy_ = decidedBy_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.gateway.Gateway.AnswerSessionPermissionRequest) {
+          return mergeFrom((talon.gateway.Gateway.AnswerSessionPermissionRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.gateway.Gateway.AnswerSessionPermissionRequest other) {
+        if (other == talon.gateway.Gateway.AnswerSessionPermissionRequest.getDefaultInstance()) return this;
+        if (!other.getSessionId().isEmpty()) {
+          sessionId_ = other.sessionId_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getAgent().isEmpty()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getNs().isEmpty()) {
+          ns_ = other.ns_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getRequestId().isEmpty()) {
+          requestId_ = other.requestId_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getOutcome().isEmpty()) {
+          outcome_ = other.outcome_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (!other.getOptionId().isEmpty()) {
+          optionId_ = other.optionId_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        if (!other.getDecidedBy().isEmpty()) {
+          decidedBy_ = other.decidedBy_;
+          bitField0_ |= 0x00000040;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                sessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                ns_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                requestId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                outcome_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 50: {
+                optionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
+              case 58: {
+                decidedBy_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object sessionId_ = "";
+      /**
+       * <code>string session_id = 1;</code>
+       * @return The sessionId.
+       */
+      public java.lang.String getSessionId() {
+        java.lang.Object ref = sessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @return The bytes for sessionId.
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @param value The sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sessionId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSessionId() {
+        sessionId_ = getDefaultInstance().getSessionId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @param value The bytes for sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sessionId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <code>string agent = 2;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object ns_ = "";
+      /**
+       * <code>string ns = 3;</code>
+       * @return The ns.
+       */
+      public java.lang.String getNs() {
+        java.lang.Object ref = ns_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ns_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @return The bytes for ns.
+       */
+      public com.google.protobuf.ByteString
+          getNsBytes() {
+        java.lang.Object ref = ns_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ns_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @param value The ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNs(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ns_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNs() {
+        ns_ = getDefaultInstance().getNs();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @param value The bytes for ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ns_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object requestId_ = "";
+      /**
+       * <code>string request_id = 4;</code>
+       * @return The requestId.
+       */
+      public java.lang.String getRequestId() {
+        java.lang.Object ref = requestId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          requestId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string request_id = 4;</code>
+       * @return The bytes for requestId.
+       */
+      public com.google.protobuf.ByteString
+          getRequestIdBytes() {
+        java.lang.Object ref = requestId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          requestId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string request_id = 4;</code>
+       * @param value The requestId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRequestId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        requestId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string request_id = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRequestId() {
+        requestId_ = getDefaultInstance().getRequestId();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string request_id = 4;</code>
+       * @param value The bytes for requestId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRequestIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        requestId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object outcome_ = "";
+      /**
+       * <code>string outcome = 5;</code>
+       * @return The outcome.
+       */
+      public java.lang.String getOutcome() {
+        java.lang.Object ref = outcome_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          outcome_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string outcome = 5;</code>
+       * @return The bytes for outcome.
+       */
+      public com.google.protobuf.ByteString
+          getOutcomeBytes() {
+        java.lang.Object ref = outcome_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          outcome_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string outcome = 5;</code>
+       * @param value The outcome to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutcome(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        outcome_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string outcome = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOutcome() {
+        outcome_ = getDefaultInstance().getOutcome();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string outcome = 5;</code>
+       * @param value The bytes for outcome to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutcomeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        outcome_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object optionId_ = "";
+      /**
+       * <code>string option_id = 6;</code>
+       * @return The optionId.
+       */
+      public java.lang.String getOptionId() {
+        java.lang.Object ref = optionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          optionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string option_id = 6;</code>
+       * @return The bytes for optionId.
+       */
+      public com.google.protobuf.ByteString
+          getOptionIdBytes() {
+        java.lang.Object ref = optionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          optionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string option_id = 6;</code>
+       * @param value The optionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOptionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        optionId_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string option_id = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOptionId() {
+        optionId_ = getDefaultInstance().getOptionId();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string option_id = 6;</code>
+       * @param value The bytes for optionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOptionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        optionId_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object decidedBy_ = "";
+      /**
+       * <code>string decided_by = 7;</code>
+       * @return The decidedBy.
+       */
+      public java.lang.String getDecidedBy() {
+        java.lang.Object ref = decidedBy_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          decidedBy_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string decided_by = 7;</code>
+       * @return The bytes for decidedBy.
+       */
+      public com.google.protobuf.ByteString
+          getDecidedByBytes() {
+        java.lang.Object ref = decidedBy_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          decidedBy_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string decided_by = 7;</code>
+       * @param value The decidedBy to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDecidedBy(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        decidedBy_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string decided_by = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDecidedBy() {
+        decidedBy_ = getDefaultInstance().getDecidedBy();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string decided_by = 7;</code>
+       * @param value The bytes for decidedBy to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDecidedByBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        decidedBy_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.gateway.AnswerSessionPermissionRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.gateway.AnswerSessionPermissionRequest)
+    private static final talon.gateway.Gateway.AnswerSessionPermissionRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.gateway.Gateway.AnswerSessionPermissionRequest();
+    }
+
+    public static talon.gateway.Gateway.AnswerSessionPermissionRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<AnswerSessionPermissionRequest>
+        PARSER = new com.google.protobuf.AbstractParser<AnswerSessionPermissionRequest>() {
+      @java.lang.Override
+      public AnswerSessionPermissionRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<AnswerSessionPermissionRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<AnswerSessionPermissionRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.gateway.Gateway.AnswerSessionPermissionRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface AnswerSessionPermissionResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.gateway.AnswerSessionPermissionResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The sessionId.
+     */
+    java.lang.String getSessionId();
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The bytes for sessionId.
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <code>string request_id = 2;</code>
+     * @return The requestId.
+     */
+    java.lang.String getRequestId();
+    /**
+     * <code>string request_id = 2;</code>
+     * @return The bytes for requestId.
+     */
+    com.google.protobuf.ByteString
+        getRequestIdBytes();
+
+    /**
+     * <code>string outcome = 3;</code>
+     * @return The outcome.
+     */
+    java.lang.String getOutcome();
+    /**
+     * <code>string outcome = 3;</code>
+     * @return The bytes for outcome.
+     */
+    com.google.protobuf.ByteString
+        getOutcomeBytes();
+
+    /**
+     * <code>string option_id = 4;</code>
+     * @return The optionId.
+     */
+    java.lang.String getOptionId();
+    /**
+     * <code>string option_id = 4;</code>
+     * @return The bytes for optionId.
+     */
+    com.google.protobuf.ByteString
+        getOptionIdBytes();
+  }
+  /**
+   * Protobuf type {@code talon.gateway.AnswerSessionPermissionResponse}
+   */
+  public static final class AnswerSessionPermissionResponse extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.gateway.AnswerSessionPermissionResponse)
+      AnswerSessionPermissionResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "AnswerSessionPermissionResponse");
+    }
+    // Use AnswerSessionPermissionResponse.newBuilder() to construct.
+    private AnswerSessionPermissionResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private AnswerSessionPermissionResponse() {
+      sessionId_ = "";
+      requestId_ = "";
+      outcome_ = "";
+      optionId_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_AnswerSessionPermissionResponse_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_AnswerSessionPermissionResponse_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_AnswerSessionPermissionResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.gateway.Gateway.AnswerSessionPermissionResponse.class, talon.gateway.Gateway.AnswerSessionPermissionResponse.Builder.class);
+    }
+
+    public static final int SESSION_ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sessionId_ = "";
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The sessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSessionId() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The bytes for sessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int REQUEST_ID_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object requestId_ = "";
+    /**
+     * <code>string request_id = 2;</code>
+     * @return The requestId.
+     */
+    @java.lang.Override
+    public java.lang.String getRequestId() {
+      java.lang.Object ref = requestId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        requestId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string request_id = 2;</code>
+     * @return The bytes for requestId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getRequestIdBytes() {
+      java.lang.Object ref = requestId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        requestId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OUTCOME_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object outcome_ = "";
+    /**
+     * <code>string outcome = 3;</code>
+     * @return The outcome.
+     */
+    @java.lang.Override
+    public java.lang.String getOutcome() {
+      java.lang.Object ref = outcome_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        outcome_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string outcome = 3;</code>
+     * @return The bytes for outcome.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getOutcomeBytes() {
+      java.lang.Object ref = outcome_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        outcome_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OPTION_ID_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object optionId_ = "";
+    /**
+     * <code>string option_id = 4;</code>
+     * @return The optionId.
+     */
+    @java.lang.Override
+    public java.lang.String getOptionId() {
+      java.lang.Object ref = optionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        optionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string option_id = 4;</code>
+     * @return The bytes for optionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getOptionIdBytes() {
+      java.lang.Object ref = optionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        optionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(requestId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, requestId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(outcome_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, outcome_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(optionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, optionId_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(requestId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, requestId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(outcome_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, outcome_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(optionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, optionId_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.gateway.Gateway.AnswerSessionPermissionResponse)) {
+        return super.equals(obj);
+      }
+      talon.gateway.Gateway.AnswerSessionPermissionResponse other = (talon.gateway.Gateway.AnswerSessionPermissionResponse) obj;
+
+      if (!getSessionId()
+          .equals(other.getSessionId())) return false;
+      if (!getRequestId()
+          .equals(other.getRequestId())) return false;
+      if (!getOutcome()
+          .equals(other.getOutcome())) return false;
+      if (!getOptionId()
+          .equals(other.getOptionId())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSessionId().hashCode();
+      hash = (37 * hash) + REQUEST_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getRequestId().hashCode();
+      hash = (37 * hash) + OUTCOME_FIELD_NUMBER;
+      hash = (53 * hash) + getOutcome().hashCode();
+      hash = (37 * hash) + OPTION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getOptionId().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.gateway.Gateway.AnswerSessionPermissionResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.gateway.Gateway.AnswerSessionPermissionResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.gateway.Gateway.AnswerSessionPermissionResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.gateway.Gateway.AnswerSessionPermissionResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.gateway.Gateway.AnswerSessionPermissionResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.gateway.AnswerSessionPermissionResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.gateway.AnswerSessionPermissionResponse)
+        talon.gateway.Gateway.AnswerSessionPermissionResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_AnswerSessionPermissionResponse_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_AnswerSessionPermissionResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.gateway.Gateway.AnswerSessionPermissionResponse.class, talon.gateway.Gateway.AnswerSessionPermissionResponse.Builder.class);
+      }
+
+      // Construct using talon.gateway.Gateway.AnswerSessionPermissionResponse.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        sessionId_ = "";
+        requestId_ = "";
+        outcome_ = "";
+        optionId_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_AnswerSessionPermissionResponse_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.AnswerSessionPermissionResponse getDefaultInstanceForType() {
+        return talon.gateway.Gateway.AnswerSessionPermissionResponse.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.AnswerSessionPermissionResponse build() {
+        talon.gateway.Gateway.AnswerSessionPermissionResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.AnswerSessionPermissionResponse buildPartial() {
+        talon.gateway.Gateway.AnswerSessionPermissionResponse result = new talon.gateway.Gateway.AnswerSessionPermissionResponse(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.gateway.Gateway.AnswerSessionPermissionResponse result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.sessionId_ = sessionId_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.requestId_ = requestId_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.outcome_ = outcome_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.optionId_ = optionId_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.gateway.Gateway.AnswerSessionPermissionResponse) {
+          return mergeFrom((talon.gateway.Gateway.AnswerSessionPermissionResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.gateway.Gateway.AnswerSessionPermissionResponse other) {
+        if (other == talon.gateway.Gateway.AnswerSessionPermissionResponse.getDefaultInstance()) return this;
+        if (!other.getSessionId().isEmpty()) {
+          sessionId_ = other.sessionId_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getRequestId().isEmpty()) {
+          requestId_ = other.requestId_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getOutcome().isEmpty()) {
+          outcome_ = other.outcome_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getOptionId().isEmpty()) {
+          optionId_ = other.optionId_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                sessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                requestId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                outcome_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                optionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object sessionId_ = "";
+      /**
+       * <code>string session_id = 1;</code>
+       * @return The sessionId.
+       */
+      public java.lang.String getSessionId() {
+        java.lang.Object ref = sessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @return The bytes for sessionId.
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @param value The sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sessionId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSessionId() {
+        sessionId_ = getDefaultInstance().getSessionId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @param value The bytes for sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sessionId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object requestId_ = "";
+      /**
+       * <code>string request_id = 2;</code>
+       * @return The requestId.
+       */
+      public java.lang.String getRequestId() {
+        java.lang.Object ref = requestId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          requestId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string request_id = 2;</code>
+       * @return The bytes for requestId.
+       */
+      public com.google.protobuf.ByteString
+          getRequestIdBytes() {
+        java.lang.Object ref = requestId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          requestId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string request_id = 2;</code>
+       * @param value The requestId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRequestId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        requestId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string request_id = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRequestId() {
+        requestId_ = getDefaultInstance().getRequestId();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string request_id = 2;</code>
+       * @param value The bytes for requestId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRequestIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        requestId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object outcome_ = "";
+      /**
+       * <code>string outcome = 3;</code>
+       * @return The outcome.
+       */
+      public java.lang.String getOutcome() {
+        java.lang.Object ref = outcome_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          outcome_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string outcome = 3;</code>
+       * @return The bytes for outcome.
+       */
+      public com.google.protobuf.ByteString
+          getOutcomeBytes() {
+        java.lang.Object ref = outcome_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          outcome_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string outcome = 3;</code>
+       * @param value The outcome to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutcome(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        outcome_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string outcome = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOutcome() {
+        outcome_ = getDefaultInstance().getOutcome();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string outcome = 3;</code>
+       * @param value The bytes for outcome to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutcomeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        outcome_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object optionId_ = "";
+      /**
+       * <code>string option_id = 4;</code>
+       * @return The optionId.
+       */
+      public java.lang.String getOptionId() {
+        java.lang.Object ref = optionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          optionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string option_id = 4;</code>
+       * @return The bytes for optionId.
+       */
+      public com.google.protobuf.ByteString
+          getOptionIdBytes() {
+        java.lang.Object ref = optionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          optionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string option_id = 4;</code>
+       * @param value The optionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOptionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        optionId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string option_id = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOptionId() {
+        optionId_ = getDefaultInstance().getOptionId();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string option_id = 4;</code>
+       * @param value The bytes for optionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOptionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        optionId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.gateway.AnswerSessionPermissionResponse)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.gateway.AnswerSessionPermissionResponse)
+    private static final talon.gateway.Gateway.AnswerSessionPermissionResponse DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.gateway.Gateway.AnswerSessionPermissionResponse();
+    }
+
+    public static talon.gateway.Gateway.AnswerSessionPermissionResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<AnswerSessionPermissionResponse>
+        PARSER = new com.google.protobuf.AbstractParser<AnswerSessionPermissionResponse>() {
+      @java.lang.Override
+      public AnswerSessionPermissionResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<AnswerSessionPermissionResponse> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<AnswerSessionPermissionResponse> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.gateway.Gateway.AnswerSessionPermissionResponse getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface StopSessionGenerationRequestOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.gateway.StopSessionGenerationRequest)
       com.google.protobuf.MessageOrBuilder {
@@ -45613,6 +47975,16 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_AppendSessionMessageResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_gateway_AnswerSessionPermissionRequest_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_gateway_AnswerSessionPermissionRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_gateway_AnswerSessionPermissionResponse_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_gateway_AnswerSessionPermissionResponse_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_StopSessionGenerationRequest_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -45799,144 +48171,156 @@ java.lang.String defaultValue) {
       "\030\004 \001(\0132\032.talon.data.SessionMessage\"_\n\034Ap" +
       "pendSessionMessageResponse\022\022\n\nsession_id" +
       "\030\001 \001(\t\022+\n\007message\030\002 \001(\0132\032.talon.data.Ses" +
-      "sionMessage\"M\n\034StopSessionGenerationRequ" +
-      "est\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n" +
-      "\n\002ns\030\003 \001(\t\"0\n\035StopSessionGenerationRespo" +
-      "nse\022\017\n\007success\030\001 \001(\010\"J\n\031StreamSessionPar" +
-      "tsRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002" +
-      " \001(\t\022\n\n\002ns\030\003 \001(\t\"7\n\036StreamSessionPartsBa" +
-      "tchRequest\022\025\n\rsession_names\030\001 \003(\t\"\253\001\n\026Cr" +
-      "eateNamespaceRequest\022\014\n\004name\030\001 \001(\t\022\021\n\tre" +
-      "cursive\030\002 \001(\010\022A\n\006labels\030\003 \003(\01321.talon.ga" +
-      "teway.CreateNamespaceRequest.LabelsEntry" +
-      "\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 " +
-      "\001(\t:\0028\001\"#\n\023GetNamespaceRequest\022\014\n\004name\030\001" +
-      " \001(\t\"&\n\026DeleteNamespaceRequest\022\014\n\004name\030\001" +
-      " \001(\t\"7\n\025ListNamespacesRequest\022\023\n\006parent\030" +
-      "\001 \001(\tH\000\210\001\001B\t\n\007_parent\"\326\001\n\021NamespaceRespo" +
-      "nse\022\014\n\004name\030\001 \001(\t\022\023\n\006parent\030\002 \001(\tH\000\210\001\001\022\022" +
-      "\n\nis_deleted\030\003 \001(\010\022\022\n\ndeleted_at\030\004 \001(\003\022<" +
-      "\n\006labels\030\005 \003(\0132,.talon.gateway.Namespace" +
-      "Response.LabelsEntry\032-\n\013LabelsEntry\022\013\n\003k" +
-      "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\t\n\007_parent\"N" +
-      "\n\026ListNamespacesResponse\0224\n\nnamespaces\030\001" +
-      " \003(\0132 .talon.gateway.NamespaceResponse2\217" +
-      "$\n\016GatewayService\022\202\001\n\014GetKnowledge\022\".tal" +
-      "on.gateway.GetKnowledgeRequest\032 .talon.g" +
-      "ateway.KnowledgeResponse\",\202\323\344\223\002&\022$/v1/ns" +
-      "/{ns}/agents/{agent}/knowledge\022\230\001\n\017Searc" +
-      "hKnowledge\022%.talon.gateway.SearchKnowled" +
-      "geRequest\032&.talon.gateway.SearchKnowledg" +
-      "eResponse\"6\202\323\344\223\0020\"+/v1/ns/{ns}/agents/{a" +
-      "gent}/knowledge/search:\001*\022\204\001\n\rCreateSess" +
-      "ion\022#.talon.gateway.CreateSessionRequest" +
-      "\032\036.talon.gateway.SessionResponse\".\202\323\344\223\002(" +
-      "\"#/v1/ns/{ns}/agents/{agent}/sessions:\001*" +
-      "\022\210\001\n\nGetSession\022 .talon.gateway.GetSessi" +
-      "onRequest\032\036.talon.gateway.SessionRespons" +
-      "e\"8\202\323\344\223\0022\0220/v1/ns/{ns}/agents/{agent}/se" +
-      "ssions/{session_id}\022\257\001\n\023ListSessionMessa" +
-      "ges\022).talon.gateway.ListSessionMessagesR" +
-      "equest\032*.talon.gateway.ListSessionMessag" +
-      "esResponse\"A\202\323\344\223\002;\0229/v1/ns/{ns}/agents/{" +
-      "agent}/sessions/{session_id}/messages\022\204\001" +
-      "\n\014ListSessions\022\".talon.gateway.ListSessi" +
-      "onsRequest\032#.talon.gateway.ListSessionsR" +
-      "esponse\"+\202\323\344\223\002%\022#/v1/ns/{ns}/agents/{age" +
-      "nt}/sessions\022\224\001\n\rDeleteSession\022#.talon.g" +
-      "ateway.DeleteSessionRequest\032$.talon.gate" +
-      "way.DeleteSessionResponse\"8\202\323\344\223\0022*0/v1/n" +
-      "s/{ns}/agents/{agent}/sessions/{session_" +
-      "id}\022\232\001\n\014ClearSession\022\".talon.gateway.Cle" +
-      "arSessionRequest\032#.talon.gateway.ClearSe" +
-      "ssionResponse\"A\202\323\344\223\002;\"6/v1/ns/{ns}/agent" +
-      "s/{agent}/sessions/{session_id}:clear:\001*" +
-      "\022\231\001\n\013SendMessage\022!.talon.gateway.SendMes" +
-      "sageRequest\032\".talon.gateway.SendMessageR" +
-      "esponse\"C\202\323\344\223\002=\"8/v1/ns/{ns}/agents/{age" +
-      "nt}/sessions/{session_id}/message:\001*\022\274\001\n" +
-      "\024AppendSessionMessage\022*.talon.gateway.Ap" +
-      "pendSessionMessageRequest\032+.talon.gatewa" +
-      "y.AppendSessionMessageResponse\"K\202\323\344\223\002E\"@" +
+      "sionMessage\"\233\001\n\036AnswerSessionPermissionR" +
+      "equest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(" +
+      "\t\022\n\n\002ns\030\003 \001(\t\022\022\n\nrequest_id\030\004 \001(\t\022\017\n\007out" +
+      "come\030\005 \001(\t\022\021\n\toption_id\030\006 \001(\t\022\022\n\ndecided" +
+      "_by\030\007 \001(\t\"m\n\037AnswerSessionPermissionResp" +
+      "onse\022\022\n\nsession_id\030\001 \001(\t\022\022\n\nrequest_id\030\002" +
+      " \001(\t\022\017\n\007outcome\030\003 \001(\t\022\021\n\toption_id\030\004 \001(\t" +
+      "\"M\n\034StopSessionGenerationRequest\022\022\n\nsess" +
+      "ion_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"" +
+      "0\n\035StopSessionGenerationResponse\022\017\n\007succ" +
+      "ess\030\001 \001(\010\"J\n\031StreamSessionPartsRequest\022\022" +
+      "\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030" +
+      "\003 \001(\t\"7\n\036StreamSessionPartsBatchRequest\022" +
+      "\025\n\rsession_names\030\001 \003(\t\"\253\001\n\026CreateNamespa" +
+      "ceRequest\022\014\n\004name\030\001 \001(\t\022\021\n\trecursive\030\002 \001" +
+      "(\010\022A\n\006labels\030\003 \003(\01321.talon.gateway.Creat" +
+      "eNamespaceRequest.LabelsEntry\032-\n\013LabelsE" +
+      "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"#\n\023" +
+      "GetNamespaceRequest\022\014\n\004name\030\001 \001(\t\"&\n\026Del" +
+      "eteNamespaceRequest\022\014\n\004name\030\001 \001(\t\"7\n\025Lis" +
+      "tNamespacesRequest\022\023\n\006parent\030\001 \001(\tH\000\210\001\001B" +
+      "\t\n\007_parent\"\326\001\n\021NamespaceResponse\022\014\n\004name" +
+      "\030\001 \001(\t\022\023\n\006parent\030\002 \001(\tH\000\210\001\001\022\022\n\nis_delete" +
+      "d\030\003 \001(\010\022\022\n\ndeleted_at\030\004 \001(\003\022<\n\006labels\030\005 " +
+      "\003(\0132,.talon.gateway.NamespaceResponse.La" +
+      "belsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n" +
+      "\005value\030\002 \001(\t:\0028\001B\t\n\007_parent\"N\n\026ListNames" +
+      "pacesResponse\0224\n\nnamespaces\030\001 \003(\0132 .talo" +
+      "n.gateway.NamespaceResponse2\347%\n\016GatewayS" +
+      "ervice\022\202\001\n\014GetKnowledge\022\".talon.gateway." +
+      "GetKnowledgeRequest\032 .talon.gateway.Know" +
+      "ledgeResponse\",\202\323\344\223\002&\022$/v1/ns/{ns}/agent" +
+      "s/{agent}/knowledge\022\230\001\n\017SearchKnowledge\022" +
+      "%.talon.gateway.SearchKnowledgeRequest\032&" +
+      ".talon.gateway.SearchKnowledgeResponse\"6" +
+      "\202\323\344\223\0020\"+/v1/ns/{ns}/agents/{agent}/knowl" +
+      "edge/search:\001*\022\204\001\n\rCreateSession\022#.talon" +
+      ".gateway.CreateSessionRequest\032\036.talon.ga" +
+      "teway.SessionResponse\".\202\323\344\223\002(\"#/v1/ns/{n" +
+      "s}/agents/{agent}/sessions:\001*\022\210\001\n\nGetSes" +
+      "sion\022 .talon.gateway.GetSessionRequest\032\036" +
+      ".talon.gateway.SessionResponse\"8\202\323\344\223\0022\0220" +
       "/v1/ns/{ns}/agents/{agent}/sessions/{ses" +
-      "sion_id}/messages:append:\001*\022\264\001\n\025StopSess" +
-      "ionGeneration\022+.talon.gateway.StopSessio" +
-      "nGenerationRequest\032,.talon.gateway.StopS" +
-      "essionGenerationResponse\"@\202\323\344\223\002:\"5/v1/ns" +
-      "/{ns}/agents/{agent}/sessions/{session_i" +
-      "d}:stop:\001*\022\250\001\n\022StreamSessionParts\022(.talo" +
-      "n.gateway.StreamSessionPartsRequest\032%.ta" +
-      "lon.events.SessionMessagePartEvent\"?\202\323\344\223" +
-      "\0029\0227/v1/ns/{ns}/agents/{agent}/sessions/" +
-      "{session_id}/stream0\001\022\227\001\n\027StreamSessionP" +
-      "artsBatch\022-.talon.gateway.StreamSessionP" +
-      "artsBatchRequest\032%.talon.events.SessionM" +
-      "essagePartEvent\"$\202\323\344\223\002\036\"\031/v1/session-str" +
-      "eams:batch:\001*0\001\022\235\001\n\022PostChannelMessage\022(" +
-      ".talon.gateway.PostChannelMessageRequest" +
-      "\032).talon.gateway.PostChannelMessageRespo" +
-      "nse\"2\202\323\344\223\002,\"\'/v1/ns/{ns}/channels/{chann" +
-      "el}/messages:\001*\022\241\001\n\021GetChannelMessage\022\'." +
-      "talon.gateway.GetChannelMessageRequest\032%" +
-      ".talon.gateway.ChannelMessageResponse\"<\202" +
-      "\323\344\223\0026\0224/v1/ns/{ns}/channels/{channel}/me" +
-      "ssages/{message_id}\022\235\001\n\023ListChannelMessa" +
-      "ges\022).talon.gateway.ListChannelMessagesR" +
-      "equest\032*.talon.gateway.ListChannelMessag" +
-      "esResponse\"/\202\323\344\223\002)\022\'/v1/ns/{ns}/channels" +
-      "/{channel}/messages\022\215\001\n\023StreamChannelEve" +
-      "nts\022).talon.gateway.StreamChannelEventsR" +
-      "equest\032\032.talon.events.ChannelEvent\"-\202\323\344\223" +
-      "\002\'\022%/v1/ns/{ns}/channels/{channel}/strea" +
-      "m0\001\022\222\001\n\021CreateWorkflowRun\022\'.talon.gatewa" +
-      "y.CreateWorkflowRunRequest\032\".talon.gatew" +
-      "ay.WorkflowRunResponse\"0\202\323\344\223\002*\"%/v1/ns/{" +
-      "ns}/workflows/{workflow}/runs:\001*\022\222\001\n\016Get" +
-      "WorkflowRun\022$.talon.gateway.GetWorkflowR" +
-      "unRequest\032\".talon.gateway.WorkflowRunRes" +
-      "ponse\"6\202\323\344\223\0020\022./v1/ns/{ns}/workflows/{wo" +
-      "rkflow}/runs/{run_id}\022\222\001\n\020ListWorkflowRu" +
-      "ns\022&.talon.gateway.ListWorkflowRunsReque" +
-      "st\032\'.talon.gateway.ListWorkflowRunsRespo" +
-      "nse\"-\202\323\344\223\002\'\022%/v1/ns/{ns}/workflows/{work" +
-      "flow}/runs\022\242\001\n\021ResumeWorkflowRun\022\'.talon" +
-      ".gateway.ResumeWorkflowRunRequest\032\".talo" +
-      "n.gateway.WorkflowRunResponse\"@\202\323\344\223\002:\"5/" +
-      "v1/ns/{ns}/workflows/{workflow}/runs/{ru" +
-      "n_id}:resume:\001*\022\242\001\n\021CancelWorkflowRun\022\'." +
-      "talon.gateway.CancelWorkflowRunRequest\032\"" +
+      "sion_id}\022\257\001\n\023ListSessionMessages\022).talon" +
+      ".gateway.ListSessionMessagesRequest\032*.ta" +
+      "lon.gateway.ListSessionMessagesResponse\"" +
+      "A\202\323\344\223\002;\0229/v1/ns/{ns}/agents/{agent}/sess" +
+      "ions/{session_id}/messages\022\204\001\n\014ListSessi" +
+      "ons\022\".talon.gateway.ListSessionsRequest\032" +
+      "#.talon.gateway.ListSessionsResponse\"+\202\323" +
+      "\344\223\002%\022#/v1/ns/{ns}/agents/{agent}/session" +
+      "s\022\224\001\n\rDeleteSession\022#.talon.gateway.Dele" +
+      "teSessionRequest\032$.talon.gateway.DeleteS" +
+      "essionResponse\"8\202\323\344\223\0022*0/v1/ns/{ns}/agen" +
+      "ts/{agent}/sessions/{session_id}\022\232\001\n\014Cle" +
+      "arSession\022\".talon.gateway.ClearSessionRe" +
+      "quest\032#.talon.gateway.ClearSessionRespon" +
+      "se\"A\202\323\344\223\002;\"6/v1/ns/{ns}/agents/{agent}/s" +
+      "essions/{session_id}:clear:\001*\022\231\001\n\013SendMe" +
+      "ssage\022!.talon.gateway.SendMessageRequest" +
+      "\032\".talon.gateway.SendMessageResponse\"C\202\323" +
+      "\344\223\002=\"8/v1/ns/{ns}/agents/{agent}/session" +
+      "s/{session_id}/message:\001*\022\274\001\n\024AppendSess" +
+      "ionMessage\022*.talon.gateway.AppendSession" +
+      "MessageRequest\032+.talon.gateway.AppendSes" +
+      "sionMessageResponse\"K\202\323\344\223\002E\"@/v1/ns/{ns}" +
+      "/agents/{agent}/sessions/{session_id}/me" +
+      "ssages:append:\001*\022\325\001\n\027AnswerSessionPermis" +
+      "sion\022-.talon.gateway.AnswerSessionPermis" +
+      "sionRequest\032..talon.gateway.AnswerSessio" +
+      "nPermissionResponse\"[\202\323\344\223\002U\"P/v1/ns/{ns}" +
+      "/agents/{agent}/sessions/{session_id}/pe" +
+      "rmissions/{request_id}:answer:\001*\022\264\001\n\025Sto" +
+      "pSessionGeneration\022+.talon.gateway.StopS" +
+      "essionGenerationRequest\032,.talon.gateway." +
+      "StopSessionGenerationResponse\"@\202\323\344\223\002:\"5/" +
+      "v1/ns/{ns}/agents/{agent}/sessions/{sess" +
+      "ion_id}:stop:\001*\022\250\001\n\022StreamSessionParts\022(" +
+      ".talon.gateway.StreamSessionPartsRequest" +
+      "\032%.talon.events.SessionMessagePartEvent\"" +
+      "?\202\323\344\223\0029\0227/v1/ns/{ns}/agents/{agent}/sess" +
+      "ions/{session_id}/stream0\001\022\227\001\n\027StreamSes" +
+      "sionPartsBatch\022-.talon.gateway.StreamSes" +
+      "sionPartsBatchRequest\032%.talon.events.Ses" +
+      "sionMessagePartEvent\"$\202\323\344\223\002\036\"\031/v1/sessio" +
+      "n-streams:batch:\001*0\001\022\235\001\n\022PostChannelMess" +
+      "age\022(.talon.gateway.PostChannelMessageRe" +
+      "quest\032).talon.gateway.PostChannelMessage" +
+      "Response\"2\202\323\344\223\002,\"\'/v1/ns/{ns}/channels/{" +
+      "channel}/messages:\001*\022\241\001\n\021GetChannelMessa" +
+      "ge\022\'.talon.gateway.GetChannelMessageRequ" +
+      "est\032%.talon.gateway.ChannelMessageRespon" +
+      "se\"<\202\323\344\223\0026\0224/v1/ns/{ns}/channels/{channe" +
+      "l}/messages/{message_id}\022\235\001\n\023ListChannel" +
+      "Messages\022).talon.gateway.ListChannelMess" +
+      "agesRequest\032*.talon.gateway.ListChannelM" +
+      "essagesResponse\"/\202\323\344\223\002)\022\'/v1/ns/{ns}/cha" +
+      "nnels/{channel}/messages\022\215\001\n\023StreamChann" +
+      "elEvents\022).talon.gateway.StreamChannelEv" +
+      "entsRequest\032\032.talon.events.ChannelEvent\"" +
+      "-\202\323\344\223\002\'\022%/v1/ns/{ns}/channels/{channel}/" +
+      "stream0\001\022\222\001\n\021CreateWorkflowRun\022\'.talon.g" +
+      "ateway.CreateWorkflowRunRequest\032\".talon." +
+      "gateway.WorkflowRunResponse\"0\202\323\344\223\002*\"%/v1" +
+      "/ns/{ns}/workflows/{workflow}/runs:\001*\022\222\001" +
+      "\n\016GetWorkflowRun\022$.talon.gateway.GetWork" +
+      "flowRunRequest\032\".talon.gateway.WorkflowR" +
+      "unResponse\"6\202\323\344\223\0020\022./v1/ns/{ns}/workflow" +
+      "s/{workflow}/runs/{run_id}\022\222\001\n\020ListWorkf" +
+      "lowRuns\022&.talon.gateway.ListWorkflowRuns" +
+      "Request\032\'.talon.gateway.ListWorkflowRuns" +
+      "Response\"-\202\323\344\223\002\'\022%/v1/ns/{ns}/workflows/" +
+      "{workflow}/runs\022\242\001\n\021ResumeWorkflowRun\022\'." +
+      "talon.gateway.ResumeWorkflowRunRequest\032\"" +
       ".talon.gateway.WorkflowRunResponse\"@\202\323\344\223" +
       "\002:\"5/v1/ns/{ns}/workflows/{workflow}/run" +
-      "s/{run_id}:cancel:\001*\022\241\001\n\024StreamWorkflowE" +
-      "vents\022*.talon.gateway.StreamWorkflowEven" +
-      "tsRequest\032\034.talon.data.WorkflowRunEvent\"" +
-      "=\202\323\344\223\0027\0225/v1/ns/{ns}/workflows/{workflow" +
-      "}/runs/{run_id}/stream0\001\022|\n\017CreateNamesp" +
-      "ace\022%.talon.gateway.CreateNamespaceReque" +
-      "st\032 .talon.gateway.NamespaceResponse\" \202\323" +
-      "\344\223\002\032\"\025/v1/namespaces/{name}:\001*\022s\n\014GetNam" +
-      "espace\022\".talon.gateway.GetNamespaceReque" +
-      "st\032 .talon.gateway.NamespaceResponse\"\035\202\323" +
-      "\344\223\002\027\022\025/v1/namespaces/{name}\022y\n\017DeleteNam" +
-      "espace\022%.talon.gateway.DeleteNamespaceRe" +
-      "quest\032 .talon.gateway.NamespaceResponse\"" +
-      "\035\202\323\344\223\002\027*\025/v1/namespaces/{name}\022u\n\016ListNa" +
-      "mespaces\022$.talon.gateway.ListNamespacesR" +
-      "equest\032%.talon.gateway.ListNamespacesRes" +
-      "ponse\"\026\202\323\344\223\002\020\022\016/v1/namespaces\022y\n\016CreateR" +
-      "esource\022$.talon.gateway.CreateResourceRe" +
-      "quest\032\037.talon.gateway.ResourceResponse\" " +
-      "\202\323\344\223\002\032\"\025/v2/ns/{ns}/resources:\001*\022~\n\013GetR" +
-      "esource\022!.talon.gateway.GetResourceReque" +
-      "st\032\037.talon.gateway.ResourceResponse\"+\202\323\344" +
-      "\223\002%\022#/v2/ns/{ns}/resources/{kind}/{name}" +
-      "\022y\n\rListResources\022#.talon.gateway.ListRe" +
-      "sourcesRequest\032$.talon.gateway.ListResou" +
-      "rcesResponse\"\035\202\323\344\223\002\027\022\025/v2/ns/{ns}/resour" +
-      "ces\022\212\001\n\016DeleteResource\022$.talon.gateway.D" +
-      "eleteResourceRequest\032%.talon.gateway.Del" +
-      "eteResourceResponse\"+\202\323\344\223\002%*#/v2/ns/{ns}" +
-      "/resources/{kind}/{name}b\006proto3"
+      "s/{run_id}:resume:\001*\022\242\001\n\021CancelWorkflowR" +
+      "un\022\'.talon.gateway.CancelWorkflowRunRequ" +
+      "est\032\".talon.gateway.WorkflowRunResponse\"" +
+      "@\202\323\344\223\002:\"5/v1/ns/{ns}/workflows/{workflow" +
+      "}/runs/{run_id}:cancel:\001*\022\241\001\n\024StreamWork" +
+      "flowEvents\022*.talon.gateway.StreamWorkflo" +
+      "wEventsRequest\032\034.talon.data.WorkflowRunE" +
+      "vent\"=\202\323\344\223\0027\0225/v1/ns/{ns}/workflows/{wor" +
+      "kflow}/runs/{run_id}/stream0\001\022|\n\017CreateN" +
+      "amespace\022%.talon.gateway.CreateNamespace" +
+      "Request\032 .talon.gateway.NamespaceRespons" +
+      "e\" \202\323\344\223\002\032\"\025/v1/namespaces/{name}:\001*\022s\n\014G" +
+      "etNamespace\022\".talon.gateway.GetNamespace" +
+      "Request\032 .talon.gateway.NamespaceRespons" +
+      "e\"\035\202\323\344\223\002\027\022\025/v1/namespaces/{name}\022y\n\017Dele" +
+      "teNamespace\022%.talon.gateway.DeleteNamesp" +
+      "aceRequest\032 .talon.gateway.NamespaceResp" +
+      "onse\"\035\202\323\344\223\002\027*\025/v1/namespaces/{name}\022u\n\016L" +
+      "istNamespaces\022$.talon.gateway.ListNamesp" +
+      "acesRequest\032%.talon.gateway.ListNamespac" +
+      "esResponse\"\026\202\323\344\223\002\020\022\016/v1/namespaces\022y\n\016Cr" +
+      "eateResource\022$.talon.gateway.CreateResou" +
+      "rceRequest\032\037.talon.gateway.ResourceRespo" +
+      "nse\" \202\323\344\223\002\032\"\025/v2/ns/{ns}/resources:\001*\022~\n" +
+      "\013GetResource\022!.talon.gateway.GetResource" +
+      "Request\032\037.talon.gateway.ResourceResponse" +
+      "\"+\202\323\344\223\002%\022#/v2/ns/{ns}/resources/{kind}/{" +
+      "name}\022y\n\rListResources\022#.talon.gateway.L" +
+      "istResourcesRequest\032$.talon.gateway.List" +
+      "ResourcesResponse\"\035\202\323\344\223\002\027\022\025/v2/ns/{ns}/r" +
+      "esources\022\212\001\n\016DeleteResource\022$.talon.gate" +
+      "way.DeleteResourceRequest\032%.talon.gatewa" +
+      "y.DeleteResourceResponse\"+\202\323\344\223\002%*#/v2/ns" +
+      "/{ns}/resources/{kind}/{name}b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -46246,32 +48630,44 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_AppendSessionMessageResponse_descriptor,
         new java.lang.String[] { "SessionId", "Message", });
-    internal_static_talon_gateway_StopSessionGenerationRequest_descriptor =
+    internal_static_talon_gateway_AnswerSessionPermissionRequest_descriptor =
       getDescriptor().getMessageType(44);
+    internal_static_talon_gateway_AnswerSessionPermissionRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_gateway_AnswerSessionPermissionRequest_descriptor,
+        new java.lang.String[] { "SessionId", "Agent", "Ns", "RequestId", "Outcome", "OptionId", "DecidedBy", });
+    internal_static_talon_gateway_AnswerSessionPermissionResponse_descriptor =
+      getDescriptor().getMessageType(45);
+    internal_static_talon_gateway_AnswerSessionPermissionResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_gateway_AnswerSessionPermissionResponse_descriptor,
+        new java.lang.String[] { "SessionId", "RequestId", "Outcome", "OptionId", });
+    internal_static_talon_gateway_StopSessionGenerationRequest_descriptor =
+      getDescriptor().getMessageType(46);
     internal_static_talon_gateway_StopSessionGenerationRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_StopSessionGenerationRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_gateway_StopSessionGenerationResponse_descriptor =
-      getDescriptor().getMessageType(45);
+      getDescriptor().getMessageType(47);
     internal_static_talon_gateway_StopSessionGenerationResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_StopSessionGenerationResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_talon_gateway_StreamSessionPartsRequest_descriptor =
-      getDescriptor().getMessageType(46);
+      getDescriptor().getMessageType(48);
     internal_static_talon_gateway_StreamSessionPartsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_StreamSessionPartsRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_gateway_StreamSessionPartsBatchRequest_descriptor =
-      getDescriptor().getMessageType(47);
+      getDescriptor().getMessageType(49);
     internal_static_talon_gateway_StreamSessionPartsBatchRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_StreamSessionPartsBatchRequest_descriptor,
         new java.lang.String[] { "SessionNames", });
     internal_static_talon_gateway_CreateNamespaceRequest_descriptor =
-      getDescriptor().getMessageType(48);
+      getDescriptor().getMessageType(50);
     internal_static_talon_gateway_CreateNamespaceRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_CreateNamespaceRequest_descriptor,
@@ -46283,25 +48679,25 @@ java.lang.String defaultValue) {
         internal_static_talon_gateway_CreateNamespaceRequest_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_gateway_GetNamespaceRequest_descriptor =
-      getDescriptor().getMessageType(49);
+      getDescriptor().getMessageType(51);
     internal_static_talon_gateway_GetNamespaceRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_GetNamespaceRequest_descriptor,
         new java.lang.String[] { "Name", });
     internal_static_talon_gateway_DeleteNamespaceRequest_descriptor =
-      getDescriptor().getMessageType(50);
+      getDescriptor().getMessageType(52);
     internal_static_talon_gateway_DeleteNamespaceRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_DeleteNamespaceRequest_descriptor,
         new java.lang.String[] { "Name", });
     internal_static_talon_gateway_ListNamespacesRequest_descriptor =
-      getDescriptor().getMessageType(51);
+      getDescriptor().getMessageType(53);
     internal_static_talon_gateway_ListNamespacesRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListNamespacesRequest_descriptor,
         new java.lang.String[] { "Parent", });
     internal_static_talon_gateway_NamespaceResponse_descriptor =
-      getDescriptor().getMessageType(52);
+      getDescriptor().getMessageType(54);
     internal_static_talon_gateway_NamespaceResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_NamespaceResponse_descriptor,
@@ -46313,7 +48709,7 @@ java.lang.String defaultValue) {
         internal_static_talon_gateway_NamespaceResponse_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_gateway_ListNamespacesResponse_descriptor =
-      getDescriptor().getMessageType(53);
+      getDescriptor().getMessageType(55);
     internal_static_talon_gateway_ListNamespacesResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListNamespacesResponse_descriptor,

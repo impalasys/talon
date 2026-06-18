@@ -3553,6 +3553,21 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Sessions.SessionSpecOrBuilder getSessionOrBuilder();
 
     /**
+     * <code>.talon.resources.SkillSpec skill = 11;</code>
+     * @return Whether the skill field is set.
+     */
+    boolean hasSkill();
+    /**
+     * <code>.talon.resources.SkillSpec skill = 11;</code>
+     * @return The skill.
+     */
+    talon.resources.Skills.SkillSpec getSkill();
+    /**
+     * <code>.talon.resources.SkillSpec skill = 11;</code>
+     */
+    talon.resources.Skills.SkillSpecOrBuilder getSkillOrBuilder();
+
+    /**
      * <code>.talon.resources.TemplateSpec template = 20;</code>
      * @return Whether the template field is set.
      */
@@ -3643,21 +3658,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Sandboxes.SandboxSpecOrBuilder getSandboxOrBuilder();
 
     /**
-     * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-     * @return Whether the permissionRequest field is set.
-     */
-    boolean hasPermissionRequest();
-    /**
-     * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-     * @return The permissionRequest.
-     */
-    talon.resources.Sessions.PermissionRequestSpec getPermissionRequest();
-    /**
-     * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-     */
-    talon.resources.Sessions.PermissionRequestSpecOrBuilder getPermissionRequestOrBuilder();
-
-    /**
      * <code>.talon.resources.RawResourceSpec raw = 1000;</code>
      * @return Whether the raw field is set.
      */
@@ -3732,13 +3732,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       KNOWLEDGE(8),
       NAMESPACE(9),
       SESSION(10),
+      SKILL(11),
       TEMPLATE(20),
       DEPLOYMENT(21),
       DEPLOYMENT_REPLICA(22),
       SANDBOX_CLASS(40),
       SANDBOX_POLICY(41),
       SANDBOX(42),
-      PERMISSION_REQUEST(43),
       RAW(1000),
       KIND_NOT_SET(0);
       private final int value;
@@ -3767,13 +3767,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           case 8: return KNOWLEDGE;
           case 9: return NAMESPACE;
           case 10: return SESSION;
+          case 11: return SKILL;
           case 20: return TEMPLATE;
           case 21: return DEPLOYMENT;
           case 22: return DEPLOYMENT_REPLICA;
           case 40: return SANDBOX_CLASS;
           case 41: return SANDBOX_POLICY;
           case 42: return SANDBOX;
-          case 43: return PERMISSION_REQUEST;
           case 1000: return RAW;
           case 0: return KIND_NOT_SET;
           default: return null;
@@ -4100,6 +4100,37 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       return talon.resources.Sessions.SessionSpec.getDefaultInstance();
     }
 
+    public static final int SKILL_FIELD_NUMBER = 11;
+    /**
+     * <code>.talon.resources.SkillSpec skill = 11;</code>
+     * @return Whether the skill field is set.
+     */
+    @java.lang.Override
+    public boolean hasSkill() {
+      return kindCase_ == 11;
+    }
+    /**
+     * <code>.talon.resources.SkillSpec skill = 11;</code>
+     * @return The skill.
+     */
+    @java.lang.Override
+    public talon.resources.Skills.SkillSpec getSkill() {
+      if (kindCase_ == 11) {
+         return (talon.resources.Skills.SkillSpec) kind_;
+      }
+      return talon.resources.Skills.SkillSpec.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.resources.SkillSpec skill = 11;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Skills.SkillSpecOrBuilder getSkillOrBuilder() {
+      if (kindCase_ == 11) {
+         return (talon.resources.Skills.SkillSpec) kind_;
+      }
+      return talon.resources.Skills.SkillSpec.getDefaultInstance();
+    }
+
     public static final int TEMPLATE_FIELD_NUMBER = 20;
     /**
      * <code>.talon.resources.TemplateSpec template = 20;</code>
@@ -4286,37 +4317,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       return talon.resources.Sandboxes.SandboxSpec.getDefaultInstance();
     }
 
-    public static final int PERMISSION_REQUEST_FIELD_NUMBER = 43;
-    /**
-     * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-     * @return Whether the permissionRequest field is set.
-     */
-    @java.lang.Override
-    public boolean hasPermissionRequest() {
-      return kindCase_ == 43;
-    }
-    /**
-     * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-     * @return The permissionRequest.
-     */
-    @java.lang.Override
-    public talon.resources.Sessions.PermissionRequestSpec getPermissionRequest() {
-      if (kindCase_ == 43) {
-         return (talon.resources.Sessions.PermissionRequestSpec) kind_;
-      }
-      return talon.resources.Sessions.PermissionRequestSpec.getDefaultInstance();
-    }
-    /**
-     * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-     */
-    @java.lang.Override
-    public talon.resources.Sessions.PermissionRequestSpecOrBuilder getPermissionRequestOrBuilder() {
-      if (kindCase_ == 43) {
-         return (talon.resources.Sessions.PermissionRequestSpec) kind_;
-      }
-      return talon.resources.Sessions.PermissionRequestSpec.getDefaultInstance();
-    }
-
     public static final int RAW_FIELD_NUMBER = 1000;
     /**
      * <code>.talon.resources.RawResourceSpec raw = 1000;</code>
@@ -4392,6 +4392,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 10) {
         output.writeMessage(10, (talon.resources.Sessions.SessionSpec) kind_);
       }
+      if (kindCase_ == 11) {
+        output.writeMessage(11, (talon.resources.Skills.SkillSpec) kind_);
+      }
       if (kindCase_ == 20) {
         output.writeMessage(20, (talon.resources.Deployments.TemplateSpec) kind_);
       }
@@ -4409,9 +4412,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       }
       if (kindCase_ == 42) {
         output.writeMessage(42, (talon.resources.Sandboxes.SandboxSpec) kind_);
-      }
-      if (kindCase_ == 43) {
-        output.writeMessage(43, (talon.resources.Sessions.PermissionRequestSpec) kind_);
       }
       if (kindCase_ == 1000) {
         output.writeMessage(1000, (talon.resources.ResourceOuterClass.RawResourceSpec) kind_);
@@ -4465,6 +4465,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(10, (talon.resources.Sessions.SessionSpec) kind_);
       }
+      if (kindCase_ == 11) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(11, (talon.resources.Skills.SkillSpec) kind_);
+      }
       if (kindCase_ == 20) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(20, (talon.resources.Deployments.TemplateSpec) kind_);
@@ -4488,10 +4492,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 42) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(42, (talon.resources.Sandboxes.SandboxSpec) kind_);
-      }
-      if (kindCase_ == 43) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(43, (talon.resources.Sessions.PermissionRequestSpec) kind_);
       }
       if (kindCase_ == 1000) {
         size += com.google.protobuf.CodedOutputStream
@@ -4554,6 +4554,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           if (!getSession()
               .equals(other.getSession())) return false;
           break;
+        case 11:
+          if (!getSkill()
+              .equals(other.getSkill())) return false;
+          break;
         case 20:
           if (!getTemplate()
               .equals(other.getTemplate())) return false;
@@ -4577,10 +4581,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 42:
           if (!getSandbox()
               .equals(other.getSandbox())) return false;
-          break;
-        case 43:
-          if (!getPermissionRequest()
-              .equals(other.getPermissionRequest())) return false;
           break;
         case 1000:
           if (!getRaw()
@@ -4641,6 +4641,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           hash = (37 * hash) + SESSION_FIELD_NUMBER;
           hash = (53 * hash) + getSession().hashCode();
           break;
+        case 11:
+          hash = (37 * hash) + SKILL_FIELD_NUMBER;
+          hash = (53 * hash) + getSkill().hashCode();
+          break;
         case 20:
           hash = (37 * hash) + TEMPLATE_FIELD_NUMBER;
           hash = (53 * hash) + getTemplate().hashCode();
@@ -4664,10 +4668,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 42:
           hash = (37 * hash) + SANDBOX_FIELD_NUMBER;
           hash = (53 * hash) + getSandbox().hashCode();
-          break;
-        case 43:
-          hash = (37 * hash) + PERMISSION_REQUEST_FIELD_NUMBER;
-          hash = (53 * hash) + getPermissionRequest().hashCode();
           break;
         case 1000:
           hash = (37 * hash) + RAW_FIELD_NUMBER;
@@ -4837,6 +4837,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (sessionBuilder_ != null) {
           sessionBuilder_.clear();
         }
+        if (skillBuilder_ != null) {
+          skillBuilder_.clear();
+        }
         if (templateBuilder_ != null) {
           templateBuilder_.clear();
         }
@@ -4854,9 +4857,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         }
         if (sandboxBuilder_ != null) {
           sandboxBuilder_.clear();
-        }
-        if (permissionRequestBuilder_ != null) {
-          permissionRequestBuilder_.clear();
         }
         if (rawBuilder_ != null) {
           rawBuilder_.clear();
@@ -4942,6 +4942,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             sessionBuilder_ != null) {
           result.kind_ = sessionBuilder_.build();
         }
+        if (kindCase_ == 11 &&
+            skillBuilder_ != null) {
+          result.kind_ = skillBuilder_.build();
+        }
         if (kindCase_ == 20 &&
             templateBuilder_ != null) {
           result.kind_ = templateBuilder_.build();
@@ -4965,10 +4969,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (kindCase_ == 42 &&
             sandboxBuilder_ != null) {
           result.kind_ = sandboxBuilder_.build();
-        }
-        if (kindCase_ == 43 &&
-            permissionRequestBuilder_ != null) {
-          result.kind_ = permissionRequestBuilder_.build();
         }
         if (kindCase_ == 1000 &&
             rawBuilder_ != null) {
@@ -5029,6 +5029,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             mergeSession(other.getSession());
             break;
           }
+          case SKILL: {
+            mergeSkill(other.getSkill());
+            break;
+          }
           case TEMPLATE: {
             mergeTemplate(other.getTemplate());
             break;
@@ -5051,10 +5055,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           }
           case SANDBOX: {
             mergeSandbox(other.getSandbox());
-            break;
-          }
-          case PERMISSION_REQUEST: {
-            mergePermissionRequest(other.getPermissionRequest());
             break;
           }
           case RAW: {
@@ -5161,6 +5161,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 10;
                 break;
               } // case 82
+              case 90: {
+                input.readMessage(
+                    internalGetSkillFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                kindCase_ = 11;
+                break;
+              } // case 90
               case 162: {
                 input.readMessage(
                     internalGetTemplateFieldBuilder().getBuilder(),
@@ -5203,13 +5210,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 42;
                 break;
               } // case 338
-              case 346: {
-                input.readMessage(
-                    internalGetPermissionRequestFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                kindCase_ = 43;
-                break;
-              } // case 346
               case 8002: {
                 input.readMessage(
                     internalGetRawFieldBuilder().getBuilder(),
@@ -6670,6 +6670,148 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       }
 
       private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Skills.SkillSpec, talon.resources.Skills.SkillSpec.Builder, talon.resources.Skills.SkillSpecOrBuilder> skillBuilder_;
+      /**
+       * <code>.talon.resources.SkillSpec skill = 11;</code>
+       * @return Whether the skill field is set.
+       */
+      @java.lang.Override
+      public boolean hasSkill() {
+        return kindCase_ == 11;
+      }
+      /**
+       * <code>.talon.resources.SkillSpec skill = 11;</code>
+       * @return The skill.
+       */
+      @java.lang.Override
+      public talon.resources.Skills.SkillSpec getSkill() {
+        if (skillBuilder_ == null) {
+          if (kindCase_ == 11) {
+            return (talon.resources.Skills.SkillSpec) kind_;
+          }
+          return talon.resources.Skills.SkillSpec.getDefaultInstance();
+        } else {
+          if (kindCase_ == 11) {
+            return skillBuilder_.getMessage();
+          }
+          return talon.resources.Skills.SkillSpec.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.SkillSpec skill = 11;</code>
+       */
+      public Builder setSkill(talon.resources.Skills.SkillSpec value) {
+        if (skillBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          kind_ = value;
+          onChanged();
+        } else {
+          skillBuilder_.setMessage(value);
+        }
+        kindCase_ = 11;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SkillSpec skill = 11;</code>
+       */
+      public Builder setSkill(
+          talon.resources.Skills.SkillSpec.Builder builderForValue) {
+        if (skillBuilder_ == null) {
+          kind_ = builderForValue.build();
+          onChanged();
+        } else {
+          skillBuilder_.setMessage(builderForValue.build());
+        }
+        kindCase_ = 11;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SkillSpec skill = 11;</code>
+       */
+      public Builder mergeSkill(talon.resources.Skills.SkillSpec value) {
+        if (skillBuilder_ == null) {
+          if (kindCase_ == 11 &&
+              kind_ != talon.resources.Skills.SkillSpec.getDefaultInstance()) {
+            kind_ = talon.resources.Skills.SkillSpec.newBuilder((talon.resources.Skills.SkillSpec) kind_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            kind_ = value;
+          }
+          onChanged();
+        } else {
+          if (kindCase_ == 11) {
+            skillBuilder_.mergeFrom(value);
+          } else {
+            skillBuilder_.setMessage(value);
+          }
+        }
+        kindCase_ = 11;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SkillSpec skill = 11;</code>
+       */
+      public Builder clearSkill() {
+        if (skillBuilder_ == null) {
+          if (kindCase_ == 11) {
+            kindCase_ = 0;
+            kind_ = null;
+            onChanged();
+          }
+        } else {
+          if (kindCase_ == 11) {
+            kindCase_ = 0;
+            kind_ = null;
+          }
+          skillBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SkillSpec skill = 11;</code>
+       */
+      public talon.resources.Skills.SkillSpec.Builder getSkillBuilder() {
+        return internalGetSkillFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.SkillSpec skill = 11;</code>
+       */
+      @java.lang.Override
+      public talon.resources.Skills.SkillSpecOrBuilder getSkillOrBuilder() {
+        if ((kindCase_ == 11) && (skillBuilder_ != null)) {
+          return skillBuilder_.getMessageOrBuilder();
+        } else {
+          if (kindCase_ == 11) {
+            return (talon.resources.Skills.SkillSpec) kind_;
+          }
+          return talon.resources.Skills.SkillSpec.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.SkillSpec skill = 11;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Skills.SkillSpec, talon.resources.Skills.SkillSpec.Builder, talon.resources.Skills.SkillSpecOrBuilder>
+          internalGetSkillFieldBuilder() {
+        if (skillBuilder_ == null) {
+          if (!(kindCase_ == 11)) {
+            kind_ = talon.resources.Skills.SkillSpec.getDefaultInstance();
+          }
+          skillBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Skills.SkillSpec, talon.resources.Skills.SkillSpec.Builder, talon.resources.Skills.SkillSpecOrBuilder>(
+                  (talon.resources.Skills.SkillSpec) kind_,
+                  getParentForChildren(),
+                  isClean());
+          kind_ = null;
+        }
+        kindCase_ = 11;
+        onChanged();
+        return skillBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Deployments.TemplateSpec, talon.resources.Deployments.TemplateSpec.Builder, talon.resources.Deployments.TemplateSpecOrBuilder> templateBuilder_;
       /**
        * <code>.talon.resources.TemplateSpec template = 20;</code>
@@ -7522,148 +7664,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       }
 
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Sessions.PermissionRequestSpec, talon.resources.Sessions.PermissionRequestSpec.Builder, talon.resources.Sessions.PermissionRequestSpecOrBuilder> permissionRequestBuilder_;
-      /**
-       * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-       * @return Whether the permissionRequest field is set.
-       */
-      @java.lang.Override
-      public boolean hasPermissionRequest() {
-        return kindCase_ == 43;
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-       * @return The permissionRequest.
-       */
-      @java.lang.Override
-      public talon.resources.Sessions.PermissionRequestSpec getPermissionRequest() {
-        if (permissionRequestBuilder_ == null) {
-          if (kindCase_ == 43) {
-            return (talon.resources.Sessions.PermissionRequestSpec) kind_;
-          }
-          return talon.resources.Sessions.PermissionRequestSpec.getDefaultInstance();
-        } else {
-          if (kindCase_ == 43) {
-            return permissionRequestBuilder_.getMessage();
-          }
-          return talon.resources.Sessions.PermissionRequestSpec.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-       */
-      public Builder setPermissionRequest(talon.resources.Sessions.PermissionRequestSpec value) {
-        if (permissionRequestBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          kind_ = value;
-          onChanged();
-        } else {
-          permissionRequestBuilder_.setMessage(value);
-        }
-        kindCase_ = 43;
-        return this;
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-       */
-      public Builder setPermissionRequest(
-          talon.resources.Sessions.PermissionRequestSpec.Builder builderForValue) {
-        if (permissionRequestBuilder_ == null) {
-          kind_ = builderForValue.build();
-          onChanged();
-        } else {
-          permissionRequestBuilder_.setMessage(builderForValue.build());
-        }
-        kindCase_ = 43;
-        return this;
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-       */
-      public Builder mergePermissionRequest(talon.resources.Sessions.PermissionRequestSpec value) {
-        if (permissionRequestBuilder_ == null) {
-          if (kindCase_ == 43 &&
-              kind_ != talon.resources.Sessions.PermissionRequestSpec.getDefaultInstance()) {
-            kind_ = talon.resources.Sessions.PermissionRequestSpec.newBuilder((talon.resources.Sessions.PermissionRequestSpec) kind_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            kind_ = value;
-          }
-          onChanged();
-        } else {
-          if (kindCase_ == 43) {
-            permissionRequestBuilder_.mergeFrom(value);
-          } else {
-            permissionRequestBuilder_.setMessage(value);
-          }
-        }
-        kindCase_ = 43;
-        return this;
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-       */
-      public Builder clearPermissionRequest() {
-        if (permissionRequestBuilder_ == null) {
-          if (kindCase_ == 43) {
-            kindCase_ = 0;
-            kind_ = null;
-            onChanged();
-          }
-        } else {
-          if (kindCase_ == 43) {
-            kindCase_ = 0;
-            kind_ = null;
-          }
-          permissionRequestBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-       */
-      public talon.resources.Sessions.PermissionRequestSpec.Builder getPermissionRequestBuilder() {
-        return internalGetPermissionRequestFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-       */
-      @java.lang.Override
-      public talon.resources.Sessions.PermissionRequestSpecOrBuilder getPermissionRequestOrBuilder() {
-        if ((kindCase_ == 43) && (permissionRequestBuilder_ != null)) {
-          return permissionRequestBuilder_.getMessageOrBuilder();
-        } else {
-          if (kindCase_ == 43) {
-            return (talon.resources.Sessions.PermissionRequestSpec) kind_;
-          }
-          return talon.resources.Sessions.PermissionRequestSpec.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestSpec permission_request = 43;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Sessions.PermissionRequestSpec, talon.resources.Sessions.PermissionRequestSpec.Builder, talon.resources.Sessions.PermissionRequestSpecOrBuilder>
-          internalGetPermissionRequestFieldBuilder() {
-        if (permissionRequestBuilder_ == null) {
-          if (!(kindCase_ == 43)) {
-            kind_ = talon.resources.Sessions.PermissionRequestSpec.getDefaultInstance();
-          }
-          permissionRequestBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Sessions.PermissionRequestSpec, talon.resources.Sessions.PermissionRequestSpec.Builder, talon.resources.Sessions.PermissionRequestSpecOrBuilder>(
-                  (talon.resources.Sessions.PermissionRequestSpec) kind_,
-                  getParentForChildren(),
-                  isClean());
-          kind_ = null;
-        }
-        kindCase_ = 43;
-        onChanged();
-        return permissionRequestBuilder_;
-      }
-
-      private com.google.protobuf.SingleFieldBuilder<
           talon.resources.ResourceOuterClass.RawResourceSpec, talon.resources.ResourceOuterClass.RawResourceSpec.Builder, talon.resources.ResourceOuterClass.RawResourceSpecOrBuilder> rawBuilder_;
       /**
        * <code>.talon.resources.RawResourceSpec raw = 1000;</code>
@@ -8011,6 +8011,21 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Sessions.SessionStatusOrBuilder getSessionOrBuilder();
 
     /**
+     * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+     * @return Whether the skill field is set.
+     */
+    boolean hasSkill();
+    /**
+     * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+     * @return The skill.
+     */
+    talon.resources.Common.CommonResourceStatus getSkill();
+    /**
+     * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+     */
+    talon.resources.Common.CommonResourceStatusOrBuilder getSkillOrBuilder();
+
+    /**
      * <code>.talon.resources.CommonResourceStatus template = 20;</code>
      * @return Whether the template field is set.
      */
@@ -8101,21 +8116,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Sandboxes.SandboxStatusOrBuilder getSandboxOrBuilder();
 
     /**
-     * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-     * @return Whether the permissionRequest field is set.
-     */
-    boolean hasPermissionRequest();
-    /**
-     * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-     * @return The permissionRequest.
-     */
-    talon.resources.Sessions.PermissionRequestStatus getPermissionRequest();
-    /**
-     * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-     */
-    talon.resources.Sessions.PermissionRequestStatusOrBuilder getPermissionRequestOrBuilder();
-
-    /**
      * <code>.talon.resources.RawResourceStatus raw = 1000;</code>
      * @return Whether the raw field is set.
      */
@@ -8190,13 +8190,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       KNOWLEDGE(8),
       NAMESPACE(9),
       SESSION(10),
+      SKILL(11),
       TEMPLATE(20),
       DEPLOYMENT(21),
       DEPLOYMENT_REPLICA(22),
       SANDBOX_CLASS(40),
       SANDBOX_POLICY(41),
       SANDBOX(42),
-      PERMISSION_REQUEST(43),
       RAW(1000),
       KIND_NOT_SET(0);
       private final int value;
@@ -8225,13 +8225,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           case 8: return KNOWLEDGE;
           case 9: return NAMESPACE;
           case 10: return SESSION;
+          case 11: return SKILL;
           case 20: return TEMPLATE;
           case 21: return DEPLOYMENT;
           case 22: return DEPLOYMENT_REPLICA;
           case 40: return SANDBOX_CLASS;
           case 41: return SANDBOX_POLICY;
           case 42: return SANDBOX;
-          case 43: return PERMISSION_REQUEST;
           case 1000: return RAW;
           case 0: return KIND_NOT_SET;
           default: return null;
@@ -8558,6 +8558,37 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       return talon.resources.Sessions.SessionStatus.getDefaultInstance();
     }
 
+    public static final int SKILL_FIELD_NUMBER = 11;
+    /**
+     * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+     * @return Whether the skill field is set.
+     */
+    @java.lang.Override
+    public boolean hasSkill() {
+      return kindCase_ == 11;
+    }
+    /**
+     * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+     * @return The skill.
+     */
+    @java.lang.Override
+    public talon.resources.Common.CommonResourceStatus getSkill() {
+      if (kindCase_ == 11) {
+         return (talon.resources.Common.CommonResourceStatus) kind_;
+      }
+      return talon.resources.Common.CommonResourceStatus.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.CommonResourceStatusOrBuilder getSkillOrBuilder() {
+      if (kindCase_ == 11) {
+         return (talon.resources.Common.CommonResourceStatus) kind_;
+      }
+      return talon.resources.Common.CommonResourceStatus.getDefaultInstance();
+    }
+
     public static final int TEMPLATE_FIELD_NUMBER = 20;
     /**
      * <code>.talon.resources.CommonResourceStatus template = 20;</code>
@@ -8744,37 +8775,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       return talon.resources.Sandboxes.SandboxStatus.getDefaultInstance();
     }
 
-    public static final int PERMISSION_REQUEST_FIELD_NUMBER = 43;
-    /**
-     * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-     * @return Whether the permissionRequest field is set.
-     */
-    @java.lang.Override
-    public boolean hasPermissionRequest() {
-      return kindCase_ == 43;
-    }
-    /**
-     * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-     * @return The permissionRequest.
-     */
-    @java.lang.Override
-    public talon.resources.Sessions.PermissionRequestStatus getPermissionRequest() {
-      if (kindCase_ == 43) {
-         return (talon.resources.Sessions.PermissionRequestStatus) kind_;
-      }
-      return talon.resources.Sessions.PermissionRequestStatus.getDefaultInstance();
-    }
-    /**
-     * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-     */
-    @java.lang.Override
-    public talon.resources.Sessions.PermissionRequestStatusOrBuilder getPermissionRequestOrBuilder() {
-      if (kindCase_ == 43) {
-         return (talon.resources.Sessions.PermissionRequestStatus) kind_;
-      }
-      return talon.resources.Sessions.PermissionRequestStatus.getDefaultInstance();
-    }
-
     public static final int RAW_FIELD_NUMBER = 1000;
     /**
      * <code>.talon.resources.RawResourceStatus raw = 1000;</code>
@@ -8850,6 +8850,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 10) {
         output.writeMessage(10, (talon.resources.Sessions.SessionStatus) kind_);
       }
+      if (kindCase_ == 11) {
+        output.writeMessage(11, (talon.resources.Common.CommonResourceStatus) kind_);
+      }
       if (kindCase_ == 20) {
         output.writeMessage(20, (talon.resources.Common.CommonResourceStatus) kind_);
       }
@@ -8867,9 +8870,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       }
       if (kindCase_ == 42) {
         output.writeMessage(42, (talon.resources.Sandboxes.SandboxStatus) kind_);
-      }
-      if (kindCase_ == 43) {
-        output.writeMessage(43, (talon.resources.Sessions.PermissionRequestStatus) kind_);
       }
       if (kindCase_ == 1000) {
         output.writeMessage(1000, (talon.resources.ResourceOuterClass.RawResourceStatus) kind_);
@@ -8923,6 +8923,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(10, (talon.resources.Sessions.SessionStatus) kind_);
       }
+      if (kindCase_ == 11) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(11, (talon.resources.Common.CommonResourceStatus) kind_);
+      }
       if (kindCase_ == 20) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(20, (talon.resources.Common.CommonResourceStatus) kind_);
@@ -8946,10 +8950,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 42) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(42, (talon.resources.Sandboxes.SandboxStatus) kind_);
-      }
-      if (kindCase_ == 43) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(43, (talon.resources.Sessions.PermissionRequestStatus) kind_);
       }
       if (kindCase_ == 1000) {
         size += com.google.protobuf.CodedOutputStream
@@ -9012,6 +9012,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           if (!getSession()
               .equals(other.getSession())) return false;
           break;
+        case 11:
+          if (!getSkill()
+              .equals(other.getSkill())) return false;
+          break;
         case 20:
           if (!getTemplate()
               .equals(other.getTemplate())) return false;
@@ -9035,10 +9039,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 42:
           if (!getSandbox()
               .equals(other.getSandbox())) return false;
-          break;
-        case 43:
-          if (!getPermissionRequest()
-              .equals(other.getPermissionRequest())) return false;
           break;
         case 1000:
           if (!getRaw()
@@ -9099,6 +9099,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           hash = (37 * hash) + SESSION_FIELD_NUMBER;
           hash = (53 * hash) + getSession().hashCode();
           break;
+        case 11:
+          hash = (37 * hash) + SKILL_FIELD_NUMBER;
+          hash = (53 * hash) + getSkill().hashCode();
+          break;
         case 20:
           hash = (37 * hash) + TEMPLATE_FIELD_NUMBER;
           hash = (53 * hash) + getTemplate().hashCode();
@@ -9122,10 +9126,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 42:
           hash = (37 * hash) + SANDBOX_FIELD_NUMBER;
           hash = (53 * hash) + getSandbox().hashCode();
-          break;
-        case 43:
-          hash = (37 * hash) + PERMISSION_REQUEST_FIELD_NUMBER;
-          hash = (53 * hash) + getPermissionRequest().hashCode();
           break;
         case 1000:
           hash = (37 * hash) + RAW_FIELD_NUMBER;
@@ -9295,6 +9295,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (sessionBuilder_ != null) {
           sessionBuilder_.clear();
         }
+        if (skillBuilder_ != null) {
+          skillBuilder_.clear();
+        }
         if (templateBuilder_ != null) {
           templateBuilder_.clear();
         }
@@ -9312,9 +9315,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         }
         if (sandboxBuilder_ != null) {
           sandboxBuilder_.clear();
-        }
-        if (permissionRequestBuilder_ != null) {
-          permissionRequestBuilder_.clear();
         }
         if (rawBuilder_ != null) {
           rawBuilder_.clear();
@@ -9400,6 +9400,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             sessionBuilder_ != null) {
           result.kind_ = sessionBuilder_.build();
         }
+        if (kindCase_ == 11 &&
+            skillBuilder_ != null) {
+          result.kind_ = skillBuilder_.build();
+        }
         if (kindCase_ == 20 &&
             templateBuilder_ != null) {
           result.kind_ = templateBuilder_.build();
@@ -9423,10 +9427,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (kindCase_ == 42 &&
             sandboxBuilder_ != null) {
           result.kind_ = sandboxBuilder_.build();
-        }
-        if (kindCase_ == 43 &&
-            permissionRequestBuilder_ != null) {
-          result.kind_ = permissionRequestBuilder_.build();
         }
         if (kindCase_ == 1000 &&
             rawBuilder_ != null) {
@@ -9487,6 +9487,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             mergeSession(other.getSession());
             break;
           }
+          case SKILL: {
+            mergeSkill(other.getSkill());
+            break;
+          }
           case TEMPLATE: {
             mergeTemplate(other.getTemplate());
             break;
@@ -9509,10 +9513,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           }
           case SANDBOX: {
             mergeSandbox(other.getSandbox());
-            break;
-          }
-          case PERMISSION_REQUEST: {
-            mergePermissionRequest(other.getPermissionRequest());
             break;
           }
           case RAW: {
@@ -9619,6 +9619,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 10;
                 break;
               } // case 82
+              case 90: {
+                input.readMessage(
+                    internalGetSkillFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                kindCase_ = 11;
+                break;
+              } // case 90
               case 162: {
                 input.readMessage(
                     internalGetTemplateFieldBuilder().getBuilder(),
@@ -9661,13 +9668,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 42;
                 break;
               } // case 338
-              case 346: {
-                input.readMessage(
-                    internalGetPermissionRequestFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                kindCase_ = 43;
-                break;
-              } // case 346
               case 8002: {
                 input.readMessage(
                     internalGetRawFieldBuilder().getBuilder(),
@@ -11128,6 +11128,148 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       }
 
       private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder> skillBuilder_;
+      /**
+       * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+       * @return Whether the skill field is set.
+       */
+      @java.lang.Override
+      public boolean hasSkill() {
+        return kindCase_ == 11;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+       * @return The skill.
+       */
+      @java.lang.Override
+      public talon.resources.Common.CommonResourceStatus getSkill() {
+        if (skillBuilder_ == null) {
+          if (kindCase_ == 11) {
+            return (talon.resources.Common.CommonResourceStatus) kind_;
+          }
+          return talon.resources.Common.CommonResourceStatus.getDefaultInstance();
+        } else {
+          if (kindCase_ == 11) {
+            return skillBuilder_.getMessage();
+          }
+          return talon.resources.Common.CommonResourceStatus.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+       */
+      public Builder setSkill(talon.resources.Common.CommonResourceStatus value) {
+        if (skillBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          kind_ = value;
+          onChanged();
+        } else {
+          skillBuilder_.setMessage(value);
+        }
+        kindCase_ = 11;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+       */
+      public Builder setSkill(
+          talon.resources.Common.CommonResourceStatus.Builder builderForValue) {
+        if (skillBuilder_ == null) {
+          kind_ = builderForValue.build();
+          onChanged();
+        } else {
+          skillBuilder_.setMessage(builderForValue.build());
+        }
+        kindCase_ = 11;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+       */
+      public Builder mergeSkill(talon.resources.Common.CommonResourceStatus value) {
+        if (skillBuilder_ == null) {
+          if (kindCase_ == 11 &&
+              kind_ != talon.resources.Common.CommonResourceStatus.getDefaultInstance()) {
+            kind_ = talon.resources.Common.CommonResourceStatus.newBuilder((talon.resources.Common.CommonResourceStatus) kind_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            kind_ = value;
+          }
+          onChanged();
+        } else {
+          if (kindCase_ == 11) {
+            skillBuilder_.mergeFrom(value);
+          } else {
+            skillBuilder_.setMessage(value);
+          }
+        }
+        kindCase_ = 11;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+       */
+      public Builder clearSkill() {
+        if (skillBuilder_ == null) {
+          if (kindCase_ == 11) {
+            kindCase_ = 0;
+            kind_ = null;
+            onChanged();
+          }
+        } else {
+          if (kindCase_ == 11) {
+            kindCase_ = 0;
+            kind_ = null;
+          }
+          skillBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+       */
+      public talon.resources.Common.CommonResourceStatus.Builder getSkillBuilder() {
+        return internalGetSkillFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+       */
+      @java.lang.Override
+      public talon.resources.Common.CommonResourceStatusOrBuilder getSkillOrBuilder() {
+        if ((kindCase_ == 11) && (skillBuilder_ != null)) {
+          return skillBuilder_.getMessageOrBuilder();
+        } else {
+          if (kindCase_ == 11) {
+            return (talon.resources.Common.CommonResourceStatus) kind_;
+          }
+          return talon.resources.Common.CommonResourceStatus.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus skill = 11;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder>
+          internalGetSkillFieldBuilder() {
+        if (skillBuilder_ == null) {
+          if (!(kindCase_ == 11)) {
+            kind_ = talon.resources.Common.CommonResourceStatus.getDefaultInstance();
+          }
+          skillBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder>(
+                  (talon.resources.Common.CommonResourceStatus) kind_,
+                  getParentForChildren(),
+                  isClean());
+          kind_ = null;
+        }
+        kindCase_ = 11;
+        onChanged();
+        return skillBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder> templateBuilder_;
       /**
        * <code>.talon.resources.CommonResourceStatus template = 20;</code>
@@ -11980,148 +12122,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       }
 
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Sessions.PermissionRequestStatus, talon.resources.Sessions.PermissionRequestStatus.Builder, talon.resources.Sessions.PermissionRequestStatusOrBuilder> permissionRequestBuilder_;
-      /**
-       * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-       * @return Whether the permissionRequest field is set.
-       */
-      @java.lang.Override
-      public boolean hasPermissionRequest() {
-        return kindCase_ == 43;
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-       * @return The permissionRequest.
-       */
-      @java.lang.Override
-      public talon.resources.Sessions.PermissionRequestStatus getPermissionRequest() {
-        if (permissionRequestBuilder_ == null) {
-          if (kindCase_ == 43) {
-            return (talon.resources.Sessions.PermissionRequestStatus) kind_;
-          }
-          return talon.resources.Sessions.PermissionRequestStatus.getDefaultInstance();
-        } else {
-          if (kindCase_ == 43) {
-            return permissionRequestBuilder_.getMessage();
-          }
-          return talon.resources.Sessions.PermissionRequestStatus.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-       */
-      public Builder setPermissionRequest(talon.resources.Sessions.PermissionRequestStatus value) {
-        if (permissionRequestBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          kind_ = value;
-          onChanged();
-        } else {
-          permissionRequestBuilder_.setMessage(value);
-        }
-        kindCase_ = 43;
-        return this;
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-       */
-      public Builder setPermissionRequest(
-          talon.resources.Sessions.PermissionRequestStatus.Builder builderForValue) {
-        if (permissionRequestBuilder_ == null) {
-          kind_ = builderForValue.build();
-          onChanged();
-        } else {
-          permissionRequestBuilder_.setMessage(builderForValue.build());
-        }
-        kindCase_ = 43;
-        return this;
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-       */
-      public Builder mergePermissionRequest(talon.resources.Sessions.PermissionRequestStatus value) {
-        if (permissionRequestBuilder_ == null) {
-          if (kindCase_ == 43 &&
-              kind_ != talon.resources.Sessions.PermissionRequestStatus.getDefaultInstance()) {
-            kind_ = talon.resources.Sessions.PermissionRequestStatus.newBuilder((talon.resources.Sessions.PermissionRequestStatus) kind_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            kind_ = value;
-          }
-          onChanged();
-        } else {
-          if (kindCase_ == 43) {
-            permissionRequestBuilder_.mergeFrom(value);
-          } else {
-            permissionRequestBuilder_.setMessage(value);
-          }
-        }
-        kindCase_ = 43;
-        return this;
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-       */
-      public Builder clearPermissionRequest() {
-        if (permissionRequestBuilder_ == null) {
-          if (kindCase_ == 43) {
-            kindCase_ = 0;
-            kind_ = null;
-            onChanged();
-          }
-        } else {
-          if (kindCase_ == 43) {
-            kindCase_ = 0;
-            kind_ = null;
-          }
-          permissionRequestBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-       */
-      public talon.resources.Sessions.PermissionRequestStatus.Builder getPermissionRequestBuilder() {
-        return internalGetPermissionRequestFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-       */
-      @java.lang.Override
-      public talon.resources.Sessions.PermissionRequestStatusOrBuilder getPermissionRequestOrBuilder() {
-        if ((kindCase_ == 43) && (permissionRequestBuilder_ != null)) {
-          return permissionRequestBuilder_.getMessageOrBuilder();
-        } else {
-          if (kindCase_ == 43) {
-            return (talon.resources.Sessions.PermissionRequestStatus) kind_;
-          }
-          return talon.resources.Sessions.PermissionRequestStatus.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.talon.resources.PermissionRequestStatus permission_request = 43;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Sessions.PermissionRequestStatus, talon.resources.Sessions.PermissionRequestStatus.Builder, talon.resources.Sessions.PermissionRequestStatusOrBuilder>
-          internalGetPermissionRequestFieldBuilder() {
-        if (permissionRequestBuilder_ == null) {
-          if (!(kindCase_ == 43)) {
-            kind_ = talon.resources.Sessions.PermissionRequestStatus.getDefaultInstance();
-          }
-          permissionRequestBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Sessions.PermissionRequestStatus, talon.resources.Sessions.PermissionRequestStatus.Builder, talon.resources.Sessions.PermissionRequestStatusOrBuilder>(
-                  (talon.resources.Sessions.PermissionRequestStatus) kind_,
-                  getParentForChildren(),
-                  isClean());
-          kind_ = null;
-        }
-        kindCase_ = 43;
-        onChanged();
-        return permissionRequestBuilder_;
-      }
-
-      private com.google.protobuf.SingleFieldBuilder<
           talon.resources.ResourceOuterClass.RawResourceStatus, talon.resources.ResourceOuterClass.RawResourceStatus.Builder, talon.resources.ResourceOuterClass.RawResourceStatusOrBuilder> rawBuilder_;
       /**
        * <code>.talon.resources.RawResourceStatus raw = 1000;</code>
@@ -12362,71 +12362,71 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       "oto/resources/namespaces.proto\032\037proto/re" +
       "sources/sandboxes.proto\032\037proto/resources" +
       "/schedules.proto\032\036proto/resources/sessio" +
-      "ns.proto\032\037proto/resources/workflows.prot" +
-      "o\"\274\001\n\010Resource\022\023\n\013api_version\030\001 \001(\t\022\014\n\004k" +
-      "ind\030\002 \001(\t\022/\n\010metadata\030\003 \001(\0132\035.talon.reso" +
-      "urces.ResourceMeta\022+\n\004spec\030\004 \001(\0132\035.talon" +
-      ".resources.ResourceSpec\022/\n\006status\030\005 \001(\0132" +
-      "\037.talon.resources.ResourceStatus\"\223\001\n\020Res" +
-      "ourceManifest\022\023\n\013api_version\030\001 \001(\t\022\014\n\004ki" +
-      "nd\030\002 \001(\t\022/\n\010metadata\030\003 \001(\0132\035.talon.resou" +
-      "rces.ResourceMeta\022+\n\004spec\030\004 \001(\0132\035.talon." +
-      "resources.ResourceSpec\"\037\n\017RawResourceSpe" +
-      "c\022\014\n\004json\030\001 \001(\t\"!\n\021RawResourceStatus\022\014\n\004" +
-      "json\030\001 \001(\t\"\215\010\n\014ResourceSpec\022+\n\005agent\030\001 \001" +
-      "(\0132\032.talon.resources.AgentSpecH\000\0221\n\010work" +
-      "flow\030\002 \001(\0132\035.talon.resources.WorkflowSpe" +
-      "cH\000\0221\n\010schedule\030\003 \001(\0132\035.talon.resources." +
-      "ScheduleSpecH\000\022/\n\007channel\030\004 \001(\0132\034.talon." +
-      "resources.ChannelSpecH\000\022H\n\024channel_subsc" +
-      "ription\030\005 \001(\0132(.talon.resources.ChannelS" +
-      "ubscriptionSpecH\000\0224\n\nmcp_server\030\006 \001(\0132\036." +
-      "talon.resources.McpServerSpecH\000\022C\n\022mcp_s" +
-      "erver_binding\030\007 \001(\0132%.talon.resources.Mc" +
-      "pServerBindingSpecH\000\0223\n\tknowledge\030\010 \001(\0132" +
-      "\036.talon.resources.KnowledgeSpecH\000\0223\n\tnam" +
-      "espace\030\t \001(\0132\036.talon.resources.Namespace" +
-      "SpecH\000\022/\n\007session\030\n \001(\0132\034.talon.resource" +
-      "s.SessionSpecH\000\0221\n\010template\030\024 \001(\0132\035.talo" +
-      "n.resources.TemplateSpecH\000\0225\n\ndeployment" +
-      "\030\025 \001(\0132\037.talon.resources.DeploymentSpecH" +
-      "\000\022D\n\022deployment_replica\030\026 \001(\0132&.talon.re" +
-      "sources.DeploymentReplicaSpecH\000\022:\n\rsandb" +
-      "ox_class\030( \001(\0132!.talon.resources.Sandbox" +
-      "ClassSpecH\000\022<\n\016sandbox_policy\030) \001(\0132\".ta" +
-      "lon.resources.SandboxPolicySpecH\000\022/\n\007san" +
-      "dbox\030* \001(\0132\034.talon.resources.SandboxSpec" +
-      "H\000\022D\n\022permission_request\030+ \001(\0132&.talon.r" +
-      "esources.PermissionRequestSpecH\000\0220\n\003raw\030" +
-      "\350\007 \001(\0132 .talon.resources.RawResourceSpec" +
-      "H\000B\006\n\004kind\"\277\010\n\016ResourceStatus\022-\n\005agent\030\001" +
-      " \001(\0132\034.talon.resources.AgentStatusH\000\0223\n\010" +
-      "workflow\030\002 \001(\0132\037.talon.resources.Workflo" +
-      "wStatusH\000\0223\n\010schedule\030\003 \001(\0132\037.talon.reso" +
-      "urces.ScheduleStatusH\000\0221\n\007channel\030\004 \001(\0132" +
-      "\036.talon.resources.ChannelStatusH\000\022E\n\024cha" +
-      "nnel_subscription\030\005 \001(\0132%.talon.resource" +
-      "s.CommonResourceStatusH\000\022;\n\nmcp_server\030\006" +
-      " \001(\0132%.talon.resources.CommonResourceSta" +
-      "tusH\000\022C\n\022mcp_server_binding\030\007 \001(\0132%.talo" +
-      "n.resources.CommonResourceStatusH\000\022:\n\tkn" +
-      "owledge\030\010 \001(\0132%.talon.resources.CommonRe" +
-      "sourceStatusH\000\0225\n\tnamespace\030\t \001(\0132 .talo" +
-      "n.resources.NamespaceStatusH\000\0221\n\007session" +
-      "\030\n \001(\0132\036.talon.resources.SessionStatusH\000" +
-      "\0229\n\010template\030\024 \001(\0132%.talon.resources.Com" +
-      "monResourceStatusH\000\0227\n\ndeployment\030\025 \001(\0132" +
-      "!.talon.resources.DeploymentStatusH\000\022F\n\022" +
-      "deployment_replica\030\026 \001(\0132(.talon.resourc" +
-      "es.DeploymentReplicaStatusH\000\022>\n\rsandbox_" +
-      "class\030( \001(\0132%.talon.resources.CommonReso" +
-      "urceStatusH\000\022?\n\016sandbox_policy\030) \001(\0132%.t" +
-      "alon.resources.CommonResourceStatusH\000\0221\n" +
-      "\007sandbox\030* \001(\0132\036.talon.resources.Sandbox" +
-      "StatusH\000\022F\n\022permission_request\030+ \001(\0132(.t" +
-      "alon.resources.PermissionRequestStatusH\000" +
-      "\0222\n\003raw\030\350\007 \001(\0132\".talon.resources.RawReso" +
-      "urceStatusH\000B\006\n\004kindb\006proto3"
+      "ns.proto\032\034proto/resources/skills.proto\032\037" +
+      "proto/resources/workflows.proto\"\274\001\n\010Reso" +
+      "urce\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022" +
+      "/\n\010metadata\030\003 \001(\0132\035.talon.resources.Reso" +
+      "urceMeta\022+\n\004spec\030\004 \001(\0132\035.talon.resources" +
+      ".ResourceSpec\022/\n\006status\030\005 \001(\0132\037.talon.re" +
+      "sources.ResourceStatus\"\223\001\n\020ResourceManif" +
+      "est\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022/" +
+      "\n\010metadata\030\003 \001(\0132\035.talon.resources.Resou" +
+      "rceMeta\022+\n\004spec\030\004 \001(\0132\035.talon.resources." +
+      "ResourceSpec\"\037\n\017RawResourceSpec\022\014\n\004json\030" +
+      "\001 \001(\t\"!\n\021RawResourceStatus\022\014\n\004json\030\001 \001(\t" +
+      "\"\364\007\n\014ResourceSpec\022+\n\005agent\030\001 \001(\0132\032.talon" +
+      ".resources.AgentSpecH\000\0221\n\010workflow\030\002 \001(\013" +
+      "2\035.talon.resources.WorkflowSpecH\000\0221\n\010sch" +
+      "edule\030\003 \001(\0132\035.talon.resources.ScheduleSp" +
+      "ecH\000\022/\n\007channel\030\004 \001(\0132\034.talon.resources." +
+      "ChannelSpecH\000\022H\n\024channel_subscription\030\005 " +
+      "\001(\0132(.talon.resources.ChannelSubscriptio" +
+      "nSpecH\000\0224\n\nmcp_server\030\006 \001(\0132\036.talon.reso" +
+      "urces.McpServerSpecH\000\022C\n\022mcp_server_bind" +
+      "ing\030\007 \001(\0132%.talon.resources.McpServerBin" +
+      "dingSpecH\000\0223\n\tknowledge\030\010 \001(\0132\036.talon.re" +
+      "sources.KnowledgeSpecH\000\0223\n\tnamespace\030\t \001" +
+      "(\0132\036.talon.resources.NamespaceSpecH\000\022/\n\007" +
+      "session\030\n \001(\0132\034.talon.resources.SessionS" +
+      "pecH\000\022+\n\005skill\030\013 \001(\0132\032.talon.resources.S" +
+      "killSpecH\000\0221\n\010template\030\024 \001(\0132\035.talon.res" +
+      "ources.TemplateSpecH\000\0225\n\ndeployment\030\025 \001(" +
+      "\0132\037.talon.resources.DeploymentSpecH\000\022D\n\022" +
+      "deployment_replica\030\026 \001(\0132&.talon.resourc" +
+      "es.DeploymentReplicaSpecH\000\022:\n\rsandbox_cl" +
+      "ass\030( \001(\0132!.talon.resources.SandboxClass" +
+      "SpecH\000\022<\n\016sandbox_policy\030) \001(\0132\".talon.r" +
+      "esources.SandboxPolicySpecH\000\022/\n\007sandbox\030" +
+      "* \001(\0132\034.talon.resources.SandboxSpecH\000\0220\n" +
+      "\003raw\030\350\007 \001(\0132 .talon.resources.RawResourc" +
+      "eSpecH\000B\006\n\004kind\"\257\010\n\016ResourceStatus\022-\n\005ag" +
+      "ent\030\001 \001(\0132\034.talon.resources.AgentStatusH" +
+      "\000\0223\n\010workflow\030\002 \001(\0132\037.talon.resources.Wo" +
+      "rkflowStatusH\000\0223\n\010schedule\030\003 \001(\0132\037.talon" +
+      ".resources.ScheduleStatusH\000\0221\n\007channel\030\004" +
+      " \001(\0132\036.talon.resources.ChannelStatusH\000\022E" +
+      "\n\024channel_subscription\030\005 \001(\0132%.talon.res" +
+      "ources.CommonResourceStatusH\000\022;\n\nmcp_ser" +
+      "ver\030\006 \001(\0132%.talon.resources.CommonResour" +
+      "ceStatusH\000\022C\n\022mcp_server_binding\030\007 \001(\0132%" +
+      ".talon.resources.CommonResourceStatusH\000\022" +
+      ":\n\tknowledge\030\010 \001(\0132%.talon.resources.Com" +
+      "monResourceStatusH\000\0225\n\tnamespace\030\t \001(\0132 " +
+      ".talon.resources.NamespaceStatusH\000\0221\n\007se" +
+      "ssion\030\n \001(\0132\036.talon.resources.SessionSta" +
+      "tusH\000\0226\n\005skill\030\013 \001(\0132%.talon.resources.C" +
+      "ommonResourceStatusH\000\0229\n\010template\030\024 \001(\0132" +
+      "%.talon.resources.CommonResourceStatusH\000" +
+      "\0227\n\ndeployment\030\025 \001(\0132!.talon.resources.D" +
+      "eploymentStatusH\000\022F\n\022deployment_replica\030" +
+      "\026 \001(\0132(.talon.resources.DeploymentReplic" +
+      "aStatusH\000\022>\n\rsandbox_class\030( \001(\0132%.talon" +
+      ".resources.CommonResourceStatusH\000\022?\n\016san" +
+      "dbox_policy\030) \001(\0132%.talon.resources.Comm" +
+      "onResourceStatusH\000\0221\n\007sandbox\030* \001(\0132\036.ta" +
+      "lon.resources.SandboxStatusH\000\0222\n\003raw\030\350\007 " +
+      "\001(\0132\".talon.resources.RawResourceStatusH" +
+      "\000B\006\n\004kindb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -12441,6 +12441,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           talon.resources.Sandboxes.getDescriptor(),
           talon.resources.Schedules.getDescriptor(),
           talon.resources.Sessions.getDescriptor(),
+          talon.resources.Skills.getDescriptor(),
           talon.resources.Workflows.getDescriptor(),
         });
     internal_static_talon_resources_Resource_descriptor =
@@ -12472,13 +12473,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     internal_static_talon_resources_ResourceSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ResourceSpec_descriptor,
-        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "McpServerBinding", "Knowledge", "Namespace", "Session", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "PermissionRequest", "Raw", "Kind", });
+        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "McpServerBinding", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Raw", "Kind", });
     internal_static_talon_resources_ResourceStatus_descriptor =
       getDescriptor().getMessageType(5);
     internal_static_talon_resources_ResourceStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ResourceStatus_descriptor,
-        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "McpServerBinding", "Knowledge", "Namespace", "Session", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "PermissionRequest", "Raw", "Kind", });
+        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "McpServerBinding", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Raw", "Kind", });
     descriptor.resolveAllFeaturesImmutable();
     talon.resources.Agents.getDescriptor();
     talon.resources.Channels.getDescriptor();
@@ -12490,6 +12491,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Sandboxes.getDescriptor();
     talon.resources.Schedules.getDescriptor();
     talon.resources.Sessions.getDescriptor();
+    talon.resources.Skills.getDescriptor();
     talon.resources.Workflows.getDescriptor();
   }
 

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use std::sync::Arc;
+use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
@@ -289,6 +290,7 @@ impl AcpAgentRuntime {
                         &sandbox_backend,
                         &sandbox_backend_id,
                         &leased.sandbox,
+                        sink,
                     )
                     .await
                     .unwrap_or_else(|err| json!({"error": err.to_string()}));
@@ -365,10 +367,12 @@ impl AcpAgentRuntime {
         sandbox_backend: &dyn SandboxBackend,
         sandbox_backend_id: &str,
         sandbox: &resources_proto::Resource,
+        sink: &dyn ExecutionSink,
     ) -> Result<Value> {
         match method {
             "fs/read_text_file" | "fs/readTextFile" => {
-                self.ensure_permission("filesystemRead", &params).await?;
+                self.ensure_permission("filesystemRead", &params, sink)
+                    .await?;
                 let path = params
                     .get("path")
                     .and_then(|value| value.as_str())
@@ -377,7 +381,8 @@ impl AcpAgentRuntime {
                 Ok(json!({ "content": String::from_utf8(content)? }))
             }
             "fs/write_text_file" | "fs/writeTextFile" => {
-                self.ensure_permission("filesystemWrite", &params).await?;
+                self.ensure_permission("filesystemWrite", &params, sink)
+                    .await?;
                 let path = params
                     .get("path")
                     .and_then(|value| value.as_str())
@@ -392,7 +397,7 @@ impl AcpAgentRuntime {
                 Ok(json!({ "ok": true }))
             }
             "terminal/exec" | "terminal/run" => {
-                self.ensure_permission("terminal", &params).await?;
+                self.ensure_permission("terminal", &params, sink).await?;
                 let command = params
                     .get("command")
                     .and_then(|value| value.as_str())
@@ -431,19 +436,32 @@ impl AcpAgentRuntime {
                     .get("action")
                     .and_then(|value| value.as_str())
                     .unwrap_or("default");
-                self.ensure_permission(action, &params).await?;
-                Ok(json!({ "decision": "allow" }))
+                let outcome = self
+                    .permission_outcome(action, "permission/request", &params, sink)
+                    .await?;
+                let decision = if permission_selected(&outcome) {
+                    "allow"
+                } else {
+                    "deny"
+                };
+                Ok(json!({
+                    "decision": decision,
+                    "outcome": outcome,
+                }))
             }
             "session/request_permission"
             | "session/requestPermission"
             | "session/request_permissions"
             | "session/requestPermissions" => {
-                self.ensure_permission("terminal", &params).await?;
+                let action = params
+                    .get("action")
+                    .and_then(|value| value.as_str())
+                    .unwrap_or("terminal");
+                let outcome = self
+                    .permission_outcome(action, "session/request_permission", &params, sink)
+                    .await?;
                 Ok(json!({
-                    "outcome": {
-                        "outcome": "selected",
-                        "optionId": "approved",
-                    }
+                    "outcome": outcome
                 }))
             }
             _ => Err(anyhow!("unsupported ACP client request '{}'", method)),
@@ -499,7 +517,29 @@ impl AcpAgentRuntime {
         Ok(())
     }
 
-    async fn ensure_permission(&self, action: &str, params: &Value) -> Result<()> {
+    async fn ensure_permission(
+        &self,
+        action: &str,
+        params: &Value,
+        sink: &dyn ExecutionSink,
+    ) -> Result<()> {
+        let outcome = self
+            .permission_outcome(action, "permission/check", params, sink)
+            .await?;
+        if permission_selected(&outcome) {
+            Ok(())
+        } else {
+            Err(anyhow!("permission denied for {}", action))
+        }
+    }
+
+    async fn permission_outcome(
+        &self,
+        action: &str,
+        method: &str,
+        params: &Value,
+        sink: &dyn ExecutionSink,
+    ) -> Result<Value> {
         let decision = self
             .acp
             .permission_policy
@@ -508,72 +548,116 @@ impl AcpAgentRuntime {
             .map(String::as_str)
             .unwrap_or("ask");
         match decision {
-            "allow" => Ok(()),
-            "deny" => Err(anyhow!("permission denied for {}", action)),
-            "ask" | _ => {
-                self.create_permission_request(action, params).await?;
-                Err(anyhow!("permission requires approval for {}", action))
-            }
+            "allow" => Ok(default_permission_outcome(params)),
+            "deny" => Ok(json!({ "outcome": "cancelled" })),
+            "ask" | _ => self.request_permission(action, method, params, sink).await,
         }
     }
 
-    async fn create_permission_request(&self, action: &str, params: &Value) -> Result<()> {
-        let store = crate::control::resources::ResourceStore::new(
-            self.cp.kv.clone(),
-            self.cp.pubsub.clone(),
-        );
-        let name = format!("{}-{}", self.session_id, uuid::Uuid::now_v7());
-        let resource = resources_proto::Resource {
-            api_version: "talon.impalasys.com/v1".to_string(),
-            kind: "PermissionRequest".to_string(),
-            metadata: Some(resources_proto::ResourceMeta {
-                name,
-                namespace: self.ns.clone(),
-                labels: std::collections::HashMap::from([
-                    (
-                        "talon.impalasys.com/agent".to_string(),
-                        self.agent_id.clone(),
-                    ),
-                    (
-                        "talon.impalasys.com/session".to_string(),
-                        self.session_id.clone(),
-                    ),
-                ]),
-                annotations: std::collections::HashMap::new(),
-                owner_references: Vec::new(),
-                finalizers: Vec::new(),
-                generation: 0,
-                resource_version: String::new(),
-                uid: String::new(),
-                deletion_timestamp: None,
+    async fn request_permission(
+        &self,
+        action: &str,
+        method: &str,
+        params: &Value,
+        sink: &dyn ExecutionSink,
+    ) -> Result<Value> {
+        let request_id = uuid::Uuid::now_v7().to_string();
+        let payload = json!({
+            "requestId": request_id,
+            "protocol": "acp",
+            "method": method,
+            "action": action,
+            "status": "pending",
+            "prompt": format!("ACP harness requested permission for {action}"),
+            "toolCall": params.get("toolCall").cloned().unwrap_or_else(|| {
+                json!({
+                    "toolCallId": request_id,
+                    "title": format!("Allow {action}?"),
+                    "kind": action,
+                })
             }),
-            spec: Some(resources_proto::ResourceSpec {
-                kind: Some(resources_proto::resource_spec::Kind::PermissionRequest(
-                    resources_proto::PermissionRequestSpec {
-                        agent: self.agent_id.clone(),
-                        session_id: self.session_id.clone(),
-                        action: action.to_string(),
-                        prompt: format!("ACP harness requested permission for {}", action),
-                        payload_json: serde_json::to_string(params)?,
-                    },
-                )),
-            }),
-            status: Some(resources_proto::ResourceStatus {
-                kind: Some(resources_proto::resource_status::Kind::PermissionRequest(
-                    resources_proto::PermissionRequestStatus {
-                        observed_generation: 0,
-                        phase: "Pending".to_string(),
-                        conditions: Vec::new(),
-                        decision: String::new(),
-                        decided_by: String::new(),
-                        decided_at: 0,
-                    },
-                )),
-            }),
-        };
-        store.upsert(&self.ns, resource).await?;
-        Ok(())
+            "options": permission_options(params),
+            "params": params,
+        });
+        sink.on_request_permission(&request_id, action, &payload)
+            .await;
+
+        let decision = self.wait_for_permission_decision(&request_id).await?;
+        sink.on_permission_result(&request_id, &decision).await;
+        Ok(decision
+            .get("outcome")
+            .cloned()
+            .unwrap_or_else(|| json!({ "outcome": "cancelled" })))
     }
+
+    async fn wait_for_permission_decision(&self, request_id: &str) -> Result<Value> {
+        let key = crate::control::keys::session_permission_decision(
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            request_id,
+        );
+        let wait = async {
+            loop {
+                if let Some(bytes) = self.cp.kv.get(&key).await? {
+                    return serde_json::from_slice::<Value>(&bytes)
+                        .with_context(|| format!("permission decision {request_id} is invalid"));
+                }
+                tokio::time::sleep(Duration::from_millis(250)).await;
+            }
+        };
+        match tokio::time::timeout(permission_timeout(), wait).await {
+            Ok(decision) => decision,
+            Err(_) => Ok(json!({
+                "requestId": request_id,
+                "status": "cancelled",
+                "outcome": { "outcome": "cancelled" },
+                "decidedBy": "timeout",
+            })),
+        }
+    }
+}
+
+fn permission_timeout() -> Duration {
+    std::env::var("TALON_PERMISSION_TIMEOUT_SECONDS")
+        .ok()
+        .and_then(|value| value.parse::<u64>().ok())
+        .filter(|value| *value > 0)
+        .map(Duration::from_secs)
+        .unwrap_or_else(|| Duration::from_secs(300))
+}
+
+fn permission_options(params: &Value) -> Value {
+    params
+        .get("options")
+        .cloned()
+        .unwrap_or_else(|| json!([{ "optionId": "approved", "name": "Allow" }]))
+}
+
+fn default_permission_outcome(params: &Value) -> Value {
+    let option_id = permission_options(params)
+        .as_array()
+        .and_then(|options| options.first())
+        .and_then(|option| {
+            option
+                .get("optionId")
+                .or_else(|| option.get("id"))
+                .and_then(|value| value.as_str())
+        })
+        .unwrap_or("approved")
+        .to_string();
+    json!({
+        "outcome": "selected",
+        "optionId": option_id,
+    })
+}
+
+fn permission_selected(outcome: &Value) -> bool {
+    outcome
+        .get("outcome")
+        .and_then(|value| value.as_str())
+        .map(|value| value == "selected" || value == "approved" || value == "allow")
+        .unwrap_or(false)
 }
 
 fn sandbox_backend_id(resource: &resources_proto::Resource) -> Result<String> {

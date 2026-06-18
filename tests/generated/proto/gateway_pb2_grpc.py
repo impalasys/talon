@@ -86,6 +86,11 @@ class GatewayServiceStub(object):
                 request_serializer=proto_dot_gateway__pb2.AppendSessionMessageRequest.SerializeToString,
                 response_deserializer=proto_dot_gateway__pb2.AppendSessionMessageResponse.FromString,
                 _registered_method=True)
+        self.AnswerSessionPermission = channel.unary_unary(
+                '/talon.gateway.GatewayService/AnswerSessionPermission',
+                request_serializer=proto_dot_gateway__pb2.AnswerSessionPermissionRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.AnswerSessionPermissionResponse.FromString,
+                _registered_method=True)
         self.StopSessionGeneration = channel.unary_unary(
                 '/talon.gateway.GatewayService/StopSessionGeneration',
                 request_serializer=proto_dot_gateway__pb2.StopSessionGenerationRequest.SerializeToString,
@@ -254,6 +259,12 @@ class GatewayServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def AppendSessionMessage(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def AnswerSessionPermission(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -441,6 +452,11 @@ def add_GatewayServiceServicer_to_server(servicer, server):
                     servicer.AppendSessionMessage,
                     request_deserializer=proto_dot_gateway__pb2.AppendSessionMessageRequest.FromString,
                     response_serializer=proto_dot_gateway__pb2.AppendSessionMessageResponse.SerializeToString,
+            ),
+            'AnswerSessionPermission': grpc.unary_unary_rpc_method_handler(
+                    servicer.AnswerSessionPermission,
+                    request_deserializer=proto_dot_gateway__pb2.AnswerSessionPermissionRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.AnswerSessionPermissionResponse.SerializeToString,
             ),
             'StopSessionGeneration': grpc.unary_unary_rpc_method_handler(
                     servicer.StopSessionGeneration,
@@ -818,6 +834,33 @@ class GatewayService(object):
             '/talon.gateway.GatewayService/AppendSessionMessage',
             proto_dot_gateway__pb2.AppendSessionMessageRequest.SerializeToString,
             proto_dot_gateway__pb2.AppendSessionMessageResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def AnswerSessionPermission(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/AnswerSessionPermission',
+            proto_dot_gateway__pb2.AnswerSessionPermissionRequest.SerializeToString,
+            proto_dot_gateway__pb2.AnswerSessionPermissionResponse.FromString,
             options,
             channel_credentials,
             insecure,

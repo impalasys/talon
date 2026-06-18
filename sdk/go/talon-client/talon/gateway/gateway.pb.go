@@ -2626,6 +2626,166 @@ func (x *AppendSessionMessageResponse) GetMessage() *data.SessionMessage {
 	return nil
 }
 
+type AnswerSessionPermissionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Agent         string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
+	Ns            string                 `protobuf:"bytes,3,opt,name=ns,proto3" json:"ns,omitempty"`
+	RequestId     string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	Outcome       string                 `protobuf:"bytes,5,opt,name=outcome,proto3" json:"outcome,omitempty"`
+	OptionId      string                 `protobuf:"bytes,6,opt,name=option_id,json=optionId,proto3" json:"option_id,omitempty"`
+	DecidedBy     string                 `protobuf:"bytes,7,opt,name=decided_by,json=decidedBy,proto3" json:"decided_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnswerSessionPermissionRequest) Reset() {
+	*x = AnswerSessionPermissionRequest{}
+	mi := &file_proto_gateway_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnswerSessionPermissionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnswerSessionPermissionRequest) ProtoMessage() {}
+
+func (x *AnswerSessionPermissionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_gateway_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnswerSessionPermissionRequest.ProtoReflect.Descriptor instead.
+func (*AnswerSessionPermissionRequest) Descriptor() ([]byte, []int) {
+	return file_proto_gateway_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *AnswerSessionPermissionRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *AnswerSessionPermissionRequest) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+func (x *AnswerSessionPermissionRequest) GetNs() string {
+	if x != nil {
+		return x.Ns
+	}
+	return ""
+}
+
+func (x *AnswerSessionPermissionRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *AnswerSessionPermissionRequest) GetOutcome() string {
+	if x != nil {
+		return x.Outcome
+	}
+	return ""
+}
+
+func (x *AnswerSessionPermissionRequest) GetOptionId() string {
+	if x != nil {
+		return x.OptionId
+	}
+	return ""
+}
+
+func (x *AnswerSessionPermissionRequest) GetDecidedBy() string {
+	if x != nil {
+		return x.DecidedBy
+	}
+	return ""
+}
+
+type AnswerSessionPermissionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	RequestId     string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	Outcome       string                 `protobuf:"bytes,3,opt,name=outcome,proto3" json:"outcome,omitempty"`
+	OptionId      string                 `protobuf:"bytes,4,opt,name=option_id,json=optionId,proto3" json:"option_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnswerSessionPermissionResponse) Reset() {
+	*x = AnswerSessionPermissionResponse{}
+	mi := &file_proto_gateway_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnswerSessionPermissionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnswerSessionPermissionResponse) ProtoMessage() {}
+
+func (x *AnswerSessionPermissionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_gateway_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnswerSessionPermissionResponse.ProtoReflect.Descriptor instead.
+func (*AnswerSessionPermissionResponse) Descriptor() ([]byte, []int) {
+	return file_proto_gateway_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *AnswerSessionPermissionResponse) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *AnswerSessionPermissionResponse) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *AnswerSessionPermissionResponse) GetOutcome() string {
+	if x != nil {
+		return x.Outcome
+	}
+	return ""
+}
+
+func (x *AnswerSessionPermissionResponse) GetOptionId() string {
+	if x != nil {
+		return x.OptionId
+	}
+	return ""
+}
+
 type StopSessionGenerationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
@@ -2637,7 +2797,7 @@ type StopSessionGenerationRequest struct {
 
 func (x *StopSessionGenerationRequest) Reset() {
 	*x = StopSessionGenerationRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[44]
+	mi := &file_proto_gateway_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2649,7 +2809,7 @@ func (x *StopSessionGenerationRequest) String() string {
 func (*StopSessionGenerationRequest) ProtoMessage() {}
 
 func (x *StopSessionGenerationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[44]
+	mi := &file_proto_gateway_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2662,7 +2822,7 @@ func (x *StopSessionGenerationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopSessionGenerationRequest.ProtoReflect.Descriptor instead.
 func (*StopSessionGenerationRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{44}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *StopSessionGenerationRequest) GetSessionId() string {
@@ -2695,7 +2855,7 @@ type StopSessionGenerationResponse struct {
 
 func (x *StopSessionGenerationResponse) Reset() {
 	*x = StopSessionGenerationResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[45]
+	mi := &file_proto_gateway_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2707,7 +2867,7 @@ func (x *StopSessionGenerationResponse) String() string {
 func (*StopSessionGenerationResponse) ProtoMessage() {}
 
 func (x *StopSessionGenerationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[45]
+	mi := &file_proto_gateway_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2720,7 +2880,7 @@ func (x *StopSessionGenerationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopSessionGenerationResponse.ProtoReflect.Descriptor instead.
 func (*StopSessionGenerationResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{45}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *StopSessionGenerationResponse) GetSuccess() bool {
@@ -2741,7 +2901,7 @@ type StreamSessionPartsRequest struct {
 
 func (x *StreamSessionPartsRequest) Reset() {
 	*x = StreamSessionPartsRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[46]
+	mi := &file_proto_gateway_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2753,7 +2913,7 @@ func (x *StreamSessionPartsRequest) String() string {
 func (*StreamSessionPartsRequest) ProtoMessage() {}
 
 func (x *StreamSessionPartsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[46]
+	mi := &file_proto_gateway_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2766,7 +2926,7 @@ func (x *StreamSessionPartsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamSessionPartsRequest.ProtoReflect.Descriptor instead.
 func (*StreamSessionPartsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{46}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *StreamSessionPartsRequest) GetSessionId() string {
@@ -2801,7 +2961,7 @@ type StreamSessionPartsBatchRequest struct {
 
 func (x *StreamSessionPartsBatchRequest) Reset() {
 	*x = StreamSessionPartsBatchRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[47]
+	mi := &file_proto_gateway_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2813,7 +2973,7 @@ func (x *StreamSessionPartsBatchRequest) String() string {
 func (*StreamSessionPartsBatchRequest) ProtoMessage() {}
 
 func (x *StreamSessionPartsBatchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[47]
+	mi := &file_proto_gateway_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2826,7 +2986,7 @@ func (x *StreamSessionPartsBatchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamSessionPartsBatchRequest.ProtoReflect.Descriptor instead.
 func (*StreamSessionPartsBatchRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{47}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *StreamSessionPartsBatchRequest) GetSessionNames() []string {
@@ -2847,7 +3007,7 @@ type CreateNamespaceRequest struct {
 
 func (x *CreateNamespaceRequest) Reset() {
 	*x = CreateNamespaceRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[48]
+	mi := &file_proto_gateway_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2859,7 +3019,7 @@ func (x *CreateNamespaceRequest) String() string {
 func (*CreateNamespaceRequest) ProtoMessage() {}
 
 func (x *CreateNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[48]
+	mi := &file_proto_gateway_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2872,7 +3032,7 @@ func (x *CreateNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*CreateNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{48}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *CreateNamespaceRequest) GetName() string {
@@ -2905,7 +3065,7 @@ type GetNamespaceRequest struct {
 
 func (x *GetNamespaceRequest) Reset() {
 	*x = GetNamespaceRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[49]
+	mi := &file_proto_gateway_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2917,7 +3077,7 @@ func (x *GetNamespaceRequest) String() string {
 func (*GetNamespaceRequest) ProtoMessage() {}
 
 func (x *GetNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[49]
+	mi := &file_proto_gateway_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2930,7 +3090,7 @@ func (x *GetNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*GetNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{49}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *GetNamespaceRequest) GetName() string {
@@ -2949,7 +3109,7 @@ type DeleteNamespaceRequest struct {
 
 func (x *DeleteNamespaceRequest) Reset() {
 	*x = DeleteNamespaceRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[50]
+	mi := &file_proto_gateway_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2961,7 +3121,7 @@ func (x *DeleteNamespaceRequest) String() string {
 func (*DeleteNamespaceRequest) ProtoMessage() {}
 
 func (x *DeleteNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[50]
+	mi := &file_proto_gateway_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2974,7 +3134,7 @@ func (x *DeleteNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*DeleteNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{50}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *DeleteNamespaceRequest) GetName() string {
@@ -2993,7 +3153,7 @@ type ListNamespacesRequest struct {
 
 func (x *ListNamespacesRequest) Reset() {
 	*x = ListNamespacesRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[51]
+	mi := &file_proto_gateway_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3005,7 +3165,7 @@ func (x *ListNamespacesRequest) String() string {
 func (*ListNamespacesRequest) ProtoMessage() {}
 
 func (x *ListNamespacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[51]
+	mi := &file_proto_gateway_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3018,7 +3178,7 @@ func (x *ListNamespacesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespacesRequest.ProtoReflect.Descriptor instead.
 func (*ListNamespacesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{51}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *ListNamespacesRequest) GetParent() string {
@@ -3041,7 +3201,7 @@ type NamespaceResponse struct {
 
 func (x *NamespaceResponse) Reset() {
 	*x = NamespaceResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[52]
+	mi := &file_proto_gateway_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3053,7 +3213,7 @@ func (x *NamespaceResponse) String() string {
 func (*NamespaceResponse) ProtoMessage() {}
 
 func (x *NamespaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[52]
+	mi := &file_proto_gateway_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3066,7 +3226,7 @@ func (x *NamespaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NamespaceResponse.ProtoReflect.Descriptor instead.
 func (*NamespaceResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{52}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *NamespaceResponse) GetName() string {
@@ -3113,7 +3273,7 @@ type ListNamespacesResponse struct {
 
 func (x *ListNamespacesResponse) Reset() {
 	*x = ListNamespacesResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[53]
+	mi := &file_proto_gateway_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3125,7 +3285,7 @@ func (x *ListNamespacesResponse) String() string {
 func (*ListNamespacesResponse) ProtoMessage() {}
 
 func (x *ListNamespacesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[53]
+	mi := &file_proto_gateway_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3138,7 +3298,7 @@ func (x *ListNamespacesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespacesResponse.ProtoReflect.Descriptor instead.
 func (*ListNamespacesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{53}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *ListNamespacesResponse) GetNamespaces() []*NamespaceResponse {
@@ -3366,7 +3526,25 @@ const file_proto_gateway_proto_rawDesc = "" +
 	"\x1cAppendSessionMessageResponse\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x124\n" +
-	"\amessage\x18\x02 \x01(\v2\x1a.talon.data.SessionMessageR\amessage\"c\n" +
+	"\amessage\x18\x02 \x01(\v2\x1a.talon.data.SessionMessageR\amessage\"\xda\x01\n" +
+	"\x1eAnswerSessionPermissionRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
+	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x0e\n" +
+	"\x02ns\x18\x03 \x01(\tR\x02ns\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tR\trequestId\x12\x18\n" +
+	"\aoutcome\x18\x05 \x01(\tR\aoutcome\x12\x1b\n" +
+	"\toption_id\x18\x06 \x01(\tR\boptionId\x12\x1d\n" +
+	"\n" +
+	"decided_by\x18\a \x01(\tR\tdecidedBy\"\x96\x01\n" +
+	"\x1fAnswerSessionPermissionResponse\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x02 \x01(\tR\trequestId\x12\x18\n" +
+	"\aoutcome\x18\x03 \x01(\tR\aoutcome\x12\x1b\n" +
+	"\toption_id\x18\x04 \x01(\tR\boptionId\"c\n" +
 	"\x1cStopSessionGenerationRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
@@ -3410,7 +3588,7 @@ const file_proto_gateway_proto_rawDesc = "" +
 	"\x16ListNamespacesResponse\x12@\n" +
 	"\n" +
 	"namespaces\x18\x01 \x03(\v2 .talon.gateway.NamespaceResponseR\n" +
-	"namespaces2\x8f$\n" +
+	"namespaces2\xe7%\n" +
 	"\x0eGatewayService\x12\x82\x01\n" +
 	"\fGetKnowledge\x12\".talon.gateway.GetKnowledgeRequest\x1a .talon.gateway.KnowledgeResponse\",\x82\xd3\xe4\x93\x02&\x12$/v1/ns/{ns}/agents/{agent}/knowledge\x12\x98\x01\n" +
 	"\x0fSearchKnowledge\x12%.talon.gateway.SearchKnowledgeRequest\x1a&.talon.gateway.SearchKnowledgeResponse\"6\x82\xd3\xe4\x93\x020:\x01*\"+/v1/ns/{ns}/agents/{agent}/knowledge/search\x12\x84\x01\n" +
@@ -3422,7 +3600,8 @@ const file_proto_gateway_proto_rawDesc = "" +
 	"\rDeleteSession\x12#.talon.gateway.DeleteSessionRequest\x1a$.talon.gateway.DeleteSessionResponse\"8\x82\xd3\xe4\x93\x022*0/v1/ns/{ns}/agents/{agent}/sessions/{session_id}\x12\x9a\x01\n" +
 	"\fClearSession\x12\".talon.gateway.ClearSessionRequest\x1a#.talon.gateway.ClearSessionResponse\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/v1/ns/{ns}/agents/{agent}/sessions/{session_id}:clear\x12\x99\x01\n" +
 	"\vSendMessage\x12!.talon.gateway.SendMessageRequest\x1a\".talon.gateway.SendMessageResponse\"C\x82\xd3\xe4\x93\x02=:\x01*\"8/v1/ns/{ns}/agents/{agent}/sessions/{session_id}/message\x12\xbc\x01\n" +
-	"\x14AppendSessionMessage\x12*.talon.gateway.AppendSessionMessageRequest\x1a+.talon.gateway.AppendSessionMessageResponse\"K\x82\xd3\xe4\x93\x02E:\x01*\"@/v1/ns/{ns}/agents/{agent}/sessions/{session_id}/messages:append\x12\xb4\x01\n" +
+	"\x14AppendSessionMessage\x12*.talon.gateway.AppendSessionMessageRequest\x1a+.talon.gateway.AppendSessionMessageResponse\"K\x82\xd3\xe4\x93\x02E:\x01*\"@/v1/ns/{ns}/agents/{agent}/sessions/{session_id}/messages:append\x12\xd5\x01\n" +
+	"\x17AnswerSessionPermission\x12-.talon.gateway.AnswerSessionPermissionRequest\x1a..talon.gateway.AnswerSessionPermissionResponse\"[\x82\xd3\xe4\x93\x02U:\x01*\"P/v1/ns/{ns}/agents/{agent}/sessions/{session_id}/permissions/{request_id}:answer\x12\xb4\x01\n" +
 	"\x15StopSessionGeneration\x12+.talon.gateway.StopSessionGenerationRequest\x1a,.talon.gateway.StopSessionGenerationResponse\"@\x82\xd3\xe4\x93\x02::\x01*\"5/v1/ns/{ns}/agents/{agent}/sessions/{session_id}:stop\x12\xa8\x01\n" +
 	"\x12StreamSessionParts\x12(.talon.gateway.StreamSessionPartsRequest\x1a%.talon.events.SessionMessagePartEvent\"?\x82\xd3\xe4\x93\x029\x127/v1/ns/{ns}/agents/{agent}/sessions/{session_id}/stream0\x01\x12\x97\x01\n" +
 	"\x17StreamSessionPartsBatch\x12-.talon.gateway.StreamSessionPartsBatchRequest\x1a%.talon.events.SessionMessagePartEvent\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/v1/session-streams:batch0\x01\x12\x9d\x01\n" +
@@ -3457,7 +3636,7 @@ func file_proto_gateway_proto_rawDescGZIP() []byte {
 	return file_proto_gateway_proto_rawDescData
 }
 
-var file_proto_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 62)
+var file_proto_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 64)
 var file_proto_gateway_proto_goTypes = []any{
 	(*CreateResourceRequest)(nil),           // 0: talon.gateway.CreateResourceRequest
 	(*GetResourceRequest)(nil),              // 1: talon.gateway.GetResourceRequest
@@ -3503,64 +3682,66 @@ var file_proto_gateway_proto_goTypes = []any{
 	(*SendMessageResponse)(nil),             // 41: talon.gateway.SendMessageResponse
 	(*AppendSessionMessageRequest)(nil),     // 42: talon.gateway.AppendSessionMessageRequest
 	(*AppendSessionMessageResponse)(nil),    // 43: talon.gateway.AppendSessionMessageResponse
-	(*StopSessionGenerationRequest)(nil),    // 44: talon.gateway.StopSessionGenerationRequest
-	(*StopSessionGenerationResponse)(nil),   // 45: talon.gateway.StopSessionGenerationResponse
-	(*StreamSessionPartsRequest)(nil),       // 46: talon.gateway.StreamSessionPartsRequest
-	(*StreamSessionPartsBatchRequest)(nil),  // 47: talon.gateway.StreamSessionPartsBatchRequest
-	(*CreateNamespaceRequest)(nil),          // 48: talon.gateway.CreateNamespaceRequest
-	(*GetNamespaceRequest)(nil),             // 49: talon.gateway.GetNamespaceRequest
-	(*DeleteNamespaceRequest)(nil),          // 50: talon.gateway.DeleteNamespaceRequest
-	(*ListNamespacesRequest)(nil),           // 51: talon.gateway.ListNamespacesRequest
-	(*NamespaceResponse)(nil),               // 52: talon.gateway.NamespaceResponse
-	(*ListNamespacesResponse)(nil),          // 53: talon.gateway.ListNamespacesResponse
-	nil,                                     // 54: talon.gateway.CreateSessionRequest.LabelsEntry
-	nil,                                     // 55: talon.gateway.SessionListItem.LabelsEntry
-	nil,                                     // 56: talon.gateway.SessionResponse.LabelsEntry
-	nil,                                     // 57: talon.gateway.PostChannelMessageRequest.LabelsEntry
-	nil,                                     // 58: talon.gateway.CreateWorkflowRunRequest.LabelsEntry
-	nil,                                     // 59: talon.gateway.SendMessageRequest.LabelsEntry
-	nil,                                     // 60: talon.gateway.CreateNamespaceRequest.LabelsEntry
-	nil,                                     // 61: talon.gateway.NamespaceResponse.LabelsEntry
-	(*resources.ResourceManifest)(nil),      // 62: talon.resources.ResourceManifest
-	(*resources.Resource)(nil),              // 63: talon.resources.Resource
-	(*data.Knowledge)(nil),                  // 64: talon.data.Knowledge
-	(*data.KnowledgeSearchResult)(nil),      // 65: talon.data.KnowledgeSearchResult
-	(*data.SessionMessage)(nil),             // 66: talon.data.SessionMessage
-	(*data.ChannelMessage)(nil),             // 67: talon.data.ChannelMessage
-	(*data.WorkflowRun)(nil),                // 68: talon.data.WorkflowRun
-	(*data.WorkflowStepRun)(nil),            // 69: talon.data.WorkflowStepRun
-	(*events.SessionMessagePartEvent)(nil),  // 70: talon.events.SessionMessagePartEvent
-	(*events.ChannelEvent)(nil),             // 71: talon.events.ChannelEvent
-	(*data.WorkflowRunEvent)(nil),           // 72: talon.data.WorkflowRunEvent
+	(*AnswerSessionPermissionRequest)(nil),  // 44: talon.gateway.AnswerSessionPermissionRequest
+	(*AnswerSessionPermissionResponse)(nil), // 45: talon.gateway.AnswerSessionPermissionResponse
+	(*StopSessionGenerationRequest)(nil),    // 46: talon.gateway.StopSessionGenerationRequest
+	(*StopSessionGenerationResponse)(nil),   // 47: talon.gateway.StopSessionGenerationResponse
+	(*StreamSessionPartsRequest)(nil),       // 48: talon.gateway.StreamSessionPartsRequest
+	(*StreamSessionPartsBatchRequest)(nil),  // 49: talon.gateway.StreamSessionPartsBatchRequest
+	(*CreateNamespaceRequest)(nil),          // 50: talon.gateway.CreateNamespaceRequest
+	(*GetNamespaceRequest)(nil),             // 51: talon.gateway.GetNamespaceRequest
+	(*DeleteNamespaceRequest)(nil),          // 52: talon.gateway.DeleteNamespaceRequest
+	(*ListNamespacesRequest)(nil),           // 53: talon.gateway.ListNamespacesRequest
+	(*NamespaceResponse)(nil),               // 54: talon.gateway.NamespaceResponse
+	(*ListNamespacesResponse)(nil),          // 55: talon.gateway.ListNamespacesResponse
+	nil,                                     // 56: talon.gateway.CreateSessionRequest.LabelsEntry
+	nil,                                     // 57: talon.gateway.SessionListItem.LabelsEntry
+	nil,                                     // 58: talon.gateway.SessionResponse.LabelsEntry
+	nil,                                     // 59: talon.gateway.PostChannelMessageRequest.LabelsEntry
+	nil,                                     // 60: talon.gateway.CreateWorkflowRunRequest.LabelsEntry
+	nil,                                     // 61: talon.gateway.SendMessageRequest.LabelsEntry
+	nil,                                     // 62: talon.gateway.CreateNamespaceRequest.LabelsEntry
+	nil,                                     // 63: talon.gateway.NamespaceResponse.LabelsEntry
+	(*resources.ResourceManifest)(nil),      // 64: talon.resources.ResourceManifest
+	(*resources.Resource)(nil),              // 65: talon.resources.Resource
+	(*data.Knowledge)(nil),                  // 66: talon.data.Knowledge
+	(*data.KnowledgeSearchResult)(nil),      // 67: talon.data.KnowledgeSearchResult
+	(*data.SessionMessage)(nil),             // 68: talon.data.SessionMessage
+	(*data.ChannelMessage)(nil),             // 69: talon.data.ChannelMessage
+	(*data.WorkflowRun)(nil),                // 70: talon.data.WorkflowRun
+	(*data.WorkflowStepRun)(nil),            // 71: talon.data.WorkflowStepRun
+	(*events.SessionMessagePartEvent)(nil),  // 72: talon.events.SessionMessagePartEvent
+	(*events.ChannelEvent)(nil),             // 73: talon.events.ChannelEvent
+	(*data.WorkflowRunEvent)(nil),           // 74: talon.data.WorkflowRunEvent
 }
 var file_proto_gateway_proto_depIdxs = []int32{
-	62, // 0: talon.gateway.CreateResourceRequest.manifest:type_name -> talon.resources.ResourceManifest
-	63, // 1: talon.gateway.ResourceResponse.resource:type_name -> talon.resources.Resource
-	63, // 2: talon.gateway.ListResourcesResponse.resources:type_name -> talon.resources.Resource
-	64, // 3: talon.gateway.KnowledgeResponse.modules:type_name -> talon.data.Knowledge
-	65, // 4: talon.gateway.SearchKnowledgeResponse.results:type_name -> talon.data.KnowledgeSearchResult
-	54, // 5: talon.gateway.CreateSessionRequest.labels:type_name -> talon.gateway.CreateSessionRequest.LabelsEntry
-	66, // 6: talon.gateway.ListSessionMessagesResponseItem.message:type_name -> talon.data.SessionMessage
+	64, // 0: talon.gateway.CreateResourceRequest.manifest:type_name -> talon.resources.ResourceManifest
+	65, // 1: talon.gateway.ResourceResponse.resource:type_name -> talon.resources.Resource
+	65, // 2: talon.gateway.ListResourcesResponse.resources:type_name -> talon.resources.Resource
+	66, // 3: talon.gateway.KnowledgeResponse.modules:type_name -> talon.data.Knowledge
+	67, // 4: talon.gateway.SearchKnowledgeResponse.results:type_name -> talon.data.KnowledgeSearchResult
+	56, // 5: talon.gateway.CreateSessionRequest.labels:type_name -> talon.gateway.CreateSessionRequest.LabelsEntry
+	68, // 6: talon.gateway.ListSessionMessagesResponseItem.message:type_name -> talon.data.SessionMessage
 	14, // 7: talon.gateway.ListSessionMessagesResponse.items:type_name -> talon.gateway.ListSessionMessagesResponseItem
-	55, // 8: talon.gateway.SessionListItem.labels:type_name -> talon.gateway.SessionListItem.LabelsEntry
+	57, // 8: talon.gateway.SessionListItem.labels:type_name -> talon.gateway.SessionListItem.LabelsEntry
 	17, // 9: talon.gateway.ListSessionsResponse.sessions:type_name -> talon.gateway.SessionListItem
-	66, // 10: talon.gateway.SessionResponse.messages:type_name -> talon.data.SessionMessage
-	56, // 11: talon.gateway.SessionResponse.labels:type_name -> talon.gateway.SessionResponse.LabelsEntry
-	57, // 12: talon.gateway.PostChannelMessageRequest.labels:type_name -> talon.gateway.PostChannelMessageRequest.LabelsEntry
-	67, // 13: talon.gateway.PostChannelMessageResponse.message:type_name -> talon.data.ChannelMessage
+	68, // 10: talon.gateway.SessionResponse.messages:type_name -> talon.data.SessionMessage
+	58, // 11: talon.gateway.SessionResponse.labels:type_name -> talon.gateway.SessionResponse.LabelsEntry
+	59, // 12: talon.gateway.PostChannelMessageRequest.labels:type_name -> talon.gateway.PostChannelMessageRequest.LabelsEntry
+	69, // 13: talon.gateway.PostChannelMessageResponse.message:type_name -> talon.data.ChannelMessage
 	25, // 14: talon.gateway.PostChannelMessageResponse.routed_sessions:type_name -> talon.gateway.RoutedChannelSession
-	67, // 15: talon.gateway.ChannelMessageResponse.message:type_name -> talon.data.ChannelMessage
-	67, // 16: talon.gateway.ListChannelMessagesResponse.messages:type_name -> talon.data.ChannelMessage
-	58, // 17: talon.gateway.CreateWorkflowRunRequest.labels:type_name -> talon.gateway.CreateWorkflowRunRequest.LabelsEntry
-	68, // 18: talon.gateway.WorkflowRunResponse.run:type_name -> talon.data.WorkflowRun
-	69, // 19: talon.gateway.WorkflowRunResponse.steps:type_name -> talon.data.WorkflowStepRun
-	68, // 20: talon.gateway.ListWorkflowRunsResponse.runs:type_name -> talon.data.WorkflowRun
-	59, // 21: talon.gateway.SendMessageRequest.labels:type_name -> talon.gateway.SendMessageRequest.LabelsEntry
-	66, // 22: talon.gateway.AppendSessionMessageRequest.message:type_name -> talon.data.SessionMessage
-	66, // 23: talon.gateway.AppendSessionMessageResponse.message:type_name -> talon.data.SessionMessage
-	60, // 24: talon.gateway.CreateNamespaceRequest.labels:type_name -> talon.gateway.CreateNamespaceRequest.LabelsEntry
-	61, // 25: talon.gateway.NamespaceResponse.labels:type_name -> talon.gateway.NamespaceResponse.LabelsEntry
-	52, // 26: talon.gateway.ListNamespacesResponse.namespaces:type_name -> talon.gateway.NamespaceResponse
+	69, // 15: talon.gateway.ChannelMessageResponse.message:type_name -> talon.data.ChannelMessage
+	69, // 16: talon.gateway.ListChannelMessagesResponse.messages:type_name -> talon.data.ChannelMessage
+	60, // 17: talon.gateway.CreateWorkflowRunRequest.labels:type_name -> talon.gateway.CreateWorkflowRunRequest.LabelsEntry
+	70, // 18: talon.gateway.WorkflowRunResponse.run:type_name -> talon.data.WorkflowRun
+	71, // 19: talon.gateway.WorkflowRunResponse.steps:type_name -> talon.data.WorkflowStepRun
+	70, // 20: talon.gateway.ListWorkflowRunsResponse.runs:type_name -> talon.data.WorkflowRun
+	61, // 21: talon.gateway.SendMessageRequest.labels:type_name -> talon.gateway.SendMessageRequest.LabelsEntry
+	68, // 22: talon.gateway.AppendSessionMessageRequest.message:type_name -> talon.data.SessionMessage
+	68, // 23: talon.gateway.AppendSessionMessageResponse.message:type_name -> talon.data.SessionMessage
+	62, // 24: talon.gateway.CreateNamespaceRequest.labels:type_name -> talon.gateway.CreateNamespaceRequest.LabelsEntry
+	63, // 25: talon.gateway.NamespaceResponse.labels:type_name -> talon.gateway.NamespaceResponse.LabelsEntry
+	54, // 26: talon.gateway.ListNamespacesResponse.namespaces:type_name -> talon.gateway.NamespaceResponse
 	7,  // 27: talon.gateway.GatewayService.GetKnowledge:input_type -> talon.gateway.GetKnowledgeRequest
 	9,  // 28: talon.gateway.GatewayService.SearchKnowledge:input_type -> talon.gateway.SearchKnowledgeRequest
 	11, // 29: talon.gateway.GatewayService.CreateSession:input_type -> talon.gateway.CreateSessionRequest
@@ -3571,60 +3752,62 @@ var file_proto_gateway_proto_depIdxs = []int32{
 	22, // 34: talon.gateway.GatewayService.ClearSession:input_type -> talon.gateway.ClearSessionRequest
 	40, // 35: talon.gateway.GatewayService.SendMessage:input_type -> talon.gateway.SendMessageRequest
 	42, // 36: talon.gateway.GatewayService.AppendSessionMessage:input_type -> talon.gateway.AppendSessionMessageRequest
-	44, // 37: talon.gateway.GatewayService.StopSessionGeneration:input_type -> talon.gateway.StopSessionGenerationRequest
-	46, // 38: talon.gateway.GatewayService.StreamSessionParts:input_type -> talon.gateway.StreamSessionPartsRequest
-	47, // 39: talon.gateway.GatewayService.StreamSessionPartsBatch:input_type -> talon.gateway.StreamSessionPartsBatchRequest
-	24, // 40: talon.gateway.GatewayService.PostChannelMessage:input_type -> talon.gateway.PostChannelMessageRequest
-	27, // 41: talon.gateway.GatewayService.GetChannelMessage:input_type -> talon.gateway.GetChannelMessageRequest
-	29, // 42: talon.gateway.GatewayService.ListChannelMessages:input_type -> talon.gateway.ListChannelMessagesRequest
-	31, // 43: talon.gateway.GatewayService.StreamChannelEvents:input_type -> talon.gateway.StreamChannelEventsRequest
-	32, // 44: talon.gateway.GatewayService.CreateWorkflowRun:input_type -> talon.gateway.CreateWorkflowRunRequest
-	33, // 45: talon.gateway.GatewayService.GetWorkflowRun:input_type -> talon.gateway.GetWorkflowRunRequest
-	34, // 46: talon.gateway.GatewayService.ListWorkflowRuns:input_type -> talon.gateway.ListWorkflowRunsRequest
-	35, // 47: talon.gateway.GatewayService.ResumeWorkflowRun:input_type -> talon.gateway.ResumeWorkflowRunRequest
-	36, // 48: talon.gateway.GatewayService.CancelWorkflowRun:input_type -> talon.gateway.CancelWorkflowRunRequest
-	37, // 49: talon.gateway.GatewayService.StreamWorkflowEvents:input_type -> talon.gateway.StreamWorkflowEventsRequest
-	48, // 50: talon.gateway.GatewayService.CreateNamespace:input_type -> talon.gateway.CreateNamespaceRequest
-	49, // 51: talon.gateway.GatewayService.GetNamespace:input_type -> talon.gateway.GetNamespaceRequest
-	50, // 52: talon.gateway.GatewayService.DeleteNamespace:input_type -> talon.gateway.DeleteNamespaceRequest
-	51, // 53: talon.gateway.GatewayService.ListNamespaces:input_type -> talon.gateway.ListNamespacesRequest
-	0,  // 54: talon.gateway.GatewayService.CreateResource:input_type -> talon.gateway.CreateResourceRequest
-	1,  // 55: talon.gateway.GatewayService.GetResource:input_type -> talon.gateway.GetResourceRequest
-	2,  // 56: talon.gateway.GatewayService.ListResources:input_type -> talon.gateway.ListResourcesRequest
-	3,  // 57: talon.gateway.GatewayService.DeleteResource:input_type -> talon.gateway.DeleteResourceRequest
-	8,  // 58: talon.gateway.GatewayService.GetKnowledge:output_type -> talon.gateway.KnowledgeResponse
-	10, // 59: talon.gateway.GatewayService.SearchKnowledge:output_type -> talon.gateway.SearchKnowledgeResponse
-	19, // 60: talon.gateway.GatewayService.CreateSession:output_type -> talon.gateway.SessionResponse
-	19, // 61: talon.gateway.GatewayService.GetSession:output_type -> talon.gateway.SessionResponse
-	15, // 62: talon.gateway.GatewayService.ListSessionMessages:output_type -> talon.gateway.ListSessionMessagesResponse
-	18, // 63: talon.gateway.GatewayService.ListSessions:output_type -> talon.gateway.ListSessionsResponse
-	21, // 64: talon.gateway.GatewayService.DeleteSession:output_type -> talon.gateway.DeleteSessionResponse
-	23, // 65: talon.gateway.GatewayService.ClearSession:output_type -> talon.gateway.ClearSessionResponse
-	41, // 66: talon.gateway.GatewayService.SendMessage:output_type -> talon.gateway.SendMessageResponse
-	43, // 67: talon.gateway.GatewayService.AppendSessionMessage:output_type -> talon.gateway.AppendSessionMessageResponse
-	45, // 68: talon.gateway.GatewayService.StopSessionGeneration:output_type -> talon.gateway.StopSessionGenerationResponse
-	70, // 69: talon.gateway.GatewayService.StreamSessionParts:output_type -> talon.events.SessionMessagePartEvent
-	70, // 70: talon.gateway.GatewayService.StreamSessionPartsBatch:output_type -> talon.events.SessionMessagePartEvent
-	26, // 71: talon.gateway.GatewayService.PostChannelMessage:output_type -> talon.gateway.PostChannelMessageResponse
-	28, // 72: talon.gateway.GatewayService.GetChannelMessage:output_type -> talon.gateway.ChannelMessageResponse
-	30, // 73: talon.gateway.GatewayService.ListChannelMessages:output_type -> talon.gateway.ListChannelMessagesResponse
-	71, // 74: talon.gateway.GatewayService.StreamChannelEvents:output_type -> talon.events.ChannelEvent
-	38, // 75: talon.gateway.GatewayService.CreateWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
-	38, // 76: talon.gateway.GatewayService.GetWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
-	39, // 77: talon.gateway.GatewayService.ListWorkflowRuns:output_type -> talon.gateway.ListWorkflowRunsResponse
-	38, // 78: talon.gateway.GatewayService.ResumeWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
-	38, // 79: talon.gateway.GatewayService.CancelWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
-	72, // 80: talon.gateway.GatewayService.StreamWorkflowEvents:output_type -> talon.data.WorkflowRunEvent
-	52, // 81: talon.gateway.GatewayService.CreateNamespace:output_type -> talon.gateway.NamespaceResponse
-	52, // 82: talon.gateway.GatewayService.GetNamespace:output_type -> talon.gateway.NamespaceResponse
-	52, // 83: talon.gateway.GatewayService.DeleteNamespace:output_type -> talon.gateway.NamespaceResponse
-	53, // 84: talon.gateway.GatewayService.ListNamespaces:output_type -> talon.gateway.ListNamespacesResponse
-	4,  // 85: talon.gateway.GatewayService.CreateResource:output_type -> talon.gateway.ResourceResponse
-	4,  // 86: talon.gateway.GatewayService.GetResource:output_type -> talon.gateway.ResourceResponse
-	5,  // 87: talon.gateway.GatewayService.ListResources:output_type -> talon.gateway.ListResourcesResponse
-	6,  // 88: talon.gateway.GatewayService.DeleteResource:output_type -> talon.gateway.DeleteResourceResponse
-	58, // [58:89] is the sub-list for method output_type
-	27, // [27:58] is the sub-list for method input_type
+	44, // 37: talon.gateway.GatewayService.AnswerSessionPermission:input_type -> talon.gateway.AnswerSessionPermissionRequest
+	46, // 38: talon.gateway.GatewayService.StopSessionGeneration:input_type -> talon.gateway.StopSessionGenerationRequest
+	48, // 39: talon.gateway.GatewayService.StreamSessionParts:input_type -> talon.gateway.StreamSessionPartsRequest
+	49, // 40: talon.gateway.GatewayService.StreamSessionPartsBatch:input_type -> talon.gateway.StreamSessionPartsBatchRequest
+	24, // 41: talon.gateway.GatewayService.PostChannelMessage:input_type -> talon.gateway.PostChannelMessageRequest
+	27, // 42: talon.gateway.GatewayService.GetChannelMessage:input_type -> talon.gateway.GetChannelMessageRequest
+	29, // 43: talon.gateway.GatewayService.ListChannelMessages:input_type -> talon.gateway.ListChannelMessagesRequest
+	31, // 44: talon.gateway.GatewayService.StreamChannelEvents:input_type -> talon.gateway.StreamChannelEventsRequest
+	32, // 45: talon.gateway.GatewayService.CreateWorkflowRun:input_type -> talon.gateway.CreateWorkflowRunRequest
+	33, // 46: talon.gateway.GatewayService.GetWorkflowRun:input_type -> talon.gateway.GetWorkflowRunRequest
+	34, // 47: talon.gateway.GatewayService.ListWorkflowRuns:input_type -> talon.gateway.ListWorkflowRunsRequest
+	35, // 48: talon.gateway.GatewayService.ResumeWorkflowRun:input_type -> talon.gateway.ResumeWorkflowRunRequest
+	36, // 49: talon.gateway.GatewayService.CancelWorkflowRun:input_type -> talon.gateway.CancelWorkflowRunRequest
+	37, // 50: talon.gateway.GatewayService.StreamWorkflowEvents:input_type -> talon.gateway.StreamWorkflowEventsRequest
+	50, // 51: talon.gateway.GatewayService.CreateNamespace:input_type -> talon.gateway.CreateNamespaceRequest
+	51, // 52: talon.gateway.GatewayService.GetNamespace:input_type -> talon.gateway.GetNamespaceRequest
+	52, // 53: talon.gateway.GatewayService.DeleteNamespace:input_type -> talon.gateway.DeleteNamespaceRequest
+	53, // 54: talon.gateway.GatewayService.ListNamespaces:input_type -> talon.gateway.ListNamespacesRequest
+	0,  // 55: talon.gateway.GatewayService.CreateResource:input_type -> talon.gateway.CreateResourceRequest
+	1,  // 56: talon.gateway.GatewayService.GetResource:input_type -> talon.gateway.GetResourceRequest
+	2,  // 57: talon.gateway.GatewayService.ListResources:input_type -> talon.gateway.ListResourcesRequest
+	3,  // 58: talon.gateway.GatewayService.DeleteResource:input_type -> talon.gateway.DeleteResourceRequest
+	8,  // 59: talon.gateway.GatewayService.GetKnowledge:output_type -> talon.gateway.KnowledgeResponse
+	10, // 60: talon.gateway.GatewayService.SearchKnowledge:output_type -> talon.gateway.SearchKnowledgeResponse
+	19, // 61: talon.gateway.GatewayService.CreateSession:output_type -> talon.gateway.SessionResponse
+	19, // 62: talon.gateway.GatewayService.GetSession:output_type -> talon.gateway.SessionResponse
+	15, // 63: talon.gateway.GatewayService.ListSessionMessages:output_type -> talon.gateway.ListSessionMessagesResponse
+	18, // 64: talon.gateway.GatewayService.ListSessions:output_type -> talon.gateway.ListSessionsResponse
+	21, // 65: talon.gateway.GatewayService.DeleteSession:output_type -> talon.gateway.DeleteSessionResponse
+	23, // 66: talon.gateway.GatewayService.ClearSession:output_type -> talon.gateway.ClearSessionResponse
+	41, // 67: talon.gateway.GatewayService.SendMessage:output_type -> talon.gateway.SendMessageResponse
+	43, // 68: talon.gateway.GatewayService.AppendSessionMessage:output_type -> talon.gateway.AppendSessionMessageResponse
+	45, // 69: talon.gateway.GatewayService.AnswerSessionPermission:output_type -> talon.gateway.AnswerSessionPermissionResponse
+	47, // 70: talon.gateway.GatewayService.StopSessionGeneration:output_type -> talon.gateway.StopSessionGenerationResponse
+	72, // 71: talon.gateway.GatewayService.StreamSessionParts:output_type -> talon.events.SessionMessagePartEvent
+	72, // 72: talon.gateway.GatewayService.StreamSessionPartsBatch:output_type -> talon.events.SessionMessagePartEvent
+	26, // 73: talon.gateway.GatewayService.PostChannelMessage:output_type -> talon.gateway.PostChannelMessageResponse
+	28, // 74: talon.gateway.GatewayService.GetChannelMessage:output_type -> talon.gateway.ChannelMessageResponse
+	30, // 75: talon.gateway.GatewayService.ListChannelMessages:output_type -> talon.gateway.ListChannelMessagesResponse
+	73, // 76: talon.gateway.GatewayService.StreamChannelEvents:output_type -> talon.events.ChannelEvent
+	38, // 77: talon.gateway.GatewayService.CreateWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
+	38, // 78: talon.gateway.GatewayService.GetWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
+	39, // 79: talon.gateway.GatewayService.ListWorkflowRuns:output_type -> talon.gateway.ListWorkflowRunsResponse
+	38, // 80: talon.gateway.GatewayService.ResumeWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
+	38, // 81: talon.gateway.GatewayService.CancelWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
+	74, // 82: talon.gateway.GatewayService.StreamWorkflowEvents:output_type -> talon.data.WorkflowRunEvent
+	54, // 83: talon.gateway.GatewayService.CreateNamespace:output_type -> talon.gateway.NamespaceResponse
+	54, // 84: talon.gateway.GatewayService.GetNamespace:output_type -> talon.gateway.NamespaceResponse
+	54, // 85: talon.gateway.GatewayService.DeleteNamespace:output_type -> talon.gateway.NamespaceResponse
+	55, // 86: talon.gateway.GatewayService.ListNamespaces:output_type -> talon.gateway.ListNamespacesResponse
+	4,  // 87: talon.gateway.GatewayService.CreateResource:output_type -> talon.gateway.ResourceResponse
+	4,  // 88: talon.gateway.GatewayService.GetResource:output_type -> talon.gateway.ResourceResponse
+	5,  // 89: talon.gateway.GatewayService.ListResources:output_type -> talon.gateway.ListResourcesResponse
+	6,  // 90: talon.gateway.GatewayService.DeleteResource:output_type -> talon.gateway.DeleteResourceResponse
+	59, // [59:91] is the sub-list for method output_type
+	27, // [27:59] is the sub-list for method input_type
 	27, // [27:27] is the sub-list for extension type_name
 	27, // [27:27] is the sub-list for extension extendee
 	0,  // [0:27] is the sub-list for field type_name
@@ -3641,15 +3824,15 @@ func file_proto_gateway_proto_init() {
 	file_proto_gateway_proto_msgTypes[15].OneofWrappers = []any{}
 	file_proto_gateway_proto_msgTypes[29].OneofWrappers = []any{}
 	file_proto_gateway_proto_msgTypes[30].OneofWrappers = []any{}
-	file_proto_gateway_proto_msgTypes[51].OneofWrappers = []any{}
-	file_proto_gateway_proto_msgTypes[52].OneofWrappers = []any{}
+	file_proto_gateway_proto_msgTypes[53].OneofWrappers = []any{}
+	file_proto_gateway_proto_msgTypes[54].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_gateway_proto_rawDesc), len(file_proto_gateway_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   62,
+			NumMessages:   64,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

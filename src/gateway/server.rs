@@ -274,7 +274,7 @@ mod tests {
             .kv
             .set(
                 &crate::control::keys::agent(ns, agent),
-                &crate::control::resource_model::agent_resource(
+                &crate::control::resource_model::agent(
                     ns,
                     agent,
                     crate::gateway::rpc::resources_proto::AgentSpec::default(),
@@ -344,7 +344,7 @@ mod tests {
             .kv
             .set_msg(
                 &crate::control::keys::agent(ns, agent),
-                &crate::control::resource_model::agent_resource(ns, agent, spec, HashMap::new()),
+                &crate::control::resource_model::agent(ns, agent, spec, HashMap::new()),
             )
             .await
             .unwrap();

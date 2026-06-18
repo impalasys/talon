@@ -12,9 +12,9 @@ use crate::cli::{connect_gateway, rest_request_json};
 use crate::control::events::SessionMessagePartEventKind;
 use crate::gateway::rpc::data_proto;
 use crate::gateway::rpc::proto::{
-    ClearSessionRequest, CreateSessionRequest, DeleteSessionRequest, GetSessionRequest,
-    ListSessionMessagesRequest, ListSessionsRequest, SendMessageRequest,
-    StopSessionGenerationRequest, StreamSessionPartsRequest,
+    AnswerSessionPermissionRequest, ClearSessionRequest, CreateSessionRequest,
+    DeleteSessionRequest, GetSessionRequest, ListSessionMessagesRequest, ListSessionsRequest,
+    SendMessageRequest, StopSessionGenerationRequest, StreamSessionPartsRequest,
 };
 
 #[derive(Args)]
@@ -107,6 +107,11 @@ enum SessionCommands {
         #[arg(long)]
         before_message_id: Option<String>,
     },
+    /// Answer or cancel a pending session permission request.
+    Permission {
+        #[command(subcommand)]
+        command: PermissionCommands,
+    },
     /// Ask the runtime to stop the current generation.
     Stop {
         #[arg(short, long)]
@@ -130,6 +135,34 @@ enum SessionCommands {
         #[arg(short, long)]
         agent: String,
         session_id: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum PermissionCommands {
+    /// Select an option for a pending permission request.
+    Answer {
+        #[arg(short, long)]
+        namespace: String,
+        #[arg(short, long)]
+        agent: String,
+        session_id: String,
+        request_id: String,
+        #[arg(long, default_value = "approved")]
+        option_id: String,
+        #[arg(long, default_value = "user")]
+        decided_by: String,
+    },
+    /// Cancel a pending permission request.
+    Cancel {
+        #[arg(short, long)]
+        namespace: String,
+        #[arg(short, long)]
+        agent: String,
+        session_id: String,
+        request_id: String,
+        #[arg(long, default_value = "user")]
+        decided_by: String,
     },
 }
 
@@ -237,6 +270,43 @@ pub(super) async fn run(cli: &Cli, command: &SessionCommand) -> Result<RunOutcom
             .await?;
             println!("{}", serde_json::to_string_pretty(&value)?);
         }
+        SessionCommands::Permission { command } => match command {
+            PermissionCommands::Answer {
+                namespace,
+                agent,
+                session_id,
+                request_id,
+                option_id,
+                decided_by,
+            } => {
+                let value = session_answer_permission(
+                    cli, namespace, agent, session_id, request_id, "selected", option_id,
+                    decided_by,
+                )
+                .await?;
+                println!("{}", serde_json::to_string_pretty(&value)?);
+            }
+            PermissionCommands::Cancel {
+                namespace,
+                agent,
+                session_id,
+                request_id,
+                decided_by,
+            } => {
+                let value = session_answer_permission(
+                    cli,
+                    namespace,
+                    agent,
+                    session_id,
+                    request_id,
+                    "cancelled",
+                    "",
+                    decided_by,
+                )
+                .await?;
+                println!("{}", serde_json::to_string_pretty(&value)?);
+            }
+        },
         SessionCommands::Stop {
             namespace,
             agent,
@@ -562,6 +632,64 @@ async fn session_messages(
     }))
 }
 
+async fn session_answer_permission(
+    cli: &Cli,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    request_id: &str,
+    outcome: &str,
+    option_id: &str,
+    decided_by: &str,
+) -> Result<serde_json::Value> {
+    if cli.rest {
+        return rest_request_json(
+            cli,
+            reqwest::Method::POST,
+            &format!(
+                "/v1/ns/{}/agents/{}/sessions/{}/permissions/{}:answer",
+                urlencoding::encode(namespace),
+                urlencoding::encode(agent),
+                urlencoding::encode(session_id),
+                urlencoding::encode(request_id)
+            ),
+            Some(json!({
+                "ns": namespace,
+                "agent": agent,
+                "sessionId": session_id,
+                "requestId": request_id,
+                "outcome": outcome,
+                "optionId": option_id,
+                "decidedBy": decided_by,
+            })),
+        )
+        .await;
+    }
+
+    let mut client = connect_gateway(cli).await?;
+    let response = client
+        .answer_session_permission(AnswerSessionPermissionRequest {
+            session_id: session_id.to_string(),
+            agent: agent.to_string(),
+            ns: namespace.to_string(),
+            request_id: request_id.to_string(),
+            outcome: outcome.to_string(),
+            option_id: option_id.to_string(),
+            decided_by: decided_by.to_string(),
+        })
+        .await
+        .with_context(|| {
+            format!("Failed to answer permission {request_id} for {namespace}/{agent}/{session_id}")
+        })?
+        .into_inner();
+    Ok(json!({
+        "sessionId": response.session_id,
+        "requestId": response.request_id,
+        "outcome": response.outcome,
+        "optionId": response.option_id,
+    }))
+}
+
 async fn session_stop(
     cli: &Cli,
     namespace: &str,
@@ -753,6 +881,14 @@ fn print_session_event(
                     part.payload_json
                 );
             }
+            Some(data_proto::SessionMessagePartType::RequestPermission)
+            | Some(data_proto::SessionMessagePartType::PermissionResult) => {
+                eprintln!(
+                    "\n[{}] {}",
+                    part_type_name(part.part_type),
+                    part.payload_json
+                );
+            }
             _ => {}
         }
     }
@@ -791,6 +927,8 @@ fn part_type_name(part_type: i32) -> &'static str {
         Some(data_proto::SessionMessagePartType::Audio) => "audio",
         Some(data_proto::SessionMessagePartType::Video) => "video",
         Some(data_proto::SessionMessagePartType::File) => "file",
+        Some(data_proto::SessionMessagePartType::RequestPermission) => "request_permission",
+        Some(data_proto::SessionMessagePartType::PermissionResult) => "permission_result",
         _ => "unspecified",
     }
 }

@@ -1507,7 +1507,7 @@ mod tests {
             objects: crate::control::object_store::default_object_store(),
         };
 
-        let agent = crate::control::resource_model::agent_resource(
+        let agent = crate::control::resource_model::agent(
             "conic:test",
             "assistant",
             manifests::AgentSpec::default(),

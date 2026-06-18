@@ -477,6 +477,35 @@ pub async fn post_chat(
                                 "result": payload.result
                             })));
                         }
+                    } else if part_type
+                        == data_proto::SessionMessagePartType::RequestPermission as i32
+                    {
+                        let payload = part
+                            .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())
+                            .unwrap_or_else(|| json!({}));
+                        let request_id = payload
+                            .get("requestId")
+                            .and_then(|value| value.as_str())
+                            .unwrap_or("request-permission");
+                        yield Ok::<_, Infallible>(data_stream_line("9", json!({
+                            "toolCallId": request_id,
+                            "toolName": "request_permission",
+                            "args": payload.get("request").cloned().unwrap_or_else(|| payload.clone())
+                        })));
+                    } else if part_type
+                        == data_proto::SessionMessagePartType::PermissionResult as i32
+                    {
+                        let payload = part
+                            .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())
+                            .unwrap_or_else(|| json!({}));
+                        let request_id = payload
+                            .get("requestId")
+                            .and_then(|value| value.as_str())
+                            .unwrap_or("request-permission");
+                        yield Ok::<_, Infallible>(data_stream_line("a", json!({
+                            "toolCallId": request_id,
+                            "result": payload.get("outcome").cloned().unwrap_or_else(|| payload.clone())
+                        })));
                     } else if part_type == data_proto::SessionMessagePartType::Usage as i32 {
                         let usage = part
                             .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())
@@ -623,6 +652,37 @@ pub async fn get_chat(
                         }
                     })));
                 }
+            } else if part_type == data_proto::SessionMessagePartType::RequestPermission as i32 {
+                let payload = part
+                    .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())
+                    .unwrap_or_else(|| json!({}));
+                let request_id = payload
+                    .get("requestId")
+                    .and_then(|value| value.as_str())
+                    .unwrap_or("request-permission");
+                yield Ok::<_, Infallible>(ndjson_line(json!({
+                    "type": "tool_call",
+                    "value": {
+                        "toolCallId": request_id,
+                        "toolName": "request_permission",
+                        "args": payload.get("request").cloned().unwrap_or_else(|| payload.clone())
+                    }
+                })));
+            } else if part_type == data_proto::SessionMessagePartType::PermissionResult as i32 {
+                let payload = part
+                    .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())
+                    .unwrap_or_else(|| json!({}));
+                let request_id = payload
+                    .get("requestId")
+                    .and_then(|value| value.as_str())
+                    .unwrap_or("request-permission");
+                yield Ok::<_, Infallible>(ndjson_line(json!({
+                    "type": "tool_result",
+                    "value": {
+                        "toolCallId": request_id,
+                        "result": payload.get("outcome").cloned().unwrap_or_else(|| payload.clone())
+                    }
+                })));
             } else if part_type == data_proto::SessionMessagePartType::Usage as i32 {
                 let usage = part
                     .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())

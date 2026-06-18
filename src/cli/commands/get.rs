@@ -39,9 +39,11 @@ pub(super) async fn run(cli: &Cli, command: &GetCommand) -> Result<()> {
         let output = match command.output.unwrap_or(GetOutput::Table) {
             GetOutput::Table => {
                 if cli.rest {
-                    rest_list_resources_table(cli, &command.kind, command.namespace.as_ref()).await?
+                    rest_list_resources_table(cli, &command.kind, command.namespace.as_ref())
+                        .await?
                 } else {
-                    grpc_list_resources_table(cli, &command.kind, command.namespace.as_ref()).await?
+                    grpc_list_resources_table(cli, &command.kind, command.namespace.as_ref())
+                        .await?
                 }
             }
             GetOutput::Json => {

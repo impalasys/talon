@@ -8,6 +8,7 @@ use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{events, keys, keys::ResourceParent, KeyValueStore};
 use crate::gateway::session_streams::SessionStreamTarget;
 use prost::Message;
+use serde_json::{json, Value};
 use std::sync::OnceLock;
 
 const LARGE_SESSION_PAYLOAD_WARNING_BYTES: usize = 128 * 1024;
@@ -86,6 +87,53 @@ fn normalize_appended_session_message(
         }
     }
     message
+}
+
+fn request_permission_part_id(part: &data_proto::SessionMessagePart) -> Option<String> {
+    if part.part_type != data_proto::SessionMessagePartType::RequestPermission as i32 {
+        return None;
+    }
+    serde_json::from_str::<Value>(&part.payload_json)
+        .ok()
+        .and_then(|payload| {
+            payload
+                .get("requestId")
+                .and_then(|value| value.as_str())
+                .map(str::to_string)
+        })
+}
+
+async fn find_request_permission_message_id(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    request_id: &str,
+) -> std::result::Result<Option<String>, tonic::Status> {
+    let prefix = keys::session_message_prefix(ns, agent, session_id);
+    let mut message_keys = kv.list_keys(&prefix).await.map_err(|err| {
+        tonic::Status::internal(format!("Failed to list session messages: {err}"))
+    })?;
+    message_keys.sort();
+    for key in message_keys {
+        let Some(bytes) = kv.get(&key).await.map_err(|err| {
+            tonic::Status::internal(format!("Failed to fetch session message: {err}"))
+        })?
+        else {
+            continue;
+        };
+        let Ok(message) = data_proto::SessionMessage::decode(bytes.as_slice()) else {
+            continue;
+        };
+        if message
+            .parts
+            .iter()
+            .any(|part| request_permission_part_id(part).as_deref() == Some(request_id))
+        {
+            return Ok(Some(message.id));
+        }
+    }
+    Ok(None)
 }
 
 fn parse_session_stream_target(
@@ -834,6 +882,143 @@ impl GrpcGatewayHandler {
         }))
     }
 
+    pub async fn handle_answer_session_permission(
+        &self,
+        req: tonic::Request<proto::AnswerSessionPermissionRequest>,
+    ) -> std::result::Result<tonic::Response<proto::AnswerSessionPermissionResponse>, tonic::Status>
+    {
+        crate::require_auth!(
+            self,
+            req,
+            &req.get_ref().ns,
+            &req.get_ref().agent,
+            &req.get_ref().session_id
+        );
+        let req = req.into_inner();
+        if req.request_id.trim().is_empty() {
+            return Err(tonic::Status::invalid_argument("request_id is required"));
+        }
+        let outcome = match req.outcome.as_str() {
+            "" | "selected" => "selected",
+            "cancelled" => "cancelled",
+            value => {
+                return Err(tonic::Status::invalid_argument(format!(
+                    "unsupported permission outcome '{value}'"
+                )))
+            }
+        };
+        if outcome == "selected" && req.option_id.trim().is_empty() {
+            return Err(tonic::Status::invalid_argument(
+                "option_id is required when outcome is selected",
+            ));
+        }
+
+        let session_key = keys::session(&req.ns, &req.agent, &req.session_id);
+        let session_exists = self
+            .gateway
+            .kv
+            .get_msg::<data_proto::Session>(&session_key)
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to fetch session: {err}")))?
+            .is_some();
+        if !session_exists {
+            return Err(tonic::Status::not_found("Session not found"));
+        }
+
+        let message_id = find_request_permission_message_id(
+            self.gateway.kv.as_ref(),
+            &req.ns,
+            &req.agent,
+            &req.session_id,
+            &req.request_id,
+        )
+        .await?
+        .ok_or_else(|| tonic::Status::not_found("permission request not found"))?;
+
+        let now = chrono::Utc::now().timestamp_micros();
+        let outcome_json = if outcome == "selected" {
+            json!({
+                "outcome": "selected",
+                "optionId": req.option_id,
+            })
+        } else {
+            json!({
+                "outcome": "cancelled",
+            })
+        };
+        let decision = json!({
+            "requestId": req.request_id,
+            "status": outcome,
+            "outcome": outcome_json,
+            "decidedBy": if req.decided_by.trim().is_empty() {
+                "user"
+            } else {
+                req.decided_by.as_str()
+            },
+            "decidedAt": now,
+        });
+        let decision_bytes = serde_json::to_vec(&decision).map_err(|err| {
+            tonic::Status::internal(format!("Failed to encode permission decision: {err}"))
+        })?;
+        let decision_key = keys::session_permission_decision(
+            &req.ns,
+            &req.agent,
+            &req.session_id,
+            &req.request_id,
+        );
+        let inserted = self
+            .gateway
+            .kv
+            .compare_and_swap(&decision_key, None, &decision_bytes)
+            .await
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to store permission decision: {err}"))
+            })?;
+        if !inserted {
+            return Err(tonic::Status::already_exists(
+                "permission request was already answered",
+            ));
+        }
+
+        let part = data_proto::SessionMessagePart {
+            id: String::new(),
+            part_type: data_proto::SessionMessagePartType::PermissionResult as i32,
+            content: "Permission answered".to_string(),
+            name: String::new(),
+            payload_json: serde_json::to_string(&decision).unwrap_or_default(),
+            created_at: now,
+            object: None,
+        };
+        let event = events::SessionMessagePartEvent {
+            session_id: req.session_id.clone(),
+            kind: events::SessionMessagePartEventKind::Delta as i32,
+            part: Some(part),
+            timestamp: now,
+            agent: req.agent.clone(),
+            ns: req.ns.clone(),
+            message_id,
+        };
+        self.gateway
+            .pubsub
+            .publish(
+                &topics::session_part_topic_for_session(&req.session_id),
+                &event.encode_to_vec(),
+            )
+            .await
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to publish permission decision: {err}"))
+            })?;
+
+        Ok(tonic::Response::new(
+            proto::AnswerSessionPermissionResponse {
+                session_id: req.session_id,
+                request_id: req.request_id,
+                outcome: outcome.to_string(),
+                option_id: req.option_id,
+            },
+        ))
+    }
+
     pub async fn handle_stop_session_generation(
         &self,
         req: tonic::Request<proto::StopSessionGenerationRequest>,
@@ -969,5 +1154,134 @@ impl GrpcGatewayHandler {
         };
 
         Ok(tonic::Response::new(Box::pin(event_stream)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::control::scheduler::NoopSchedulerBackend;
+    use crate::control::ProtoKeyValueStoreExt;
+    use crate::gateway::Gateway;
+    use crate::test_support::{MockKvStore, RecordingPubSub};
+    use std::sync::Arc;
+
+    fn handler(kv: Arc<MockKvStore>, pubsub: Arc<RecordingPubSub>) -> GrpcGatewayHandler {
+        GrpcGatewayHandler {
+            gateway: Arc::new(Gateway::new(
+                None,
+                kv,
+                pubsub,
+                Arc::new(NoopSchedulerBackend),
+                crate::control::object_store::default_object_store(),
+            )),
+        }
+    }
+
+    #[tokio::test]
+    async fn answer_session_permission_records_decision_and_publishes_result() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub.clone());
+        let ns = "conic";
+        let agent = "coding";
+        let session_id = "session-1";
+        let request_id = "request-1";
+        kv.set_msg(
+            &keys::session(ns, agent, session_id),
+            &data_proto::Session {
+                id: session_id.to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 1,
+                last_active: 2,
+                metadata: std::collections::HashMap::new(),
+                labels: std::collections::HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &keys::session_message(ns, agent, session_id, "message-1"),
+            &data_proto::SessionMessage {
+                id: "message-1".to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 2,
+                labels: std::collections::HashMap::new(),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: "part-1".to_string(),
+                    part_type: data_proto::SessionMessagePartType::RequestPermission as i32,
+                    content: "Permission requested".to_string(),
+                    name: "terminal".to_string(),
+                    payload_json: json!({
+                        "requestId": request_id,
+                        "action": "terminal",
+                    })
+                    .to_string(),
+                    created_at: 2,
+                    object: None,
+                }],
+            },
+        )
+        .await
+        .unwrap();
+
+        let response = handler
+            .handle_answer_session_permission(tonic::Request::new(
+                proto::AnswerSessionPermissionRequest {
+                    session_id: session_id.to_string(),
+                    agent: agent.to_string(),
+                    ns: ns.to_string(),
+                    request_id: request_id.to_string(),
+                    outcome: "selected".to_string(),
+                    option_id: "approved".to_string(),
+                    decided_by: "operator".to_string(),
+                },
+            ))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(response.request_id, request_id);
+        assert_eq!(response.outcome, "selected");
+
+        let decision_bytes = kv
+            .get(&keys::session_permission_decision(
+                ns, agent, session_id, request_id,
+            ))
+            .await
+            .unwrap()
+            .expect("decision should be stored");
+        let decision: Value = serde_json::from_slice(&decision_bytes).unwrap();
+        assert_eq!(decision["requestId"], request_id);
+        assert_eq!(decision["outcome"]["optionId"], "approved");
+
+        let published = pubsub.published.lock().await;
+        assert_eq!(published.len(), 1);
+        let event = events::SessionMessagePartEvent::decode(published[0].1.as_slice()).unwrap();
+        assert_eq!(event.session_id, session_id);
+        assert_eq!(event.message_id, "message-1");
+        let part = event.part.expect("event should include a part");
+        assert_eq!(
+            part.part_type,
+            data_proto::SessionMessagePartType::PermissionResult as i32
+        );
+        drop(published);
+
+        let duplicate = handler
+            .handle_answer_session_permission(tonic::Request::new(
+                proto::AnswerSessionPermissionRequest {
+                    session_id: session_id.to_string(),
+                    agent: agent.to_string(),
+                    ns: ns.to_string(),
+                    request_id: request_id.to_string(),
+                    outcome: "selected".to_string(),
+                    option_id: "approved".to_string(),
+                    decided_by: "operator".to_string(),
+                },
+            ))
+            .await
+            .unwrap_err();
+        assert_eq!(duplicate.code(), tonic::Code::AlreadyExists);
     }
 }
