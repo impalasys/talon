@@ -446,6 +446,41 @@ impl PubSubSessionSink {
         }
     }
 
+    async fn persist_durable_message(&self, span_name: &'static str) {
+        self.wait_for_partial_flushes().await;
+        let msg = data_proto::SessionMessage {
+            id: self.reply_msg_id.clone(),
+            role: data_proto::MessageRole::RoleAssistant as i32,
+            created_at: chrono::Utc::now().timestamp_micros(),
+            labels: std::collections::HashMap::new(),
+            parts: self.durable_parts.lock().unwrap().clone(),
+        };
+        let result = async {
+            let _guard = self.persist_lock.lock().await;
+            crate::control::ProtoKeyValueStoreExt::set_msg(
+                self.kv.as_ref(),
+                &self.reply_msg_key,
+                &msg,
+            )
+            .await
+        }
+        .instrument(tracing::info_span!(
+            "PubSubSessionSink.persist_durable_message",
+            operation = span_name,
+            namespace = %self.ns,
+            agent = %self.agent_id,
+            session = %self.session_id,
+        ))
+        .await;
+        if let Err(e) = result {
+            tracing::error!(
+                operation = span_name,
+                "Failed to persist durable message: {}",
+                e
+            );
+        }
+    }
+
     fn should_flush_token_event(&self) -> bool {
         let last = self.last_token_publish.lock().unwrap();
         last.elapsed() >= self.token_publish_interval
@@ -565,6 +600,7 @@ impl ExecutionSink for PubSubSessionSink {
             }))
             .unwrap_or_else(|_| "{}".to_string()),
         );
+        self.persist_durable_message("request_permission").await;
         self.publish_event(AgentEvent::RequestPermission {
             id: id.to_string(),
             action: action.to_string(),
@@ -589,6 +625,7 @@ impl ExecutionSink for PubSubSessionSink {
             }))
             .unwrap_or_else(|_| "{}".to_string()),
         );
+        self.persist_durable_message("permission_result").await;
         self.publish_event(AgentEvent::PermissionResult {
             id: id.to_string(),
             outcome: outcome.clone(),

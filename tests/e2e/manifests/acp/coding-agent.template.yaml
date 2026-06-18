@@ -17,8 +17,9 @@ spec:
         sandboxPolicyRef: coding
         persistSession: false
         permissionPolicy:
-          default: allow
+          default: ask
           filesystemWrite: allow
+          filesystemRead: allow
           terminal: allow
     systemPrompt: |
       You are the coding agent for {% raw %}{{ namespace.name }}{% endraw %}.

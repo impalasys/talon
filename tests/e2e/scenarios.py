@@ -86,6 +86,33 @@ def session_send(cli, namespace, agent, session_id, message, *, timeout=None):
     )
 
 
+def session_permission_answer(
+    cli,
+    namespace,
+    agent,
+    session_id,
+    request_id,
+    *,
+    option_id="approved",
+    decided_by="e2e",
+):
+    return cli.json(
+        "session",
+        "permission",
+        "answer",
+        "--namespace",
+        namespace,
+        "--agent",
+        agent,
+        session_id,
+        request_id,
+        "--option-id",
+        option_id,
+        "--decided-by",
+        decided_by,
+    )
+
+
 def session_send_stream_json(cli, namespace, agent, session_id, message, *, timeout=None):
     result = cli.run(
         "session",
@@ -161,6 +188,39 @@ def wait_for_session_text(
     raise AssertionError(
         f"Timed out waiting for session text {expected_text!r}; "
         f"state={last_state!r}, last_assistant_text={last_text!r}"
+    )
+
+
+def session_parts(session, part_type=None):
+    parts = []
+    for message in session.get("messages", []):
+        for part in message.get("parts", []):
+            if part_type is None or part.get("type") == part_type:
+                parts.append(part)
+    return parts
+
+
+def wait_for_session_part(
+    cli,
+    namespace,
+    agent,
+    session_id,
+    part_type,
+    *,
+    attempts=30,
+    delay=1,
+):
+    last_part_types = []
+    for _ in range(attempts):
+        session = session_get(cli, namespace, agent, session_id)
+        parts = session_parts(session)
+        last_part_types = [part.get("type") for part in parts]
+        for part in parts:
+            if part.get("type") == part_type:
+                return part, session
+        time.sleep(delay)
+    raise AssertionError(
+        f"Timed out waiting for session part {part_type!r}; saw {last_part_types}"
     )
 
 

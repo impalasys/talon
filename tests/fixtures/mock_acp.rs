@@ -69,7 +69,7 @@ async fn main() -> Result<()> {
                         "permission/request",
                         json!({
                             "sessionId": session_id,
-                            "action": "terminal",
+                            "action": "fileEdit",
                             "prompt": "Mock ACP permission request"
                         }),
                     )

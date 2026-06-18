@@ -553,6 +553,10 @@ def test_cli_apply_acp_deployment_starts_session_sqlite_local_socket(
     assert rendered_agent["spec"]["runtime"]["acp"]["command"] == conftest.get_binary_path(
         "talon_mock_acp"
     )
+    permission_policy = rendered_agent["spec"]["runtime"]["acp"]["permissionPolicy"]
+    assert permission_policy["default"] == "ask"
+    assert permission_policy["filesystemWrite"] == "allow"
+    assert permission_policy["terminal"] == "allow"
 
     rendered_policy = next(
         resource for resource in policies if resource["metadata"]["name"] == "coding"
@@ -573,13 +577,62 @@ def test_cli_apply_acp_deployment_starts_session_sqlite_local_socket(
     session_id = e2e.session_create(cli, target_ns, "coding")
     assert session_id
 
-    e2e.session_send(
-        cli,
-        target_ns,
-        "coding",
-        session_id,
-        "please write-file read-file terminal",
+    send = subprocess.Popen(
+        [
+            *cli.base_args(),
+            "session",
+            "send",
+            "--namespace",
+            target_ns,
+            "--agent",
+            "coding",
+            session_id,
+            "please request-permission write-file read-file terminal",
+        ],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
+
+    try:
+        request_part, _ = e2e.wait_for_session_part(
+            cli,
+            target_ns,
+            "coding",
+            session_id,
+            "request_permission",
+        )
+        request_payload = request_part["payload"]
+        request = request_payload["request"]
+        assert request["protocol"] == "acp"
+        assert request["method"] == "permission/request"
+        assert request["action"] == "fileEdit"
+        request_id = request_payload["requestId"]
+
+        answer = e2e.session_permission_answer(
+            cli,
+            target_ns,
+            "coding",
+            session_id,
+            request_id,
+            option_id="approved",
+        )
+        assert answer["requestId"] == request_id
+        assert answer["outcome"] == "selected"
+
+        stdout, stderr = send.communicate(timeout=30)
+        assert send.returncode == 0, (
+            f"talon-cli session send failed\nstdout:\n{stdout}\nstderr:\n{stderr}"
+        )
+    except Exception:
+        if send.poll() is None:
+            send.terminate()
+            try:
+                send.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                send.kill()
+                send.communicate()
+        raise
 
     completed = e2e.wait_for_session_text(
         cli,
@@ -593,6 +646,11 @@ def test_cli_apply_acp_deployment_starts_session_sqlite_local_socket(
     assistant_text = e2e.message_text(assistant)
     assert "file=written by talon-mock-acp" in assistant_text
     assert "terminal=terminal-ok" in assistant_text
+    permission_results = e2e.session_parts(completed, "permission_result")
+    assert len(permission_results) == 1
+    assert permission_results[0]["payload"]["requestId"] == request_id
+    permission_outcome = permission_results[0]["payload"]["outcome"]["outcome"]
+    assert permission_outcome["optionId"] == "approved"
 
     sandbox = wait_for_cli_sandbox_process(cli, target_ns)
     sandbox_status = sandbox["status"]
