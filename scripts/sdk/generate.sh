@@ -235,4 +235,26 @@ for path in root.rglob("*_pb2*.py"):
     path.write_text(text)
 PY
 
-cargo run --quiet --manifest-path sdk/rust/tools/codegen/Cargo.toml
+run_with_retries() {
+  local attempts="${SDK_CARGO_RETRY_ATTEMPTS:-4}"
+  local delay="${SDK_CARGO_RETRY_DELAY_SECONDS:-5}"
+  local attempt=1
+
+  while true; do
+    if "$@"; then
+      return 0
+    fi
+
+    if (( attempt >= attempts )); then
+      return 1
+    fi
+
+    echo "Command failed; retrying in ${delay}s (${attempt}/${attempts}): $*" >&2
+    sleep "$delay"
+    attempt=$((attempt + 1))
+    delay=$((delay * 2))
+  done
+}
+
+export CARGO_NET_RETRY="${CARGO_NET_RETRY:-10}"
+run_with_retries cargo run --quiet --manifest-path sdk/rust/tools/codegen/Cargo.toml
