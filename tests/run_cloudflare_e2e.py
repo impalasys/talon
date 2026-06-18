@@ -27,7 +27,8 @@ def request(method, path, *, headers=None):
         headers=headers or {},
     )
     with urllib.request.urlopen(req, timeout=15) as response:
-        return response.status, dict(response.headers), response.read().decode()
+        headers = {key.lower(): value for key, value in response.headers.items()}
+        return response.status, headers, response.read().decode()
 
 
 def wait_for_health():
