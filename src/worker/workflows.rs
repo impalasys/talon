@@ -2229,8 +2229,23 @@ mod tests {
         namespace: &str,
         name: &str,
         spec: resources_proto::AgentSpec,
-    ) -> resources_proto::Resource {
-        crate::control::resource_model::agent_resource(namespace, name, spec, HashMap::new())
+    ) -> resources_proto::Agent {
+        resources_proto::Agent {
+            metadata: Some(resources_proto::ResourceMeta {
+                name: name.to_string(),
+                namespace: namespace.to_string(),
+                labels: HashMap::new(),
+                annotations: HashMap::new(),
+                owner_references: Vec::new(),
+                finalizers: Vec::new(),
+                generation: 0,
+                resource_version: String::new(),
+                uid: String::new(),
+                deletion_timestamp: None,
+            }),
+            spec: Some(spec),
+            status: Some(resources_proto::AgentStatus::default()),
+        }
     }
 
     #[derive(Default)]

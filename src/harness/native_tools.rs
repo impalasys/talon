@@ -608,7 +608,7 @@ mod tests {
         name: &str,
         description: &str,
         instructions: &str,
-    ) -> resources_proto::Resource {
+    ) -> resources_proto::Skill {
         namespace::skill_resource(ns, name, description, instructions)
     }
 

@@ -408,6 +408,36 @@ pub(super) async fn rest_get_yaml(
         .with_context(|| format!("Failed to serialize {} YAML", kind))
 }
 
+pub(super) async fn rest_get_json(
+    cli: &Cli,
+    kind: &str,
+    name: &str,
+    namespace: Option<&String>,
+) -> Result<serde_json::Value> {
+    let (path, response_key) = rest_get_path(kind, name, namespace)?;
+    let resp = rest_request_json(cli, reqwest::Method::GET, &path, None)
+        .await
+        .with_context(|| format!("Failed to fetch {} '{}'", kind, name))?;
+    let value = if response_key == "namespace" {
+        resp
+    } else {
+        resp.get(response_key)
+            .cloned()
+            .or_else(|| (response_key == "card" && resp.get("cards").is_some()).then_some(resp))
+            .with_context(|| format!("REST response missing {}", response_key))?
+    };
+    match response_key {
+        "resource" => {
+            let mut value = value;
+            normalize_manifest_metadata_maps(&mut value);
+            let resource: crate::gateway::rpc::resources_proto::Resource =
+                serde_json::from_value(value).context("Failed to decode Resource JSON")?;
+            resource_manifest_json(&resource)
+        }
+        _ => Ok(value),
+    }
+}
+
 fn render_rest_get_yaml(response_key: &str, value: serde_json::Value) -> Result<String> {
     match response_key {
         "resource" => {
@@ -1326,7 +1356,9 @@ fn resource_lookup_target(
             Ok((ns, "Deployment".to_string(), name.to_string()))
         }
         "sandboxclass" | "sandboxclasses" | "sandbox-class" | "sandbox-classes" => Ok((
-            crate::control::ns::TALON_SYSTEM.to_string(),
+            namespace
+                .cloned()
+                .unwrap_or_else(|| crate::control::ns::TALON_SYSTEM.to_string()),
             "SandboxClass".to_string(),
             name.to_string(),
         )),
@@ -1415,7 +1447,7 @@ fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<Resour
         }),
         "sandboxclass" | "sandboxclasses" | "sandbox-class" | "sandbox-classes" => {
             Ok(ResourceListTarget::Resources {
-                ns: system_ns(),
+                ns: ns_or_default(),
                 kind: Some("SandboxClass".to_string()),
             })
         }
@@ -1502,6 +1534,37 @@ pub(super) async fn grpc_get_yaml(
     crate::control::manifest::render_resource_yaml(&resource)
 }
 
+pub(super) async fn grpc_get_json(
+    cli: &Cli,
+    kind: &str,
+    name: &str,
+    namespace: Option<&String>,
+) -> Result<serde_json::Value> {
+    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
+        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
+        .connect()
+        .await
+        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
+    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+
+    let target = grpc_get_target(kind, name, namespace)?;
+    let resp = client
+        .get_resource(GetResourceRequest {
+            ns: target.ns.clone(),
+            kind: target.kind.clone(),
+            name: target.name.clone(),
+        })
+        .await
+        .with_context(|| {
+            format!(
+                "Failed to fetch {} '{}/{}'",
+                target.kind, target.ns, target.name
+            )
+        })?;
+    let resource = resp.into_inner().resource.context("Resource not found.")?;
+    resource_manifest_json(&resource)
+}
+
 pub(super) async fn grpc_list_resources_table(
     cli: &Cli,
     kind: &str,
@@ -1535,6 +1598,53 @@ pub(super) async fn grpc_list_resources_table(
                 .into_inner()
                 .namespaces;
             Ok(render_namespace_list_table_from_proto(&namespaces))
+        }
+    }
+}
+
+pub(super) async fn grpc_list_resources_json(
+    cli: &Cli,
+    kind: &str,
+    namespace: Option<&String>,
+) -> Result<serde_json::Value> {
+    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
+        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
+        .connect()
+        .await
+        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
+    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+
+    match resource_list_target(kind, namespace)? {
+        ResourceListTarget::Resources { ns, kind } => {
+            let resources = client
+                .list_resources(ListResourcesRequest {
+                    ns: ns.clone(),
+                    kind,
+                })
+                .await
+                .with_context(|| format!("Failed to list resources in '{}'", ns))?
+                .into_inner()
+                .resources;
+            resources_list_json(resources)
+        }
+        ResourceListTarget::Namespaces { parent } => {
+            let namespaces = client
+                .list_namespaces(ListNamespacesRequest { parent })
+                .await
+                .context("Failed to list namespaces")?
+                .into_inner()
+                .namespaces;
+            Ok(json!({
+                "namespaces": namespaces.into_iter().map(|namespace| {
+                    json!({
+                        "name": namespace.name,
+                        "parent": namespace.parent,
+                        "isDeleted": namespace.is_deleted,
+                        "deletedAt": namespace.deleted_at,
+                        "labels": namespace.labels,
+                    })
+                }).collect::<Vec<_>>()
+            }))
         }
     }
 }
@@ -1576,6 +1686,46 @@ pub(super) async fn rest_list_resources_table(
                 .await
                 .context("Failed to list namespaces")?;
             Ok(render_namespace_list_table_from_json(&resp))
+        }
+    }
+}
+
+pub(super) async fn rest_list_resources_json(
+    cli: &Cli,
+    kind: &str,
+    namespace: Option<&String>,
+) -> Result<serde_json::Value> {
+    match resource_list_target(kind, namespace)? {
+        ResourceListTarget::Resources { ns, kind } => {
+            let mut path = format!("/v2/ns/{}/resources", urlencoding::encode(&ns));
+            if let Some(kind) = kind {
+                path.push_str(&format!("?kind={}", urlencoding::encode(&kind)));
+            }
+            let resp = rest_request_json(cli, reqwest::Method::GET, &path, None)
+                .await
+                .with_context(|| format!("Failed to list resources in '{}'", ns))?;
+            let resources = resp
+                .get("resources")
+                .and_then(|value| value.as_array())
+                .cloned()
+                .unwrap_or_default()
+                .into_iter()
+                .map(|mut value| {
+                    normalize_manifest_metadata_maps(&mut value);
+                    serde_json::from_value::<resources_proto::Resource>(value)
+                        .context("Failed to decode Resource JSON")
+                })
+                .collect::<Result<Vec<_>>>()?;
+            resources_list_json(resources)
+        }
+        ResourceListTarget::Namespaces { parent } => {
+            let path = match parent {
+                Some(parent) => format!("/v1/namespaces?parent={}", urlencoding::encode(&parent)),
+                None => "/v1/namespaces".to_string(),
+            };
+            rest_request_json(cli, reqwest::Method::GET, &path, None)
+                .await
+                .context("Failed to list namespaces")
         }
     }
 }
@@ -1659,6 +1809,21 @@ fn render_namespace_list_table_from_json(value: &serde_json::Value) -> String {
     render_table(rows)
 }
 
+fn resources_list_json(resources: Vec<resources_proto::Resource>) -> Result<serde_json::Value> {
+    let resources = resources
+        .iter()
+        .map(resource_manifest_json)
+        .collect::<Result<Vec<_>>>()?;
+    Ok(json!({ "resources": resources }))
+}
+
+fn resource_manifest_json(resource: &resources_proto::Resource) -> Result<serde_json::Value> {
+    let yaml = crate::control::manifest::render_resource_yaml(resource)?;
+    let yaml_value: serde_yaml::Value =
+        serde_yaml::from_str(&yaml).context("Failed to parse rendered resource YAML")?;
+    serde_json::to_value(yaml_value).context("Failed to convert rendered resource YAML to JSON")
+}
+
 fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String> {
     use resources_proto::resource_status::Kind as StatusKind;
     match resource.status.as_ref()?.kind.as_ref()? {
@@ -1681,6 +1846,7 @@ fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String>
         | StatusKind::McpServer(status)
         | StatusKind::McpServerBinding(status)
         | StatusKind::Knowledge(status)
+        | StatusKind::Skill(status)
         | StatusKind::Template(status)
         | StatusKind::SandboxClass(status)
         | StatusKind::SandboxPolicy(status) => Some(status.phase.clone()),
@@ -1754,6 +1920,13 @@ mod get_list_tests {
             }
         );
         assert_eq!(
+            resource_list_target("sandboxclasses", Some(&namespace)).unwrap(),
+            ResourceListTarget::Resources {
+                ns: "customers:acme".to_string(),
+                kind: Some("SandboxClass".to_string()),
+            }
+        );
+        assert_eq!(
             resource_list_target("resources", Some(&namespace)).unwrap(),
             ResourceListTarget::Resources {
                 ns: "customers:acme".to_string(),
@@ -1770,19 +1943,37 @@ mod get_list_tests {
 
     #[test]
     fn single_template_lookup_honors_explicit_namespace() {
-        let namespace = "__SOURCE_NS__".to_string();
+        let namespace = "customers:source".to_string();
 
         assert_eq!(
             resource_lookup_target("template", "coding-sandbox-policy", Some(&namespace)).unwrap(),
             (
-                "__SOURCE_NS__".to_string(),
+                "customers:source".to_string(),
                 "Template".to_string(),
                 "coding-sandbox-policy".to_string(),
             )
         );
         assert_eq!(
             rest_delete_path("template", "coding-sandbox-policy", Some(&namespace)).unwrap(),
-            "/v2/ns/__SOURCE_NS__/resources/Template/coding-sandbox-policy"
+            "/v2/ns/customers%3Asource/resources/Template/coding-sandbox-policy"
+        );
+    }
+
+    #[test]
+    fn single_sandbox_class_lookup_honors_explicit_namespace() {
+        let namespace = "Example".to_string();
+
+        assert_eq!(
+            resource_lookup_target("sandboxclass", "docker-codex", Some(&namespace)).unwrap(),
+            (
+                "Example".to_string(),
+                "SandboxClass".to_string(),
+                "docker-codex".to_string(),
+            )
+        );
+        assert_eq!(
+            rest_delete_path("sandboxclass", "docker-codex", Some(&namespace)).unwrap(),
+            "/v2/ns/Example/resources/SandboxClass/docker-codex"
         );
     }
 
@@ -1881,12 +2072,6 @@ pub(super) fn parse_raw_manifest(content: &str) -> Result<crate::control::manife
 pub(super) fn render_manifest_file(file: &str, vars: &[String]) -> Result<String> {
     let content = fs::read_to_string(file)
         .with_context(|| format!("Failed to read manifest file: {}", file))?;
-    if parse_raw_manifest(&content)
-        .map(|raw| raw.kind == "Template")
-        .unwrap_or(false)
-    {
-        return resolve_manifest_sources(file, &content);
-    }
     let vars = parse_vars(vars)?;
     let rendered = render_manifest_template(&content, &vars)
         .with_context(|| format!("Failed to render manifest file: {}", file))?;
@@ -1991,4 +2176,41 @@ fn to_camel_case(s: &str) -> String {
         }
     }
     result
+}
+
+#[cfg(test)]
+mod cli_render_tests {
+    use super::*;
+
+    #[test]
+    fn render_manifest_template_renders_template_outer_vars_and_preserves_raw_inner_vars() {
+        let mut vars = HashMap::new();
+        vars.insert("source_ns".to_string(), "customers".to_string());
+        let rendered = render_manifest_template(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Template
+metadata:
+  name: coding-agent
+  namespace: "{{ vars.source_ns }}"
+spec:
+  kind: Agent
+  spec:
+    systemPrompt: |
+      You are the coding agent for {% raw %}{{ namespace.name }}{% endraw %}.
+"#,
+            &vars,
+        )
+        .expect("template renders");
+
+        assert!(rendered.contains("namespace: \"customers\""));
+        assert!(rendered.contains("{{ namespace.name }}"));
+    }
+
+    #[test]
+    fn render_manifest_template_fails_on_undefined_vars() {
+        let vars = HashMap::new();
+        render_manifest_template("name: {{ vars.missing }}", &vars)
+            .expect_err("undefined var should fail");
+    }
 }

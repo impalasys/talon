@@ -31,8 +31,8 @@ where
     match AssertUnwindSafe(future).catch_unwind().await {
         Ok(Ok(_)) => Ok(SessionCompletionStatus::Completed),
         Ok(Err(e)) => {
-            tracing::error!(agent = %agent, "Execution failed: {}", e);
-            sink.on_error(&format!("Error: {}", e)).await;
+            tracing::error!(agent = %agent, error = %format!("{:#}", e), "Execution failed");
+            sink.on_error(&format!("Error: {:#}", e)).await;
             Ok(SessionCompletionStatus::Errored)
         }
         Err(panic) => {

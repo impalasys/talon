@@ -39,36 +39,15 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::WorkflowRunResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
-        let workflow = match self
-            .gateway
-            .kv
-            .get(&keys::workflow(&req.ns, &req.workflow))
+        let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
+        let resource = store
+            .get(&req.ns, "Workflow", &req.workflow)
             .await
             .map_err(|err| tonic::Status::internal(err.to_string()))?
-        {
-            Some(bytes) => match resources_proto::Workflow::decode(bytes.as_slice()) {
-                Ok(workflow) => workflow,
-                Err(_) => {
-                    let resource = resources_proto::Resource::decode(bytes.as_slice())
-                        .map_err(|err| tonic::Status::internal(err.to_string()))?;
-                    workflow_from_resource(resource).ok_or_else(|| {
-                        tonic::Status::invalid_argument("Workflow resource missing workflow spec")
-                    })?
-                }
-            },
-            None => {
-                let store =
-                    ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
-                let resource = store
-                    .get(&req.ns, "Workflow", &req.workflow)
-                    .await
-                    .map_err(|err| tonic::Status::internal(err.to_string()))?
-                    .ok_or_else(|| tonic::Status::not_found("workflow not found"))?;
-                workflow_from_resource(resource).ok_or_else(|| {
-                    tonic::Status::invalid_argument("Workflow resource missing workflow spec")
-                })?
-            }
-        };
+            .ok_or_else(|| tonic::Status::not_found("workflow not found"))?;
+        let workflow = workflow_from_resource(resource).ok_or_else(|| {
+            tonic::Status::invalid_argument("Workflow resource missing workflow spec")
+        })?;
         let input = if req.input_json.trim().is_empty() {
             serde_json::json!({})
         } else {

@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::keys;
-use crate::control::ProtoKeyValueStoreExt;
 use crate::gateway::rpc::resources_proto;
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use prost::Message;
+use std::collections::HashSet;
 use std::sync::Arc;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -15,13 +14,6 @@ pub struct NamespaceSkill {
     pub namespace: String,
     pub description: String,
     pub instructions: String,
-}
-
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", default)]
-struct NamespaceSkillSpec {
-    description: String,
-    instructions: String,
 }
 
 pub async fn load_effective_skills(
@@ -47,11 +39,17 @@ pub async fn load_effective_skills(
     let fetches = keys_to_fetch.into_iter().map(|key| {
         let kv = kv.clone();
         async move {
-            match kv.get_msg::<resources_proto::Resource>(&key).await {
-                Ok(Some(resource)) => parse_skill_resource(resource),
+            match kv.get(&key).await {
+                Ok(Some(bytes)) => match resources_proto::Skill::decode(bytes.as_slice()) {
+                    Ok(skill) => parse_skill(skill),
+                    Err(err) => {
+                        tracing::warn!(key = %key, error = %err, "skipping unreadable namespace skill");
+                        None
+                    }
+                },
                 Ok(None) => None,
                 Err(err) => {
-                    tracing::warn!(key = %key, error = %err, "skipping unreadable namespace skill");
+                    tracing::warn!(key = %key, error = %err, "failed to fetch namespace skill");
                     None
                 }
             }
@@ -116,16 +114,9 @@ pub fn effective_skill_names(skills: &[NamespaceSkill]) -> Vec<String> {
     skills.iter().map(|skill| skill.name.clone()).collect()
 }
 
-fn parse_skill_resource(resource: resources_proto::Resource) -> Option<NamespaceSkill> {
-    if resource.kind != "Skill" {
-        return None;
-    }
-    let metadata = resource.metadata?;
-    let spec = match resource.spec?.kind? {
-        resources_proto::resource_spec::Kind::Raw(raw) => raw,
-        _ => return None,
-    };
-    let spec: NamespaceSkillSpec = serde_json::from_str(&spec.json).ok()?;
+fn parse_skill(skill: resources_proto::Skill) -> Option<NamespaceSkill> {
+    let metadata = skill.metadata?;
+    let spec = skill.spec?;
     if metadata.name.trim().is_empty()
         || spec.description.trim().is_empty()
         || spec.instructions.trim().is_empty()
@@ -145,15 +136,13 @@ pub fn skill_resource(
     name: &str,
     description: &str,
     instructions: &str,
-) -> resources_proto::Resource {
-    resources_proto::Resource {
-        api_version: "talon.impalasys.com/v1".to_string(),
-        kind: "Skill".to_string(),
+) -> resources_proto::Skill {
+    resources_proto::Skill {
         metadata: Some(resources_proto::ResourceMeta {
             name: name.to_string(),
             namespace: ns.to_string(),
-            labels: HashMap::new(),
-            annotations: HashMap::new(),
+            labels: Default::default(),
+            annotations: Default::default(),
             owner_references: Vec::new(),
             finalizers: Vec::new(),
             generation: 0,
@@ -161,18 +150,11 @@ pub fn skill_resource(
             uid: String::new(),
             deletion_timestamp: None,
         }),
-        spec: Some(resources_proto::ResourceSpec {
-            kind: Some(resources_proto::resource_spec::Kind::Raw(
-                resources_proto::RawResourceSpec {
-                    json: serde_json::to_string(&NamespaceSkillSpec {
-                        description: description.to_string(),
-                        instructions: instructions.to_string(),
-                    })
-                    .expect("skill spec should serialize"),
-                },
-            )),
+        spec: Some(resources_proto::SkillSpec {
+            description: description.to_string(),
+            instructions: instructions.to_string(),
         }),
-        status: None,
+        status: Some(resources_proto::CommonResourceStatus::default()),
     }
 }
 
@@ -187,9 +169,9 @@ pub fn skill_namespace(skill: &NamespaceSkill) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::KeyValueStore;
+    use crate::control::{KeyValueStore, ProtoKeyValueStoreExt};
 
-    fn skill(ns: &str, name: &str, instructions: &str) -> resources_proto::Resource {
+    fn skill(ns: &str, name: &str, instructions: &str) -> resources_proto::Skill {
         skill_resource(ns, name, &format!("{} description", name), instructions)
     }
 
@@ -263,9 +245,9 @@ mod tests {
     fn invalid_skills_are_not_parsed() {
         let mut missing_spec = skill_resource("acme", "review", "Review code", "instructions");
         missing_spec.spec = None;
-        assert!(parse_skill_resource(missing_spec).is_none());
+        assert!(parse_skill(missing_spec).is_none());
 
         let empty_instructions = skill_resource("acme", "review", "Review code", "");
-        assert!(parse_skill_resource(empty_instructions).is_none());
+        assert!(parse_skill(empty_instructions).is_none());
     }
 }

@@ -1,16 +1,14 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::control::ns;
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, ns, KeyValueStore};
 use crate::gateway::rpc::resources_proto;
 use crate::harness::sandbox::{
     ResourceRefJson, SandboxBackend, SandboxClassSpecJson, SandboxPolicySpecJson,
     SandboxPolicyTemplateJson, SandboxQuotaJson,
 };
 use anyhow::{anyhow, Result};
-use prost::Message;
-use std::sync::Arc;
 
 pub struct SandboxController<B> {
     store: ResourceStore,
@@ -25,16 +23,14 @@ pub struct LeasedSandbox {
 
 pub struct SandboxLeaseService<B> {
     store: ResourceStore,
-    kv: Arc<dyn KeyValueStore + Send + Sync>,
     backend: B,
     lease_ttl_seconds: i64,
 }
 
 impl<B: SandboxBackend> SandboxLeaseService<B> {
-    pub fn new(store: ResourceStore, kv: Arc<dyn KeyValueStore + Send + Sync>, backend: B) -> Self {
+    pub fn new(store: ResourceStore, backend: B) -> Self {
         Self {
             store,
-            kv,
             backend,
             lease_ttl_seconds: 60,
         }
@@ -256,14 +252,17 @@ impl<B: SandboxBackend> SandboxLeaseService<B> {
             .metadata
             .as_ref()
             .ok_or_else(|| anyhow!("Sandbox metadata is required"))?;
-        let key = keys::ResourceKey::new(&meta.namespace, &[], "Sandbox", &meta.name);
         for _ in 0..8 {
-            let current = self
-                .kv
-                .get(&key)
+            let mut resource = self
+                .store
+                .get(&meta.namespace, "Sandbox", &meta.name)
                 .await?
                 .ok_or_else(|| anyhow!("Sandbox '{}' not found", meta.name))?;
-            let mut resource = resources_proto::Resource::decode(current.as_slice())?;
+            let expected_resource_version = resource
+                .metadata
+                .as_ref()
+                .map(|meta| meta.resource_version.clone())
+                .ok_or_else(|| anyhow!("Sandbox metadata missing"))?;
             let Some(resources_proto::resource_status::Kind::Sandbox(status)) = resource
                 .status
                 .as_mut()
@@ -272,18 +271,28 @@ impl<B: SandboxBackend> SandboxLeaseService<B> {
                 return Err(anyhow!("Sandbox '{}' missing typed status", meta.name));
             };
             update(status)?;
-            let resource_meta = resource
-                .metadata
-                .as_mut()
-                .ok_or_else(|| anyhow!("Sandbox metadata missing"))?;
-            resource_meta.resource_version = uuid::Uuid::now_v7().to_string();
-            let next = resource.encode_to_vec();
-            if self
-                .kv
-                .compare_and_swap(&key, Some(current.as_slice()), &next)
-                .await?
-            {
-                return Ok(resource);
+            if let Some(status) = resource.status {
+                match self
+                    .store
+                    .patch_status(
+                        &meta.namespace,
+                        "Sandbox",
+                        &meta.name,
+                        Some(&expected_resource_version),
+                        status,
+                    )
+                    .await
+                {
+                    Ok(resource) => return Ok(resource),
+                    Err(err)
+                        if err
+                            .to_string()
+                            .contains("resourceVersion conflict for Sandbox") =>
+                    {
+                        continue;
+                    }
+                    Err(err) => return Err(err),
+                }
             }
         }
         Err(anyhow!(
@@ -647,7 +656,7 @@ mod tests {
             .unwrap();
 
         let backend = DockerSandboxBackend::default();
-        let lease_service = SandboxLeaseService::new(store.clone(), kv, backend.clone());
+        let lease_service = SandboxLeaseService::new(store.clone(), backend.clone());
         let lease = lease_service
             .acquire("customers:acme", "coding", "session-1", "coding")
             .await

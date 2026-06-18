@@ -382,6 +382,12 @@ fn resource_spec_proto_json(spec: &resources_proto::ResourceSpec) -> serde_json:
                 "payloadJson": spec.payload_json,
             }
         }),
+        Some(Kind::Skill(spec)) => json!({
+            "skill": {
+                "description": spec.description,
+                "instructions": spec.instructions,
+            }
+        }),
         Some(Kind::Raw(spec)) => json!({ "raw": { "json": spec.json } }),
         Some(Kind::Agent(_))
         | Some(Kind::Workflow(_))

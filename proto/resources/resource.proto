@@ -12,6 +12,7 @@ import "proto/resources/namespaces.proto";
 import "proto/resources/sandboxes.proto";
 import "proto/resources/schedules.proto";
 import "proto/resources/sessions.proto";
+import "proto/resources/skills.proto";
 import "proto/resources/workflows.proto";
 
 message Resource {
@@ -49,6 +50,7 @@ message ResourceSpec {
     KnowledgeSpec knowledge = 8;
     NamespaceSpec namespace = 9;
     SessionSpec session = 10;
+    SkillSpec skill = 11;
     TemplateSpec template = 20;
     DeploymentSpec deployment = 21;
     DeploymentReplicaSpec deployment_replica = 22;
@@ -72,6 +74,7 @@ message ResourceStatus {
     CommonResourceStatus knowledge = 8;
     NamespaceStatus namespace = 9;
     SessionStatus session = 10;
+    CommonResourceStatus skill = 11;
     CommonResourceStatus template = 20;
     DeploymentStatus deployment = 21;
     DeploymentReplicaStatus deployment_replica = 22;

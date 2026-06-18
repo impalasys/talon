@@ -17,6 +17,7 @@ PROTO_SRCS=(
   proto/resources/deployments.proto
   proto/resources/sandboxes.proto
   proto/resources/sessions.proto
+  proto/resources/skills.proto
   proto/resources/resource.proto
   proto/data/data.proto
   proto/events.proto

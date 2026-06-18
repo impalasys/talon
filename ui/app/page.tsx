@@ -6,6 +6,7 @@ import { dump } from 'js-yaml';
 import { 
   Terminal, 
   Activity, 
+  Box,
   Database, 
   Settings2, 
   Wifi, 
@@ -24,6 +25,11 @@ import {
   Square,
   Hash,
   Radio,
+  Layers3,
+  Package,
+  ShieldCheck,
+  Container,
+  KeyRound,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
@@ -31,25 +37,30 @@ import { twMerge } from 'tailwind-merge';
 import { TalonChannel, TalonCopilot, type TalonChatObjectRef, type TalonImageUploadContext } from '@impalasys/talon-chat';
 import { NamespaceExplorer, type Selection } from '../components/Namespaces/NamespaceExplorer';
 import { updateGatewayClient, getGatewayClient } from '../lib/grpc';
+import { resourceToManifestDocument, yamlSafeValue } from '../lib/resourceManifest';
 
 const isStaticExport = process.env.NEXT_PUBLIC_TALON_STATIC_EXPORT === '1';
 const SYSTEM_NAMESPACE = 'Sys';
 
+const RESOURCE_KIND_BY_SELECTION: Partial<Record<Selection['type'], string>> = {
+  agent: 'Agent',
+  channel: 'Channel',
+  'channel-subscription': 'ChannelSubscription',
+  schedule: 'Schedule',
+  template: 'Template',
+  deployment: 'Deployment',
+  'deployment-replica': 'DeploymentReplica',
+  'sandbox-class': 'SandboxClass',
+  'sandbox-policy': 'SandboxPolicy',
+  sandbox: 'Sandbox',
+  'permission-request': 'PermissionRequest',
+  'mcp-server': 'McpServer',
+  'mcp-binding': 'McpServerBinding',
+  knowledge: 'Knowledge',
+};
+
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
-}
-
-function yamlSafeValue(value: any): any {
-  if (typeof value === 'bigint') return value.toString();
-  if (Array.isArray(value)) return value.map(yamlSafeValue);
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value)
-        .filter(([, entryValue]) => typeof entryValue !== 'undefined')
-        .map(([key, entryValue]) => [key, yamlSafeValue(entryValue)]),
-    );
-  }
-  return value;
 }
 
 type ResourceEnvelope = {
@@ -80,6 +91,17 @@ function resourceSpec(resource: ResourceEnvelope, caseName: string) {
 
 function resourceStatus(resource: ResourceEnvelope, caseName: string) {
   return resource.status?.kind?.case === caseName ? resource.status.kind.value || {} : {};
+}
+
+function isV2ResourceDocument(document: any): document is ResourceEnvelope {
+  return Boolean(
+    document &&
+      typeof document === 'object' &&
+      typeof document.apiVersion === 'string' &&
+      typeof document.kind === 'string' &&
+      document.metadata &&
+      document.spec?.kind?.case,
+  );
 }
 
 function channelDocumentFromResource(resource: ResourceEnvelope): ChannelDocument {
@@ -143,9 +165,9 @@ function selectionFromSearchParams(searchParams: URLSearchParams): Selection | n
   if (type === 'template' && resourceName) {
     return {
       type: 'template',
-      ns: 'Sys',
+      ns: ns || SYSTEM_NAMESPACE,
       resourceName,
-      fullPath: `template/${resourceName}`,
+      fullPath: `${ns || SYSTEM_NAMESPACE}:template:${resourceName}`,
     };
   }
 
@@ -227,6 +249,26 @@ function selectionFromSearchParams(searchParams: URLSearchParams): Selection | n
     };
   }
 
+  if (
+    (
+      type === 'deployment' ||
+      type === 'deployment-replica' ||
+      type === 'sandbox-class' ||
+      type === 'sandbox-policy' ||
+      type === 'sandbox' ||
+      type === 'permission-request'
+    ) &&
+    ns &&
+    resourceName
+  ) {
+    return {
+      type,
+      ns,
+      resourceName,
+      fullPath: `${ns}:${type}:${resourceName}`,
+    };
+  }
+
   return {
     type: 'namespace',
     ns,
@@ -283,7 +325,7 @@ function getSelectionTitle(selection: Selection | null) {
 }
 
 function getSelectionSubtitle(selection: Selection | null) {
-  if (!selection) return 'Select a namespace, agent, MCP binding, template, MCP server, or session.';
+  if (!selection) return 'Select a namespace, agent, deployment, sandbox, template, MCP server, or session.';
   if (selection.type === 'namespace') return 'Namespace';
   if (selection.type === 'agent') return `${selection.ns} / Agent`;
   if (selection.type === 'session') return `${selection.ns} / ${selection.agent}`;
@@ -292,7 +334,13 @@ function getSelectionSubtitle(selection: Selection | null) {
   if (selection.type === 'schedule') return `${selection.ns} / Schedule`;
   if (selection.type === 'mcp-binding') return `${selection.ns} / MCP Binding`;
   if (selection.type === 'knowledge') return `${selection.ns} / Knowledge`;
-  if (selection.type === 'template') return 'Sys / AgentTemplate';
+  if (selection.type === 'template') return `${selection.ns} / Template`;
+  if (selection.type === 'deployment') return `${selection.ns} / Deployment`;
+  if (selection.type === 'deployment-replica') return `${selection.ns} / DeploymentReplica`;
+  if (selection.type === 'sandbox-class') return `${selection.ns} / SandboxClass`;
+  if (selection.type === 'sandbox-policy') return `${selection.ns} / SandboxPolicy`;
+  if (selection.type === 'sandbox') return `${selection.ns} / Sandbox`;
+  if (selection.type === 'permission-request') return `${selection.ns} / PermissionRequest`;
   return 'Sys / MCPServer';
 }
 
@@ -314,6 +362,12 @@ function selectionIcon(selection: Selection | null) {
   if (selection.type === 'mcp-binding') return <Plug className="w-4 h-4 text-blue-500" />;
   if (selection.type === 'knowledge') return <FileText className="w-4 h-4 text-violet-400" />;
   if (selection.type === 'template') return <FileText className="w-4 h-4 text-emerald-500" />;
+  if (selection.type === 'deployment') return <Layers3 className="w-4 h-4 text-indigo-400" />;
+  if (selection.type === 'deployment-replica') return <Package className="w-4 h-4 text-indigo-300" />;
+  if (selection.type === 'sandbox-class') return <ShieldCheck className="w-4 h-4 text-fuchsia-400" />;
+  if (selection.type === 'sandbox-policy') return <Box className="w-4 h-4 text-fuchsia-300" />;
+  if (selection.type === 'sandbox') return <Container className="w-4 h-4 text-orange-400" />;
+  if (selection.type === 'permission-request') return <KeyRound className="w-4 h-4 text-rose-400" />;
   return <Plug className="w-4 h-4 text-blue-500" />;
 }
 
@@ -1020,41 +1074,35 @@ function DebuggerPageContent() {
             })).resource || {}) as ResourceEnvelope);
             break;
           case 'template':
-            document = (await getGatewayClient().getResource({
-              ns: SYSTEM_NAMESPACE,
-              kind: 'Template',
-              name: selection.resourceName || '',
-            })).resource;
-            break;
+          case 'deployment':
+          case 'deployment-replica':
+          case 'sandbox-class':
+          case 'sandbox-policy':
+          case 'sandbox':
+          case 'permission-request':
           case 'mcp-server':
-            document = (await getGatewayClient().getResource({
-              ns: SYSTEM_NAMESPACE,
-              kind: 'McpServer',
-              name: selection.resourceName || '',
-            })).resource;
-            break;
           case 'mcp-binding':
+          case 'knowledge': {
+            const kind = RESOURCE_KIND_BY_SELECTION[selection.type];
+            if (!kind) throw new Error(`Unsupported resource selection '${selection.type}'`);
             document = (await getGatewayClient().getResource({
-              ns: selection.ns,
-              kind: 'McpServerBinding',
+              ns: selection.type === 'mcp-server' ? SYSTEM_NAMESPACE : selection.ns,
+              kind,
               name: selection.resourceName || '',
             })).resource;
             break;
-          case 'knowledge':
-            document = (await getGatewayClient().getResource({
-              ns: selection.ns,
-              kind: 'Knowledge',
-              name: selection.resourceName || '',
-            })).resource;
-            break;
+          }
         }
         if (!document) {
           throw new Error('Resource not found');
         }
 
         if (!cancelled) {
-          setResourceDocument(document);
-          setResourceYaml(dump(yamlSafeValue(document), { noRefs: true, lineWidth: 100 }));
+          const displayDocument = isV2ResourceDocument(document)
+            ? resourceToManifestDocument(document)
+            : yamlSafeValue(document);
+          setResourceDocument(displayDocument);
+          setResourceYaml(dump(displayDocument, { noRefs: true, lineWidth: 100 }));
         }
       } catch (err: any) {
         if (!cancelled) {

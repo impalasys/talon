@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader, Lines};
@@ -97,8 +97,7 @@ impl AcpAgentRuntime {
             self.cp.pubsub.clone(),
         );
         let sandbox_backend = DispatchingSandboxBackend::default();
-        let lease_service =
-            SandboxLeaseService::new(store, self.cp.kv.clone(), sandbox_backend.clone());
+        let lease_service = SandboxLeaseService::new(store, sandbox_backend.clone());
         let leased = lease_service
             .acquire(
                 &self.ns,
@@ -118,12 +117,22 @@ impl AcpAgentRuntime {
             let _ = lease_service.release(&leased.sandbox, &leased.token).await;
             return Err(anyhow!("ACP runtime requires command or harnessRef"));
         }
+        let effective_acp = effective_acp_runtime(&self.acp, &command);
 
-        let mut child = acp_harness_command(&self.acp, &sandbox_backend_id, &command)
+        let mut child = acp_harness_command(&effective_acp, &sandbox_backend_id, &command)
             .stdin(std::process::Stdio::piped())
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped())
-            .spawn()?;
+            .spawn()
+            .with_context(|| {
+                if sandbox_backend_id.starts_with("docker:") {
+                    format!(
+                        "failed to spawn ACP harness via docker exec; ensure talon-worker has the Docker CLI and /var/run/docker.sock mounted (command: {command})"
+                    )
+                } else {
+                    format!("failed to spawn ACP harness command '{command}'")
+                }
+            })?;
         let mut stdin = child
             .stdin
             .take()
@@ -162,26 +171,50 @@ impl AcpAgentRuntime {
             &mut stdin,
             2,
             "authenticate",
-            json!({ "methodId": acp_auth_method(&self.acp) }),
+            json!({ "methodId": acp_auth_method(&effective_acp) }),
         )
         .await?;
         let _ = read_optional_capability_response(&mut lines, 2).await?;
-        send_request(
-            &mut stdin,
-            3,
-            if self.acp.persist_session {
-                "session/load"
-            } else {
-                "session/new"
-            },
-            session_open_params(&self.session_id, &self.acp),
-        )
-        .await?;
-        let open_response = read_response(&mut lines, 3).await?;
+        let mut open_request_id = 3;
+        let open_response = if effective_acp.persist_session {
+            send_request(
+                &mut stdin,
+                open_request_id,
+                "session/load",
+                session_open_params(&self.session_id, &effective_acp),
+            )
+            .await?;
+            match read_response(&mut lines, open_request_id).await {
+                Ok(response) => response,
+                Err(err) if is_acp_resource_not_found(&err) => {
+                    open_request_id += 1;
+                    let mut new_session_acp = effective_acp.clone();
+                    new_session_acp.persist_session = false;
+                    send_request(
+                        &mut stdin,
+                        open_request_id,
+                        "session/new",
+                        session_open_params(&self.session_id, &new_session_acp),
+                    )
+                    .await?;
+                    read_response(&mut lines, open_request_id).await?
+                }
+                Err(err) => return Err(err),
+            }
+        } else {
+            send_request(
+                &mut stdin,
+                open_request_id,
+                "session/new",
+                session_open_params(&self.session_id, &effective_acp),
+            )
+            .await?;
+            read_response(&mut lines, open_request_id).await?
+        };
         let acp_session_id =
             extract_session_id(&open_response.result).unwrap_or_else(|| self.session_id.clone());
-        let mut prompt_request_id = 4;
-        if acp_full_access_allowed(&self.acp) {
+        let mut prompt_request_id = open_request_id + 1;
+        if acp_full_access_allowed(&effective_acp) {
             send_request(
                 &mut stdin,
                 prompt_request_id,
@@ -586,6 +619,38 @@ fn acp_harness_command(
     local
 }
 
+fn effective_acp_runtime(acp: &manifests::AcpRuntime, command: &str) -> manifests::AcpRuntime {
+    let mut effective = acp.clone();
+    let command_name = if command.trim().is_empty() {
+        effective.harness_ref.as_str()
+    } else {
+        command
+    };
+    if !command_name.contains("codex") && !effective.harness_ref.contains("codex") {
+        return effective;
+    }
+
+    for key in ["OPENAI_API_KEY", "CODEX_API_KEY"] {
+        if effective.env.contains_key(key) {
+            continue;
+        }
+        if let Ok(value) = std::env::var(key) {
+            if !value.is_empty() {
+                effective.env.insert(key.to_string(), value);
+            }
+        }
+    }
+
+    if !effective.env.contains_key("CODEX_API_KEY") {
+        if let Some(openai_api_key) = effective.env.get("OPENAI_API_KEY").cloned() {
+            effective
+                .env
+                .insert("CODEX_API_KEY".to_string(), openai_api_key);
+        }
+    }
+    effective
+}
+
 async fn send_request(
     stdin: &mut tokio::process::ChildStdin,
     id: u64,
@@ -651,6 +716,11 @@ async fn read_response_message(
 
 fn is_method_not_found(error: &Value) -> bool {
     error.get("code").and_then(|value| value.as_i64()) == Some(-32601)
+}
+
+fn is_acp_resource_not_found(error: &anyhow::Error) -> bool {
+    let message = error.to_string();
+    message.contains("\"code\":-32002") || message.contains("Resource not found")
 }
 
 async fn send_response(
@@ -773,6 +843,30 @@ mod tests {
     use crate::test_support::docker_test_guard;
     use tokio::io::AsyncReadExt;
     use tokio::time::{timeout, Duration};
+
+    #[test]
+    fn codex_effective_runtime_aliases_openai_key_to_codex_key() {
+        let acp = manifests::AcpRuntime {
+            harness_ref: String::new(),
+            command: "codex-acp".to_string(),
+            args: Vec::new(),
+            cwd: "/workspace".to_string(),
+            sandbox_policy_ref: "coding".to_string(),
+            persist_session: false,
+            env: std::collections::HashMap::from([(
+                "OPENAI_API_KEY".to_string(),
+                "test-openai-key".to_string(),
+            )]),
+            permission_policy: Default::default(),
+        };
+
+        let effective = effective_acp_runtime(&acp, "codex-acp");
+
+        assert_eq!(
+            effective.env.get("CODEX_API_KEY").map(String::as_str),
+            Some("test-openai-key")
+        );
+    }
 
     #[tokio::test]
     async fn codex_acp_starts_inside_docker_sandbox_when_enabled() {

@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine as _};
 use futures::StreamExt;
@@ -248,7 +248,13 @@ impl SandboxBackend for DockerSandboxBackend {
         args.push("-lc".to_string());
         args.push(bootstrap);
 
-        let output = Command::new("docker").args(&args).output().await?;
+        let output = Command::new("docker")
+            .args(&args)
+            .output()
+            .await
+            .context(
+                "failed to run Docker CLI while creating sandbox; ensure talon-worker has the Docker CLI and /var/run/docker.sock mounted",
+            )?;
         if !output.status.success() {
             return Err(anyhow!(
                 "docker sandbox create failed: {}",
@@ -1148,7 +1154,10 @@ async fn wait_for_docker_bootstrap(backend_id: &str, class: &SandboxClassSpecJso
                 &format!("test -f {}", shell_escape(DOCKER_READY_FILE)),
             ])
             .output()
-            .await?;
+            .await
+            .context(
+                "failed to run Docker CLI while waiting for sandbox bootstrap; ensure talon-worker has the Docker CLI and /var/run/docker.sock mounted",
+            )?;
         if ready.status.success() {
             return Ok(());
         }
@@ -1175,7 +1184,8 @@ async fn docker_container_running(backend_id: &str) -> Result<bool> {
     let output = Command::new("docker")
         .args(["inspect", "-f", "{{.State.Running}}", backend_id])
         .output()
-        .await?;
+        .await
+        .context("failed to run Docker CLI while inspecting sandbox container")?;
     if !output.status.success() {
         return Ok(false);
     }

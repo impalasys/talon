@@ -373,8 +373,8 @@ control_plane:
 
 
 @pytest.fixture
-def sqlite_test_grpc_port():
-    return 50054
+def sqlite_test_grpc_port(talon_infrastructure_sqlite):
+    return talon_infrastructure_sqlite["grpc_port"]
 
 
 @pytest.fixture

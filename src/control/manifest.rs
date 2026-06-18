@@ -718,6 +718,9 @@ pub fn resource_spec_status_from_json(
         "Sandbox" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Sandbox(sandbox_spec_from_value(spec_value)?)),
         },
+        "Skill" => resources_proto::ResourceSpec {
+            kind: Some(SpecKind::Skill(skill_spec_from_value(spec_value)?)),
+        },
         "PermissionRequest" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::PermissionRequest(
                 permission_request_spec_from_value(spec_value)?,
@@ -773,6 +776,9 @@ pub fn resource_spec_status_from_json(
             kind: Some(StatusKind::SandboxPolicy(common_status_from_value(
                 status_value,
             )?)),
+        },
+        "Skill" => resources_proto::ResourceStatus {
+            kind: Some(StatusKind::Skill(common_status_from_value(status_value)?)),
         },
         _ => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Raw(resources_proto::RawResourceStatus {
@@ -831,6 +837,10 @@ fn resource_spec_status_to_yaml_values(
             "action": spec.action,
             "prompt": spec.prompt,
             "payload": json_string_to_json_value(&spec.payload_json)?,
+        }))?,
+        Some(SpecKind::Skill(spec)) => serde_json::to_string(&serde_json::json!({
+            "description": spec.description,
+            "instructions": spec.instructions,
         }))?,
         Some(SpecKind::Raw(raw)) => raw.json.clone(),
         _ => "{}".to_string(),
@@ -930,6 +940,21 @@ fn resource_spec_status_to_yaml_values(
                     serde_json::Value::String(status.backend_id.clone()),
                 );
             }
+            if let Some(lease) = &status.lease {
+                json.insert("lease".to_string(), sandbox_lease_to_json(lease));
+            }
+            if !status.processes.is_empty() {
+                json.insert(
+                    "processes".to_string(),
+                    serde_json::Value::Array(
+                        status
+                            .processes
+                            .iter()
+                            .map(sandbox_process_status_to_json)
+                            .collect(),
+                    ),
+                );
+            }
             serde_json::to_string(&serde_json::Value::Object(json))?
         }
         Some(StatusKind::PermissionRequest(status)) => {
@@ -959,6 +984,7 @@ fn resource_spec_status_to_yaml_values(
             serde_json::to_string(&serde_json::Value::Object(json))?
         }
         Some(StatusKind::Template(status))
+        | Some(StatusKind::Skill(status))
         | Some(StatusKind::SandboxClass(status))
         | Some(StatusKind::SandboxPolicy(status)) => {
             serde_json::to_string(&common_status_to_json(status))?
@@ -1004,6 +1030,17 @@ fn agent_spec_from_value(value: serde_json::Value) -> Result<resources_proto::Ag
     let spec = serde_json::from_value::<AgentSpecManifest>(value)?;
     let spec = spec.into_proto()?;
     validate_acp_permission_policy_manifest(&spec)?;
+    Ok(spec)
+}
+
+fn skill_spec_from_value(value: serde_json::Value) -> Result<resources_proto::SkillSpec> {
+    let spec = serde_json::from_value::<resources_proto::SkillSpec>(value)?;
+    if spec.description.trim().is_empty() {
+        bail!("Skill spec.description is required");
+    }
+    if spec.instructions.trim().is_empty() {
+        bail!("Skill spec.instructions is required");
+    }
     Ok(spec)
 }
 
@@ -1491,9 +1528,88 @@ fn sandbox_status_from_value(value: serde_json::Value) -> Result<resources_proto
             .and_then(|value| value.as_str())
             .unwrap_or_default()
             .to_string(),
-        lease: None,
-        processes: Vec::new(),
+        lease: sandbox_lease_from_value(value.get("lease")),
+        processes: sandbox_processes_from_value(value.get("processes")),
     })
+}
+
+fn sandbox_lease_from_value(
+    value: Option<&serde_json::Value>,
+) -> Option<resources_proto::SandboxLease> {
+    let value = value?;
+    Some(resources_proto::SandboxLease {
+        owner_kind: value
+            .get("ownerKind")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        owner_agent: value
+            .get("ownerAgent")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        owner_session_id: value
+            .get("ownerSessionId")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        token: value
+            .get("token")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        acquired_at: value
+            .get("acquiredAt")
+            .and_then(|value| value.as_i64())
+            .unwrap_or_default(),
+        expires_at: value
+            .get("expiresAt")
+            .and_then(|value| value.as_i64())
+            .unwrap_or_default(),
+        heartbeat_at: value
+            .get("heartbeatAt")
+            .and_then(|value| value.as_i64())
+            .unwrap_or_default(),
+    })
+}
+
+fn sandbox_processes_from_value(
+    value: Option<&serde_json::Value>,
+) -> Vec<resources_proto::SandboxProcessStatus> {
+    value
+        .and_then(|value| value.as_array())
+        .map(|processes| {
+            processes
+                .iter()
+                .map(|process| resources_proto::SandboxProcessStatus {
+                    id: process
+                        .get("id")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or_default()
+                        .to_string(),
+                    command: process
+                        .get("command")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or_default()
+                        .to_string(),
+                    args: process
+                        .get("args")
+                        .and_then(|value| serde_json::from_value(value.clone()).ok())
+                        .unwrap_or_default(),
+                    protocol: process
+                        .get("protocol")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or_default()
+                        .to_string(),
+                    phase: process
+                        .get("phase")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or_default()
+                        .to_string(),
+                })
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 fn permission_request_status_from_value(
@@ -1596,6 +1712,96 @@ fn common_status_map(
         );
     }
     json
+}
+
+fn sandbox_lease_to_json(lease: &resources_proto::SandboxLease) -> serde_json::Value {
+    let mut json = serde_json::Map::new();
+    if !lease.owner_kind.is_empty() {
+        json.insert(
+            "ownerKind".to_string(),
+            serde_json::Value::String(lease.owner_kind.clone()),
+        );
+    }
+    if !lease.owner_agent.is_empty() {
+        json.insert(
+            "ownerAgent".to_string(),
+            serde_json::Value::String(lease.owner_agent.clone()),
+        );
+    }
+    if !lease.owner_session_id.is_empty() {
+        json.insert(
+            "ownerSessionId".to_string(),
+            serde_json::Value::String(lease.owner_session_id.clone()),
+        );
+    }
+    if !lease.token.is_empty() {
+        json.insert(
+            "token".to_string(),
+            serde_json::Value::String(lease.token.clone()),
+        );
+    }
+    if lease.acquired_at != 0 {
+        json.insert(
+            "acquiredAt".to_string(),
+            serde_json::Value::Number(lease.acquired_at.into()),
+        );
+    }
+    if lease.expires_at != 0 {
+        json.insert(
+            "expiresAt".to_string(),
+            serde_json::Value::Number(lease.expires_at.into()),
+        );
+    }
+    if lease.heartbeat_at != 0 {
+        json.insert(
+            "heartbeatAt".to_string(),
+            serde_json::Value::Number(lease.heartbeat_at.into()),
+        );
+    }
+    serde_json::Value::Object(json)
+}
+
+fn sandbox_process_status_to_json(
+    process: &resources_proto::SandboxProcessStatus,
+) -> serde_json::Value {
+    let mut json = serde_json::Map::new();
+    if !process.id.is_empty() {
+        json.insert(
+            "id".to_string(),
+            serde_json::Value::String(process.id.clone()),
+        );
+    }
+    if !process.command.is_empty() {
+        json.insert(
+            "command".to_string(),
+            serde_json::Value::String(process.command.clone()),
+        );
+    }
+    if !process.args.is_empty() {
+        json.insert(
+            "args".to_string(),
+            serde_json::Value::Array(
+                process
+                    .args
+                    .iter()
+                    .map(|arg| serde_json::Value::String(arg.clone()))
+                    .collect(),
+            ),
+        );
+    }
+    if !process.protocol.is_empty() {
+        json.insert(
+            "protocol".to_string(),
+            serde_json::Value::String(process.protocol.clone()),
+        );
+    }
+    if !process.phase.is_empty() {
+        json.insert(
+            "phase".to_string(),
+            serde_json::Value::String(process.phase.clone()),
+        );
+    }
+    serde_json::Value::Object(json)
 }
 
 fn conditions_from_value(value: &serde_json::Value) -> Vec<resources_proto::ResourceCondition> {
@@ -2803,6 +3009,45 @@ spec:
         )
         .expect_err("system mount path should fail");
         assert!(error.to_string().contains("mountPath"));
+    }
+
+    #[test]
+    fn skill_manifest_uses_typed_spec_and_renders_flat_yaml() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Skill
+metadata:
+  name: review
+  namespace: customers
+spec:
+  description: Review code
+  instructions: Look for regressions.
+"#,
+        )
+        .expect("skill manifest should parse");
+        let Some(resource_spec::Kind::Skill(spec)) =
+            manifest.spec.clone().and_then(|spec| spec.kind)
+        else {
+            panic!("expected Skill spec");
+        };
+        assert_eq!(spec.instructions, "Look for regressions.");
+
+        let rendered = render_resource_yaml(&resources_proto::Resource {
+            api_version: manifest.api_version,
+            kind: manifest.kind,
+            metadata: manifest.metadata,
+            spec: manifest.spec,
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resource_status::Kind::Skill(Default::default())),
+            }),
+        })
+        .expect("skill resource should render");
+
+        assert!(rendered.contains("kind: Skill"));
+        assert!(rendered.contains("description: Review code"));
+        assert!(rendered.contains("instructions: Look for regressions."));
+        assert!(!rendered.contains("raw:"));
     }
 
     #[test]

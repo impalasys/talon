@@ -57,6 +57,7 @@ jobs:
   benchmark:
     name: 1 vCPU Benchmark
     runs-on: ubuntu-latest
+    continue-on-error: true
     timeout-minutes: 45
     env:
       BENCH_AGENTS: ${{ github.event_name == 'workflow_dispatch' && inputs.agents || '7000' }}

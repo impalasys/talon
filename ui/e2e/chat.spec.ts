@@ -125,6 +125,12 @@ function hasReasoningPart(message: any): boolean {
   });
 }
 
+async function rootCssVar(page: Page, name: string) {
+  return page.evaluate((variableName) => {
+    return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+  }, name);
+}
+
 async function annotatePaginationProof(page: Page, label: string) {
   if (process.env.CAPTURE_PAGINATION_VIDEO !== 'true') return;
   await page.evaluate((text) => {
@@ -153,6 +159,47 @@ async function annotatePaginationProof(page: Page, label: string) {
   }, label);
   await page.waitForTimeout(2200);
 }
+
+test.describe('Sightline theme tokens', () => {
+  test('resolves the browser light preference by default', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.goto('/');
+
+    await expect.poll(async () => {
+      return page.evaluate(() => ({
+        className: document.documentElement.className,
+        titleColor: getComputedStyle(document.documentElement).getPropertyValue('--color-title-50').trim(),
+        inputBg: getComputedStyle(document.documentElement).getPropertyValue('--copilot-input-bg').trim(),
+        bubbleFg: getComputedStyle(document.documentElement).getPropertyValue('--talon-chat-user-bubble-fg').trim(),
+      }));
+    }).toMatchObject({
+      className: expect.stringContaining('light'),
+      titleColor: '#0f172a',
+      inputBg: 'rgba(255, 255, 255, 0.96)',
+      bubbleFg: '#0f172a',
+    });
+  });
+
+  test('keeps app and chat tokens aligned for explicit light and dark classes', async ({ page }) => {
+    await page.goto('/');
+
+    await page.evaluate(() => {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+    });
+    await expect.poll(() => rootCssVar(page, '--color-title-50')).toBe('#0f172a');
+    await expect.poll(() => rootCssVar(page, '--copilot-input-bg')).toBe('rgba(255, 255, 255, 0.96)');
+    await expect.poll(() => rootCssVar(page, '--talon-chat-user-bubble-fg')).toBe('#0f172a');
+
+    await page.evaluate(() => {
+      document.documentElement.classList.remove('light');
+      document.documentElement.classList.add('dark');
+    });
+    await expect.poll(() => rootCssVar(page, '--color-title-50')).toBe('#f4f7ff');
+    await expect.poll(() => rootCssVar(page, '--copilot-input-bg')).toBe('rgba(15, 23, 42, 0.92)');
+    await expect.poll(() => rootCssVar(page, '--talon-chat-user-bubble-fg')).toBe('#e6edf3');
+  });
+});
 
 test.describe('Chat Streaming', () => {
   test('should send chat messages through the gateway UI transport', async ({ page }) => {
@@ -187,7 +234,7 @@ test.describe('Chat Streaming', () => {
     const clearOption = page.getByRole('option', { name: /\/clear/i });
     await expect(clearOption).toBeVisible();
     await clearOption.hover();
-    await expect(clearOption).toHaveCSS('background-color', 'rgba(24, 24, 27, 0.11)');
+    await expect(clearOption).toHaveCSS('background-color', 'rgba(148, 163, 184, 0.16)');
     await clearOption.click();
 
     await expect(chatInput).toHaveValue('/clear');

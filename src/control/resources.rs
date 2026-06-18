@@ -4,7 +4,7 @@
 use crate::control::events;
 use crate::control::{keys, topics, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::resources_proto;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use prost::Message;
 use std::sync::Arc;
 
@@ -320,7 +320,14 @@ impl ResourceStore {
         self.kv
             .get(key)
             .await?
-            .map(|bytes| decode_stored_resource(&key.kind, bytes.as_slice()))
+            .map(|bytes| {
+                decode_stored_resource(&key.kind, bytes.as_slice()).with_context(|| {
+                    format!(
+                        "failed to decode stored {} resource {}/{}/{}",
+                        key.kind, key.namespace, key.parent_path, key.name
+                    )
+                })
+            })
             .transpose()
     }
 }
@@ -354,7 +361,7 @@ pub fn agent_from_resource(resource: resources_proto::Resource) -> Result<resour
 }
 
 fn decode_stored_resource(kind: &str, bytes: &[u8]) -> Result<resources_proto::Resource> {
-    let decoded = match kind {
+    match kind {
         "Agent" => decode_typed_resource::<resources_proto::Agent, _, _, _, _>(
             kind,
             bytes,
@@ -419,6 +426,12 @@ fn decode_stored_resource(kind: &str, bytes: &[u8]) -> Result<resources_proto::R
             resources_proto::resource_spec::Kind::Session,
             resources_proto::resource_status::Kind::Session,
         ),
+        "Skill" => decode_typed_resource::<resources_proto::Skill, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::Skill,
+            resources_proto::resource_status::Kind::Skill,
+        ),
         "Template" => decode_typed_resource::<resources_proto::Template, _, _, _, _>(
             kind,
             bytes,
@@ -465,11 +478,6 @@ fn decode_stored_resource(kind: &str, bytes: &[u8]) -> Result<resources_proto::R
                 resources_proto::resource_status::Kind::PermissionRequest,
             )
         }
-        _ => resources_proto::Resource::decode(bytes).map_err(Into::into),
-    };
-
-    match decoded {
-        Ok(resource) if resource.metadata.is_some() => Ok(resource),
         _ => resources_proto::Resource::decode(bytes).map_err(Into::into),
     }
 }
@@ -562,6 +570,11 @@ impl_stored_typed_resource!(
     resources_proto::SessionStatus
 );
 impl_stored_typed_resource!(
+    resources_proto::Skill,
+    resources_proto::SkillSpec,
+    resources_proto::CommonResourceStatus
+);
+impl_stored_typed_resource!(
     resources_proto::Template,
     resources_proto::TemplateSpec,
     resources_proto::CommonResourceStatus
@@ -611,6 +624,9 @@ where
     StatusArm: FnOnce(T) -> resources_proto::resource_status::Kind,
 {
     let (metadata, spec, status) = W::decode(bytes)?.into_parts();
+    if metadata.is_none() {
+        return Err(anyhow!("{kind} stored payload is missing metadata"));
+    }
     Ok(resources_proto::Resource {
         api_version: API_VERSION.to_string(),
         kind: kind.to_string(),
@@ -793,6 +809,23 @@ fn encode_stored_resource(resource: &resources_proto::Resource) -> Result<Vec<u8
             },
             |kind| match kind {
                 resources_proto::resource_status::Kind::Session(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "Skill" => encode_typed_resource::<
+            resources_proto::Skill,
+            resources_proto::SkillSpec,
+            resources_proto::CommonResourceStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Skill(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Skill(status) => Some(status),
                 _ => None,
             },
         ),
@@ -1003,6 +1036,7 @@ fn validate_resource_kind(resource: &resources_proto::Resource) -> Result<()> {
         Kind::Knowledge(_) => "Knowledge",
         Kind::Namespace(_) => "Namespace",
         Kind::Session(_) => "Session",
+        Kind::Skill(_) => "Skill",
         Kind::Template(_) => "Template",
         Kind::Deployment(_) => "Deployment",
         Kind::DeploymentReplica(_) => "DeploymentReplica",
@@ -1041,6 +1075,7 @@ fn default_status_for_resource(
         Some(SpecKind::Knowledge(_)) => StatusKind::Knowledge(Default::default()),
         Some(SpecKind::Namespace(_)) => StatusKind::Namespace(Default::default()),
         Some(SpecKind::Session(_)) => StatusKind::Session(Default::default()),
+        Some(SpecKind::Skill(_)) => StatusKind::Skill(Default::default()),
         Some(SpecKind::Template(_)) => StatusKind::Template(Default::default()),
         Some(SpecKind::Deployment(_)) => StatusKind::Deployment(Default::default()),
         Some(SpecKind::DeploymentReplica(_)) => StatusKind::DeploymentReplica(Default::default()),
@@ -1213,7 +1248,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn resource_store_reads_legacy_generic_resource_payloads() {
+    async fn resource_store_rejects_generic_payloads_for_known_kinds() {
         let kv = Arc::new(MockKvStore::new());
         let store = ResourceStore::new(kv.clone(), Arc::new(RecordingPubSub::default()));
         let legacy = resources_proto::Resource {
@@ -1245,17 +1280,53 @@ mod tests {
         .await
         .unwrap();
 
-        let loaded = store
+        let err = store
             .get("customers:acme", "Agent", "legacy")
             .await
+            .expect_err("known kinds must use kind-specific protobuf storage");
+        assert!(err.to_string().contains("failed to decode stored Agent"));
+    }
+
+    #[tokio::test]
+    async fn resource_store_stores_skill_as_typed_payload() {
+        let kv = Arc::new(MockKvStore::new());
+        let store = ResourceStore::new(kv.clone(), Arc::new(RecordingPubSub::default()));
+        store
+            .upsert(
+                "customers:acme",
+                resources_proto::Resource {
+                    api_version: "talon.impalasys.com/v1".to_string(),
+                    kind: "Skill".to_string(),
+                    metadata: Some(resources_proto::ResourceMeta {
+                        name: "review".to_string(),
+                        namespace: "customers:acme".to_string(),
+                        ..Default::default()
+                    }),
+                    spec: Some(resources_proto::ResourceSpec {
+                        kind: Some(resources_proto::resource_spec::Kind::Skill(
+                            resources_proto::SkillSpec {
+                                description: "Review code".to_string(),
+                                instructions: "Look for regressions.".to_string(),
+                            },
+                        )),
+                    }),
+                    status: None,
+                },
+            )
+            .await
+            .unwrap();
+
+        let stored = kv
+            .get(&crate::control::keys::skill("customers:acme", "review"))
+            .await
             .unwrap()
-            .expect("legacy Resource payload should decode");
-        match loaded.spec.and_then(|spec| spec.kind) {
-            Some(resources_proto::resource_spec::Kind::Agent(spec)) => {
-                assert_eq!(spec.system_prompt, "legacy payload");
-            }
-            other => panic!("expected Agent spec, got {other:?}"),
-        }
+            .expect("stored Skill payload");
+        let stored_skill =
+            resources_proto::Skill::decode(stored.as_slice()).expect("stored payload is Skill");
+        assert_eq!(
+            stored_skill.spec.as_ref().unwrap().instructions,
+            "Look for regressions."
+        );
     }
 
     #[tokio::test]

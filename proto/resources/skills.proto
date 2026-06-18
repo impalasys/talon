@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message SkillSpec {
+  string description = 1;
+  string instructions = 2;
+}
+
+message Skill {
+  ResourceMeta metadata = 1;
+  SkillSpec spec = 2;
+  CommonResourceStatus status = 3;
+}

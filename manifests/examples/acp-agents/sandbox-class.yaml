@@ -1,10 +1,12 @@
 apiVersion: talon.impalasys.com/v1
 kind: SandboxClass
 metadata:
-  name: e2e-code-__RUN_ID__
-  namespace: system
+  name: docker-codex
+  namespace: Example
+  labels:
+    example: acp-agents
 spec:
   provider: docker
   providerConfig:
-    image: __DOCKER_IMAGE__
+    image: talon-codex-acp:local
   credentials: {}

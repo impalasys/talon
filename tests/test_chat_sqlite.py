@@ -8,7 +8,6 @@ import subprocess
 import threading
 import time
 import uuid
-from pathlib import Path
 
 # Important: Add generated protos to path so "proto.xxx" resolves locally and not to proto_plus
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
@@ -27,6 +26,8 @@ from proto.resources.agents_pb2 import AgentSpec, Model
 from proto.resources.common_pb2 import ResourceMeta
 from proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
 import conftest
+from e2e.cli_harness import TalonCli
+from e2e import scenarios as e2e
 
 PART_TYPE_TEXT = 1
 PART_TYPE_REASONING = 2
@@ -240,6 +241,95 @@ def apply_manifest_with_cli(path, grpc_port):
     return result.stdout
 
 
+def cli_for_grpc_port(grpc_port):
+    return TalonCli(
+        conftest.get_binary_path("talon_cli"),
+        f"http://127.0.0.1:{grpc_port}",
+    )
+
+
+def acp_vars(suffix, source_ns, target_ns, deployment_name, **extra):
+    values = {
+        "run_id": suffix,
+        "source_ns": source_ns,
+        "target_ns": target_ns,
+        "deployment_name": deployment_name,
+    }
+    values.update(extra)
+    return values
+
+
+def apply_acp_stack(cli, manifest_names, variables):
+    manifest_dir = e2e.MANIFEST_ROOT / "acp"
+    for name in manifest_names:
+        e2e.apply(cli, manifest_dir / name, variables)
+
+
+def test_cli_chat_sqlite_local_socket(sqlite_test_grpc_port, mock_llm_server):
+    cli = cli_for_grpc_port(sqlite_test_grpc_port)
+    suffix = uuid.uuid4().hex[:8]
+    namespace = f"talon-cli-chat-{suffix}"
+    agent = "cli-chat-agent"
+    e2e.apply(
+        cli,
+        e2e.MANIFEST_ROOT / "chat" / "agent.yaml",
+        {
+            "namespace": namespace,
+            "agent": agent,
+            "system_prompt": "You are a helpful CLI E2E test assistant.",
+        },
+    )
+    session_id = e2e.session_create(cli, namespace, agent)
+    e2e.session_send(
+        cli,
+        namespace,
+        agent,
+        session_id,
+        "What is the square root of 144?",
+    )
+    completed = e2e.wait_for_session_text(cli, namespace, agent, session_id, "12")
+    assert completed["state"] == "IDLE"
+
+
+def test_cli_streaming_chat_sqlite_local_socket(sqlite_test_grpc_port, mock_llm_server):
+    cli = cli_for_grpc_port(sqlite_test_grpc_port)
+    suffix = uuid.uuid4().hex[:8]
+    namespace = f"talon-cli-stream-{suffix}"
+    agent = "cli-stream-agent"
+    e2e.apply(
+        cli,
+        e2e.MANIFEST_ROOT / "chat" / "agent.yaml",
+        {
+            "namespace": namespace,
+            "agent": agent,
+            "system_prompt": "You are a helpful streaming CLI E2E test assistant.",
+        },
+    )
+
+    session_id = e2e.session_create(cli, namespace, agent)
+    events = e2e.session_send_stream_json(
+        cli,
+        namespace,
+        agent,
+        session_id,
+        "Stream test message",
+    )
+    parts = [
+        event.get("part") or {}
+        for event in events
+        if event.get("part") is not None
+    ]
+    reasoning = [part for part in parts if part.get("type") == "reasoning"]
+    text = [part for part in parts if part.get("type") == "text"]
+    usage = [part for part in parts if part.get("type") == "usage"]
+
+    assert reasoning
+    assert text
+    assert usage
+    assert "Inspecting the request" in reasoning[0].get("content", "")
+    assert "received" in "".join(part.get("content", "") for part in text)
+
+
 def test_cli_apply_rejects_status_in_resource_manifest(sqlite_test_grpc_port, tmp_path):
     manifest = tmp_path / "agent-with-status.yaml"
     manifest.write_text(
@@ -291,16 +381,6 @@ def wait_for_resources(stub, namespace, kind, expected_names):
         f"Timed out waiting for {kind} resources {sorted(expected_names)} "
         f"in namespace {namespace}; saw {sorted(last_names)}"
     )
-
-
-def render_acp_manifest(tmp_path, name, replacements):
-    source = Path(__file__).resolve().parent / "acp" / name
-    content = source.read_text()
-    for key, value in replacements.items():
-        content = content.replace(key, value)
-    target = tmp_path / name
-    target.write_text(content)
-    return target
 
 
 def ensure_docker_codex_image(image):
@@ -395,113 +475,140 @@ def wait_for_sandbox(stub, namespace):
     )
 
 
+def wait_for_cli_sandbox(cli, namespace, attempts=60):
+    last_count = 0
+    for _ in range(attempts):
+        sandboxes = e2e.list_resources(cli, "Sandbox", namespace)
+        last_count = len(sandboxes)
+        if sandboxes:
+            return sandboxes[0]
+        time.sleep(1)
+    raise AssertionError(
+        f"Timed out waiting for sandbox in namespace {namespace}; "
+        f"last sandbox count={last_count}"
+    )
+
+
+def wait_for_cli_sandbox_process(cli, namespace, attempts=30):
+    last_count = 0
+    for _ in range(attempts):
+        sandboxes = e2e.list_resources(cli, "Sandbox", namespace)
+        if sandboxes:
+            processes = sandboxes[0].get("status", {}).get("processes", [])
+            last_count = len(processes)
+            if processes:
+                return sandboxes[0]
+        time.sleep(1)
+    raise AssertionError(
+        f"Timed out waiting for sandbox process in namespace {namespace}; "
+        f"last process count={last_count}"
+    )
+
+
 def test_cli_apply_acp_deployment_starts_session_sqlite_local_socket(
-    gateway_channel_sqlite,
     sqlite_test_grpc_port,
-    tmp_path,
 ):
-    stub = GatewayServiceStub(gateway_channel_sqlite)
+    cli = cli_for_grpc_port(sqlite_test_grpc_port)
     suffix = uuid.uuid4().hex[:8]
     source_ns = f"customers-{suffix}"
     target_ns = f"{source_ns}:acme"
     deployment_name = f"company-builder-{suffix}"
-    replacements = {
-        "__RUN_ID__": suffix,
-        "__SOURCE_NS__": source_ns,
-        "__TARGET_NS__": target_ns,
-        "__DEPLOYMENT_NAME__": deployment_name,
-        "__MOCK_ACP_COMMAND__": json.dumps(conftest.get_binary_path("talon_mock_acp")),
-    }
-    manifests = [
-        render_acp_manifest(tmp_path, "sandbox-class.yaml", replacements),
-        render_acp_manifest(tmp_path, "coding-agent.template.yaml", replacements),
-        render_acp_manifest(tmp_path, "coding-sandbox-policy.template.yaml", replacements),
-        render_acp_manifest(tmp_path, "target-namespace.yaml", replacements),
-        render_acp_manifest(tmp_path, "deployment.yaml", replacements),
-    ]
-
-    for manifest in manifests:
-        apply_manifest_with_cli(manifest, sqlite_test_grpc_port)
-
-    agents = wait_for_resources(stub, target_ns, "Agent", ["coding"])
-    policies = wait_for_resources(stub, target_ns, "SandboxPolicy", ["coding"])
-    replicas = wait_for_resources(
-        stub,
+    variables = acp_vars(
+        suffix,
         source_ns,
-        "DeploymentReplica",
-        [f"{deployment_name}--{target_ns.replace(':', '-')}"],
+        target_ns,
+        deployment_name,
+        mock_acp_command=conftest.get_binary_path("talon_mock_acp"),
+    )
+    apply_acp_stack(
+        cli,
+        [
+            "sandbox-class.yaml",
+            "coding-agent.template.yaml",
+            "coding-sandbox-policy.template.yaml",
+            "target-namespace.yaml",
+            "deployment.yaml",
+        ],
+        variables,
     )
 
-    rendered_agent = next(resource for resource in agents if resource.metadata.name == "coding")
-    assert rendered_agent.kind == "Agent"
-    assert rendered_agent.spec.agent.system_prompt == f"You are the coding agent for {target_ns}.\n"
-    assert rendered_agent.spec.agent.runtime.kind == "acp"
-    assert rendered_agent.spec.agent.runtime.acp.sandbox_policy_ref == "coding"
-    assert rendered_agent.spec.agent.runtime.acp.command == conftest.get_binary_path(
+    agents = e2e.wait_for_resources(cli, "Agent", ["coding"], target_ns)
+    policies = e2e.wait_for_resources(cli, "SandboxPolicy", ["coding"], target_ns)
+    replicas = e2e.wait_for_resources(
+        cli,
+        "DeploymentReplica",
+        [f"{deployment_name}--{target_ns.replace(':', '-')}"],
+        source_ns,
+    )
+
+    rendered_agent = next(
+        resource for resource in agents if resource["metadata"]["name"] == "coding"
+    )
+    assert rendered_agent["kind"] == "Agent"
+    assert rendered_agent["spec"]["systemPrompt"].strip() == (
+        f"You are the coding agent for {target_ns}."
+    )
+    assert rendered_agent["spec"]["runtime"]["kind"] == "acp"
+    assert rendered_agent["spec"]["runtime"]["acp"]["sandboxPolicyRef"] == "coding"
+    assert rendered_agent["spec"]["runtime"]["acp"]["command"] == conftest.get_binary_path(
         "talon_mock_acp"
     )
 
     rendered_policy = next(
-        resource for resource in policies if resource.metadata.name == "coding"
+        resource for resource in policies if resource["metadata"]["name"] == "coding"
     )
-    assert rendered_policy.kind == "SandboxPolicy"
-    assert rendered_policy.spec.sandbox_policy.max_concurrent == 2
-    assert rendered_policy.spec.sandbox_policy.class_ref.name == f"e2e-code-{suffix}"
-    assert rendered_policy.spec.sandbox_policy.template.workspace.mount_path == "/workspace"
+    assert rendered_policy["kind"] == "SandboxPolicy"
+    assert rendered_policy["spec"]["maxConcurrent"] == 2
+    assert rendered_policy["spec"]["classRef"]["name"] == f"e2e-code-{suffix}"
+    assert rendered_policy["spec"]["template"]["workspace"]["mountPath"] == "/workspace"
 
     replica = replicas[0]
-    assert replica.spec.deployment_replica.target_namespace == target_ns
-    assert replica.status.deployment_replica.phase == "Ready"
-    assert sorted(replica.status.deployment_replica.rendered_resources) == [
+    assert replica["spec"]["targetNamespace"] == target_ns
+    assert replica["status"]["phase"] == "Ready"
+    assert sorted(replica["status"]["renderedResources"]) == [
         f"{target_ns}/Agent/coding",
         f"{target_ns}/SandboxPolicy/coding",
     ]
 
-    session = stub.CreateSession(CreateSessionRequest(agent="coding", ns=target_ns))
-    session_id = session.session_id
+    session_id = e2e.session_create(cli, target_ns, "coding")
     assert session_id
 
-    stub.SendMessage(
-        SendMessageRequest(
-            agent="coding",
-            session_id=session_id,
-            ns=target_ns,
-            message="please write-file read-file terminal",
-        )
+    e2e.session_send(
+        cli,
+        target_ns,
+        "coding",
+        session_id,
+        "please write-file read-file terminal",
     )
 
-    completed = wait_for_session_reply(
-        stub,
+    completed = e2e.wait_for_session_text(
+        cli,
         target_ns,
         "coding",
         session_id,
         "mock response file=written by talon-mock-acp terminal=terminal-ok",
     )
-    assert completed.state == "IDLE"
-    assistant = last_assistant_message(completed.messages)
-    assert assistant is not None
-    assert assistant.role == 2
-    assistant_text = message_text(assistant)
+    assert completed["state"] == "IDLE"
+    assistant = e2e.assistant_messages(completed)[-1]
+    assistant_text = e2e.message_text(assistant)
     assert "file=written by talon-mock-acp" in assistant_text
     assert "terminal=terminal-ok" in assistant_text
 
-    sandbox = wait_for_sandbox_process(stub, target_ns)
-    sandbox_status = sandbox.status.sandbox
-    assert sandbox_status.phase == "Ready"
-    assert sandbox_status.backend_id.startswith("mock:")
-    assert not sandbox_status.HasField("lease")
-    assert len(sandbox_status.processes) == 1
-    process = sandbox_status.processes[0]
-    assert process.command == "sh"
-    assert list(process.args) == ["-lc", "printf terminal-ok"]
-    assert process.protocol == "terminal"
-    assert process.phase == "Succeeded"
+    sandbox = wait_for_cli_sandbox_process(cli, target_ns)
+    sandbox_status = sandbox["status"]
+    assert sandbox_status["phase"] == "Ready"
+    assert sandbox_status["backendId"].startswith("mock:")
+    assert "lease" not in sandbox_status
+    assert len(sandbox_status["processes"]) == 1
+    process = sandbox_status["processes"][0]
+    assert process["command"] == "sh"
+    assert process["args"] == ["-lc", "printf terminal-ok"]
+    assert process["protocol"] == "terminal"
+    assert process["phase"] == "Succeeded"
 
 
 def test_cli_apply_zed_codex_acp_deployment_runs_code_in_sandbox_sqlite_local_socket(
-    gateway_channel_sqlite,
     sqlite_test_grpc_port,
-    tmp_path,
 ):
     if os.environ.get("TALON_CODEX_DOCKER_E2E") != "1":
         pytest.skip("set TALON_CODEX_DOCKER_E2E=1 to run the live Zed Codex ACP e2e")
@@ -513,85 +620,85 @@ def test_cli_apply_zed_codex_acp_deployment_runs_code_in_sandbox_sqlite_local_so
     image = os.environ.get("TALON_CODEX_ACP_IMAGE", "talon-zed-codex-acp:local")
     ensure_docker_codex_image(image)
 
-    stub = GatewayServiceStub(gateway_channel_sqlite)
+    cli = cli_for_grpc_port(sqlite_test_grpc_port)
     suffix = uuid.uuid4().hex[:8]
     source_ns = f"zed-codex-customers-{suffix}"
     target_ns = f"{source_ns}:acme"
     deployment_name = f"zed-codex-company-builder-{suffix}"
-    replacements = {
-        "__RUN_ID__": suffix,
-        "__SOURCE_NS__": source_ns,
-        "__TARGET_NS__": target_ns,
-        "__DEPLOYMENT_NAME__": deployment_name,
-        "__DOCKER_IMAGE__": image,
-        "__OPENAI_API_KEY__": json.dumps(openai_api_key),
-    }
-    manifests = [
-        render_acp_manifest(tmp_path, "docker-sandbox-class.yaml", replacements),
-        render_acp_manifest(tmp_path, "zed-codex-agent.template.yaml", replacements),
-        render_acp_manifest(tmp_path, "docker-coding-sandbox-policy.template.yaml", replacements),
-        render_acp_manifest(tmp_path, "target-namespace.yaml", replacements),
-        render_acp_manifest(tmp_path, "deployment.yaml", replacements),
-    ]
-
-    for manifest in manifests:
-        apply_manifest_with_cli(manifest, sqlite_test_grpc_port)
-
-    agents = wait_for_resources(stub, target_ns, "Agent", ["coding"])
-    policies = wait_for_resources(stub, target_ns, "SandboxPolicy", ["coding"])
-    wait_for_resources(
-        stub,
+    variables = acp_vars(
+        suffix,
         source_ns,
+        target_ns,
+        deployment_name,
+        docker_image=image,
+        openai_api_key=openai_api_key,
+    )
+    apply_acp_stack(
+        cli,
+        [
+            "docker-sandbox-class.yaml",
+            "zed-codex-agent.template.yaml",
+            "docker-coding-sandbox-policy.template.yaml",
+            "target-namespace.yaml",
+            "deployment.yaml",
+        ],
+        variables,
+    )
+
+    agents = e2e.wait_for_resources(cli, "Agent", ["coding"], target_ns)
+    policies = e2e.wait_for_resources(cli, "SandboxPolicy", ["coding"], target_ns)
+    e2e.wait_for_resources(
+        cli,
         "DeploymentReplica",
         [f"{deployment_name}--{target_ns.replace(':', '-')}"],
+        source_ns,
     )
 
-    rendered_agent = next(resource for resource in agents if resource.metadata.name == "coding")
-    assert rendered_agent.spec.agent.runtime.acp.command == "codex-acp"
-    assert rendered_agent.spec.agent.runtime.acp.cwd == "/workspace"
-    assert rendered_agent.spec.agent.runtime.acp.env["CODEX_API_KEY"] == openai_api_key
+    rendered_agent = next(
+        resource for resource in agents if resource["metadata"]["name"] == "coding"
+    )
+    assert rendered_agent["spec"]["runtime"]["acp"]["command"] == "codex-acp"
+    assert rendered_agent["spec"]["runtime"]["acp"]["cwd"] == "/workspace"
+    assert rendered_agent["spec"]["runtime"]["acp"]["env"]["CODEX_API_KEY"] == openai_api_key
     rendered_policy = next(
-        resource for resource in policies if resource.metadata.name == "coding"
+        resource for resource in policies if resource["metadata"]["name"] == "coding"
     )
-    assert rendered_policy.spec.sandbox_policy.class_ref.name == f"e2e-code-{suffix}"
-    assert rendered_policy.spec.sandbox_policy.max_concurrent == 1
+    assert rendered_policy["spec"]["classRef"]["name"] == f"e2e-code-{suffix}"
+    assert rendered_policy["spec"]["maxConcurrent"] == 1
 
-    session = stub.CreateSession(CreateSessionRequest(agent="coding", ns=target_ns))
-    session_id = session.session_id
-    stub.SendMessage(
-        SendMessageRequest(
-            agent="coding",
-            session_id=session_id,
-            ns=target_ns,
-            message=(
-                "Create /workspace/zed_codex_e2e.py with a complete Python program that defines "
-                "a function named talon_value, asserts talon_value() == 42, and prints exactly "
-                "TALON_ZED_CODEX_CODE_OK. Then run python3 /workspace/zed_codex_e2e.py. "
-                "End your final answer with TALON_ZED_CODEX_CODE_OK."
-            ),
-        )
+    session_id = e2e.session_create(cli, target_ns, "coding")
+    e2e.session_send(
+        cli,
+        target_ns,
+        "coding",
+        session_id,
+        (
+            "Create /workspace/zed_codex_e2e.py with a complete Python program that defines "
+            "a function named talon_value, asserts talon_value() == 42, and prints exactly "
+            "TALON_ZED_CODEX_CODE_OK. Then run python3 /workspace/zed_codex_e2e.py. "
+            "End your final answer with TALON_ZED_CODEX_CODE_OK."
+        ),
     )
 
-    completed = wait_for_session_reply(
-        stub,
+    completed = e2e.wait_for_session_text(
+        cli,
         target_ns,
         "coding",
         session_id,
         "TALON_ZED_CODEX_CODE_OK",
         attempts=240,
     )
-    assistant = last_assistant_message(completed.messages)
-    assert assistant is not None
-    assistant_text = message_text(assistant)
+    assistant = e2e.assistant_messages(completed)[-1]
+    assistant_text = e2e.message_text(assistant)
     assert "TALON_ZED_CODEX_CODE_OK" in assistant_text
 
-    sandbox = wait_for_sandbox(stub, target_ns)
-    sandbox_status = sandbox.status.sandbox
-    assert sandbox_status.phase == "Ready"
-    assert sandbox_status.backend_id.startswith("docker:")
-    assert not sandbox_status.HasField("lease")
+    sandbox = wait_for_cli_sandbox(cli, target_ns)
+    sandbox_status = sandbox["status"]
+    assert sandbox_status["phase"] == "Ready"
+    assert sandbox_status["backendId"].startswith("docker:")
+    assert "lease" not in sandbox_status
 
-    container_id = sandbox_status.backend_id.removeprefix("docker:")
+    container_id = sandbox_status["backendId"].removeprefix("docker:")
     inspect = subprocess.run(
         [
             "docker",

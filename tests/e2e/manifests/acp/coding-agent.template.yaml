@@ -2,7 +2,7 @@ apiVersion: talon.impalasys.com/v1
 kind: Template
 metadata:
   name: coding-agent
-  namespace: __SOURCE_NS__
+  namespace: "{{ vars.source_ns }}"
 spec:
   kind: Agent
   metadata:
@@ -11,17 +11,14 @@ spec:
     runtime:
       kind: acp
       acp:
-        command: __CODEX_ACP_COMMAND__
+        command: "{{ vars.mock_acp_command }}"
         args: []
         cwd: "."
         sandboxPolicyRef: coding
         persistSession: false
-        env:
-          TALON_CODEX_COMMAND: __CODEX_COMMAND__
         permissionPolicy:
           default: allow
           filesystemWrite: allow
-          filesystemRead: allow
           terminal: allow
     systemPrompt: |
-      You are the real Codex coding agent for {{ namespace.name }}.
+      You are the coding agent for {% raw %}{{ namespace.name }}{% endraw %}.

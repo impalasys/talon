@@ -46,6 +46,8 @@ enum SessionCommands {
         labels: Vec<String>,
         #[arg(long)]
         stream: bool,
+        #[arg(long)]
+        json: bool,
         #[arg(required = true)]
         message: Vec<String>,
     },
@@ -60,6 +62,8 @@ enum SessionCommands {
         labels: Vec<String>,
         #[arg(long)]
         stream: bool,
+        #[arg(long)]
+        json: bool,
         #[arg(required = true)]
         message: Vec<String>,
     },
@@ -146,6 +150,7 @@ pub(super) async fn run(cli: &Cli, command: &SessionCommand) -> Result<RunOutcom
             session_id,
             labels,
             stream,
+            json,
             message,
         } => {
             let labels = parse_labels(labels)?;
@@ -168,6 +173,7 @@ pub(super) async fn run(cli: &Cli, command: &SessionCommand) -> Result<RunOutcom
                 &message.join(" "),
                 labels,
                 *stream,
+                *json,
             )
             .await?;
         }
@@ -177,6 +183,7 @@ pub(super) async fn run(cli: &Cli, command: &SessionCommand) -> Result<RunOutcom
             session_id,
             labels,
             stream,
+            json,
             message,
         } => {
             session_send(
@@ -187,6 +194,7 @@ pub(super) async fn run(cli: &Cli, command: &SessionCommand) -> Result<RunOutcom
                 &message.join(" "),
                 parse_labels(labels)?,
                 *stream,
+                *json,
             )
             .await?;
         }
@@ -319,6 +327,7 @@ async fn session_send(
     message: &str,
     labels: HashMap<String, String>,
     stream: bool,
+    json_output: bool,
 ) -> Result<()> {
     if stream {
         if cli.rest {
@@ -339,7 +348,7 @@ async fn session_send(
 
         while let Some(event) = events.next().await {
             let event = event.context("Session stream failed")?;
-            print_session_event(&event, false)?;
+            print_session_event(&event, json_output)?;
             if event.kind == SessionMessagePartEventKind::Done as i32
                 || event.kind == SessionMessagePartEventKind::Error as i32
             {

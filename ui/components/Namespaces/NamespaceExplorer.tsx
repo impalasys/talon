@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
-import { Box, Activity, ChevronRight, ChevronDown, Folder, Cpu, MessageSquare, Trash2, PlusCircle, Plug, Clock3, FileText, Hash, Radio } from 'lucide-react';
+import { Box, Activity, ChevronRight, ChevronDown, Folder, Cpu, MessageSquare, Trash2, PlusCircle, Plug, Clock3, FileText, Hash, Radio, Layers3, Package, ShieldCheck, Container, KeyRound } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getGatewayClient } from '../../lib/grpc';
@@ -61,7 +61,23 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export type SelectionType = 'namespace' | 'agent' | 'session' | 'channel' | 'channel-subscription' | 'schedule' | 'template' | 'mcp-server' | 'mcp-binding' | 'knowledge';
+export type SelectionType =
+  | 'namespace'
+  | 'agent'
+  | 'session'
+  | 'channel'
+  | 'channel-subscription'
+  | 'schedule'
+  | 'template'
+  | 'deployment'
+  | 'deployment-replica'
+  | 'sandbox-class'
+  | 'sandbox-policy'
+  | 'sandbox'
+  | 'permission-request'
+  | 'mcp-server'
+  | 'mcp-binding'
+  | 'knowledge';
 
 export type Selection = {
   type: SelectionType;
@@ -135,6 +151,15 @@ type ExplorerKnowledge = {
   };
 };
 
+type ExplorerControlResource = {
+  kind: string;
+  selectionType: SelectionType;
+  name?: string;
+  ns?: string;
+  badge?: string;
+  sortPrefix: string;
+};
+
 type ExplorerChannel = {
   name?: string;
   ns?: string;
@@ -158,6 +183,23 @@ type ExplorerChannelSubscription = {
 
 const API_VERSION = 'talon.impalasys.com/v1';
 const SYSTEM_NAMESPACE = 'Sys';
+
+const RESOURCE_KIND_BY_SELECTION: Partial<Record<SelectionType, string>> = {
+  agent: 'Agent',
+  channel: 'Channel',
+  'channel-subscription': 'ChannelSubscription',
+  schedule: 'Schedule',
+  template: 'Template',
+  deployment: 'Deployment',
+  'deployment-replica': 'DeploymentReplica',
+  'sandbox-class': 'SandboxClass',
+  'sandbox-policy': 'SandboxPolicy',
+  sandbox: 'Sandbox',
+  'permission-request': 'PermissionRequest',
+  'mcp-server': 'McpServer',
+  'mcp-binding': 'McpServerBinding',
+  knowledge: 'Knowledge',
+};
 
 type ResourceEnvelope = {
   apiVersion?: string;
@@ -187,6 +229,20 @@ function resourceSpec(resource: ResourceEnvelope, caseName: string) {
 
 function resourceStatus(resource: ResourceEnvelope, caseName: string) {
   return resource.status?.kind?.case === caseName ? resource.status.kind.value || {} : {};
+}
+
+function resourcePhase(resource: ResourceEnvelope, caseName: string) {
+  return resourceStatus(resource, caseName).phase || '';
+}
+
+function parseJsonObject(value: string | undefined) {
+  if (!value) return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
 }
 
 async function listResourceKind(ns: string, kind: string, options?: { signal?: AbortSignal }) {
@@ -265,6 +321,68 @@ function mcpBindingFromResource(resource: ResourceEnvelope): ExplorerMcpBinding 
   };
 }
 
+function templateSummary(resource: ResourceEnvelope) {
+  const spec = resourceSpec(resource, 'template');
+  const targetKind = spec.kind || 'Resource';
+  const targetName = spec.metadata?.name || 'unnamed';
+  const targetSpec = parseJsonObject(spec.specJson);
+  const prompt = typeof targetSpec.systemPrompt === 'string' ? targetSpec.systemPrompt.trim() : '';
+  return prompt ? `${targetKind}/${targetName}: ${prompt.slice(0, 120)}` : `${targetKind}/${targetName}`;
+}
+
+function controlResourceFromResource(
+  resource: ResourceEnvelope,
+  kind: string,
+  selectionType: SelectionType,
+  sortPrefix: string,
+): ExplorerControlResource {
+  const name = resource.metadata?.name || `unknown-${kind.toLowerCase()}`;
+  const ns = resource.metadata?.namespace || '';
+  let badge: string | undefined;
+
+  switch (kind) {
+    case 'Template': {
+      const spec = resourceSpec(resource, 'template');
+      badge = spec.kind || 'template';
+      break;
+    }
+    case 'Deployment': {
+      const spec = resourceSpec(resource, 'deployment');
+      badge = resourcePhase(resource, 'deployment') || `${spec.templates?.length || 0} templates`;
+      break;
+    }
+    case 'DeploymentReplica': {
+      const spec = resourceSpec(resource, 'deploymentReplica');
+      const status = resourceStatus(resource, 'deploymentReplica');
+      badge = status.conflicts?.length ? `${status.conflicts.length} conflicts` : (spec.targetNamespace || 'replica');
+      break;
+    }
+    case 'SandboxClass': {
+      const spec = resourceSpec(resource, 'sandboxClass');
+      badge = spec.provider || 'provider';
+      break;
+    }
+    case 'SandboxPolicy': {
+      const spec = resourceSpec(resource, 'sandboxPolicy');
+      badge = spec.classRef?.name || 'policy';
+      break;
+    }
+    case 'Sandbox': {
+      const status = resourceStatus(resource, 'sandbox');
+      badge = status.lease?.ownerSessionId ? 'leased' : (status.phase || 'sandbox');
+      break;
+    }
+    case 'PermissionRequest': {
+      badge = resourcePhase(resource, 'permissionRequest') || 'permission';
+      break;
+    }
+    default:
+      badge = kind;
+  }
+
+  return { kind, selectionType, name, ns, badge, sortPrefix };
+}
+
 function namespaceLabel(labels?: Record<string, string>) {
   return labels?.workspace_name || labels?.workspace || labels?.display_name || labels?.name;
 }
@@ -281,12 +399,26 @@ function nodeSortWeight(node: TreeNode) {
       return 3;
     case 'mcp-binding':
       return 4;
-    case 'schedule':
+    case 'sandbox':
       return 5;
-    case 'session':
+    case 'sandbox-policy':
       return 6;
-    default:
+    case 'sandbox-class':
+      return 7;
+    case 'deployment':
       return 8;
+    case 'deployment-replica':
+      return 9;
+    case 'template':
+      return 10;
+    case 'schedule':
+      return 11;
+    case 'permission-request':
+      return 12;
+    case 'session':
+      return 13;
+    default:
+      return 20;
   }
 }
 
@@ -480,7 +612,19 @@ function NamespaceNode({
   toggleExpanded: (id: string) => void
 }) {
   const childNodes = Object.values(node.children).sort(compareTreeNodes);
-  const hasChildrenOrCanHaveChildren = !['session', 'schedule', 'knowledge', 'mcp-binding', 'channel-subscription'].includes(node.selection.type);
+  const hasChildrenOrCanHaveChildren = ![
+    'session',
+    'schedule',
+    'knowledge',
+    'mcp-binding',
+    'channel-subscription',
+    'template',
+    'deployment-replica',
+    'sandbox-class',
+    'sandbox-policy',
+    'sandbox',
+    'permission-request',
+  ].includes(node.selection.type);
   const isExpanded = expanded.has(node.id);
   const isSelected = selectedNodeId === node.id;
 
@@ -546,6 +690,13 @@ function NamespaceNode({
          {node.selection.type === 'channel' && <Hash className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-cyan-400")} />}
          {node.selection.type === 'channel-subscription' && <Radio className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-cyan-300")} />}
          {node.selection.type === 'schedule' && <Clock3 className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-amber-500")} />}
+         {node.selection.type === 'template' && <FileText className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-emerald-400")} />}
+         {node.selection.type === 'deployment' && <Layers3 className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-indigo-400")} />}
+         {node.selection.type === 'deployment-replica' && <Package className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-indigo-300")} />}
+         {node.selection.type === 'sandbox-class' && <ShieldCheck className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-fuchsia-400")} />}
+         {node.selection.type === 'sandbox-policy' && <Box className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-fuchsia-300")} />}
+         {node.selection.type === 'sandbox' && <Container className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-orange-400")} />}
+         {node.selection.type === 'permission-request' && <KeyRound className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-rose-400")} />}
          {node.selection.type === 'mcp-binding' && <Plug className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-blue-500")} />}
          {node.selection.type === 'knowledge' && <FileText className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-violet-400")} />}
 
@@ -620,12 +771,14 @@ export function NamespaceExplorer({
   const [agentModalOpen, setAgentModalOpen] = useState<{ isOpen: boolean, ns: string }>({ isOpen: false, ns: '' });
   const [agentForm, setAgentForm] = useState({ name: '', template: '' });
   const [templates, setTemplates] = useState<any[]>([]);
+  const [agentCreateTemplates, setAgentCreateTemplates] = useState<any[]>([]);
   const [mcpServers, setMcpServers] = useState<ExplorerMcpServer[]>([]);
   const [mcpBindingsByNamespace, setMcpBindingsByNamespace] = useState<Record<string, ExplorerMcpBinding[]>>({});
   const [schedulesByNamespace, setSchedulesByNamespace] = useState<Record<string, ExplorerSchedule[]>>({});
   const [knowledgeByNamespace, setKnowledgeByNamespace] = useState<Record<string, ExplorerKnowledge[]>>({});
   const [channelsByNamespace, setChannelsByNamespace] = useState<Record<string, ExplorerChannel[]>>({});
   const [channelSubscriptionsByKey, setChannelSubscriptionsByKey] = useState<Record<string, ExplorerChannelSubscription[]>>({});
+  const [controlResourcesByNamespace, setControlResourcesByNamespace] = useState<Record<string, ExplorerControlResource[]>>({});
   const [isSubmittingAgent, setIsSubmittingAgent] = useState(false);
   const [channelModalOpen, setChannelModalOpen] = useState<{ isOpen: boolean, ns: string }>({ isOpen: false, ns: '' });
   const [channelForm, setChannelForm] = useState({ name: '', title: '' });
@@ -862,6 +1015,24 @@ export function NamespaceExplorer({
                 children: {},
               };
             }
+
+            const namespaceControlResources = controlResourcesByNamespace[ns] || [];
+            for (const resource of namespaceControlResources) {
+              const name = resource.name || `unknown-${resource.kind.toLowerCase()}`;
+              const id = `${ns}:${resource.sortPrefix}:${name}`;
+              currentLevel.children[`${resource.sortPrefix}:${name}`] = {
+                id,
+                name,
+                badge: resource.badge,
+                selection: {
+                  type: resource.selectionType,
+                  ns,
+                  resourceName: name,
+                  fullPath: id,
+                },
+                children: {},
+              };
+            }
           }
         } catch (e) {
           console.warn(`Could not list namespaces for parent ${parentNs}`, e);
@@ -871,7 +1042,7 @@ export function NamespaceExplorer({
     } catch (e) {
       console.error(e);
     }
-  }, [channelSubscriptionsByKey, channelsByNamespace, isConnected, expanded, knowledgeByNamespace, mcpBindingsByNamespace, schedulesByNamespace, selectedNode]);
+  }, [channelSubscriptionsByKey, channelsByNamespace, controlResourcesByNamespace, isConnected, expanded, knowledgeByNamespace, mcpBindingsByNamespace, schedulesByNamespace, selectedNode]);
 
   useEffect(() => {
     if (!selectedNode?.ns) return;
@@ -902,6 +1073,82 @@ export function NamespaceExplorer({
       setTemplates([]);
     }
   }, [isConnected]);
+
+  const refreshAgentCreateTemplates = useCallback(async (targetNamespace: string) => {
+    if (!isConnected) {
+      setAgentCreateTemplates([]);
+      return;
+    }
+
+    try {
+      const namespaces = Array.from(new Set([SYSTEM_NAMESPACE, targetNamespace].filter(Boolean)));
+      const loaded = await Promise.all(
+        namespaces.map(async (ns) => {
+          try {
+            return await listResourceKind(ns, 'Template');
+          } catch (e) {
+            console.warn(`Could not fetch templates for ns ${ns}`, e);
+            return [];
+          }
+        }),
+      );
+      setAgentCreateTemplates(loaded.flat());
+    } catch (e) {
+      console.warn('Could not fetch agent create templates', e);
+      setAgentCreateTemplates([]);
+    }
+  }, [isConnected]);
+
+  const templateOptionId = useCallback((template: any) => {
+    return `${template.metadata?.namespace || SYSTEM_NAMESPACE}/${template.metadata?.name || ''}`;
+  }, []);
+
+  const refreshControlResources = useCallback(async () => {
+    if (!isConnected) {
+      setControlResourcesByNamespace({});
+      return;
+    }
+
+    const resourceKinds: Array<{
+      kind: string;
+      selectionType: SelectionType;
+      sortPrefix: string;
+    }> = [
+      { kind: 'Template', selectionType: 'template', sortPrefix: 'template' },
+      { kind: 'Deployment', selectionType: 'deployment', sortPrefix: 'deployment' },
+      { kind: 'DeploymentReplica', selectionType: 'deployment-replica', sortPrefix: 'deployment-replica' },
+      { kind: 'SandboxClass', selectionType: 'sandbox-class', sortPrefix: 'sandbox-class' },
+      { kind: 'SandboxPolicy', selectionType: 'sandbox-policy', sortPrefix: 'sandbox-policy' },
+      { kind: 'Sandbox', selectionType: 'sandbox', sortPrefix: 'sandbox' },
+      { kind: 'PermissionRequest', selectionType: 'permission-request', sortPrefix: 'permission-request' },
+    ];
+
+    try {
+      const namespaces = collectExpandedNamespaceIds(expanded, selectedNode);
+      const entries = await Promise.all(
+        Array.from(namespaces).map(async (ns) => {
+          const resources: ExplorerControlResource[] = [];
+          for (const config of resourceKinds) {
+            try {
+              const listed = await listResourceKind(ns, config.kind);
+              resources.push(
+                ...listed.map((resource) =>
+                  controlResourceFromResource(resource, config.kind, config.selectionType, config.sortPrefix),
+                ),
+              );
+            } catch (e) {
+              console.warn(`Could not fetch ${config.kind} resources for ns ${ns}`, e);
+            }
+          }
+          return [ns, resources] as const;
+        }),
+      );
+      setControlResourcesByNamespace(Object.fromEntries(entries));
+    } catch (e) {
+      console.warn('Could not list v2 control resources', e);
+      setControlResourcesByNamespace({});
+    }
+  }, [expanded, isConnected, selectedNode]);
 
   const refreshMcpServers = useCallback(async () => {
     if (!isConnected) {
@@ -1124,6 +1371,12 @@ export function NamespaceExplorer({
   }, [refreshKnowledge]);
 
   useEffect(() => {
+    refreshControlResources();
+    const interval = setInterval(refreshControlResources, 5000);
+    return () => clearInterval(interval);
+  }, [refreshControlResources]);
+
+  useEffect(() => {
     refreshChannels();
     const interval = setInterval(refreshChannels, 5000);
     return () => clearInterval(interval);
@@ -1182,13 +1435,19 @@ export function NamespaceExplorer({
     e.preventDefault();
     setIsSubmittingAgent(true);
     try {
+      const selectedTemplate = agentCreateTemplates.find((template) => templateOptionId(template) === agentForm.template);
+      const templateSpec = selectedTemplate ? resourceSpec(selectedTemplate, 'template') : null;
+      if (templateSpec && templateSpec.kind !== 'Agent') {
+        throw new Error(`Template '${agentForm.template}' renders ${templateSpec.kind}, not Agent`);
+      }
+      const agentSpec = templateSpec ? parseJsonObject(templateSpec.specJson) : { systemPrompt: '' };
       await getGatewayClient().createResource({
         ns: agentModalOpen.ns,
         manifest: {
           apiVersion: API_VERSION,
           kind: 'Agent',
           metadata: resourceMetadata(agentForm.name.trim(), agentModalOpen.ns),
-          spec: { kind: { case: 'agent', value: { systemPrompt: '' } } },
+          spec: { kind: { case: 'agent', value: agentSpec } },
         },
       });
       setExpanded(prev => new Set(prev).add(agentModalOpen.ns));
@@ -1285,7 +1544,13 @@ export function NamespaceExplorer({
         await getGatewayClient().deleteResource({ ns: selection.ns, kind: 'ChannelSubscription', name: selection.resourceName || '' });
       } else if (selection.type === 'schedule') {
         await getGatewayClient().deleteResource({ ns: selection.ns, kind: 'Schedule', name: selection.resourceName || '' });
+      } else {
+        const kind = RESOURCE_KIND_BY_SELECTION[selection.type];
+        if (kind && selection.resourceName) {
+          await getGatewayClient().deleteResource({ ns: selection.ns, kind, name: selection.resourceName });
+        }
       }
+      await refreshControlResources();
       await refreshChannels();
       await refreshData();
       setDeleteConfirm({ isOpen: false, node: null });
@@ -1338,22 +1603,27 @@ export function NamespaceExplorer({
   const menuNode = contextMenu?.node;
   const templateCards = templates
     .map((template) => ({
-      id: `template:${template.metadata?.name || 'unknown-template'}`,
+      id: `template:${template.metadata?.namespace || SYSTEM_NAMESPACE}:${template.metadata?.name || 'unknown-template'}`,
       name: template.metadata?.name || 'Unnamed template',
-      subtitle:
-        template.definition?.source.case === 'customSpec'
-          ? template.definition.source.value.systemPrompt.slice(0, 120) || 'Custom template'
-          : template.definition?.source.case === 'templated'
-            ? `Extends ${template.definition.source.value.templateName}`
-            : 'No template summary',
+      subtitle: templateSummary(template),
+      tag: resourceSpec(template, 'template').kind || 'template',
       selection: {
         type: 'template' as const,
-        ns: 'Sys',
+        ns: template.metadata?.namespace || SYSTEM_NAMESPACE,
         resourceName: template.metadata?.name || '',
-        fullPath: `template/${template.metadata?.name || 'unknown-template'}`,
+        fullPath: `${template.metadata?.namespace || SYSTEM_NAMESPACE}:template:${template.metadata?.name || 'unknown-template'}`,
       },
     }))
     .sort((left, right) => left.name.localeCompare(right.name));
+  const agentTemplateOptions = agentCreateTemplates
+    .filter((template) => resourceSpec(template, 'template').kind === 'Agent')
+    .sort((left, right) => {
+      const leftNs = left.metadata?.namespace || SYSTEM_NAMESPACE;
+      const rightNs = right.metadata?.namespace || SYSTEM_NAMESPACE;
+      return leftNs === rightNs
+        ? (left.metadata?.name || '').localeCompare(right.metadata?.name || '')
+        : leftNs.localeCompare(rightNs);
+    });
   const mcpCards = mcpServers
     .map((server) => ({
       id: `mcp:${server.metadata?.name || 'unknown-server'}`,
@@ -1419,15 +1689,15 @@ export function NamespaceExplorer({
       )}
 
       <SectionShell
-        icon={<Cpu className="w-3.5 h-3.5 text-emerald-500 stroke-[1.5]" />}
-        title="Agent Templates"
+        icon={<FileText className="w-3.5 h-3.5 text-emerald-500 stroke-[1.5]" />}
+        title="System Templates"
         collapsed={collapsedSections.templates}
         onToggle={() => setCollapsedSections(prev => ({ ...prev, templates: !prev.templates }))}
         height={sectionHeights.templates}
       >
         <ResourceList
           items={templateCards}
-          emptyState="No agent templates found."
+          emptyState="No system templates found."
           selectedId={selectedNode?.fullPath || null}
           onSelect={onSelect}
         />
@@ -1503,12 +1773,7 @@ export function NamespaceExplorer({
                id="create_agent" 
                onAction={async () => {
                 setContextMenu(null);
-                try {
-                  const templates = await listResourceKind(SYSTEM_NAMESPACE, 'Template');
-                  setTemplates(templates);
-                } catch (e) {
-                  console.warn(e);
-                }
+                await refreshAgentCreateTemplates(menuNode.selection.ns);
                 setAgentModalOpen({ isOpen: true, ns: menuNode.selection.ns });
                }}
              >
@@ -1641,23 +1906,25 @@ export function NamespaceExplorer({
                   </div>
                   
                   <div>
-                    <Label className="block text-sm font-medium mb-1">Agent Template</Label>
+                    <Label className="block text-sm font-medium mb-1">Template</Label>
                     <Select 
                       value={agentForm.template || null}
                       onChange={(key) => {
                          setAgentForm(prev => ({ ...prev, template: key as string }));
                       }}
                       isRequired
-                      placeholder="Select an agent template"
+                      placeholder="Select an Agent template"
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {templates.length > 0 ? templates.map(t => (
-                          <SelectItem id={t.metadata?.name} key={t.metadata?.name}>{t.metadata?.name}</SelectItem>
+                        {agentTemplateOptions.length > 0 ? agentTemplateOptions.map(t => (
+                          <SelectItem id={templateOptionId(t)} key={templateOptionId(t)}>
+                            {t.metadata?.namespace || SYSTEM_NAMESPACE}/{t.metadata?.name}
+                          </SelectItem>
                         )) : (
-                          <SelectItem id="default" key="default">default</SelectItem>
+                          <SelectItem id="default" key="default">Blank Agent</SelectItem>
                         )}
                       </SelectContent>
                     </Select>

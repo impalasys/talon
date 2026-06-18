@@ -1,0 +1,14 @@
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: "{{ vars.agent }}"
+  namespace: "{{ vars.namespace }}"
+spec:
+  modelPolicy:
+    profiles:
+      - name: default
+        model:
+          provider: mock
+          name: minimax-m2.7
+          temperature: 0.7
+  systemPrompt: "{{ vars.system_prompt }}"

@@ -1,12 +1,12 @@
 apiVersion: talon.impalasys.com/v1
 kind: Deployment
 metadata:
-  name: __DEPLOYMENT_NAME__
-  namespace: __SOURCE_NS__
+  name: "{{ vars.deployment_name }}"
+  namespace: "{{ vars.source_ns }}"
 spec:
   placement:
     namespaceSelector:
-      parent: __SOURCE_NS__
+      parent: "{{ vars.source_ns }}"
       matchLabels:
         vibiz.io/company-builder: enabled
   templates:
