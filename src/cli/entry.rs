@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 pub async fn main() -> Result<()> {
     crate::control::security::install_jwt_crypto_provider();
     let mut cli = Cli::parse();

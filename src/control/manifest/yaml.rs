@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 fn yaml_value_to_json_string(value: serde_yaml::Value) -> Result<String> {
     if matches!(value, serde_yaml::Value::Null) {
         return Ok(String::new());

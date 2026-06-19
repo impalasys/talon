@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 fn agent_lookup_target(name: &str, namespace: Option<&String>) -> (String, String) {
     let mut parts = name.splitn(2, '/');
     let ns_part = parts.next().unwrap_or("default");

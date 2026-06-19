@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 fn rest_grpc_error_details(headers: &reqwest::header::HeaderMap) -> String {
     let grpc_status = headers
         .get("grpc-status")

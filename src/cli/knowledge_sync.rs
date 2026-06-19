@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 pub(super) async fn sync_knowledge_dir(
     cli: &Cli,
     namespace: &str,

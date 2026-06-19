@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 pub fn render_agent_yaml(agent: &resources_proto::Agent) -> Result<String> {
     let spec = agent
         .spec

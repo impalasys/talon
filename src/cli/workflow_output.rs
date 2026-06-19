@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 const MAX_REST_STREAM_BUFFER_BYTES: usize = 10 * 1024 * 1024;
 
 #[derive(Debug, Deserialize, Default)]

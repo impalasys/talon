@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 pub fn parse_mcp_server(yaml: &str) -> Result<manifests::McpServer> {
     let server: McpServerManifest =
         serde_yaml::from_str(yaml).context("Failed to parse MCPServer YAML")?;

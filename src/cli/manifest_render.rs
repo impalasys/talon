@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 pub(super) fn parse_raw_manifest(content: &str) -> Result<crate::control::manifest::RawManifest> {
     serde_yaml::from_str(content).context("Failed to parse manifest YAML")
 }

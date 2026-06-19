@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 fn knowledge_resource_name(path: &str) -> String {
     path.to_string()
 }

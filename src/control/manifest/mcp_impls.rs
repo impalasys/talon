@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 impl McpServerBindingSpecManifest {
     fn into_proto(self) -> manifests::McpServerBindingSpec {
         manifests::McpServerBindingSpec {

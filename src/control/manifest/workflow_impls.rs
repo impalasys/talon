@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 impl WorkflowSpecManifest {
     fn into_proto(self) -> Result<resources_proto::WorkflowSpec> {
         Ok(resources_proto::WorkflowSpec {

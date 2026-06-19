@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 pub(super) fn read_json_arg(value: &Option<String>, file: &Option<String>) -> Result<String> {
     let raw = if let Some(file) = file {
         fs::read_to_string(file).with_context(|| format!("Failed to read JSON file '{}'", file))?

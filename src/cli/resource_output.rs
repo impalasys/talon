@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 pub(super) fn render_json_payload(content: &str) -> Result<serde_json::Value> {
     let raw = parse_raw_manifest(content)?;
     let manifest_value: serde_yaml::Value =

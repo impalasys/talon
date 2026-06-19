@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 fn to_camel_case(s: &str) -> String {
     let mut result = String::new();
     let mut capitalize_next = true;

@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 mod tests {
     use super::*;
     use crate::gateway::rpc::resources_proto::{resource_spec, resource_status};
