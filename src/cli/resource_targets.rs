@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-fn agent_lookup_target(name: &str, namespace: Option<&String>) -> (String, String) {
+pub(super) fn agent_lookup_target(name: &str, namespace: Option<&String>) -> (String, String) {
     let mut parts = name.splitn(2, '/');
     let ns_part = parts.next().unwrap_or("default");
     let agent_name = parts.next().unwrap_or(ns_part);
@@ -16,142 +16,121 @@ fn agent_lookup_target(name: &str, namespace: Option<&String>) -> (String, Strin
     (final_ns, final_name)
 }
 
-fn rest_get_path(
+pub(super) fn resource_lookup_target(
     kind: &str,
     name: &str,
     namespace: Option<&String>,
-) -> Result<(String, &'static str)> {
+) -> Result<(String, String, String)> {
     match kind.to_lowercase().as_str() {
-        "agenttemplate" | "templates" | "template" => {
-            let ns = namespace
-                .cloned()
-                .unwrap_or_else(|| crate::control::ns::TALON_SYSTEM.to_string());
-            Ok((
-                format!(
-                    "/v1/ns/{}/resources/Template/{}",
-                    urlencoding::encode(&ns),
-                    urlencoding::encode(name)
-                ),
-                "resource",
-            ))
-        }
-        "mcpserver" | "mcpservers" | "mcp" => Ok((
-            format!("/v1/mcp-servers/{}", urlencoding::encode(name)),
-            "server",
-        )),
         "agent" | "agents" => {
             let (ns, agent_name) = agent_lookup_target(name, namespace);
-            Ok((
-                format!(
-                    "/v1/ns/{}/agents/{}",
-                    urlencoding::encode(&ns),
-                    urlencoding::encode(&agent_name)
-                ),
-                "agent",
-            ))
+            Ok((ns, "Agent".to_string(), agent_name))
         }
+        "agenttemplate" | "templates" | "template" => Ok((
+            namespace
+                .cloned()
+                .unwrap_or_else(|| crate::control::ns::TALON_SYSTEM.to_string()),
+            "Template".to_string(),
+            name.to_string(),
+        )),
+        "mcpserver" | "mcpservers" | "mcp" => Ok((
+            crate::control::ns::TALON_SYSTEM.to_string(),
+            "McpServer".to_string(),
+            name.to_string(),
+        )),
         "mcpserverbinding" | "mcpbindings" | "mcpbinding" => {
             let ns = namespace
-                .as_ref()
-                .context("namespace is required for McpServerBinding get")?;
-            Ok((
-                format!(
-                    "/v1/namespaces/{}/mcp-bindings/{}",
-                    urlencoding::encode(ns),
-                    urlencoding::encode(name)
-                ),
-                "binding",
-            ))
+                .cloned()
+                .context("McpServerBinding requires --namespace")?;
+            Ok((ns, "McpServerBinding".to_string(), name.to_string()))
         }
-        "namespace" | "namespaces" => Ok((
-            format!("/v1/namespaces/{}", urlencoding::encode(name)),
-            "namespace",
-        )),
         "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
-            let ns = namespace
-                .as_ref()
-                .context("Knowledge get requires --namespace")?;
-            Ok((
-                format!(
-                    "/v1/namespaces/{}/knowledge/{}",
-                    urlencoding::encode(ns),
-                    urlencoding::encode(name)
-                ),
-                "knowledge",
-            ))
+            let ns = namespace.cloned().context("Knowledge requires --namespace")?;
+            Ok((ns, "Knowledge".to_string(), name.to_string()))
         }
         "schedule" | "schedules" => {
-            let ns = namespace
-                .as_ref()
-                .context("Schedule get requires --namespace")?;
-            Ok((
-                format!(
-                    "/v1/ns/{}/schedules/{}",
-                    urlencoding::encode(ns),
-                    urlencoding::encode(name)
-                ),
-                "schedule",
-            ))
+            let ns = namespace.cloned().context("Schedule requires --namespace")?;
+            Ok((ns, "Schedule".to_string(), name.to_string()))
         }
         "channel" | "channels" => {
-            let ns = namespace
-                .as_ref()
-                .context("Channel get requires --namespace")?;
-            Ok((
-                format!(
-                    "/v1/ns/{}/channels/{}",
-                    urlencoding::encode(ns),
-                    urlencoding::encode(name)
-                ),
-                "channel",
-            ))
+            let ns = namespace.cloned().context("Channel requires --namespace")?;
+            Ok((ns, "Channel".to_string(), name.to_string()))
         }
         "channelsubscription"
         | "channelsubscriptions"
         | "channel-subscription"
         | "channel-subscriptions" => {
             let ns = namespace
-                .as_ref()
-                .context("ChannelSubscription get requires --namespace")?;
-            let (channel, subscription) = name
+                .cloned()
+                .context("ChannelSubscription requires --namespace")?;
+            let subscription = name
                 .split_once('/')
-                .context("ChannelSubscription name must be '<channel>/<subscription>'")?;
+                .map(|(_, subscription)| subscription)
+                .unwrap_or(name);
             Ok((
-                format!(
-                    "/v1/ns/{}/channels/{}/subscriptions/{}",
-                    urlencoding::encode(ns),
-                    urlencoding::encode(channel),
-                    urlencoding::encode(subscription)
-                ),
-                "subscription",
+                ns,
+                "ChannelSubscription".to_string(),
+                subscription.to_string(),
             ))
         }
         "workflow" | "workflows" => {
-            let ns = namespace
-                .as_ref()
-                .context("Workflow get requires --namespace")?;
-            Ok((
-                format!(
-                    "/v1/ns/{}/workflows/{}",
-                    urlencoding::encode(ns),
-                    urlencoding::encode(name)
-                ),
-                "workflow",
-            ))
+            let ns = namespace.cloned().context("Workflow requires --namespace")?;
+            Ok((ns, "Workflow".to_string(), name.to_string()))
         }
-        other => anyhow::bail!("Unsupported resource kind '{}' for REST mode", other),
+        "deployment" | "deployments" => {
+            let ns = namespace.cloned().context("Deployment requires --namespace")?;
+            Ok((ns, "Deployment".to_string(), name.to_string()))
+        }
+        "sandboxclass" | "sandboxclasses" | "sandbox-class" | "sandbox-classes" => Ok((
+            namespace
+                .cloned()
+                .unwrap_or_else(|| crate::control::ns::TALON_SYSTEM.to_string()),
+            "SandboxClass".to_string(),
+            name.to_string(),
+        )),
+        "sandboxpolicy" | "sandboxpolicies" | "sandbox-policy" | "sandbox-policies" => {
+            let ns = namespace
+                .cloned()
+                .context("SandboxPolicy requires --namespace")?;
+            Ok((ns, "SandboxPolicy".to_string(), name.to_string()))
+        }
+        "sandbox" | "sandboxes" => {
+            let ns = namespace.cloned().context("Sandbox requires --namespace")?;
+            Ok((ns, "Sandbox".to_string(), name.to_string()))
+        }
+        other => anyhow::bail!("Unsupported resource kind '{}'", other),
     }
 }
 
-fn rest_delete_path(kind: &str, name: &str, namespace: Option<&String>) -> Result<String> {
-    if matches!(kind.to_lowercase().as_str(), "namespace" | "namespaces") {
-        return Ok(format!("/v1/namespaces/{}", urlencoding::encode(name)));
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn single_template_lookup_honors_explicit_namespace() {
+        let namespace = "customers:source".to_string();
+
+        assert_eq!(
+            resource_lookup_target("template", "coding-sandbox-policy", Some(&namespace)).unwrap(),
+            (
+                "customers:source".to_string(),
+                "Template".to_string(),
+                "coding-sandbox-policy".to_string(),
+            )
+        );
     }
-    let (ns, resource_kind, resource_name) = resource_lookup_target(kind, name, namespace)?;
-    Ok(format!(
-        "/v1/ns/{}/resources/{}/{}",
-        urlencoding::encode(&ns),
-        urlencoding::encode(&resource_kind),
-        urlencoding::encode(&resource_name)
-    ))
+
+    #[test]
+    fn single_sandbox_class_lookup_honors_explicit_namespace() {
+        let namespace = "Example".to_string();
+
+        assert_eq!(
+            resource_lookup_target("sandboxclass", "docker-codex", Some(&namespace)).unwrap(),
+            (
+                "Example".to_string(),
+                "SandboxClass".to_string(),
+                "docker-codex".to_string(),
+            )
+        );
+    }
 }
