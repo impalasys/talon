@@ -1,32 +1,8 @@
-x-cloudflare-dev-build: &cloudflare-dev-build
-  context: ../../..
-  dockerfile: infra/cf/dev/Dockerfile
-  cache_from:
-    - type=gha,scope=talon-cf-cloudflare-dev
-  cache_to:
-    - type=gha,mode=max,scope=talon-cf-cloudflare-dev
-
-x-talon-runtime-build: &talon-runtime-build
-  context: ../../..
-  dockerfile: dockerfiles/oss-runtime.Dockerfile
-  cache_from:
-    - type=gha,scope=talon-cf-runtime
-    - type=gha,scope=talon-runtime
-  cache_to:
-    - type=gha,mode=max,scope=talon-cf-runtime
-
-x-envoy-build: &envoy-build
-  context: ../../..
-  dockerfile: dockerfiles/envoy.Dockerfile
-  cache_from:
-    - type=gha,scope=talon-cf-envoy
-    - type=gha,scope=talon-envoy
-  cache_to:
-    - type=gha,mode=max,scope=talon-cf-envoy
-
 services:
   cloudflare-dev:
-    build: *cloudflare-dev-build
+    build:
+      context: ../../..
+      dockerfile: infra/cf/dev/Dockerfile
     working_dir: /repo/infra/cf/worker
     command: start-wrangler
     environment:
@@ -50,7 +26,9 @@ services:
         condition: service_healthy
 
   gateway:
-    build: *talon-runtime-build
+    build:
+      context: ../../..
+      dockerfile: dockerfiles/oss-runtime.Dockerfile
     command: sh -c 'until curl -s -o /dev/null http://talon-d1.internal:8787/__ready; do sleep 1; done; export TALON_CONFIG_INLINE_YAML="$$(cat /repo/infra/cf/dev/talon.yaml)" && exec talon-server'
     restart: on-failure
     environment:
@@ -76,7 +54,9 @@ services:
         condition: service_healthy
 
   worker:
-    build: *talon-runtime-build
+    build:
+      context: ../../..
+      dockerfile: dockerfiles/oss-runtime.Dockerfile
     command: sh -c 'until curl -s -o /dev/null http://talon-d1.internal:8787/__ready; do sleep 1; done; export TALON_CONFIG_INLINE_YAML="$$(cat /repo/infra/cf/dev/talon.yaml)" && exec talon-worker'
     restart: on-failure
     environment:
@@ -97,7 +77,9 @@ services:
         condition: service_healthy
 
   envoy:
-    build: *envoy-build
+    build:
+      context: ../../..
+      dockerfile: dockerfiles/envoy.Dockerfile
     environment:
       TALON_ENVOY_GATEWAY_GRPC_HOST: gateway.internal
       TALON_ENVOY_GATEWAY_HTTP_HOST: gateway.internal
@@ -131,7 +113,9 @@ services:
       retries: 60
 
   e2e-tests:
-    build: *talon-runtime-build
+    build:
+      context: ../../..
+      dockerfile: dockerfiles/oss-runtime.Dockerfile
     working_dir: /repo
     command: sh -c "apt-get update && apt-get install -y --no-install-recommends python3 && python3 tests/run_cloudflare_e2e.py"
     environment:

@@ -350,22 +350,22 @@ jobs:
         run: infra/cf/worker/node_modules/.bin/wrangler deploy --dry-run --config infra/cf/worker/wrangler.jsonc --outdir /tmp/talon-cloudflare-prod-dry-run --containers-rollout=none
 
       - name: Validate Docker Compose config
-        run: docker compose -f infra/cf/dev/docker-compose.yaml config
+        run: docker compose -f infra/cf/dev/docker-compose.yaml -f infra/cf/dev/docker-compose.ci.yaml config
 
       - name: Run Cloudflare local E2E
         id: cloudflare-local-e2e
         timeout-minutes: 35
-        run: docker compose -f infra/cf/dev/docker-compose.yaml up --build --abort-on-container-exit --exit-code-from e2e-tests e2e-tests
+        run: docker compose -f infra/cf/dev/docker-compose.yaml -f infra/cf/dev/docker-compose.ci.yaml up --build --abort-on-container-exit --exit-code-from e2e-tests e2e-tests
 
       - name: Dump Cloudflare stack logs
         if: always() && steps.cloudflare-local-e2e.outcome == 'failure'
         run: |
-          docker compose -f infra/cf/dev/docker-compose.yaml ps
-          docker compose -f infra/cf/dev/docker-compose.yaml logs --no-color --tail=400
+          docker compose -f infra/cf/dev/docker-compose.yaml -f infra/cf/dev/docker-compose.ci.yaml ps
+          docker compose -f infra/cf/dev/docker-compose.yaml -f infra/cf/dev/docker-compose.ci.yaml logs --no-color --tail=400
 
       - name: Stop Cloudflare stack
         if: always()
-        run: docker compose -f infra/cf/dev/docker-compose.yaml down --volumes --remove-orphans
+        run: docker compose -f infra/cf/dev/docker-compose.yaml -f infra/cf/dev/docker-compose.ci.yaml down --volumes --remove-orphans
 
   binary_artifacts:
     name: Binary Artifacts
