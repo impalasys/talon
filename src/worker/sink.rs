@@ -162,14 +162,19 @@ impl PubSubSessionSink {
 
     fn final_message_parts(&self, reply: &str) -> Vec<data_proto::SessionMessagePart> {
         let mut parts = self.durable_parts.lock().unwrap().clone();
+        let accumulated = self.accumulated.lock().unwrap().clone();
+        let effective_reply = if reply.is_empty() {
+            accumulated.as_str()
+        } else {
+            reply
+        };
         let text = {
-            let accumulated = self.accumulated.lock().unwrap();
             if accumulated.is_empty() {
-                reply.to_string()
-            } else if reply.starts_with(accumulated.as_str()) {
-                self.text_since_last_durable_part(reply)
+                effective_reply.to_string()
+            } else if effective_reply.starts_with(accumulated.as_str()) {
+                self.text_since_last_durable_part(effective_reply)
             } else {
-                reply.to_string()
+                effective_reply.to_string()
             }
         };
         if !text.is_empty() {
@@ -650,7 +655,11 @@ impl ExecutionSink for PubSubSessionSink {
         self.flush_reasoning_part_and_event().await;
         self.wait_for_partial_flushes().await;
         // Final KV write (complete message)
-        let reply = reply.to_string();
+        let reply = if reply.is_empty() {
+            self.accumulated.lock().unwrap().clone()
+        } else {
+            reply.to_string()
+        };
         let reply_for_event = reply.clone();
         let msg = data_proto::SessionMessage {
             id: self.reply_msg_id.clone(),
@@ -852,6 +861,41 @@ mod tests {
             .collect::<Vec<_>>();
 
         assert_eq!(token_events, vec!["hello world".to_string()]);
+    }
+
+    #[tokio::test]
+    async fn final_message_persists_accumulated_streamed_text_when_done_reply_is_empty() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            Duration::from_secs(10),
+        );
+
+        sink.on_token("The answer is ").await;
+        sink.on_token("12.").await;
+        sink.on_done("").await;
+
+        let entries = kv.entries.lock().await.clone();
+        let reply = entries
+            .iter()
+            .rev()
+            .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
+            .find(|message| message.id == "reply-1")
+            .expect("reply message should be persisted");
+        let reply_text = reply
+            .parts
+            .iter()
+            .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .map(|part| part.content.as_str())
+            .collect::<String>();
+        assert_eq!(reply_text, "The answer is 12.");
     }
 
     #[tokio::test]

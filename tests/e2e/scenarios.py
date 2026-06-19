@@ -156,11 +156,15 @@ def assistant_messages(session):
     ]
 
 
+def session_part_type(part):
+    return part.get("type") or part.get("partType")
+
+
 def message_text(message):
     return "".join(
         part.get("content", "")
         for part in message.get("parts", [])
-        if part.get("type") in ("text", "SESSION_MESSAGE_PART_TYPE_TEXT", 1)
+        if session_part_type(part) in ("text", "SESSION_MESSAGE_PART_TYPE_TEXT", 1)
     )
 
 
@@ -195,7 +199,7 @@ def session_parts(session, part_type=None):
     parts = []
     for message in session.get("messages", []):
         for part in message.get("parts", []):
-            if part_type is None or part.get("type") == part_type:
+            if part_type is None or session_part_type(part) == part_type:
                 parts.append(part)
     return parts
 
@@ -214,9 +218,9 @@ def wait_for_session_part(
     for _ in range(attempts):
         session = session_get(cli, namespace, agent, session_id)
         parts = session_parts(session)
-        last_part_types = [part.get("type") for part in parts]
+        last_part_types = [session_part_type(part) for part in parts]
         for part in parts:
-            if part.get("type") == part_type:
+            if session_part_type(part) == part_type:
                 return part, session
         time.sleep(delay)
     raise AssertionError(

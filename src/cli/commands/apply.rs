@@ -281,13 +281,19 @@ fn reject_status_field(content: &str) -> Result<()> {
     Ok(())
 }
 
-fn resource_manifest_proto_json(resource: &resources_proto::ResourceManifest) -> serde_json::Value {
-    json!({
+fn resource_manifest_proto_json(
+    resource: &resources_proto::ResourceManifest,
+) -> Result<serde_json::Value> {
+    Ok(json!({
         "apiVersion": resource.api_version,
         "kind": resource.kind,
         "metadata": resource.metadata.as_ref().map(resource_meta_proto_json),
-        "spec": resource.spec.as_ref().map(resource_spec_proto_json),
-    })
+        "spec": resource
+            .spec
+            .as_ref()
+            .map(resource_spec_proto_json)
+            .transpose()?,
+    }))
 }
 
 fn resource_meta_proto_json(meta: &resources_proto::ResourceMeta) -> serde_json::Value {
@@ -317,107 +323,36 @@ fn owner_reference_proto_json(reference: &resources_proto::OwnerReference) -> se
     })
 }
 
-fn resource_ref_proto_json(reference: &resources_proto::ResourceRef) -> serde_json::Value {
-    json!({
-        "namespace": reference.namespace,
-        "name": reference.name,
-    })
-}
-
-fn resource_spec_proto_json(spec: &resources_proto::ResourceSpec) -> serde_json::Value {
+fn resource_spec_proto_json(spec: &resources_proto::ResourceSpec) -> Result<serde_json::Value> {
     use resources_proto::resource_spec::Kind;
 
-    match spec.kind.as_ref() {
-        Some(Kind::Template(spec)) => json!({
-            "template": {
-                "kind": spec.kind,
-                "metadata": spec.metadata.as_ref().map(resource_meta_proto_json),
-                "specJson": spec.spec_json,
-            }
-        }),
-        Some(Kind::Deployment(spec)) => json!({
-            "deployment": {
-                "placement": spec.placement.as_ref().map(|placement| json!({
-                    "namespaceSelector": placement.namespace_selector.as_ref().map(|selector| json!({
-                        "parent": selector.parent,
-                        "matchLabels": selector.match_labels,
-                    })),
-                })),
-                "templates": spec.templates,
-            }
-        }),
-        Some(Kind::DeploymentReplica(spec)) => json!({
-            "deploymentReplica": {
-                "deploymentRef": spec.deployment_ref.as_ref().map(resource_ref_proto_json),
-                "targetNamespace": spec.target_namespace,
-            }
-        }),
-        Some(Kind::SandboxClass(spec)) => json!({
-            "sandboxClass": {
-                "provider": spec.provider,
-                "providerConfigJson": spec.provider_config_json,
-                "credentialsJson": spec.credentials_json,
-            }
-        }),
-        Some(Kind::SandboxPolicy(spec)) => json!({
-            "sandboxPolicy": {
-                "classRef": spec.class_ref.as_ref().map(resource_ref_proto_json),
-                "template": spec.template.as_ref().map(sandbox_runtime_template_proto_json),
-                "maxConcurrent": spec.max_concurrent,
-            }
-        }),
-        Some(Kind::Sandbox(spec)) => json!({
-            "sandbox": {
-                "policyRef": spec.policy_ref,
-                "classRef": spec.class_ref.as_ref().map(resource_ref_proto_json),
-                "runtimeTemplate": spec.runtime_template.as_ref().map(sandbox_runtime_template_proto_json),
-            }
-        }),
-        Some(Kind::Skill(spec)) => json!({
-            "skill": {
-                "description": spec.description,
-                "instructions": spec.instructions,
-            }
-        }),
-        Some(Kind::Raw(spec)) => json!({ "raw": { "json": spec.json } }),
-        Some(Kind::Agent(_))
-        | Some(Kind::Workflow(_))
-        | Some(Kind::Schedule(_))
-        | Some(Kind::Channel(_))
-        | Some(Kind::ChannelSubscription(_))
-        | Some(Kind::McpServer(_))
-        | Some(Kind::McpServerBinding(_))
-        | Some(Kind::Knowledge(_))
-        | Some(Kind::Namespace(_))
-        | Some(Kind::Session(_))
-        | None => json!({}),
-    }
-}
+    let Some(kind) = spec.kind.as_ref() else {
+        return Ok(json!({}));
+    };
 
-fn sandbox_runtime_template_proto_json(
-    spec: &resources_proto::SandboxRuntimeTemplateSpec,
-) -> serde_json::Value {
-    json!({
-        "image": spec.image,
-        "workspace": spec.workspace.as_ref().map(|workspace| json!({
-            "mode": workspace.mode,
-            "mountPath": workspace.mount_path,
-        })),
-        "setup": spec.setup.as_ref().map(|setup| json!({
-            "packages": setup.packages,
-            "commands": setup.commands,
-        })),
-        "network": spec.network.as_ref().map(|network| json!({
-            "mode": network.mode,
-        })),
-        "filesystem": spec.filesystem.as_ref().map(|filesystem| json!({
-            "writable": filesystem.writable,
-            "readonly": filesystem.readonly,
-        })),
-        "leasePolicy": spec.lease_policy.as_ref().map(|lease_policy| json!({
-            "mode": lease_policy.mode,
-        })),
-    })
+    let (field, value) = match kind {
+        Kind::Agent(spec) => ("agent", serde_json::to_value(spec)?),
+        Kind::Workflow(spec) => ("workflow", serde_json::to_value(spec)?),
+        Kind::Schedule(spec) => ("schedule", serde_json::to_value(spec)?),
+        Kind::Channel(spec) => ("channel", serde_json::to_value(spec)?),
+        Kind::ChannelSubscription(spec) => {
+            ("channelSubscription", serde_json::to_value(spec)?)
+        }
+        Kind::McpServer(spec) => ("mcpServer", serde_json::to_value(spec)?),
+        Kind::McpServerBinding(spec) => ("mcpServerBinding", serde_json::to_value(spec)?),
+        Kind::Knowledge(spec) => ("knowledge", serde_json::to_value(spec)?),
+        Kind::Namespace(spec) => ("namespace", serde_json::to_value(spec)?),
+        Kind::Session(spec) => ("session", serde_json::to_value(spec)?),
+        Kind::Skill(spec) => ("skill", serde_json::to_value(spec)?),
+        Kind::Template(spec) => ("template", serde_json::to_value(spec)?),
+        Kind::Deployment(spec) => ("deployment", serde_json::to_value(spec)?),
+        Kind::DeploymentReplica(spec) => ("deploymentReplica", serde_json::to_value(spec)?),
+        Kind::SandboxClass(spec) => ("sandboxClass", serde_json::to_value(spec)?),
+        Kind::SandboxPolicy(spec) => ("sandboxPolicy", serde_json::to_value(spec)?),
+        Kind::Sandbox(spec) => ("sandbox", serde_json::to_value(spec)?),
+        Kind::Raw(spec) => ("raw", serde_json::to_value(spec)?),
+    };
+    Ok(json!({ field: value }))
 }
 
 pub(super) async fn rest_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
@@ -472,7 +407,7 @@ fn build_rest_apply_plan(content: &str) -> Result<RestApplyPlan> {
         path: format!("/v2/ns/{}/resources", urlencoding::encode(&ns)),
         payload: json!({
             "ns": ns,
-            "manifest": resource_manifest_proto_json(&manifest),
+            "manifest": resource_manifest_proto_json(&manifest)?,
         }),
         success_label: format!("{} '{}/{}'", kind, ns, name),
     })
@@ -602,5 +537,29 @@ mod tests {
             .expect_err("missing path should fail");
 
         assert!(err.to_string().contains("does not exist"));
+    }
+
+    #[test]
+    fn rest_apply_plan_encodes_agent_spec_oneof() {
+        let plan = build_rest_apply_plan(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: cf-agent
+  namespace: Example
+spec:
+  systemPrompt: You are a Cloudflare E2E test assistant.
+"#,
+        )
+        .expect("build REST plan");
+
+        assert_eq!(plan.path, "/v2/ns/Example/resources");
+        assert_eq!(plan.payload["ns"], "Example");
+        assert_eq!(plan.payload["manifest"]["kind"], "Agent");
+        assert_eq!(
+            plan.payload["manifest"]["spec"]["agent"]["systemPrompt"],
+            "You are a Cloudflare E2E test assistant."
+        );
     }
 }
