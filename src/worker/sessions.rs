@@ -123,11 +123,47 @@ impl WorkerEventHandler {
         );
 
         let outcome = async {
-            if is_acp_agent(&self.cp, ns, &event.agent).await? {
-                let runtime = match crate::harness::acp::AcpAgentRuntime::build(
+            let store = crate::control::resources::ResourceStore::new(
+                self.cp.kv.clone(),
+                self.cp.pubsub.clone(),
+            );
+            let agent = match store.get_agent(ns, &event.agent).await {
+                Ok(Some(agent)) => agent,
+                Ok(None) => {
+                    let err = format!("Agent '{}' not found in ns '{}'", event.agent, ns);
+                    tracing::error!(
+                        agent = %event.agent,
+                        session = %event.session_id,
+                        "{err}"
+                    );
+                    sink.on_error(&format!("Error: {err}")).await;
+                    return Ok((SessionCompletionStatus::Errored, sink.summary()));
+                }
+                Err(err) => {
+                    tracing::error!(
+                        agent = %event.agent,
+                        session = %event.session_id,
+                        "Failed to fetch agent: {}",
+                        err
+                    );
+                    sink.on_error(&format!("Error: failed to fetch agent: {err}"))
+                        .await;
+                    return Ok((SessionCompletionStatus::Errored, sink.summary()));
+                }
+            };
+            let is_acp = agent
+                .spec
+                .as_ref()
+                .and_then(|spec| spec.runtime.as_ref())
+                .map(|runtime| runtime.kind == "acp")
+                .unwrap_or(false);
+
+            if is_acp {
+                let runtime = match crate::harness::acp::AcpAgentRuntime::build_from_agent(
                     ns,
                     &event.agent,
                     &event.session_id,
+                    agent,
                     &self.cp,
                     &self.config,
                 )
@@ -159,10 +195,11 @@ impl WorkerEventHandler {
             }
 
             // Build the fully-resolved runtime (spec, history, LLM, tools, knowledge)
-            let mut runtime = match AgentRuntime::build(
+            let mut runtime = match AgentRuntime::build_from_agent(
                 ns,
                 &event.agent,
                 &event.session_id,
+                agent,
                 &self.cp,
                 &self.config,
                 &self.mcp_registry,
@@ -355,19 +392,6 @@ impl WorkerEventHandler {
             );
         }
     }
-}
-
-async fn is_acp_agent(cp: &crate::control::ControlPlane, ns: &str, agent_id: &str) -> Result<bool> {
-    let store = crate::control::resources::ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
-    let Some(agent) = store.get_agent(ns, agent_id).await? else {
-        return Ok(false);
-    };
-    Ok(agent
-        .spec
-        .as_ref()
-        .and_then(|spec| spec.runtime.as_ref())
-        .map(|runtime| runtime.kind == "acp")
-        .unwrap_or(false))
 }
 
 #[cfg(test)]

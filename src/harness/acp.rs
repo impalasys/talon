@@ -63,6 +63,17 @@ impl AcpAgentRuntime {
             .get_agent(ns, agent_id)
             .await?
             .ok_or_else(|| anyhow!("Agent '{}' not found in ns '{}'", agent_id, ns))?;
+        Self::build_from_agent(ns, agent_id, session_id, agent, cp, config).await
+    }
+
+    pub async fn build_from_agent(
+        ns: &str,
+        agent_id: &str,
+        session_id: &str,
+        agent: resources_proto::Agent,
+        cp: &ControlPlane,
+        config: &Arc<Config>,
+    ) -> Result<Self> {
         let spec = agent
             .spec
             .ok_or_else(|| anyhow!("Agent '{}' has no spec", agent_id))?;

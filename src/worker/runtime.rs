@@ -10,6 +10,7 @@ use crate::control::config::Config;
 use crate::control::ControlPlane;
 use crate::control::ProtoKeyValueStoreExt;
 use crate::gateway::rpc::data_proto;
+use crate::gateway::rpc::resources_proto;
 use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKind};
 use crate::harness::executor::context_budget::tool_result_preview;
 use crate::harness::executor::{
@@ -45,6 +46,18 @@ impl AgentRuntime {
             .get_agent(ns, agent_id)
             .await?
             .ok_or_else(|| anyhow::anyhow!("Agent '{}' not found in ns '{}'", agent_id, ns))?;
+        Self::build_from_agent(ns, agent_id, session_id, agent, cp, config, mcp_registry).await
+    }
+
+    pub async fn build_from_agent(
+        ns: &str,
+        agent_id: &str,
+        session_id: &str,
+        agent: resources_proto::Agent,
+        cp: &ControlPlane,
+        config: &Config,
+        mcp_registry: &McpRegistry,
+    ) -> Result<Self> {
         let spec = agent
             .spec
             .ok_or_else(|| anyhow::anyhow!("Agent '{}' has no spec", agent_id))?;
