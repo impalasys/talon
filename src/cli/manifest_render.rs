@@ -5,6 +5,19 @@ pub(super) fn parse_raw_manifest(content: &str) -> Result<crate::control::manife
     serde_yaml::from_str(content).context("Failed to parse manifest YAML")
 }
 
+#[derive(Debug, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+struct KnowledgeManifestFile {
+    spec: KnowledgeSpecFile,
+}
+
+#[derive(Debug, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct KnowledgeSpecFile {
+    content: Option<String>,
+    content_from_file: Option<String>,
+}
+
 pub(super) fn render_manifest_file(file: &str, vars: &[String]) -> Result<String> {
     let content = fs::read_to_string(file)
         .with_context(|| format!("Failed to read manifest file: {}", file))?;

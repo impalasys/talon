@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use anyhow::{Context, Result};
+use serde_json::json;
 
 use super::{Cli, RunOutcome};
-use crate::cli::{render_json_payload, render_manifest_file};
+use crate::cli::{parse_raw_manifest, render_manifest_file};
+use crate::control::resource_model::{ChannelSubscriptionResourceExt, TypedResource};
 
 #[derive(clap::Args)]
 pub(crate) struct RenderCommand {
@@ -39,4 +41,53 @@ pub(super) async fn run(_cli: &Cli, command: &RenderCommand) -> Result<RunOutcom
         }
     }
     Ok(RunOutcome { exit_code: None })
+}
+
+fn render_json_payload(content: &str) -> Result<serde_json::Value> {
+    let raw = parse_raw_manifest(content)?;
+    let manifest_value: serde_yaml::Value =
+        serde_yaml::from_str(content).context("Failed to parse rendered manifest")?;
+    match raw.kind.as_str() {
+        "MCPServer" | "McpServer" => Ok(json!({ "server": manifest_value })),
+        "Agent" => Ok(json!({ "agent": manifest_value })),
+        "McpServerBinding" => {
+            let binding = crate::control::manifest::parse_mcp_server_binding(content)?;
+            let namespace = binding
+                .metadata
+                .as_ref()
+                .map(|meta| meta.namespace.clone())
+                .filter(|namespace| !namespace.is_empty())
+                .context("McpServerBinding missing metadata.namespace")?;
+            Ok(json!({
+                "ns": namespace,
+                "binding": binding,
+            }))
+        }
+        "Namespace" => {
+            let namespace = crate::control::manifest::parse_namespace(content)?;
+            Ok(json!({
+                "name": namespace.name(),
+                "recursive": true,
+                "labels": namespace.labels(),
+            }))
+        }
+        "Knowledge" => Ok(json!({ "knowledge": manifest_value })),
+        "Channel" => {
+            let channel = crate::control::manifest::parse_channel(content)?;
+            Ok(json!({ "ns": channel.namespace(), "channel": channel }))
+        }
+        "ChannelSubscription" => {
+            let subscription = crate::control::manifest::parse_channel_subscription(content)?;
+            Ok(json!({
+                "ns": subscription.namespace(),
+                "channel": subscription.channel(),
+                "subscription": subscription,
+            }))
+        }
+        "Workflow" => {
+            let workflow = crate::control::manifest::parse_workflow(content)?;
+            Ok(json!({ "ns": workflow.namespace(), "workflow": workflow }))
+        }
+        other => anyhow::bail!("Unsupported manifest kind '{}'", other),
+    }
 }
