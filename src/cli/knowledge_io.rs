@@ -162,7 +162,7 @@ pub(super) async fn knowledge_get(
             cli,
             reqwest::Method::GET,
             &format!(
-                "/v2/ns/{}/resources/Knowledge/{}",
+                "/v1/ns/{}/resources/Knowledge/{}",
                 urlencoding::encode(namespace),
                 urlencoding::encode(&name)
             ),
@@ -212,7 +212,7 @@ pub(super) async fn knowledge_set(
         rest_request_json(
             cli,
             reqwest::Method::POST,
-            &format!("/v2/ns/{}/resources", urlencoding::encode(namespace)),
+            &format!("/v1/ns/{}/resources", urlencoding::encode(namespace)),
             Some(json!({
                 "ns": namespace,
                 "manifest": knowledge_resource_manifest_json(&knowledge),
@@ -245,7 +245,7 @@ pub(super) async fn knowledge_delete(cli: &Cli, namespace: &str, path: &str) -> 
             cli,
             reqwest::Method::DELETE,
             &format!(
-                "/v2/ns/{}/resources/Knowledge/{}",
+                "/v1/ns/{}/resources/Knowledge/{}",
                 urlencoding::encode(namespace),
                 urlencoding::encode(&name)
             ),
@@ -278,7 +278,7 @@ async fn knowledge_list(cli: &Cli, namespace: &str) -> Result<Vec<Knowledge>> {
             cli,
             reqwest::Method::GET,
             &format!(
-                "/v2/ns/{}/resources?kind=Knowledge",
+                "/v1/ns/{}/resources?kind=Knowledge",
                 urlencoding::encode(namespace)
             ),
             None,

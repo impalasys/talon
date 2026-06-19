@@ -25,7 +25,7 @@ fn rest_get_path(
                 .unwrap_or_else(|| crate::control::ns::TALON_SYSTEM.to_string());
             Ok((
                 format!(
-                    "/v2/ns/{}/resources/Template/{}",
+                    "/v1/ns/{}/resources/Template/{}",
                     urlencoding::encode(&ns),
                     urlencoding::encode(name)
                 ),
@@ -146,7 +146,7 @@ fn rest_delete_path(kind: &str, name: &str, namespace: Option<&String>) -> Resul
     }
     let (ns, resource_kind, resource_name) = resource_lookup_target(kind, name, namespace)?;
     Ok(format!(
-        "/v2/ns/{}/resources/{}/{}",
+        "/v1/ns/{}/resources/{}/{}",
         urlencoding::encode(&ns),
         urlencoding::encode(&resource_kind),
         urlencoding::encode(&resource_name)

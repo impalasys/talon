@@ -350,7 +350,7 @@ pub(super) async fn rest_list_resources_table(
 ) -> Result<String> {
     match resource_list_target(kind, namespace)? {
         ResourceListTarget::Resources { ns, kind } => {
-            let mut path = format!("/v2/ns/{}/resources", urlencoding::encode(&ns));
+            let mut path = format!("/v1/ns/{}/resources", urlencoding::encode(&ns));
             if let Some(kind) = kind {
                 path.push_str(&format!("?kind={}", urlencoding::encode(&kind)));
             }
@@ -391,7 +391,7 @@ pub(super) async fn rest_list_resources_json(
 ) -> Result<serde_json::Value> {
     match resource_list_target(kind, namespace)? {
         ResourceListTarget::Resources { ns, kind } => {
-            let mut path = format!("/v2/ns/{}/resources", urlencoding::encode(&ns));
+            let mut path = format!("/v1/ns/{}/resources", urlencoding::encode(&ns));
             if let Some(kind) = kind {
                 path.push_str(&format!("?kind={}", urlencoding::encode(&kind)));
             }

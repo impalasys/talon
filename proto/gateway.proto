@@ -180,26 +180,26 @@ service GatewayService {
     };
   }
 
-  // Generic v2 resources
+  // Generic resources
   rpc CreateResource(CreateResourceRequest) returns (ResourceResponse) {
     option (google.api.http) = {
-      post: "/v2/ns/{ns}/resources"
+      post: "/v1/ns/{ns}/resources"
       body: "*"
     };
   }
   rpc GetResource(GetResourceRequest) returns (ResourceResponse) {
     option (google.api.http) = {
-      get: "/v2/ns/{ns}/resources/{kind}/{name}"
+      get: "/v1/ns/{ns}/resources/{kind}/{name}"
     };
   }
   rpc ListResources(ListResourcesRequest) returns (ListResourcesResponse) {
     option (google.api.http) = {
-      get: "/v2/ns/{ns}/resources"
+      get: "/v1/ns/{ns}/resources"
     };
   }
   rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {
     option (google.api.http) = {
-      delete: "/v2/ns/{ns}/resources/{kind}/{name}"
+      delete: "/v1/ns/{ns}/resources/{kind}/{name}"
     };
   }
 

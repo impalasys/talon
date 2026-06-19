@@ -55,7 +55,7 @@ mod get_list_tests {
         );
         assert_eq!(
             rest_delete_path("template", "coding-sandbox-policy", Some(&namespace)).unwrap(),
-            "/v2/ns/customers%3Asource/resources/Template/coding-sandbox-policy"
+            "/v1/ns/customers%3Asource/resources/Template/coding-sandbox-policy"
         );
     }
 
@@ -73,7 +73,7 @@ mod get_list_tests {
         );
         assert_eq!(
             rest_delete_path("sandboxclass", "docker-codex", Some(&namespace)).unwrap(),
-            "/v2/ns/Example/resources/SandboxClass/docker-codex"
+            "/v1/ns/Example/resources/SandboxClass/docker-codex"
         );
     }
 

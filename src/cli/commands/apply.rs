@@ -404,7 +404,7 @@ fn build_rest_apply_plan(content: &str) -> Result<RestApplyPlan> {
     let (ns, kind, name, manifest) = resource_manifest_from_manifest(content)?;
     Ok(RestApplyPlan {
         method: reqwest::Method::POST,
-        path: format!("/v2/ns/{}/resources", urlencoding::encode(&ns)),
+        path: format!("/v1/ns/{}/resources", urlencoding::encode(&ns)),
         payload: json!({
             "ns": ns,
             "manifest": resource_manifest_proto_json(&manifest)?,
@@ -554,7 +554,7 @@ spec:
         )
         .expect("build REST plan");
 
-        assert_eq!(plan.path, "/v2/ns/Example/resources");
+        assert_eq!(plan.path, "/v1/ns/Example/resources");
         assert_eq!(plan.payload["ns"], "Example");
         assert_eq!(plan.payload["manifest"]["kind"], "Agent");
         assert_eq!(
