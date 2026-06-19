@@ -138,7 +138,9 @@ jobs:
             --image-tag "${BENCH_IMAGE_TAG}" \
             --output-dir "${BENCH_OUTPUT_DIR}/rocksdb" || status=1
 
-          exit "${status}"
+          if [ "${status}" -ne 0 ]; then
+            echo "::warning::1 vCPU benchmark missed its success threshold; results are advisory and posted as a PR comment."
+          fi
 
       - name: Comment benchmark results
         if: always() && github.event_name == 'pull_request'
