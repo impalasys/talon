@@ -43,6 +43,32 @@ fn capabilities_policy_from_proto(
         .collect()
 }
 
+#[cfg(not(feature = "bazel"))]
+pub(crate) mod capabilities_policy_serde {
+    use super::*;
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    pub(crate) fn serialize<S>(
+        policy: &std::collections::HashMap<String, ListValue>,
+        serializer: S,
+    ) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        capabilities_policy_from_proto(policy).serialize(serializer)
+    }
+
+    pub(crate) fn deserialize<'de, D>(
+        deserializer: D,
+    ) -> std::result::Result<std::collections::HashMap<String, ListValue>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let policy = CapabilitiesPolicyManifest::deserialize(deserializer)?;
+        Ok(capabilities_policy_into_proto(policy))
+    }
+}
+
 impl AgentSpecManifest {
     fn into_proto(self) -> Result<manifests::AgentSpec> {
         Ok(manifests::AgentSpec {
