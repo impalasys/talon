@@ -57,7 +57,8 @@ fn sdk_methods_from_dir(dir: &str) -> Result<Vec<String>> {
     for entry in fs::read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
-        if path.extension().unwrap_or_default() != "yaml" {
+        let ext = path.extension().unwrap_or_default();
+        if ext != "yaml" && ext != "yml" {
             continue;
         }
         let content = fs::read_to_string(&path)?;
@@ -79,4 +80,32 @@ fn sdk_methods_from_dir(dir: &str) -> Result<Vec<String>> {
         }
     }
     Ok(class_methods)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sdk_methods_from_dir_accepts_yml_manifests() {
+        let dir = tempfile::tempdir().expect("create temp dir");
+        let manifest = dir.path().join("agent.yml");
+        fs::write(
+            manifest,
+            r#"apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: sdk-agent
+  namespace: default
+spec: {}
+"#,
+        )
+        .expect("write manifest");
+
+        let methods = sdk_methods_from_dir(dir.path().to_str().expect("utf-8 path"))
+            .expect("generate SDK methods");
+
+        assert_eq!(methods.len(), 1);
+        assert!(methods[0].contains("async createSdkAgent("));
+    }
 }
