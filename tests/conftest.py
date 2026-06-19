@@ -30,6 +30,31 @@ WORKFLOW_DISPATCH_TOPIC = "talon.workflow.dispatch"
 MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+def load_repo_dotenv_values():
+    dotenv_path = REPO_ROOT / ".env"
+    values = {}
+    if not dotenv_path.exists():
+        return values
+    for line in dotenv_path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key:
+            values[key] = value
+    return values
+
+def load_repo_dotenv_into_env(env, keys=None):
+    values = load_repo_dotenv_values()
+    for key, value in values.items():
+        if keys is not None and key not in keys:
+            continue
+        if value and key not in env:
+            env[key] = value
+    return env
+
 def binary_candidates(name):
     yield name
     if "_" in name:
@@ -120,6 +145,8 @@ def start_talon_server_and_worker(env, grpc_port, worker_pull_mode=False):
         stdout=sys.stdout,
         stderr=sys.stderr,
     )
+    wait_for_gateway("127.0.0.1", int(worker_env.get("PORT", "8081")))
+    time.sleep(1)
 
     return server_proc, worker_proc
 
@@ -147,6 +174,7 @@ def talon_infrastructure():
     print(f"PubSub Host: {pubsub_host}")
     
     env = os.environ.copy()
+    load_repo_dotenv_into_env(env, keys={"OPENAI_API_KEY", "CODEX_API_KEY"})
     env["POSTGRES_URL"] = postgres_url
     env["PUBSUB_EMULATOR_HOST"] = pubsub_host
     env["RUST_LOG"] = "info"
@@ -286,6 +314,7 @@ def talon_infrastructure_sqlite():
     worker_port = 18082
 
     env = os.environ.copy()
+    load_repo_dotenv_into_env(env, keys={"OPENAI_API_KEY", "CODEX_API_KEY"})
     env["RUST_LOG"] = "info"
     env["NOVITA_API_KEY"] = "test-dummy-key"
     env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
@@ -344,8 +373,8 @@ control_plane:
 
 
 @pytest.fixture
-def sqlite_test_grpc_port():
-    return 50054
+def sqlite_test_grpc_port(talon_infrastructure_sqlite):
+    return talon_infrastructure_sqlite["grpc_port"]
 
 
 @pytest.fixture

@@ -34,10 +34,10 @@ use std::{
 use crate::{
     control::{
         keys::{self, ResourceKey},
-        ProtoKeyValueStoreExt,
+        resource_model::{self, ChannelResourceExt, NamespaceResourceExt, TypedResource},
+        scheduling, ProtoKeyValueStoreExt,
     },
-    gateway::rpc::{manifests, models},
-    scheduling,
+    gateway::rpc::{data_proto, manifests, resources_proto},
 };
 
 use super::WorkerEventHandler;
@@ -175,57 +175,73 @@ impl TalonOpsServer {
         Ok(items)
     }
 
-    async fn list_all_namespaces(&self) -> Result<Vec<models::Namespace>> {
+    async fn list_all_namespaces(&self) -> Result<Vec<resources_proto::Namespace>> {
         let mut keys = self
             .kv()
             .list_keys(&keys::namespace_metadata_prefix())
             .await?;
         keys.sort();
-        let namespaces = self.load_messages::<models::Namespace>(keys, 32).await?;
+        let namespaces = self
+            .load_messages::<resources_proto::Namespace>(keys, 32)
+            .await?;
         Ok(namespaces
             .into_iter()
-            .filter(|namespace| !namespace.is_deleted)
+            .filter(|namespace| !namespace.is_deleted())
             .collect())
     }
 
-    async fn get_namespace_model(&self, name: &str) -> Result<models::Namespace> {
+    async fn get_namespace_model(&self, name: &str) -> Result<resources_proto::Namespace> {
         let key = keys::namespace_metadata(name);
         self.kv()
-            .get_msg::<models::Namespace>(&key)
+            .get_msg::<resources_proto::Namespace>(&key)
             .await?
-            .filter(|ns| !ns.is_deleted)
+            .filter(|ns| !ns.is_deleted())
             .ok_or_else(|| anyhow!("namespace '{name}' not found"))
     }
 
     async fn list_agent_names(&self, namespace: &str) -> Result<Vec<String>> {
-        let prefix = keys::agent_prefix(namespace);
-        let mut keys = self.kv().list_keys(&prefix).await?;
-        keys.sort();
-        Ok(keys
+        let store = crate::control::resources::ResourceStore::new(
+            self.handler.cp.kv.clone(),
+            self.handler.cp.pubsub.clone(),
+        );
+        let mut names = store
+            .list(namespace, Some("Agent"))
+            .await?
             .into_iter()
-            .filter_map(|key| keys::direct_child_name(&prefix, &key))
-            .collect())
+            .filter_map(|resource| resource.metadata.map(|metadata| metadata.name))
+            .collect::<Vec<_>>();
+        names.sort();
+        Ok(names)
     }
 
-    async fn get_agent_model(&self, namespace: &str, name: &str) -> Result<models::Agent> {
-        self.kv()
-            .get_msg::<models::Agent>(&keys::agent(namespace, name))
+    async fn get_agent_model(&self, namespace: &str, name: &str) -> Result<resources_proto::Agent> {
+        let store = crate::control::resources::ResourceStore::new(
+            self.handler.cp.kv.clone(),
+            self.handler.cp.pubsub.clone(),
+        );
+        store
+            .get_agent(namespace, name)
             .await?
             .ok_or_else(|| anyhow!("agent '{name}' not found in namespace '{namespace}'"))
     }
 
-    async fn list_channel_models(&self, namespace: &str) -> Result<Vec<models::Channel>> {
+    async fn list_channel_models(&self, namespace: &str) -> Result<Vec<resources_proto::Channel>> {
         let mut keys = self
             .kv()
             .list_keys(&keys::channel_prefix(namespace))
             .await?;
         keys.sort();
-        self.load_messages::<models::Channel>(keys, 32).await
+        self.load_messages::<resources_proto::Channel>(keys, 32)
+            .await
     }
 
-    async fn get_channel_model(&self, namespace: &str, name: &str) -> Result<models::Channel> {
+    async fn get_channel_model(
+        &self,
+        namespace: &str,
+        name: &str,
+    ) -> Result<resources_proto::Channel> {
         self.kv()
-            .get_msg::<models::Channel>(&keys::channel(namespace, name))
+            .get_msg::<resources_proto::Channel>(&keys::channel(namespace, name))
             .await?
             .ok_or_else(|| anyhow!("channel '{name}' not found in namespace '{namespace}'"))
     }
@@ -235,9 +251,9 @@ impl TalonOpsServer {
         namespace: &str,
         channel: &str,
         message_id: &str,
-    ) -> Result<models::ChannelMessage> {
+    ) -> Result<data_proto::ChannelMessage> {
         self.kv()
-            .get_msg::<models::ChannelMessage>(&keys::channel_message(
+            .get_msg::<data_proto::ChannelMessage>(&keys::channel_message(
                 namespace, channel, message_id,
             ))
             .await?
@@ -252,7 +268,7 @@ impl TalonOpsServer {
         channel: &str,
         before_message_id: Option<&str>,
         limit: usize,
-    ) -> Result<(Vec<models::ChannelMessage>, bool, Option<String>)> {
+    ) -> Result<(Vec<data_proto::ChannelMessage>, bool, Option<String>)> {
         if limit == 0 {
             return Ok((Vec::new(), false, None));
         }
@@ -271,7 +287,7 @@ impl TalonOpsServer {
 
         let mut messages = Vec::with_capacity(entries.len());
         for (_, value) in entries {
-            messages.push(models::ChannelMessage::decode(value.as_slice())?);
+            messages.push(data_proto::ChannelMessage::decode(value.as_slice())?);
         }
         messages.reverse();
         let next_before_message_id = if has_more {
@@ -286,11 +302,11 @@ impl TalonOpsServer {
         &self,
         namespace: &str,
         agent: &str,
-    ) -> Result<Vec<models::Session>> {
+    ) -> Result<Vec<data_proto::Session>> {
         let prefix = keys::session_prefix(namespace, agent);
         let mut keys = self.kv().list_keys(&prefix).await?;
         keys.sort();
-        self.load_messages::<models::Session>(keys, 32).await
+        self.load_messages::<data_proto::Session>(keys, 32).await
     }
 
     async fn get_session_messages(
@@ -298,46 +314,55 @@ impl TalonOpsServer {
         namespace: &str,
         agent: &str,
         session_id: &str,
-    ) -> Result<Vec<models::SessionMessage>> {
+    ) -> Result<Vec<data_proto::SessionMessage>> {
         let prefix = keys::session_message_prefix(namespace, agent, session_id);
         let mut keys = self.kv().list_keys(&prefix).await?;
         keys.sort();
-        self.load_messages::<models::SessionMessage>(keys, 32).await
+        self.load_messages::<data_proto::SessionMessage>(keys, 32)
+            .await
     }
 
-    async fn list_schedule_models(&self, namespace: &str) -> Result<Vec<models::Schedule>> {
+    async fn list_schedule_models(
+        &self,
+        namespace: &str,
+    ) -> Result<Vec<resources_proto::Schedule>> {
         let mut keys = self
             .kv()
             .list_keys(&keys::schedule_prefix(namespace))
             .await?;
         keys.sort();
-        self.load_messages::<models::Schedule>(keys, 32).await
+        self.load_messages::<resources_proto::Schedule>(keys, 32)
+            .await
     }
 
     async fn upsert_schedule(
         &self,
         args: &PutScheduleArgs,
-        existing: Option<models::Schedule>,
-    ) -> Result<models::Schedule> {
+        existing: Option<resources_proto::Schedule>,
+    ) -> Result<resources_proto::Schedule> {
         let existing_spec = existing
             .as_ref()
             .and_then(|schedule| schedule.spec.as_ref());
         let existing_target = existing_spec.and_then(|spec| spec.target.as_ref());
-        let mut schedule = models::Schedule {
-            name: args.name.clone(),
-            ns: args.namespace.clone(),
-            labels: args
-                .labels
-                .clone()
-                .or_else(|| existing.as_ref().map(|schedule| schedule.labels.clone()))
-                .unwrap_or_default(),
-            spec: Some(models::ScheduleSpec {
+        let labels = args
+            .labels
+            .clone()
+            .or_else(|| existing.as_ref().map(|schedule| schedule.labels().clone()))
+            .unwrap_or_default();
+        let status = existing
+            .as_ref()
+            .and_then(|schedule| schedule.status.clone())
+            .unwrap_or_default();
+        let mut schedule = resource_model::schedule(
+            args.namespace.clone(),
+            args.name.clone(),
+            resources_proto::ScheduleSpec {
                 kind: if args.kind.is_empty() {
                     existing_spec
                         .map(|spec| spec.kind.clone())
                         .unwrap_or_default()
                 } else {
-                    crate::scheduling::normalize_schedule_kind(&args.kind)
+                    crate::control::scheduling::normalize_schedule_kind(&args.kind)
                 },
                 cron: args
                     .cron
@@ -358,7 +383,7 @@ impl TalonOpsServer {
                     .clone()
                     .or_else(|| existing_spec.map(|spec| spec.timezone.clone()))
                     .unwrap_or_default(),
-                target: Some(models::ScheduleTarget {
+                target: Some(resources_proto::ScheduleTarget {
                     agent: if !args.agent.is_empty() {
                         args.agent.clone()
                     } else if args.workflow.is_some() {
@@ -376,7 +401,7 @@ impl TalonOpsServer {
                             .or_else(|| existing_target.map(|target| target.workflow.clone()))
                             .unwrap_or_default()
                     },
-                    session_mode: crate::scheduling::normalize_session_mode(
+                    session_mode: crate::control::scheduling::normalize_session_mode(
                         &args
                             .session_mode
                             .clone()
@@ -405,9 +430,10 @@ impl TalonOpsServer {
                     .enabled
                     .or_else(|| existing_spec.map(|spec| spec.enabled))
                     .unwrap_or(true),
-            }),
-            status: existing.and_then(|schedule| schedule.status),
-        };
+            },
+            status,
+            labels,
+        );
 
         let next_run = scheduling::initialize_schedule(&mut schedule, Utc::now())?;
         scheduling::persist_schedule(self.handler.cp.kv.as_ref(), &schedule).await?;
@@ -593,21 +619,21 @@ impl TalonOpsServer {
             .map_err(internal_mcp_error)?;
         let mut filtered = namespaces
             .into_iter()
-            .filter(|namespace| access.allows_namespace(&namespace.name))
+            .filter(|namespace| access.allows_namespace(namespace.name()))
             .filter(|namespace| {
                 args.parent
                     .as_ref()
-                    .map(|parent| namespace.parent == *parent)
+                    .map(|parent| namespace.parent() == parent)
                     .unwrap_or(true)
             })
             .filter(|namespace| {
                 args.prefix
                     .as_ref()
-                    .map(|prefix| namespace.name.starts_with(prefix))
+                    .map(|prefix| namespace.name().starts_with(prefix))
                     .unwrap_or(true)
             })
             .collect::<Vec<_>>();
-        filtered.sort_by(|left, right| left.name.cmp(&right.name));
+        filtered.sort_by(|left, right| left.name().cmp(right.name()));
         filtered.truncate(limit);
         to_json_string(&json!({ "namespaces": filtered }))
     }
@@ -652,7 +678,9 @@ impl TalonOpsServer {
                 .get_agent_model(&args.namespace, &name)
                 .await
                 .map_err(internal_mcp_error)?;
-            agents.push(crate::manifest::render_agent_json(&agent).map_err(internal_mcp_error)?);
+            agents.push(
+                crate::control::manifest::render_agent_json(&agent).map_err(internal_mcp_error)?,
+            );
         }
         to_json_string(&json!({ "agents": agents }))
     }
@@ -672,7 +700,7 @@ impl TalonOpsServer {
             .await
             .map_err(internal_mcp_error)?;
         to_json_string(
-            &json!({ "agent": crate::manifest::render_agent_json(&agent).map_err(internal_mcp_error)? }),
+            &json!({ "agent": crate::control::manifest::render_agent_json(&agent).map_err(internal_mcp_error)? }),
         )
     }
 
@@ -696,10 +724,10 @@ impl TalonOpsServer {
         channels.retain(|channel| {
             args.status
                 .as_ref()
-                .map(|status| channel.status == *status)
+                .map(|status| channel.phase() == status)
                 .unwrap_or(true)
         });
-        channels.sort_by(|left, right| left.name.cmp(&right.name));
+        channels.sort_by(|left, right| left.name().cmp(right.name()));
         channels.truncate(limit);
         to_json_string(&json!({ "channels": channels }))
     }
@@ -826,7 +854,7 @@ impl TalonOpsServer {
         require_namespace_access(&access, &args.namespace)?;
         let session = self
             .kv()
-            .get_msg::<models::Session>(&keys::session(
+            .get_msg::<data_proto::Session>(&keys::session(
                 &args.namespace,
                 &args.agent,
                 &args.session_id,
@@ -978,7 +1006,7 @@ impl TalonOpsServer {
                     .map(|enabled| spec.map(|spec| spec.enabled == enabled).unwrap_or(false))
                     .unwrap_or(true)
         });
-        schedules.sort_by(|left, right| left.name.cmp(&right.name));
+        schedules.sort_by(|left, right| left.name().cmp(right.name()));
         schedules.truncate(limit);
         to_json_string(&json!({
             "schedules": schedules.iter().map(schedule_json).collect::<Vec<_>>()
@@ -1016,7 +1044,7 @@ impl TalonOpsServer {
         let key = keys::schedule(&args.namespace, &args.name);
         if self
             .kv()
-            .get_msg::<models::Schedule>(&key)
+            .get_msg::<resources_proto::Schedule>(&key)
             .await
             .map_err(internal_mcp_error)?
             .is_some()
@@ -1074,7 +1102,7 @@ impl TalonOpsServer {
         let key = keys::schedule(&args.namespace, &args.name);
         if let Some(schedule) = self
             .kv()
-            .get_msg::<models::Schedule>(&key)
+            .get_msg::<resources_proto::Schedule>(&key)
             .await
             .map_err(internal_mcp_error)?
         {
@@ -1420,7 +1448,7 @@ fn decode_claims<T>(token: &str, audience: &str) -> std::result::Result<T, Strin
 where
     T: for<'de> Deserialize<'de> + Clone,
 {
-    crate::security::install_jwt_crypto_provider();
+    crate::control::security::install_jwt_crypto_provider();
     let secret = talon_jwt_secret().ok_or_else(|| "missing talon jwt secret".to_string())?;
     let mut validation = Validation::new(Algorithm::HS256);
     validation.set_audience(&[audience]);
@@ -1439,7 +1467,7 @@ fn mint_talon_ops_access_token(
     agent_name: Option<&str>,
     expires_at_unix: i64,
 ) -> Result<String> {
-    crate::security::install_jwt_crypto_provider();
+    crate::control::security::install_jwt_crypto_provider();
     let secret = talon_jwt_secret().ok_or_else(|| anyhow!("missing talon jwt secret"))?;
     let claims = TalonOpsAccessClaims {
         sub: TALON_OPS_SERVER_NAME.to_string(),
@@ -1502,15 +1530,15 @@ fn to_json_string(value: &Value) -> Result<String, McpError> {
     serde_json::to_string(value).map_err(internal_mcp_error)
 }
 
-fn schedule_json(schedule: &models::Schedule) -> Value {
+fn schedule_json(schedule: &resources_proto::Schedule) -> Value {
     let spec = schedule.spec.as_ref();
     let target = spec.and_then(|spec| spec.target.as_ref());
     let status = schedule.status.as_ref();
 
     json!({
-        "name": schedule.name,
-        "ns": schedule.ns,
-        "labels": schedule.labels,
+        "name": schedule.name(),
+        "ns": schedule.namespace(),
+        "labels": schedule.labels(),
         "spec": spec.map(|spec| json!({
             "kind": spec.kind,
             "cron": spec.cron,
@@ -1566,13 +1594,13 @@ mod tests {
         TalonOpsAccess, TalonOpsAccessClaims, TalonOpsPolicy, TalonOpsServer,
         DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS, DEFAULT_MAX_LIST_LIMIT,
     };
-    use crate::config::Config;
+    use crate::control::config::Config;
     use crate::control::{
         keys::{self, ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
-    use crate::gateway::rpc::{manifests, models};
+    use crate::gateway::rpc::{data_proto, manifests, resources_proto};
     use crate::worker::{
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
@@ -1696,13 +1724,12 @@ mod tests {
         kv.set_msg(
             &keys::mcp_server("talon-ops"),
             &manifests::McpServer {
-                api_version: "talon.impalasys.com/v1".to_string(),
-                kind: "McpServer".to_string(),
                 metadata: Some(manifests::ObjectMeta {
                     name: "talon-ops".to_string(),
                     namespace: String::new(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
+                    ..Default::default()
                 }),
                 spec: Some(manifests::McpServerSpec {
                     transport: "streamable_http".to_string(),
@@ -1713,6 +1740,7 @@ mod tests {
                     headers: HashMap::new(),
                     disabled: false,
                 }),
+                status: Some(crate::control::resource_model::common_status(String::new())),
             },
         )
         .await
@@ -1720,13 +1748,12 @@ mod tests {
         kv.set_msg(
             &keys::mcp_server_binding(namespace, binding_name),
             &manifests::McpServerBinding {
-                api_version: "talon.impalasys.com/v1".to_string(),
-                kind: "McpServerBinding".to_string(),
                 metadata: Some(manifests::ObjectMeta {
                     name: binding_name.to_string(),
                     namespace: namespace.to_string(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
+                    ..Default::default()
                 }),
                 spec: Some(manifests::McpServerBindingSpec {
                     server_ref: "talon-ops".to_string(),
@@ -1736,6 +1763,7 @@ mod tests {
                     auth_broker: None,
                     allowed_tool_names: Vec::new(),
                 }),
+                status: Some(crate::control::resource_model::common_status(String::new())),
             },
         )
         .await
@@ -1770,13 +1798,7 @@ mod tests {
     async fn seed_namespace(kv: &MockKvStore, name: &str, parent: &str) {
         kv.set_msg(
             &keys::namespace_metadata(name),
-            &models::Namespace {
-                name: name.to_string(),
-                parent: parent.to_string(),
-                is_deleted: false,
-                deleted_at: 0,
-                labels: HashMap::new(),
-            },
+            &crate::control::resource_model::namespace(name, parent, HashMap::new()),
         )
         .await
         .unwrap();
@@ -1785,32 +1807,10 @@ mod tests {
     async fn seed_agent(kv: &MockKvStore, namespace: &str, name: &str) {
         kv.set_msg(
             &keys::agent(namespace, name),
-            &models::Agent {
-                name: name.to_string(),
-                ns: namespace.to_string(),
-                definition: Some(manifests::AgentDefinition {
-                    source: Some(manifests::agent_definition::Source::CustomSpec(
-                        manifests::AgentSpec {
-                            features: Vec::new(),
-                            model_policy: Some(manifests::ModelPolicy {
-                                profiles: vec![manifests::ModelProfile {
-                                    name: "default".to_string(),
-                                    model: Some(manifests::Model {
-                                        provider: "mock".to_string(),
-                                        name: "gpt-5".to_string(),
-                                        temperature: 0.0,
-                                        thinking: None,
-                                    }),
-                                }],
-                            }),
-                            system_prompt: "You are helpful.".to_string(),
-                            mcp_server_refs: Vec::new(),
-                            capabilities: HashMap::new(),
-                            a2a: None,
-                        },
-                    )),
-                }),
-                effective_spec: Some(manifests::AgentSpec {
+            &crate::control::resource_model::agent(
+                namespace,
+                name,
+                manifests::AgentSpec {
                     features: Vec::new(),
                     model_policy: Some(manifests::ModelPolicy {
                         profiles: vec![manifests::ModelProfile {
@@ -1827,10 +1827,10 @@ mod tests {
                     mcp_server_refs: Vec::new(),
                     capabilities: HashMap::new(),
                     a2a: None,
-                }),
-                template_deps: Vec::new(),
-                labels: HashMap::new(),
-            },
+                    runtime: None,
+                },
+                HashMap::new(),
+            ),
         )
         .await
         .unwrap();
@@ -1839,16 +1839,22 @@ mod tests {
     async fn seed_channel(kv: &MockKvStore, namespace: &str, name: &str, status: &str) {
         kv.set_msg(
             &keys::channel(namespace, name),
-            &models::Channel {
-                name: name.to_string(),
-                ns: namespace.to_string(),
-                title: name.to_string(),
-                status: status.to_string(),
-                created_at: 1,
-                updated_at: 1,
-                metadata: HashMap::new(),
-                labels: HashMap::new(),
-            },
+            &crate::control::resource_model::channel(
+                namespace,
+                name,
+                resources_proto::ChannelSpec {
+                    title: name.to_string(),
+                    metadata: HashMap::new(),
+                },
+                resources_proto::ChannelStatus {
+                    observed_generation: 0,
+                    phase: status.to_string(),
+                    conditions: Vec::new(),
+                    created_at: 1,
+                    updated_at: 1,
+                },
+                HashMap::new(),
+            ),
         )
         .await
         .unwrap();
@@ -1863,7 +1869,7 @@ mod tests {
     ) {
         kv.set_msg(
             &keys::channel_message(namespace, channel, id),
-            &models::ChannelMessage {
+            &data_proto::ChannelMessage {
                 id: id.to_string(),
                 ns: namespace.to_string(),
                 channel: channel.to_string(),
@@ -1980,14 +1986,17 @@ mod tests {
     #[test]
     fn normalize_schedule_kind_maps_interval_to_every() {
         assert_eq!(
-            crate::scheduling::normalize_schedule_kind("interval"),
+            crate::control::scheduling::normalize_schedule_kind("interval"),
             "every"
         );
         assert_eq!(
-            crate::scheduling::normalize_schedule_kind(" every "),
+            crate::control::scheduling::normalize_schedule_kind(" every "),
             "every"
         );
-        assert_eq!(crate::scheduling::normalize_schedule_kind("cron"), "cron");
+        assert_eq!(
+            crate::control::scheduling::normalize_schedule_kind("cron"),
+            "cron"
+        );
     }
 
     #[test]
@@ -2196,17 +2205,16 @@ mod tests {
 
     #[test]
     fn schedule_json_includes_target_and_status_details() {
-        let schedule = models::Schedule {
-            name: "nightly".to_string(),
-            ns: "conic".to_string(),
-            labels: HashMap::from([("tier".to_string(), "prod".to_string())]),
-            spec: Some(models::ScheduleSpec {
+        let schedule = crate::control::resource_model::schedule(
+            "conic",
+            "nightly",
+            resources_proto::ScheduleSpec {
                 kind: "cron".to_string(),
                 cron: "0 0 * * *".to_string(),
                 interval_seconds: 0,
                 run_at: String::new(),
                 timezone: "UTC".to_string(),
-                target: Some(models::ScheduleTarget {
+                target: Some(resources_proto::ScheduleTarget {
                     agent: String::new(),
                     workflow: "retention-review".to_string(),
                     session_mode: "new".to_string(),
@@ -2215,8 +2223,11 @@ mod tests {
                 input_message: "ping".to_string(),
                 input_json: r#"{"accountId":"acct_123"}"#.to_string(),
                 enabled: true,
-            }),
-            status: Some(models::ScheduleStatus {
+            },
+            resources_proto::ScheduleStatus {
+                observed_generation: 0,
+                phase: String::new(),
+                conditions: Vec::new(),
                 revision: 7,
                 next_run_at: Some(111),
                 backend_handle: Some("handle-1".to_string()),
@@ -2226,14 +2237,15 @@ mod tests {
                 last_error: Some("none".to_string()),
                 claimed_run_at: Some(0),
                 claim_expires_at: Some(0),
-                recent_events: vec![models::ScheduleEvent {
+                recent_events: vec![resources_proto::ScheduleEvent {
                     timestamp: 99,
                     phase: "armed".to_string(),
                     outcome: "ok".to_string(),
                     detail: "scheduled".to_string(),
                 }],
-            }),
-        };
+            },
+            HashMap::from([("tier".to_string(), "prod".to_string())]),
+        );
 
         let json = schedule_json(&schedule);
         assert_eq!(json["name"], "nightly");
@@ -2249,14 +2261,12 @@ mod tests {
         let kv = MockKvStore::default();
         kv.set_msg(
             &keys::mcp_server("talon-ops"),
-            &manifests::McpServer {
-                api_version: "talon.impalasys.com/v1".to_string(),
-                kind: "McpServer".to_string(),
-                metadata: Some(manifests::ObjectMeta {
+            &manifests::McpServer {                metadata: Some(manifests::ObjectMeta {
                     name: "talon-ops".to_string(),
                     namespace: String::new(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
+                ..Default::default()
                 }),
                 spec: Some(manifests::McpServerSpec {
                     transport: "streamable_http".to_string(),
@@ -2265,6 +2275,7 @@ mod tests {
                     headers: HashMap::new(),
                     disabled: false,
                 }),
+                status: Some(crate::control::resource_model::common_status(String::new())),
             },
         )
         .await
@@ -2272,13 +2283,12 @@ mod tests {
         kv.set_msg(
             &keys::mcp_server_binding("conic", "talon-ops"),
             &manifests::McpServerBinding {
-                api_version: "talon.impalasys.com/v1".to_string(),
-                kind: "McpServerBinding".to_string(),
                 metadata: Some(manifests::ObjectMeta {
                     name: "talon-ops".to_string(),
                     namespace: "conic".to_string(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
+                    ..Default::default()
                 }),
                 spec: Some(manifests::McpServerBindingSpec {
                     server_ref: "talon-ops".to_string(),
@@ -2288,6 +2298,7 @@ mod tests {
                     auth_broker: None,
                     allowed_tool_names: Vec::new(),
                 }),
+                status: Some(crate::control::resource_model::common_status(String::new())),
             },
         )
         .await
@@ -2314,13 +2325,12 @@ mod tests {
         kv.set_msg(
             &keys::mcp_server("talon-ops"),
             &manifests::McpServer {
-                api_version: "talon.impalasys.com/v1".to_string(),
-                kind: "McpServer".to_string(),
                 metadata: Some(manifests::ObjectMeta {
                     name: "talon-ops".to_string(),
                     namespace: String::new(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
+                    ..Default::default()
                 }),
                 spec: Some(manifests::McpServerSpec {
                     transport: "streamable_http".to_string(),
@@ -2330,6 +2340,7 @@ mod tests {
                     headers: HashMap::new(),
                     disabled: false,
                 }),
+                status: Some(crate::control::resource_model::common_status(String::new())),
             },
         )
         .await
@@ -2343,13 +2354,12 @@ mod tests {
         kv.set_msg(
             &keys::mcp_server_binding("conic", "wrong"),
             &manifests::McpServerBinding {
-                api_version: "talon.impalasys.com/v1".to_string(),
-                kind: "McpServerBinding".to_string(),
                 metadata: Some(manifests::ObjectMeta {
                     name: "wrong".to_string(),
                     namespace: "conic".to_string(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
+                    ..Default::default()
                 }),
                 spec: Some(manifests::McpServerBindingSpec {
                     server_ref: "github".to_string(),
@@ -2359,6 +2369,7 @@ mod tests {
                     auth_broker: None,
                     allowed_tool_names: Vec::new(),
                 }),
+                status: Some(crate::control::resource_model::common_status(String::new())),
             },
         )
         .await
@@ -2516,7 +2527,7 @@ mod tests {
 
         kv.set_msg(
             &keys::session("conic", "alpha", "session-old"),
-            &models::Session {
+            &data_proto::Session {
                 id: "session-old".to_string(),
                 agent: "alpha".to_string(),
                 ns: "conic".to_string(),
@@ -2531,7 +2542,7 @@ mod tests {
         .unwrap();
         kv.set_msg(
             &keys::session("conic", "beta", "session-new"),
-            &models::Session {
+            &data_proto::Session {
                 id: "session-new".to_string(),
                 agent: "beta".to_string(),
                 ns: "conic".to_string(),
@@ -2546,14 +2557,14 @@ mod tests {
         .unwrap();
         kv.set_msg(
             &keys::session_message("conic", "beta", "session-new", "msg-1"),
-            &models::SessionMessage {
+            &data_proto::SessionMessage {
                 id: "msg-1".to_string(),
                 role: 1,
                 created_at: 150,
                 labels: HashMap::new(),
-                parts: vec![models::SessionMessagePart {
+                parts: vec![data_proto::SessionMessagePart {
                     id: "000000".to_string(),
-                    part_type: models::SessionMessagePartType::Text as i32,
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
                     content: "hello".to_string(),
                     name: String::new(),
                     payload_json: String::new(),
@@ -2568,13 +2579,12 @@ mod tests {
         kv.set_msg(
             &keys::mcp_server_binding("conic", "talon-ops"),
             &manifests::McpServerBinding {
-                api_version: "talon.impalasys.com/v1".to_string(),
-                kind: "McpServerBinding".to_string(),
                 metadata: Some(manifests::ObjectMeta {
                     name: "talon-ops".to_string(),
                     namespace: "conic".to_string(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
+                    ..Default::default()
                 }),
                 spec: Some(manifests::McpServerBindingSpec {
                     server_ref: "talon-ops".to_string(),
@@ -2584,6 +2594,7 @@ mod tests {
                     auth_broker: None,
                     allowed_tool_names: Vec::new(),
                 }),
+                status: Some(crate::control::resource_model::common_status(String::new())),
             },
         )
         .await
@@ -2631,7 +2642,10 @@ mod tests {
             .unwrap();
         let channels_json: serde_json::Value = serde_json::from_str(&channels).unwrap();
         assert_eq!(channels_json["channels"].as_array().unwrap().len(), 1);
-        assert_eq!(channels_json["channels"][0]["name"], "incident-room");
+        assert_eq!(
+            channels_json["channels"][0]["metadata"]["name"],
+            "incident-room"
+        );
 
         let channel: String = server
             .get_channel(

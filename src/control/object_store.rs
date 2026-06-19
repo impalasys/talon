@@ -1,11 +1,11 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::config::proto::{
+use crate::control::config::proto::{
     object_store_config, GcsObjectStoreConfig, LocalObjectStoreConfig, ObjectStoreConfig,
     R2ObjectStoreConfig, S3ObjectStoreConfig,
 };
-use crate::gateway::rpc::models;
+use crate::gateway::rpc::data_proto;
 use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
 use base64::Engine as _;
@@ -42,7 +42,7 @@ pub trait ObjectStore: Send + Sync {
         key: &str,
         bytes: &[u8],
         metadata: ObjectMetadata,
-    ) -> Result<models::ObjectRef>;
+    ) -> Result<data_proto::ObjectRef>;
     async fn get(&self, key: &str) -> Result<Option<StoredObject>>;
     async fn delete(&self, key: &str) -> Result<()>;
 }
@@ -82,7 +82,7 @@ impl ObjectStore for InMemoryObjectStore {
         key: &str,
         bytes: &[u8],
         mut metadata: ObjectMetadata,
-    ) -> Result<models::ObjectRef> {
+    ) -> Result<data_proto::ObjectRef> {
         validate_key(key)?;
         metadata.size_bytes = bytes.len() as u64;
         self.objects.write().await.insert(
@@ -148,7 +148,7 @@ impl ObjectStore for LocalFsObjectStore {
         key: &str,
         bytes: &[u8],
         mut metadata: ObjectMetadata,
-    ) -> Result<models::ObjectRef> {
+    ) -> Result<data_proto::ObjectRef> {
         validate_key(key)?;
         metadata.size_bytes = bytes.len() as u64;
         let data_path = self.data_path(key)?;
@@ -262,7 +262,7 @@ impl ObjectStore for R2ObjectStore {
         key: &str,
         bytes: &[u8],
         mut metadata: ObjectMetadata,
-    ) -> Result<models::ObjectRef> {
+    ) -> Result<data_proto::ObjectRef> {
         metadata.size_bytes = bytes.len() as u64;
         let mut request = self
             .client
@@ -348,7 +348,7 @@ impl ObjectStore for GcsObjectStore {
         key: &str,
         bytes: &[u8],
         mut metadata: ObjectMetadata,
-    ) -> Result<models::ObjectRef> {
+    ) -> Result<data_proto::ObjectRef> {
         metadata.size_bytes = bytes.len() as u64;
         let object_key = self.object_key(key)?;
         let upload_url = format!(
@@ -472,7 +472,7 @@ impl ObjectStore for S3ObjectStore {
         key: &str,
         bytes: &[u8],
         mut metadata: ObjectMetadata,
-    ) -> Result<models::ObjectRef> {
+    ) -> Result<data_proto::ObjectRef> {
         metadata.size_bytes = bytes.len() as u64;
         let object_key = self.object_key(key)?;
         let mut s3_metadata = metadata.metadata.clone();
@@ -537,8 +537,8 @@ impl ObjectStore for S3ObjectStore {
     }
 }
 
-fn object_ref(key: &str, metadata: ObjectMetadata) -> models::ObjectRef {
-    models::ObjectRef {
+fn object_ref(key: &str, metadata: ObjectMetadata) -> data_proto::ObjectRef {
+    data_proto::ObjectRef {
         key: key.to_string(),
         media_type: metadata.media_type,
         size_bytes: metadata.size_bytes,
@@ -698,7 +698,7 @@ mod tests {
         object_store_from_config, prefixed_key, GcsObjectStore, LocalObjectStore, ObjectMetadata,
         ObjectStore, S3ObjectStore,
     };
-    use crate::config::proto::{
+    use crate::control::config::proto::{
         object_store_config, GcsObjectStoreConfig, LocalObjectStoreConfig, ObjectStoreConfig,
         S3ObjectStoreConfig,
     };

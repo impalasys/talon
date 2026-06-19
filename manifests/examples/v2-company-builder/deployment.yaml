@@ -1,0 +1,14 @@
+apiVersion: talon.impalasys.com/v1
+kind: Deployment
+metadata:
+  name: vibiz-company-builder
+  namespace: customers
+spec:
+  placement:
+    namespaceSelector:
+      parent: customers
+      matchLabels:
+        vibiz.io/company-builder: enabled
+  templates:
+    - coding-agent
+    - coding-sandbox-policy

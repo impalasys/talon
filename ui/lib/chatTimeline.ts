@@ -135,6 +135,28 @@ function isToolResultPart(part: any): boolean {
   return type === 4 || type === 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT';
 }
 
+function isRequestPermissionPart(part: any): boolean {
+  const type = partType(part);
+  return (
+    type === 'request_permission' ||
+    type === 11 ||
+    type === 'SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION'
+  );
+}
+
+function isPermissionResultPart(part: any): boolean {
+  const type = partType(part);
+  return (
+    type === 'permission_result' ||
+    type === 12 ||
+    type === 'SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT'
+  );
+}
+
+function permissionToolCallId(payload: Record<string, unknown>): string {
+  return payloadString(payload, 'request_id', 'requestId') ?? '';
+}
+
 function appendTextToTimeline(
   timeline: AssistantTimelineItem[],
   chunk: string,
@@ -192,11 +214,14 @@ function legacyToolInvocationsFromParts(message: any): ToolInvocationItem[] {
     if (!part || typeof part !== 'object') continue;
 
     const payload = parsePartPayload(part);
-    const toolCallId = toolCallIdFromPart(part, payload);
+    const toolCallId = isRequestPermissionPart(part) || isPermissionResultPart(part)
+      ? permissionToolCallId(payload)
+      : toolCallIdFromPart(part, payload);
     if (!toolCallId) continue;
 
-    const toolName =
-      typeof part.toolName === 'string'
+    const toolName = isRequestPermissionPart(part) || isPermissionResultPart(part)
+      ? 'request_permission'
+      : typeof part.toolName === 'string'
         ? part.toolName
         : typeof part.type === 'string' && part.type.startsWith('tool-')
           ? part.type.slice(5)
@@ -208,12 +233,16 @@ function legacyToolInvocationsFromParts(message: any): ToolInvocationItem[] {
     toolInvocations.set(toolCallId, {
       toolCallId,
       toolName,
-      args: part.input ?? payload.input ?? previous?.args ?? {},
+      args: isRequestPermissionPart(part)
+        ? payload.request ?? payload
+        : part.input ?? payload.input ?? previous?.args ?? {},
       result:
         part.state === 'output-available'
           ? part.output
           : part.state === 'output-error'
             ? part.errorText
+            : isPermissionResultPart(part)
+              ? payload.outcome ?? payload
             : isToolResultPart(part)
               ? toolResultFromPayload(payload, partContent(part))
               : previous?.result,
@@ -246,12 +275,16 @@ function timelineFromParts(message: any): AssistantTimelineItem[] {
             ? part.name
             : 'tool';
 
-    if (isToolCallPart(part) || (typeof part.type === 'string' && part.type.startsWith('tool-'))) {
+    if (
+      isRequestPermissionPart(part) ||
+      isToolCallPart(part) ||
+      (typeof part.type === 'string' && part.type.startsWith('tool-'))
+    ) {
       timeline = upsertToolInTimeline(
         timeline,
         toolCallId,
-        toolName,
-        part.input ?? payload.input ?? {},
+        isRequestPermissionPart(part) ? 'request_permission' : toolName,
+        isRequestPermissionPart(part) ? (payload.request ?? payload) : part.input ?? payload.input ?? {},
         part.state === 'output-available'
           ? part.output
           : part.state === 'output-error'
@@ -261,13 +294,15 @@ function timelineFromParts(message: any): AssistantTimelineItem[] {
       continue;
     }
 
-    if (isToolResultPart(part)) {
+    if (isPermissionResultPart(part) || isToolResultPart(part)) {
       timeline = upsertToolInTimeline(
         timeline,
         toolCallId,
-        toolName,
+        isPermissionResultPart(part) ? 'request_permission' : toolName,
         undefined,
-        toolResultFromPayload(payload, partContent(part)),
+        isPermissionResultPart(part)
+          ? payload.outcome ?? payload
+          : toolResultFromPayload(payload, partContent(part)),
       );
     }
   }

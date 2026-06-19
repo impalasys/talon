@@ -1,0 +1,161 @@
+syntax = "proto3";
+
+package talon.data;
+
+enum MessageRole {
+  ROLE_UNSPECIFIED = 0;
+  ROLE_USER = 1;
+  ROLE_ASSISTANT = 2;
+  ROLE_SYSTEM = 3;
+}
+
+enum SessionMessagePartType {
+  SESSION_MESSAGE_PART_TYPE_UNSPECIFIED = 0;
+  SESSION_MESSAGE_PART_TYPE_TEXT = 1;
+  SESSION_MESSAGE_PART_TYPE_REASONING = 2;
+  SESSION_MESSAGE_PART_TYPE_TOOL_CALL = 3;
+  SESSION_MESSAGE_PART_TYPE_TOOL_RESULT = 4;
+  SESSION_MESSAGE_PART_TYPE_USAGE = 5;
+  SESSION_MESSAGE_PART_TYPE_ERROR = 6;
+  SESSION_MESSAGE_PART_TYPE_IMAGE = 7;
+  SESSION_MESSAGE_PART_TYPE_AUDIO = 8;
+  SESSION_MESSAGE_PART_TYPE_VIDEO = 9;
+  SESSION_MESSAGE_PART_TYPE_FILE = 10;
+  SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION = 11;
+  SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT = 12;
+}
+
+message ObjectRef {
+  string key = 1;
+  string media_type = 2;
+  uint64 size_bytes = 3;
+  string sha256 = 4;
+  string filename = 5;
+  map<string, string> metadata = 6;
+}
+
+message SessionMessagePart {
+  string id = 1;
+  SessionMessagePartType part_type = 2;
+  string content = 3;
+  string name = 4;
+  string payload_json = 5;
+  // Unix timestamp in microseconds.
+  int64 created_at = 6;
+  ObjectRef object = 7;
+}
+
+message SessionMessage {
+  string id = 1;
+  MessageRole role = 2;
+  reserved 3;
+  // Unix timestamp in microseconds.
+  int64 created_at = 4;
+  map<string, string> labels = 5;
+  repeated SessionMessagePart parts = 6;
+}
+
+message Session {
+  string id = 1;
+  string agent = 2;
+  string ns = 3;
+  string status = 4;
+  // Unix timestamp in microseconds.
+  int64 created_at = 5;
+  // Unix timestamp in microseconds.
+  int64 last_active = 6;
+  map<string, string> metadata = 7;
+  map<string, string> labels = 8;
+}
+
+message ChannelMessage {
+  string id = 1;
+  string ns = 2;
+  string channel = 3;
+  string author_kind = 4;
+  string author = 5;
+  string content = 6;
+  // Unix timestamp in microseconds.
+  int64 created_at = 7;
+  string source_agent = 8;
+  string source_session_id = 9;
+  map<string, string> labels = 10;
+}
+
+message Knowledge {
+  string path = 1;
+  string content = 2;
+  // Unix timestamp in microseconds.
+  int64 updated_at = 3;
+  string namespace = 4;
+  string name = 5;
+}
+
+message KnowledgeSearchResult {
+  string path = 1;
+  string snippet = 2;
+  float score = 3;
+  // Unix timestamp in microseconds.
+  int64 timestamp = 4;
+  string namespace = 5;
+}
+
+message WorkflowRun {
+  string id = 1;
+  string workflow = 2;
+  string ns = 3;
+  string status = 4;
+  string input_json = 5;
+  string state_json = 6;
+  string output_json = 7;
+  // Unix timestamp in microseconds.
+  int64 created_at = 8;
+  // Unix timestamp in microseconds.
+  int64 updated_at = 9;
+  map<string, string> labels = 10;
+  // Unix timestamp in microseconds.
+  optional int64 claim_expires_at = 11;
+  string error = 12;
+  string spec_json = 13;
+  uint64 workflow_revision = 14;
+  string claim_owner = 15;
+  uint32 claim_attempt = 16;
+  string last_dispatch_reason = 17;
+}
+
+message WorkflowStepRun {
+  string id = 1;
+  string step_id = 2;
+  uint32 attempt = 3;
+  string status = 4;
+  string input_json = 5;
+  string output_json = 6;
+  string error = 7;
+  string child_session_id = 8;
+  string child_workflow_run_id = 9;
+  string resume_json = 10;
+  string suspend_json = 11;
+  // Unix timestamp in microseconds.
+  int64 created_at = 12;
+  // Unix timestamp in microseconds.
+  int64 updated_at = 13;
+  // Unix timestamp in microseconds.
+  optional int64 next_retry_at = 14;
+  // Unix timestamp in microseconds.
+  optional int64 timeout_at = 15;
+  string wait_wakeup_handle = 16;
+  // Unix timestamp in microseconds.
+  optional int64 wait_until_at = 17;
+}
+
+message WorkflowRunEvent {
+  string id = 1;
+  string ns = 2;
+  string workflow = 3;
+  string run_id = 4;
+  string type = 5;
+  string step_id = 6;
+  string message = 7;
+  string payload_json = 8;
+  int64 timestamp = 9;
+}

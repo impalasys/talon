@@ -1,16 +1,16 @@
-providers:
+llmProviders:
   openai:
     type: openai
     model: gpt-5.4-nano
-    api_key:
+    apiKey:
       source: env
       key: OPENAI_API_KEY
   novita:
     type: openai_compatible
     name: novita
-    base_url: "https://api.novita.ai/v3/openai"
+    baseUrl: "https://api.novita.ai/v3/openai"
     model: google/gemma-4-31b-it
-    api_key:
+    apiKey:
       source: env
       key: NOVITA_API_KEY
 
@@ -18,14 +18,35 @@ server:
   host: "0.0.0.0"
   port: 18789
 
-control_plane:
-  database:
+storage:
+  control:
     driver: postgres
     url:
       source: env
-      key: POSTGRES_URL
-  message_broker:
-    driver: gcp_pubsub
-    project_id:
+      key: TALON_CONTROL_DATABASE_URL
+  data:
+    driver: postgres
+    url:
       source: env
-      key: GCP_PROJECT_ID
+      key: TALON_DATA_DATABASE_URL
+  objects:
+    driver: local
+    path: .talon/objects
+
+pubsub:
+  driver: gcp_pubsub
+  projectId:
+    source: env
+    key: GCP_PROJECT_ID
+
+controllers:
+  deployment:
+    enabled: true
+    workers: 4
+  sandbox:
+    enabled: true
+    workers: 8
+  workflow:
+    enabled: true
+  schedule:
+    enabled: true

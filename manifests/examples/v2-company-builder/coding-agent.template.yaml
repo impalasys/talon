@@ -1,0 +1,24 @@
+apiVersion: talon.impalasys.com/v1
+kind: Template
+metadata:
+  name: coding-agent
+  namespace: customers
+spec:
+  kind: Agent
+  metadata:
+    name: coding
+  spec:
+    runtime:
+      kind: acp
+      acp:
+        command: codex-acp
+        args: []
+        cwd: /workspace
+        sandboxPolicyRef: coding
+        persistSession: true
+        permissionPolicy:
+          default: ask
+          filesystemWrite: ask
+          terminal: ask
+    systemPrompt: |
+      You are the coding agent for {{ namespace.customerName }}.

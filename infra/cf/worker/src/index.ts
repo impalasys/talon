@@ -132,7 +132,10 @@ function isGatewayUiPath(pathname: string): boolean {
 }
 
 function shouldRouteThroughEnvoy(pathname: string): boolean {
-  return (pathname.startsWith("/v1/") && !isGatewayUiPath(pathname)) || pathname.startsWith("/talon.gateway.");
+  return (
+    (pathname.startsWith("/v1/") && !isGatewayUiPath(pathname)) ||
+    pathname.startsWith("/talon.gateway.")
+  );
 }
 
 const CORS_ALLOW_METHODS = "GET,PUT,DELETE,POST,OPTIONS";

@@ -15,15 +15,15 @@ use serde_json::{json, Value};
 use tonic::Code;
 use uuid::Uuid;
 
+use crate::control::scheduling;
 use crate::control::{
     events::SessionMessagePartEventKind,
     keys::{self},
     ProtoKeyValueStoreExt,
 };
 use crate::gateway::auth::{self, AuthConfig};
-use crate::gateway::rpc::models;
+use crate::gateway::rpc::data_proto;
 use crate::gateway::server::Gateway;
-use crate::scheduling;
 
 use super::card::{
     agent_card_json, external_host_from_headers, resolve_agent_card_route, scheme_from_headers,
@@ -290,7 +290,7 @@ async fn stream_message(
                             true,
                         )));
                         return;
-                    } else if part_type == models::SessionMessagePartType::Text as i32 && !content.is_empty() {
+                    } else if part_type == data_proto::SessionMessagePartType::Text as i32 && !content.is_empty() {
                         pending_artifact_text.push_str(content);
                         for text in a2a_drain_complete_paragraphs(&mut pending_artifact_text) {
                             yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_artifact_update_value(
@@ -430,7 +430,7 @@ pub async fn list_tasks(
         };
         let Ok(Some(session)) = gateway
             .kv
-            .get_msg::<crate::gateway::rpc::models::Session>(&key)
+            .get_msg::<crate::gateway::rpc::data_proto::Session>(&key)
             .await
         else {
             continue;

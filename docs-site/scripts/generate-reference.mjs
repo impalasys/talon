@@ -11,7 +11,20 @@ const protoRoot = path.resolve(talonRoot, "proto");
 
 const gatewayProto = path.resolve(protoRoot, "gateway.proto");
 const configProto = path.resolve(protoRoot, "config.proto");
-const manifestsProto = path.resolve(protoRoot, "manifests.proto");
+const resourceProtos = [
+  "resources/common.proto",
+  "resources/agents.proto",
+  "resources/mcp.proto",
+  "resources/knowledge.proto",
+  "resources/namespaces.proto",
+  "resources/channels.proto",
+  "resources/schedules.proto",
+  "resources/workflows.proto",
+  "resources/deployments.proto",
+  "resources/sandboxes.proto",
+  "resources/sessions.proto",
+  "resources/resource.proto",
+].map((file) => path.resolve(protoRoot, file));
 
 await rm(generatedRoot, {recursive: true, force: true});
 await mkdir(generatedRoot, {recursive: true});
@@ -32,7 +45,8 @@ This section is generated from Talon's canonical source files in the monorepo:
 
 - \`talon/proto/gateway.proto\`
 - \`talon/proto/config.proto\`
-- \`talon/proto/manifests.proto\`
+- \`talon/proto/resources/*.proto\`
+- \`talon/proto/data/data.proto\`
 
 The generated pages are intentionally static artifacts checked into the repo so API changes are reviewable in pull requests.
 `,
@@ -47,11 +61,11 @@ await generateSchemaReference({
     "This page summarizes the major configuration messages exposed by Talon's runtime configuration proto.",
 });
 await generateSchemaReference({
-  sourcePath: manifestsProto,
-  title: "Manifest Schema",
-  slug: "manifests-schema",
+  sourcePaths: resourceProtos,
+  title: "Resource Schemas",
+  slug: "resource-schemas",
   intro:
-    "This page summarizes the manifest types that drive Talon agents, templates, MCP servers, bindings, and knowledge resources.",
+    "This page summarizes the control-plane resource messages that drive Talon agents, deployments, sandbox orchestration, MCP servers, bindings, schedules, workflows, and knowledge resources.",
 });
 
 async function generateGatewayReference() {
@@ -123,8 +137,10 @@ async function generateGatewayReference() {
   await writeFile(path.join(generatedRoot, "gateway-service.md"), lines.join("\n"));
 }
 
-async function generateSchemaReference({sourcePath, title, slug, intro}) {
-  const proto = await readFile(sourcePath, "utf8");
+async function generateSchemaReference({sourcePath, sourcePaths, title, slug, intro}) {
+  const paths = sourcePaths ?? [sourcePath];
+  const protoParts = await Promise.all(paths.map((file) => readFile(file, "utf8")));
+  const proto = protoParts.join("\n");
   const messages = parseTopLevelMessages(proto);
 
   const lines = [

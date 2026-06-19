@@ -1,0 +1,281 @@
+mod tests {
+    use super::*;
+    use crate::gateway::rpc::resources_proto::{resource_spec, resource_status};
+
+    #[test]
+    fn template_manifest_normalizes_nested_spec_to_json() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Template
+metadata:
+  name: coding-agent
+  namespace: customers
+spec:
+  kind: Agent
+  metadata:
+    name: coding
+  spec:
+    systemPrompt: hello
+"#,
+        )
+        .expect("template manifest parses");
+
+        let Some(resource_spec::Kind::Template(spec)) = manifest.spec.and_then(|spec| spec.kind)
+        else {
+            panic!("expected Template spec");
+        };
+        let rendered_spec: serde_json::Value =
+            serde_json::from_str(&spec.spec_json).expect("template spec JSON");
+        assert_eq!(rendered_spec["systemPrompt"], "hello");
+    }
+
+    #[test]
+    fn sandbox_class_manifest_normalizes_config_maps_to_json() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: SandboxClass
+metadata:
+  name: docker-code
+  namespace: system
+spec:
+  provider: docker
+  providerConfig:
+    image: talon-zed-codex-acp:local
+  credentials:
+    apiKey:
+      source: env
+      key: E2B_API_KEY
+"#,
+        )
+        .expect("sandbox class manifest parses");
+
+        let Some(resource_spec::Kind::SandboxClass(spec)) =
+            manifest.spec.and_then(|spec| spec.kind)
+        else {
+            panic!("expected SandboxClass spec");
+        };
+        let provider_config: serde_json::Value =
+            serde_json::from_str(&spec.provider_config_json).expect("provider config JSON");
+        let credentials: serde_json::Value =
+            serde_json::from_str(&spec.credentials_json).expect("credentials JSON");
+        assert_eq!(provider_config["image"], "talon-zed-codex-acp:local");
+        assert_eq!(credentials["apiKey"]["key"], "E2B_API_KEY");
+    }
+
+    #[test]
+    fn sandbox_policy_manifest_accepts_and_renders_template_spec_shape() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: SandboxPolicy
+metadata:
+  name: coding
+  namespace: customers
+spec:
+  classRef:
+    namespace: system
+    name: docker-code
+  template:
+    spec:
+      image: talon-zed-codex-acp:local
+      workspace:
+        mode: customer-repo
+        mountPath: /workspace
+      filesystem:
+        writable:
+          - /workspace
+      leasePolicy:
+        mode: exclusive
+  quota:
+    maxConcurrent: 5
+"#,
+        )
+        .expect("sandbox policy manifest parses");
+
+        let Some(resource_spec::Kind::SandboxPolicy(spec)) =
+            manifest.spec.clone().and_then(|spec| spec.kind)
+        else {
+            panic!("expected SandboxPolicy spec");
+        };
+        assert_eq!(spec.max_concurrent, 5);
+        let template = spec.template.expect("runtime template");
+        assert_eq!(template.image, "talon-zed-codex-acp:local");
+        assert_eq!(
+            template.workspace.expect("workspace").mount_path,
+            "/workspace"
+        );
+
+        let rendered = render_resource_yaml(&resources_proto::Resource {
+            api_version: manifest.api_version,
+            kind: manifest.kind,
+            metadata: manifest.metadata,
+            spec: manifest.spec,
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resource_status::Kind::SandboxPolicy(Default::default())),
+            }),
+        })
+        .expect("render sandbox policy");
+        let rendered_yaml: serde_yaml::Value =
+            serde_yaml::from_str(&rendered).expect("rendered YAML parses");
+        assert_eq!(
+            rendered_yaml["spec"]["template"]["image"].as_str(),
+            Some("talon-zed-codex-acp:local")
+        );
+        assert_eq!(
+            rendered_yaml["spec"]["template"]["workspace"]["mountPath"].as_str(),
+            Some("/workspace")
+        );
+        assert!(rendered_yaml.get("status").is_none());
+    }
+
+    #[test]
+    fn resource_yaml_renders_common_status_conditions_when_present() {
+        let rendered = render_resource_yaml(&resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Agent".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "coding".to_string(),
+                namespace: "customers:acme".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resource_spec::Kind::Agent(Default::default())),
+            }),
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resource_status::Kind::Agent(resources_proto::AgentStatus {
+                    observed_generation: 3,
+                    phase: "Ready".to_string(),
+                    conditions: vec![resources_proto::ResourceCondition {
+                        r#type: "Available".to_string(),
+                        status: "True".to_string(),
+                        reason: "RuntimeReady".to_string(),
+                        message: "agent runtime is ready".to_string(),
+                        last_transition_time: 42,
+                        observed_generation: 3,
+                    }],
+                    last_session_id: None,
+                })),
+            }),
+        })
+        .expect("render resource YAML");
+
+        let rendered_yaml: serde_yaml::Value =
+            serde_yaml::from_str(&rendered).expect("rendered YAML parses");
+        assert_eq!(
+            rendered_yaml["status"]["observedGeneration"].as_u64(),
+            Some(3)
+        );
+        assert_eq!(rendered_yaml["status"]["phase"].as_str(), Some("Ready"));
+        assert_eq!(
+            rendered_yaml["status"]["conditions"][0]["type"].as_str(),
+            Some("Available")
+        );
+        assert_eq!(
+            rendered_yaml["status"]["conditions"][0]["observedGeneration"].as_u64(),
+            Some(3)
+        );
+    }
+
+    #[test]
+    fn agent_spec_serde_preserves_capabilities() {
+        let spec: resources_proto::AgentSpec = serde_json::from_value(serde_json::json!({
+            "capabilities": {
+                "schedules": ["inspect", "create"]
+            }
+        }))
+        .expect("deserialize AgentSpec capabilities");
+        assert_eq!(spec.capabilities.len(), 1);
+        let rendered = serde_json::to_value(&spec).expect("serialize AgentSpec capabilities");
+        assert_eq!(
+            rendered["capabilities"]["schedules"],
+            serde_json::json!(["inspect", "create"])
+        );
+    }
+
+    #[test]
+    fn sandbox_policy_manifest_rejects_system_mount_path() {
+        let error = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: SandboxPolicy
+metadata:
+  name: coding
+  namespace: customers
+spec:
+  classRef:
+    namespace: system
+    name: docker-code
+  template:
+    spec:
+      workspace:
+        mountPath: /etc
+"#,
+        )
+        .expect_err("system mount path should fail");
+        assert!(error.to_string().contains("mountPath"));
+    }
+
+    #[test]
+    fn skill_manifest_uses_typed_spec_and_renders_flat_yaml() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Skill
+metadata:
+  name: review
+  namespace: customers
+spec:
+  description: Review code
+  instructions: Look for regressions.
+"#,
+        )
+        .expect("skill manifest should parse");
+        let Some(resource_spec::Kind::Skill(spec)) =
+            manifest.spec.clone().and_then(|spec| spec.kind)
+        else {
+            panic!("expected Skill spec");
+        };
+        assert_eq!(spec.instructions, "Look for regressions.");
+
+        let rendered = render_resource_yaml(&resources_proto::Resource {
+            api_version: manifest.api_version,
+            kind: manifest.kind,
+            metadata: manifest.metadata,
+            spec: manifest.spec,
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resource_status::Kind::Skill(Default::default())),
+            }),
+        })
+        .expect("skill resource should render");
+
+        assert!(rendered.contains("kind: Skill"));
+        assert!(rendered.contains("description: Review code"));
+        assert!(rendered.contains("instructions: Look for regressions."));
+        assert!(!rendered.contains("raw:"));
+    }
+
+    #[test]
+    fn agent_manifest_rejects_invalid_acp_permission_policy() {
+        let error = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: coding
+  namespace: customers
+spec:
+  runtime:
+    kind: acp
+    acp:
+      command: codex-acp
+      sandboxPolicyRef: coding
+      permissionPolicy:
+        filesystemwrite: alllow
+"#,
+        )
+        .expect_err("invalid permission policy should fail");
+        assert!(error.to_string().contains("permissionPolicy"));
+    }
+}

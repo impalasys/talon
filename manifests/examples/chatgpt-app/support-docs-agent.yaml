@@ -5,35 +5,40 @@ metadata:
   namespace: chatgpt-app
   labels:
     tutorial: chatgpt-app
-definition:
-  templated:
-    templateName: support-docs-template
-    delta:
-      a2a:
-        agentCard:
-          name: Local Support Agent
-          description: Local AgentCard for testing external A2A routing.
-          version: 1.0.0
-          capabilities:
-            streaming: true
-            pushNotifications: false
-            extendedAgentCard: false
-          defaultInputModes:
+spec:
+  systemPrompt: |
+    You are a product assistant for a browser chat app built on Talon.
+    Answer clearly, cite relevant product context when available, and
+    explain when an answer depends on available knowledge or tools.
+  modelPolicy:
+    profiles:
+      - name: default
+        model:
+          provider: openai
+          name: gpt-5.4-nano
+          temperature: 0.0
+  a2a:
+    agentCard:
+      name: Local Support Agent
+      description: Local AgentCard for testing external A2A routing.
+      version: 1.0.0
+      capabilities:
+        streaming: true
+        pushNotifications: false
+        extendedAgentCard: false
+      defaultInputModes:
+        - text/plain
+      defaultOutputModes:
+        - text/plain
+      skills:
+        - id: answer_support_question
+          name: Answer support question
+          description: Answers using the local support-docs agent.
+          tags:
+            - support
+          examples:
+            - How do I test A2A locally?
+          inputModes:
             - text/plain
-          defaultOutputModes:
+          outputModes:
             - text/plain
-          skills:
-            - id: answer_support_question
-              name: Answer support question
-              description: Answers using the local support-docs agent.
-              tags:
-                - support
-              examples:
-                - How do I test A2A locally?
-              inputModes:
-                - text/plain
-              outputModes:
-                - text/plain
-          auth:
-            discovery: public
-            operations: public

@@ -100,3 +100,9 @@ path = "src/bin/cli.rs"
 [[bin]]
 name = "talon-node"
 path = "src/bin/node.rs"
+
+# Deterministic ACP fixture used by Rust and Python e2e tests. It remains an
+# explicit bin target so Cargo exposes CARGO_BIN_EXE_talon-mock-acp to tests.
+[[bin]]
+name = "talon-mock-acp"
+path = "tests/fixtures/mock_acp.rs"

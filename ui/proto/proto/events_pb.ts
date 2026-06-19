@@ -4,15 +4,15 @@
 
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { ChannelMessage, SessionMessagePart } from "./models_pb";
-import { file_proto_models } from "./models_pb";
+import type { ChannelMessage, SessionMessagePart } from "./data/data_pb";
+import { file_proto_data_data } from "./data/data_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file proto/events.proto.
  */
 export const file_proto_events: GenFile = /*@__PURE__*/
-  fileDesc("ChJwcm90by9ldmVudHMucHJvdG8SDHRhbG9uLmV2ZW50cyKAAQoOTGlmZWN5Y2xlRXZlbnQSFQoNcmVzb3VyY2VfdHlwZRgBIAEoCRIMCgRuYW1lGAIgASgJEgoKAm5zGAMgASgJEioKBmFjdGlvbhgEIAEoDjIaLnRhbG9uLmV2ZW50cy5TeXN0ZW1BY3Rpb24SEQoJdGltZXN0YW1wGAUgASgDIq8BChNTZXNzaW9uTWVzc2FnZUV2ZW50EhIKCnNlc3Npb25faWQYASABKAkSEgoKbWVzc2FnZV9pZBgCIAEoCRIxCglkaXJlY3Rpb24YAyABKA4yHi50YWxvbi5ldmVudHMuTWVzc2FnZURpcmVjdGlvbhIRCgl0aW1lc3RhbXAYBCABKAMSDQoFYWdlbnQYBSABKAkSDwoHbWVzc2FnZRgGIAEoCRIKCgJucxgHIAEoCSJnChNTZXNzaW9uQ29udHJvbEV2ZW50EhIKCnNlc3Npb25faWQYASABKAkSDQoFYWdlbnQYAiABKAkSCgoCbnMYAyABKAkSDgoGYWN0aW9uGAQgASgJEhEKCXRpbWVzdGFtcBgFIAEoAyLYAQoXU2Vzc2lvbk1lc3NhZ2VQYXJ0RXZlbnQSEgoKc2Vzc2lvbl9pZBgBIAEoCRI3CgRraW5kGAIgASgOMikudGFsb24uZXZlbnRzLlNlc3Npb25NZXNzYWdlUGFydEV2ZW50S2luZBIuCgRwYXJ0GAMgASgLMiAudGFsb24ubW9kZWxzLlNlc3Npb25NZXNzYWdlUGFydBIRCgl0aW1lc3RhbXAYBCABKAMSDQoFYWdlbnQYBSABKAkSCgoCbnMYBiABKAkSEgoKbWVzc2FnZV9pZBgHIAEoCSLjAQoMQ2hhbm5lbEV2ZW50EgoKAm5zGAEgASgJEg8KB2NoYW5uZWwYAiABKAkSLAoEa2luZBgDIAEoDjIeLnRhbG9uLmV2ZW50cy5DaGFubmVsRXZlbnRLaW5kEi0KB21lc3NhZ2UYBCABKAsyHC50YWxvbi5tb2RlbHMuQ2hhbm5lbE1lc3NhZ2USEgoKc2Vzc2lvbl9pZBgFIAEoCRINCgVhZ2VudBgGIAEoCRIUCgxzdWJzY3JpcHRpb24YByABKAkSDQoFZXJyb3IYCCABKAkSEQoJdGltZXN0YW1wGAkgASgDKrABCgxTeXN0ZW1BY3Rpb24SHQoZU1lTVEVNX0FDVElPTl9VTlNQRUNJRklFRBAAEhgKFFNZU1RFTV9BQ1RJT05fQ1JFQVRFEAESGAoUU1lTVEVNX0FDVElPTl9VUERBVEUQAhIYChRTWVNURU1fQUNUSU9OX0RFTEVURRADEhkKFVNZU1RFTV9BQ1RJT05fU1VTUEVORBAEEhgKFFNZU1RFTV9BQ1RJT05fUkVTVU1FEAUqdAoQTWVzc2FnZURpcmVjdGlvbhIhCh1NRVNTQUdFX0RJUkVDVElPTl9VTlNQRUNJRklFRBAAEh0KGU1FU1NBR0VfRElSRUNUSU9OX0lOQk9VTkQQARIeChpNRVNTQUdFX0RJUkVDVElPTl9PVVRCT1VORBACKs4BChtTZXNzaW9uTWVzc2FnZVBhcnRFdmVudEtpbmQSLworU0VTU0lPTl9NRVNTQUdFX1BBUlRfRVZFTlRfS0lORF9VTlNQRUNJRklFRBAAEikKJVNFU1NJT05fTUVTU0FHRV9QQVJUX0VWRU5UX0tJTkRfREVMVEEQARIoCiRTRVNTSU9OX01FU1NBR0VfUEFSVF9FVkVOVF9LSU5EX0RPTkUQAhIpCiVTRVNTSU9OX01FU1NBR0VfUEFSVF9FVkVOVF9LSU5EX0VSUk9SEAMqywEKEENoYW5uZWxFdmVudEtpbmQSIgoeQ0hBTk5FTF9FVkVOVF9LSU5EX1VOU1BFQ0lGSUVEEAASJgoiQ0hBTk5FTF9FVkVOVF9LSU5EX01FU1NBR0VfQ1JFQVRFRBABEiUKIUNIQU5ORUxfRVZFTlRfS0lORF9TRVNTSU9OX1JPVVRFRBACEiYKIkNIQU5ORUxfRVZFTlRfS0lORF9QVUJMSVNIX1NLSVBQRUQQAxIcChhDSEFOTkVMX0VWRU5UX0tJTkRfRVJST1IQBGIGcHJvdG8z", [file_proto_models]);
+  fileDesc("ChJwcm90by9ldmVudHMucHJvdG8SDHRhbG9uLmV2ZW50cyKAAQoOTGlmZWN5Y2xlRXZlbnQSFQoNcmVzb3VyY2VfdHlwZRgBIAEoCRIMCgRuYW1lGAIgASgJEgoKAm5zGAMgASgJEioKBmFjdGlvbhgEIAEoDjIaLnRhbG9uLmV2ZW50cy5TeXN0ZW1BY3Rpb24SEQoJdGltZXN0YW1wGAUgASgDIq8BChNTZXNzaW9uTWVzc2FnZUV2ZW50EhIKCnNlc3Npb25faWQYASABKAkSEgoKbWVzc2FnZV9pZBgCIAEoCRIxCglkaXJlY3Rpb24YAyABKA4yHi50YWxvbi5ldmVudHMuTWVzc2FnZURpcmVjdGlvbhIRCgl0aW1lc3RhbXAYBCABKAMSDQoFYWdlbnQYBSABKAkSDwoHbWVzc2FnZRgGIAEoCRIKCgJucxgHIAEoCSJnChNTZXNzaW9uQ29udHJvbEV2ZW50EhIKCnNlc3Npb25faWQYASABKAkSDQoFYWdlbnQYAiABKAkSCgoCbnMYAyABKAkSDgoGYWN0aW9uGAQgASgJEhEKCXRpbWVzdGFtcBgFIAEoAyLWAQoXU2Vzc2lvbk1lc3NhZ2VQYXJ0RXZlbnQSEgoKc2Vzc2lvbl9pZBgBIAEoCRI3CgRraW5kGAIgASgOMikudGFsb24uZXZlbnRzLlNlc3Npb25NZXNzYWdlUGFydEV2ZW50S2luZBIsCgRwYXJ0GAMgASgLMh4udGFsb24uZGF0YS5TZXNzaW9uTWVzc2FnZVBhcnQSEQoJdGltZXN0YW1wGAQgASgDEg0KBWFnZW50GAUgASgJEgoKAm5zGAYgASgJEhIKCm1lc3NhZ2VfaWQYByABKAki4QEKDENoYW5uZWxFdmVudBIKCgJucxgBIAEoCRIPCgdjaGFubmVsGAIgASgJEiwKBGtpbmQYAyABKA4yHi50YWxvbi5ldmVudHMuQ2hhbm5lbEV2ZW50S2luZBIrCgdtZXNzYWdlGAQgASgLMhoudGFsb24uZGF0YS5DaGFubmVsTWVzc2FnZRISCgpzZXNzaW9uX2lkGAUgASgJEg0KBWFnZW50GAYgASgJEhQKDHN1YnNjcmlwdGlvbhgHIAEoCRINCgVlcnJvchgIIAEoCRIRCgl0aW1lc3RhbXAYCSABKAMikwEKFVdvcmtmbG93RGlzcGF0Y2hFdmVudBIKCgJucxgBIAEoCRIQCgh3b3JrZmxvdxgCIAEoCRIOCgZydW5faWQYAyABKAkSDgoGcmVhc29uGAQgASgJEg8KB3N0ZXBfaWQYBSABKAkSGAoQY2hpbGRfc2Vzc2lvbl9pZBgGIAEoCRIRCgl0aW1lc3RhbXAYByABKAMi7QEKFFJlc291cmNlQ2hhbmdlZEV2ZW50EhEKCW5hbWVzcGFjZRgBIAEoCRIVCg1yZXNvdXJjZV9raW5kGAIgASgJEgwKBG5hbWUYAyABKAkSCwoDdWlkGAQgASgJEhgKEHJlc291cmNlX3ZlcnNpb24YBSABKAkSEgoKZ2VuZXJhdGlvbhgGIAEoBBI1CgtjaGFuZ2VfdHlwZRgHIAEoDjIgLnRhbG9uLmV2ZW50cy5SZXNvdXJjZUNoYW5nZVR5cGUSGAoQY2hhbmdlZF9zZWN0aW9ucxgIIAMoCRIRCgl0aW1lc3RhbXAYCSABKAMqsAEKDFN5c3RlbUFjdGlvbhIdChlTWVNURU1fQUNUSU9OX1VOU1BFQ0lGSUVEEAASGAoUU1lTVEVNX0FDVElPTl9DUkVBVEUQARIYChRTWVNURU1fQUNUSU9OX1VQREFURRACEhgKFFNZU1RFTV9BQ1RJT05fREVMRVRFEAMSGQoVU1lTVEVNX0FDVElPTl9TVVNQRU5EEAQSGAoUU1lTVEVNX0FDVElPTl9SRVNVTUUQBSp0ChBNZXNzYWdlRGlyZWN0aW9uEiEKHU1FU1NBR0VfRElSRUNUSU9OX1VOU1BFQ0lGSUVEEAASHQoZTUVTU0FHRV9ESVJFQ1RJT05fSU5CT1VORBABEh4KGk1FU1NBR0VfRElSRUNUSU9OX09VVEJPVU5EEAIqzgEKG1Nlc3Npb25NZXNzYWdlUGFydEV2ZW50S2luZBIvCitTRVNTSU9OX01FU1NBR0VfUEFSVF9FVkVOVF9LSU5EX1VOU1BFQ0lGSUVEEAASKQolU0VTU0lPTl9NRVNTQUdFX1BBUlRfRVZFTlRfS0lORF9ERUxUQRABEigKJFNFU1NJT05fTUVTU0FHRV9QQVJUX0VWRU5UX0tJTkRfRE9ORRACEikKJVNFU1NJT05fTUVTU0FHRV9QQVJUX0VWRU5UX0tJTkRfRVJST1IQAyrLAQoQQ2hhbm5lbEV2ZW50S2luZBIiCh5DSEFOTkVMX0VWRU5UX0tJTkRfVU5TUEVDSUZJRUQQABImCiJDSEFOTkVMX0VWRU5UX0tJTkRfTUVTU0FHRV9DUkVBVEVEEAESJQohQ0hBTk5FTF9FVkVOVF9LSU5EX1NFU1NJT05fUk9VVEVEEAISJgoiQ0hBTk5FTF9FVkVOVF9LSU5EX1BVQkxJU0hfU0tJUFBFRBADEhwKGENIQU5ORUxfRVZFTlRfS0lORF9FUlJPUhAEKqABChJSZXNvdXJjZUNoYW5nZVR5cGUSJAogUkVTT1VSQ0VfQ0hBTkdFX1RZUEVfVU5TUEVDSUZJRUQQABIgChxSRVNPVVJDRV9DSEFOR0VfVFlQRV9DUkVBVEVEEAESIAocUkVTT1VSQ0VfQ0hBTkdFX1RZUEVfVVBEQVRFRBACEiAKHFJFU09VUkNFX0NIQU5HRV9UWVBFX0RFTEVURUQQA2IGcHJvdG8z", [file_proto_data_data]);
 
 /**
  * @generated from message talon.events.LifecycleEvent
@@ -150,7 +150,7 @@ export type SessionMessagePartEvent = Message<"talon.events.SessionMessagePartEv
   kind: SessionMessagePartEventKind;
 
   /**
-   * @generated from field: talon.models.SessionMessagePart part = 3;
+   * @generated from field: talon.data.SessionMessagePart part = 3;
    */
   part?: SessionMessagePart;
 
@@ -202,7 +202,7 @@ export type ChannelEvent = Message<"talon.events.ChannelEvent"> & {
   kind: ChannelEventKind;
 
   /**
-   * @generated from field: talon.models.ChannelMessage message = 4;
+   * @generated from field: talon.data.ChannelMessage message = 4;
    */
   message?: ChannelMessage;
 
@@ -238,6 +238,110 @@ export type ChannelEvent = Message<"talon.events.ChannelEvent"> & {
  */
 export const ChannelEventSchema: GenMessage<ChannelEvent> = /*@__PURE__*/
   messageDesc(file_proto_events, 4);
+
+/**
+ * @generated from message talon.events.WorkflowDispatchEvent
+ */
+export type WorkflowDispatchEvent = Message<"talon.events.WorkflowDispatchEvent"> & {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns: string;
+
+  /**
+   * @generated from field: string workflow = 2;
+   */
+  workflow: string;
+
+  /**
+   * @generated from field: string run_id = 3;
+   */
+  runId: string;
+
+  /**
+   * @generated from field: string reason = 4;
+   */
+  reason: string;
+
+  /**
+   * @generated from field: string step_id = 5;
+   */
+  stepId: string;
+
+  /**
+   * @generated from field: string child_session_id = 6;
+   */
+  childSessionId: string;
+
+  /**
+   * @generated from field: int64 timestamp = 7;
+   */
+  timestamp: bigint;
+};
+
+/**
+ * Describes the message talon.events.WorkflowDispatchEvent.
+ * Use `create(WorkflowDispatchEventSchema)` to create a new message.
+ */
+export const WorkflowDispatchEventSchema: GenMessage<WorkflowDispatchEvent> = /*@__PURE__*/
+  messageDesc(file_proto_events, 5);
+
+/**
+ * @generated from message talon.events.ResourceChangedEvent
+ */
+export type ResourceChangedEvent = Message<"talon.events.ResourceChangedEvent"> & {
+  /**
+   * @generated from field: string namespace = 1;
+   */
+  namespace: string;
+
+  /**
+   * @generated from field: string resource_kind = 2;
+   */
+  resourceKind: string;
+
+  /**
+   * @generated from field: string name = 3;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string uid = 4;
+   */
+  uid: string;
+
+  /**
+   * @generated from field: string resource_version = 5;
+   */
+  resourceVersion: string;
+
+  /**
+   * @generated from field: uint64 generation = 6;
+   */
+  generation: bigint;
+
+  /**
+   * @generated from field: talon.events.ResourceChangeType change_type = 7;
+   */
+  changeType: ResourceChangeType;
+
+  /**
+   * @generated from field: repeated string changed_sections = 8;
+   */
+  changedSections: string[];
+
+  /**
+   * @generated from field: int64 timestamp = 9;
+   */
+  timestamp: bigint;
+};
+
+/**
+ * Describes the message talon.events.ResourceChangedEvent.
+ * Use `create(ResourceChangedEventSchema)` to create a new message.
+ */
+export const ResourceChangedEventSchema: GenMessage<ResourceChangedEvent> = /*@__PURE__*/
+  messageDesc(file_proto_events, 6);
 
 /**
  * @generated from enum talon.events.SystemAction
@@ -372,4 +476,35 @@ export enum ChannelEventKind {
  */
 export const ChannelEventKindSchema: GenEnum<ChannelEventKind> = /*@__PURE__*/
   enumDesc(file_proto_events, 3);
+
+/**
+ * @generated from enum talon.events.ResourceChangeType
+ */
+export enum ResourceChangeType {
+  /**
+   * @generated from enum value: RESOURCE_CHANGE_TYPE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: RESOURCE_CHANGE_TYPE_CREATED = 1;
+   */
+  CREATED = 1,
+
+  /**
+   * @generated from enum value: RESOURCE_CHANGE_TYPE_UPDATED = 2;
+   */
+  UPDATED = 2,
+
+  /**
+   * @generated from enum value: RESOURCE_CHANGE_TYPE_DELETED = 3;
+   */
+  DELETED = 3,
+}
+
+/**
+ * Describes the enum talon.events.ResourceChangeType.
+ */
+export const ResourceChangeTypeSchema: GenEnum<ResourceChangeType> = /*@__PURE__*/
+  enumDesc(file_proto_events, 4);
 

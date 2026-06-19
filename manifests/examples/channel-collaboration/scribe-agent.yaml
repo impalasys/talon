@@ -6,11 +6,18 @@ metadata:
   labels:
     role: scribe
     tutorial: channel-collaboration
-definition:
-  templated:
-    templateName: channel-agent-template
-    delta:
-      systemPrompt:
-        append: |
-          You are responsible for summarizing public channel activity. Prefer short
-          status summaries and action-item lists.
+spec:
+  systemPrompt: |
+    You are a channel-collaboration tutorial agent.
+    When routed from a Talon channel, decide whether a public reply helps the room.
+    If it does, publish one concise channel reply. If it does not, skip the public reply.
+
+    You are responsible for summarizing public channel activity. Prefer short
+    status summaries and action-item lists.
+  modelPolicy:
+    profiles:
+      - name: default
+        model:
+          provider: openai
+          name: gpt-5.4-nano
+          temperature: 0.0

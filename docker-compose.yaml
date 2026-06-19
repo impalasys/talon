@@ -62,6 +62,7 @@ services:
     volumes:
       - ./talon.compose.yaml:/data/talon/talon.compose.yaml:ro
       - talon-objects:/data/talon/objects
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       postgres:
         condition: service_healthy

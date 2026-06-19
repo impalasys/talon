@@ -12,130 +12,6 @@ public final class GatewayServiceGrpc {
   public static final java.lang.String SERVICE_NAME = "talon.gateway.GatewayService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateAgentRequest,
-      talon.gateway.Gateway.AgentResponse> getCreateAgentMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "CreateAgent",
-      requestType = talon.gateway.Gateway.CreateAgentRequest.class,
-      responseType = talon.gateway.Gateway.AgentResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateAgentRequest,
-      talon.gateway.Gateway.AgentResponse> getCreateAgentMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateAgentRequest, talon.gateway.Gateway.AgentResponse> getCreateAgentMethod;
-    if ((getCreateAgentMethod = GatewayServiceGrpc.getCreateAgentMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getCreateAgentMethod = GatewayServiceGrpc.getCreateAgentMethod) == null) {
-          GatewayServiceGrpc.getCreateAgentMethod = getCreateAgentMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateAgentRequest, talon.gateway.Gateway.AgentResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateAgent"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.CreateAgentRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.AgentResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateAgent"))
-              .build();
-        }
-      }
-    }
-    return getCreateAgentMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetAgentRequest,
-      talon.gateway.Gateway.GetAgentResponse> getGetAgentMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "GetAgent",
-      requestType = talon.gateway.Gateway.GetAgentRequest.class,
-      responseType = talon.gateway.Gateway.GetAgentResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetAgentRequest,
-      talon.gateway.Gateway.GetAgentResponse> getGetAgentMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetAgentRequest, talon.gateway.Gateway.GetAgentResponse> getGetAgentMethod;
-    if ((getGetAgentMethod = GatewayServiceGrpc.getGetAgentMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getGetAgentMethod = GatewayServiceGrpc.getGetAgentMethod) == null) {
-          GatewayServiceGrpc.getGetAgentMethod = getGetAgentMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetAgentRequest, talon.gateway.Gateway.GetAgentResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAgent"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.GetAgentRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.GetAgentResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetAgent"))
-              .build();
-        }
-      }
-    }
-    return getGetAgentMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ModifyAgentRequest,
-      talon.gateway.Gateway.AgentResponse> getModifyAgentMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ModifyAgent",
-      requestType = talon.gateway.Gateway.ModifyAgentRequest.class,
-      responseType = talon.gateway.Gateway.AgentResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ModifyAgentRequest,
-      talon.gateway.Gateway.AgentResponse> getModifyAgentMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ModifyAgentRequest, talon.gateway.Gateway.AgentResponse> getModifyAgentMethod;
-    if ((getModifyAgentMethod = GatewayServiceGrpc.getModifyAgentMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getModifyAgentMethod = GatewayServiceGrpc.getModifyAgentMethod) == null) {
-          GatewayServiceGrpc.getModifyAgentMethod = getModifyAgentMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ModifyAgentRequest, talon.gateway.Gateway.AgentResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ModifyAgent"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ModifyAgentRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.AgentResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ModifyAgent"))
-              .build();
-        }
-      }
-    }
-    return getModifyAgentMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListAgentsRequest,
-      talon.gateway.Gateway.ListAgentsResponse> getListAgentsMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ListAgents",
-      requestType = talon.gateway.Gateway.ListAgentsRequest.class,
-      responseType = talon.gateway.Gateway.ListAgentsResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListAgentsRequest,
-      talon.gateway.Gateway.ListAgentsResponse> getListAgentsMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListAgentsRequest, talon.gateway.Gateway.ListAgentsResponse> getListAgentsMethod;
-    if ((getListAgentsMethod = GatewayServiceGrpc.getListAgentsMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getListAgentsMethod = GatewayServiceGrpc.getListAgentsMethod) == null) {
-          GatewayServiceGrpc.getListAgentsMethod = getListAgentsMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListAgentsRequest, talon.gateway.Gateway.ListAgentsResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListAgents"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListAgentsRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListAgentsResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListAgents"))
-              .build();
-        }
-      }
-    }
-    return getListAgentsMethod;
-  }
-
   private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetKnowledgeRequest,
       talon.gateway.Gateway.KnowledgeResponse> getGetKnowledgeMethod;
 
@@ -196,254 +72,6 @@ public final class GatewayServiceGrpc {
       }
     }
     return getSearchKnowledgeMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateNamespaceKnowledgeRequest,
-      talon.gateway.Gateway.NamespaceKnowledgeResponse> getCreateNamespaceKnowledgeMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "CreateNamespaceKnowledge",
-      requestType = talon.gateway.Gateway.CreateNamespaceKnowledgeRequest.class,
-      responseType = talon.gateway.Gateway.NamespaceKnowledgeResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateNamespaceKnowledgeRequest,
-      talon.gateway.Gateway.NamespaceKnowledgeResponse> getCreateNamespaceKnowledgeMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateNamespaceKnowledgeRequest, talon.gateway.Gateway.NamespaceKnowledgeResponse> getCreateNamespaceKnowledgeMethod;
-    if ((getCreateNamespaceKnowledgeMethod = GatewayServiceGrpc.getCreateNamespaceKnowledgeMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getCreateNamespaceKnowledgeMethod = GatewayServiceGrpc.getCreateNamespaceKnowledgeMethod) == null) {
-          GatewayServiceGrpc.getCreateNamespaceKnowledgeMethod = getCreateNamespaceKnowledgeMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateNamespaceKnowledgeRequest, talon.gateway.Gateway.NamespaceKnowledgeResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateNamespaceKnowledge"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.CreateNamespaceKnowledgeRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.NamespaceKnowledgeResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateNamespaceKnowledge"))
-              .build();
-        }
-      }
-    }
-    return getCreateNamespaceKnowledgeMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetNamespaceKnowledgeRequest,
-      talon.gateway.Gateway.NamespaceKnowledgeResponse> getGetNamespaceKnowledgeMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "GetNamespaceKnowledge",
-      requestType = talon.gateway.Gateway.GetNamespaceKnowledgeRequest.class,
-      responseType = talon.gateway.Gateway.NamespaceKnowledgeResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetNamespaceKnowledgeRequest,
-      talon.gateway.Gateway.NamespaceKnowledgeResponse> getGetNamespaceKnowledgeMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetNamespaceKnowledgeRequest, talon.gateway.Gateway.NamespaceKnowledgeResponse> getGetNamespaceKnowledgeMethod;
-    if ((getGetNamespaceKnowledgeMethod = GatewayServiceGrpc.getGetNamespaceKnowledgeMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getGetNamespaceKnowledgeMethod = GatewayServiceGrpc.getGetNamespaceKnowledgeMethod) == null) {
-          GatewayServiceGrpc.getGetNamespaceKnowledgeMethod = getGetNamespaceKnowledgeMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetNamespaceKnowledgeRequest, talon.gateway.Gateway.NamespaceKnowledgeResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetNamespaceKnowledge"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.GetNamespaceKnowledgeRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.NamespaceKnowledgeResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetNamespaceKnowledge"))
-              .build();
-        }
-      }
-    }
-    return getGetNamespaceKnowledgeMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListNamespaceKnowledgeRequest,
-      talon.gateway.Gateway.ListNamespaceKnowledgeResponse> getListNamespaceKnowledgeMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ListNamespaceKnowledge",
-      requestType = talon.gateway.Gateway.ListNamespaceKnowledgeRequest.class,
-      responseType = talon.gateway.Gateway.ListNamespaceKnowledgeResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListNamespaceKnowledgeRequest,
-      talon.gateway.Gateway.ListNamespaceKnowledgeResponse> getListNamespaceKnowledgeMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListNamespaceKnowledgeRequest, talon.gateway.Gateway.ListNamespaceKnowledgeResponse> getListNamespaceKnowledgeMethod;
-    if ((getListNamespaceKnowledgeMethod = GatewayServiceGrpc.getListNamespaceKnowledgeMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getListNamespaceKnowledgeMethod = GatewayServiceGrpc.getListNamespaceKnowledgeMethod) == null) {
-          GatewayServiceGrpc.getListNamespaceKnowledgeMethod = getListNamespaceKnowledgeMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListNamespaceKnowledgeRequest, talon.gateway.Gateway.ListNamespaceKnowledgeResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListNamespaceKnowledge"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListNamespaceKnowledgeRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListNamespaceKnowledgeResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListNamespaceKnowledge"))
-              .build();
-        }
-      }
-    }
-    return getListNamespaceKnowledgeMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest,
-      talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse> getDeleteNamespaceKnowledgeMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "DeleteNamespaceKnowledge",
-      requestType = talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest.class,
-      responseType = talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest,
-      talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse> getDeleteNamespaceKnowledgeMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest, talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse> getDeleteNamespaceKnowledgeMethod;
-    if ((getDeleteNamespaceKnowledgeMethod = GatewayServiceGrpc.getDeleteNamespaceKnowledgeMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getDeleteNamespaceKnowledgeMethod = GatewayServiceGrpc.getDeleteNamespaceKnowledgeMethod) == null) {
-          GatewayServiceGrpc.getDeleteNamespaceKnowledgeMethod = getDeleteNamespaceKnowledgeMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest, talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DeleteNamespaceKnowledge"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("DeleteNamespaceKnowledge"))
-              .build();
-        }
-      }
-    }
-    return getDeleteNamespaceKnowledgeMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateNamespaceSkillRequest,
-      talon.gateway.Gateway.NamespaceSkillResponse> getCreateNamespaceSkillMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "CreateNamespaceSkill",
-      requestType = talon.gateway.Gateway.CreateNamespaceSkillRequest.class,
-      responseType = talon.gateway.Gateway.NamespaceSkillResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateNamespaceSkillRequest,
-      talon.gateway.Gateway.NamespaceSkillResponse> getCreateNamespaceSkillMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateNamespaceSkillRequest, talon.gateway.Gateway.NamespaceSkillResponse> getCreateNamespaceSkillMethod;
-    if ((getCreateNamespaceSkillMethod = GatewayServiceGrpc.getCreateNamespaceSkillMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getCreateNamespaceSkillMethod = GatewayServiceGrpc.getCreateNamespaceSkillMethod) == null) {
-          GatewayServiceGrpc.getCreateNamespaceSkillMethod = getCreateNamespaceSkillMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateNamespaceSkillRequest, talon.gateway.Gateway.NamespaceSkillResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateNamespaceSkill"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.CreateNamespaceSkillRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.NamespaceSkillResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateNamespaceSkill"))
-              .build();
-        }
-      }
-    }
-    return getCreateNamespaceSkillMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetNamespaceSkillRequest,
-      talon.gateway.Gateway.NamespaceSkillResponse> getGetNamespaceSkillMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "GetNamespaceSkill",
-      requestType = talon.gateway.Gateway.GetNamespaceSkillRequest.class,
-      responseType = talon.gateway.Gateway.NamespaceSkillResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetNamespaceSkillRequest,
-      talon.gateway.Gateway.NamespaceSkillResponse> getGetNamespaceSkillMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetNamespaceSkillRequest, talon.gateway.Gateway.NamespaceSkillResponse> getGetNamespaceSkillMethod;
-    if ((getGetNamespaceSkillMethod = GatewayServiceGrpc.getGetNamespaceSkillMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getGetNamespaceSkillMethod = GatewayServiceGrpc.getGetNamespaceSkillMethod) == null) {
-          GatewayServiceGrpc.getGetNamespaceSkillMethod = getGetNamespaceSkillMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetNamespaceSkillRequest, talon.gateway.Gateway.NamespaceSkillResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetNamespaceSkill"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.GetNamespaceSkillRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.NamespaceSkillResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetNamespaceSkill"))
-              .build();
-        }
-      }
-    }
-    return getGetNamespaceSkillMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListNamespaceSkillsRequest,
-      talon.gateway.Gateway.ListNamespaceSkillsResponse> getListNamespaceSkillsMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ListNamespaceSkills",
-      requestType = talon.gateway.Gateway.ListNamespaceSkillsRequest.class,
-      responseType = talon.gateway.Gateway.ListNamespaceSkillsResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListNamespaceSkillsRequest,
-      talon.gateway.Gateway.ListNamespaceSkillsResponse> getListNamespaceSkillsMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListNamespaceSkillsRequest, talon.gateway.Gateway.ListNamespaceSkillsResponse> getListNamespaceSkillsMethod;
-    if ((getListNamespaceSkillsMethod = GatewayServiceGrpc.getListNamespaceSkillsMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getListNamespaceSkillsMethod = GatewayServiceGrpc.getListNamespaceSkillsMethod) == null) {
-          GatewayServiceGrpc.getListNamespaceSkillsMethod = getListNamespaceSkillsMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListNamespaceSkillsRequest, talon.gateway.Gateway.ListNamespaceSkillsResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListNamespaceSkills"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListNamespaceSkillsRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListNamespaceSkillsResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListNamespaceSkills"))
-              .build();
-        }
-      }
-    }
-    return getListNamespaceSkillsMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteNamespaceSkillRequest,
-      talon.gateway.Gateway.DeleteNamespaceSkillResponse> getDeleteNamespaceSkillMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "DeleteNamespaceSkill",
-      requestType = talon.gateway.Gateway.DeleteNamespaceSkillRequest.class,
-      responseType = talon.gateway.Gateway.DeleteNamespaceSkillResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteNamespaceSkillRequest,
-      talon.gateway.Gateway.DeleteNamespaceSkillResponse> getDeleteNamespaceSkillMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteNamespaceSkillRequest, talon.gateway.Gateway.DeleteNamespaceSkillResponse> getDeleteNamespaceSkillMethod;
-    if ((getDeleteNamespaceSkillMethod = GatewayServiceGrpc.getDeleteNamespaceSkillMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getDeleteNamespaceSkillMethod = GatewayServiceGrpc.getDeleteNamespaceSkillMethod) == null) {
-          GatewayServiceGrpc.getDeleteNamespaceSkillMethod = getDeleteNamespaceSkillMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.DeleteNamespaceSkillRequest, talon.gateway.Gateway.DeleteNamespaceSkillResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DeleteNamespaceSkill"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteNamespaceSkillRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteNamespaceSkillResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("DeleteNamespaceSkill"))
-              .build();
-        }
-      }
-    }
-    return getDeleteNamespaceSkillMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateSessionRequest,
@@ -694,6 +322,37 @@ public final class GatewayServiceGrpc {
     return getAppendSessionMessageMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.AnswerSessionPermissionRequest,
+      talon.gateway.Gateway.AnswerSessionPermissionResponse> getAnswerSessionPermissionMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "AnswerSessionPermission",
+      requestType = talon.gateway.Gateway.AnswerSessionPermissionRequest.class,
+      responseType = talon.gateway.Gateway.AnswerSessionPermissionResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.AnswerSessionPermissionRequest,
+      talon.gateway.Gateway.AnswerSessionPermissionResponse> getAnswerSessionPermissionMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.AnswerSessionPermissionRequest, talon.gateway.Gateway.AnswerSessionPermissionResponse> getAnswerSessionPermissionMethod;
+    if ((getAnswerSessionPermissionMethod = GatewayServiceGrpc.getAnswerSessionPermissionMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getAnswerSessionPermissionMethod = GatewayServiceGrpc.getAnswerSessionPermissionMethod) == null) {
+          GatewayServiceGrpc.getAnswerSessionPermissionMethod = getAnswerSessionPermissionMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.AnswerSessionPermissionRequest, talon.gateway.Gateway.AnswerSessionPermissionResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "AnswerSessionPermission"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.AnswerSessionPermissionRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.AnswerSessionPermissionResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("AnswerSessionPermission"))
+              .build();
+        }
+      }
+    }
+    return getAnswerSessionPermissionMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.StopSessionGenerationRequest,
       talon.gateway.Gateway.StopSessionGenerationResponse> getStopSessionGenerationMethod;
 
@@ -785,161 +444,6 @@ public final class GatewayServiceGrpc {
       }
     }
     return getStreamSessionPartsBatchMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateChannelRequest,
-      talon.gateway.Gateway.ChannelResponse> getCreateChannelMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "CreateChannel",
-      requestType = talon.gateway.Gateway.CreateChannelRequest.class,
-      responseType = talon.gateway.Gateway.ChannelResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateChannelRequest,
-      talon.gateway.Gateway.ChannelResponse> getCreateChannelMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateChannelRequest, talon.gateway.Gateway.ChannelResponse> getCreateChannelMethod;
-    if ((getCreateChannelMethod = GatewayServiceGrpc.getCreateChannelMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getCreateChannelMethod = GatewayServiceGrpc.getCreateChannelMethod) == null) {
-          GatewayServiceGrpc.getCreateChannelMethod = getCreateChannelMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateChannelRequest, talon.gateway.Gateway.ChannelResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateChannel"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.CreateChannelRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ChannelResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateChannel"))
-              .build();
-        }
-      }
-    }
-    return getCreateChannelMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetChannelRequest,
-      talon.gateway.Gateway.ChannelResponse> getGetChannelMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "GetChannel",
-      requestType = talon.gateway.Gateway.GetChannelRequest.class,
-      responseType = talon.gateway.Gateway.ChannelResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetChannelRequest,
-      talon.gateway.Gateway.ChannelResponse> getGetChannelMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetChannelRequest, talon.gateway.Gateway.ChannelResponse> getGetChannelMethod;
-    if ((getGetChannelMethod = GatewayServiceGrpc.getGetChannelMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getGetChannelMethod = GatewayServiceGrpc.getGetChannelMethod) == null) {
-          GatewayServiceGrpc.getGetChannelMethod = getGetChannelMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetChannelRequest, talon.gateway.Gateway.ChannelResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetChannel"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.GetChannelRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ChannelResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetChannel"))
-              .build();
-        }
-      }
-    }
-    return getGetChannelMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ModifyChannelRequest,
-      talon.gateway.Gateway.ChannelResponse> getModifyChannelMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ModifyChannel",
-      requestType = talon.gateway.Gateway.ModifyChannelRequest.class,
-      responseType = talon.gateway.Gateway.ChannelResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ModifyChannelRequest,
-      talon.gateway.Gateway.ChannelResponse> getModifyChannelMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ModifyChannelRequest, talon.gateway.Gateway.ChannelResponse> getModifyChannelMethod;
-    if ((getModifyChannelMethod = GatewayServiceGrpc.getModifyChannelMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getModifyChannelMethod = GatewayServiceGrpc.getModifyChannelMethod) == null) {
-          GatewayServiceGrpc.getModifyChannelMethod = getModifyChannelMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ModifyChannelRequest, talon.gateway.Gateway.ChannelResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ModifyChannel"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ModifyChannelRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ChannelResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ModifyChannel"))
-              .build();
-        }
-      }
-    }
-    return getModifyChannelMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListChannelsRequest,
-      talon.gateway.Gateway.ListChannelsResponse> getListChannelsMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ListChannels",
-      requestType = talon.gateway.Gateway.ListChannelsRequest.class,
-      responseType = talon.gateway.Gateway.ListChannelsResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListChannelsRequest,
-      talon.gateway.Gateway.ListChannelsResponse> getListChannelsMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListChannelsRequest, talon.gateway.Gateway.ListChannelsResponse> getListChannelsMethod;
-    if ((getListChannelsMethod = GatewayServiceGrpc.getListChannelsMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getListChannelsMethod = GatewayServiceGrpc.getListChannelsMethod) == null) {
-          GatewayServiceGrpc.getListChannelsMethod = getListChannelsMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListChannelsRequest, talon.gateway.Gateway.ListChannelsResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListChannels"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListChannelsRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListChannelsResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListChannels"))
-              .build();
-        }
-      }
-    }
-    return getListChannelsMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteChannelRequest,
-      talon.gateway.Gateway.DeleteChannelResponse> getDeleteChannelMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "DeleteChannel",
-      requestType = talon.gateway.Gateway.DeleteChannelRequest.class,
-      responseType = talon.gateway.Gateway.DeleteChannelResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteChannelRequest,
-      talon.gateway.Gateway.DeleteChannelResponse> getDeleteChannelMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteChannelRequest, talon.gateway.Gateway.DeleteChannelResponse> getDeleteChannelMethod;
-    if ((getDeleteChannelMethod = GatewayServiceGrpc.getDeleteChannelMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getDeleteChannelMethod = GatewayServiceGrpc.getDeleteChannelMethod) == null) {
-          GatewayServiceGrpc.getDeleteChannelMethod = getDeleteChannelMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.DeleteChannelRequest, talon.gateway.Gateway.DeleteChannelResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DeleteChannel"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteChannelRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteChannelResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("DeleteChannel"))
-              .build();
-        }
-      }
-    }
-    return getDeleteChannelMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.PostChannelMessageRequest,
@@ -1035,161 +539,6 @@ public final class GatewayServiceGrpc {
     return getListChannelMessagesMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateChannelSubscriptionRequest,
-      talon.gateway.Gateway.ChannelSubscriptionResponse> getCreateChannelSubscriptionMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "CreateChannelSubscription",
-      requestType = talon.gateway.Gateway.CreateChannelSubscriptionRequest.class,
-      responseType = talon.gateway.Gateway.ChannelSubscriptionResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateChannelSubscriptionRequest,
-      talon.gateway.Gateway.ChannelSubscriptionResponse> getCreateChannelSubscriptionMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateChannelSubscriptionRequest, talon.gateway.Gateway.ChannelSubscriptionResponse> getCreateChannelSubscriptionMethod;
-    if ((getCreateChannelSubscriptionMethod = GatewayServiceGrpc.getCreateChannelSubscriptionMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getCreateChannelSubscriptionMethod = GatewayServiceGrpc.getCreateChannelSubscriptionMethod) == null) {
-          GatewayServiceGrpc.getCreateChannelSubscriptionMethod = getCreateChannelSubscriptionMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateChannelSubscriptionRequest, talon.gateway.Gateway.ChannelSubscriptionResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateChannelSubscription"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.CreateChannelSubscriptionRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ChannelSubscriptionResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateChannelSubscription"))
-              .build();
-        }
-      }
-    }
-    return getCreateChannelSubscriptionMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetChannelSubscriptionRequest,
-      talon.gateway.Gateway.ChannelSubscriptionResponse> getGetChannelSubscriptionMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "GetChannelSubscription",
-      requestType = talon.gateway.Gateway.GetChannelSubscriptionRequest.class,
-      responseType = talon.gateway.Gateway.ChannelSubscriptionResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetChannelSubscriptionRequest,
-      talon.gateway.Gateway.ChannelSubscriptionResponse> getGetChannelSubscriptionMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetChannelSubscriptionRequest, talon.gateway.Gateway.ChannelSubscriptionResponse> getGetChannelSubscriptionMethod;
-    if ((getGetChannelSubscriptionMethod = GatewayServiceGrpc.getGetChannelSubscriptionMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getGetChannelSubscriptionMethod = GatewayServiceGrpc.getGetChannelSubscriptionMethod) == null) {
-          GatewayServiceGrpc.getGetChannelSubscriptionMethod = getGetChannelSubscriptionMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetChannelSubscriptionRequest, talon.gateway.Gateway.ChannelSubscriptionResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetChannelSubscription"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.GetChannelSubscriptionRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ChannelSubscriptionResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetChannelSubscription"))
-              .build();
-        }
-      }
-    }
-    return getGetChannelSubscriptionMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ModifyChannelSubscriptionRequest,
-      talon.gateway.Gateway.ChannelSubscriptionResponse> getModifyChannelSubscriptionMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ModifyChannelSubscription",
-      requestType = talon.gateway.Gateway.ModifyChannelSubscriptionRequest.class,
-      responseType = talon.gateway.Gateway.ChannelSubscriptionResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ModifyChannelSubscriptionRequest,
-      talon.gateway.Gateway.ChannelSubscriptionResponse> getModifyChannelSubscriptionMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ModifyChannelSubscriptionRequest, talon.gateway.Gateway.ChannelSubscriptionResponse> getModifyChannelSubscriptionMethod;
-    if ((getModifyChannelSubscriptionMethod = GatewayServiceGrpc.getModifyChannelSubscriptionMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getModifyChannelSubscriptionMethod = GatewayServiceGrpc.getModifyChannelSubscriptionMethod) == null) {
-          GatewayServiceGrpc.getModifyChannelSubscriptionMethod = getModifyChannelSubscriptionMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ModifyChannelSubscriptionRequest, talon.gateway.Gateway.ChannelSubscriptionResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ModifyChannelSubscription"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ModifyChannelSubscriptionRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ChannelSubscriptionResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ModifyChannelSubscription"))
-              .build();
-        }
-      }
-    }
-    return getModifyChannelSubscriptionMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListChannelSubscriptionsRequest,
-      talon.gateway.Gateway.ListChannelSubscriptionsResponse> getListChannelSubscriptionsMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ListChannelSubscriptions",
-      requestType = talon.gateway.Gateway.ListChannelSubscriptionsRequest.class,
-      responseType = talon.gateway.Gateway.ListChannelSubscriptionsResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListChannelSubscriptionsRequest,
-      talon.gateway.Gateway.ListChannelSubscriptionsResponse> getListChannelSubscriptionsMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListChannelSubscriptionsRequest, talon.gateway.Gateway.ListChannelSubscriptionsResponse> getListChannelSubscriptionsMethod;
-    if ((getListChannelSubscriptionsMethod = GatewayServiceGrpc.getListChannelSubscriptionsMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getListChannelSubscriptionsMethod = GatewayServiceGrpc.getListChannelSubscriptionsMethod) == null) {
-          GatewayServiceGrpc.getListChannelSubscriptionsMethod = getListChannelSubscriptionsMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListChannelSubscriptionsRequest, talon.gateway.Gateway.ListChannelSubscriptionsResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListChannelSubscriptions"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListChannelSubscriptionsRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListChannelSubscriptionsResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListChannelSubscriptions"))
-              .build();
-        }
-      }
-    }
-    return getListChannelSubscriptionsMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteChannelSubscriptionRequest,
-      talon.gateway.Gateway.DeleteChannelSubscriptionResponse> getDeleteChannelSubscriptionMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "DeleteChannelSubscription",
-      requestType = talon.gateway.Gateway.DeleteChannelSubscriptionRequest.class,
-      responseType = talon.gateway.Gateway.DeleteChannelSubscriptionResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteChannelSubscriptionRequest,
-      talon.gateway.Gateway.DeleteChannelSubscriptionResponse> getDeleteChannelSubscriptionMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteChannelSubscriptionRequest, talon.gateway.Gateway.DeleteChannelSubscriptionResponse> getDeleteChannelSubscriptionMethod;
-    if ((getDeleteChannelSubscriptionMethod = GatewayServiceGrpc.getDeleteChannelSubscriptionMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getDeleteChannelSubscriptionMethod = GatewayServiceGrpc.getDeleteChannelSubscriptionMethod) == null) {
-          GatewayServiceGrpc.getDeleteChannelSubscriptionMethod = getDeleteChannelSubscriptionMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.DeleteChannelSubscriptionRequest, talon.gateway.Gateway.DeleteChannelSubscriptionResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DeleteChannelSubscription"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteChannelSubscriptionRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteChannelSubscriptionResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("DeleteChannelSubscription"))
-              .build();
-        }
-      }
-    }
-    return getDeleteChannelSubscriptionMethod;
-  }
-
   private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.StreamChannelEventsRequest,
       talon.events.Events.ChannelEvent> getStreamChannelEventsMethod;
 
@@ -1219,285 +568,6 @@ public final class GatewayServiceGrpc {
       }
     }
     return getStreamChannelEventsMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateScheduleRequest,
-      talon.gateway.Gateway.ScheduleResponse> getCreateScheduleMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "CreateSchedule",
-      requestType = talon.gateway.Gateway.CreateScheduleRequest.class,
-      responseType = talon.gateway.Gateway.ScheduleResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateScheduleRequest,
-      talon.gateway.Gateway.ScheduleResponse> getCreateScheduleMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateScheduleRequest, talon.gateway.Gateway.ScheduleResponse> getCreateScheduleMethod;
-    if ((getCreateScheduleMethod = GatewayServiceGrpc.getCreateScheduleMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getCreateScheduleMethod = GatewayServiceGrpc.getCreateScheduleMethod) == null) {
-          GatewayServiceGrpc.getCreateScheduleMethod = getCreateScheduleMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateScheduleRequest, talon.gateway.Gateway.ScheduleResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateSchedule"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.CreateScheduleRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ScheduleResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateSchedule"))
-              .build();
-        }
-      }
-    }
-    return getCreateScheduleMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetScheduleRequest,
-      talon.gateway.Gateway.ScheduleResponse> getGetScheduleMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "GetSchedule",
-      requestType = talon.gateway.Gateway.GetScheduleRequest.class,
-      responseType = talon.gateway.Gateway.ScheduleResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetScheduleRequest,
-      talon.gateway.Gateway.ScheduleResponse> getGetScheduleMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetScheduleRequest, talon.gateway.Gateway.ScheduleResponse> getGetScheduleMethod;
-    if ((getGetScheduleMethod = GatewayServiceGrpc.getGetScheduleMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getGetScheduleMethod = GatewayServiceGrpc.getGetScheduleMethod) == null) {
-          GatewayServiceGrpc.getGetScheduleMethod = getGetScheduleMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetScheduleRequest, talon.gateway.Gateway.ScheduleResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetSchedule"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.GetScheduleRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ScheduleResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetSchedule"))
-              .build();
-        }
-      }
-    }
-    return getGetScheduleMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ModifyScheduleRequest,
-      talon.gateway.Gateway.ScheduleResponse> getModifyScheduleMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ModifySchedule",
-      requestType = talon.gateway.Gateway.ModifyScheduleRequest.class,
-      responseType = talon.gateway.Gateway.ScheduleResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ModifyScheduleRequest,
-      talon.gateway.Gateway.ScheduleResponse> getModifyScheduleMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ModifyScheduleRequest, talon.gateway.Gateway.ScheduleResponse> getModifyScheduleMethod;
-    if ((getModifyScheduleMethod = GatewayServiceGrpc.getModifyScheduleMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getModifyScheduleMethod = GatewayServiceGrpc.getModifyScheduleMethod) == null) {
-          GatewayServiceGrpc.getModifyScheduleMethod = getModifyScheduleMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ModifyScheduleRequest, talon.gateway.Gateway.ScheduleResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ModifySchedule"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ModifyScheduleRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ScheduleResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ModifySchedule"))
-              .build();
-        }
-      }
-    }
-    return getModifyScheduleMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListSchedulesRequest,
-      talon.gateway.Gateway.ListSchedulesResponse> getListSchedulesMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ListSchedules",
-      requestType = talon.gateway.Gateway.ListSchedulesRequest.class,
-      responseType = talon.gateway.Gateway.ListSchedulesResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListSchedulesRequest,
-      talon.gateway.Gateway.ListSchedulesResponse> getListSchedulesMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListSchedulesRequest, talon.gateway.Gateway.ListSchedulesResponse> getListSchedulesMethod;
-    if ((getListSchedulesMethod = GatewayServiceGrpc.getListSchedulesMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getListSchedulesMethod = GatewayServiceGrpc.getListSchedulesMethod) == null) {
-          GatewayServiceGrpc.getListSchedulesMethod = getListSchedulesMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListSchedulesRequest, talon.gateway.Gateway.ListSchedulesResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListSchedules"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListSchedulesRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListSchedulesResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListSchedules"))
-              .build();
-        }
-      }
-    }
-    return getListSchedulesMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteScheduleRequest,
-      talon.gateway.Gateway.DeleteScheduleResponse> getDeleteScheduleMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "DeleteSchedule",
-      requestType = talon.gateway.Gateway.DeleteScheduleRequest.class,
-      responseType = talon.gateway.Gateway.DeleteScheduleResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteScheduleRequest,
-      talon.gateway.Gateway.DeleteScheduleResponse> getDeleteScheduleMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteScheduleRequest, talon.gateway.Gateway.DeleteScheduleResponse> getDeleteScheduleMethod;
-    if ((getDeleteScheduleMethod = GatewayServiceGrpc.getDeleteScheduleMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getDeleteScheduleMethod = GatewayServiceGrpc.getDeleteScheduleMethod) == null) {
-          GatewayServiceGrpc.getDeleteScheduleMethod = getDeleteScheduleMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.DeleteScheduleRequest, talon.gateway.Gateway.DeleteScheduleResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DeleteSchedule"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteScheduleRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteScheduleResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("DeleteSchedule"))
-              .build();
-        }
-      }
-    }
-    return getDeleteScheduleMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateWorkflowRequest,
-      talon.gateway.Gateway.WorkflowResponse> getCreateWorkflowMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "CreateWorkflow",
-      requestType = talon.gateway.Gateway.CreateWorkflowRequest.class,
-      responseType = talon.gateway.Gateway.WorkflowResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateWorkflowRequest,
-      talon.gateway.Gateway.WorkflowResponse> getCreateWorkflowMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateWorkflowRequest, talon.gateway.Gateway.WorkflowResponse> getCreateWorkflowMethod;
-    if ((getCreateWorkflowMethod = GatewayServiceGrpc.getCreateWorkflowMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getCreateWorkflowMethod = GatewayServiceGrpc.getCreateWorkflowMethod) == null) {
-          GatewayServiceGrpc.getCreateWorkflowMethod = getCreateWorkflowMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateWorkflowRequest, talon.gateway.Gateway.WorkflowResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateWorkflow"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.CreateWorkflowRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.WorkflowResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateWorkflow"))
-              .build();
-        }
-      }
-    }
-    return getCreateWorkflowMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetWorkflowRequest,
-      talon.gateway.Gateway.WorkflowResponse> getGetWorkflowMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "GetWorkflow",
-      requestType = talon.gateway.Gateway.GetWorkflowRequest.class,
-      responseType = talon.gateway.Gateway.WorkflowResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetWorkflowRequest,
-      talon.gateway.Gateway.WorkflowResponse> getGetWorkflowMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetWorkflowRequest, talon.gateway.Gateway.WorkflowResponse> getGetWorkflowMethod;
-    if ((getGetWorkflowMethod = GatewayServiceGrpc.getGetWorkflowMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getGetWorkflowMethod = GatewayServiceGrpc.getGetWorkflowMethod) == null) {
-          GatewayServiceGrpc.getGetWorkflowMethod = getGetWorkflowMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetWorkflowRequest, talon.gateway.Gateway.WorkflowResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetWorkflow"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.GetWorkflowRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.WorkflowResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetWorkflow"))
-              .build();
-        }
-      }
-    }
-    return getGetWorkflowMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListWorkflowsRequest,
-      talon.gateway.Gateway.ListWorkflowsResponse> getListWorkflowsMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ListWorkflows",
-      requestType = talon.gateway.Gateway.ListWorkflowsRequest.class,
-      responseType = talon.gateway.Gateway.ListWorkflowsResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListWorkflowsRequest,
-      talon.gateway.Gateway.ListWorkflowsResponse> getListWorkflowsMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListWorkflowsRequest, talon.gateway.Gateway.ListWorkflowsResponse> getListWorkflowsMethod;
-    if ((getListWorkflowsMethod = GatewayServiceGrpc.getListWorkflowsMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getListWorkflowsMethod = GatewayServiceGrpc.getListWorkflowsMethod) == null) {
-          GatewayServiceGrpc.getListWorkflowsMethod = getListWorkflowsMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListWorkflowsRequest, talon.gateway.Gateway.ListWorkflowsResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListWorkflows"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListWorkflowsRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListWorkflowsResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListWorkflows"))
-              .build();
-        }
-      }
-    }
-    return getListWorkflowsMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteWorkflowRequest,
-      talon.gateway.Gateway.DeleteWorkflowResponse> getDeleteWorkflowMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "DeleteWorkflow",
-      requestType = talon.gateway.Gateway.DeleteWorkflowRequest.class,
-      responseType = talon.gateway.Gateway.DeleteWorkflowResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteWorkflowRequest,
-      talon.gateway.Gateway.DeleteWorkflowResponse> getDeleteWorkflowMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteWorkflowRequest, talon.gateway.Gateway.DeleteWorkflowResponse> getDeleteWorkflowMethod;
-    if ((getDeleteWorkflowMethod = GatewayServiceGrpc.getDeleteWorkflowMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getDeleteWorkflowMethod = GatewayServiceGrpc.getDeleteWorkflowMethod) == null) {
-          GatewayServiceGrpc.getDeleteWorkflowMethod = getDeleteWorkflowMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.DeleteWorkflowRequest, talon.gateway.Gateway.DeleteWorkflowResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DeleteWorkflow"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteWorkflowRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteWorkflowResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("DeleteWorkflow"))
-              .build();
-        }
-      }
-    }
-    return getDeleteWorkflowMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateWorkflowRunRequest,
@@ -1656,28 +726,28 @@ public final class GatewayServiceGrpc {
   }
 
   private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.StreamWorkflowEventsRequest,
-      talon.models.Models.WorkflowRunEvent> getStreamWorkflowEventsMethod;
+      talon.data.Data.WorkflowRunEvent> getStreamWorkflowEventsMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "StreamWorkflowEvents",
       requestType = talon.gateway.Gateway.StreamWorkflowEventsRequest.class,
-      responseType = talon.models.Models.WorkflowRunEvent.class,
+      responseType = talon.data.Data.WorkflowRunEvent.class,
       methodType = io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
   public static io.grpc.MethodDescriptor<talon.gateway.Gateway.StreamWorkflowEventsRequest,
-      talon.models.Models.WorkflowRunEvent> getStreamWorkflowEventsMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.StreamWorkflowEventsRequest, talon.models.Models.WorkflowRunEvent> getStreamWorkflowEventsMethod;
+      talon.data.Data.WorkflowRunEvent> getStreamWorkflowEventsMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.StreamWorkflowEventsRequest, talon.data.Data.WorkflowRunEvent> getStreamWorkflowEventsMethod;
     if ((getStreamWorkflowEventsMethod = GatewayServiceGrpc.getStreamWorkflowEventsMethod) == null) {
       synchronized (GatewayServiceGrpc.class) {
         if ((getStreamWorkflowEventsMethod = GatewayServiceGrpc.getStreamWorkflowEventsMethod) == null) {
           GatewayServiceGrpc.getStreamWorkflowEventsMethod = getStreamWorkflowEventsMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.StreamWorkflowEventsRequest, talon.models.Models.WorkflowRunEvent>newBuilder()
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.StreamWorkflowEventsRequest, talon.data.Data.WorkflowRunEvent>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "StreamWorkflowEvents"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   talon.gateway.Gateway.StreamWorkflowEventsRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.models.Models.WorkflowRunEvent.getDefaultInstance()))
+                  talon.data.Data.WorkflowRunEvent.getDefaultInstance()))
               .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("StreamWorkflowEvents"))
               .build();
         }
@@ -1810,376 +880,128 @@ public final class GatewayServiceGrpc {
     return getListNamespacesMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateAgentTemplateRequest,
-      talon.gateway.Gateway.AgentTemplateResponse> getCreateAgentTemplateMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateResourceRequest,
+      talon.gateway.Gateway.ResourceResponse> getCreateResourceMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "CreateAgentTemplate",
-      requestType = talon.gateway.Gateway.CreateAgentTemplateRequest.class,
-      responseType = talon.gateway.Gateway.AgentTemplateResponse.class,
+      fullMethodName = SERVICE_NAME + '/' + "CreateResource",
+      requestType = talon.gateway.Gateway.CreateResourceRequest.class,
+      responseType = talon.gateway.Gateway.ResourceResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateAgentTemplateRequest,
-      talon.gateway.Gateway.AgentTemplateResponse> getCreateAgentTemplateMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateAgentTemplateRequest, talon.gateway.Gateway.AgentTemplateResponse> getCreateAgentTemplateMethod;
-    if ((getCreateAgentTemplateMethod = GatewayServiceGrpc.getCreateAgentTemplateMethod) == null) {
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateResourceRequest,
+      talon.gateway.Gateway.ResourceResponse> getCreateResourceMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateResourceRequest, talon.gateway.Gateway.ResourceResponse> getCreateResourceMethod;
+    if ((getCreateResourceMethod = GatewayServiceGrpc.getCreateResourceMethod) == null) {
       synchronized (GatewayServiceGrpc.class) {
-        if ((getCreateAgentTemplateMethod = GatewayServiceGrpc.getCreateAgentTemplateMethod) == null) {
-          GatewayServiceGrpc.getCreateAgentTemplateMethod = getCreateAgentTemplateMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateAgentTemplateRequest, talon.gateway.Gateway.AgentTemplateResponse>newBuilder()
+        if ((getCreateResourceMethod = GatewayServiceGrpc.getCreateResourceMethod) == null) {
+          GatewayServiceGrpc.getCreateResourceMethod = getCreateResourceMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateResourceRequest, talon.gateway.Gateway.ResourceResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateAgentTemplate"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateResource"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.CreateAgentTemplateRequest.getDefaultInstance()))
+                  talon.gateway.Gateway.CreateResourceRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.AgentTemplateResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateAgentTemplate"))
+                  talon.gateway.Gateway.ResourceResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateResource"))
               .build();
         }
       }
     }
-    return getCreateAgentTemplateMethod;
+    return getCreateResourceMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetAgentTemplateRequest,
-      talon.gateway.Gateway.AgentTemplateResponse> getGetAgentTemplateMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetResourceRequest,
+      talon.gateway.Gateway.ResourceResponse> getGetResourceMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "GetAgentTemplate",
-      requestType = talon.gateway.Gateway.GetAgentTemplateRequest.class,
-      responseType = talon.gateway.Gateway.AgentTemplateResponse.class,
+      fullMethodName = SERVICE_NAME + '/' + "GetResource",
+      requestType = talon.gateway.Gateway.GetResourceRequest.class,
+      responseType = talon.gateway.Gateway.ResourceResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetAgentTemplateRequest,
-      talon.gateway.Gateway.AgentTemplateResponse> getGetAgentTemplateMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetAgentTemplateRequest, talon.gateway.Gateway.AgentTemplateResponse> getGetAgentTemplateMethod;
-    if ((getGetAgentTemplateMethod = GatewayServiceGrpc.getGetAgentTemplateMethod) == null) {
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetResourceRequest,
+      talon.gateway.Gateway.ResourceResponse> getGetResourceMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetResourceRequest, talon.gateway.Gateway.ResourceResponse> getGetResourceMethod;
+    if ((getGetResourceMethod = GatewayServiceGrpc.getGetResourceMethod) == null) {
       synchronized (GatewayServiceGrpc.class) {
-        if ((getGetAgentTemplateMethod = GatewayServiceGrpc.getGetAgentTemplateMethod) == null) {
-          GatewayServiceGrpc.getGetAgentTemplateMethod = getGetAgentTemplateMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetAgentTemplateRequest, talon.gateway.Gateway.AgentTemplateResponse>newBuilder()
+        if ((getGetResourceMethod = GatewayServiceGrpc.getGetResourceMethod) == null) {
+          GatewayServiceGrpc.getGetResourceMethod = getGetResourceMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetResourceRequest, talon.gateway.Gateway.ResourceResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAgentTemplate"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetResource"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.GetAgentTemplateRequest.getDefaultInstance()))
+                  talon.gateway.Gateway.GetResourceRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.AgentTemplateResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetAgentTemplate"))
+                  talon.gateway.Gateway.ResourceResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetResource"))
               .build();
         }
       }
     }
-    return getGetAgentTemplateMethod;
+    return getGetResourceMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListAgentTemplatesRequest,
-      talon.gateway.Gateway.ListAgentTemplatesResponse> getListAgentTemplatesMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListResourcesRequest,
+      talon.gateway.Gateway.ListResourcesResponse> getListResourcesMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ListAgentTemplates",
-      requestType = talon.gateway.Gateway.ListAgentTemplatesRequest.class,
-      responseType = talon.gateway.Gateway.ListAgentTemplatesResponse.class,
+      fullMethodName = SERVICE_NAME + '/' + "ListResources",
+      requestType = talon.gateway.Gateway.ListResourcesRequest.class,
+      responseType = talon.gateway.Gateway.ListResourcesResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListAgentTemplatesRequest,
-      talon.gateway.Gateway.ListAgentTemplatesResponse> getListAgentTemplatesMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListAgentTemplatesRequest, talon.gateway.Gateway.ListAgentTemplatesResponse> getListAgentTemplatesMethod;
-    if ((getListAgentTemplatesMethod = GatewayServiceGrpc.getListAgentTemplatesMethod) == null) {
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListResourcesRequest,
+      talon.gateway.Gateway.ListResourcesResponse> getListResourcesMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListResourcesRequest, talon.gateway.Gateway.ListResourcesResponse> getListResourcesMethod;
+    if ((getListResourcesMethod = GatewayServiceGrpc.getListResourcesMethod) == null) {
       synchronized (GatewayServiceGrpc.class) {
-        if ((getListAgentTemplatesMethod = GatewayServiceGrpc.getListAgentTemplatesMethod) == null) {
-          GatewayServiceGrpc.getListAgentTemplatesMethod = getListAgentTemplatesMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListAgentTemplatesRequest, talon.gateway.Gateway.ListAgentTemplatesResponse>newBuilder()
+        if ((getListResourcesMethod = GatewayServiceGrpc.getListResourcesMethod) == null) {
+          GatewayServiceGrpc.getListResourcesMethod = getListResourcesMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListResourcesRequest, talon.gateway.Gateway.ListResourcesResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListAgentTemplates"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListResources"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListAgentTemplatesRequest.getDefaultInstance()))
+                  talon.gateway.Gateway.ListResourcesRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListAgentTemplatesResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListAgentTemplates"))
+                  talon.gateway.Gateway.ListResourcesResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListResources"))
               .build();
         }
       }
     }
-    return getListAgentTemplatesMethod;
+    return getListResourcesMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteAgentTemplateRequest,
-      talon.gateway.Gateway.DeleteAgentTemplateResponse> getDeleteAgentTemplateMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteResourceRequest,
+      talon.gateway.Gateway.DeleteResourceResponse> getDeleteResourceMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "DeleteAgentTemplate",
-      requestType = talon.gateway.Gateway.DeleteAgentTemplateRequest.class,
-      responseType = talon.gateway.Gateway.DeleteAgentTemplateResponse.class,
+      fullMethodName = SERVICE_NAME + '/' + "DeleteResource",
+      requestType = talon.gateway.Gateway.DeleteResourceRequest.class,
+      responseType = talon.gateway.Gateway.DeleteResourceResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteAgentTemplateRequest,
-      talon.gateway.Gateway.DeleteAgentTemplateResponse> getDeleteAgentTemplateMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteAgentTemplateRequest, talon.gateway.Gateway.DeleteAgentTemplateResponse> getDeleteAgentTemplateMethod;
-    if ((getDeleteAgentTemplateMethod = GatewayServiceGrpc.getDeleteAgentTemplateMethod) == null) {
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteResourceRequest,
+      talon.gateway.Gateway.DeleteResourceResponse> getDeleteResourceMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteResourceRequest, talon.gateway.Gateway.DeleteResourceResponse> getDeleteResourceMethod;
+    if ((getDeleteResourceMethod = GatewayServiceGrpc.getDeleteResourceMethod) == null) {
       synchronized (GatewayServiceGrpc.class) {
-        if ((getDeleteAgentTemplateMethod = GatewayServiceGrpc.getDeleteAgentTemplateMethod) == null) {
-          GatewayServiceGrpc.getDeleteAgentTemplateMethod = getDeleteAgentTemplateMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.DeleteAgentTemplateRequest, talon.gateway.Gateway.DeleteAgentTemplateResponse>newBuilder()
+        if ((getDeleteResourceMethod = GatewayServiceGrpc.getDeleteResourceMethod) == null) {
+          GatewayServiceGrpc.getDeleteResourceMethod = getDeleteResourceMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.DeleteResourceRequest, talon.gateway.Gateway.DeleteResourceResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DeleteAgentTemplate"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DeleteResource"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteAgentTemplateRequest.getDefaultInstance()))
+                  talon.gateway.Gateway.DeleteResourceRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteAgentTemplateResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("DeleteAgentTemplate"))
+                  talon.gateway.Gateway.DeleteResourceResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("DeleteResource"))
               .build();
         }
       }
     }
-    return getDeleteAgentTemplateMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateMcpServerRequest,
-      talon.gateway.Gateway.McpServerResponse> getCreateMcpServerMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "CreateMcpServer",
-      requestType = talon.gateway.Gateway.CreateMcpServerRequest.class,
-      responseType = talon.gateway.Gateway.McpServerResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateMcpServerRequest,
-      talon.gateway.Gateway.McpServerResponse> getCreateMcpServerMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateMcpServerRequest, talon.gateway.Gateway.McpServerResponse> getCreateMcpServerMethod;
-    if ((getCreateMcpServerMethod = GatewayServiceGrpc.getCreateMcpServerMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getCreateMcpServerMethod = GatewayServiceGrpc.getCreateMcpServerMethod) == null) {
-          GatewayServiceGrpc.getCreateMcpServerMethod = getCreateMcpServerMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateMcpServerRequest, talon.gateway.Gateway.McpServerResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateMcpServer"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.CreateMcpServerRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.McpServerResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateMcpServer"))
-              .build();
-        }
-      }
-    }
-    return getCreateMcpServerMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetMcpServerRequest,
-      talon.gateway.Gateway.McpServerResponse> getGetMcpServerMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "GetMcpServer",
-      requestType = talon.gateway.Gateway.GetMcpServerRequest.class,
-      responseType = talon.gateway.Gateway.McpServerResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetMcpServerRequest,
-      talon.gateway.Gateway.McpServerResponse> getGetMcpServerMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetMcpServerRequest, talon.gateway.Gateway.McpServerResponse> getGetMcpServerMethod;
-    if ((getGetMcpServerMethod = GatewayServiceGrpc.getGetMcpServerMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getGetMcpServerMethod = GatewayServiceGrpc.getGetMcpServerMethod) == null) {
-          GatewayServiceGrpc.getGetMcpServerMethod = getGetMcpServerMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetMcpServerRequest, talon.gateway.Gateway.McpServerResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetMcpServer"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.GetMcpServerRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.McpServerResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetMcpServer"))
-              .build();
-        }
-      }
-    }
-    return getGetMcpServerMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListMcpServersRequest,
-      talon.gateway.Gateway.ListMcpServersResponse> getListMcpServersMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ListMcpServers",
-      requestType = talon.gateway.Gateway.ListMcpServersRequest.class,
-      responseType = talon.gateway.Gateway.ListMcpServersResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListMcpServersRequest,
-      talon.gateway.Gateway.ListMcpServersResponse> getListMcpServersMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListMcpServersRequest, talon.gateway.Gateway.ListMcpServersResponse> getListMcpServersMethod;
-    if ((getListMcpServersMethod = GatewayServiceGrpc.getListMcpServersMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getListMcpServersMethod = GatewayServiceGrpc.getListMcpServersMethod) == null) {
-          GatewayServiceGrpc.getListMcpServersMethod = getListMcpServersMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListMcpServersRequest, talon.gateway.Gateway.ListMcpServersResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListMcpServers"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListMcpServersRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListMcpServersResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListMcpServers"))
-              .build();
-        }
-      }
-    }
-    return getListMcpServersMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteMcpServerRequest,
-      talon.gateway.Gateway.DeleteMcpServerResponse> getDeleteMcpServerMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "DeleteMcpServer",
-      requestType = talon.gateway.Gateway.DeleteMcpServerRequest.class,
-      responseType = talon.gateway.Gateway.DeleteMcpServerResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteMcpServerRequest,
-      talon.gateway.Gateway.DeleteMcpServerResponse> getDeleteMcpServerMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteMcpServerRequest, talon.gateway.Gateway.DeleteMcpServerResponse> getDeleteMcpServerMethod;
-    if ((getDeleteMcpServerMethod = GatewayServiceGrpc.getDeleteMcpServerMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getDeleteMcpServerMethod = GatewayServiceGrpc.getDeleteMcpServerMethod) == null) {
-          GatewayServiceGrpc.getDeleteMcpServerMethod = getDeleteMcpServerMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.DeleteMcpServerRequest, talon.gateway.Gateway.DeleteMcpServerResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DeleteMcpServer"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteMcpServerRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteMcpServerResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("DeleteMcpServer"))
-              .build();
-        }
-      }
-    }
-    return getDeleteMcpServerMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateMcpServerBindingRequest,
-      talon.gateway.Gateway.McpServerBindingResponse> getCreateMcpServerBindingMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "CreateMcpServerBinding",
-      requestType = talon.gateway.Gateway.CreateMcpServerBindingRequest.class,
-      responseType = talon.gateway.Gateway.McpServerBindingResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateMcpServerBindingRequest,
-      talon.gateway.Gateway.McpServerBindingResponse> getCreateMcpServerBindingMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateMcpServerBindingRequest, talon.gateway.Gateway.McpServerBindingResponse> getCreateMcpServerBindingMethod;
-    if ((getCreateMcpServerBindingMethod = GatewayServiceGrpc.getCreateMcpServerBindingMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getCreateMcpServerBindingMethod = GatewayServiceGrpc.getCreateMcpServerBindingMethod) == null) {
-          GatewayServiceGrpc.getCreateMcpServerBindingMethod = getCreateMcpServerBindingMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateMcpServerBindingRequest, talon.gateway.Gateway.McpServerBindingResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateMcpServerBinding"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.CreateMcpServerBindingRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.McpServerBindingResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateMcpServerBinding"))
-              .build();
-        }
-      }
-    }
-    return getCreateMcpServerBindingMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetMcpServerBindingRequest,
-      talon.gateway.Gateway.McpServerBindingResponse> getGetMcpServerBindingMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "GetMcpServerBinding",
-      requestType = talon.gateway.Gateway.GetMcpServerBindingRequest.class,
-      responseType = talon.gateway.Gateway.McpServerBindingResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetMcpServerBindingRequest,
-      talon.gateway.Gateway.McpServerBindingResponse> getGetMcpServerBindingMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetMcpServerBindingRequest, talon.gateway.Gateway.McpServerBindingResponse> getGetMcpServerBindingMethod;
-    if ((getGetMcpServerBindingMethod = GatewayServiceGrpc.getGetMcpServerBindingMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getGetMcpServerBindingMethod = GatewayServiceGrpc.getGetMcpServerBindingMethod) == null) {
-          GatewayServiceGrpc.getGetMcpServerBindingMethod = getGetMcpServerBindingMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetMcpServerBindingRequest, talon.gateway.Gateway.McpServerBindingResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetMcpServerBinding"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.GetMcpServerBindingRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.McpServerBindingResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetMcpServerBinding"))
-              .build();
-        }
-      }
-    }
-    return getGetMcpServerBindingMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListMcpServerBindingsRequest,
-      talon.gateway.Gateway.ListMcpServerBindingsResponse> getListMcpServerBindingsMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ListMcpServerBindings",
-      requestType = talon.gateway.Gateway.ListMcpServerBindingsRequest.class,
-      responseType = talon.gateway.Gateway.ListMcpServerBindingsResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListMcpServerBindingsRequest,
-      talon.gateway.Gateway.ListMcpServerBindingsResponse> getListMcpServerBindingsMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListMcpServerBindingsRequest, talon.gateway.Gateway.ListMcpServerBindingsResponse> getListMcpServerBindingsMethod;
-    if ((getListMcpServerBindingsMethod = GatewayServiceGrpc.getListMcpServerBindingsMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getListMcpServerBindingsMethod = GatewayServiceGrpc.getListMcpServerBindingsMethod) == null) {
-          GatewayServiceGrpc.getListMcpServerBindingsMethod = getListMcpServerBindingsMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListMcpServerBindingsRequest, talon.gateway.Gateway.ListMcpServerBindingsResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListMcpServerBindings"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListMcpServerBindingsRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.ListMcpServerBindingsResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListMcpServerBindings"))
-              .build();
-        }
-      }
-    }
-    return getListMcpServerBindingsMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteMcpServerBindingRequest,
-      talon.gateway.Gateway.DeleteMcpServerBindingResponse> getDeleteMcpServerBindingMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "DeleteMcpServerBinding",
-      requestType = talon.gateway.Gateway.DeleteMcpServerBindingRequest.class,
-      responseType = talon.gateway.Gateway.DeleteMcpServerBindingResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteMcpServerBindingRequest,
-      talon.gateway.Gateway.DeleteMcpServerBindingResponse> getDeleteMcpServerBindingMethod() {
-    io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteMcpServerBindingRequest, talon.gateway.Gateway.DeleteMcpServerBindingResponse> getDeleteMcpServerBindingMethod;
-    if ((getDeleteMcpServerBindingMethod = GatewayServiceGrpc.getDeleteMcpServerBindingMethod) == null) {
-      synchronized (GatewayServiceGrpc.class) {
-        if ((getDeleteMcpServerBindingMethod = GatewayServiceGrpc.getDeleteMcpServerBindingMethod) == null) {
-          GatewayServiceGrpc.getDeleteMcpServerBindingMethod = getDeleteMcpServerBindingMethod =
-              io.grpc.MethodDescriptor.<talon.gateway.Gateway.DeleteMcpServerBindingRequest, talon.gateway.Gateway.DeleteMcpServerBindingResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DeleteMcpServerBinding"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteMcpServerBindingRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.gateway.Gateway.DeleteMcpServerBindingResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("DeleteMcpServerBinding"))
-              .build();
-        }
-      }
-    }
-    return getDeleteMcpServerBindingMethod;
+    return getDeleteResourceMethod;
   }
 
   /**
@@ -2247,38 +1069,7 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Agent Lifecycle
-     * </pre>
-     */
-    default void createAgent(talon.gateway.Gateway.CreateAgentRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateAgentMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void getAgent(talon.gateway.Gateway.GetAgentRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.GetAgentResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetAgentMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void modifyAgent(talon.gateway.Gateway.ModifyAgentRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getModifyAgentMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void listAgents(talon.gateway.Gateway.ListAgentsRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListAgentsResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListAgentsMethod(), responseObserver);
-    }
-
-    /**
-     * <pre>
-     * Agent Knowledge
+     * Agent knowledge data-plane queries
      * </pre>
      */
     default void getKnowledge(talon.gateway.Gateway.GetKnowledgeRequest request,
@@ -2291,62 +1082,6 @@ public final class GatewayServiceGrpc {
     default void searchKnowledge(talon.gateway.Gateway.SearchKnowledgeRequest request,
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.SearchKnowledgeResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getSearchKnowledgeMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void createNamespaceKnowledge(talon.gateway.Gateway.CreateNamespaceKnowledgeRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceKnowledgeResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateNamespaceKnowledgeMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void getNamespaceKnowledge(talon.gateway.Gateway.GetNamespaceKnowledgeRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceKnowledgeResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetNamespaceKnowledgeMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void listNamespaceKnowledge(talon.gateway.Gateway.ListNamespaceKnowledgeRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListNamespaceKnowledgeResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListNamespaceKnowledgeMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void deleteNamespaceKnowledge(talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteNamespaceKnowledgeMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void createNamespaceSkill(talon.gateway.Gateway.CreateNamespaceSkillRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceSkillResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateNamespaceSkillMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void getNamespaceSkill(talon.gateway.Gateway.GetNamespaceSkillRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceSkillResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetNamespaceSkillMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void listNamespaceSkills(talon.gateway.Gateway.ListNamespaceSkillsRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListNamespaceSkillsResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListNamespaceSkillsMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void deleteNamespaceSkill(talon.gateway.Gateway.DeleteNamespaceSkillRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteNamespaceSkillResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteNamespaceSkillMethod(), responseObserver);
     }
 
     /**
@@ -2413,6 +1148,13 @@ public final class GatewayServiceGrpc {
 
     /**
      */
+    default void answerSessionPermission(talon.gateway.Gateway.AnswerSessionPermissionRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AnswerSessionPermissionResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getAnswerSessionPermissionMethod(), responseObserver);
+    }
+
+    /**
+     */
     default void stopSessionGeneration(talon.gateway.Gateway.StopSessionGenerationRequest request,
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.StopSessionGenerationResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getStopSessionGenerationMethod(), responseObserver);
@@ -2434,43 +1176,8 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Channels
+     * Channel data-plane actions
      * </pre>
-     */
-    default void createChannel(talon.gateway.Gateway.CreateChannelRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateChannelMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void getChannel(talon.gateway.Gateway.GetChannelRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetChannelMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void modifyChannel(talon.gateway.Gateway.ModifyChannelRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getModifyChannelMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void listChannels(talon.gateway.Gateway.ListChannelsRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListChannelsResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListChannelsMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void deleteChannel(talon.gateway.Gateway.DeleteChannelRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteChannelResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteChannelMethod(), responseObserver);
-    }
-
-    /**
      */
     default void postChannelMessage(talon.gateway.Gateway.PostChannelMessageRequest request,
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.PostChannelMessageResponse> responseObserver) {
@@ -2493,41 +1200,6 @@ public final class GatewayServiceGrpc {
 
     /**
      */
-    default void createChannelSubscription(talon.gateway.Gateway.CreateChannelSubscriptionRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelSubscriptionResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateChannelSubscriptionMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void getChannelSubscription(talon.gateway.Gateway.GetChannelSubscriptionRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelSubscriptionResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetChannelSubscriptionMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void modifyChannelSubscription(talon.gateway.Gateway.ModifyChannelSubscriptionRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelSubscriptionResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getModifyChannelSubscriptionMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void listChannelSubscriptions(talon.gateway.Gateway.ListChannelSubscriptionsRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListChannelSubscriptionsResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListChannelSubscriptionsMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void deleteChannelSubscription(talon.gateway.Gateway.DeleteChannelSubscriptionRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteChannelSubscriptionResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteChannelSubscriptionMethod(), responseObserver);
-    }
-
-    /**
-     */
     default void streamChannelEvents(talon.gateway.Gateway.StreamChannelEventsRequest request,
         io.grpc.stub.StreamObserver<talon.events.Events.ChannelEvent> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getStreamChannelEventsMethod(), responseObserver);
@@ -2535,74 +1207,8 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Schedules
+     * Workflow data-plane actions
      * </pre>
-     */
-    default void createSchedule(talon.gateway.Gateway.CreateScheduleRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ScheduleResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateScheduleMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void getSchedule(talon.gateway.Gateway.GetScheduleRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ScheduleResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetScheduleMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void modifySchedule(talon.gateway.Gateway.ModifyScheduleRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ScheduleResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getModifyScheduleMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void listSchedules(talon.gateway.Gateway.ListSchedulesRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListSchedulesResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListSchedulesMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void deleteSchedule(talon.gateway.Gateway.DeleteScheduleRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteScheduleResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteScheduleMethod(), responseObserver);
-    }
-
-    /**
-     * <pre>
-     * Workflows
-     * </pre>
-     */
-    default void createWorkflow(talon.gateway.Gateway.CreateWorkflowRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateWorkflowMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void getWorkflow(talon.gateway.Gateway.GetWorkflowRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetWorkflowMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void listWorkflows(talon.gateway.Gateway.ListWorkflowsRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListWorkflowsResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListWorkflowsMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void deleteWorkflow(talon.gateway.Gateway.DeleteWorkflowRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteWorkflowResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteWorkflowMethod(), responseObserver);
-    }
-
-    /**
      */
     default void createWorkflowRun(talon.gateway.Gateway.CreateWorkflowRunRequest request,
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse> responseObserver) {
@@ -2640,7 +1246,7 @@ public final class GatewayServiceGrpc {
     /**
      */
     default void streamWorkflowEvents(talon.gateway.Gateway.StreamWorkflowEventsRequest request,
-        io.grpc.stub.StreamObserver<talon.models.Models.WorkflowRunEvent> responseObserver) {
+        io.grpc.stub.StreamObserver<talon.data.Data.WorkflowRunEvent> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getStreamWorkflowEventsMethod(), responseObserver);
     }
 
@@ -2677,92 +1283,33 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Agent Templates
+     * Generic resources
      * </pre>
      */
-    default void createAgentTemplate(talon.gateway.Gateway.CreateAgentTemplateRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentTemplateResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateAgentTemplateMethod(), responseObserver);
+    default void createResource(talon.gateway.Gateway.CreateResourceRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ResourceResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateResourceMethod(), responseObserver);
     }
 
     /**
      */
-    default void getAgentTemplate(talon.gateway.Gateway.GetAgentTemplateRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentTemplateResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetAgentTemplateMethod(), responseObserver);
+    default void getResource(talon.gateway.Gateway.GetResourceRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ResourceResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetResourceMethod(), responseObserver);
     }
 
     /**
      */
-    default void listAgentTemplates(talon.gateway.Gateway.ListAgentTemplatesRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListAgentTemplatesResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListAgentTemplatesMethod(), responseObserver);
+    default void listResources(talon.gateway.Gateway.ListResourcesRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListResourcesResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListResourcesMethod(), responseObserver);
     }
 
     /**
      */
-    default void deleteAgentTemplate(talon.gateway.Gateway.DeleteAgentTemplateRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteAgentTemplateResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteAgentTemplateMethod(), responseObserver);
-    }
-
-    /**
-     * <pre>
-     * MCP Servers
-     * </pre>
-     */
-    default void createMcpServer(talon.gateway.Gateway.CreateMcpServerRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.McpServerResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateMcpServerMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void getMcpServer(talon.gateway.Gateway.GetMcpServerRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.McpServerResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetMcpServerMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void listMcpServers(talon.gateway.Gateway.ListMcpServersRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListMcpServersResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListMcpServersMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void deleteMcpServer(talon.gateway.Gateway.DeleteMcpServerRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteMcpServerResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteMcpServerMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void createMcpServerBinding(talon.gateway.Gateway.CreateMcpServerBindingRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.McpServerBindingResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateMcpServerBindingMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void getMcpServerBinding(talon.gateway.Gateway.GetMcpServerBindingRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.McpServerBindingResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetMcpServerBindingMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void listMcpServerBindings(talon.gateway.Gateway.ListMcpServerBindingsRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListMcpServerBindingsResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListMcpServerBindingsMethod(), responseObserver);
-    }
-
-    /**
-     */
-    default void deleteMcpServerBinding(talon.gateway.Gateway.DeleteMcpServerBindingRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteMcpServerBindingResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteMcpServerBindingMethod(), responseObserver);
+    default void deleteResource(talon.gateway.Gateway.DeleteResourceRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteResourceResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteResourceMethod(), responseObserver);
     }
   }
 
@@ -2795,42 +1342,7 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Agent Lifecycle
-     * </pre>
-     */
-    public void createAgent(talon.gateway.Gateway.CreateAgentRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getCreateAgentMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void getAgent(talon.gateway.Gateway.GetAgentRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.GetAgentResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getGetAgentMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void modifyAgent(talon.gateway.Gateway.ModifyAgentRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getModifyAgentMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void listAgents(talon.gateway.Gateway.ListAgentsRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListAgentsResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getListAgentsMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     * <pre>
-     * Agent Knowledge
+     * Agent knowledge data-plane queries
      * </pre>
      */
     public void getKnowledge(talon.gateway.Gateway.GetKnowledgeRequest request,
@@ -2845,70 +1357,6 @@ public final class GatewayServiceGrpc {
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.SearchKnowledgeResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getSearchKnowledgeMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void createNamespaceKnowledge(talon.gateway.Gateway.CreateNamespaceKnowledgeRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceKnowledgeResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getCreateNamespaceKnowledgeMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void getNamespaceKnowledge(talon.gateway.Gateway.GetNamespaceKnowledgeRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceKnowledgeResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getGetNamespaceKnowledgeMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void listNamespaceKnowledge(talon.gateway.Gateway.ListNamespaceKnowledgeRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListNamespaceKnowledgeResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getListNamespaceKnowledgeMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void deleteNamespaceKnowledge(talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getDeleteNamespaceKnowledgeMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void createNamespaceSkill(talon.gateway.Gateway.CreateNamespaceSkillRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceSkillResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getCreateNamespaceSkillMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void getNamespaceSkill(talon.gateway.Gateway.GetNamespaceSkillRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceSkillResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getGetNamespaceSkillMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void listNamespaceSkills(talon.gateway.Gateway.ListNamespaceSkillsRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListNamespaceSkillsResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getListNamespaceSkillsMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void deleteNamespaceSkill(talon.gateway.Gateway.DeleteNamespaceSkillRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteNamespaceSkillResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getDeleteNamespaceSkillMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -2983,6 +1431,14 @@ public final class GatewayServiceGrpc {
 
     /**
      */
+    public void answerSessionPermission(talon.gateway.Gateway.AnswerSessionPermissionRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AnswerSessionPermissionResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getAnswerSessionPermissionMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
     public void stopSessionGeneration(talon.gateway.Gateway.StopSessionGenerationRequest request,
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.StopSessionGenerationResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
@@ -3007,48 +1463,8 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Channels
+     * Channel data-plane actions
      * </pre>
-     */
-    public void createChannel(talon.gateway.Gateway.CreateChannelRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getCreateChannelMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void getChannel(talon.gateway.Gateway.GetChannelRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getGetChannelMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void modifyChannel(talon.gateway.Gateway.ModifyChannelRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getModifyChannelMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void listChannels(talon.gateway.Gateway.ListChannelsRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListChannelsResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getListChannelsMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void deleteChannel(talon.gateway.Gateway.DeleteChannelRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteChannelResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getDeleteChannelMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
      */
     public void postChannelMessage(talon.gateway.Gateway.PostChannelMessageRequest request,
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.PostChannelMessageResponse> responseObserver) {
@@ -3074,46 +1490,6 @@ public final class GatewayServiceGrpc {
 
     /**
      */
-    public void createChannelSubscription(talon.gateway.Gateway.CreateChannelSubscriptionRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelSubscriptionResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getCreateChannelSubscriptionMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void getChannelSubscription(talon.gateway.Gateway.GetChannelSubscriptionRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelSubscriptionResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getGetChannelSubscriptionMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void modifyChannelSubscription(talon.gateway.Gateway.ModifyChannelSubscriptionRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelSubscriptionResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getModifyChannelSubscriptionMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void listChannelSubscriptions(talon.gateway.Gateway.ListChannelSubscriptionsRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListChannelSubscriptionsResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getListChannelSubscriptionsMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void deleteChannelSubscription(talon.gateway.Gateway.DeleteChannelSubscriptionRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteChannelSubscriptionResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getDeleteChannelSubscriptionMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
     public void streamChannelEvents(talon.gateway.Gateway.StreamChannelEventsRequest request,
         io.grpc.stub.StreamObserver<talon.events.Events.ChannelEvent> responseObserver) {
       io.grpc.stub.ClientCalls.asyncServerStreamingCall(
@@ -3122,83 +1498,8 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Schedules
+     * Workflow data-plane actions
      * </pre>
-     */
-    public void createSchedule(talon.gateway.Gateway.CreateScheduleRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ScheduleResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getCreateScheduleMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void getSchedule(talon.gateway.Gateway.GetScheduleRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ScheduleResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getGetScheduleMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void modifySchedule(talon.gateway.Gateway.ModifyScheduleRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ScheduleResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getModifyScheduleMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void listSchedules(talon.gateway.Gateway.ListSchedulesRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListSchedulesResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getListSchedulesMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void deleteSchedule(talon.gateway.Gateway.DeleteScheduleRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteScheduleResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getDeleteScheduleMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     * <pre>
-     * Workflows
-     * </pre>
-     */
-    public void createWorkflow(talon.gateway.Gateway.CreateWorkflowRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getCreateWorkflowMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void getWorkflow(talon.gateway.Gateway.GetWorkflowRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getGetWorkflowMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void listWorkflows(talon.gateway.Gateway.ListWorkflowsRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListWorkflowsResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getListWorkflowsMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void deleteWorkflow(talon.gateway.Gateway.DeleteWorkflowRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteWorkflowResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getDeleteWorkflowMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
      */
     public void createWorkflowRun(talon.gateway.Gateway.CreateWorkflowRunRequest request,
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse> responseObserver) {
@@ -3241,7 +1542,7 @@ public final class GatewayServiceGrpc {
     /**
      */
     public void streamWorkflowEvents(talon.gateway.Gateway.StreamWorkflowEventsRequest request,
-        io.grpc.stub.StreamObserver<talon.models.Models.WorkflowRunEvent> responseObserver) {
+        io.grpc.stub.StreamObserver<talon.data.Data.WorkflowRunEvent> responseObserver) {
       io.grpc.stub.ClientCalls.asyncServerStreamingCall(
           getChannel().newCall(getStreamWorkflowEventsMethod(), getCallOptions()), request, responseObserver);
     }
@@ -3283,104 +1584,37 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Agent Templates
+     * Generic resources
      * </pre>
      */
-    public void createAgentTemplate(talon.gateway.Gateway.CreateAgentTemplateRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentTemplateResponse> responseObserver) {
+    public void createResource(talon.gateway.Gateway.CreateResourceRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ResourceResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getCreateAgentTemplateMethod(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getCreateResourceMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void getAgentTemplate(talon.gateway.Gateway.GetAgentTemplateRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentTemplateResponse> responseObserver) {
+    public void getResource(talon.gateway.Gateway.GetResourceRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ResourceResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getGetAgentTemplateMethod(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetResourceMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void listAgentTemplates(talon.gateway.Gateway.ListAgentTemplatesRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListAgentTemplatesResponse> responseObserver) {
+    public void listResources(talon.gateway.Gateway.ListResourcesRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListResourcesResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getListAgentTemplatesMethod(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getListResourcesMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void deleteAgentTemplate(talon.gateway.Gateway.DeleteAgentTemplateRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteAgentTemplateResponse> responseObserver) {
+    public void deleteResource(talon.gateway.Gateway.DeleteResourceRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteResourceResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getDeleteAgentTemplateMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     * <pre>
-     * MCP Servers
-     * </pre>
-     */
-    public void createMcpServer(talon.gateway.Gateway.CreateMcpServerRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.McpServerResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getCreateMcpServerMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void getMcpServer(talon.gateway.Gateway.GetMcpServerRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.McpServerResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getGetMcpServerMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void listMcpServers(talon.gateway.Gateway.ListMcpServersRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListMcpServersResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getListMcpServersMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void deleteMcpServer(talon.gateway.Gateway.DeleteMcpServerRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteMcpServerResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getDeleteMcpServerMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void createMcpServerBinding(talon.gateway.Gateway.CreateMcpServerBindingRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.McpServerBindingResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getCreateMcpServerBindingMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void getMcpServerBinding(talon.gateway.Gateway.GetMcpServerBindingRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.McpServerBindingResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getGetMcpServerBindingMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void listMcpServerBindings(talon.gateway.Gateway.ListMcpServerBindingsRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListMcpServerBindingsResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getListMcpServerBindingsMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void deleteMcpServerBinding(talon.gateway.Gateway.DeleteMcpServerBindingRequest request,
-        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteMcpServerBindingResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getDeleteMcpServerBindingMethod(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getDeleteResourceMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -3402,38 +1636,7 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Agent Lifecycle
-     * </pre>
-     */
-    public talon.gateway.Gateway.AgentResponse createAgent(talon.gateway.Gateway.CreateAgentRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getCreateAgentMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.GetAgentResponse getAgent(talon.gateway.Gateway.GetAgentRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getGetAgentMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.AgentResponse modifyAgent(talon.gateway.Gateway.ModifyAgentRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getModifyAgentMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListAgentsResponse listAgents(talon.gateway.Gateway.ListAgentsRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getListAgentsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     * <pre>
-     * Agent Knowledge
+     * Agent knowledge data-plane queries
      * </pre>
      */
     public talon.gateway.Gateway.KnowledgeResponse getKnowledge(talon.gateway.Gateway.GetKnowledgeRequest request) throws io.grpc.StatusException {
@@ -3446,62 +1649,6 @@ public final class GatewayServiceGrpc {
     public talon.gateway.Gateway.SearchKnowledgeResponse searchKnowledge(talon.gateway.Gateway.SearchKnowledgeRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getSearchKnowledgeMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.NamespaceKnowledgeResponse createNamespaceKnowledge(talon.gateway.Gateway.CreateNamespaceKnowledgeRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getCreateNamespaceKnowledgeMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.NamespaceKnowledgeResponse getNamespaceKnowledge(talon.gateway.Gateway.GetNamespaceKnowledgeRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getGetNamespaceKnowledgeMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListNamespaceKnowledgeResponse listNamespaceKnowledge(talon.gateway.Gateway.ListNamespaceKnowledgeRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getListNamespaceKnowledgeMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse deleteNamespaceKnowledge(talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getDeleteNamespaceKnowledgeMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.NamespaceSkillResponse createNamespaceSkill(talon.gateway.Gateway.CreateNamespaceSkillRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getCreateNamespaceSkillMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.NamespaceSkillResponse getNamespaceSkill(talon.gateway.Gateway.GetNamespaceSkillRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getGetNamespaceSkillMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListNamespaceSkillsResponse listNamespaceSkills(talon.gateway.Gateway.ListNamespaceSkillsRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getListNamespaceSkillsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteNamespaceSkillResponse deleteNamespaceSkill(talon.gateway.Gateway.DeleteNamespaceSkillRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getDeleteNamespaceSkillMethod(), getCallOptions(), request);
     }
 
     /**
@@ -3568,6 +1715,13 @@ public final class GatewayServiceGrpc {
 
     /**
      */
+    public talon.gateway.Gateway.AnswerSessionPermissionResponse answerSessionPermission(talon.gateway.Gateway.AnswerSessionPermissionRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getAnswerSessionPermissionMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
     public talon.gateway.Gateway.StopSessionGenerationResponse stopSessionGeneration(talon.gateway.Gateway.StopSessionGenerationRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getStopSessionGenerationMethod(), getCallOptions(), request);
@@ -3593,43 +1747,8 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Channels
+     * Channel data-plane actions
      * </pre>
-     */
-    public talon.gateway.Gateway.ChannelResponse createChannel(talon.gateway.Gateway.CreateChannelRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getCreateChannelMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ChannelResponse getChannel(talon.gateway.Gateway.GetChannelRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getGetChannelMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ChannelResponse modifyChannel(talon.gateway.Gateway.ModifyChannelRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getModifyChannelMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListChannelsResponse listChannels(talon.gateway.Gateway.ListChannelsRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getListChannelsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteChannelResponse deleteChannel(talon.gateway.Gateway.DeleteChannelRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getDeleteChannelMethod(), getCallOptions(), request);
-    }
-
-    /**
      */
     public talon.gateway.Gateway.PostChannelMessageResponse postChannelMessage(talon.gateway.Gateway.PostChannelMessageRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
@@ -3652,41 +1771,6 @@ public final class GatewayServiceGrpc {
 
     /**
      */
-    public talon.gateway.Gateway.ChannelSubscriptionResponse createChannelSubscription(talon.gateway.Gateway.CreateChannelSubscriptionRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getCreateChannelSubscriptionMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ChannelSubscriptionResponse getChannelSubscription(talon.gateway.Gateway.GetChannelSubscriptionRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getGetChannelSubscriptionMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ChannelSubscriptionResponse modifyChannelSubscription(talon.gateway.Gateway.ModifyChannelSubscriptionRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getModifyChannelSubscriptionMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListChannelSubscriptionsResponse listChannelSubscriptions(talon.gateway.Gateway.ListChannelSubscriptionsRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getListChannelSubscriptionsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteChannelSubscriptionResponse deleteChannelSubscription(talon.gateway.Gateway.DeleteChannelSubscriptionRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getDeleteChannelSubscriptionMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
     @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/10918")
     public io.grpc.stub.BlockingClientCall<?, talon.events.Events.ChannelEvent>
         streamChannelEvents(talon.gateway.Gateway.StreamChannelEventsRequest request) {
@@ -3696,74 +1780,8 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Schedules
+     * Workflow data-plane actions
      * </pre>
-     */
-    public talon.gateway.Gateway.ScheduleResponse createSchedule(talon.gateway.Gateway.CreateScheduleRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getCreateScheduleMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ScheduleResponse getSchedule(talon.gateway.Gateway.GetScheduleRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getGetScheduleMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ScheduleResponse modifySchedule(talon.gateway.Gateway.ModifyScheduleRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getModifyScheduleMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListSchedulesResponse listSchedules(talon.gateway.Gateway.ListSchedulesRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getListSchedulesMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteScheduleResponse deleteSchedule(talon.gateway.Gateway.DeleteScheduleRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getDeleteScheduleMethod(), getCallOptions(), request);
-    }
-
-    /**
-     * <pre>
-     * Workflows
-     * </pre>
-     */
-    public talon.gateway.Gateway.WorkflowResponse createWorkflow(talon.gateway.Gateway.CreateWorkflowRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getCreateWorkflowMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.WorkflowResponse getWorkflow(talon.gateway.Gateway.GetWorkflowRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getGetWorkflowMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListWorkflowsResponse listWorkflows(talon.gateway.Gateway.ListWorkflowsRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getListWorkflowsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteWorkflowResponse deleteWorkflow(talon.gateway.Gateway.DeleteWorkflowRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getDeleteWorkflowMethod(), getCallOptions(), request);
-    }
-
-    /**
      */
     public talon.gateway.Gateway.WorkflowRunResponse createWorkflowRun(talon.gateway.Gateway.CreateWorkflowRunRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
@@ -3801,7 +1819,7 @@ public final class GatewayServiceGrpc {
     /**
      */
     @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/10918")
-    public io.grpc.stub.BlockingClientCall<?, talon.models.Models.WorkflowRunEvent>
+    public io.grpc.stub.BlockingClientCall<?, talon.data.Data.WorkflowRunEvent>
         streamWorkflowEvents(talon.gateway.Gateway.StreamWorkflowEventsRequest request) {
       return io.grpc.stub.ClientCalls.blockingV2ServerStreamingCall(
           getChannel(), getStreamWorkflowEventsMethod(), getCallOptions(), request);
@@ -3840,92 +1858,33 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Agent Templates
+     * Generic resources
      * </pre>
      */
-    public talon.gateway.Gateway.AgentTemplateResponse createAgentTemplate(talon.gateway.Gateway.CreateAgentTemplateRequest request) throws io.grpc.StatusException {
+    public talon.gateway.Gateway.ResourceResponse createResource(talon.gateway.Gateway.CreateResourceRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getCreateAgentTemplateMethod(), getCallOptions(), request);
+          getChannel(), getCreateResourceMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.gateway.Gateway.AgentTemplateResponse getAgentTemplate(talon.gateway.Gateway.GetAgentTemplateRequest request) throws io.grpc.StatusException {
+    public talon.gateway.Gateway.ResourceResponse getResource(talon.gateway.Gateway.GetResourceRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getGetAgentTemplateMethod(), getCallOptions(), request);
+          getChannel(), getGetResourceMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.gateway.Gateway.ListAgentTemplatesResponse listAgentTemplates(talon.gateway.Gateway.ListAgentTemplatesRequest request) throws io.grpc.StatusException {
+    public talon.gateway.Gateway.ListResourcesResponse listResources(talon.gateway.Gateway.ListResourcesRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getListAgentTemplatesMethod(), getCallOptions(), request);
+          getChannel(), getListResourcesMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.gateway.Gateway.DeleteAgentTemplateResponse deleteAgentTemplate(talon.gateway.Gateway.DeleteAgentTemplateRequest request) throws io.grpc.StatusException {
+    public talon.gateway.Gateway.DeleteResourceResponse deleteResource(talon.gateway.Gateway.DeleteResourceRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getDeleteAgentTemplateMethod(), getCallOptions(), request);
-    }
-
-    /**
-     * <pre>
-     * MCP Servers
-     * </pre>
-     */
-    public talon.gateway.Gateway.McpServerResponse createMcpServer(talon.gateway.Gateway.CreateMcpServerRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getCreateMcpServerMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.McpServerResponse getMcpServer(talon.gateway.Gateway.GetMcpServerRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getGetMcpServerMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListMcpServersResponse listMcpServers(talon.gateway.Gateway.ListMcpServersRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getListMcpServersMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteMcpServerResponse deleteMcpServer(talon.gateway.Gateway.DeleteMcpServerRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getDeleteMcpServerMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.McpServerBindingResponse createMcpServerBinding(talon.gateway.Gateway.CreateMcpServerBindingRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getCreateMcpServerBindingMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.McpServerBindingResponse getMcpServerBinding(talon.gateway.Gateway.GetMcpServerBindingRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getGetMcpServerBindingMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListMcpServerBindingsResponse listMcpServerBindings(talon.gateway.Gateway.ListMcpServerBindingsRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getListMcpServerBindingsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteMcpServerBindingResponse deleteMcpServerBinding(talon.gateway.Gateway.DeleteMcpServerBindingRequest request) throws io.grpc.StatusException {
-      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
-          getChannel(), getDeleteMcpServerBindingMethod(), getCallOptions(), request);
+          getChannel(), getDeleteResourceMethod(), getCallOptions(), request);
     }
   }
 
@@ -3947,38 +1906,7 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Agent Lifecycle
-     * </pre>
-     */
-    public talon.gateway.Gateway.AgentResponse createAgent(talon.gateway.Gateway.CreateAgentRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getCreateAgentMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.GetAgentResponse getAgent(talon.gateway.Gateway.GetAgentRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getGetAgentMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.AgentResponse modifyAgent(talon.gateway.Gateway.ModifyAgentRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getModifyAgentMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListAgentsResponse listAgents(talon.gateway.Gateway.ListAgentsRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getListAgentsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     * <pre>
-     * Agent Knowledge
+     * Agent knowledge data-plane queries
      * </pre>
      */
     public talon.gateway.Gateway.KnowledgeResponse getKnowledge(talon.gateway.Gateway.GetKnowledgeRequest request) {
@@ -3991,62 +1919,6 @@ public final class GatewayServiceGrpc {
     public talon.gateway.Gateway.SearchKnowledgeResponse searchKnowledge(talon.gateway.Gateway.SearchKnowledgeRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getSearchKnowledgeMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.NamespaceKnowledgeResponse createNamespaceKnowledge(talon.gateway.Gateway.CreateNamespaceKnowledgeRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getCreateNamespaceKnowledgeMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.NamespaceKnowledgeResponse getNamespaceKnowledge(talon.gateway.Gateway.GetNamespaceKnowledgeRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getGetNamespaceKnowledgeMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListNamespaceKnowledgeResponse listNamespaceKnowledge(talon.gateway.Gateway.ListNamespaceKnowledgeRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getListNamespaceKnowledgeMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse deleteNamespaceKnowledge(talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getDeleteNamespaceKnowledgeMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.NamespaceSkillResponse createNamespaceSkill(talon.gateway.Gateway.CreateNamespaceSkillRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getCreateNamespaceSkillMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.NamespaceSkillResponse getNamespaceSkill(talon.gateway.Gateway.GetNamespaceSkillRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getGetNamespaceSkillMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListNamespaceSkillsResponse listNamespaceSkills(talon.gateway.Gateway.ListNamespaceSkillsRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getListNamespaceSkillsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteNamespaceSkillResponse deleteNamespaceSkill(talon.gateway.Gateway.DeleteNamespaceSkillRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getDeleteNamespaceSkillMethod(), getCallOptions(), request);
     }
 
     /**
@@ -4113,6 +1985,13 @@ public final class GatewayServiceGrpc {
 
     /**
      */
+    public talon.gateway.Gateway.AnswerSessionPermissionResponse answerSessionPermission(talon.gateway.Gateway.AnswerSessionPermissionRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getAnswerSessionPermissionMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
     public talon.gateway.Gateway.StopSessionGenerationResponse stopSessionGeneration(talon.gateway.Gateway.StopSessionGenerationRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getStopSessionGenerationMethod(), getCallOptions(), request);
@@ -4136,43 +2015,8 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Channels
+     * Channel data-plane actions
      * </pre>
-     */
-    public talon.gateway.Gateway.ChannelResponse createChannel(talon.gateway.Gateway.CreateChannelRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getCreateChannelMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ChannelResponse getChannel(talon.gateway.Gateway.GetChannelRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getGetChannelMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ChannelResponse modifyChannel(talon.gateway.Gateway.ModifyChannelRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getModifyChannelMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListChannelsResponse listChannels(talon.gateway.Gateway.ListChannelsRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getListChannelsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteChannelResponse deleteChannel(talon.gateway.Gateway.DeleteChannelRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getDeleteChannelMethod(), getCallOptions(), request);
-    }
-
-    /**
      */
     public talon.gateway.Gateway.PostChannelMessageResponse postChannelMessage(talon.gateway.Gateway.PostChannelMessageRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
@@ -4195,41 +2039,6 @@ public final class GatewayServiceGrpc {
 
     /**
      */
-    public talon.gateway.Gateway.ChannelSubscriptionResponse createChannelSubscription(talon.gateway.Gateway.CreateChannelSubscriptionRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getCreateChannelSubscriptionMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ChannelSubscriptionResponse getChannelSubscription(talon.gateway.Gateway.GetChannelSubscriptionRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getGetChannelSubscriptionMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ChannelSubscriptionResponse modifyChannelSubscription(talon.gateway.Gateway.ModifyChannelSubscriptionRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getModifyChannelSubscriptionMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListChannelSubscriptionsResponse listChannelSubscriptions(talon.gateway.Gateway.ListChannelSubscriptionsRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getListChannelSubscriptionsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteChannelSubscriptionResponse deleteChannelSubscription(talon.gateway.Gateway.DeleteChannelSubscriptionRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getDeleteChannelSubscriptionMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
     public java.util.Iterator<talon.events.Events.ChannelEvent> streamChannelEvents(
         talon.gateway.Gateway.StreamChannelEventsRequest request) {
       return io.grpc.stub.ClientCalls.blockingServerStreamingCall(
@@ -4238,74 +2047,8 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Schedules
+     * Workflow data-plane actions
      * </pre>
-     */
-    public talon.gateway.Gateway.ScheduleResponse createSchedule(talon.gateway.Gateway.CreateScheduleRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getCreateScheduleMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ScheduleResponse getSchedule(talon.gateway.Gateway.GetScheduleRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getGetScheduleMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ScheduleResponse modifySchedule(talon.gateway.Gateway.ModifyScheduleRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getModifyScheduleMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListSchedulesResponse listSchedules(talon.gateway.Gateway.ListSchedulesRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getListSchedulesMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteScheduleResponse deleteSchedule(talon.gateway.Gateway.DeleteScheduleRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getDeleteScheduleMethod(), getCallOptions(), request);
-    }
-
-    /**
-     * <pre>
-     * Workflows
-     * </pre>
-     */
-    public talon.gateway.Gateway.WorkflowResponse createWorkflow(talon.gateway.Gateway.CreateWorkflowRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getCreateWorkflowMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.WorkflowResponse getWorkflow(talon.gateway.Gateway.GetWorkflowRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getGetWorkflowMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListWorkflowsResponse listWorkflows(talon.gateway.Gateway.ListWorkflowsRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getListWorkflowsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteWorkflowResponse deleteWorkflow(talon.gateway.Gateway.DeleteWorkflowRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getDeleteWorkflowMethod(), getCallOptions(), request);
-    }
-
-    /**
      */
     public talon.gateway.Gateway.WorkflowRunResponse createWorkflowRun(talon.gateway.Gateway.CreateWorkflowRunRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
@@ -4342,7 +2085,7 @@ public final class GatewayServiceGrpc {
 
     /**
      */
-    public java.util.Iterator<talon.models.Models.WorkflowRunEvent> streamWorkflowEvents(
+    public java.util.Iterator<talon.data.Data.WorkflowRunEvent> streamWorkflowEvents(
         talon.gateway.Gateway.StreamWorkflowEventsRequest request) {
       return io.grpc.stub.ClientCalls.blockingServerStreamingCall(
           getChannel(), getStreamWorkflowEventsMethod(), getCallOptions(), request);
@@ -4381,92 +2124,33 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Agent Templates
+     * Generic resources
      * </pre>
      */
-    public talon.gateway.Gateway.AgentTemplateResponse createAgentTemplate(talon.gateway.Gateway.CreateAgentTemplateRequest request) {
+    public talon.gateway.Gateway.ResourceResponse createResource(talon.gateway.Gateway.CreateResourceRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getCreateAgentTemplateMethod(), getCallOptions(), request);
+          getChannel(), getCreateResourceMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.gateway.Gateway.AgentTemplateResponse getAgentTemplate(talon.gateway.Gateway.GetAgentTemplateRequest request) {
+    public talon.gateway.Gateway.ResourceResponse getResource(talon.gateway.Gateway.GetResourceRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getGetAgentTemplateMethod(), getCallOptions(), request);
+          getChannel(), getGetResourceMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.gateway.Gateway.ListAgentTemplatesResponse listAgentTemplates(talon.gateway.Gateway.ListAgentTemplatesRequest request) {
+    public talon.gateway.Gateway.ListResourcesResponse listResources(talon.gateway.Gateway.ListResourcesRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getListAgentTemplatesMethod(), getCallOptions(), request);
+          getChannel(), getListResourcesMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.gateway.Gateway.DeleteAgentTemplateResponse deleteAgentTemplate(talon.gateway.Gateway.DeleteAgentTemplateRequest request) {
+    public talon.gateway.Gateway.DeleteResourceResponse deleteResource(talon.gateway.Gateway.DeleteResourceRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getDeleteAgentTemplateMethod(), getCallOptions(), request);
-    }
-
-    /**
-     * <pre>
-     * MCP Servers
-     * </pre>
-     */
-    public talon.gateway.Gateway.McpServerResponse createMcpServer(talon.gateway.Gateway.CreateMcpServerRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getCreateMcpServerMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.McpServerResponse getMcpServer(talon.gateway.Gateway.GetMcpServerRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getGetMcpServerMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListMcpServersResponse listMcpServers(talon.gateway.Gateway.ListMcpServersRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getListMcpServersMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteMcpServerResponse deleteMcpServer(talon.gateway.Gateway.DeleteMcpServerRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getDeleteMcpServerMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.McpServerBindingResponse createMcpServerBinding(talon.gateway.Gateway.CreateMcpServerBindingRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getCreateMcpServerBindingMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.McpServerBindingResponse getMcpServerBinding(talon.gateway.Gateway.GetMcpServerBindingRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getGetMcpServerBindingMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.ListMcpServerBindingsResponse listMcpServerBindings(talon.gateway.Gateway.ListMcpServerBindingsRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getListMcpServerBindingsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public talon.gateway.Gateway.DeleteMcpServerBindingResponse deleteMcpServerBinding(talon.gateway.Gateway.DeleteMcpServerBindingRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getDeleteMcpServerBindingMethod(), getCallOptions(), request);
+          getChannel(), getDeleteResourceMethod(), getCallOptions(), request);
     }
   }
 
@@ -4488,42 +2172,7 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Agent Lifecycle
-     * </pre>
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.AgentResponse> createAgent(
-        talon.gateway.Gateway.CreateAgentRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getCreateAgentMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.GetAgentResponse> getAgent(
-        talon.gateway.Gateway.GetAgentRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getGetAgentMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.AgentResponse> modifyAgent(
-        talon.gateway.Gateway.ModifyAgentRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getModifyAgentMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListAgentsResponse> listAgents(
-        talon.gateway.Gateway.ListAgentsRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getListAgentsMethod(), getCallOptions()), request);
-    }
-
-    /**
-     * <pre>
-     * Agent Knowledge
+     * Agent knowledge data-plane queries
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.KnowledgeResponse> getKnowledge(
@@ -4538,70 +2187,6 @@ public final class GatewayServiceGrpc {
         talon.gateway.Gateway.SearchKnowledgeRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getSearchKnowledgeMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.NamespaceKnowledgeResponse> createNamespaceKnowledge(
-        talon.gateway.Gateway.CreateNamespaceKnowledgeRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getCreateNamespaceKnowledgeMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.NamespaceKnowledgeResponse> getNamespaceKnowledge(
-        talon.gateway.Gateway.GetNamespaceKnowledgeRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getGetNamespaceKnowledgeMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListNamespaceKnowledgeResponse> listNamespaceKnowledge(
-        talon.gateway.Gateway.ListNamespaceKnowledgeRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getListNamespaceKnowledgeMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse> deleteNamespaceKnowledge(
-        talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getDeleteNamespaceKnowledgeMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.NamespaceSkillResponse> createNamespaceSkill(
-        talon.gateway.Gateway.CreateNamespaceSkillRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getCreateNamespaceSkillMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.NamespaceSkillResponse> getNamespaceSkill(
-        talon.gateway.Gateway.GetNamespaceSkillRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getGetNamespaceSkillMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListNamespaceSkillsResponse> listNamespaceSkills(
-        talon.gateway.Gateway.ListNamespaceSkillsRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getListNamespaceSkillsMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.DeleteNamespaceSkillResponse> deleteNamespaceSkill(
-        talon.gateway.Gateway.DeleteNamespaceSkillRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getDeleteNamespaceSkillMethod(), getCallOptions()), request);
     }
 
     /**
@@ -4676,6 +2261,14 @@ public final class GatewayServiceGrpc {
 
     /**
      */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.AnswerSessionPermissionResponse> answerSessionPermission(
+        talon.gateway.Gateway.AnswerSessionPermissionRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getAnswerSessionPermissionMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
     public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.StopSessionGenerationResponse> stopSessionGeneration(
         talon.gateway.Gateway.StopSessionGenerationRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
@@ -4684,48 +2277,8 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Channels
+     * Channel data-plane actions
      * </pre>
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ChannelResponse> createChannel(
-        talon.gateway.Gateway.CreateChannelRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getCreateChannelMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ChannelResponse> getChannel(
-        talon.gateway.Gateway.GetChannelRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getGetChannelMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ChannelResponse> modifyChannel(
-        talon.gateway.Gateway.ModifyChannelRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getModifyChannelMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListChannelsResponse> listChannels(
-        talon.gateway.Gateway.ListChannelsRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getListChannelsMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.DeleteChannelResponse> deleteChannel(
-        talon.gateway.Gateway.DeleteChannelRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getDeleteChannelMethod(), getCallOptions()), request);
-    }
-
-    /**
      */
     public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.PostChannelMessageResponse> postChannelMessage(
         talon.gateway.Gateway.PostChannelMessageRequest request) {
@@ -4750,124 +2303,9 @@ public final class GatewayServiceGrpc {
     }
 
     /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ChannelSubscriptionResponse> createChannelSubscription(
-        talon.gateway.Gateway.CreateChannelSubscriptionRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getCreateChannelSubscriptionMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ChannelSubscriptionResponse> getChannelSubscription(
-        talon.gateway.Gateway.GetChannelSubscriptionRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getGetChannelSubscriptionMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ChannelSubscriptionResponse> modifyChannelSubscription(
-        talon.gateway.Gateway.ModifyChannelSubscriptionRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getModifyChannelSubscriptionMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListChannelSubscriptionsResponse> listChannelSubscriptions(
-        talon.gateway.Gateway.ListChannelSubscriptionsRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getListChannelSubscriptionsMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.DeleteChannelSubscriptionResponse> deleteChannelSubscription(
-        talon.gateway.Gateway.DeleteChannelSubscriptionRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getDeleteChannelSubscriptionMethod(), getCallOptions()), request);
-    }
-
-    /**
      * <pre>
-     * Schedules
+     * Workflow data-plane actions
      * </pre>
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ScheduleResponse> createSchedule(
-        talon.gateway.Gateway.CreateScheduleRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getCreateScheduleMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ScheduleResponse> getSchedule(
-        talon.gateway.Gateway.GetScheduleRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getGetScheduleMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ScheduleResponse> modifySchedule(
-        talon.gateway.Gateway.ModifyScheduleRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getModifyScheduleMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListSchedulesResponse> listSchedules(
-        talon.gateway.Gateway.ListSchedulesRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getListSchedulesMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.DeleteScheduleResponse> deleteSchedule(
-        talon.gateway.Gateway.DeleteScheduleRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getDeleteScheduleMethod(), getCallOptions()), request);
-    }
-
-    /**
-     * <pre>
-     * Workflows
-     * </pre>
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.WorkflowResponse> createWorkflow(
-        talon.gateway.Gateway.CreateWorkflowRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getCreateWorkflowMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.WorkflowResponse> getWorkflow(
-        talon.gateway.Gateway.GetWorkflowRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getGetWorkflowMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListWorkflowsResponse> listWorkflows(
-        talon.gateway.Gateway.ListWorkflowsRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getListWorkflowsMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.DeleteWorkflowResponse> deleteWorkflow(
-        talon.gateway.Gateway.DeleteWorkflowRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getDeleteWorkflowMethod(), getCallOptions()), request);
-    }
-
-    /**
      */
     public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.WorkflowRunResponse> createWorkflowRun(
         talon.gateway.Gateway.CreateWorkflowRunRequest request) {
@@ -4944,177 +2382,72 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Agent Templates
+     * Generic resources
      * </pre>
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.AgentTemplateResponse> createAgentTemplate(
-        talon.gateway.Gateway.CreateAgentTemplateRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ResourceResponse> createResource(
+        talon.gateway.Gateway.CreateResourceRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getCreateAgentTemplateMethod(), getCallOptions()), request);
+          getChannel().newCall(getCreateResourceMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.AgentTemplateResponse> getAgentTemplate(
-        talon.gateway.Gateway.GetAgentTemplateRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ResourceResponse> getResource(
+        talon.gateway.Gateway.GetResourceRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getGetAgentTemplateMethod(), getCallOptions()), request);
+          getChannel().newCall(getGetResourceMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListAgentTemplatesResponse> listAgentTemplates(
-        talon.gateway.Gateway.ListAgentTemplatesRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListResourcesResponse> listResources(
+        talon.gateway.Gateway.ListResourcesRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getListAgentTemplatesMethod(), getCallOptions()), request);
+          getChannel().newCall(getListResourcesMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.DeleteAgentTemplateResponse> deleteAgentTemplate(
-        talon.gateway.Gateway.DeleteAgentTemplateRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.DeleteResourceResponse> deleteResource(
+        talon.gateway.Gateway.DeleteResourceRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getDeleteAgentTemplateMethod(), getCallOptions()), request);
-    }
-
-    /**
-     * <pre>
-     * MCP Servers
-     * </pre>
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.McpServerResponse> createMcpServer(
-        talon.gateway.Gateway.CreateMcpServerRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getCreateMcpServerMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.McpServerResponse> getMcpServer(
-        talon.gateway.Gateway.GetMcpServerRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getGetMcpServerMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListMcpServersResponse> listMcpServers(
-        talon.gateway.Gateway.ListMcpServersRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getListMcpServersMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.DeleteMcpServerResponse> deleteMcpServer(
-        talon.gateway.Gateway.DeleteMcpServerRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getDeleteMcpServerMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.McpServerBindingResponse> createMcpServerBinding(
-        talon.gateway.Gateway.CreateMcpServerBindingRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getCreateMcpServerBindingMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.McpServerBindingResponse> getMcpServerBinding(
-        talon.gateway.Gateway.GetMcpServerBindingRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getGetMcpServerBindingMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListMcpServerBindingsResponse> listMcpServerBindings(
-        talon.gateway.Gateway.ListMcpServerBindingsRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getListMcpServerBindingsMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.DeleteMcpServerBindingResponse> deleteMcpServerBinding(
-        talon.gateway.Gateway.DeleteMcpServerBindingRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getDeleteMcpServerBindingMethod(), getCallOptions()), request);
+          getChannel().newCall(getDeleteResourceMethod(), getCallOptions()), request);
     }
   }
 
-  private static final int METHODID_CREATE_AGENT = 0;
-  private static final int METHODID_GET_AGENT = 1;
-  private static final int METHODID_MODIFY_AGENT = 2;
-  private static final int METHODID_LIST_AGENTS = 3;
-  private static final int METHODID_GET_KNOWLEDGE = 4;
-  private static final int METHODID_SEARCH_KNOWLEDGE = 5;
-  private static final int METHODID_CREATE_NAMESPACE_KNOWLEDGE = 6;
-  private static final int METHODID_GET_NAMESPACE_KNOWLEDGE = 7;
-  private static final int METHODID_LIST_NAMESPACE_KNOWLEDGE = 8;
-  private static final int METHODID_DELETE_NAMESPACE_KNOWLEDGE = 9;
-  private static final int METHODID_CREATE_NAMESPACE_SKILL = 10;
-  private static final int METHODID_GET_NAMESPACE_SKILL = 11;
-  private static final int METHODID_LIST_NAMESPACE_SKILLS = 12;
-  private static final int METHODID_DELETE_NAMESPACE_SKILL = 13;
-  private static final int METHODID_CREATE_SESSION = 14;
-  private static final int METHODID_GET_SESSION = 15;
-  private static final int METHODID_LIST_SESSION_MESSAGES = 16;
-  private static final int METHODID_LIST_SESSIONS = 17;
-  private static final int METHODID_DELETE_SESSION = 18;
-  private static final int METHODID_CLEAR_SESSION = 19;
-  private static final int METHODID_SEND_MESSAGE = 20;
-  private static final int METHODID_APPEND_SESSION_MESSAGE = 21;
-  private static final int METHODID_STOP_SESSION_GENERATION = 22;
-  private static final int METHODID_STREAM_SESSION_PARTS = 23;
-  private static final int METHODID_STREAM_SESSION_PARTS_BATCH = 24;
-  private static final int METHODID_CREATE_CHANNEL = 25;
-  private static final int METHODID_GET_CHANNEL = 26;
-  private static final int METHODID_MODIFY_CHANNEL = 27;
-  private static final int METHODID_LIST_CHANNELS = 28;
-  private static final int METHODID_DELETE_CHANNEL = 29;
-  private static final int METHODID_POST_CHANNEL_MESSAGE = 30;
-  private static final int METHODID_GET_CHANNEL_MESSAGE = 31;
-  private static final int METHODID_LIST_CHANNEL_MESSAGES = 32;
-  private static final int METHODID_CREATE_CHANNEL_SUBSCRIPTION = 33;
-  private static final int METHODID_GET_CHANNEL_SUBSCRIPTION = 34;
-  private static final int METHODID_MODIFY_CHANNEL_SUBSCRIPTION = 35;
-  private static final int METHODID_LIST_CHANNEL_SUBSCRIPTIONS = 36;
-  private static final int METHODID_DELETE_CHANNEL_SUBSCRIPTION = 37;
-  private static final int METHODID_STREAM_CHANNEL_EVENTS = 38;
-  private static final int METHODID_CREATE_SCHEDULE = 39;
-  private static final int METHODID_GET_SCHEDULE = 40;
-  private static final int METHODID_MODIFY_SCHEDULE = 41;
-  private static final int METHODID_LIST_SCHEDULES = 42;
-  private static final int METHODID_DELETE_SCHEDULE = 43;
-  private static final int METHODID_CREATE_WORKFLOW = 44;
-  private static final int METHODID_GET_WORKFLOW = 45;
-  private static final int METHODID_LIST_WORKFLOWS = 46;
-  private static final int METHODID_DELETE_WORKFLOW = 47;
-  private static final int METHODID_CREATE_WORKFLOW_RUN = 48;
-  private static final int METHODID_GET_WORKFLOW_RUN = 49;
-  private static final int METHODID_LIST_WORKFLOW_RUNS = 50;
-  private static final int METHODID_RESUME_WORKFLOW_RUN = 51;
-  private static final int METHODID_CANCEL_WORKFLOW_RUN = 52;
-  private static final int METHODID_STREAM_WORKFLOW_EVENTS = 53;
-  private static final int METHODID_CREATE_NAMESPACE = 54;
-  private static final int METHODID_GET_NAMESPACE = 55;
-  private static final int METHODID_DELETE_NAMESPACE = 56;
-  private static final int METHODID_LIST_NAMESPACES = 57;
-  private static final int METHODID_CREATE_AGENT_TEMPLATE = 58;
-  private static final int METHODID_GET_AGENT_TEMPLATE = 59;
-  private static final int METHODID_LIST_AGENT_TEMPLATES = 60;
-  private static final int METHODID_DELETE_AGENT_TEMPLATE = 61;
-  private static final int METHODID_CREATE_MCP_SERVER = 62;
-  private static final int METHODID_GET_MCP_SERVER = 63;
-  private static final int METHODID_LIST_MCP_SERVERS = 64;
-  private static final int METHODID_DELETE_MCP_SERVER = 65;
-  private static final int METHODID_CREATE_MCP_SERVER_BINDING = 66;
-  private static final int METHODID_GET_MCP_SERVER_BINDING = 67;
-  private static final int METHODID_LIST_MCP_SERVER_BINDINGS = 68;
-  private static final int METHODID_DELETE_MCP_SERVER_BINDING = 69;
+  private static final int METHODID_GET_KNOWLEDGE = 0;
+  private static final int METHODID_SEARCH_KNOWLEDGE = 1;
+  private static final int METHODID_CREATE_SESSION = 2;
+  private static final int METHODID_GET_SESSION = 3;
+  private static final int METHODID_LIST_SESSION_MESSAGES = 4;
+  private static final int METHODID_LIST_SESSIONS = 5;
+  private static final int METHODID_DELETE_SESSION = 6;
+  private static final int METHODID_CLEAR_SESSION = 7;
+  private static final int METHODID_SEND_MESSAGE = 8;
+  private static final int METHODID_APPEND_SESSION_MESSAGE = 9;
+  private static final int METHODID_ANSWER_SESSION_PERMISSION = 10;
+  private static final int METHODID_STOP_SESSION_GENERATION = 11;
+  private static final int METHODID_STREAM_SESSION_PARTS = 12;
+  private static final int METHODID_STREAM_SESSION_PARTS_BATCH = 13;
+  private static final int METHODID_POST_CHANNEL_MESSAGE = 14;
+  private static final int METHODID_GET_CHANNEL_MESSAGE = 15;
+  private static final int METHODID_LIST_CHANNEL_MESSAGES = 16;
+  private static final int METHODID_STREAM_CHANNEL_EVENTS = 17;
+  private static final int METHODID_CREATE_WORKFLOW_RUN = 18;
+  private static final int METHODID_GET_WORKFLOW_RUN = 19;
+  private static final int METHODID_LIST_WORKFLOW_RUNS = 20;
+  private static final int METHODID_RESUME_WORKFLOW_RUN = 21;
+  private static final int METHODID_CANCEL_WORKFLOW_RUN = 22;
+  private static final int METHODID_STREAM_WORKFLOW_EVENTS = 23;
+  private static final int METHODID_CREATE_NAMESPACE = 24;
+  private static final int METHODID_GET_NAMESPACE = 25;
+  private static final int METHODID_DELETE_NAMESPACE = 26;
+  private static final int METHODID_LIST_NAMESPACES = 27;
+  private static final int METHODID_CREATE_RESOURCE = 28;
+  private static final int METHODID_GET_RESOURCE = 29;
+  private static final int METHODID_LIST_RESOURCES = 30;
+  private static final int METHODID_DELETE_RESOURCE = 31;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -5133,22 +2466,6 @@ public final class GatewayServiceGrpc {
     @java.lang.SuppressWarnings("unchecked")
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
-        case METHODID_CREATE_AGENT:
-          serviceImpl.createAgent((talon.gateway.Gateway.CreateAgentRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentResponse>) responseObserver);
-          break;
-        case METHODID_GET_AGENT:
-          serviceImpl.getAgent((talon.gateway.Gateway.GetAgentRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.GetAgentResponse>) responseObserver);
-          break;
-        case METHODID_MODIFY_AGENT:
-          serviceImpl.modifyAgent((talon.gateway.Gateway.ModifyAgentRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentResponse>) responseObserver);
-          break;
-        case METHODID_LIST_AGENTS:
-          serviceImpl.listAgents((talon.gateway.Gateway.ListAgentsRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListAgentsResponse>) responseObserver);
-          break;
         case METHODID_GET_KNOWLEDGE:
           serviceImpl.getKnowledge((talon.gateway.Gateway.GetKnowledgeRequest) request,
               (io.grpc.stub.StreamObserver<talon.gateway.Gateway.KnowledgeResponse>) responseObserver);
@@ -5156,38 +2473,6 @@ public final class GatewayServiceGrpc {
         case METHODID_SEARCH_KNOWLEDGE:
           serviceImpl.searchKnowledge((talon.gateway.Gateway.SearchKnowledgeRequest) request,
               (io.grpc.stub.StreamObserver<talon.gateway.Gateway.SearchKnowledgeResponse>) responseObserver);
-          break;
-        case METHODID_CREATE_NAMESPACE_KNOWLEDGE:
-          serviceImpl.createNamespaceKnowledge((talon.gateway.Gateway.CreateNamespaceKnowledgeRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceKnowledgeResponse>) responseObserver);
-          break;
-        case METHODID_GET_NAMESPACE_KNOWLEDGE:
-          serviceImpl.getNamespaceKnowledge((talon.gateway.Gateway.GetNamespaceKnowledgeRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceKnowledgeResponse>) responseObserver);
-          break;
-        case METHODID_LIST_NAMESPACE_KNOWLEDGE:
-          serviceImpl.listNamespaceKnowledge((talon.gateway.Gateway.ListNamespaceKnowledgeRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListNamespaceKnowledgeResponse>) responseObserver);
-          break;
-        case METHODID_DELETE_NAMESPACE_KNOWLEDGE:
-          serviceImpl.deleteNamespaceKnowledge((talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse>) responseObserver);
-          break;
-        case METHODID_CREATE_NAMESPACE_SKILL:
-          serviceImpl.createNamespaceSkill((talon.gateway.Gateway.CreateNamespaceSkillRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceSkillResponse>) responseObserver);
-          break;
-        case METHODID_GET_NAMESPACE_SKILL:
-          serviceImpl.getNamespaceSkill((talon.gateway.Gateway.GetNamespaceSkillRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceSkillResponse>) responseObserver);
-          break;
-        case METHODID_LIST_NAMESPACE_SKILLS:
-          serviceImpl.listNamespaceSkills((talon.gateway.Gateway.ListNamespaceSkillsRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListNamespaceSkillsResponse>) responseObserver);
-          break;
-        case METHODID_DELETE_NAMESPACE_SKILL:
-          serviceImpl.deleteNamespaceSkill((talon.gateway.Gateway.DeleteNamespaceSkillRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteNamespaceSkillResponse>) responseObserver);
           break;
         case METHODID_CREATE_SESSION:
           serviceImpl.createSession((talon.gateway.Gateway.CreateSessionRequest) request,
@@ -5221,6 +2506,10 @@ public final class GatewayServiceGrpc {
           serviceImpl.appendSessionMessage((talon.gateway.Gateway.AppendSessionMessageRequest) request,
               (io.grpc.stub.StreamObserver<talon.gateway.Gateway.AppendSessionMessageResponse>) responseObserver);
           break;
+        case METHODID_ANSWER_SESSION_PERMISSION:
+          serviceImpl.answerSessionPermission((talon.gateway.Gateway.AnswerSessionPermissionRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.AnswerSessionPermissionResponse>) responseObserver);
+          break;
         case METHODID_STOP_SESSION_GENERATION:
           serviceImpl.stopSessionGeneration((talon.gateway.Gateway.StopSessionGenerationRequest) request,
               (io.grpc.stub.StreamObserver<talon.gateway.Gateway.StopSessionGenerationResponse>) responseObserver);
@@ -5232,26 +2521,6 @@ public final class GatewayServiceGrpc {
         case METHODID_STREAM_SESSION_PARTS_BATCH:
           serviceImpl.streamSessionPartsBatch((talon.gateway.Gateway.StreamSessionPartsBatchRequest) request,
               (io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent>) responseObserver);
-          break;
-        case METHODID_CREATE_CHANNEL:
-          serviceImpl.createChannel((talon.gateway.Gateway.CreateChannelRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelResponse>) responseObserver);
-          break;
-        case METHODID_GET_CHANNEL:
-          serviceImpl.getChannel((talon.gateway.Gateway.GetChannelRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelResponse>) responseObserver);
-          break;
-        case METHODID_MODIFY_CHANNEL:
-          serviceImpl.modifyChannel((talon.gateway.Gateway.ModifyChannelRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelResponse>) responseObserver);
-          break;
-        case METHODID_LIST_CHANNELS:
-          serviceImpl.listChannels((talon.gateway.Gateway.ListChannelsRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListChannelsResponse>) responseObserver);
-          break;
-        case METHODID_DELETE_CHANNEL:
-          serviceImpl.deleteChannel((talon.gateway.Gateway.DeleteChannelRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteChannelResponse>) responseObserver);
           break;
         case METHODID_POST_CHANNEL_MESSAGE:
           serviceImpl.postChannelMessage((talon.gateway.Gateway.PostChannelMessageRequest) request,
@@ -5265,65 +2534,9 @@ public final class GatewayServiceGrpc {
           serviceImpl.listChannelMessages((talon.gateway.Gateway.ListChannelMessagesRequest) request,
               (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListChannelMessagesResponse>) responseObserver);
           break;
-        case METHODID_CREATE_CHANNEL_SUBSCRIPTION:
-          serviceImpl.createChannelSubscription((talon.gateway.Gateway.CreateChannelSubscriptionRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelSubscriptionResponse>) responseObserver);
-          break;
-        case METHODID_GET_CHANNEL_SUBSCRIPTION:
-          serviceImpl.getChannelSubscription((talon.gateway.Gateway.GetChannelSubscriptionRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelSubscriptionResponse>) responseObserver);
-          break;
-        case METHODID_MODIFY_CHANNEL_SUBSCRIPTION:
-          serviceImpl.modifyChannelSubscription((talon.gateway.Gateway.ModifyChannelSubscriptionRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ChannelSubscriptionResponse>) responseObserver);
-          break;
-        case METHODID_LIST_CHANNEL_SUBSCRIPTIONS:
-          serviceImpl.listChannelSubscriptions((talon.gateway.Gateway.ListChannelSubscriptionsRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListChannelSubscriptionsResponse>) responseObserver);
-          break;
-        case METHODID_DELETE_CHANNEL_SUBSCRIPTION:
-          serviceImpl.deleteChannelSubscription((talon.gateway.Gateway.DeleteChannelSubscriptionRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteChannelSubscriptionResponse>) responseObserver);
-          break;
         case METHODID_STREAM_CHANNEL_EVENTS:
           serviceImpl.streamChannelEvents((talon.gateway.Gateway.StreamChannelEventsRequest) request,
               (io.grpc.stub.StreamObserver<talon.events.Events.ChannelEvent>) responseObserver);
-          break;
-        case METHODID_CREATE_SCHEDULE:
-          serviceImpl.createSchedule((talon.gateway.Gateway.CreateScheduleRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ScheduleResponse>) responseObserver);
-          break;
-        case METHODID_GET_SCHEDULE:
-          serviceImpl.getSchedule((talon.gateway.Gateway.GetScheduleRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ScheduleResponse>) responseObserver);
-          break;
-        case METHODID_MODIFY_SCHEDULE:
-          serviceImpl.modifySchedule((talon.gateway.Gateway.ModifyScheduleRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ScheduleResponse>) responseObserver);
-          break;
-        case METHODID_LIST_SCHEDULES:
-          serviceImpl.listSchedules((talon.gateway.Gateway.ListSchedulesRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListSchedulesResponse>) responseObserver);
-          break;
-        case METHODID_DELETE_SCHEDULE:
-          serviceImpl.deleteSchedule((talon.gateway.Gateway.DeleteScheduleRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteScheduleResponse>) responseObserver);
-          break;
-        case METHODID_CREATE_WORKFLOW:
-          serviceImpl.createWorkflow((talon.gateway.Gateway.CreateWorkflowRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowResponse>) responseObserver);
-          break;
-        case METHODID_GET_WORKFLOW:
-          serviceImpl.getWorkflow((talon.gateway.Gateway.GetWorkflowRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowResponse>) responseObserver);
-          break;
-        case METHODID_LIST_WORKFLOWS:
-          serviceImpl.listWorkflows((talon.gateway.Gateway.ListWorkflowsRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListWorkflowsResponse>) responseObserver);
-          break;
-        case METHODID_DELETE_WORKFLOW:
-          serviceImpl.deleteWorkflow((talon.gateway.Gateway.DeleteWorkflowRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteWorkflowResponse>) responseObserver);
           break;
         case METHODID_CREATE_WORKFLOW_RUN:
           serviceImpl.createWorkflowRun((talon.gateway.Gateway.CreateWorkflowRunRequest) request,
@@ -5347,7 +2560,7 @@ public final class GatewayServiceGrpc {
           break;
         case METHODID_STREAM_WORKFLOW_EVENTS:
           serviceImpl.streamWorkflowEvents((talon.gateway.Gateway.StreamWorkflowEventsRequest) request,
-              (io.grpc.stub.StreamObserver<talon.models.Models.WorkflowRunEvent>) responseObserver);
+              (io.grpc.stub.StreamObserver<talon.data.Data.WorkflowRunEvent>) responseObserver);
           break;
         case METHODID_CREATE_NAMESPACE:
           serviceImpl.createNamespace((talon.gateway.Gateway.CreateNamespaceRequest) request,
@@ -5365,53 +2578,21 @@ public final class GatewayServiceGrpc {
           serviceImpl.listNamespaces((talon.gateway.Gateway.ListNamespacesRequest) request,
               (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListNamespacesResponse>) responseObserver);
           break;
-        case METHODID_CREATE_AGENT_TEMPLATE:
-          serviceImpl.createAgentTemplate((talon.gateway.Gateway.CreateAgentTemplateRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentTemplateResponse>) responseObserver);
+        case METHODID_CREATE_RESOURCE:
+          serviceImpl.createResource((talon.gateway.Gateway.CreateResourceRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ResourceResponse>) responseObserver);
           break;
-        case METHODID_GET_AGENT_TEMPLATE:
-          serviceImpl.getAgentTemplate((talon.gateway.Gateway.GetAgentTemplateRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentTemplateResponse>) responseObserver);
+        case METHODID_GET_RESOURCE:
+          serviceImpl.getResource((talon.gateway.Gateway.GetResourceRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ResourceResponse>) responseObserver);
           break;
-        case METHODID_LIST_AGENT_TEMPLATES:
-          serviceImpl.listAgentTemplates((talon.gateway.Gateway.ListAgentTemplatesRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListAgentTemplatesResponse>) responseObserver);
+        case METHODID_LIST_RESOURCES:
+          serviceImpl.listResources((talon.gateway.Gateway.ListResourcesRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListResourcesResponse>) responseObserver);
           break;
-        case METHODID_DELETE_AGENT_TEMPLATE:
-          serviceImpl.deleteAgentTemplate((talon.gateway.Gateway.DeleteAgentTemplateRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteAgentTemplateResponse>) responseObserver);
-          break;
-        case METHODID_CREATE_MCP_SERVER:
-          serviceImpl.createMcpServer((talon.gateway.Gateway.CreateMcpServerRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.McpServerResponse>) responseObserver);
-          break;
-        case METHODID_GET_MCP_SERVER:
-          serviceImpl.getMcpServer((talon.gateway.Gateway.GetMcpServerRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.McpServerResponse>) responseObserver);
-          break;
-        case METHODID_LIST_MCP_SERVERS:
-          serviceImpl.listMcpServers((talon.gateway.Gateway.ListMcpServersRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListMcpServersResponse>) responseObserver);
-          break;
-        case METHODID_DELETE_MCP_SERVER:
-          serviceImpl.deleteMcpServer((talon.gateway.Gateway.DeleteMcpServerRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteMcpServerResponse>) responseObserver);
-          break;
-        case METHODID_CREATE_MCP_SERVER_BINDING:
-          serviceImpl.createMcpServerBinding((talon.gateway.Gateway.CreateMcpServerBindingRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.McpServerBindingResponse>) responseObserver);
-          break;
-        case METHODID_GET_MCP_SERVER_BINDING:
-          serviceImpl.getMcpServerBinding((talon.gateway.Gateway.GetMcpServerBindingRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.McpServerBindingResponse>) responseObserver);
-          break;
-        case METHODID_LIST_MCP_SERVER_BINDINGS:
-          serviceImpl.listMcpServerBindings((talon.gateway.Gateway.ListMcpServerBindingsRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListMcpServerBindingsResponse>) responseObserver);
-          break;
-        case METHODID_DELETE_MCP_SERVER_BINDING:
-          serviceImpl.deleteMcpServerBinding((talon.gateway.Gateway.DeleteMcpServerBindingRequest) request,
-              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteMcpServerBindingResponse>) responseObserver);
+        case METHODID_DELETE_RESOURCE:
+          serviceImpl.deleteResource((talon.gateway.Gateway.DeleteResourceRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteResourceResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -5432,34 +2613,6 @@ public final class GatewayServiceGrpc {
   public static final io.grpc.ServerServiceDefinition bindService(AsyncService service) {
     return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
         .addMethod(
-          getCreateAgentMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.CreateAgentRequest,
-              talon.gateway.Gateway.AgentResponse>(
-                service, METHODID_CREATE_AGENT)))
-        .addMethod(
-          getGetAgentMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.GetAgentRequest,
-              talon.gateway.Gateway.GetAgentResponse>(
-                service, METHODID_GET_AGENT)))
-        .addMethod(
-          getModifyAgentMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.ModifyAgentRequest,
-              talon.gateway.Gateway.AgentResponse>(
-                service, METHODID_MODIFY_AGENT)))
-        .addMethod(
-          getListAgentsMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.ListAgentsRequest,
-              talon.gateway.Gateway.ListAgentsResponse>(
-                service, METHODID_LIST_AGENTS)))
-        .addMethod(
           getGetKnowledgeMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
@@ -5473,62 +2626,6 @@ public final class GatewayServiceGrpc {
               talon.gateway.Gateway.SearchKnowledgeRequest,
               talon.gateway.Gateway.SearchKnowledgeResponse>(
                 service, METHODID_SEARCH_KNOWLEDGE)))
-        .addMethod(
-          getCreateNamespaceKnowledgeMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.CreateNamespaceKnowledgeRequest,
-              talon.gateway.Gateway.NamespaceKnowledgeResponse>(
-                service, METHODID_CREATE_NAMESPACE_KNOWLEDGE)))
-        .addMethod(
-          getGetNamespaceKnowledgeMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.GetNamespaceKnowledgeRequest,
-              talon.gateway.Gateway.NamespaceKnowledgeResponse>(
-                service, METHODID_GET_NAMESPACE_KNOWLEDGE)))
-        .addMethod(
-          getListNamespaceKnowledgeMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.ListNamespaceKnowledgeRequest,
-              talon.gateway.Gateway.ListNamespaceKnowledgeResponse>(
-                service, METHODID_LIST_NAMESPACE_KNOWLEDGE)))
-        .addMethod(
-          getDeleteNamespaceKnowledgeMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest,
-              talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse>(
-                service, METHODID_DELETE_NAMESPACE_KNOWLEDGE)))
-        .addMethod(
-          getCreateNamespaceSkillMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.CreateNamespaceSkillRequest,
-              talon.gateway.Gateway.NamespaceSkillResponse>(
-                service, METHODID_CREATE_NAMESPACE_SKILL)))
-        .addMethod(
-          getGetNamespaceSkillMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.GetNamespaceSkillRequest,
-              talon.gateway.Gateway.NamespaceSkillResponse>(
-                service, METHODID_GET_NAMESPACE_SKILL)))
-        .addMethod(
-          getListNamespaceSkillsMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.ListNamespaceSkillsRequest,
-              talon.gateway.Gateway.ListNamespaceSkillsResponse>(
-                service, METHODID_LIST_NAMESPACE_SKILLS)))
-        .addMethod(
-          getDeleteNamespaceSkillMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.DeleteNamespaceSkillRequest,
-              talon.gateway.Gateway.DeleteNamespaceSkillResponse>(
-                service, METHODID_DELETE_NAMESPACE_SKILL)))
         .addMethod(
           getCreateSessionMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
@@ -5586,6 +2683,13 @@ public final class GatewayServiceGrpc {
               talon.gateway.Gateway.AppendSessionMessageResponse>(
                 service, METHODID_APPEND_SESSION_MESSAGE)))
         .addMethod(
+          getAnswerSessionPermissionMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.AnswerSessionPermissionRequest,
+              talon.gateway.Gateway.AnswerSessionPermissionResponse>(
+                service, METHODID_ANSWER_SESSION_PERMISSION)))
+        .addMethod(
           getStopSessionGenerationMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
@@ -5606,41 +2710,6 @@ public final class GatewayServiceGrpc {
               talon.gateway.Gateway.StreamSessionPartsBatchRequest,
               talon.events.Events.SessionMessagePartEvent>(
                 service, METHODID_STREAM_SESSION_PARTS_BATCH)))
-        .addMethod(
-          getCreateChannelMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.CreateChannelRequest,
-              talon.gateway.Gateway.ChannelResponse>(
-                service, METHODID_CREATE_CHANNEL)))
-        .addMethod(
-          getGetChannelMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.GetChannelRequest,
-              talon.gateway.Gateway.ChannelResponse>(
-                service, METHODID_GET_CHANNEL)))
-        .addMethod(
-          getModifyChannelMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.ModifyChannelRequest,
-              talon.gateway.Gateway.ChannelResponse>(
-                service, METHODID_MODIFY_CHANNEL)))
-        .addMethod(
-          getListChannelsMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.ListChannelsRequest,
-              talon.gateway.Gateway.ListChannelsResponse>(
-                service, METHODID_LIST_CHANNELS)))
-        .addMethod(
-          getDeleteChannelMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.DeleteChannelRequest,
-              talon.gateway.Gateway.DeleteChannelResponse>(
-                service, METHODID_DELETE_CHANNEL)))
         .addMethod(
           getPostChannelMessageMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
@@ -5663,110 +2732,12 @@ public final class GatewayServiceGrpc {
               talon.gateway.Gateway.ListChannelMessagesResponse>(
                 service, METHODID_LIST_CHANNEL_MESSAGES)))
         .addMethod(
-          getCreateChannelSubscriptionMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.CreateChannelSubscriptionRequest,
-              talon.gateway.Gateway.ChannelSubscriptionResponse>(
-                service, METHODID_CREATE_CHANNEL_SUBSCRIPTION)))
-        .addMethod(
-          getGetChannelSubscriptionMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.GetChannelSubscriptionRequest,
-              talon.gateway.Gateway.ChannelSubscriptionResponse>(
-                service, METHODID_GET_CHANNEL_SUBSCRIPTION)))
-        .addMethod(
-          getModifyChannelSubscriptionMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.ModifyChannelSubscriptionRequest,
-              talon.gateway.Gateway.ChannelSubscriptionResponse>(
-                service, METHODID_MODIFY_CHANNEL_SUBSCRIPTION)))
-        .addMethod(
-          getListChannelSubscriptionsMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.ListChannelSubscriptionsRequest,
-              talon.gateway.Gateway.ListChannelSubscriptionsResponse>(
-                service, METHODID_LIST_CHANNEL_SUBSCRIPTIONS)))
-        .addMethod(
-          getDeleteChannelSubscriptionMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.DeleteChannelSubscriptionRequest,
-              talon.gateway.Gateway.DeleteChannelSubscriptionResponse>(
-                service, METHODID_DELETE_CHANNEL_SUBSCRIPTION)))
-        .addMethod(
           getStreamChannelEventsMethod(),
           io.grpc.stub.ServerCalls.asyncServerStreamingCall(
             new MethodHandlers<
               talon.gateway.Gateway.StreamChannelEventsRequest,
               talon.events.Events.ChannelEvent>(
                 service, METHODID_STREAM_CHANNEL_EVENTS)))
-        .addMethod(
-          getCreateScheduleMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.CreateScheduleRequest,
-              talon.gateway.Gateway.ScheduleResponse>(
-                service, METHODID_CREATE_SCHEDULE)))
-        .addMethod(
-          getGetScheduleMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.GetScheduleRequest,
-              talon.gateway.Gateway.ScheduleResponse>(
-                service, METHODID_GET_SCHEDULE)))
-        .addMethod(
-          getModifyScheduleMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.ModifyScheduleRequest,
-              talon.gateway.Gateway.ScheduleResponse>(
-                service, METHODID_MODIFY_SCHEDULE)))
-        .addMethod(
-          getListSchedulesMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.ListSchedulesRequest,
-              talon.gateway.Gateway.ListSchedulesResponse>(
-                service, METHODID_LIST_SCHEDULES)))
-        .addMethod(
-          getDeleteScheduleMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.DeleteScheduleRequest,
-              talon.gateway.Gateway.DeleteScheduleResponse>(
-                service, METHODID_DELETE_SCHEDULE)))
-        .addMethod(
-          getCreateWorkflowMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.CreateWorkflowRequest,
-              talon.gateway.Gateway.WorkflowResponse>(
-                service, METHODID_CREATE_WORKFLOW)))
-        .addMethod(
-          getGetWorkflowMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.GetWorkflowRequest,
-              talon.gateway.Gateway.WorkflowResponse>(
-                service, METHODID_GET_WORKFLOW)))
-        .addMethod(
-          getListWorkflowsMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.ListWorkflowsRequest,
-              talon.gateway.Gateway.ListWorkflowsResponse>(
-                service, METHODID_LIST_WORKFLOWS)))
-        .addMethod(
-          getDeleteWorkflowMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.DeleteWorkflowRequest,
-              talon.gateway.Gateway.DeleteWorkflowResponse>(
-                service, METHODID_DELETE_WORKFLOW)))
         .addMethod(
           getCreateWorkflowRunMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
@@ -5807,7 +2778,7 @@ public final class GatewayServiceGrpc {
           io.grpc.stub.ServerCalls.asyncServerStreamingCall(
             new MethodHandlers<
               talon.gateway.Gateway.StreamWorkflowEventsRequest,
-              talon.models.Models.WorkflowRunEvent>(
+              talon.data.Data.WorkflowRunEvent>(
                 service, METHODID_STREAM_WORKFLOW_EVENTS)))
         .addMethod(
           getCreateNamespaceMethod(),
@@ -5838,89 +2809,33 @@ public final class GatewayServiceGrpc {
               talon.gateway.Gateway.ListNamespacesResponse>(
                 service, METHODID_LIST_NAMESPACES)))
         .addMethod(
-          getCreateAgentTemplateMethod(),
+          getCreateResourceMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.gateway.Gateway.CreateAgentTemplateRequest,
-              talon.gateway.Gateway.AgentTemplateResponse>(
-                service, METHODID_CREATE_AGENT_TEMPLATE)))
+              talon.gateway.Gateway.CreateResourceRequest,
+              talon.gateway.Gateway.ResourceResponse>(
+                service, METHODID_CREATE_RESOURCE)))
         .addMethod(
-          getGetAgentTemplateMethod(),
+          getGetResourceMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.gateway.Gateway.GetAgentTemplateRequest,
-              talon.gateway.Gateway.AgentTemplateResponse>(
-                service, METHODID_GET_AGENT_TEMPLATE)))
+              talon.gateway.Gateway.GetResourceRequest,
+              talon.gateway.Gateway.ResourceResponse>(
+                service, METHODID_GET_RESOURCE)))
         .addMethod(
-          getListAgentTemplatesMethod(),
+          getListResourcesMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.gateway.Gateway.ListAgentTemplatesRequest,
-              talon.gateway.Gateway.ListAgentTemplatesResponse>(
-                service, METHODID_LIST_AGENT_TEMPLATES)))
+              talon.gateway.Gateway.ListResourcesRequest,
+              talon.gateway.Gateway.ListResourcesResponse>(
+                service, METHODID_LIST_RESOURCES)))
         .addMethod(
-          getDeleteAgentTemplateMethod(),
+          getDeleteResourceMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.gateway.Gateway.DeleteAgentTemplateRequest,
-              talon.gateway.Gateway.DeleteAgentTemplateResponse>(
-                service, METHODID_DELETE_AGENT_TEMPLATE)))
-        .addMethod(
-          getCreateMcpServerMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.CreateMcpServerRequest,
-              talon.gateway.Gateway.McpServerResponse>(
-                service, METHODID_CREATE_MCP_SERVER)))
-        .addMethod(
-          getGetMcpServerMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.GetMcpServerRequest,
-              talon.gateway.Gateway.McpServerResponse>(
-                service, METHODID_GET_MCP_SERVER)))
-        .addMethod(
-          getListMcpServersMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.ListMcpServersRequest,
-              talon.gateway.Gateway.ListMcpServersResponse>(
-                service, METHODID_LIST_MCP_SERVERS)))
-        .addMethod(
-          getDeleteMcpServerMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.DeleteMcpServerRequest,
-              talon.gateway.Gateway.DeleteMcpServerResponse>(
-                service, METHODID_DELETE_MCP_SERVER)))
-        .addMethod(
-          getCreateMcpServerBindingMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.CreateMcpServerBindingRequest,
-              talon.gateway.Gateway.McpServerBindingResponse>(
-                service, METHODID_CREATE_MCP_SERVER_BINDING)))
-        .addMethod(
-          getGetMcpServerBindingMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.GetMcpServerBindingRequest,
-              talon.gateway.Gateway.McpServerBindingResponse>(
-                service, METHODID_GET_MCP_SERVER_BINDING)))
-        .addMethod(
-          getListMcpServerBindingsMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.ListMcpServerBindingsRequest,
-              talon.gateway.Gateway.ListMcpServerBindingsResponse>(
-                service, METHODID_LIST_MCP_SERVER_BINDINGS)))
-        .addMethod(
-          getDeleteMcpServerBindingMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              talon.gateway.Gateway.DeleteMcpServerBindingRequest,
-              talon.gateway.Gateway.DeleteMcpServerBindingResponse>(
-                service, METHODID_DELETE_MCP_SERVER_BINDING)))
+              talon.gateway.Gateway.DeleteResourceRequest,
+              talon.gateway.Gateway.DeleteResourceResponse>(
+                service, METHODID_DELETE_RESOURCE)))
         .build();
   }
 
@@ -5969,20 +2884,8 @@ public final class GatewayServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new GatewayServiceFileDescriptorSupplier())
-              .addMethod(getCreateAgentMethod())
-              .addMethod(getGetAgentMethod())
-              .addMethod(getModifyAgentMethod())
-              .addMethod(getListAgentsMethod())
               .addMethod(getGetKnowledgeMethod())
               .addMethod(getSearchKnowledgeMethod())
-              .addMethod(getCreateNamespaceKnowledgeMethod())
-              .addMethod(getGetNamespaceKnowledgeMethod())
-              .addMethod(getListNamespaceKnowledgeMethod())
-              .addMethod(getDeleteNamespaceKnowledgeMethod())
-              .addMethod(getCreateNamespaceSkillMethod())
-              .addMethod(getGetNamespaceSkillMethod())
-              .addMethod(getListNamespaceSkillsMethod())
-              .addMethod(getDeleteNamespaceSkillMethod())
               .addMethod(getCreateSessionMethod())
               .addMethod(getGetSessionMethod())
               .addMethod(getListSessionMessagesMethod())
@@ -5991,32 +2894,14 @@ public final class GatewayServiceGrpc {
               .addMethod(getClearSessionMethod())
               .addMethod(getSendMessageMethod())
               .addMethod(getAppendSessionMessageMethod())
+              .addMethod(getAnswerSessionPermissionMethod())
               .addMethod(getStopSessionGenerationMethod())
               .addMethod(getStreamSessionPartsMethod())
               .addMethod(getStreamSessionPartsBatchMethod())
-              .addMethod(getCreateChannelMethod())
-              .addMethod(getGetChannelMethod())
-              .addMethod(getModifyChannelMethod())
-              .addMethod(getListChannelsMethod())
-              .addMethod(getDeleteChannelMethod())
               .addMethod(getPostChannelMessageMethod())
               .addMethod(getGetChannelMessageMethod())
               .addMethod(getListChannelMessagesMethod())
-              .addMethod(getCreateChannelSubscriptionMethod())
-              .addMethod(getGetChannelSubscriptionMethod())
-              .addMethod(getModifyChannelSubscriptionMethod())
-              .addMethod(getListChannelSubscriptionsMethod())
-              .addMethod(getDeleteChannelSubscriptionMethod())
               .addMethod(getStreamChannelEventsMethod())
-              .addMethod(getCreateScheduleMethod())
-              .addMethod(getGetScheduleMethod())
-              .addMethod(getModifyScheduleMethod())
-              .addMethod(getListSchedulesMethod())
-              .addMethod(getDeleteScheduleMethod())
-              .addMethod(getCreateWorkflowMethod())
-              .addMethod(getGetWorkflowMethod())
-              .addMethod(getListWorkflowsMethod())
-              .addMethod(getDeleteWorkflowMethod())
               .addMethod(getCreateWorkflowRunMethod())
               .addMethod(getGetWorkflowRunMethod())
               .addMethod(getListWorkflowRunsMethod())
@@ -6027,18 +2912,10 @@ public final class GatewayServiceGrpc {
               .addMethod(getGetNamespaceMethod())
               .addMethod(getDeleteNamespaceMethod())
               .addMethod(getListNamespacesMethod())
-              .addMethod(getCreateAgentTemplateMethod())
-              .addMethod(getGetAgentTemplateMethod())
-              .addMethod(getListAgentTemplatesMethod())
-              .addMethod(getDeleteAgentTemplateMethod())
-              .addMethod(getCreateMcpServerMethod())
-              .addMethod(getGetMcpServerMethod())
-              .addMethod(getListMcpServersMethod())
-              .addMethod(getDeleteMcpServerMethod())
-              .addMethod(getCreateMcpServerBindingMethod())
-              .addMethod(getGetMcpServerBindingMethod())
-              .addMethod(getListMcpServerBindingsMethod())
-              .addMethod(getDeleteMcpServerBindingMethod())
+              .addMethod(getCreateResourceMethod())
+              .addMethod(getGetResourceMethod())
+              .addMethod(getListResourcesMethod())
+              .addMethod(getDeleteResourceMethod())
               .build();
         }
       }

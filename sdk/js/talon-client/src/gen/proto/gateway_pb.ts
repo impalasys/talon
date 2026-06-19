@@ -5,1102 +5,301 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { AgentDefinition, AgentTemplate, Knowledge as Knowledge$1, McpServer, McpServerBinding, Skill } from "./manifests_pb.js";
-import { Agent, Channel, ChannelMessage, ChannelSubscription, Knowledge, KnowledgeSearchResult, Schedule, SessionMessage, Workflow, WorkflowRun, WorkflowStepRun } from "./models_pb.js";
+import { Resource, ResourceManifest } from "./resources/resource_pb.js";
+import { ChannelMessage, Knowledge, KnowledgeSearchResult, SessionMessage, WorkflowRun, WorkflowStepRun } from "./data/data_pb.js";
 
 /**
- * @generated from message talon.gateway.CreateAgentTemplateRequest
+ * @generated from message talon.gateway.CreateResourceRequest
  */
-export class CreateAgentTemplateRequest extends Message<CreateAgentTemplateRequest> {
+export class CreateResourceRequest extends Message<CreateResourceRequest> {
   /**
-   * @generated from field: talon.manifests.AgentTemplate template = 1;
+   * @generated from field: string ns = 1;
    */
-  template?: AgentTemplate;
+  ns = "";
 
-  constructor(data?: PartialMessage<CreateAgentTemplateRequest>) {
+  /**
+   * @generated from field: talon.resources.ResourceManifest manifest = 2;
+   */
+  manifest?: ResourceManifest;
+
+  constructor(data?: PartialMessage<CreateResourceRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.CreateAgentTemplateRequest";
+  static readonly typeName = "talon.gateway.CreateResourceRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "template", kind: "message", T: AgentTemplate },
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "manifest", kind: "message", T: ResourceManifest },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateAgentTemplateRequest {
-    return new CreateAgentTemplateRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateResourceRequest {
+    return new CreateResourceRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateAgentTemplateRequest {
-    return new CreateAgentTemplateRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateResourceRequest {
+    return new CreateResourceRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateAgentTemplateRequest {
-    return new CreateAgentTemplateRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateResourceRequest {
+    return new CreateResourceRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: CreateAgentTemplateRequest | PlainMessage<CreateAgentTemplateRequest> | undefined, b: CreateAgentTemplateRequest | PlainMessage<CreateAgentTemplateRequest> | undefined): boolean {
-    return proto3.util.equals(CreateAgentTemplateRequest, a, b);
+  static equals(a: CreateResourceRequest | PlainMessage<CreateResourceRequest> | undefined, b: CreateResourceRequest | PlainMessage<CreateResourceRequest> | undefined): boolean {
+    return proto3.util.equals(CreateResourceRequest, a, b);
   }
 }
 
 /**
- * @generated from message talon.gateway.AgentTemplateResponse
+ * @generated from message talon.gateway.GetResourceRequest
  */
-export class AgentTemplateResponse extends Message<AgentTemplateResponse> {
+export class GetResourceRequest extends Message<GetResourceRequest> {
   /**
-   * @generated from field: talon.manifests.AgentTemplate template = 1;
+   * @generated from field: string ns = 1;
    */
-  template?: AgentTemplate;
+  ns = "";
 
-  constructor(data?: PartialMessage<AgentTemplateResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.AgentTemplateResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "template", kind: "message", T: AgentTemplate },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AgentTemplateResponse {
-    return new AgentTemplateResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AgentTemplateResponse {
-    return new AgentTemplateResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AgentTemplateResponse {
-    return new AgentTemplateResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: AgentTemplateResponse | PlainMessage<AgentTemplateResponse> | undefined, b: AgentTemplateResponse | PlainMessage<AgentTemplateResponse> | undefined): boolean {
-    return proto3.util.equals(AgentTemplateResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.GetAgentTemplateRequest
- */
-export class GetAgentTemplateRequest extends Message<GetAgentTemplateRequest> {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: string kind = 2;
+   */
+  kind = "";
+
+  /**
+   * @generated from field: string name = 3;
    */
   name = "";
 
-  constructor(data?: PartialMessage<GetAgentTemplateRequest>) {
+  constructor(data?: PartialMessage<GetResourceRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.GetAgentTemplateRequest";
+  static readonly typeName = "talon.gateway.GetResourceRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAgentTemplateRequest {
-    return new GetAgentTemplateRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetResourceRequest {
+    return new GetResourceRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAgentTemplateRequest {
-    return new GetAgentTemplateRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetResourceRequest {
+    return new GetResourceRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAgentTemplateRequest {
-    return new GetAgentTemplateRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetResourceRequest {
+    return new GetResourceRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GetAgentTemplateRequest | PlainMessage<GetAgentTemplateRequest> | undefined, b: GetAgentTemplateRequest | PlainMessage<GetAgentTemplateRequest> | undefined): boolean {
-    return proto3.util.equals(GetAgentTemplateRequest, a, b);
+  static equals(a: GetResourceRequest | PlainMessage<GetResourceRequest> | undefined, b: GetResourceRequest | PlainMessage<GetResourceRequest> | undefined): boolean {
+    return proto3.util.equals(GetResourceRequest, a, b);
   }
 }
 
 /**
- * @generated from message talon.gateway.DeleteAgentTemplateRequest
+ * @generated from message talon.gateway.ListResourcesRequest
  */
-export class DeleteAgentTemplateRequest extends Message<DeleteAgentTemplateRequest> {
+export class ListResourcesRequest extends Message<ListResourcesRequest> {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: optional string kind = 2;
+   */
+  kind?: string;
+
+  constructor(data?: PartialMessage<ListResourcesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ListResourcesRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListResourcesRequest {
+    return new ListResourcesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListResourcesRequest {
+    return new ListResourcesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListResourcesRequest {
+    return new ListResourcesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListResourcesRequest | PlainMessage<ListResourcesRequest> | undefined, b: ListResourcesRequest | PlainMessage<ListResourcesRequest> | undefined): boolean {
+    return proto3.util.equals(ListResourcesRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.DeleteResourceRequest
+ */
+export class DeleteResourceRequest extends Message<DeleteResourceRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string kind = 2;
+   */
+  kind = "";
+
+  /**
+   * @generated from field: string name = 3;
    */
   name = "";
 
-  constructor(data?: PartialMessage<DeleteAgentTemplateRequest>) {
+  constructor(data?: PartialMessage<DeleteResourceRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteAgentTemplateRequest";
+  static readonly typeName = "talon.gateway.DeleteResourceRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteAgentTemplateRequest {
-    return new DeleteAgentTemplateRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteResourceRequest {
+    return new DeleteResourceRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteAgentTemplateRequest {
-    return new DeleteAgentTemplateRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteResourceRequest {
+    return new DeleteResourceRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteAgentTemplateRequest {
-    return new DeleteAgentTemplateRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteResourceRequest {
+    return new DeleteResourceRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: DeleteAgentTemplateRequest | PlainMessage<DeleteAgentTemplateRequest> | undefined, b: DeleteAgentTemplateRequest | PlainMessage<DeleteAgentTemplateRequest> | undefined): boolean {
-    return proto3.util.equals(DeleteAgentTemplateRequest, a, b);
+  static equals(a: DeleteResourceRequest | PlainMessage<DeleteResourceRequest> | undefined, b: DeleteResourceRequest | PlainMessage<DeleteResourceRequest> | undefined): boolean {
+    return proto3.util.equals(DeleteResourceRequest, a, b);
   }
 }
 
 /**
- * @generated from message talon.gateway.DeleteAgentTemplateResponse
+ * @generated from message talon.gateway.ResourceResponse
  */
-export class DeleteAgentTemplateResponse extends Message<DeleteAgentTemplateResponse> {
+export class ResourceResponse extends Message<ResourceResponse> {
+  /**
+   * @generated from field: talon.resources.Resource resource = 1;
+   */
+  resource?: Resource;
+
+  constructor(data?: PartialMessage<ResourceResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ResourceResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "resource", kind: "message", T: Resource },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ResourceResponse {
+    return new ResourceResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ResourceResponse {
+    return new ResourceResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ResourceResponse {
+    return new ResourceResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ResourceResponse | PlainMessage<ResourceResponse> | undefined, b: ResourceResponse | PlainMessage<ResourceResponse> | undefined): boolean {
+    return proto3.util.equals(ResourceResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.ListResourcesResponse
+ */
+export class ListResourcesResponse extends Message<ListResourcesResponse> {
+  /**
+   * @generated from field: repeated talon.resources.Resource resources = 1;
+   */
+  resources: Resource[] = [];
+
+  constructor(data?: PartialMessage<ListResourcesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ListResourcesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "resources", kind: "message", T: Resource, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListResourcesResponse {
+    return new ListResourcesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListResourcesResponse {
+    return new ListResourcesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListResourcesResponse {
+    return new ListResourcesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListResourcesResponse | PlainMessage<ListResourcesResponse> | undefined, b: ListResourcesResponse | PlainMessage<ListResourcesResponse> | undefined): boolean {
+    return proto3.util.equals(ListResourcesResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.DeleteResourceResponse
+ */
+export class DeleteResourceResponse extends Message<DeleteResourceResponse> {
   /**
    * @generated from field: bool success = 1;
    */
   success = false;
 
-  constructor(data?: PartialMessage<DeleteAgentTemplateResponse>) {
+  constructor(data?: PartialMessage<DeleteResourceResponse>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteAgentTemplateResponse";
+  static readonly typeName = "talon.gateway.DeleteResourceResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteAgentTemplateResponse {
-    return new DeleteAgentTemplateResponse().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteResourceResponse {
+    return new DeleteResourceResponse().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteAgentTemplateResponse {
-    return new DeleteAgentTemplateResponse().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteResourceResponse {
+    return new DeleteResourceResponse().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteAgentTemplateResponse {
-    return new DeleteAgentTemplateResponse().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteResourceResponse {
+    return new DeleteResourceResponse().fromJsonString(jsonString, options);
   }
 
-  static equals(a: DeleteAgentTemplateResponse | PlainMessage<DeleteAgentTemplateResponse> | undefined, b: DeleteAgentTemplateResponse | PlainMessage<DeleteAgentTemplateResponse> | undefined): boolean {
-    return proto3.util.equals(DeleteAgentTemplateResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListAgentTemplatesRequest
- */
-export class ListAgentTemplatesRequest extends Message<ListAgentTemplatesRequest> {
-  constructor(data?: PartialMessage<ListAgentTemplatesRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListAgentTemplatesRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListAgentTemplatesRequest {
-    return new ListAgentTemplatesRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListAgentTemplatesRequest {
-    return new ListAgentTemplatesRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListAgentTemplatesRequest {
-    return new ListAgentTemplatesRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListAgentTemplatesRequest | PlainMessage<ListAgentTemplatesRequest> | undefined, b: ListAgentTemplatesRequest | PlainMessage<ListAgentTemplatesRequest> | undefined): boolean {
-    return proto3.util.equals(ListAgentTemplatesRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListAgentTemplatesResponse
- */
-export class ListAgentTemplatesResponse extends Message<ListAgentTemplatesResponse> {
-  /**
-   * @generated from field: repeated talon.manifests.AgentTemplate templates = 1;
-   */
-  templates: AgentTemplate[] = [];
-
-  constructor(data?: PartialMessage<ListAgentTemplatesResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListAgentTemplatesResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "templates", kind: "message", T: AgentTemplate, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListAgentTemplatesResponse {
-    return new ListAgentTemplatesResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListAgentTemplatesResponse {
-    return new ListAgentTemplatesResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListAgentTemplatesResponse {
-    return new ListAgentTemplatesResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListAgentTemplatesResponse | PlainMessage<ListAgentTemplatesResponse> | undefined, b: ListAgentTemplatesResponse | PlainMessage<ListAgentTemplatesResponse> | undefined): boolean {
-    return proto3.util.equals(ListAgentTemplatesResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.CreateMcpServerRequest
- */
-export class CreateMcpServerRequest extends Message<CreateMcpServerRequest> {
-  /**
-   * @generated from field: talon.manifests.McpServer server = 1;
-   */
-  server?: McpServer;
-
-  constructor(data?: PartialMessage<CreateMcpServerRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.CreateMcpServerRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "server", kind: "message", T: McpServer },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateMcpServerRequest {
-    return new CreateMcpServerRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateMcpServerRequest {
-    return new CreateMcpServerRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateMcpServerRequest {
-    return new CreateMcpServerRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CreateMcpServerRequest | PlainMessage<CreateMcpServerRequest> | undefined, b: CreateMcpServerRequest | PlainMessage<CreateMcpServerRequest> | undefined): boolean {
-    return proto3.util.equals(CreateMcpServerRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.GetMcpServerRequest
- */
-export class GetMcpServerRequest extends Message<GetMcpServerRequest> {
-  /**
-   * @generated from field: string name = 1;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<GetMcpServerRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.GetMcpServerRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetMcpServerRequest {
-    return new GetMcpServerRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetMcpServerRequest {
-    return new GetMcpServerRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetMcpServerRequest {
-    return new GetMcpServerRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetMcpServerRequest | PlainMessage<GetMcpServerRequest> | undefined, b: GetMcpServerRequest | PlainMessage<GetMcpServerRequest> | undefined): boolean {
-    return proto3.util.equals(GetMcpServerRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListMcpServersRequest
- */
-export class ListMcpServersRequest extends Message<ListMcpServersRequest> {
-  constructor(data?: PartialMessage<ListMcpServersRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListMcpServersRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListMcpServersRequest {
-    return new ListMcpServersRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListMcpServersRequest {
-    return new ListMcpServersRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListMcpServersRequest {
-    return new ListMcpServersRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListMcpServersRequest | PlainMessage<ListMcpServersRequest> | undefined, b: ListMcpServersRequest | PlainMessage<ListMcpServersRequest> | undefined): boolean {
-    return proto3.util.equals(ListMcpServersRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteMcpServerRequest
- */
-export class DeleteMcpServerRequest extends Message<DeleteMcpServerRequest> {
-  /**
-   * @generated from field: string name = 1;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<DeleteMcpServerRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteMcpServerRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteMcpServerRequest {
-    return new DeleteMcpServerRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteMcpServerRequest {
-    return new DeleteMcpServerRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteMcpServerRequest {
-    return new DeleteMcpServerRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteMcpServerRequest | PlainMessage<DeleteMcpServerRequest> | undefined, b: DeleteMcpServerRequest | PlainMessage<DeleteMcpServerRequest> | undefined): boolean {
-    return proto3.util.equals(DeleteMcpServerRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteMcpServerResponse
- */
-export class DeleteMcpServerResponse extends Message<DeleteMcpServerResponse> {
-  /**
-   * @generated from field: bool success = 1;
-   */
-  success = false;
-
-  constructor(data?: PartialMessage<DeleteMcpServerResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteMcpServerResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteMcpServerResponse {
-    return new DeleteMcpServerResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteMcpServerResponse {
-    return new DeleteMcpServerResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteMcpServerResponse {
-    return new DeleteMcpServerResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteMcpServerResponse | PlainMessage<DeleteMcpServerResponse> | undefined, b: DeleteMcpServerResponse | PlainMessage<DeleteMcpServerResponse> | undefined): boolean {
-    return proto3.util.equals(DeleteMcpServerResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.McpServerResponse
- */
-export class McpServerResponse extends Message<McpServerResponse> {
-  /**
-   * @generated from field: talon.manifests.McpServer server = 1;
-   */
-  server?: McpServer;
-
-  constructor(data?: PartialMessage<McpServerResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.McpServerResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "server", kind: "message", T: McpServer },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): McpServerResponse {
-    return new McpServerResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): McpServerResponse {
-    return new McpServerResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): McpServerResponse {
-    return new McpServerResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: McpServerResponse | PlainMessage<McpServerResponse> | undefined, b: McpServerResponse | PlainMessage<McpServerResponse> | undefined): boolean {
-    return proto3.util.equals(McpServerResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListMcpServersResponse
- */
-export class ListMcpServersResponse extends Message<ListMcpServersResponse> {
-  /**
-   * @generated from field: repeated talon.manifests.McpServer servers = 1;
-   */
-  servers: McpServer[] = [];
-
-  constructor(data?: PartialMessage<ListMcpServersResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListMcpServersResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "servers", kind: "message", T: McpServer, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListMcpServersResponse {
-    return new ListMcpServersResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListMcpServersResponse {
-    return new ListMcpServersResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListMcpServersResponse {
-    return new ListMcpServersResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListMcpServersResponse | PlainMessage<ListMcpServersResponse> | undefined, b: ListMcpServersResponse | PlainMessage<ListMcpServersResponse> | undefined): boolean {
-    return proto3.util.equals(ListMcpServersResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.CreateMcpServerBindingRequest
- */
-export class CreateMcpServerBindingRequest extends Message<CreateMcpServerBindingRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: talon.manifests.McpServerBinding binding = 2;
-   */
-  binding?: McpServerBinding;
-
-  constructor(data?: PartialMessage<CreateMcpServerBindingRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.CreateMcpServerBindingRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "binding", kind: "message", T: McpServerBinding },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateMcpServerBindingRequest {
-    return new CreateMcpServerBindingRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateMcpServerBindingRequest {
-    return new CreateMcpServerBindingRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateMcpServerBindingRequest {
-    return new CreateMcpServerBindingRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CreateMcpServerBindingRequest | PlainMessage<CreateMcpServerBindingRequest> | undefined, b: CreateMcpServerBindingRequest | PlainMessage<CreateMcpServerBindingRequest> | undefined): boolean {
-    return proto3.util.equals(CreateMcpServerBindingRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.GetMcpServerBindingRequest
- */
-export class GetMcpServerBindingRequest extends Message<GetMcpServerBindingRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<GetMcpServerBindingRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.GetMcpServerBindingRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetMcpServerBindingRequest {
-    return new GetMcpServerBindingRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetMcpServerBindingRequest {
-    return new GetMcpServerBindingRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetMcpServerBindingRequest {
-    return new GetMcpServerBindingRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetMcpServerBindingRequest | PlainMessage<GetMcpServerBindingRequest> | undefined, b: GetMcpServerBindingRequest | PlainMessage<GetMcpServerBindingRequest> | undefined): boolean {
-    return proto3.util.equals(GetMcpServerBindingRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListMcpServerBindingsRequest
- */
-export class ListMcpServerBindingsRequest extends Message<ListMcpServerBindingsRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  constructor(data?: PartialMessage<ListMcpServerBindingsRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListMcpServerBindingsRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListMcpServerBindingsRequest {
-    return new ListMcpServerBindingsRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListMcpServerBindingsRequest {
-    return new ListMcpServerBindingsRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListMcpServerBindingsRequest {
-    return new ListMcpServerBindingsRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListMcpServerBindingsRequest | PlainMessage<ListMcpServerBindingsRequest> | undefined, b: ListMcpServerBindingsRequest | PlainMessage<ListMcpServerBindingsRequest> | undefined): boolean {
-    return proto3.util.equals(ListMcpServerBindingsRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteMcpServerBindingRequest
- */
-export class DeleteMcpServerBindingRequest extends Message<DeleteMcpServerBindingRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<DeleteMcpServerBindingRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteMcpServerBindingRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteMcpServerBindingRequest {
-    return new DeleteMcpServerBindingRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteMcpServerBindingRequest {
-    return new DeleteMcpServerBindingRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteMcpServerBindingRequest {
-    return new DeleteMcpServerBindingRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteMcpServerBindingRequest | PlainMessage<DeleteMcpServerBindingRequest> | undefined, b: DeleteMcpServerBindingRequest | PlainMessage<DeleteMcpServerBindingRequest> | undefined): boolean {
-    return proto3.util.equals(DeleteMcpServerBindingRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteMcpServerBindingResponse
- */
-export class DeleteMcpServerBindingResponse extends Message<DeleteMcpServerBindingResponse> {
-  /**
-   * @generated from field: bool success = 1;
-   */
-  success = false;
-
-  constructor(data?: PartialMessage<DeleteMcpServerBindingResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteMcpServerBindingResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteMcpServerBindingResponse {
-    return new DeleteMcpServerBindingResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteMcpServerBindingResponse {
-    return new DeleteMcpServerBindingResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteMcpServerBindingResponse {
-    return new DeleteMcpServerBindingResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteMcpServerBindingResponse | PlainMessage<DeleteMcpServerBindingResponse> | undefined, b: DeleteMcpServerBindingResponse | PlainMessage<DeleteMcpServerBindingResponse> | undefined): boolean {
-    return proto3.util.equals(DeleteMcpServerBindingResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.McpServerBindingResponse
- */
-export class McpServerBindingResponse extends Message<McpServerBindingResponse> {
-  /**
-   * @generated from field: talon.manifests.McpServerBinding binding = 1;
-   */
-  binding?: McpServerBinding;
-
-  constructor(data?: PartialMessage<McpServerBindingResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.McpServerBindingResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "binding", kind: "message", T: McpServerBinding },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): McpServerBindingResponse {
-    return new McpServerBindingResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): McpServerBindingResponse {
-    return new McpServerBindingResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): McpServerBindingResponse {
-    return new McpServerBindingResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: McpServerBindingResponse | PlainMessage<McpServerBindingResponse> | undefined, b: McpServerBindingResponse | PlainMessage<McpServerBindingResponse> | undefined): boolean {
-    return proto3.util.equals(McpServerBindingResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListMcpServerBindingsResponse
- */
-export class ListMcpServerBindingsResponse extends Message<ListMcpServerBindingsResponse> {
-  /**
-   * @generated from field: repeated talon.manifests.McpServerBinding bindings = 1;
-   */
-  bindings: McpServerBinding[] = [];
-
-  constructor(data?: PartialMessage<ListMcpServerBindingsResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListMcpServerBindingsResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "bindings", kind: "message", T: McpServerBinding, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListMcpServerBindingsResponse {
-    return new ListMcpServerBindingsResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListMcpServerBindingsResponse {
-    return new ListMcpServerBindingsResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListMcpServerBindingsResponse {
-    return new ListMcpServerBindingsResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListMcpServerBindingsResponse | PlainMessage<ListMcpServerBindingsResponse> | undefined, b: ListMcpServerBindingsResponse | PlainMessage<ListMcpServerBindingsResponse> | undefined): boolean {
-    return proto3.util.equals(ListMcpServerBindingsResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.GetAgentResponse
- */
-export class GetAgentResponse extends Message<GetAgentResponse> {
-  /**
-   * @generated from field: talon.models.Agent agent = 1;
-   */
-  agent?: Agent;
-
-  constructor(data?: PartialMessage<GetAgentResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.GetAgentResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "agent", kind: "message", T: Agent },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAgentResponse {
-    return new GetAgentResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAgentResponse {
-    return new GetAgentResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAgentResponse {
-    return new GetAgentResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetAgentResponse | PlainMessage<GetAgentResponse> | undefined, b: GetAgentResponse | PlainMessage<GetAgentResponse> | undefined): boolean {
-    return proto3.util.equals(GetAgentResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.GetAgentRequest
- */
-export class GetAgentRequest extends Message<GetAgentRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<GetAgentRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.GetAgentRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAgentRequest {
-    return new GetAgentRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAgentRequest {
-    return new GetAgentRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAgentRequest {
-    return new GetAgentRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetAgentRequest | PlainMessage<GetAgentRequest> | undefined, b: GetAgentRequest | PlainMessage<GetAgentRequest> | undefined): boolean {
-    return proto3.util.equals(GetAgentRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.CreateAgentRequest
- */
-export class CreateAgentRequest extends Message<CreateAgentRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: optional string name = 2;
-   */
-  name?: string;
-
-  /**
-   * @generated from field: talon.manifests.AgentDefinition definition = 3;
-   */
-  definition?: AgentDefinition;
-
-  /**
-   * @generated from field: map<string, string> labels = 4;
-   */
-  labels: { [key: string]: string } = {};
-
-  constructor(data?: PartialMessage<CreateAgentRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.CreateAgentRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 3, name: "definition", kind: "message", T: AgentDefinition },
-    { no: 4, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateAgentRequest {
-    return new CreateAgentRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateAgentRequest {
-    return new CreateAgentRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateAgentRequest {
-    return new CreateAgentRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CreateAgentRequest | PlainMessage<CreateAgentRequest> | undefined, b: CreateAgentRequest | PlainMessage<CreateAgentRequest> | undefined): boolean {
-    return proto3.util.equals(CreateAgentRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.AgentResponse
- */
-export class AgentResponse extends Message<AgentResponse> {
-  /**
-   * @generated from field: string agent = 1;
-   */
-  agent = "";
-
-  /**
-   * @generated from field: string ns = 2;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: map<string, string> labels = 4;
-   */
-  labels: { [key: string]: string } = {};
-
-  constructor(data?: PartialMessage<AgentResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.AgentResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AgentResponse {
-    return new AgentResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AgentResponse {
-    return new AgentResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AgentResponse {
-    return new AgentResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: AgentResponse | PlainMessage<AgentResponse> | undefined, b: AgentResponse | PlainMessage<AgentResponse> | undefined): boolean {
-    return proto3.util.equals(AgentResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListAgentsRequest
- */
-export class ListAgentsRequest extends Message<ListAgentsRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  constructor(data?: PartialMessage<ListAgentsRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListAgentsRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListAgentsRequest {
-    return new ListAgentsRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListAgentsRequest {
-    return new ListAgentsRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListAgentsRequest {
-    return new ListAgentsRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListAgentsRequest | PlainMessage<ListAgentsRequest> | undefined, b: ListAgentsRequest | PlainMessage<ListAgentsRequest> | undefined): boolean {
-    return proto3.util.equals(ListAgentsRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListAgentsResponse
- */
-export class ListAgentsResponse extends Message<ListAgentsResponse> {
-  /**
-   * @generated from field: repeated string agents = 1;
-   */
-  agents: string[] = [];
-
-  constructor(data?: PartialMessage<ListAgentsResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListAgentsResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "agents", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListAgentsResponse {
-    return new ListAgentsResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListAgentsResponse {
-    return new ListAgentsResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListAgentsResponse {
-    return new ListAgentsResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListAgentsResponse | PlainMessage<ListAgentsResponse> | undefined, b: ListAgentsResponse | PlainMessage<ListAgentsResponse> | undefined): boolean {
-    return proto3.util.equals(ListAgentsResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ModifyAgentRequest
- */
-export class ModifyAgentRequest extends Message<ModifyAgentRequest> {
-  /**
-   * @generated from field: string agent = 1;
-   */
-  agent = "";
-
-  /**
-   * @generated from field: string ns = 2;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: talon.manifests.AgentDefinition definition = 3;
-   */
-  definition?: AgentDefinition;
-
-  /**
-   * @generated from field: map<string, string> labels = 4;
-   */
-  labels: { [key: string]: string } = {};
-
-  constructor(data?: PartialMessage<ModifyAgentRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ModifyAgentRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "definition", kind: "message", T: AgentDefinition },
-    { no: 4, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModifyAgentRequest {
-    return new ModifyAgentRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ModifyAgentRequest {
-    return new ModifyAgentRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ModifyAgentRequest {
-    return new ModifyAgentRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ModifyAgentRequest | PlainMessage<ModifyAgentRequest> | undefined, b: ModifyAgentRequest | PlainMessage<ModifyAgentRequest> | undefined): boolean {
-    return proto3.util.equals(ModifyAgentRequest, a, b);
+  static equals(a: DeleteResourceResponse | PlainMessage<DeleteResourceResponse> | undefined, b: DeleteResourceResponse | PlainMessage<DeleteResourceResponse> | undefined): boolean {
+    return proto3.util.equals(DeleteResourceResponse, a, b);
   }
 }
 
@@ -1160,7 +359,7 @@ export class GetKnowledgeRequest extends Message<GetKnowledgeRequest> {
  */
 export class KnowledgeResponse extends Message<KnowledgeResponse> {
   /**
-   * @generated from field: repeated talon.models.Knowledge modules = 1;
+   * @generated from field: repeated talon.data.Knowledge modules = 1;
    */
   modules: Knowledge[] = [];
 
@@ -1246,7 +445,7 @@ export class SearchKnowledgeRequest extends Message<SearchKnowledgeRequest> {
  */
 export class SearchKnowledgeResponse extends Message<SearchKnowledgeResponse> {
   /**
-   * @generated from field: repeated talon.models.KnowledgeSearchResult results = 1;
+   * @generated from field: repeated talon.data.KnowledgeSearchResult results = 1;
    */
   results: KnowledgeSearchResult[] = [];
 
@@ -1275,560 +474,6 @@ export class SearchKnowledgeResponse extends Message<SearchKnowledgeResponse> {
 
   static equals(a: SearchKnowledgeResponse | PlainMessage<SearchKnowledgeResponse> | undefined, b: SearchKnowledgeResponse | PlainMessage<SearchKnowledgeResponse> | undefined): boolean {
     return proto3.util.equals(SearchKnowledgeResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.CreateNamespaceKnowledgeRequest
- */
-export class CreateNamespaceKnowledgeRequest extends Message<CreateNamespaceKnowledgeRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: talon.manifests.Knowledge knowledge = 2;
-   */
-  knowledge?: Knowledge$1;
-
-  constructor(data?: PartialMessage<CreateNamespaceKnowledgeRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.CreateNamespaceKnowledgeRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "knowledge", kind: "message", T: Knowledge$1 },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateNamespaceKnowledgeRequest {
-    return new CreateNamespaceKnowledgeRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateNamespaceKnowledgeRequest {
-    return new CreateNamespaceKnowledgeRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateNamespaceKnowledgeRequest {
-    return new CreateNamespaceKnowledgeRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CreateNamespaceKnowledgeRequest | PlainMessage<CreateNamespaceKnowledgeRequest> | undefined, b: CreateNamespaceKnowledgeRequest | PlainMessage<CreateNamespaceKnowledgeRequest> | undefined): boolean {
-    return proto3.util.equals(CreateNamespaceKnowledgeRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.GetNamespaceKnowledgeRequest
- */
-export class GetNamespaceKnowledgeRequest extends Message<GetNamespaceKnowledgeRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<GetNamespaceKnowledgeRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.GetNamespaceKnowledgeRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetNamespaceKnowledgeRequest {
-    return new GetNamespaceKnowledgeRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetNamespaceKnowledgeRequest {
-    return new GetNamespaceKnowledgeRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetNamespaceKnowledgeRequest {
-    return new GetNamespaceKnowledgeRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetNamespaceKnowledgeRequest | PlainMessage<GetNamespaceKnowledgeRequest> | undefined, b: GetNamespaceKnowledgeRequest | PlainMessage<GetNamespaceKnowledgeRequest> | undefined): boolean {
-    return proto3.util.equals(GetNamespaceKnowledgeRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListNamespaceKnowledgeRequest
- */
-export class ListNamespaceKnowledgeRequest extends Message<ListNamespaceKnowledgeRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  constructor(data?: PartialMessage<ListNamespaceKnowledgeRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListNamespaceKnowledgeRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListNamespaceKnowledgeRequest {
-    return new ListNamespaceKnowledgeRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListNamespaceKnowledgeRequest {
-    return new ListNamespaceKnowledgeRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListNamespaceKnowledgeRequest {
-    return new ListNamespaceKnowledgeRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListNamespaceKnowledgeRequest | PlainMessage<ListNamespaceKnowledgeRequest> | undefined, b: ListNamespaceKnowledgeRequest | PlainMessage<ListNamespaceKnowledgeRequest> | undefined): boolean {
-    return proto3.util.equals(ListNamespaceKnowledgeRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteNamespaceKnowledgeRequest
- */
-export class DeleteNamespaceKnowledgeRequest extends Message<DeleteNamespaceKnowledgeRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<DeleteNamespaceKnowledgeRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteNamespaceKnowledgeRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteNamespaceKnowledgeRequest {
-    return new DeleteNamespaceKnowledgeRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteNamespaceKnowledgeRequest {
-    return new DeleteNamespaceKnowledgeRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteNamespaceKnowledgeRequest {
-    return new DeleteNamespaceKnowledgeRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteNamespaceKnowledgeRequest | PlainMessage<DeleteNamespaceKnowledgeRequest> | undefined, b: DeleteNamespaceKnowledgeRequest | PlainMessage<DeleteNamespaceKnowledgeRequest> | undefined): boolean {
-    return proto3.util.equals(DeleteNamespaceKnowledgeRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteNamespaceKnowledgeResponse
- */
-export class DeleteNamespaceKnowledgeResponse extends Message<DeleteNamespaceKnowledgeResponse> {
-  /**
-   * @generated from field: bool success = 1;
-   */
-  success = false;
-
-  constructor(data?: PartialMessage<DeleteNamespaceKnowledgeResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteNamespaceKnowledgeResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteNamespaceKnowledgeResponse {
-    return new DeleteNamespaceKnowledgeResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteNamespaceKnowledgeResponse {
-    return new DeleteNamespaceKnowledgeResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteNamespaceKnowledgeResponse {
-    return new DeleteNamespaceKnowledgeResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteNamespaceKnowledgeResponse | PlainMessage<DeleteNamespaceKnowledgeResponse> | undefined, b: DeleteNamespaceKnowledgeResponse | PlainMessage<DeleteNamespaceKnowledgeResponse> | undefined): boolean {
-    return proto3.util.equals(DeleteNamespaceKnowledgeResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.NamespaceKnowledgeResponse
- */
-export class NamespaceKnowledgeResponse extends Message<NamespaceKnowledgeResponse> {
-  /**
-   * @generated from field: talon.manifests.Knowledge knowledge = 1;
-   */
-  knowledge?: Knowledge$1;
-
-  constructor(data?: PartialMessage<NamespaceKnowledgeResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.NamespaceKnowledgeResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "knowledge", kind: "message", T: Knowledge$1 },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NamespaceKnowledgeResponse {
-    return new NamespaceKnowledgeResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): NamespaceKnowledgeResponse {
-    return new NamespaceKnowledgeResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): NamespaceKnowledgeResponse {
-    return new NamespaceKnowledgeResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: NamespaceKnowledgeResponse | PlainMessage<NamespaceKnowledgeResponse> | undefined, b: NamespaceKnowledgeResponse | PlainMessage<NamespaceKnowledgeResponse> | undefined): boolean {
-    return proto3.util.equals(NamespaceKnowledgeResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListNamespaceKnowledgeResponse
- */
-export class ListNamespaceKnowledgeResponse extends Message<ListNamespaceKnowledgeResponse> {
-  /**
-   * @generated from field: repeated talon.manifests.Knowledge knowledge = 1;
-   */
-  knowledge: Knowledge$1[] = [];
-
-  constructor(data?: PartialMessage<ListNamespaceKnowledgeResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListNamespaceKnowledgeResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "knowledge", kind: "message", T: Knowledge$1, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListNamespaceKnowledgeResponse {
-    return new ListNamespaceKnowledgeResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListNamespaceKnowledgeResponse {
-    return new ListNamespaceKnowledgeResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListNamespaceKnowledgeResponse {
-    return new ListNamespaceKnowledgeResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListNamespaceKnowledgeResponse | PlainMessage<ListNamespaceKnowledgeResponse> | undefined, b: ListNamespaceKnowledgeResponse | PlainMessage<ListNamespaceKnowledgeResponse> | undefined): boolean {
-    return proto3.util.equals(ListNamespaceKnowledgeResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.CreateNamespaceSkillRequest
- */
-export class CreateNamespaceSkillRequest extends Message<CreateNamespaceSkillRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: talon.manifests.Skill skill = 2;
-   */
-  skill?: Skill;
-
-  constructor(data?: PartialMessage<CreateNamespaceSkillRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.CreateNamespaceSkillRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "skill", kind: "message", T: Skill },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateNamespaceSkillRequest {
-    return new CreateNamespaceSkillRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateNamespaceSkillRequest {
-    return new CreateNamespaceSkillRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateNamespaceSkillRequest {
-    return new CreateNamespaceSkillRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CreateNamespaceSkillRequest | PlainMessage<CreateNamespaceSkillRequest> | undefined, b: CreateNamespaceSkillRequest | PlainMessage<CreateNamespaceSkillRequest> | undefined): boolean {
-    return proto3.util.equals(CreateNamespaceSkillRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.GetNamespaceSkillRequest
- */
-export class GetNamespaceSkillRequest extends Message<GetNamespaceSkillRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<GetNamespaceSkillRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.GetNamespaceSkillRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetNamespaceSkillRequest {
-    return new GetNamespaceSkillRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetNamespaceSkillRequest {
-    return new GetNamespaceSkillRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetNamespaceSkillRequest {
-    return new GetNamespaceSkillRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetNamespaceSkillRequest | PlainMessage<GetNamespaceSkillRequest> | undefined, b: GetNamespaceSkillRequest | PlainMessage<GetNamespaceSkillRequest> | undefined): boolean {
-    return proto3.util.equals(GetNamespaceSkillRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListNamespaceSkillsRequest
- */
-export class ListNamespaceSkillsRequest extends Message<ListNamespaceSkillsRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  constructor(data?: PartialMessage<ListNamespaceSkillsRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListNamespaceSkillsRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListNamespaceSkillsRequest {
-    return new ListNamespaceSkillsRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListNamespaceSkillsRequest {
-    return new ListNamespaceSkillsRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListNamespaceSkillsRequest {
-    return new ListNamespaceSkillsRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListNamespaceSkillsRequest | PlainMessage<ListNamespaceSkillsRequest> | undefined, b: ListNamespaceSkillsRequest | PlainMessage<ListNamespaceSkillsRequest> | undefined): boolean {
-    return proto3.util.equals(ListNamespaceSkillsRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteNamespaceSkillRequest
- */
-export class DeleteNamespaceSkillRequest extends Message<DeleteNamespaceSkillRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<DeleteNamespaceSkillRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteNamespaceSkillRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteNamespaceSkillRequest {
-    return new DeleteNamespaceSkillRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteNamespaceSkillRequest {
-    return new DeleteNamespaceSkillRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteNamespaceSkillRequest {
-    return new DeleteNamespaceSkillRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteNamespaceSkillRequest | PlainMessage<DeleteNamespaceSkillRequest> | undefined, b: DeleteNamespaceSkillRequest | PlainMessage<DeleteNamespaceSkillRequest> | undefined): boolean {
-    return proto3.util.equals(DeleteNamespaceSkillRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteNamespaceSkillResponse
- */
-export class DeleteNamespaceSkillResponse extends Message<DeleteNamespaceSkillResponse> {
-  /**
-   * @generated from field: bool success = 1;
-   */
-  success = false;
-
-  constructor(data?: PartialMessage<DeleteNamespaceSkillResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteNamespaceSkillResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteNamespaceSkillResponse {
-    return new DeleteNamespaceSkillResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteNamespaceSkillResponse {
-    return new DeleteNamespaceSkillResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteNamespaceSkillResponse {
-    return new DeleteNamespaceSkillResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteNamespaceSkillResponse | PlainMessage<DeleteNamespaceSkillResponse> | undefined, b: DeleteNamespaceSkillResponse | PlainMessage<DeleteNamespaceSkillResponse> | undefined): boolean {
-    return proto3.util.equals(DeleteNamespaceSkillResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.NamespaceSkillResponse
- */
-export class NamespaceSkillResponse extends Message<NamespaceSkillResponse> {
-  /**
-   * @generated from field: talon.manifests.Skill skill = 1;
-   */
-  skill?: Skill;
-
-  constructor(data?: PartialMessage<NamespaceSkillResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.NamespaceSkillResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "skill", kind: "message", T: Skill },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NamespaceSkillResponse {
-    return new NamespaceSkillResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): NamespaceSkillResponse {
-    return new NamespaceSkillResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): NamespaceSkillResponse {
-    return new NamespaceSkillResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: NamespaceSkillResponse | PlainMessage<NamespaceSkillResponse> | undefined, b: NamespaceSkillResponse | PlainMessage<NamespaceSkillResponse> | undefined): boolean {
-    return proto3.util.equals(NamespaceSkillResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListNamespaceSkillsResponse
- */
-export class ListNamespaceSkillsResponse extends Message<ListNamespaceSkillsResponse> {
-  /**
-   * @generated from field: repeated talon.manifests.Skill skills = 1;
-   */
-  skills: Skill[] = [];
-
-  constructor(data?: PartialMessage<ListNamespaceSkillsResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListNamespaceSkillsResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "skills", kind: "message", T: Skill, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListNamespaceSkillsResponse {
-    return new ListNamespaceSkillsResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListNamespaceSkillsResponse {
-    return new ListNamespaceSkillsResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListNamespaceSkillsResponse {
-    return new ListNamespaceSkillsResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListNamespaceSkillsResponse | PlainMessage<ListNamespaceSkillsResponse> | undefined, b: ListNamespaceSkillsResponse | PlainMessage<ListNamespaceSkillsResponse> | undefined): boolean {
-    return proto3.util.equals(ListNamespaceSkillsResponse, a, b);
   }
 }
 
@@ -2004,7 +649,7 @@ export class ListSessionMessagesRequest extends Message<ListSessionMessagesReque
  */
 export class ListSessionMessagesResponseItem extends Message<ListSessionMessagesResponseItem> {
   /**
-   * @generated from field: talon.models.SessionMessage message = 1;
+   * @generated from field: talon.data.SessionMessage message = 1;
    */
   message?: SessionMessage;
 
@@ -2258,7 +903,7 @@ export class SessionResponse extends Message<SessionResponse> {
   state = "";
 
   /**
-   * @generated from field: repeated talon.models.SessionMessage messages = 4;
+   * @generated from field: repeated talon.data.SessionMessage messages = 4;
    */
   messages: SessionMessage[] = [];
 
@@ -2472,332 +1117,6 @@ export class ClearSessionResponse extends Message<ClearSessionResponse> {
 }
 
 /**
- * @generated from message talon.gateway.CreateChannelRequest
- */
-export class CreateChannelRequest extends Message<CreateChannelRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: talon.models.Channel channel = 2;
-   */
-  channel?: Channel;
-
-  constructor(data?: PartialMessage<CreateChannelRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.CreateChannelRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "channel", kind: "message", T: Channel },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateChannelRequest {
-    return new CreateChannelRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateChannelRequest {
-    return new CreateChannelRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateChannelRequest {
-    return new CreateChannelRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CreateChannelRequest | PlainMessage<CreateChannelRequest> | undefined, b: CreateChannelRequest | PlainMessage<CreateChannelRequest> | undefined): boolean {
-    return proto3.util.equals(CreateChannelRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.GetChannelRequest
- */
-export class GetChannelRequest extends Message<GetChannelRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<GetChannelRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.GetChannelRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetChannelRequest {
-    return new GetChannelRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetChannelRequest {
-    return new GetChannelRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetChannelRequest {
-    return new GetChannelRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetChannelRequest | PlainMessage<GetChannelRequest> | undefined, b: GetChannelRequest | PlainMessage<GetChannelRequest> | undefined): boolean {
-    return proto3.util.equals(GetChannelRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ModifyChannelRequest
- */
-export class ModifyChannelRequest extends Message<ModifyChannelRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  /**
-   * @generated from field: talon.models.Channel channel = 3;
-   */
-  channel?: Channel;
-
-  constructor(data?: PartialMessage<ModifyChannelRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ModifyChannelRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "channel", kind: "message", T: Channel },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModifyChannelRequest {
-    return new ModifyChannelRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ModifyChannelRequest {
-    return new ModifyChannelRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ModifyChannelRequest {
-    return new ModifyChannelRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ModifyChannelRequest | PlainMessage<ModifyChannelRequest> | undefined, b: ModifyChannelRequest | PlainMessage<ModifyChannelRequest> | undefined): boolean {
-    return proto3.util.equals(ModifyChannelRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListChannelsRequest
- */
-export class ListChannelsRequest extends Message<ListChannelsRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  constructor(data?: PartialMessage<ListChannelsRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListChannelsRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListChannelsRequest {
-    return new ListChannelsRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListChannelsRequest {
-    return new ListChannelsRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListChannelsRequest {
-    return new ListChannelsRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListChannelsRequest | PlainMessage<ListChannelsRequest> | undefined, b: ListChannelsRequest | PlainMessage<ListChannelsRequest> | undefined): boolean {
-    return proto3.util.equals(ListChannelsRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteChannelRequest
- */
-export class DeleteChannelRequest extends Message<DeleteChannelRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<DeleteChannelRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteChannelRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteChannelRequest {
-    return new DeleteChannelRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteChannelRequest {
-    return new DeleteChannelRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteChannelRequest {
-    return new DeleteChannelRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteChannelRequest | PlainMessage<DeleteChannelRequest> | undefined, b: DeleteChannelRequest | PlainMessage<DeleteChannelRequest> | undefined): boolean {
-    return proto3.util.equals(DeleteChannelRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ChannelResponse
- */
-export class ChannelResponse extends Message<ChannelResponse> {
-  /**
-   * @generated from field: talon.models.Channel channel = 1;
-   */
-  channel?: Channel;
-
-  constructor(data?: PartialMessage<ChannelResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ChannelResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "channel", kind: "message", T: Channel },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChannelResponse {
-    return new ChannelResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChannelResponse {
-    return new ChannelResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChannelResponse {
-    return new ChannelResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ChannelResponse | PlainMessage<ChannelResponse> | undefined, b: ChannelResponse | PlainMessage<ChannelResponse> | undefined): boolean {
-    return proto3.util.equals(ChannelResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListChannelsResponse
- */
-export class ListChannelsResponse extends Message<ListChannelsResponse> {
-  /**
-   * @generated from field: repeated talon.models.Channel channels = 1;
-   */
-  channels: Channel[] = [];
-
-  constructor(data?: PartialMessage<ListChannelsResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListChannelsResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "channels", kind: "message", T: Channel, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListChannelsResponse {
-    return new ListChannelsResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListChannelsResponse {
-    return new ListChannelsResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListChannelsResponse {
-    return new ListChannelsResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListChannelsResponse | PlainMessage<ListChannelsResponse> | undefined, b: ListChannelsResponse | PlainMessage<ListChannelsResponse> | undefined): boolean {
-    return proto3.util.equals(ListChannelsResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteChannelResponse
- */
-export class DeleteChannelResponse extends Message<DeleteChannelResponse> {
-  /**
-   * @generated from field: bool success = 1;
-   */
-  success = false;
-
-  constructor(data?: PartialMessage<DeleteChannelResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteChannelResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteChannelResponse {
-    return new DeleteChannelResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteChannelResponse {
-    return new DeleteChannelResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteChannelResponse {
-    return new DeleteChannelResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteChannelResponse | PlainMessage<DeleteChannelResponse> | undefined, b: DeleteChannelResponse | PlainMessage<DeleteChannelResponse> | undefined): boolean {
-    return proto3.util.equals(DeleteChannelResponse, a, b);
-  }
-}
-
-/**
  * @generated from message talon.gateway.PostChannelMessageRequest
  */
 export class PostChannelMessageRequest extends Message<PostChannelMessageRequest> {
@@ -2930,7 +1249,7 @@ export class RoutedChannelSession extends Message<RoutedChannelSession> {
  */
 export class PostChannelMessageResponse extends Message<PostChannelMessageResponse> {
   /**
-   * @generated from field: talon.models.ChannelMessage message = 1;
+   * @generated from field: talon.data.ChannelMessage message = 1;
    */
   message?: ChannelMessage;
 
@@ -3022,7 +1341,7 @@ export class GetChannelMessageRequest extends Message<GetChannelMessageRequest> 
  */
 export class ChannelMessageResponse extends Message<ChannelMessageResponse> {
   /**
-   * @generated from field: talon.models.ChannelMessage message = 1;
+   * @generated from field: talon.data.ChannelMessage message = 1;
    */
   message?: ChannelMessage;
 
@@ -3120,7 +1439,7 @@ export class ListChannelMessagesRequest extends Message<ListChannelMessagesReque
  */
 export class ListChannelMessagesResponse extends Message<ListChannelMessagesResponse> {
   /**
-   * @generated from field: repeated talon.models.ChannelMessage messages = 1;
+   * @generated from field: repeated talon.data.ChannelMessage messages = 1;
    */
   messages: ChannelMessage[] = [];
 
@@ -3165,362 +1484,6 @@ export class ListChannelMessagesResponse extends Message<ListChannelMessagesResp
 }
 
 /**
- * @generated from message talon.gateway.CreateChannelSubscriptionRequest
- */
-export class CreateChannelSubscriptionRequest extends Message<CreateChannelSubscriptionRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string channel = 2;
-   */
-  channel = "";
-
-  /**
-   * @generated from field: talon.models.ChannelSubscription subscription = 3;
-   */
-  subscription?: ChannelSubscription;
-
-  constructor(data?: PartialMessage<CreateChannelSubscriptionRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.CreateChannelSubscriptionRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "subscription", kind: "message", T: ChannelSubscription },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateChannelSubscriptionRequest {
-    return new CreateChannelSubscriptionRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateChannelSubscriptionRequest {
-    return new CreateChannelSubscriptionRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateChannelSubscriptionRequest {
-    return new CreateChannelSubscriptionRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CreateChannelSubscriptionRequest | PlainMessage<CreateChannelSubscriptionRequest> | undefined, b: CreateChannelSubscriptionRequest | PlainMessage<CreateChannelSubscriptionRequest> | undefined): boolean {
-    return proto3.util.equals(CreateChannelSubscriptionRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.GetChannelSubscriptionRequest
- */
-export class GetChannelSubscriptionRequest extends Message<GetChannelSubscriptionRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string channel = 2;
-   */
-  channel = "";
-
-  /**
-   * @generated from field: string name = 3;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<GetChannelSubscriptionRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.GetChannelSubscriptionRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetChannelSubscriptionRequest {
-    return new GetChannelSubscriptionRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetChannelSubscriptionRequest {
-    return new GetChannelSubscriptionRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetChannelSubscriptionRequest {
-    return new GetChannelSubscriptionRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetChannelSubscriptionRequest | PlainMessage<GetChannelSubscriptionRequest> | undefined, b: GetChannelSubscriptionRequest | PlainMessage<GetChannelSubscriptionRequest> | undefined): boolean {
-    return proto3.util.equals(GetChannelSubscriptionRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ModifyChannelSubscriptionRequest
- */
-export class ModifyChannelSubscriptionRequest extends Message<ModifyChannelSubscriptionRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string channel = 2;
-   */
-  channel = "";
-
-  /**
-   * @generated from field: string name = 3;
-   */
-  name = "";
-
-  /**
-   * @generated from field: talon.models.ChannelSubscription subscription = 4;
-   */
-  subscription?: ChannelSubscription;
-
-  constructor(data?: PartialMessage<ModifyChannelSubscriptionRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ModifyChannelSubscriptionRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "subscription", kind: "message", T: ChannelSubscription },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModifyChannelSubscriptionRequest {
-    return new ModifyChannelSubscriptionRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ModifyChannelSubscriptionRequest {
-    return new ModifyChannelSubscriptionRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ModifyChannelSubscriptionRequest {
-    return new ModifyChannelSubscriptionRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ModifyChannelSubscriptionRequest | PlainMessage<ModifyChannelSubscriptionRequest> | undefined, b: ModifyChannelSubscriptionRequest | PlainMessage<ModifyChannelSubscriptionRequest> | undefined): boolean {
-    return proto3.util.equals(ModifyChannelSubscriptionRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListChannelSubscriptionsRequest
- */
-export class ListChannelSubscriptionsRequest extends Message<ListChannelSubscriptionsRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string channel = 2;
-   */
-  channel = "";
-
-  constructor(data?: PartialMessage<ListChannelSubscriptionsRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListChannelSubscriptionsRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListChannelSubscriptionsRequest {
-    return new ListChannelSubscriptionsRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListChannelSubscriptionsRequest {
-    return new ListChannelSubscriptionsRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListChannelSubscriptionsRequest {
-    return new ListChannelSubscriptionsRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListChannelSubscriptionsRequest | PlainMessage<ListChannelSubscriptionsRequest> | undefined, b: ListChannelSubscriptionsRequest | PlainMessage<ListChannelSubscriptionsRequest> | undefined): boolean {
-    return proto3.util.equals(ListChannelSubscriptionsRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteChannelSubscriptionRequest
- */
-export class DeleteChannelSubscriptionRequest extends Message<DeleteChannelSubscriptionRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string channel = 2;
-   */
-  channel = "";
-
-  /**
-   * @generated from field: string name = 3;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<DeleteChannelSubscriptionRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteChannelSubscriptionRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteChannelSubscriptionRequest {
-    return new DeleteChannelSubscriptionRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteChannelSubscriptionRequest {
-    return new DeleteChannelSubscriptionRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteChannelSubscriptionRequest {
-    return new DeleteChannelSubscriptionRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteChannelSubscriptionRequest | PlainMessage<DeleteChannelSubscriptionRequest> | undefined, b: DeleteChannelSubscriptionRequest | PlainMessage<DeleteChannelSubscriptionRequest> | undefined): boolean {
-    return proto3.util.equals(DeleteChannelSubscriptionRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ChannelSubscriptionResponse
- */
-export class ChannelSubscriptionResponse extends Message<ChannelSubscriptionResponse> {
-  /**
-   * @generated from field: talon.models.ChannelSubscription subscription = 1;
-   */
-  subscription?: ChannelSubscription;
-
-  constructor(data?: PartialMessage<ChannelSubscriptionResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ChannelSubscriptionResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "subscription", kind: "message", T: ChannelSubscription },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChannelSubscriptionResponse {
-    return new ChannelSubscriptionResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChannelSubscriptionResponse {
-    return new ChannelSubscriptionResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChannelSubscriptionResponse {
-    return new ChannelSubscriptionResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ChannelSubscriptionResponse | PlainMessage<ChannelSubscriptionResponse> | undefined, b: ChannelSubscriptionResponse | PlainMessage<ChannelSubscriptionResponse> | undefined): boolean {
-    return proto3.util.equals(ChannelSubscriptionResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListChannelSubscriptionsResponse
- */
-export class ListChannelSubscriptionsResponse extends Message<ListChannelSubscriptionsResponse> {
-  /**
-   * @generated from field: repeated talon.models.ChannelSubscription subscriptions = 1;
-   */
-  subscriptions: ChannelSubscription[] = [];
-
-  constructor(data?: PartialMessage<ListChannelSubscriptionsResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListChannelSubscriptionsResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "subscriptions", kind: "message", T: ChannelSubscription, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListChannelSubscriptionsResponse {
-    return new ListChannelSubscriptionsResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListChannelSubscriptionsResponse {
-    return new ListChannelSubscriptionsResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListChannelSubscriptionsResponse {
-    return new ListChannelSubscriptionsResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListChannelSubscriptionsResponse | PlainMessage<ListChannelSubscriptionsResponse> | undefined, b: ListChannelSubscriptionsResponse | PlainMessage<ListChannelSubscriptionsResponse> | undefined): boolean {
-    return proto3.util.equals(ListChannelSubscriptionsResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteChannelSubscriptionResponse
- */
-export class DeleteChannelSubscriptionResponse extends Message<DeleteChannelSubscriptionResponse> {
-  /**
-   * @generated from field: bool success = 1;
-   */
-  success = false;
-
-  constructor(data?: PartialMessage<DeleteChannelSubscriptionResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteChannelSubscriptionResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteChannelSubscriptionResponse {
-    return new DeleteChannelSubscriptionResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteChannelSubscriptionResponse {
-    return new DeleteChannelSubscriptionResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteChannelSubscriptionResponse {
-    return new DeleteChannelSubscriptionResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteChannelSubscriptionResponse | PlainMessage<DeleteChannelSubscriptionResponse> | undefined, b: DeleteChannelSubscriptionResponse | PlainMessage<DeleteChannelSubscriptionResponse> | undefined): boolean {
-    return proto3.util.equals(DeleteChannelSubscriptionResponse, a, b);
-  }
-}
-
-/**
  * @generated from message talon.gateway.StreamChannelEventsRequest
  */
 export class StreamChannelEventsRequest extends Message<StreamChannelEventsRequest> {
@@ -3560,572 +1523,6 @@ export class StreamChannelEventsRequest extends Message<StreamChannelEventsReque
 
   static equals(a: StreamChannelEventsRequest | PlainMessage<StreamChannelEventsRequest> | undefined, b: StreamChannelEventsRequest | PlainMessage<StreamChannelEventsRequest> | undefined): boolean {
     return proto3.util.equals(StreamChannelEventsRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.CreateScheduleRequest
- */
-export class CreateScheduleRequest extends Message<CreateScheduleRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: talon.models.Schedule schedule = 2;
-   */
-  schedule?: Schedule;
-
-  constructor(data?: PartialMessage<CreateScheduleRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.CreateScheduleRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "schedule", kind: "message", T: Schedule },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateScheduleRequest {
-    return new CreateScheduleRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateScheduleRequest {
-    return new CreateScheduleRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateScheduleRequest {
-    return new CreateScheduleRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CreateScheduleRequest | PlainMessage<CreateScheduleRequest> | undefined, b: CreateScheduleRequest | PlainMessage<CreateScheduleRequest> | undefined): boolean {
-    return proto3.util.equals(CreateScheduleRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.GetScheduleRequest
- */
-export class GetScheduleRequest extends Message<GetScheduleRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<GetScheduleRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.GetScheduleRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetScheduleRequest {
-    return new GetScheduleRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetScheduleRequest {
-    return new GetScheduleRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetScheduleRequest {
-    return new GetScheduleRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetScheduleRequest | PlainMessage<GetScheduleRequest> | undefined, b: GetScheduleRequest | PlainMessage<GetScheduleRequest> | undefined): boolean {
-    return proto3.util.equals(GetScheduleRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ModifyScheduleRequest
- */
-export class ModifyScheduleRequest extends Message<ModifyScheduleRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  /**
-   * @generated from field: talon.models.Schedule schedule = 3;
-   */
-  schedule?: Schedule;
-
-  constructor(data?: PartialMessage<ModifyScheduleRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ModifyScheduleRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "schedule", kind: "message", T: Schedule },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModifyScheduleRequest {
-    return new ModifyScheduleRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ModifyScheduleRequest {
-    return new ModifyScheduleRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ModifyScheduleRequest {
-    return new ModifyScheduleRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ModifyScheduleRequest | PlainMessage<ModifyScheduleRequest> | undefined, b: ModifyScheduleRequest | PlainMessage<ModifyScheduleRequest> | undefined): boolean {
-    return proto3.util.equals(ModifyScheduleRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListSchedulesRequest
- */
-export class ListSchedulesRequest extends Message<ListSchedulesRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  constructor(data?: PartialMessage<ListSchedulesRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListSchedulesRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListSchedulesRequest {
-    return new ListSchedulesRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListSchedulesRequest {
-    return new ListSchedulesRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListSchedulesRequest {
-    return new ListSchedulesRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListSchedulesRequest | PlainMessage<ListSchedulesRequest> | undefined, b: ListSchedulesRequest | PlainMessage<ListSchedulesRequest> | undefined): boolean {
-    return proto3.util.equals(ListSchedulesRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListSchedulesResponse
- */
-export class ListSchedulesResponse extends Message<ListSchedulesResponse> {
-  /**
-   * @generated from field: repeated talon.models.Schedule schedules = 1;
-   */
-  schedules: Schedule[] = [];
-
-  constructor(data?: PartialMessage<ListSchedulesResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListSchedulesResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "schedules", kind: "message", T: Schedule, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListSchedulesResponse {
-    return new ListSchedulesResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListSchedulesResponse {
-    return new ListSchedulesResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListSchedulesResponse {
-    return new ListSchedulesResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListSchedulesResponse | PlainMessage<ListSchedulesResponse> | undefined, b: ListSchedulesResponse | PlainMessage<ListSchedulesResponse> | undefined): boolean {
-    return proto3.util.equals(ListSchedulesResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteScheduleRequest
- */
-export class DeleteScheduleRequest extends Message<DeleteScheduleRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<DeleteScheduleRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteScheduleRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteScheduleRequest {
-    return new DeleteScheduleRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteScheduleRequest {
-    return new DeleteScheduleRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteScheduleRequest {
-    return new DeleteScheduleRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteScheduleRequest | PlainMessage<DeleteScheduleRequest> | undefined, b: DeleteScheduleRequest | PlainMessage<DeleteScheduleRequest> | undefined): boolean {
-    return proto3.util.equals(DeleteScheduleRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteScheduleResponse
- */
-export class DeleteScheduleResponse extends Message<DeleteScheduleResponse> {
-  /**
-   * @generated from field: bool success = 1;
-   */
-  success = false;
-
-  constructor(data?: PartialMessage<DeleteScheduleResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteScheduleResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteScheduleResponse {
-    return new DeleteScheduleResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteScheduleResponse {
-    return new DeleteScheduleResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteScheduleResponse {
-    return new DeleteScheduleResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteScheduleResponse | PlainMessage<DeleteScheduleResponse> | undefined, b: DeleteScheduleResponse | PlainMessage<DeleteScheduleResponse> | undefined): boolean {
-    return proto3.util.equals(DeleteScheduleResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.CreateWorkflowRequest
- */
-export class CreateWorkflowRequest extends Message<CreateWorkflowRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: talon.models.Workflow workflow = 2;
-   */
-  workflow?: Workflow;
-
-  constructor(data?: PartialMessage<CreateWorkflowRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.CreateWorkflowRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "workflow", kind: "message", T: Workflow },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateWorkflowRequest {
-    return new CreateWorkflowRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateWorkflowRequest {
-    return new CreateWorkflowRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateWorkflowRequest {
-    return new CreateWorkflowRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CreateWorkflowRequest | PlainMessage<CreateWorkflowRequest> | undefined, b: CreateWorkflowRequest | PlainMessage<CreateWorkflowRequest> | undefined): boolean {
-    return proto3.util.equals(CreateWorkflowRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.GetWorkflowRequest
- */
-export class GetWorkflowRequest extends Message<GetWorkflowRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<GetWorkflowRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.GetWorkflowRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetWorkflowRequest {
-    return new GetWorkflowRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetWorkflowRequest {
-    return new GetWorkflowRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetWorkflowRequest {
-    return new GetWorkflowRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetWorkflowRequest | PlainMessage<GetWorkflowRequest> | undefined, b: GetWorkflowRequest | PlainMessage<GetWorkflowRequest> | undefined): boolean {
-    return proto3.util.equals(GetWorkflowRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListWorkflowsRequest
- */
-export class ListWorkflowsRequest extends Message<ListWorkflowsRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  constructor(data?: PartialMessage<ListWorkflowsRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListWorkflowsRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListWorkflowsRequest {
-    return new ListWorkflowsRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListWorkflowsRequest {
-    return new ListWorkflowsRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListWorkflowsRequest {
-    return new ListWorkflowsRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListWorkflowsRequest | PlainMessage<ListWorkflowsRequest> | undefined, b: ListWorkflowsRequest | PlainMessage<ListWorkflowsRequest> | undefined): boolean {
-    return proto3.util.equals(ListWorkflowsRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteWorkflowRequest
- */
-export class DeleteWorkflowRequest extends Message<DeleteWorkflowRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<DeleteWorkflowRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteWorkflowRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteWorkflowRequest {
-    return new DeleteWorkflowRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteWorkflowRequest {
-    return new DeleteWorkflowRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteWorkflowRequest {
-    return new DeleteWorkflowRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteWorkflowRequest | PlainMessage<DeleteWorkflowRequest> | undefined, b: DeleteWorkflowRequest | PlainMessage<DeleteWorkflowRequest> | undefined): boolean {
-    return proto3.util.equals(DeleteWorkflowRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.WorkflowResponse
- */
-export class WorkflowResponse extends Message<WorkflowResponse> {
-  /**
-   * @generated from field: talon.models.Workflow workflow = 1;
-   */
-  workflow?: Workflow;
-
-  constructor(data?: PartialMessage<WorkflowResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.WorkflowResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "workflow", kind: "message", T: Workflow },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowResponse {
-    return new WorkflowResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowResponse {
-    return new WorkflowResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowResponse {
-    return new WorkflowResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: WorkflowResponse | PlainMessage<WorkflowResponse> | undefined, b: WorkflowResponse | PlainMessage<WorkflowResponse> | undefined): boolean {
-    return proto3.util.equals(WorkflowResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListWorkflowsResponse
- */
-export class ListWorkflowsResponse extends Message<ListWorkflowsResponse> {
-  /**
-   * @generated from field: repeated talon.models.Workflow workflows = 1;
-   */
-  workflows: Workflow[] = [];
-
-  constructor(data?: PartialMessage<ListWorkflowsResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListWorkflowsResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "workflows", kind: "message", T: Workflow, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListWorkflowsResponse {
-    return new ListWorkflowsResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListWorkflowsResponse {
-    return new ListWorkflowsResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListWorkflowsResponse {
-    return new ListWorkflowsResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListWorkflowsResponse | PlainMessage<ListWorkflowsResponse> | undefined, b: ListWorkflowsResponse | PlainMessage<ListWorkflowsResponse> | undefined): boolean {
-    return proto3.util.equals(ListWorkflowsResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteWorkflowResponse
- */
-export class DeleteWorkflowResponse extends Message<DeleteWorkflowResponse> {
-  /**
-   * @generated from field: bool success = 1;
-   */
-  success = false;
-
-  constructor(data?: PartialMessage<DeleteWorkflowResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteWorkflowResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteWorkflowResponse {
-    return new DeleteWorkflowResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteWorkflowResponse {
-    return new DeleteWorkflowResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteWorkflowResponse {
-    return new DeleteWorkflowResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteWorkflowResponse | PlainMessage<DeleteWorkflowResponse> | undefined, b: DeleteWorkflowResponse | PlainMessage<DeleteWorkflowResponse> | undefined): boolean {
-    return proto3.util.equals(DeleteWorkflowResponse, a, b);
   }
 }
 
@@ -4452,12 +1849,12 @@ export class StreamWorkflowEventsRequest extends Message<StreamWorkflowEventsReq
  */
 export class WorkflowRunResponse extends Message<WorkflowRunResponse> {
   /**
-   * @generated from field: talon.models.WorkflowRun run = 1;
+   * @generated from field: talon.data.WorkflowRun run = 1;
    */
   run?: WorkflowRun;
 
   /**
-   * @generated from field: repeated talon.models.WorkflowStepRun steps = 2;
+   * @generated from field: repeated talon.data.WorkflowStepRun steps = 2;
    */
   steps: WorkflowStepRun[] = [];
 
@@ -4495,7 +1892,7 @@ export class WorkflowRunResponse extends Message<WorkflowRunResponse> {
  */
 export class ListWorkflowRunsResponse extends Message<ListWorkflowRunsResponse> {
   /**
-   * @generated from field: repeated talon.models.WorkflowRun runs = 1;
+   * @generated from field: repeated talon.data.WorkflowRun runs = 1;
    */
   runs: WorkflowRun[] = [];
 
@@ -4536,43 +1933,6 @@ export class ListWorkflowRunsResponse extends Message<ListWorkflowRunsResponse> 
 
   static equals(a: ListWorkflowRunsResponse | PlainMessage<ListWorkflowRunsResponse> | undefined, b: ListWorkflowRunsResponse | PlainMessage<ListWorkflowRunsResponse> | undefined): boolean {
     return proto3.util.equals(ListWorkflowRunsResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ScheduleResponse
- */
-export class ScheduleResponse extends Message<ScheduleResponse> {
-  /**
-   * @generated from field: talon.models.Schedule schedule = 1;
-   */
-  schedule?: Schedule;
-
-  constructor(data?: PartialMessage<ScheduleResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ScheduleResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "schedule", kind: "message", T: Schedule },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ScheduleResponse {
-    return new ScheduleResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ScheduleResponse {
-    return new ScheduleResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ScheduleResponse {
-    return new ScheduleResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ScheduleResponse | PlainMessage<ScheduleResponse> | undefined, b: ScheduleResponse | PlainMessage<ScheduleResponse> | undefined): boolean {
-    return proto3.util.equals(ScheduleResponse, a, b);
   }
 }
 
@@ -4700,7 +2060,7 @@ export class AppendSessionMessageRequest extends Message<AppendSessionMessageReq
   ns = "";
 
   /**
-   * @generated from field: talon.models.SessionMessage message = 4;
+   * @generated from field: talon.data.SessionMessage message = 4;
    */
   message?: SessionMessage;
 
@@ -4745,7 +2105,7 @@ export class AppendSessionMessageResponse extends Message<AppendSessionMessageRe
   sessionId = "";
 
   /**
-   * @generated from field: talon.models.SessionMessage message = 2;
+   * @generated from field: talon.data.SessionMessage message = 2;
    */
   message?: SessionMessage;
 
@@ -4775,6 +2135,134 @@ export class AppendSessionMessageResponse extends Message<AppendSessionMessageRe
 
   static equals(a: AppendSessionMessageResponse | PlainMessage<AppendSessionMessageResponse> | undefined, b: AppendSessionMessageResponse | PlainMessage<AppendSessionMessageResponse> | undefined): boolean {
     return proto3.util.equals(AppendSessionMessageResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.AnswerSessionPermissionRequest
+ */
+export class AnswerSessionPermissionRequest extends Message<AnswerSessionPermissionRequest> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string ns = 3;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string request_id = 4;
+   */
+  requestId = "";
+
+  /**
+   * @generated from field: string outcome = 5;
+   */
+  outcome = "";
+
+  /**
+   * @generated from field: string option_id = 6;
+   */
+  optionId = "";
+
+  /**
+   * @generated from field: string decided_by = 7;
+   */
+  decidedBy = "";
+
+  constructor(data?: PartialMessage<AnswerSessionPermissionRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.AnswerSessionPermissionRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "request_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "outcome", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "option_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "decided_by", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AnswerSessionPermissionRequest {
+    return new AnswerSessionPermissionRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AnswerSessionPermissionRequest {
+    return new AnswerSessionPermissionRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AnswerSessionPermissionRequest {
+    return new AnswerSessionPermissionRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AnswerSessionPermissionRequest | PlainMessage<AnswerSessionPermissionRequest> | undefined, b: AnswerSessionPermissionRequest | PlainMessage<AnswerSessionPermissionRequest> | undefined): boolean {
+    return proto3.util.equals(AnswerSessionPermissionRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.AnswerSessionPermissionResponse
+ */
+export class AnswerSessionPermissionResponse extends Message<AnswerSessionPermissionResponse> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string request_id = 2;
+   */
+  requestId = "";
+
+  /**
+   * @generated from field: string outcome = 3;
+   */
+  outcome = "";
+
+  /**
+   * @generated from field: string option_id = 4;
+   */
+  optionId = "";
+
+  constructor(data?: PartialMessage<AnswerSessionPermissionResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.AnswerSessionPermissionResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "request_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "outcome", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "option_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AnswerSessionPermissionResponse {
+    return new AnswerSessionPermissionResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AnswerSessionPermissionResponse {
+    return new AnswerSessionPermissionResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AnswerSessionPermissionResponse {
+    return new AnswerSessionPermissionResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AnswerSessionPermissionResponse | PlainMessage<AnswerSessionPermissionResponse> | undefined, b: AnswerSessionPermissionResponse | PlainMessage<AnswerSessionPermissionResponse> | undefined): boolean {
+    return proto3.util.equals(AnswerSessionPermissionResponse, a, b);
   }
 }
 

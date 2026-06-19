@@ -40,6 +40,11 @@ export class TalonConfig extends Message<TalonConfig> {
    */
   controlPlane?: ControlPlaneConfig;
 
+  /**
+   * @generated from field: map<string, talon.config.ControllerConfig> controllers = 7;
+   */
+  controllers: { [key: string]: ControllerConfig } = {};
+
   constructor(data?: PartialMessage<TalonConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -54,6 +59,7 @@ export class TalonConfig extends Message<TalonConfig> {
     { no: 4, name: "default_provider", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "workspace_dir", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "control_plane", kind: "message", T: ControlPlaneConfig },
+    { no: 7, name: "controllers", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ControllerConfig} },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TalonConfig {
@@ -70,6 +76,49 @@ export class TalonConfig extends Message<TalonConfig> {
 
   static equals(a: TalonConfig | PlainMessage<TalonConfig> | undefined, b: TalonConfig | PlainMessage<TalonConfig> | undefined): boolean {
     return proto3.util.equals(TalonConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.config.ControllerConfig
+ */
+export class ControllerConfig extends Message<ControllerConfig> {
+  /**
+   * @generated from field: bool enabled = 1;
+   */
+  enabled = false;
+
+  /**
+   * @generated from field: uint32 workers = 2;
+   */
+  workers = 0;
+
+  constructor(data?: PartialMessage<ControllerConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.ControllerConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "enabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "workers", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ControllerConfig {
+    return new ControllerConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ControllerConfig {
+    return new ControllerConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ControllerConfig {
+    return new ControllerConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ControllerConfig | PlainMessage<ControllerConfig> | undefined, b: ControllerConfig | PlainMessage<ControllerConfig> | undefined): boolean {
+    return proto3.util.equals(ControllerConfig, a, b);
   }
 }
 

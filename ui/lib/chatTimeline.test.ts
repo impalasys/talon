@@ -324,6 +324,39 @@ describe("fallback readers", () => {
     expect(getMessageUsage({ parts: [] })).toBeNull();
   });
 
+  it("renders permission request parts as timeline work items", () => {
+    const message = {
+      role: "assistant",
+      parts: [
+        {
+          partType: "SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION",
+          payloadJson: JSON.stringify({
+            requestId: "perm-1",
+            action: "terminal",
+            request: { command: "npm test" },
+          }),
+        },
+        {
+          partType: 12,
+          payloadJson: JSON.stringify({
+            requestId: "perm-1",
+            outcome: { outcome: "selected", optionId: "approved" },
+          }),
+        },
+      ],
+    };
+
+    expect(getMessageAssistantTimeline(message)).toEqual([
+      {
+        type: "tool",
+        toolCallId: "perm-1",
+        toolName: "request_permission",
+        args: { command: "npm test" },
+        result: { outcome: "selected", optionId: "approved" },
+      },
+    ]);
+  });
+
   it("reads camelCase tool and usage fields from part payloads", () => {
     const message = {
       role: "assistant",

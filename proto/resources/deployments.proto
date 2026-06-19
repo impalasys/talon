@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message TemplateSpec {
+  string kind = 1;
+  ResourceMeta metadata = 2;
+  // Internal canonical JSON for the templated spec. User-facing YAML uses
+  // `spec: {...}` and the manifest parser normalizes it into this field.
+  string spec_json = 3;
+}
+
+message Template {
+  ResourceMeta metadata = 1;
+  TemplateSpec spec = 2;
+  CommonResourceStatus status = 3;
+}
+
+message DeploymentPlacement {
+  NamespaceSelector namespace_selector = 1;
+}
+
+message DeploymentSpec {
+  DeploymentPlacement placement = 1;
+  repeated string templates = 2;
+}
+
+message Deployment {
+  ResourceMeta metadata = 1;
+  DeploymentSpec spec = 2;
+  DeploymentStatus status = 3;
+}
+
+message DeploymentReplicaSpec {
+  ResourceRef deployment_ref = 1;
+  string target_namespace = 2;
+}
+
+message DeploymentReplica {
+  ResourceMeta metadata = 1;
+  DeploymentReplicaSpec spec = 2;
+  DeploymentReplicaStatus status = 3;
+}
+
+message DeploymentStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  repeated ResourceRef replicas = 4;
+}
+
+message DeploymentReplicaStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  repeated string rendered_resources = 4;
+  map<string, string> rendered_hashes = 5;
+  repeated string conflicts = 6;
+  map<string, string> last_rendered_json = 7;
+  repeated string owned_json_pointers = 8;
+}

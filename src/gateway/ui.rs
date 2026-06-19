@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::events::SessionMessagePartEventKind;
-use crate::gateway::rpc::{models, proto, GrpcGatewayHandler};
+use crate::control::scheduling;
+use crate::gateway::rpc::{data_proto, proto, GrpcGatewayHandler};
 use crate::gateway::Gateway;
-use crate::scheduling;
 use axum::extract::{Path, State};
 use axum::http::{header, HeaderMap, HeaderName, StatusCode};
 use axum::response::{IntoResponse, Response};
@@ -131,7 +131,10 @@ fn last_dispatchable_message(messages: &[UiMessage]) -> Option<&UiMessage> {
         .find(|message| ui_message_has_dispatchable_part(message))
 }
 
-fn ui_message_to_session_message(message: &UiMessage, now_micros: i64) -> models::SessionMessage {
+fn ui_message_to_session_message(
+    message: &UiMessage,
+    now_micros: i64,
+) -> data_proto::SessionMessage {
     let mut parts = Vec::new();
 
     for part in &message.parts {
@@ -141,9 +144,9 @@ fn ui_message_to_session_message(message: &UiMessage, now_micros: i64) -> models
                 if text.trim().is_empty() {
                     continue;
                 }
-                parts.push(models::SessionMessagePart {
+                parts.push(data_proto::SessionMessagePart {
                     id: String::new(),
-                    part_type: models::SessionMessagePartType::Text as i32,
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
                     content: text.to_string(),
                     name: String::new(),
                     payload_json: part.payload_json.clone().unwrap_or_default(),
@@ -158,14 +161,14 @@ fn ui_message_to_session_message(message: &UiMessage, now_micros: i64) -> models
                 if object.key.trim().is_empty() {
                     continue;
                 }
-                parts.push(models::SessionMessagePart {
+                parts.push(data_proto::SessionMessagePart {
                     id: String::new(),
-                    part_type: models::SessionMessagePartType::Image as i32,
+                    part_type: data_proto::SessionMessagePartType::Image as i32,
                     content: String::new(),
                     name: String::new(),
                     payload_json: part.payload_json.clone().unwrap_or_default(),
                     created_at: now_micros,
-                    object: Some(models::ObjectRef {
+                    object: Some(data_proto::ObjectRef {
                         key: object.key.clone(),
                         media_type: object.media_type.clone(),
                         size_bytes: object.size_bytes,
@@ -179,16 +182,16 @@ fn ui_message_to_session_message(message: &UiMessage, now_micros: i64) -> models
         }
     }
 
-    models::SessionMessage {
+    data_proto::SessionMessage {
         id: Uuid::now_v7().to_string(),
-        role: models::MessageRole::RoleUser as i32,
+        role: data_proto::MessageRole::RoleUser as i32,
         created_at: now_micros,
         labels: HashMap::new(),
         parts,
     }
 }
 
-fn extract_tool_part_payload(part: &models::SessionMessagePart) -> Option<ToolStepPayload> {
+fn extract_tool_part_payload(part: &data_proto::SessionMessagePart) -> Option<ToolStepPayload> {
     let payload: Value = serde_json::from_str(&part.payload_json).ok()?;
     let tool_call_id = payload.get("tool_call_id")?.as_str()?.to_string();
     if tool_call_id.is_empty() {
@@ -213,7 +216,7 @@ fn extract_tool_part_payload(part: &models::SessionMessagePart) -> Option<ToolSt
 #[cfg(test)]
 fn latest_tool_part_payload<'a, I>(parts: I, part_type: i32) -> Option<ToolStepPayload>
 where
-    I: IntoIterator<Item = &'a models::SessionMessagePart>,
+    I: IntoIterator<Item = &'a data_proto::SessionMessagePart>,
     I::IntoIter: DoubleEndedIterator,
 {
     parts
@@ -263,12 +266,12 @@ fn latest_assistant_message_text(response: &proto::SessionResponse) -> Option<St
         .messages
         .iter()
         .rev()
-        .filter(|message| message.role == models::MessageRole::RoleAssistant as i32)
+        .filter(|message| message.role == data_proto::MessageRole::RoleAssistant as i32)
         .find_map(|message| {
             let text = message
                 .parts
                 .iter()
-                .filter(|part| part.part_type == models::SessionMessagePartType::Text as i32)
+                .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
                 .map(|part| part.content.as_str())
                 .collect::<String>();
             if !text.trim().is_empty() {
@@ -438,16 +441,16 @@ pub async fn post_chat(
                         }
                         yield Ok::<_, Infallible>(data_stream_line("3", json!(error_text)));
                         return;
-                    } else if part_type == models::SessionMessagePartType::Text as i32 {
+                    } else if part_type == data_proto::SessionMessagePartType::Text as i32 {
                         if !content.is_empty() {
                             emitted_any_text = true;
                             yield Ok::<_, Infallible>(data_stream_line("0", json!(content)));
                         }
-                    } else if part_type == models::SessionMessagePartType::Reasoning as i32 {
+                    } else if part_type == data_proto::SessionMessagePartType::Reasoning as i32 {
                         if !content.is_empty() {
                             yield Ok::<_, Infallible>(data_stream_line("g", json!(content)));
                         }
-                    } else if part_type == models::SessionMessagePartType::ToolCall as i32 {
+                    } else if part_type == data_proto::SessionMessagePartType::ToolCall as i32 {
                         let payload = part.and_then(extract_tool_part_payload);
                         let tool_call_id = payload
                             .as_ref()
@@ -466,7 +469,7 @@ pub async fn post_chat(
                             "toolName": tool_name,
                             "args": args
                         })));
-                    } else if part_type == models::SessionMessagePartType::ToolResult as i32 {
+                    } else if part_type == data_proto::SessionMessagePartType::ToolResult as i32 {
                         let payload = part.and_then(extract_tool_part_payload);
                         if let Some(payload) = payload {
                             yield Ok::<_, Infallible>(data_stream_line("a", json!({
@@ -474,7 +477,36 @@ pub async fn post_chat(
                                 "result": payload.result
                             })));
                         }
-                    } else if part_type == models::SessionMessagePartType::Usage as i32 {
+                    } else if part_type
+                        == data_proto::SessionMessagePartType::RequestPermission as i32
+                    {
+                        let payload = part
+                            .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())
+                            .unwrap_or_else(|| json!({}));
+                        let request_id = payload
+                            .get("requestId")
+                            .and_then(|value| value.as_str())
+                            .unwrap_or("request-permission");
+                        yield Ok::<_, Infallible>(data_stream_line("9", json!({
+                            "toolCallId": request_id,
+                            "toolName": "request_permission",
+                            "args": payload.get("request").cloned().unwrap_or_else(|| payload.clone())
+                        })));
+                    } else if part_type
+                        == data_proto::SessionMessagePartType::PermissionResult as i32
+                    {
+                        let payload = part
+                            .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())
+                            .unwrap_or_else(|| json!({}));
+                        let request_id = payload
+                            .get("requestId")
+                            .and_then(|value| value.as_str())
+                            .unwrap_or("request-permission");
+                        yield Ok::<_, Infallible>(data_stream_line("a", json!({
+                            "toolCallId": request_id,
+                            "result": payload.get("outcome").cloned().unwrap_or_else(|| payload.clone())
+                        })));
+                    } else if part_type == data_proto::SessionMessagePartType::Usage as i32 {
                         let usage = part
                             .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())
                             .unwrap_or_else(|| json!({}));
@@ -500,7 +532,7 @@ pub async fn post_chat(
                             .iter()
                             .rev()
                             .find(|message| {
-                                message.role == models::MessageRole::RoleAssistant as i32
+                                message.role == data_proto::MessageRole::RoleAssistant as i32
                             })
                             .map(|message| message.id.clone())
                             .unwrap_or_else(|| Uuid::now_v7().to_string());
@@ -579,15 +611,15 @@ pub async fn get_chat(
                 };
                 yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "error", "value": error_text })));
                 break;
-            } else if part_type == models::SessionMessagePartType::Text as i32 {
+            } else if part_type == data_proto::SessionMessagePartType::Text as i32 {
                 if !content.is_empty() {
                     yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "text", "value": content })));
                 }
-            } else if part_type == models::SessionMessagePartType::Reasoning as i32 {
+            } else if part_type == data_proto::SessionMessagePartType::Reasoning as i32 {
                 if !content.is_empty() {
                     yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "reasoning", "value": content })));
                 }
-            } else if part_type == models::SessionMessagePartType::ToolCall as i32 {
+            } else if part_type == data_proto::SessionMessagePartType::ToolCall as i32 {
                 let payload = part.and_then(extract_tool_part_payload);
                 let tool_call_id = payload
                     .as_ref()
@@ -609,7 +641,7 @@ pub async fn get_chat(
                         "args": args
                     }
                 })));
-            } else if part_type == models::SessionMessagePartType::ToolResult as i32 {
+            } else if part_type == data_proto::SessionMessagePartType::ToolResult as i32 {
                 let payload = part.and_then(extract_tool_part_payload);
                 if let Some(payload) = payload {
                     yield Ok::<_, Infallible>(ndjson_line(json!({
@@ -620,7 +652,38 @@ pub async fn get_chat(
                         }
                     })));
                 }
-            } else if part_type == models::SessionMessagePartType::Usage as i32 {
+            } else if part_type == data_proto::SessionMessagePartType::RequestPermission as i32 {
+                let payload = part
+                    .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())
+                    .unwrap_or_else(|| json!({}));
+                let request_id = payload
+                    .get("requestId")
+                    .and_then(|value| value.as_str())
+                    .unwrap_or("request-permission");
+                yield Ok::<_, Infallible>(ndjson_line(json!({
+                    "type": "tool_call",
+                    "value": {
+                        "toolCallId": request_id,
+                        "toolName": "request_permission",
+                        "args": payload.get("request").cloned().unwrap_or_else(|| payload.clone())
+                    }
+                })));
+            } else if part_type == data_proto::SessionMessagePartType::PermissionResult as i32 {
+                let payload = part
+                    .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())
+                    .unwrap_or_else(|| json!({}));
+                let request_id = payload
+                    .get("requestId")
+                    .and_then(|value| value.as_str())
+                    .unwrap_or("request-permission");
+                yield Ok::<_, Infallible>(ndjson_line(json!({
+                    "type": "tool_result",
+                    "value": {
+                        "toolCallId": request_id,
+                        "result": payload.get("outcome").cloned().unwrap_or_else(|| payload.clone())
+                    }
+                })));
+            } else if part_type == data_proto::SessionMessagePartType::Usage as i32 {
                 let usage = part
                     .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())
                     .unwrap_or_else(|| json!({}));
@@ -685,7 +748,7 @@ mod tests {
         scheduler::NoopSchedulerBackend,
         topics, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
-    use crate::gateway::rpc::{models, proto};
+    use crate::gateway::rpc::{data_proto, proto};
     use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
     use axum::body::to_bytes;
     use axum::extract::{Path, State};
@@ -815,12 +878,12 @@ mod tests {
     }
 
     fn message_part(
-        part_type: models::SessionMessagePartType,
+        part_type: data_proto::SessionMessagePartType,
         content: impl Into<String>,
         name: impl Into<String>,
         payload_json: impl Into<String>,
-    ) -> models::SessionMessagePart {
-        models::SessionMessagePart {
+    ) -> data_proto::SessionMessagePart {
+        data_proto::SessionMessagePart {
             id: String::new(),
             part_type: part_type as i32,
             content: content.into(),
@@ -836,7 +899,7 @@ mod tests {
         ns: &str,
         message_id: &str,
         kind: SessionMessagePartEventKind,
-        part: models::SessionMessagePart,
+        part: data_proto::SessionMessagePart,
         timestamp: i64,
     ) -> SessionMessagePartEvent {
         SessionMessagePartEvent {
@@ -853,7 +916,7 @@ mod tests {
     #[test]
     fn extract_tool_part_payload_parses_tool_metadata() {
         let part = message_part(
-            models::SessionMessagePartType::ToolCall,
+            data_proto::SessionMessagePartType::ToolCall,
             "",
             "search",
             r#"{"tool_call_id":"call-123","input":{"q":"rust"},"output":{"ok":true}}"#,
@@ -869,7 +932,7 @@ mod tests {
     #[test]
     fn extract_tool_part_payload_defaults_and_rejects_invalid_payloads() {
         let fallback_part = message_part(
-            models::SessionMessagePartType::ToolResult,
+            data_proto::SessionMessagePartType::ToolResult,
             "fallback-result",
             "",
             r#"{"tool_call_id":"call-9"}"#,
@@ -879,19 +942,19 @@ mod tests {
         assert_eq!(payload.args, json!({}));
         assert_eq!(payload.result, Value::String("fallback-result".to_string()));
 
-        let missing_id = models::SessionMessagePart {
+        let missing_id = data_proto::SessionMessagePart {
             payload_json: r#"{"input":{"q":"rust"}}"#.to_string(),
             ..fallback_part.clone()
         };
         assert!(extract_tool_part_payload(&missing_id).is_none());
 
-        let empty_id = models::SessionMessagePart {
+        let empty_id = data_proto::SessionMessagePart {
             payload_json: r#"{"tool_call_id":""}"#.to_string(),
             ..fallback_part.clone()
         };
         assert!(extract_tool_part_payload(&empty_id).is_none());
 
-        let invalid_json = models::SessionMessagePart {
+        let invalid_json = data_proto::SessionMessagePart {
             payload_json: "{not-json}".to_string(),
             ..fallback_part
         };
@@ -902,19 +965,19 @@ mod tests {
     fn latest_tool_part_payload_returns_last_matching_entry() {
         let parts = vec![
             message_part(
-                models::SessionMessagePartType::ToolCall,
+                data_proto::SessionMessagePartType::ToolCall,
                 "",
                 "first",
                 r#"{"tool_call_id":"call-1","input":{"q":"first"}}"#,
             ),
             message_part(
-                models::SessionMessagePartType::ToolResult,
+                data_proto::SessionMessagePartType::ToolResult,
                 "",
                 "obs",
                 r#"{"tool_call_id":"call-1","output":{"ok":true}}"#,
             ),
             message_part(
-                models::SessionMessagePartType::ToolCall,
+                data_proto::SessionMessagePartType::ToolCall,
                 "",
                 "second",
                 r#"{"tool_call_id":"call-2","input":{"q":"second"}}"#,
@@ -923,7 +986,7 @@ mod tests {
 
         let payload = latest_tool_part_payload(
             parts.iter(),
-            models::SessionMessagePartType::ToolCall as i32,
+            data_proto::SessionMessagePartType::ToolCall as i32,
         )
         .unwrap();
         assert_eq!(payload.tool_call_id, "call-2");
@@ -997,33 +1060,33 @@ mod tests {
             agent: "agent".to_string(),
             state: "IDLE".to_string(),
             messages: vec![
-                models::SessionMessage {
+                data_proto::SessionMessage {
                     id: "m1".to_string(),
                     role: 1,
                     created_at: 1,
                     labels: HashMap::new(),
                     parts: vec![message_part(
-                        models::SessionMessagePartType::Text,
+                        data_proto::SessionMessagePartType::Text,
                         "user",
                         "",
                         "",
                     )],
                 },
-                models::SessionMessage {
+                data_proto::SessionMessage {
                     id: "m2".to_string(),
                     role: 2,
                     created_at: 2,
                     labels: HashMap::new(),
                     parts: Vec::new(),
                 },
-                models::SessionMessage {
+                data_proto::SessionMessage {
                     id: "m3".to_string(),
                     role: 2,
                     created_at: 3,
                     labels: HashMap::new(),
-                    parts: vec![models::SessionMessagePart {
+                    parts: vec![data_proto::SessionMessagePart {
                         id: "000000".to_string(),
-                        part_type: models::SessionMessagePartType::Text as i32,
+                        part_type: data_proto::SessionMessagePartType::Text as i32,
                         content: "done".to_string(),
                         name: String::new(),
                         payload_json: String::new(),
@@ -1048,7 +1111,12 @@ mod tests {
             "ns",
             "msg-1",
             SessionMessagePartEventKind::Delta,
-            message_part(models::SessionMessagePartType::Text, "hello", "name", ""),
+            message_part(
+                data_proto::SessionMessagePartType::Text,
+                "hello",
+                "name",
+                "",
+            ),
             7,
         );
 
@@ -1071,7 +1139,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         kv.set_msg(
             &keys::session("default", "agent", "session-1"),
-            &models::Session {
+            &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "agent".to_string(),
                 ns: "default".to_string(),
@@ -1086,13 +1154,13 @@ mod tests {
         .unwrap();
         kv.set_msg(
             &keys::session_message("default", "agent", "session-1", "msg-1"),
-            &models::SessionMessage {
+            &data_proto::SessionMessage {
                 id: "msg-1".to_string(),
-                role: models::MessageRole::RoleAssistant as i32,
+                role: data_proto::MessageRole::RoleAssistant as i32,
                 created_at: 3,
                 labels: HashMap::new(),
                 parts: vec![message_part(
-                    models::SessionMessagePartType::Text,
+                    data_proto::SessionMessagePartType::Text,
                     "history should not load",
                     "",
                     "",
@@ -1164,7 +1232,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         kv.set_msg(
             &keys::session("default", "agent", "session-1"),
-            &models::Session {
+            &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "agent".to_string(),
                 ns: "default".to_string(),
@@ -1231,19 +1299,19 @@ mod tests {
             .unwrap();
         assert_eq!(message_keys.len(), 1);
         let message = kv
-            .get_msg::<models::SessionMessage>(&message_keys[0])
+            .get_msg::<data_proto::SessionMessage>(&message_keys[0])
             .await
             .unwrap()
             .unwrap();
         assert_eq!(message.parts.len(), 2);
         assert_eq!(
             message.parts[0].part_type,
-            models::SessionMessagePartType::Text as i32
+            data_proto::SessionMessagePartType::Text as i32
         );
         assert_eq!(message.parts[0].content, "what is in this?");
         assert_eq!(
             message.parts[1].part_type,
-            models::SessionMessagePartType::Image as i32
+            data_proto::SessionMessagePartType::Image as i32
         );
         let object = message.parts[1].object.as_ref().unwrap();
         assert_eq!(object.key, "sessions/session-1/uploads/photo.png");
@@ -1295,7 +1363,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         kv.set_msg(
             &keys::session("default", "agent", session_id),
-            &models::Session {
+            &data_proto::Session {
                 id: session_id.to_string(),
                 agent: "agent".to_string(),
                 ns: "default".to_string(),
@@ -1319,7 +1387,7 @@ mod tests {
                 "assistant-1",
                 SessionMessagePartEventKind::Error,
                 message_part(
-                    models::SessionMessagePartType::Error,
+                    data_proto::SessionMessagePartType::Error,
                     "Error: provider overloaded",
                     "",
                     "",
@@ -1373,7 +1441,7 @@ mod tests {
                     "msg-1",
                     SessionMessagePartEventKind::Delta,
                     message_part(
-                        models::SessionMessagePartType::ToolCall,
+                        data_proto::SessionMessagePartType::ToolCall,
                         "",
                         "search",
                         r#"{"tool_call_id":"call-1","input":{"q":"rust"}}"#,
@@ -1387,7 +1455,7 @@ mod tests {
                     "msg-1",
                     SessionMessagePartEventKind::Delta,
                     message_part(
-                        models::SessionMessagePartType::ToolResult,
+                        data_proto::SessionMessagePartType::ToolResult,
                         "fallback",
                         "search",
                         r#"{"tool_call_id":"call-1","output":{"ok":true}}"#,
@@ -1400,7 +1468,7 @@ mod tests {
                     "default",
                     "msg-1",
                     SessionMessagePartEventKind::Delta,
-                    message_part(models::SessionMessagePartType::Text, "Hello", "", ""),
+                    message_part(data_proto::SessionMessagePartType::Text, "Hello", "", ""),
                     3,
                 )
                 .encode_to_vec(),
@@ -1409,7 +1477,7 @@ mod tests {
                     "default",
                     "msg-1",
                     SessionMessagePartEventKind::Done,
-                    message_part(models::SessionMessagePartType::Text, "", "", ""),
+                    message_part(data_proto::SessionMessagePartType::Text, "", "", ""),
                     4,
                 )
                 .encode_to_vec(),
@@ -1447,7 +1515,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         kv.set_msg(
             &keys::session("default", "agent", "session-1"),
-            &models::Session {
+            &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "agent".to_string(),
                 ns: "default".to_string(),

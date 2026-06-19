@@ -1,10 +1,25 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::control::resource_model::{self, NamespaceResourceExt, TypedResource};
 use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{keys, ns};
-use crate::gateway::rpc::{models, proto, GrpcGatewayHandler};
+use crate::gateway::rpc::{proto, resources_proto, GrpcGatewayHandler};
 use std::time::{SystemTime, UNIX_EPOCH};
+
+fn namespace_response(ns: resources_proto::Namespace) -> proto::NamespaceResponse {
+    proto::NamespaceResponse {
+        name: ns.name().to_string(),
+        parent: if ns.parent().is_empty() {
+            None
+        } else {
+            Some(ns.parent().to_string())
+        },
+        is_deleted: ns.is_deleted(),
+        deleted_at: ns.deleted_at(),
+        labels: ns.labels().clone(),
+    }
+}
 
 impl GrpcGatewayHandler {
     pub async fn handle_create_namespace(
@@ -39,11 +54,13 @@ impl GrpcGatewayHandler {
         if let Ok(Some(mut existing_ns)) = self
             .gateway
             .kv
-            .get_msg::<models::Namespace>(&meta_key)
+            .get_msg::<resources_proto::Namespace>(&meta_key)
             .await
         {
-            if !existing_ns.is_deleted {
-                existing_ns.labels.extend(req.labels.clone());
+            if !existing_ns.is_deleted() {
+                if let Some(labels) = existing_ns.labels_mut() {
+                    labels.extend(req.labels.clone());
+                }
                 self.gateway
                     .kv
                     .set_msg(&meta_key, &existing_ns)
@@ -55,28 +72,16 @@ impl GrpcGatewayHandler {
                         ))
                     })?;
 
-                return Ok(tonic::Response::new(proto::NamespaceResponse {
-                    name: existing_ns.name,
-                    parent: if existing_ns.parent.is_empty() {
-                        None
-                    } else {
-                        Some(existing_ns.parent)
-                    },
-                    is_deleted: existing_ns.is_deleted,
-                    deleted_at: existing_ns.deleted_at,
-                    labels: existing_ns.labels,
-                }));
+                return Ok(tonic::Response::new(namespace_response(existing_ns)));
             }
             // If it is tombstoned, falling through here will overwrite and resurrect it!
         }
 
-        let ns = models::Namespace {
-            name: name.clone(),
-            parent: parent.clone().unwrap_or_default(),
-            is_deleted: false,
-            deleted_at: 0,
-            labels: req.labels.clone(),
-        };
+        let ns = resource_model::namespace(
+            name.clone(),
+            parent.clone().unwrap_or_default(),
+            req.labels.clone(),
+        );
 
         if req.recursive {
             // Provision missing parents top-down
@@ -93,7 +98,7 @@ impl GrpcGatewayHandler {
                 if self
                     .gateway
                     .kv
-                    .get_msg::<models::Namespace>(&check_key)
+                    .get_msg::<resources_proto::Namespace>(&check_key)
                     .await
                     .unwrap_or(None)
                     .is_none()
@@ -108,13 +113,11 @@ impl GrpcGatewayHandler {
                         None
                     };
 
-                    let p_ns = models::Namespace {
-                        name: current_parent.clone(),
-                        parent: grandparent.clone().unwrap_or_default(),
-                        is_deleted: false,
-                        deleted_at: 0,
-                        labels: std::collections::HashMap::new(),
-                    };
+                    let p_ns = resource_model::namespace(
+                        current_parent.clone(),
+                        grandparent.clone().unwrap_or_default(),
+                        std::collections::HashMap::new(),
+                    );
 
                     let child_segment =
                         current_parent.rsplit(':').next().unwrap_or(&current_parent);
@@ -159,17 +162,7 @@ impl GrpcGatewayHandler {
             tonic::Status::internal(format!("Failed to write namespace metadata: {}", e))
         })?;
 
-        Ok(tonic::Response::new(proto::NamespaceResponse {
-            name: ns.name,
-            parent: if ns.parent.is_empty() {
-                None
-            } else {
-                Some(ns.parent)
-            },
-            is_deleted: ns.is_deleted,
-            deleted_at: ns.deleted_at,
-            labels: ns.labels,
-        }))
+        Ok(tonic::Response::new(namespace_response(ns)))
     }
 
     pub async fn handle_get_namespace(
@@ -186,24 +179,14 @@ impl GrpcGatewayHandler {
         let ns = self
             .gateway
             .kv
-            .get_msg::<models::Namespace>(&meta_key)
+            .get_msg::<resources_proto::Namespace>(&meta_key)
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to read namespace metadata: {}", e))
             })?
             .ok_or_else(|| tonic::Status::not_found("Namespace not found"))?;
 
-        Ok(tonic::Response::new(proto::NamespaceResponse {
-            name: ns.name,
-            parent: if ns.parent.is_empty() {
-                None
-            } else {
-                Some(ns.parent)
-            },
-            is_deleted: ns.is_deleted,
-            deleted_at: ns.deleted_at,
-            labels: ns.labels,
-        }))
+        Ok(tonic::Response::new(namespace_response(ns)))
     }
 
     pub async fn handle_delete_namespace(
@@ -220,40 +203,31 @@ impl GrpcGatewayHandler {
         let mut ns = self
             .gateway
             .kv
-            .get_msg::<models::Namespace>(&meta_key)
+            .get_msg::<resources_proto::Namespace>(&meta_key)
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to read namespace metadata: {}", e))
             })?
             .ok_or_else(|| tonic::Status::not_found("Namespace not found"))?;
 
-        if ns.is_deleted {
+        if ns.is_deleted() {
             return Err(tonic::Status::failed_precondition(
                 "Namespace is already deleted",
             ));
         }
 
-        ns.is_deleted = true;
-        ns.deleted_at = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
+        ns.set_deleted(
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs() as i64,
+        );
 
         self.gateway.kv.set_msg(&meta_key, &ns).await.map_err(|e| {
             tonic::Status::internal(format!("Failed to write namespace metadata: {}", e))
         })?;
 
-        Ok(tonic::Response::new(proto::NamespaceResponse {
-            name: ns.name,
-            parent: if ns.parent.is_empty() {
-                None
-            } else {
-                Some(ns.parent)
-            },
-            is_deleted: ns.is_deleted,
-            deleted_at: ns.deleted_at,
-            labels: ns.labels,
-        }))
+        Ok(tonic::Response::new(namespace_response(ns)))
     }
 
     pub async fn handle_list_namespaces(
@@ -289,21 +263,11 @@ impl GrpcGatewayHandler {
             if let Ok(Some(ns)) = self
                 .gateway
                 .kv
-                .get_msg::<models::Namespace>(&meta_key)
+                .get_msg::<resources_proto::Namespace>(&meta_key)
                 .await
             {
-                if !ns.is_deleted {
-                    namespaces.push(proto::NamespaceResponse {
-                        name: ns.name,
-                        parent: if ns.parent.is_empty() {
-                            None
-                        } else {
-                            Some(ns.parent)
-                        },
-                        is_deleted: ns.is_deleted,
-                        deleted_at: ns.deleted_at,
-                        labels: ns.labels,
-                    });
+                if !ns.is_deleted() {
+                    namespaces.push(namespace_response(ns));
                 }
             }
         }

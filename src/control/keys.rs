@@ -317,6 +317,20 @@ pub fn session_message_prefix(namespace: &str, agent: &str, session_id: &str) ->
     )
 }
 
+pub fn session_permission_decision(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    request_id: &str,
+) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        "PermissionDecision",
+        request_id,
+    )
+}
+
 pub fn channel(namespace: &str, name: &str) -> ResourceKey {
     resource_key(namespace, &[], "Channel", name)
 }
@@ -425,14 +439,6 @@ pub fn workflow_run_event_prefix(namespace: &str, workflow: &str, run_id: &str) 
         &[("Workflow", workflow), ("WorkflowRun", run_id)],
         Some("WorkflowRunEvent"),
     )
-}
-
-pub fn agent_template(name: &str) -> ResourceKey {
-    resource_key(ns::TALON_SYSTEM, &[], "AgentTemplate", name)
-}
-
-pub fn agent_template_prefix() -> ResourceList {
-    direct_child_prefix(ns::TALON_SYSTEM, &[], Some("AgentTemplate"))
 }
 
 pub fn mcp_server(name: &str) -> ResourceKey {

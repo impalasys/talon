@@ -6,53 +6,57 @@ use std::sync::Arc;
 
 use std::pin::Pin;
 
-pub mod agents;
 pub mod channels;
 pub mod knowledge;
-pub mod knowledge_resources;
-pub mod mcp_bindings;
-pub mod mcp_servers;
 pub mod namespaces;
-pub mod schedules;
+pub mod resources;
 pub mod sessions;
-pub mod skills;
-pub mod templates;
 pub mod workflows;
 
-#[cfg(test)]
-mod channels_tests;
-#[cfg(test)]
-mod crud_tests;
-#[cfg(test)]
-mod service_tests;
-#[cfg(test)]
-mod sessions_tests;
-
 #[cfg(not(feature = "bazel"))]
+pub mod generated {
+    pub mod data {
+        tonic::include_proto!("talon.data");
+    }
+    pub mod events {
+        pub use crate::control::events::*;
+    }
+    pub mod resources {
+        tonic::include_proto!("talon.resources");
+    }
+    pub mod proto {
+        tonic::include_proto!("talon.gateway");
+    }
+}
+
+#[cfg(feature = "bazel")]
+pub mod generated {
+    pub mod data {
+        pub use talon_data_proto::talon::data::*;
+    }
+    pub mod resources {
+        pub use talon_resources_proto::talon::resources::*;
+    }
+    pub mod proto {
+        pub use talon_gateway_proto::talon::gateway::*;
+    }
+}
+
 pub mod proto {
-    tonic::include_proto!("talon.gateway");
-}
-#[cfg(feature = "bazel")]
-pub mod proto {
-    pub use talon_gateway_proto::talon::gateway::*;
+    pub use super::generated::proto::*;
 }
 
-#[cfg(not(feature = "bazel"))]
-pub mod models {
-    tonic::include_proto!("talon.models");
-}
-#[cfg(feature = "bazel")]
-pub mod models {
-    pub use talon_models_proto::talon::models::*;
+pub mod data_proto {
+    pub use super::generated::data::*;
 }
 
-#[cfg(not(feature = "bazel"))]
-pub mod manifests {
-    tonic::include_proto!("talon.manifests");
+pub mod resources_proto {
+    pub use super::generated::resources::*;
 }
-#[cfg(feature = "bazel")]
+
 pub mod manifests {
-    pub use talon_manifests_proto::talon::manifests::*;
+    pub use super::resources_proto::*;
+    pub type ObjectMeta = super::resources_proto::ResourceMeta;
 }
 
 #[cfg(not(feature = "bazel"))]
@@ -109,128 +113,39 @@ pub type ChannelEventStream = Pin<
 
 pub type WorkflowEventStream = Pin<
     Box<
-        dyn futures::Stream<Item = std::result::Result<models::WorkflowRunEvent, tonic::Status>>
+        dyn futures::Stream<Item = std::result::Result<data_proto::WorkflowRunEvent, tonic::Status>>
             + Send,
     >,
 >;
 
 #[tonic::async_trait]
 impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
-    // Agents
-    async fn create_agent(
+    async fn create_resource(
         &self,
-        req: tonic::Request<proto::CreateAgentRequest>,
-    ) -> std::result::Result<tonic::Response<proto::AgentResponse>, tonic::Status> {
-        self.handle_create_agent(req).await
+        req: tonic::Request<proto::CreateResourceRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ResourceResponse>, tonic::Status> {
+        self.handle_create_resource(req).await
     }
 
-    async fn get_agent(
+    async fn get_resource(
         &self,
-        req: tonic::Request<proto::GetAgentRequest>,
-    ) -> std::result::Result<tonic::Response<proto::GetAgentResponse>, tonic::Status> {
-        self.handle_get_agent(req).await
+        req: tonic::Request<proto::GetResourceRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ResourceResponse>, tonic::Status> {
+        self.handle_get_resource(req).await
     }
 
-    async fn modify_agent(
+    async fn list_resources(
         &self,
-        req: tonic::Request<proto::ModifyAgentRequest>,
-    ) -> std::result::Result<tonic::Response<proto::AgentResponse>, tonic::Status> {
-        self.handle_modify_agent(req).await
-    }
-    async fn list_agents(
-        &self,
-        req: tonic::Request<proto::ListAgentsRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ListAgentsResponse>, tonic::Status> {
-        self.handle_list_agents(req).await
+        req: tonic::Request<proto::ListResourcesRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ListResourcesResponse>, tonic::Status> {
+        self.handle_list_resources(req).await
     }
 
-    // Agent Templates
-    async fn create_agent_template(
+    async fn delete_resource(
         &self,
-        req: tonic::Request<proto::CreateAgentTemplateRequest>,
-    ) -> std::result::Result<tonic::Response<proto::AgentTemplateResponse>, tonic::Status> {
-        self.handle_create_agent_template(req).await
-    }
-
-    async fn get_agent_template(
-        &self,
-        req: tonic::Request<proto::GetAgentTemplateRequest>,
-    ) -> std::result::Result<tonic::Response<proto::AgentTemplateResponse>, tonic::Status> {
-        self.handle_get_agent_template(req).await
-    }
-
-    async fn list_agent_templates(
-        &self,
-        req: tonic::Request<proto::ListAgentTemplatesRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ListAgentTemplatesResponse>, tonic::Status>
-    {
-        self.handle_list_agent_templates(req).await
-    }
-
-    async fn delete_agent_template(
-        &self,
-        req: tonic::Request<proto::DeleteAgentTemplateRequest>,
-    ) -> std::result::Result<tonic::Response<proto::DeleteAgentTemplateResponse>, tonic::Status>
-    {
-        self.handle_delete_agent_template(req).await
-    }
-
-    async fn create_mcp_server(
-        &self,
-        req: tonic::Request<proto::CreateMcpServerRequest>,
-    ) -> std::result::Result<tonic::Response<proto::McpServerResponse>, tonic::Status> {
-        self.handle_create_mcp_server(req).await
-    }
-
-    async fn get_mcp_server(
-        &self,
-        req: tonic::Request<proto::GetMcpServerRequest>,
-    ) -> std::result::Result<tonic::Response<proto::McpServerResponse>, tonic::Status> {
-        self.handle_get_mcp_server(req).await
-    }
-
-    async fn list_mcp_servers(
-        &self,
-        req: tonic::Request<proto::ListMcpServersRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ListMcpServersResponse>, tonic::Status> {
-        self.handle_list_mcp_servers(req).await
-    }
-
-    async fn delete_mcp_server(
-        &self,
-        req: tonic::Request<proto::DeleteMcpServerRequest>,
-    ) -> std::result::Result<tonic::Response<proto::DeleteMcpServerResponse>, tonic::Status> {
-        self.handle_delete_mcp_server(req).await
-    }
-
-    async fn create_mcp_server_binding(
-        &self,
-        req: tonic::Request<proto::CreateMcpServerBindingRequest>,
-    ) -> std::result::Result<tonic::Response<proto::McpServerBindingResponse>, tonic::Status> {
-        self.handle_create_mcp_server_binding(req).await
-    }
-
-    async fn get_mcp_server_binding(
-        &self,
-        req: tonic::Request<proto::GetMcpServerBindingRequest>,
-    ) -> std::result::Result<tonic::Response<proto::McpServerBindingResponse>, tonic::Status> {
-        self.handle_get_mcp_server_binding(req).await
-    }
-
-    async fn list_mcp_server_bindings(
-        &self,
-        req: tonic::Request<proto::ListMcpServerBindingsRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ListMcpServerBindingsResponse>, tonic::Status>
-    {
-        self.handle_list_mcp_server_bindings(req).await
-    }
-
-    async fn delete_mcp_server_binding(
-        &self,
-        req: tonic::Request<proto::DeleteMcpServerBindingRequest>,
-    ) -> std::result::Result<tonic::Response<proto::DeleteMcpServerBindingResponse>, tonic::Status>
-    {
-        self.handle_delete_mcp_server_binding(req).await
+        req: tonic::Request<proto::DeleteResourceRequest>,
+    ) -> std::result::Result<tonic::Response<proto::DeleteResourceResponse>, tonic::Status> {
+        self.handle_delete_resource(req).await
     }
 
     // Sessions
@@ -270,60 +185,6 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
         req: tonic::Request<proto::ClearSessionRequest>,
     ) -> std::result::Result<tonic::Response<proto::ClearSessionResponse>, tonic::Status> {
         self.handle_clear_session(req).await
-    }
-    async fn create_schedule(
-        &self,
-        req: tonic::Request<proto::CreateScheduleRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ScheduleResponse>, tonic::Status> {
-        self.handle_create_schedule(req).await
-    }
-    async fn get_schedule(
-        &self,
-        req: tonic::Request<proto::GetScheduleRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ScheduleResponse>, tonic::Status> {
-        self.handle_get_schedule(req).await
-    }
-    async fn modify_schedule(
-        &self,
-        req: tonic::Request<proto::ModifyScheduleRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ScheduleResponse>, tonic::Status> {
-        self.handle_modify_schedule(req).await
-    }
-    async fn list_schedules(
-        &self,
-        req: tonic::Request<proto::ListSchedulesRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ListSchedulesResponse>, tonic::Status> {
-        self.handle_list_schedules(req).await
-    }
-    async fn delete_schedule(
-        &self,
-        req: tonic::Request<proto::DeleteScheduleRequest>,
-    ) -> std::result::Result<tonic::Response<proto::DeleteScheduleResponse>, tonic::Status> {
-        self.handle_delete_schedule(req).await
-    }
-    async fn create_workflow(
-        &self,
-        req: tonic::Request<proto::CreateWorkflowRequest>,
-    ) -> std::result::Result<tonic::Response<proto::WorkflowResponse>, tonic::Status> {
-        self.handle_create_workflow(req).await
-    }
-    async fn get_workflow(
-        &self,
-        req: tonic::Request<proto::GetWorkflowRequest>,
-    ) -> std::result::Result<tonic::Response<proto::WorkflowResponse>, tonic::Status> {
-        self.handle_get_workflow(req).await
-    }
-    async fn list_workflows(
-        &self,
-        req: tonic::Request<proto::ListWorkflowsRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ListWorkflowsResponse>, tonic::Status> {
-        self.handle_list_workflows(req).await
-    }
-    async fn delete_workflow(
-        &self,
-        req: tonic::Request<proto::DeleteWorkflowRequest>,
-    ) -> std::result::Result<tonic::Response<proto::DeleteWorkflowResponse>, tonic::Status> {
-        self.handle_delete_workflow(req).await
     }
     async fn create_workflow_run(
         &self,
@@ -368,6 +229,13 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
     {
         self.handle_append_session_message(req).await
     }
+    async fn answer_session_permission(
+        &self,
+        req: tonic::Request<proto::AnswerSessionPermissionRequest>,
+    ) -> std::result::Result<tonic::Response<proto::AnswerSessionPermissionResponse>, tonic::Status>
+    {
+        self.handle_answer_session_permission(req).await
+    }
     async fn stop_session_generation(
         &self,
         req: tonic::Request<proto::StopSessionGenerationRequest>,
@@ -388,60 +256,6 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
         req: tonic::Request<proto::SearchKnowledgeRequest>,
     ) -> std::result::Result<tonic::Response<proto::SearchKnowledgeResponse>, tonic::Status> {
         self.handle_search_knowledge(req).await
-    }
-    async fn create_namespace_knowledge(
-        &self,
-        req: tonic::Request<proto::CreateNamespaceKnowledgeRequest>,
-    ) -> std::result::Result<tonic::Response<proto::NamespaceKnowledgeResponse>, tonic::Status>
-    {
-        self.handle_create_namespace_knowledge(req).await
-    }
-    async fn get_namespace_knowledge(
-        &self,
-        req: tonic::Request<proto::GetNamespaceKnowledgeRequest>,
-    ) -> std::result::Result<tonic::Response<proto::NamespaceKnowledgeResponse>, tonic::Status>
-    {
-        self.handle_get_namespace_knowledge(req).await
-    }
-    async fn list_namespace_knowledge(
-        &self,
-        req: tonic::Request<proto::ListNamespaceKnowledgeRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ListNamespaceKnowledgeResponse>, tonic::Status>
-    {
-        self.handle_list_namespace_knowledge(req).await
-    }
-    async fn delete_namespace_knowledge(
-        &self,
-        req: tonic::Request<proto::DeleteNamespaceKnowledgeRequest>,
-    ) -> std::result::Result<tonic::Response<proto::DeleteNamespaceKnowledgeResponse>, tonic::Status>
-    {
-        self.handle_delete_namespace_knowledge(req).await
-    }
-    async fn create_namespace_skill(
-        &self,
-        req: tonic::Request<proto::CreateNamespaceSkillRequest>,
-    ) -> std::result::Result<tonic::Response<proto::NamespaceSkillResponse>, tonic::Status> {
-        self.handle_create_namespace_skill(req).await
-    }
-    async fn get_namespace_skill(
-        &self,
-        req: tonic::Request<proto::GetNamespaceSkillRequest>,
-    ) -> std::result::Result<tonic::Response<proto::NamespaceSkillResponse>, tonic::Status> {
-        self.handle_get_namespace_skill(req).await
-    }
-    async fn list_namespace_skills(
-        &self,
-        req: tonic::Request<proto::ListNamespaceSkillsRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ListNamespaceSkillsResponse>, tonic::Status>
-    {
-        self.handle_list_namespace_skills(req).await
-    }
-    async fn delete_namespace_skill(
-        &self,
-        req: tonic::Request<proto::DeleteNamespaceSkillRequest>,
-    ) -> std::result::Result<tonic::Response<proto::DeleteNamespaceSkillResponse>, tonic::Status>
-    {
-        self.handle_delete_namespace_skill(req).await
     }
 
     // Namespaces
@@ -507,41 +321,6 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
         self.handle_stream_session_parts_batch(req).await
     }
 
-    async fn create_channel(
-        &self,
-        req: tonic::Request<proto::CreateChannelRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ChannelResponse>, tonic::Status> {
-        self.handle_create_channel(req).await
-    }
-
-    async fn get_channel(
-        &self,
-        req: tonic::Request<proto::GetChannelRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ChannelResponse>, tonic::Status> {
-        self.handle_get_channel(req).await
-    }
-
-    async fn modify_channel(
-        &self,
-        req: tonic::Request<proto::ModifyChannelRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ChannelResponse>, tonic::Status> {
-        self.handle_modify_channel(req).await
-    }
-
-    async fn list_channels(
-        &self,
-        req: tonic::Request<proto::ListChannelsRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ListChannelsResponse>, tonic::Status> {
-        self.handle_list_channels(req).await
-    }
-
-    async fn delete_channel(
-        &self,
-        req: tonic::Request<proto::DeleteChannelRequest>,
-    ) -> std::result::Result<tonic::Response<proto::DeleteChannelResponse>, tonic::Status> {
-        self.handle_delete_channel(req).await
-    }
-
     async fn post_channel_message(
         &self,
         req: tonic::Request<proto::PostChannelMessageRequest>,
@@ -563,46 +342,6 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::ListChannelMessagesResponse>, tonic::Status>
     {
         self.handle_list_channel_messages(req).await
-    }
-
-    async fn create_channel_subscription(
-        &self,
-        req: tonic::Request<proto::CreateChannelSubscriptionRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ChannelSubscriptionResponse>, tonic::Status>
-    {
-        self.handle_create_channel_subscription(req).await
-    }
-
-    async fn get_channel_subscription(
-        &self,
-        req: tonic::Request<proto::GetChannelSubscriptionRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ChannelSubscriptionResponse>, tonic::Status>
-    {
-        self.handle_get_channel_subscription(req).await
-    }
-
-    async fn modify_channel_subscription(
-        &self,
-        req: tonic::Request<proto::ModifyChannelSubscriptionRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ChannelSubscriptionResponse>, tonic::Status>
-    {
-        self.handle_modify_channel_subscription(req).await
-    }
-
-    async fn list_channel_subscriptions(
-        &self,
-        req: tonic::Request<proto::ListChannelSubscriptionsRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ListChannelSubscriptionsResponse>, tonic::Status>
-    {
-        self.handle_list_channel_subscriptions(req).await
-    }
-
-    async fn delete_channel_subscription(
-        &self,
-        req: tonic::Request<proto::DeleteChannelSubscriptionRequest>,
-    ) -> std::result::Result<tonic::Response<proto::DeleteChannelSubscriptionResponse>, tonic::Status>
-    {
-        self.handle_delete_channel_subscription(req).await
     }
 
     type StreamChannelEventsStream = ChannelEventStream;

@@ -6,8 +6,20 @@ cd "$ROOT"
 
 PROTO_SRCS=(
   proto/config.proto
-  proto/models.proto
-  proto/manifests.proto
+  proto/resources/common.proto
+  proto/resources/agents.proto
+  proto/resources/mcp.proto
+  proto/resources/knowledge.proto
+  proto/resources/namespaces.proto
+  proto/resources/channels.proto
+  proto/resources/schedules.proto
+  proto/resources/workflows.proto
+  proto/resources/deployments.proto
+  proto/resources/sandboxes.proto
+  proto/resources/sessions.proto
+  proto/resources/skills.proto
+  proto/resources/resource.proto
+  proto/data/data.proto
   proto/events.proto
   proto/gateway.proto
 )
@@ -51,13 +63,37 @@ GO_OPTS=(
   "--go_opt=module=${GO_MODULE}"
   "--go-grpc_opt=module=${GO_MODULE}"
   "--go_opt=Mproto/config.proto=${GO_MODULE}/talon/config"
-  "--go_opt=Mproto/models.proto=${GO_MODULE}/talon/models"
-  "--go_opt=Mproto/manifests.proto=${GO_MODULE}/talon/manifests"
+  "--go_opt=Mproto/resources/common.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/agents.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/mcp.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/knowledge.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/namespaces.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/channels.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/schedules.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/workflows.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/deployments.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/sandboxes.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/sessions.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/skills.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
   "--go_opt=Mproto/gateway.proto=${GO_MODULE}/talon/gateway"
   "--go-grpc_opt=Mproto/config.proto=${GO_MODULE}/talon/config"
-  "--go-grpc_opt=Mproto/models.proto=${GO_MODULE}/talon/models"
-  "--go-grpc_opt=Mproto/manifests.proto=${GO_MODULE}/talon/manifests"
+  "--go-grpc_opt=Mproto/resources/common.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/agents.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/mcp.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/knowledge.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/namespaces.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/channels.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/schedules.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/workflows.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/deployments.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/sandboxes.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/sessions.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/skills.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
   "--go-grpc_opt=Mproto/gateway.proto=${GO_MODULE}/talon/gateway"
 )
@@ -102,8 +138,11 @@ text = path.read_text()
 
 
 def strip_region(source: str, start_marker: str, end_marker: str) -> str:
-    start = source.index(start_marker)
-    end = source.index(end_marker, start)
+    try:
+        start = source.index(start_marker)
+        end = source.index(end_marker, start)
+    except ValueError:
+        return source
     region = source[start:end]
     stripped = "\n".join(line.rstrip() for line in region.splitlines())
     if region.endswith("\n"):
@@ -169,7 +208,7 @@ PATH="$NPM_BIN:$PATH" "$PROTOC" -I. -Ithird_party/googleapis \
 
 PYTHON_CODEGEN="${PYTHON_CODEGEN:-python3}"
 PY_TOOLS="$ROOT/.tools/python-codegen"
-"$PYTHON_CODEGEN" -m pip install --quiet --target "$PY_TOOLS" grpcio-tools==1.76.0
+"$PYTHON_CODEGEN" -m pip install --quiet --upgrade --target "$PY_TOOLS" grpcio-tools==1.76.0
 PYTHONPATH="$PY_TOOLS${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON_CODEGEN" -m grpc_tools.protoc -I. -Ithird_party/googleapis \
   --experimental_allow_proto3_optional \
   --python_out=sdk/python/talon-client/src/talon_client \
@@ -186,8 +225,36 @@ root = Path("sdk/python/talon-client/src/talon_client")
 for path in root.rglob("*_pb2*.py"):
     text = path.read_text()
     text = text.replace("from proto import ", "from talon_client.proto import ")
+    text = text.replace("from proto.data import ", "from talon_client.proto.data import ")
+    text = text.replace("from proto.resources import ", "from talon_client.proto.resources import ")
+    text = text.replace("import proto.gateway_pb2 as ", "import talon_client.proto.gateway_pb2 as ")
+    text = text.replace("import proto.events_pb2 as ", "import talon_client.proto.events_pb2 as ")
+    text = text.replace("import proto.data.data_pb2 as ", "import talon_client.proto.data.data_pb2 as ")
+    text = text.replace("import proto.resources.", "import talon_client.proto.resources.")
     text = text.replace("from google.api import ", "from talon_client.google.api import ")
     path.write_text(text)
 PY
 
-cargo run --quiet --manifest-path sdk/rust/tools/codegen/Cargo.toml
+run_with_retries() {
+  local attempts="${SDK_CARGO_RETRY_ATTEMPTS:-4}"
+  local delay="${SDK_CARGO_RETRY_DELAY_SECONDS:-5}"
+  local attempt=1
+
+  while true; do
+    if "$@"; then
+      return 0
+    fi
+
+    if (( attempt >= attempts )); then
+      return 1
+    fi
+
+    echo "Command failed; retrying in ${delay}s (${attempt}/${attempts}): $*" >&2
+    sleep "$delay"
+    attempt=$((attempt + 1))
+    delay=$((delay * 2))
+  done
+}
+
+export CARGO_NET_RETRY="${CARGO_NET_RETRY:-10}"
+run_with_retries cargo run --quiet --manifest-path sdk/rust/tools/codegen/Cargo.toml

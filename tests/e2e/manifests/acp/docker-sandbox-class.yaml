@@ -1,0 +1,10 @@
+apiVersion: talon.impalasys.com/v1
+kind: SandboxClass
+metadata:
+  name: "e2e-code-{{ vars.run_id }}"
+  namespace: system
+spec:
+  provider: docker
+  providerConfig:
+    image: "{{ vars.docker_image }}"
+  credentials: {}

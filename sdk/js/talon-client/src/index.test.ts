@@ -4,7 +4,8 @@ import { gateway } from "./index.js";
 
 describe("@impalasys/talon-client", () => {
   it("exports generated gateway types", () => {
-    const request = new gateway.ListAgentsRequest({ ns: "default" });
+    const request = new gateway.ListResourcesRequest({ ns: "default", kind: "Agent" });
     assert.equal(request.ns, "default");
+    assert.equal(request.kind, "Agent");
   });
 });

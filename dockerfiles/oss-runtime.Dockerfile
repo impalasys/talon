@@ -16,6 +16,8 @@ RUN cargo install cargo-chef --locked
 
 WORKDIR /usr/src/talon
 
+FROM docker:27-cli AS docker-cli
+
 FROM chef AS planner
 
 COPY Cargo.toml Cargo.lock build.rs ./
@@ -58,6 +60,7 @@ COPY --from=builder /usr/src/talon/dist/talon-server /usr/local/bin/talon-server
 COPY --from=builder /usr/src/talon/dist/talon-worker /usr/local/bin/talon-worker
 COPY --from=builder /usr/src/talon/dist/talon-cli /usr/local/bin/talon-cli
 COPY --from=builder /usr/src/talon/dist/talon-node /usr/local/bin/talon-node
+COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
 RUN mkdir -p /data/talon
 COPY --from=builder /usr/src/talon/talon.yaml /data/talon/talon.yaml
 

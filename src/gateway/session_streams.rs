@@ -325,7 +325,7 @@ mod tests {
         events::{SessionMessagePartEvent, SessionMessagePartEventKind},
         keys, topics, MessagePublisher,
     };
-    use crate::gateway::rpc::models::{SessionMessagePart, SessionMessagePartType};
+    use crate::gateway::rpc::data_proto::{SessionMessagePart, SessionMessagePartType};
     use prost::Message;
     use std::collections::{HashMap, HashSet, VecDeque};
     use std::pin::Pin;

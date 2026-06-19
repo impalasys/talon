@@ -1,0 +1,10 @@
+apiVersion: talon.impalasys.com/v1
+kind: SandboxClass
+metadata:
+  name: docker-code
+  namespace: system
+spec:
+  provider: docker
+  providerConfig:
+    image: talon-zed-codex-acp:local
+  credentials: {}

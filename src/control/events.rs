@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 #[cfg(not(feature = "bazel"))]
-pub mod models {
-    pub use crate::gateway::rpc::models::*;
+pub mod data {
+    pub use crate::gateway::rpc::data_proto::*;
 }
 
 #[cfg(not(feature = "bazel"))]

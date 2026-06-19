@@ -3,9 +3,9 @@
 import grpc
 import warnings
 
+from proto.data import data_pb2 as proto_dot_data_dot_data__pb2
 from proto import events_pb2 as proto_dot_events__pb2
 from proto import gateway_pb2 as proto_dot_gateway__pb2
-from proto import models_pb2 as proto_dot_models__pb2
 
 GRPC_GENERATED_VERSION = '1.76.0'
 GRPC_VERSION = grpc.__version__
@@ -36,26 +36,6 @@ class GatewayServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.CreateAgent = channel.unary_unary(
-                '/talon.gateway.GatewayService/CreateAgent',
-                request_serializer=proto_dot_gateway__pb2.CreateAgentRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.AgentResponse.FromString,
-                _registered_method=True)
-        self.GetAgent = channel.unary_unary(
-                '/talon.gateway.GatewayService/GetAgent',
-                request_serializer=proto_dot_gateway__pb2.GetAgentRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.GetAgentResponse.FromString,
-                _registered_method=True)
-        self.ModifyAgent = channel.unary_unary(
-                '/talon.gateway.GatewayService/ModifyAgent',
-                request_serializer=proto_dot_gateway__pb2.ModifyAgentRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.AgentResponse.FromString,
-                _registered_method=True)
-        self.ListAgents = channel.unary_unary(
-                '/talon.gateway.GatewayService/ListAgents',
-                request_serializer=proto_dot_gateway__pb2.ListAgentsRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ListAgentsResponse.FromString,
-                _registered_method=True)
         self.GetKnowledge = channel.unary_unary(
                 '/talon.gateway.GatewayService/GetKnowledge',
                 request_serializer=proto_dot_gateway__pb2.GetKnowledgeRequest.SerializeToString,
@@ -65,26 +45,6 @@ class GatewayServiceStub(object):
                 '/talon.gateway.GatewayService/SearchKnowledge',
                 request_serializer=proto_dot_gateway__pb2.SearchKnowledgeRequest.SerializeToString,
                 response_deserializer=proto_dot_gateway__pb2.SearchKnowledgeResponse.FromString,
-                _registered_method=True)
-        self.CreateNamespaceKnowledge = channel.unary_unary(
-                '/talon.gateway.GatewayService/CreateNamespaceKnowledge',
-                request_serializer=proto_dot_gateway__pb2.CreateNamespaceKnowledgeRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.NamespaceKnowledgeResponse.FromString,
-                _registered_method=True)
-        self.GetNamespaceKnowledge = channel.unary_unary(
-                '/talon.gateway.GatewayService/GetNamespaceKnowledge',
-                request_serializer=proto_dot_gateway__pb2.GetNamespaceKnowledgeRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.NamespaceKnowledgeResponse.FromString,
-                _registered_method=True)
-        self.ListNamespaceKnowledge = channel.unary_unary(
-                '/talon.gateway.GatewayService/ListNamespaceKnowledge',
-                request_serializer=proto_dot_gateway__pb2.ListNamespaceKnowledgeRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ListNamespaceKnowledgeResponse.FromString,
-                _registered_method=True)
-        self.DeleteNamespaceKnowledge = channel.unary_unary(
-                '/talon.gateway.GatewayService/DeleteNamespaceKnowledge',
-                request_serializer=proto_dot_gateway__pb2.DeleteNamespaceKnowledgeRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.DeleteNamespaceKnowledgeResponse.FromString,
                 _registered_method=True)
         self.CreateSession = channel.unary_unary(
                 '/talon.gateway.GatewayService/CreateSession',
@@ -126,6 +86,11 @@ class GatewayServiceStub(object):
                 request_serializer=proto_dot_gateway__pb2.AppendSessionMessageRequest.SerializeToString,
                 response_deserializer=proto_dot_gateway__pb2.AppendSessionMessageResponse.FromString,
                 _registered_method=True)
+        self.AnswerSessionPermission = channel.unary_unary(
+                '/talon.gateway.GatewayService/AnswerSessionPermission',
+                request_serializer=proto_dot_gateway__pb2.AnswerSessionPermissionRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.AnswerSessionPermissionResponse.FromString,
+                _registered_method=True)
         self.StopSessionGeneration = channel.unary_unary(
                 '/talon.gateway.GatewayService/StopSessionGeneration',
                 request_serializer=proto_dot_gateway__pb2.StopSessionGenerationRequest.SerializeToString,
@@ -140,31 +105,6 @@ class GatewayServiceStub(object):
                 '/talon.gateway.GatewayService/StreamSessionPartsBatch',
                 request_serializer=proto_dot_gateway__pb2.StreamSessionPartsBatchRequest.SerializeToString,
                 response_deserializer=proto_dot_events__pb2.SessionMessagePartEvent.FromString,
-                _registered_method=True)
-        self.CreateChannel = channel.unary_unary(
-                '/talon.gateway.GatewayService/CreateChannel',
-                request_serializer=proto_dot_gateway__pb2.CreateChannelRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ChannelResponse.FromString,
-                _registered_method=True)
-        self.GetChannel = channel.unary_unary(
-                '/talon.gateway.GatewayService/GetChannel',
-                request_serializer=proto_dot_gateway__pb2.GetChannelRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ChannelResponse.FromString,
-                _registered_method=True)
-        self.ModifyChannel = channel.unary_unary(
-                '/talon.gateway.GatewayService/ModifyChannel',
-                request_serializer=proto_dot_gateway__pb2.ModifyChannelRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ChannelResponse.FromString,
-                _registered_method=True)
-        self.ListChannels = channel.unary_unary(
-                '/talon.gateway.GatewayService/ListChannels',
-                request_serializer=proto_dot_gateway__pb2.ListChannelsRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ListChannelsResponse.FromString,
-                _registered_method=True)
-        self.DeleteChannel = channel.unary_unary(
-                '/talon.gateway.GatewayService/DeleteChannel',
-                request_serializer=proto_dot_gateway__pb2.DeleteChannelRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.DeleteChannelResponse.FromString,
                 _registered_method=True)
         self.PostChannelMessage = channel.unary_unary(
                 '/talon.gateway.GatewayService/PostChannelMessage',
@@ -181,80 +121,10 @@ class GatewayServiceStub(object):
                 request_serializer=proto_dot_gateway__pb2.ListChannelMessagesRequest.SerializeToString,
                 response_deserializer=proto_dot_gateway__pb2.ListChannelMessagesResponse.FromString,
                 _registered_method=True)
-        self.CreateChannelSubscription = channel.unary_unary(
-                '/talon.gateway.GatewayService/CreateChannelSubscription',
-                request_serializer=proto_dot_gateway__pb2.CreateChannelSubscriptionRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ChannelSubscriptionResponse.FromString,
-                _registered_method=True)
-        self.GetChannelSubscription = channel.unary_unary(
-                '/talon.gateway.GatewayService/GetChannelSubscription',
-                request_serializer=proto_dot_gateway__pb2.GetChannelSubscriptionRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ChannelSubscriptionResponse.FromString,
-                _registered_method=True)
-        self.ModifyChannelSubscription = channel.unary_unary(
-                '/talon.gateway.GatewayService/ModifyChannelSubscription',
-                request_serializer=proto_dot_gateway__pb2.ModifyChannelSubscriptionRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ChannelSubscriptionResponse.FromString,
-                _registered_method=True)
-        self.ListChannelSubscriptions = channel.unary_unary(
-                '/talon.gateway.GatewayService/ListChannelSubscriptions',
-                request_serializer=proto_dot_gateway__pb2.ListChannelSubscriptionsRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ListChannelSubscriptionsResponse.FromString,
-                _registered_method=True)
-        self.DeleteChannelSubscription = channel.unary_unary(
-                '/talon.gateway.GatewayService/DeleteChannelSubscription',
-                request_serializer=proto_dot_gateway__pb2.DeleteChannelSubscriptionRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.DeleteChannelSubscriptionResponse.FromString,
-                _registered_method=True)
         self.StreamChannelEvents = channel.unary_stream(
                 '/talon.gateway.GatewayService/StreamChannelEvents',
                 request_serializer=proto_dot_gateway__pb2.StreamChannelEventsRequest.SerializeToString,
                 response_deserializer=proto_dot_events__pb2.ChannelEvent.FromString,
-                _registered_method=True)
-        self.CreateSchedule = channel.unary_unary(
-                '/talon.gateway.GatewayService/CreateSchedule',
-                request_serializer=proto_dot_gateway__pb2.CreateScheduleRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ScheduleResponse.FromString,
-                _registered_method=True)
-        self.GetSchedule = channel.unary_unary(
-                '/talon.gateway.GatewayService/GetSchedule',
-                request_serializer=proto_dot_gateway__pb2.GetScheduleRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ScheduleResponse.FromString,
-                _registered_method=True)
-        self.ModifySchedule = channel.unary_unary(
-                '/talon.gateway.GatewayService/ModifySchedule',
-                request_serializer=proto_dot_gateway__pb2.ModifyScheduleRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ScheduleResponse.FromString,
-                _registered_method=True)
-        self.ListSchedules = channel.unary_unary(
-                '/talon.gateway.GatewayService/ListSchedules',
-                request_serializer=proto_dot_gateway__pb2.ListSchedulesRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ListSchedulesResponse.FromString,
-                _registered_method=True)
-        self.DeleteSchedule = channel.unary_unary(
-                '/talon.gateway.GatewayService/DeleteSchedule',
-                request_serializer=proto_dot_gateway__pb2.DeleteScheduleRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.DeleteScheduleResponse.FromString,
-                _registered_method=True)
-        self.CreateWorkflow = channel.unary_unary(
-                '/talon.gateway.GatewayService/CreateWorkflow',
-                request_serializer=proto_dot_gateway__pb2.CreateWorkflowRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.WorkflowResponse.FromString,
-                _registered_method=True)
-        self.GetWorkflow = channel.unary_unary(
-                '/talon.gateway.GatewayService/GetWorkflow',
-                request_serializer=proto_dot_gateway__pb2.GetWorkflowRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.WorkflowResponse.FromString,
-                _registered_method=True)
-        self.ListWorkflows = channel.unary_unary(
-                '/talon.gateway.GatewayService/ListWorkflows',
-                request_serializer=proto_dot_gateway__pb2.ListWorkflowsRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ListWorkflowsResponse.FromString,
-                _registered_method=True)
-        self.DeleteWorkflow = channel.unary_unary(
-                '/talon.gateway.GatewayService/DeleteWorkflow',
-                request_serializer=proto_dot_gateway__pb2.DeleteWorkflowRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.DeleteWorkflowResponse.FromString,
                 _registered_method=True)
         self.CreateWorkflowRun = channel.unary_unary(
                 '/talon.gateway.GatewayService/CreateWorkflowRun',
@@ -284,7 +154,7 @@ class GatewayServiceStub(object):
         self.StreamWorkflowEvents = channel.unary_stream(
                 '/talon.gateway.GatewayService/StreamWorkflowEvents',
                 request_serializer=proto_dot_gateway__pb2.StreamWorkflowEventsRequest.SerializeToString,
-                response_deserializer=proto_dot_models__pb2.WorkflowRunEvent.FromString,
+                response_deserializer=proto_dot_data_dot_data__pb2.WorkflowRunEvent.FromString,
                 _registered_method=True)
         self.CreateNamespace = channel.unary_unary(
                 '/talon.gateway.GatewayService/CreateNamespace',
@@ -306,128 +176,39 @@ class GatewayServiceStub(object):
                 request_serializer=proto_dot_gateway__pb2.ListNamespacesRequest.SerializeToString,
                 response_deserializer=proto_dot_gateway__pb2.ListNamespacesResponse.FromString,
                 _registered_method=True)
-        self.CreateAgentTemplate = channel.unary_unary(
-                '/talon.gateway.GatewayService/CreateAgentTemplate',
-                request_serializer=proto_dot_gateway__pb2.CreateAgentTemplateRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.AgentTemplateResponse.FromString,
+        self.CreateResource = channel.unary_unary(
+                '/talon.gateway.GatewayService/CreateResource',
+                request_serializer=proto_dot_gateway__pb2.CreateResourceRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.ResourceResponse.FromString,
                 _registered_method=True)
-        self.GetAgentTemplate = channel.unary_unary(
-                '/talon.gateway.GatewayService/GetAgentTemplate',
-                request_serializer=proto_dot_gateway__pb2.GetAgentTemplateRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.AgentTemplateResponse.FromString,
+        self.GetResource = channel.unary_unary(
+                '/talon.gateway.GatewayService/GetResource',
+                request_serializer=proto_dot_gateway__pb2.GetResourceRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.ResourceResponse.FromString,
                 _registered_method=True)
-        self.ListAgentTemplates = channel.unary_unary(
-                '/talon.gateway.GatewayService/ListAgentTemplates',
-                request_serializer=proto_dot_gateway__pb2.ListAgentTemplatesRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ListAgentTemplatesResponse.FromString,
+        self.ListResources = channel.unary_unary(
+                '/talon.gateway.GatewayService/ListResources',
+                request_serializer=proto_dot_gateway__pb2.ListResourcesRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.ListResourcesResponse.FromString,
                 _registered_method=True)
-        self.DeleteAgentTemplate = channel.unary_unary(
-                '/talon.gateway.GatewayService/DeleteAgentTemplate',
-                request_serializer=proto_dot_gateway__pb2.DeleteAgentTemplateRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.DeleteAgentTemplateResponse.FromString,
-                _registered_method=True)
-        self.CreateMcpServer = channel.unary_unary(
-                '/talon.gateway.GatewayService/CreateMcpServer',
-                request_serializer=proto_dot_gateway__pb2.CreateMcpServerRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.McpServerResponse.FromString,
-                _registered_method=True)
-        self.GetMcpServer = channel.unary_unary(
-                '/talon.gateway.GatewayService/GetMcpServer',
-                request_serializer=proto_dot_gateway__pb2.GetMcpServerRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.McpServerResponse.FromString,
-                _registered_method=True)
-        self.ListMcpServers = channel.unary_unary(
-                '/talon.gateway.GatewayService/ListMcpServers',
-                request_serializer=proto_dot_gateway__pb2.ListMcpServersRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ListMcpServersResponse.FromString,
-                _registered_method=True)
-        self.DeleteMcpServer = channel.unary_unary(
-                '/talon.gateway.GatewayService/DeleteMcpServer',
-                request_serializer=proto_dot_gateway__pb2.DeleteMcpServerRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.DeleteMcpServerResponse.FromString,
-                _registered_method=True)
-        self.CreateMcpServerBinding = channel.unary_unary(
-                '/talon.gateway.GatewayService/CreateMcpServerBinding',
-                request_serializer=proto_dot_gateway__pb2.CreateMcpServerBindingRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.McpServerBindingResponse.FromString,
-                _registered_method=True)
-        self.GetMcpServerBinding = channel.unary_unary(
-                '/talon.gateway.GatewayService/GetMcpServerBinding',
-                request_serializer=proto_dot_gateway__pb2.GetMcpServerBindingRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.McpServerBindingResponse.FromString,
-                _registered_method=True)
-        self.ListMcpServerBindings = channel.unary_unary(
-                '/talon.gateway.GatewayService/ListMcpServerBindings',
-                request_serializer=proto_dot_gateway__pb2.ListMcpServerBindingsRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ListMcpServerBindingsResponse.FromString,
-                _registered_method=True)
-        self.DeleteMcpServerBinding = channel.unary_unary(
-                '/talon.gateway.GatewayService/DeleteMcpServerBinding',
-                request_serializer=proto_dot_gateway__pb2.DeleteMcpServerBindingRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.DeleteMcpServerBindingResponse.FromString,
+        self.DeleteResource = channel.unary_unary(
+                '/talon.gateway.GatewayService/DeleteResource',
+                request_serializer=proto_dot_gateway__pb2.DeleteResourceRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.DeleteResourceResponse.FromString,
                 _registered_method=True)
 
 
 class GatewayServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def CreateAgent(self, request, context):
-        """Agent Lifecycle
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetAgent(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ModifyAgent(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ListAgents(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def GetKnowledge(self, request, context):
-        """Agent Knowledge
+        """Agent knowledge data-plane queries
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def SearchKnowledge(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def CreateNamespaceKnowledge(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetNamespaceKnowledge(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ListNamespaceKnowledge(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def DeleteNamespaceKnowledge(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -483,6 +264,12 @@ class GatewayServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def AnswerSessionPermission(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def StopSessionGeneration(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -501,39 +288,9 @@ class GatewayServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def CreateChannel(self, request, context):
-        """Channels
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetChannel(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ModifyChannel(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ListChannels(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def DeleteChannel(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def PostChannelMessage(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Channel data-plane actions
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -550,100 +307,15 @@ class GatewayServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def CreateChannelSubscription(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetChannelSubscription(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ModifyChannelSubscription(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ListChannelSubscriptions(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def DeleteChannelSubscription(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def StreamChannelEvents(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def CreateSchedule(self, request, context):
-        """Schedules
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetSchedule(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ModifySchedule(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ListSchedules(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def DeleteSchedule(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def CreateWorkflow(self, request, context):
-        """Workflows
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetWorkflow(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ListWorkflows(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def DeleteWorkflow(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def CreateWorkflowRun(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Workflow data-plane actions
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -703,75 +375,26 @@ class GatewayServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def CreateAgentTemplate(self, request, context):
-        """Agent Templates
+    def CreateResource(self, request, context):
+        """Generic resources
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetAgentTemplate(self, request, context):
+    def GetResource(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def ListAgentTemplates(self, request, context):
+    def ListResources(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def DeleteAgentTemplate(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def CreateMcpServer(self, request, context):
-        """MCP Servers
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetMcpServer(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ListMcpServers(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def DeleteMcpServer(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def CreateMcpServerBinding(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetMcpServerBinding(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ListMcpServerBindings(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def DeleteMcpServerBinding(self, request, context):
+    def DeleteResource(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -780,26 +403,6 @@ class GatewayServiceServicer(object):
 
 def add_GatewayServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'CreateAgent': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateAgent,
-                    request_deserializer=proto_dot_gateway__pb2.CreateAgentRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.AgentResponse.SerializeToString,
-            ),
-            'GetAgent': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetAgent,
-                    request_deserializer=proto_dot_gateway__pb2.GetAgentRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.GetAgentResponse.SerializeToString,
-            ),
-            'ModifyAgent': grpc.unary_unary_rpc_method_handler(
-                    servicer.ModifyAgent,
-                    request_deserializer=proto_dot_gateway__pb2.ModifyAgentRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.AgentResponse.SerializeToString,
-            ),
-            'ListAgents': grpc.unary_unary_rpc_method_handler(
-                    servicer.ListAgents,
-                    request_deserializer=proto_dot_gateway__pb2.ListAgentsRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ListAgentsResponse.SerializeToString,
-            ),
             'GetKnowledge': grpc.unary_unary_rpc_method_handler(
                     servicer.GetKnowledge,
                     request_deserializer=proto_dot_gateway__pb2.GetKnowledgeRequest.FromString,
@@ -809,26 +412,6 @@ def add_GatewayServiceServicer_to_server(servicer, server):
                     servicer.SearchKnowledge,
                     request_deserializer=proto_dot_gateway__pb2.SearchKnowledgeRequest.FromString,
                     response_serializer=proto_dot_gateway__pb2.SearchKnowledgeResponse.SerializeToString,
-            ),
-            'CreateNamespaceKnowledge': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateNamespaceKnowledge,
-                    request_deserializer=proto_dot_gateway__pb2.CreateNamespaceKnowledgeRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.NamespaceKnowledgeResponse.SerializeToString,
-            ),
-            'GetNamespaceKnowledge': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetNamespaceKnowledge,
-                    request_deserializer=proto_dot_gateway__pb2.GetNamespaceKnowledgeRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.NamespaceKnowledgeResponse.SerializeToString,
-            ),
-            'ListNamespaceKnowledge': grpc.unary_unary_rpc_method_handler(
-                    servicer.ListNamespaceKnowledge,
-                    request_deserializer=proto_dot_gateway__pb2.ListNamespaceKnowledgeRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ListNamespaceKnowledgeResponse.SerializeToString,
-            ),
-            'DeleteNamespaceKnowledge': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteNamespaceKnowledge,
-                    request_deserializer=proto_dot_gateway__pb2.DeleteNamespaceKnowledgeRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.DeleteNamespaceKnowledgeResponse.SerializeToString,
             ),
             'CreateSession': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateSession,
@@ -870,6 +453,11 @@ def add_GatewayServiceServicer_to_server(servicer, server):
                     request_deserializer=proto_dot_gateway__pb2.AppendSessionMessageRequest.FromString,
                     response_serializer=proto_dot_gateway__pb2.AppendSessionMessageResponse.SerializeToString,
             ),
+            'AnswerSessionPermission': grpc.unary_unary_rpc_method_handler(
+                    servicer.AnswerSessionPermission,
+                    request_deserializer=proto_dot_gateway__pb2.AnswerSessionPermissionRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.AnswerSessionPermissionResponse.SerializeToString,
+            ),
             'StopSessionGeneration': grpc.unary_unary_rpc_method_handler(
                     servicer.StopSessionGeneration,
                     request_deserializer=proto_dot_gateway__pb2.StopSessionGenerationRequest.FromString,
@@ -884,31 +472,6 @@ def add_GatewayServiceServicer_to_server(servicer, server):
                     servicer.StreamSessionPartsBatch,
                     request_deserializer=proto_dot_gateway__pb2.StreamSessionPartsBatchRequest.FromString,
                     response_serializer=proto_dot_events__pb2.SessionMessagePartEvent.SerializeToString,
-            ),
-            'CreateChannel': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateChannel,
-                    request_deserializer=proto_dot_gateway__pb2.CreateChannelRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ChannelResponse.SerializeToString,
-            ),
-            'GetChannel': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetChannel,
-                    request_deserializer=proto_dot_gateway__pb2.GetChannelRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ChannelResponse.SerializeToString,
-            ),
-            'ModifyChannel': grpc.unary_unary_rpc_method_handler(
-                    servicer.ModifyChannel,
-                    request_deserializer=proto_dot_gateway__pb2.ModifyChannelRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ChannelResponse.SerializeToString,
-            ),
-            'ListChannels': grpc.unary_unary_rpc_method_handler(
-                    servicer.ListChannels,
-                    request_deserializer=proto_dot_gateway__pb2.ListChannelsRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ListChannelsResponse.SerializeToString,
-            ),
-            'DeleteChannel': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteChannel,
-                    request_deserializer=proto_dot_gateway__pb2.DeleteChannelRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.DeleteChannelResponse.SerializeToString,
             ),
             'PostChannelMessage': grpc.unary_unary_rpc_method_handler(
                     servicer.PostChannelMessage,
@@ -925,80 +488,10 @@ def add_GatewayServiceServicer_to_server(servicer, server):
                     request_deserializer=proto_dot_gateway__pb2.ListChannelMessagesRequest.FromString,
                     response_serializer=proto_dot_gateway__pb2.ListChannelMessagesResponse.SerializeToString,
             ),
-            'CreateChannelSubscription': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateChannelSubscription,
-                    request_deserializer=proto_dot_gateway__pb2.CreateChannelSubscriptionRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ChannelSubscriptionResponse.SerializeToString,
-            ),
-            'GetChannelSubscription': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetChannelSubscription,
-                    request_deserializer=proto_dot_gateway__pb2.GetChannelSubscriptionRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ChannelSubscriptionResponse.SerializeToString,
-            ),
-            'ModifyChannelSubscription': grpc.unary_unary_rpc_method_handler(
-                    servicer.ModifyChannelSubscription,
-                    request_deserializer=proto_dot_gateway__pb2.ModifyChannelSubscriptionRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ChannelSubscriptionResponse.SerializeToString,
-            ),
-            'ListChannelSubscriptions': grpc.unary_unary_rpc_method_handler(
-                    servicer.ListChannelSubscriptions,
-                    request_deserializer=proto_dot_gateway__pb2.ListChannelSubscriptionsRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ListChannelSubscriptionsResponse.SerializeToString,
-            ),
-            'DeleteChannelSubscription': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteChannelSubscription,
-                    request_deserializer=proto_dot_gateway__pb2.DeleteChannelSubscriptionRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.DeleteChannelSubscriptionResponse.SerializeToString,
-            ),
             'StreamChannelEvents': grpc.unary_stream_rpc_method_handler(
                     servicer.StreamChannelEvents,
                     request_deserializer=proto_dot_gateway__pb2.StreamChannelEventsRequest.FromString,
                     response_serializer=proto_dot_events__pb2.ChannelEvent.SerializeToString,
-            ),
-            'CreateSchedule': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateSchedule,
-                    request_deserializer=proto_dot_gateway__pb2.CreateScheduleRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ScheduleResponse.SerializeToString,
-            ),
-            'GetSchedule': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetSchedule,
-                    request_deserializer=proto_dot_gateway__pb2.GetScheduleRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ScheduleResponse.SerializeToString,
-            ),
-            'ModifySchedule': grpc.unary_unary_rpc_method_handler(
-                    servicer.ModifySchedule,
-                    request_deserializer=proto_dot_gateway__pb2.ModifyScheduleRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ScheduleResponse.SerializeToString,
-            ),
-            'ListSchedules': grpc.unary_unary_rpc_method_handler(
-                    servicer.ListSchedules,
-                    request_deserializer=proto_dot_gateway__pb2.ListSchedulesRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ListSchedulesResponse.SerializeToString,
-            ),
-            'DeleteSchedule': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteSchedule,
-                    request_deserializer=proto_dot_gateway__pb2.DeleteScheduleRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.DeleteScheduleResponse.SerializeToString,
-            ),
-            'CreateWorkflow': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateWorkflow,
-                    request_deserializer=proto_dot_gateway__pb2.CreateWorkflowRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.WorkflowResponse.SerializeToString,
-            ),
-            'GetWorkflow': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetWorkflow,
-                    request_deserializer=proto_dot_gateway__pb2.GetWorkflowRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.WorkflowResponse.SerializeToString,
-            ),
-            'ListWorkflows': grpc.unary_unary_rpc_method_handler(
-                    servicer.ListWorkflows,
-                    request_deserializer=proto_dot_gateway__pb2.ListWorkflowsRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ListWorkflowsResponse.SerializeToString,
-            ),
-            'DeleteWorkflow': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteWorkflow,
-                    request_deserializer=proto_dot_gateway__pb2.DeleteWorkflowRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.DeleteWorkflowResponse.SerializeToString,
             ),
             'CreateWorkflowRun': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateWorkflowRun,
@@ -1028,7 +521,7 @@ def add_GatewayServiceServicer_to_server(servicer, server):
             'StreamWorkflowEvents': grpc.unary_stream_rpc_method_handler(
                     servicer.StreamWorkflowEvents,
                     request_deserializer=proto_dot_gateway__pb2.StreamWorkflowEventsRequest.FromString,
-                    response_serializer=proto_dot_models__pb2.WorkflowRunEvent.SerializeToString,
+                    response_serializer=proto_dot_data_dot_data__pb2.WorkflowRunEvent.SerializeToString,
             ),
             'CreateNamespace': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateNamespace,
@@ -1050,65 +543,25 @@ def add_GatewayServiceServicer_to_server(servicer, server):
                     request_deserializer=proto_dot_gateway__pb2.ListNamespacesRequest.FromString,
                     response_serializer=proto_dot_gateway__pb2.ListNamespacesResponse.SerializeToString,
             ),
-            'CreateAgentTemplate': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateAgentTemplate,
-                    request_deserializer=proto_dot_gateway__pb2.CreateAgentTemplateRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.AgentTemplateResponse.SerializeToString,
+            'CreateResource': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateResource,
+                    request_deserializer=proto_dot_gateway__pb2.CreateResourceRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.ResourceResponse.SerializeToString,
             ),
-            'GetAgentTemplate': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetAgentTemplate,
-                    request_deserializer=proto_dot_gateway__pb2.GetAgentTemplateRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.AgentTemplateResponse.SerializeToString,
+            'GetResource': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetResource,
+                    request_deserializer=proto_dot_gateway__pb2.GetResourceRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.ResourceResponse.SerializeToString,
             ),
-            'ListAgentTemplates': grpc.unary_unary_rpc_method_handler(
-                    servicer.ListAgentTemplates,
-                    request_deserializer=proto_dot_gateway__pb2.ListAgentTemplatesRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ListAgentTemplatesResponse.SerializeToString,
+            'ListResources': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListResources,
+                    request_deserializer=proto_dot_gateway__pb2.ListResourcesRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.ListResourcesResponse.SerializeToString,
             ),
-            'DeleteAgentTemplate': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteAgentTemplate,
-                    request_deserializer=proto_dot_gateway__pb2.DeleteAgentTemplateRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.DeleteAgentTemplateResponse.SerializeToString,
-            ),
-            'CreateMcpServer': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateMcpServer,
-                    request_deserializer=proto_dot_gateway__pb2.CreateMcpServerRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.McpServerResponse.SerializeToString,
-            ),
-            'GetMcpServer': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetMcpServer,
-                    request_deserializer=proto_dot_gateway__pb2.GetMcpServerRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.McpServerResponse.SerializeToString,
-            ),
-            'ListMcpServers': grpc.unary_unary_rpc_method_handler(
-                    servicer.ListMcpServers,
-                    request_deserializer=proto_dot_gateway__pb2.ListMcpServersRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ListMcpServersResponse.SerializeToString,
-            ),
-            'DeleteMcpServer': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteMcpServer,
-                    request_deserializer=proto_dot_gateway__pb2.DeleteMcpServerRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.DeleteMcpServerResponse.SerializeToString,
-            ),
-            'CreateMcpServerBinding': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateMcpServerBinding,
-                    request_deserializer=proto_dot_gateway__pb2.CreateMcpServerBindingRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.McpServerBindingResponse.SerializeToString,
-            ),
-            'GetMcpServerBinding': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetMcpServerBinding,
-                    request_deserializer=proto_dot_gateway__pb2.GetMcpServerBindingRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.McpServerBindingResponse.SerializeToString,
-            ),
-            'ListMcpServerBindings': grpc.unary_unary_rpc_method_handler(
-                    servicer.ListMcpServerBindings,
-                    request_deserializer=proto_dot_gateway__pb2.ListMcpServerBindingsRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ListMcpServerBindingsResponse.SerializeToString,
-            ),
-            'DeleteMcpServerBinding': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteMcpServerBinding,
-                    request_deserializer=proto_dot_gateway__pb2.DeleteMcpServerBindingRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.DeleteMcpServerBindingResponse.SerializeToString,
+            'DeleteResource': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteResource,
+                    request_deserializer=proto_dot_gateway__pb2.DeleteResourceRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.DeleteResourceResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1120,114 +573,6 @@ def add_GatewayServiceServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class GatewayService(object):
     """Missing associated documentation comment in .proto file."""
-
-    @staticmethod
-    def CreateAgent(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/CreateAgent',
-            proto_dot_gateway__pb2.CreateAgentRequest.SerializeToString,
-            proto_dot_gateway__pb2.AgentResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetAgent(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/GetAgent',
-            proto_dot_gateway__pb2.GetAgentRequest.SerializeToString,
-            proto_dot_gateway__pb2.GetAgentResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def ModifyAgent(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/ModifyAgent',
-            proto_dot_gateway__pb2.ModifyAgentRequest.SerializeToString,
-            proto_dot_gateway__pb2.AgentResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def ListAgents(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/ListAgents',
-            proto_dot_gateway__pb2.ListAgentsRequest.SerializeToString,
-            proto_dot_gateway__pb2.ListAgentsResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
 
     @staticmethod
     def GetKnowledge(request,
@@ -1273,114 +618,6 @@ class GatewayService(object):
             '/talon.gateway.GatewayService/SearchKnowledge',
             proto_dot_gateway__pb2.SearchKnowledgeRequest.SerializeToString,
             proto_dot_gateway__pb2.SearchKnowledgeResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateNamespaceKnowledge(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/CreateNamespaceKnowledge',
-            proto_dot_gateway__pb2.CreateNamespaceKnowledgeRequest.SerializeToString,
-            proto_dot_gateway__pb2.NamespaceKnowledgeResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetNamespaceKnowledge(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/GetNamespaceKnowledge',
-            proto_dot_gateway__pb2.GetNamespaceKnowledgeRequest.SerializeToString,
-            proto_dot_gateway__pb2.NamespaceKnowledgeResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def ListNamespaceKnowledge(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/ListNamespaceKnowledge',
-            proto_dot_gateway__pb2.ListNamespaceKnowledgeRequest.SerializeToString,
-            proto_dot_gateway__pb2.ListNamespaceKnowledgeResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DeleteNamespaceKnowledge(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/DeleteNamespaceKnowledge',
-            proto_dot_gateway__pb2.DeleteNamespaceKnowledgeRequest.SerializeToString,
-            proto_dot_gateway__pb2.DeleteNamespaceKnowledgeResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1608,6 +845,33 @@ class GatewayService(object):
             _registered_method=True)
 
     @staticmethod
+    def AnswerSessionPermission(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/AnswerSessionPermission',
+            proto_dot_gateway__pb2.AnswerSessionPermissionRequest.SerializeToString,
+            proto_dot_gateway__pb2.AnswerSessionPermissionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
     def StopSessionGeneration(request,
             target,
             options=(),
@@ -1678,141 +942,6 @@ class GatewayService(object):
             '/talon.gateway.GatewayService/StreamSessionPartsBatch',
             proto_dot_gateway__pb2.StreamSessionPartsBatchRequest.SerializeToString,
             proto_dot_events__pb2.SessionMessagePartEvent.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateChannel(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/CreateChannel',
-            proto_dot_gateway__pb2.CreateChannelRequest.SerializeToString,
-            proto_dot_gateway__pb2.ChannelResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetChannel(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/GetChannel',
-            proto_dot_gateway__pb2.GetChannelRequest.SerializeToString,
-            proto_dot_gateway__pb2.ChannelResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def ModifyChannel(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/ModifyChannel',
-            proto_dot_gateway__pb2.ModifyChannelRequest.SerializeToString,
-            proto_dot_gateway__pb2.ChannelResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def ListChannels(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/ListChannels',
-            proto_dot_gateway__pb2.ListChannelsRequest.SerializeToString,
-            proto_dot_gateway__pb2.ListChannelsResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DeleteChannel(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/DeleteChannel',
-            proto_dot_gateway__pb2.DeleteChannelRequest.SerializeToString,
-            proto_dot_gateway__pb2.DeleteChannelResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1905,141 +1034,6 @@ class GatewayService(object):
             _registered_method=True)
 
     @staticmethod
-    def CreateChannelSubscription(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/CreateChannelSubscription',
-            proto_dot_gateway__pb2.CreateChannelSubscriptionRequest.SerializeToString,
-            proto_dot_gateway__pb2.ChannelSubscriptionResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetChannelSubscription(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/GetChannelSubscription',
-            proto_dot_gateway__pb2.GetChannelSubscriptionRequest.SerializeToString,
-            proto_dot_gateway__pb2.ChannelSubscriptionResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def ModifyChannelSubscription(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/ModifyChannelSubscription',
-            proto_dot_gateway__pb2.ModifyChannelSubscriptionRequest.SerializeToString,
-            proto_dot_gateway__pb2.ChannelSubscriptionResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def ListChannelSubscriptions(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/ListChannelSubscriptions',
-            proto_dot_gateway__pb2.ListChannelSubscriptionsRequest.SerializeToString,
-            proto_dot_gateway__pb2.ListChannelSubscriptionsResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DeleteChannelSubscription(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/DeleteChannelSubscription',
-            proto_dot_gateway__pb2.DeleteChannelSubscriptionRequest.SerializeToString,
-            proto_dot_gateway__pb2.DeleteChannelSubscriptionResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
     def StreamChannelEvents(request,
             target,
             options=(),
@@ -2056,249 +1050,6 @@ class GatewayService(object):
             '/talon.gateway.GatewayService/StreamChannelEvents',
             proto_dot_gateway__pb2.StreamChannelEventsRequest.SerializeToString,
             proto_dot_events__pb2.ChannelEvent.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateSchedule(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/CreateSchedule',
-            proto_dot_gateway__pb2.CreateScheduleRequest.SerializeToString,
-            proto_dot_gateway__pb2.ScheduleResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetSchedule(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/GetSchedule',
-            proto_dot_gateway__pb2.GetScheduleRequest.SerializeToString,
-            proto_dot_gateway__pb2.ScheduleResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def ModifySchedule(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/ModifySchedule',
-            proto_dot_gateway__pb2.ModifyScheduleRequest.SerializeToString,
-            proto_dot_gateway__pb2.ScheduleResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def ListSchedules(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/ListSchedules',
-            proto_dot_gateway__pb2.ListSchedulesRequest.SerializeToString,
-            proto_dot_gateway__pb2.ListSchedulesResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DeleteSchedule(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/DeleteSchedule',
-            proto_dot_gateway__pb2.DeleteScheduleRequest.SerializeToString,
-            proto_dot_gateway__pb2.DeleteScheduleResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateWorkflow(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/CreateWorkflow',
-            proto_dot_gateway__pb2.CreateWorkflowRequest.SerializeToString,
-            proto_dot_gateway__pb2.WorkflowResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetWorkflow(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/GetWorkflow',
-            proto_dot_gateway__pb2.GetWorkflowRequest.SerializeToString,
-            proto_dot_gateway__pb2.WorkflowResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def ListWorkflows(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/ListWorkflows',
-            proto_dot_gateway__pb2.ListWorkflowsRequest.SerializeToString,
-            proto_dot_gateway__pb2.ListWorkflowsResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DeleteWorkflow(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/DeleteWorkflow',
-            proto_dot_gateway__pb2.DeleteWorkflowRequest.SerializeToString,
-            proto_dot_gateway__pb2.DeleteWorkflowResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -2460,7 +1211,7 @@ class GatewayService(object):
             target,
             '/talon.gateway.GatewayService/StreamWorkflowEvents',
             proto_dot_gateway__pb2.StreamWorkflowEventsRequest.SerializeToString,
-            proto_dot_models__pb2.WorkflowRunEvent.FromString,
+            proto_dot_data_dot_data__pb2.WorkflowRunEvent.FromString,
             options,
             channel_credentials,
             insecure,
@@ -2580,7 +1331,7 @@ class GatewayService(object):
             _registered_method=True)
 
     @staticmethod
-    def CreateAgentTemplate(request,
+    def CreateResource(request,
             target,
             options=(),
             channel_credentials=None,
@@ -2593,9 +1344,9 @@ class GatewayService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/talon.gateway.GatewayService/CreateAgentTemplate',
-            proto_dot_gateway__pb2.CreateAgentTemplateRequest.SerializeToString,
-            proto_dot_gateway__pb2.AgentTemplateResponse.FromString,
+            '/talon.gateway.GatewayService/CreateResource',
+            proto_dot_gateway__pb2.CreateResourceRequest.SerializeToString,
+            proto_dot_gateway__pb2.ResourceResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -2607,7 +1358,7 @@ class GatewayService(object):
             _registered_method=True)
 
     @staticmethod
-    def GetAgentTemplate(request,
+    def GetResource(request,
             target,
             options=(),
             channel_credentials=None,
@@ -2620,9 +1371,9 @@ class GatewayService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/talon.gateway.GatewayService/GetAgentTemplate',
-            proto_dot_gateway__pb2.GetAgentTemplateRequest.SerializeToString,
-            proto_dot_gateway__pb2.AgentTemplateResponse.FromString,
+            '/talon.gateway.GatewayService/GetResource',
+            proto_dot_gateway__pb2.GetResourceRequest.SerializeToString,
+            proto_dot_gateway__pb2.ResourceResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -2634,7 +1385,7 @@ class GatewayService(object):
             _registered_method=True)
 
     @staticmethod
-    def ListAgentTemplates(request,
+    def ListResources(request,
             target,
             options=(),
             channel_credentials=None,
@@ -2647,9 +1398,9 @@ class GatewayService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/talon.gateway.GatewayService/ListAgentTemplates',
-            proto_dot_gateway__pb2.ListAgentTemplatesRequest.SerializeToString,
-            proto_dot_gateway__pb2.ListAgentTemplatesResponse.FromString,
+            '/talon.gateway.GatewayService/ListResources',
+            proto_dot_gateway__pb2.ListResourcesRequest.SerializeToString,
+            proto_dot_gateway__pb2.ListResourcesResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -2661,7 +1412,7 @@ class GatewayService(object):
             _registered_method=True)
 
     @staticmethod
-    def DeleteAgentTemplate(request,
+    def DeleteResource(request,
             target,
             options=(),
             channel_credentials=None,
@@ -2674,225 +1425,9 @@ class GatewayService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/talon.gateway.GatewayService/DeleteAgentTemplate',
-            proto_dot_gateway__pb2.DeleteAgentTemplateRequest.SerializeToString,
-            proto_dot_gateway__pb2.DeleteAgentTemplateResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateMcpServer(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/CreateMcpServer',
-            proto_dot_gateway__pb2.CreateMcpServerRequest.SerializeToString,
-            proto_dot_gateway__pb2.McpServerResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetMcpServer(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/GetMcpServer',
-            proto_dot_gateway__pb2.GetMcpServerRequest.SerializeToString,
-            proto_dot_gateway__pb2.McpServerResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def ListMcpServers(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/ListMcpServers',
-            proto_dot_gateway__pb2.ListMcpServersRequest.SerializeToString,
-            proto_dot_gateway__pb2.ListMcpServersResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DeleteMcpServer(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/DeleteMcpServer',
-            proto_dot_gateway__pb2.DeleteMcpServerRequest.SerializeToString,
-            proto_dot_gateway__pb2.DeleteMcpServerResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def CreateMcpServerBinding(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/CreateMcpServerBinding',
-            proto_dot_gateway__pb2.CreateMcpServerBindingRequest.SerializeToString,
-            proto_dot_gateway__pb2.McpServerBindingResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetMcpServerBinding(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/GetMcpServerBinding',
-            proto_dot_gateway__pb2.GetMcpServerBindingRequest.SerializeToString,
-            proto_dot_gateway__pb2.McpServerBindingResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def ListMcpServerBindings(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/ListMcpServerBindings',
-            proto_dot_gateway__pb2.ListMcpServerBindingsRequest.SerializeToString,
-            proto_dot_gateway__pb2.ListMcpServerBindingsResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DeleteMcpServerBinding(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/talon.gateway.GatewayService/DeleteMcpServerBinding',
-            proto_dot_gateway__pb2.DeleteMcpServerBindingRequest.SerializeToString,
-            proto_dot_gateway__pb2.DeleteMcpServerBindingResponse.FromString,
+            '/talon.gateway.GatewayService/DeleteResource',
+            proto_dot_gateway__pb2.DeleteResourceRequest.SerializeToString,
+            proto_dot_gateway__pb2.DeleteResourceResponse.FromString,
             options,
             channel_credentials,
             insecure,

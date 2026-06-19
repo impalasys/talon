@@ -5,8 +5,11 @@ use anyhow::Result;
 use futures::StreamExt;
 use std::sync::Arc;
 use talon::{
-    config::{Config, ConfigExt},
-    control::{build_control_plane, topics, ControlPlane, MessagePublisher},
+    control::{
+        build_control_plane,
+        config::{Config, ConfigExt},
+        topics, ControlPlane, MessagePublisher,
+    },
     gateway::{auth::AuthConfig, server::Gateway},
     worker::{
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
@@ -248,10 +251,10 @@ async fn run() -> Result<()> {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    talon::security::install_jwt_crypto_provider();
-    let _telemetry_guard = talon::telemetry::init_from_env("talon-node")?;
-    talon::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;
-    talon::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
+    talon::control::security::install_jwt_crypto_provider();
+    let _telemetry_guard = talon::control::telemetry::init_from_env("talon-node")?;
+    talon::control::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;
+    talon::control::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
     tracing::info!("Starting Talon node runtime...");
     run().await
 }

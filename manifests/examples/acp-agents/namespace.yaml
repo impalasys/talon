@@ -1,0 +1,8 @@
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: Example
+  labels:
+    example: acp-agents
+  annotations:
+    description: Self-contained ACP agent sandbox example

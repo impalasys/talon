@@ -11,8 +11,8 @@ use super::sink::PubSubSessionSink;
 use super::WorkerEventHandler;
 use crate::control::events::SessionMessageEvent;
 use crate::control::ProtoKeyValueStoreExt;
-use crate::core::executor::ExecutionSink;
-use crate::gateway::rpc::models;
+use crate::gateway::rpc::data_proto;
+use crate::harness::executor::ExecutionSink;
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
 
@@ -31,8 +31,8 @@ where
     match AssertUnwindSafe(future).catch_unwind().await {
         Ok(Ok(_)) => Ok(SessionCompletionStatus::Completed),
         Ok(Err(e)) => {
-            tracing::error!(agent = %agent, "Execution failed: {}", e);
-            sink.on_error(&format!("Error: {}", e)).await;
+            tracing::error!(agent = %agent, error = %format!("{:#}", e), "Execution failed");
+            sink.on_error(&format!("Error: {:#}", e)).await;
             Ok(SessionCompletionStatus::Errored)
         }
         Err(panic) => {
@@ -101,9 +101,9 @@ impl WorkerEventHandler {
             .kv
             .set_msg(
                 &reply_msg_key,
-                &models::SessionMessage {
+                &data_proto::SessionMessage {
                     id: reply_msg_id.clone(),
-                    role: models::MessageRole::RoleAssistant as i32,
+                    role: data_proto::MessageRole::RoleAssistant as i32,
                     created_at: chrono::Utc::now().timestamp_micros(),
                     labels: std::collections::HashMap::new(),
                     parts: Vec::new(),
@@ -123,11 +123,83 @@ impl WorkerEventHandler {
         );
 
         let outcome = async {
+            let store = crate::control::resources::ResourceStore::new(
+                self.cp.kv.clone(),
+                self.cp.pubsub.clone(),
+            );
+            let agent = match store.get_agent(ns, &event.agent).await {
+                Ok(Some(agent)) => agent,
+                Ok(None) => {
+                    let err = format!("Agent '{}' not found in ns '{}'", event.agent, ns);
+                    tracing::error!(
+                        agent = %event.agent,
+                        session = %event.session_id,
+                        "{err}"
+                    );
+                    sink.on_error(&format!("Error: {err}")).await;
+                    return Ok((SessionCompletionStatus::Errored, sink.summary()));
+                }
+                Err(err) => {
+                    tracing::error!(
+                        agent = %event.agent,
+                        session = %event.session_id,
+                        "Failed to fetch agent: {}",
+                        err
+                    );
+                    sink.on_error(&format!("Error: failed to fetch agent: {err}"))
+                        .await;
+                    return Ok((SessionCompletionStatus::Errored, sink.summary()));
+                }
+            };
+            let is_acp = agent
+                .spec
+                .as_ref()
+                .and_then(|spec| spec.runtime.as_ref())
+                .map(|runtime| runtime.kind == "acp")
+                .unwrap_or(false);
+
+            if is_acp {
+                let runtime = match crate::harness::acp::AcpAgentRuntime::build_from_agent(
+                    ns,
+                    &event.agent,
+                    &event.session_id,
+                    agent,
+                    &self.cp,
+                    &self.config,
+                )
+                .instrument(tracing::info_span!("AcpAgentRuntime.build"))
+                .await
+                {
+                    Ok(runtime) => runtime,
+                    Err(err) => {
+                        tracing::error!(
+                            agent = %event.agent,
+                            session = %event.session_id,
+                            "Failed to build ACP agent runtime: {}",
+                            err
+                        );
+                        sink.on_error(&format!("Error: {}", err)).await;
+                        return Ok((SessionCompletionStatus::Errored, sink.summary()));
+                    }
+                };
+
+                return execute_with_panic_boundary(
+                    runtime.execute(&event.message, &sink, Some(&cancellation_token)),
+                    &sink,
+                    &event.agent,
+                    &event.session_id,
+                )
+                .instrument(tracing::info_span!("AcpAgentRuntime.execute_session"))
+                .await
+                .map(|status| (status, sink.summary()));
+            }
+
             // Build the fully-resolved runtime (spec, history, LLM, tools, knowledge)
-            let mut runtime = match AgentRuntime::build(
+            let mut runtime = match AgentRuntime::build_from_agent(
                 ns,
                 &event.agent,
                 &event.session_id,
+                agent,
                 &self.cp,
                 &self.config,
                 &self.mcp_registry,
@@ -257,7 +329,7 @@ impl WorkerEventHandler {
                     break;
                 }
             };
-            let mut session = match models::Session::decode(current.as_slice()) {
+            let mut session = match data_proto::Session::decode(current.as_slice()) {
                 Ok(session) => session,
                 Err(err) => {
                     last_error = Some(err.to_string());
@@ -308,7 +380,8 @@ impl WorkerEventHandler {
             return;
         };
         if let Err(err) =
-            crate::workflows::dispatch_workflow_from_session_labels(&self.cp, &session).await
+            crate::worker::workflows::dispatch_workflow_from_session_labels(&self.cp, &session)
+                .await
         {
             tracing::warn!(
                 namespace = %ns,
@@ -324,15 +397,15 @@ impl WorkerEventHandler {
 #[cfg(test)]
 mod tests {
     use super::{execute_with_panic_boundary, SessionCompletionStatus};
-    use crate::config::{proto, Config, ProviderConfig, Secret};
+    use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent},
         keys::{ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
-    use crate::core::executor::ExecutionSink;
-    use crate::gateway::rpc::{manifests, models};
+    use crate::gateway::rpc::{data_proto, manifests, resources_proto};
+    use crate::harness::executor::ExecutionSink;
     use crate::worker::{
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
@@ -372,11 +445,58 @@ mod tests {
         async fn on_reasoning(&self, _: &str) {}
         async fn on_tool_call(&self, _: &str, _: &str, _: &Value) {}
         async fn on_tool_result(&self, _: &str, _: &str, _: &str) {}
-        async fn on_usage(&self, _: &crate::llm::ChatUsage) {}
+        async fn on_usage(&self, _: &crate::harness::llm::ChatUsage) {}
         async fn on_done(&self, _: &str) {}
         async fn on_error(&self, err: &str) {
             self.errors.lock().unwrap().push(err.to_string());
         }
+    }
+
+    async fn put_agent_resource(
+        kv: Arc<MockKvStore>,
+        namespace: &str,
+        name: &str,
+        spec: resources_proto::AgentSpec,
+    ) {
+        let store = crate::control::resources::ResourceStore::new(
+            kv,
+            Arc::new(crate::test_support::RecordingPubSub::default()),
+        );
+        store
+            .upsert(
+                namespace,
+                resources_proto::Resource {
+                    api_version: "talon.impalasys.com/v1".to_string(),
+                    kind: "Agent".to_string(),
+                    metadata: Some(resources_proto::ResourceMeta {
+                        name: name.to_string(),
+                        namespace: namespace.to_string(),
+                        labels: HashMap::new(),
+                        annotations: HashMap::new(),
+                        owner_references: Vec::new(),
+                        finalizers: Vec::new(),
+                        generation: 0,
+                        resource_version: String::new(),
+                        uid: String::new(),
+                        deletion_timestamp: None,
+                    }),
+                    spec: Some(resources_proto::ResourceSpec {
+                        kind: Some(resources_proto::resource_spec::Kind::Agent(spec)),
+                    }),
+                    status: Some(resources_proto::ResourceStatus {
+                        kind: Some(resources_proto::resource_status::Kind::Agent(
+                            resources_proto::AgentStatus {
+                                observed_generation: 0,
+                                phase: String::new(),
+                                conditions: Vec::new(),
+                                last_session_id: None,
+                            },
+                        )),
+                    }),
+                },
+            )
+            .await
+            .unwrap();
     }
 
     #[derive(Default)]
@@ -613,7 +733,7 @@ mod tests {
     async fn release_session_lock_sets_session_back_to_idle() {
         let kv = Arc::new(MockKvStore::default());
         let handler = handler_with_kv(kv.clone());
-        let session = models::Session {
+        let session = data_proto::Session {
             id: "session-1".to_string(),
             agent: "assistant".to_string(),
             ns: "conic:test".to_string(),
@@ -641,7 +761,7 @@ mod tests {
             .await;
 
         let updated = kv
-            .get_msg::<models::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(
                 "conic:test",
                 "assistant",
                 "session-1",
@@ -656,7 +776,7 @@ mod tests {
     async fn release_session_lock_does_not_release_stolen_lock() {
         let kv = Arc::new(MockKvStore::default());
         let handler = handler_with_kv(kv.clone());
-        let session = models::Session {
+        let session = data_proto::Session {
             id: "session-1".to_string(),
             agent: "assistant".to_string(),
             ns: "conic:test".to_string(),
@@ -684,7 +804,7 @@ mod tests {
             .await;
 
         let updated = kv
-            .get_msg::<models::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(
                 "conic:test",
                 "assistant",
                 "session-1",
@@ -725,24 +845,13 @@ mod tests {
             mcp_server_refs: Vec::new(),
             capabilities: HashMap::new(),
             a2a: None,
+            runtime: None,
         };
 
-        kv.set_msg(
-            &crate::control::keys::agent("conic:test", "assistant"),
-            &models::Agent {
-                name: "assistant".to_string(),
-                ns: "conic:test".to_string(),
-                definition: None,
-                effective_spec: Some(spec),
-                template_deps: Vec::new(),
-                labels: HashMap::new(),
-            },
-        )
-        .await
-        .unwrap();
+        put_agent_resource(kv.clone(), "conic:test", "assistant", spec).await;
         kv.set_msg(
             &crate::control::keys::session("conic:test", "assistant", "session-1"),
-            &models::Session {
+            &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
                 ns: "conic:test".to_string(),
@@ -762,14 +871,14 @@ mod tests {
                 "session-1",
                 "user-1",
             ),
-            &models::SessionMessage {
+            &data_proto::SessionMessage {
                 id: "user-1".to_string(),
-                role: models::MessageRole::RoleUser as i32,
+                role: data_proto::MessageRole::RoleUser as i32,
                 created_at: 1,
                 labels: HashMap::new(),
-                parts: vec![models::SessionMessagePart {
+                parts: vec![data_proto::SessionMessagePart {
                     id: "000000".to_string(),
-                    part_type: models::SessionMessagePartType::Text as i32,
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
                     content: "operator prompt".to_string(),
                     name: String::new(),
                     payload_json: String::new(),
@@ -795,7 +904,7 @@ mod tests {
             .expect("runtime build errors should be persisted and acked");
 
         let session = kv
-            .get_msg::<models::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(
                 "conic:test",
                 "assistant",
                 "session-1",
@@ -816,14 +925,17 @@ mod tests {
         let mut user_message = None;
         let mut error_message = None;
         for key in message_keys {
-            if let Some(message) = kv.get_msg::<models::SessionMessage>(&key).await.unwrap() {
-                if message.role == models::MessageRole::RoleUser as i32 {
+            if let Some(message) = kv
+                .get_msg::<data_proto::SessionMessage>(&key)
+                .await
+                .unwrap()
+            {
+                if message.role == data_proto::MessageRole::RoleUser as i32 {
                     user_message = Some(message);
-                } else if message.role == models::MessageRole::RoleAssistant as i32
-                    && message
-                        .parts
-                        .iter()
-                        .any(|part| part.part_type == models::SessionMessagePartType::Error as i32)
+                } else if message.role == data_proto::MessageRole::RoleAssistant as i32
+                    && message.parts.iter().any(|part| {
+                        part.part_type == data_proto::SessionMessagePartType::Error as i32
+                    })
                 {
                     error_message = Some(message);
                 }
@@ -836,7 +948,7 @@ mod tests {
         let error_part = error_message
             .parts
             .iter()
-            .find(|part| part.part_type == models::SessionMessagePartType::Error as i32)
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Error as i32)
             .expect("error part should exist");
         assert!(error_part
             .content
@@ -876,24 +988,13 @@ mod tests {
             mcp_server_refs: Vec::new(),
             capabilities: HashMap::new(),
             a2a: None,
+            runtime: None,
         };
 
-        kv.set_msg(
-            &crate::control::keys::agent("conic:test", "assistant"),
-            &models::Agent {
-                name: "assistant".to_string(),
-                ns: "conic:test".to_string(),
-                definition: None,
-                effective_spec: Some(spec),
-                template_deps: Vec::new(),
-                labels: HashMap::new(),
-            },
-        )
-        .await
-        .unwrap();
+        put_agent_resource(kv.clone(), "conic:test", "assistant", spec).await;
         kv.set_msg(
             &crate::control::keys::session("conic:test", "assistant", "session-1"),
-            &models::Session {
+            &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
                 ns: "conic:test".to_string(),
@@ -921,7 +1022,7 @@ mod tests {
             .unwrap();
 
         let session = kv
-            .get_msg::<models::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(
                 "conic:test",
                 "assistant",
                 "session-1",
@@ -952,7 +1053,11 @@ mod tests {
             if !prefix.matches(&key) {
                 continue;
             }
-            if let Some(message) = kv.get_msg::<models::SessionMessage>(&key).await.unwrap() {
+            if let Some(message) = kv
+                .get_msg::<data_proto::SessionMessage>(&key)
+                .await
+                .unwrap()
+            {
                 reply = Some(message);
                 break;
             }

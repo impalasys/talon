@@ -23,7 +23,8 @@ Generated pages come from:
 
 - `proto/gateway.proto`
 - `proto/config.proto`
-- `proto/manifests.proto`
+- `proto/resources/*.proto`
+- `proto/data/data.proto`
 
 Review generated diffs in PRs rather than treating them as opaque build output.
 

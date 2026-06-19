@@ -7,7 +7,7 @@
 package events
 
 import (
-	models "github.com/impalasys/talon/sdk/go/talon-client/talon/models"
+	data "github.com/impalasys/talon/sdk/go/talon-client/talon/data"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -234,6 +234,58 @@ func (x ChannelEventKind) Number() protoreflect.EnumNumber {
 // Deprecated: Use ChannelEventKind.Descriptor instead.
 func (ChannelEventKind) EnumDescriptor() ([]byte, []int) {
 	return file_proto_events_proto_rawDescGZIP(), []int{3}
+}
+
+type ResourceChangeType int32
+
+const (
+	ResourceChangeType_RESOURCE_CHANGE_TYPE_UNSPECIFIED ResourceChangeType = 0
+	ResourceChangeType_RESOURCE_CHANGE_TYPE_CREATED     ResourceChangeType = 1
+	ResourceChangeType_RESOURCE_CHANGE_TYPE_UPDATED     ResourceChangeType = 2
+	ResourceChangeType_RESOURCE_CHANGE_TYPE_DELETED     ResourceChangeType = 3
+)
+
+// Enum value maps for ResourceChangeType.
+var (
+	ResourceChangeType_name = map[int32]string{
+		0: "RESOURCE_CHANGE_TYPE_UNSPECIFIED",
+		1: "RESOURCE_CHANGE_TYPE_CREATED",
+		2: "RESOURCE_CHANGE_TYPE_UPDATED",
+		3: "RESOURCE_CHANGE_TYPE_DELETED",
+	}
+	ResourceChangeType_value = map[string]int32{
+		"RESOURCE_CHANGE_TYPE_UNSPECIFIED": 0,
+		"RESOURCE_CHANGE_TYPE_CREATED":     1,
+		"RESOURCE_CHANGE_TYPE_UPDATED":     2,
+		"RESOURCE_CHANGE_TYPE_DELETED":     3,
+	}
+)
+
+func (x ResourceChangeType) Enum() *ResourceChangeType {
+	p := new(ResourceChangeType)
+	*p = x
+	return p
+}
+
+func (x ResourceChangeType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ResourceChangeType) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_events_proto_enumTypes[4].Descriptor()
+}
+
+func (ResourceChangeType) Type() protoreflect.EnumType {
+	return &file_proto_events_proto_enumTypes[4]
+}
+
+func (x ResourceChangeType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ResourceChangeType.Descriptor instead.
+func (ResourceChangeType) EnumDescriptor() ([]byte, []int) {
+	return file_proto_events_proto_rawDescGZIP(), []int{4}
 }
 
 type LifecycleEvent struct {
@@ -484,7 +536,7 @@ type SessionMessagePartEvent struct {
 	state         protoimpl.MessageState      `protogen:"open.v1"`
 	SessionId     string                      `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	Kind          SessionMessagePartEventKind `protobuf:"varint,2,opt,name=kind,proto3,enum=talon.events.SessionMessagePartEventKind" json:"kind,omitempty"`
-	Part          *models.SessionMessagePart  `protobuf:"bytes,3,opt,name=part,proto3" json:"part,omitempty"`
+	Part          *data.SessionMessagePart    `protobuf:"bytes,3,opt,name=part,proto3" json:"part,omitempty"`
 	Timestamp     int64                       `protobuf:"varint,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	Agent         string                      `protobuf:"bytes,5,opt,name=agent,proto3" json:"agent,omitempty"`
 	Ns            string                      `protobuf:"bytes,6,opt,name=ns,proto3" json:"ns,omitempty"`
@@ -537,7 +589,7 @@ func (x *SessionMessagePartEvent) GetKind() SessionMessagePartEventKind {
 	return SessionMessagePartEventKind_SESSION_MESSAGE_PART_EVENT_KIND_UNSPECIFIED
 }
 
-func (x *SessionMessagePartEvent) GetPart() *models.SessionMessagePart {
+func (x *SessionMessagePartEvent) GetPart() *data.SessionMessagePart {
 	if x != nil {
 		return x.Part
 	}
@@ -577,7 +629,7 @@ type ChannelEvent struct {
 	Ns            string                 `protobuf:"bytes,1,opt,name=ns,proto3" json:"ns,omitempty"`
 	Channel       string                 `protobuf:"bytes,2,opt,name=channel,proto3" json:"channel,omitempty"`
 	Kind          ChannelEventKind       `protobuf:"varint,3,opt,name=kind,proto3,enum=talon.events.ChannelEventKind" json:"kind,omitempty"`
-	Message       *models.ChannelMessage `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
+	Message       *data.ChannelMessage   `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
 	SessionId     string                 `protobuf:"bytes,5,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	Agent         string                 `protobuf:"bytes,6,opt,name=agent,proto3" json:"agent,omitempty"`
 	Subscription  string                 `protobuf:"bytes,7,opt,name=subscription,proto3" json:"subscription,omitempty"`
@@ -638,7 +690,7 @@ func (x *ChannelEvent) GetKind() ChannelEventKind {
 	return ChannelEventKind_CHANNEL_EVENT_KIND_UNSPECIFIED
 }
 
-func (x *ChannelEvent) GetMessage() *models.ChannelMessage {
+func (x *ChannelEvent) GetMessage() *data.ChannelMessage {
 	if x != nil {
 		return x.Message
 	}
@@ -772,11 +824,119 @@ func (x *WorkflowDispatchEvent) GetTimestamp() int64 {
 	return 0
 }
 
+type ResourceChangedEvent struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Namespace       string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	ResourceKind    string                 `protobuf:"bytes,2,opt,name=resource_kind,json=resourceKind,proto3" json:"resource_kind,omitempty"`
+	Name            string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Uid             string                 `protobuf:"bytes,4,opt,name=uid,proto3" json:"uid,omitempty"`
+	ResourceVersion string                 `protobuf:"bytes,5,opt,name=resource_version,json=resourceVersion,proto3" json:"resource_version,omitempty"`
+	Generation      uint64                 `protobuf:"varint,6,opt,name=generation,proto3" json:"generation,omitempty"`
+	ChangeType      ResourceChangeType     `protobuf:"varint,7,opt,name=change_type,json=changeType,proto3,enum=talon.events.ResourceChangeType" json:"change_type,omitempty"`
+	ChangedSections []string               `protobuf:"bytes,8,rep,name=changed_sections,json=changedSections,proto3" json:"changed_sections,omitempty"`
+	Timestamp       int64                  `protobuf:"varint,9,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ResourceChangedEvent) Reset() {
+	*x = ResourceChangedEvent{}
+	mi := &file_proto_events_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResourceChangedEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResourceChangedEvent) ProtoMessage() {}
+
+func (x *ResourceChangedEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_events_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResourceChangedEvent.ProtoReflect.Descriptor instead.
+func (*ResourceChangedEvent) Descriptor() ([]byte, []int) {
+	return file_proto_events_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ResourceChangedEvent) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *ResourceChangedEvent) GetResourceKind() string {
+	if x != nil {
+		return x.ResourceKind
+	}
+	return ""
+}
+
+func (x *ResourceChangedEvent) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ResourceChangedEvent) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *ResourceChangedEvent) GetResourceVersion() string {
+	if x != nil {
+		return x.ResourceVersion
+	}
+	return ""
+}
+
+func (x *ResourceChangedEvent) GetGeneration() uint64 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
+func (x *ResourceChangedEvent) GetChangeType() ResourceChangeType {
+	if x != nil {
+		return x.ChangeType
+	}
+	return ResourceChangeType_RESOURCE_CHANGE_TYPE_UNSPECIFIED
+}
+
+func (x *ResourceChangedEvent) GetChangedSections() []string {
+	if x != nil {
+		return x.ChangedSections
+	}
+	return nil
+}
+
+func (x *ResourceChangedEvent) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
 var File_proto_events_proto protoreflect.FileDescriptor
 
 const file_proto_events_proto_rawDesc = "" +
 	"\n" +
-	"\x12proto/events.proto\x12\ftalon.events\x1a\x12proto/models.proto\"\xab\x01\n" +
+	"\x12proto/events.proto\x12\ftalon.events\x1a\x15proto/data/data.proto\"\xab\x01\n" +
 	"\x0eLifecycleEvent\x12#\n" +
 	"\rresource_type\x18\x01 \x01(\tR\fresourceType\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x0e\n" +
@@ -799,22 +959,22 @@ const file_proto_events_proto_rawDesc = "" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x0e\n" +
 	"\x02ns\x18\x03 \x01(\tR\x02ns\x12\x16\n" +
 	"\x06action\x18\x04 \x01(\tR\x06action\x12\x1c\n" +
-	"\ttimestamp\x18\x05 \x01(\x03R\ttimestamp\"\x90\x02\n" +
+	"\ttimestamp\x18\x05 \x01(\x03R\ttimestamp\"\x8e\x02\n" +
 	"\x17SessionMessagePartEvent\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12=\n" +
-	"\x04kind\x18\x02 \x01(\x0e2).talon.events.SessionMessagePartEventKindR\x04kind\x124\n" +
-	"\x04part\x18\x03 \x01(\v2 .talon.models.SessionMessagePartR\x04part\x12\x1c\n" +
+	"\x04kind\x18\x02 \x01(\x0e2).talon.events.SessionMessagePartEventKindR\x04kind\x122\n" +
+	"\x04part\x18\x03 \x01(\v2\x1e.talon.data.SessionMessagePartR\x04part\x12\x1c\n" +
 	"\ttimestamp\x18\x04 \x01(\x03R\ttimestamp\x12\x14\n" +
 	"\x05agent\x18\x05 \x01(\tR\x05agent\x12\x0e\n" +
 	"\x02ns\x18\x06 \x01(\tR\x02ns\x12\x1d\n" +
 	"\n" +
-	"message_id\x18\a \x01(\tR\tmessageId\"\xb1\x02\n" +
+	"message_id\x18\a \x01(\tR\tmessageId\"\xaf\x02\n" +
 	"\fChannelEvent\x12\x0e\n" +
 	"\x02ns\x18\x01 \x01(\tR\x02ns\x12\x18\n" +
 	"\achannel\x18\x02 \x01(\tR\achannel\x122\n" +
-	"\x04kind\x18\x03 \x01(\x0e2\x1e.talon.events.ChannelEventKindR\x04kind\x126\n" +
-	"\amessage\x18\x04 \x01(\v2\x1c.talon.models.ChannelMessageR\amessage\x12\x1d\n" +
+	"\x04kind\x18\x03 \x01(\x0e2\x1e.talon.events.ChannelEventKindR\x04kind\x124\n" +
+	"\amessage\x18\x04 \x01(\v2\x1a.talon.data.ChannelMessageR\amessage\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x05 \x01(\tR\tsessionId\x12\x14\n" +
 	"\x05agent\x18\x06 \x01(\tR\x05agent\x12\"\n" +
@@ -828,7 +988,20 @@ const file_proto_events_proto_rawDesc = "" +
 	"\x06reason\x18\x04 \x01(\tR\x06reason\x12\x17\n" +
 	"\astep_id\x18\x05 \x01(\tR\x06stepId\x12(\n" +
 	"\x10child_session_id\x18\x06 \x01(\tR\x0echildSessionId\x12\x1c\n" +
-	"\ttimestamp\x18\a \x01(\x03R\ttimestamp*\xb0\x01\n" +
+	"\ttimestamp\x18\a \x01(\x03R\ttimestamp\"\xd6\x02\n" +
+	"\x14ResourceChangedEvent\x12\x1c\n" +
+	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12#\n" +
+	"\rresource_kind\x18\x02 \x01(\tR\fresourceKind\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x10\n" +
+	"\x03uid\x18\x04 \x01(\tR\x03uid\x12)\n" +
+	"\x10resource_version\x18\x05 \x01(\tR\x0fresourceVersion\x12\x1e\n" +
+	"\n" +
+	"generation\x18\x06 \x01(\x04R\n" +
+	"generation\x12A\n" +
+	"\vchange_type\x18\a \x01(\x0e2 .talon.events.ResourceChangeTypeR\n" +
+	"changeType\x12)\n" +
+	"\x10changed_sections\x18\b \x03(\tR\x0fchangedSections\x12\x1c\n" +
+	"\ttimestamp\x18\t \x01(\x03R\ttimestamp*\xb0\x01\n" +
 	"\fSystemAction\x12\x1d\n" +
 	"\x19SYSTEM_ACTION_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14SYSTEM_ACTION_CREATE\x10\x01\x12\x18\n" +
@@ -850,7 +1023,12 @@ const file_proto_events_proto_rawDesc = "" +
 	"\"CHANNEL_EVENT_KIND_MESSAGE_CREATED\x10\x01\x12%\n" +
 	"!CHANNEL_EVENT_KIND_SESSION_ROUTED\x10\x02\x12&\n" +
 	"\"CHANNEL_EVENT_KIND_PUBLISH_SKIPPED\x10\x03\x12\x1c\n" +
-	"\x18CHANNEL_EVENT_KIND_ERROR\x10\x04b\x06proto3"
+	"\x18CHANNEL_EVENT_KIND_ERROR\x10\x04*\xa0\x01\n" +
+	"\x12ResourceChangeType\x12$\n" +
+	" RESOURCE_CHANGE_TYPE_UNSPECIFIED\x10\x00\x12 \n" +
+	"\x1cRESOURCE_CHANGE_TYPE_CREATED\x10\x01\x12 \n" +
+	"\x1cRESOURCE_CHANGE_TYPE_UPDATED\x10\x02\x12 \n" +
+	"\x1cRESOURCE_CHANGE_TYPE_DELETED\x10\x03b\x06proto3"
 
 var (
 	file_proto_events_proto_rawDescOnce sync.Once
@@ -864,34 +1042,37 @@ func file_proto_events_proto_rawDescGZIP() []byte {
 	return file_proto_events_proto_rawDescData
 }
 
-var file_proto_events_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_proto_events_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_events_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_proto_events_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_events_proto_goTypes = []any{
-	(SystemAction)(0),                 // 0: talon.events.SystemAction
-	(MessageDirection)(0),             // 1: talon.events.MessageDirection
-	(SessionMessagePartEventKind)(0),  // 2: talon.events.SessionMessagePartEventKind
-	(ChannelEventKind)(0),             // 3: talon.events.ChannelEventKind
-	(*LifecycleEvent)(nil),            // 4: talon.events.LifecycleEvent
-	(*SessionMessageEvent)(nil),       // 5: talon.events.SessionMessageEvent
-	(*SessionControlEvent)(nil),       // 6: talon.events.SessionControlEvent
-	(*SessionMessagePartEvent)(nil),   // 7: talon.events.SessionMessagePartEvent
-	(*ChannelEvent)(nil),              // 8: talon.events.ChannelEvent
-	(*WorkflowDispatchEvent)(nil),     // 9: talon.events.WorkflowDispatchEvent
-	(*models.SessionMessagePart)(nil), // 10: talon.models.SessionMessagePart
-	(*models.ChannelMessage)(nil),     // 11: talon.models.ChannelMessage
+	(SystemAction)(0),                // 0: talon.events.SystemAction
+	(MessageDirection)(0),            // 1: talon.events.MessageDirection
+	(SessionMessagePartEventKind)(0), // 2: talon.events.SessionMessagePartEventKind
+	(ChannelEventKind)(0),            // 3: talon.events.ChannelEventKind
+	(ResourceChangeType)(0),          // 4: talon.events.ResourceChangeType
+	(*LifecycleEvent)(nil),           // 5: talon.events.LifecycleEvent
+	(*SessionMessageEvent)(nil),      // 6: talon.events.SessionMessageEvent
+	(*SessionControlEvent)(nil),      // 7: talon.events.SessionControlEvent
+	(*SessionMessagePartEvent)(nil),  // 8: talon.events.SessionMessagePartEvent
+	(*ChannelEvent)(nil),             // 9: talon.events.ChannelEvent
+	(*WorkflowDispatchEvent)(nil),    // 10: talon.events.WorkflowDispatchEvent
+	(*ResourceChangedEvent)(nil),     // 11: talon.events.ResourceChangedEvent
+	(*data.SessionMessagePart)(nil),  // 12: talon.data.SessionMessagePart
+	(*data.ChannelMessage)(nil),      // 13: talon.data.ChannelMessage
 }
 var file_proto_events_proto_depIdxs = []int32{
 	0,  // 0: talon.events.LifecycleEvent.action:type_name -> talon.events.SystemAction
 	1,  // 1: talon.events.SessionMessageEvent.direction:type_name -> talon.events.MessageDirection
 	2,  // 2: talon.events.SessionMessagePartEvent.kind:type_name -> talon.events.SessionMessagePartEventKind
-	10, // 3: talon.events.SessionMessagePartEvent.part:type_name -> talon.models.SessionMessagePart
+	12, // 3: talon.events.SessionMessagePartEvent.part:type_name -> talon.data.SessionMessagePart
 	3,  // 4: talon.events.ChannelEvent.kind:type_name -> talon.events.ChannelEventKind
-	11, // 5: talon.events.ChannelEvent.message:type_name -> talon.models.ChannelMessage
-	6,  // [6:6] is the sub-list for method output_type
-	6,  // [6:6] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	13, // 5: talon.events.ChannelEvent.message:type_name -> talon.data.ChannelMessage
+	4,  // 6: talon.events.ResourceChangedEvent.change_type:type_name -> talon.events.ResourceChangeType
+	7,  // [7:7] is the sub-list for method output_type
+	7,  // [7:7] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_proto_events_proto_init() }
@@ -904,8 +1085,8 @@ func file_proto_events_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_events_proto_rawDesc), len(file_proto_events_proto_rawDesc)),
-			NumEnums:      4,
-			NumMessages:   6,
+			NumEnums:      5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

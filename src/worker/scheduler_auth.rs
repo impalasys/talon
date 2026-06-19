@@ -27,25 +27,25 @@ pub enum SchedulerRequestAuthenticator {
 }
 
 impl SchedulerRequestAuthenticator {
-    pub async fn from_config(config: &crate::config::Config) -> Result<Self> {
+    pub async fn from_config(config: &crate::control::config::Config) -> Result<Self> {
         if let Some(cfg) = config
             .control_plane
             .as_ref()
             .and_then(|cp| cp.scheduler.as_ref())
             .and_then(|scheduler| match scheduler.backend.as_ref() {
-                Some(crate::config::proto::scheduler_config::Backend::CloudTasks(cloud_tasks)) => {
-                    cloud_tasks.callback_auth.as_ref()
-                }
+                Some(crate::control::config::proto::scheduler_config::Backend::CloudTasks(
+                    cloud_tasks,
+                )) => cloud_tasks.callback_auth.as_ref(),
                 None => None,
             })
         {
             return match cfg.auth.as_ref() {
-                Some(crate::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
+                Some(crate::control::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
                     secret,
                 )) => Ok(Self::shared_secret(
-                    crate::config::SecretExt::resolve(secret).await?,
+                    crate::control::config::SecretExt::resolve(secret).await?,
                 )),
-                Some(crate::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
+                Some(crate::control::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
                     oidc,
                 )) => Ok(Self::google_oidc(
                     oidc.audience.clone(),
@@ -233,7 +233,7 @@ async fn verify_google_oidc_token(
     audience: &str,
     expected_email: Option<&str>,
 ) -> Result<()> {
-    crate::security::install_jwt_crypto_provider();
+    crate::control::security::install_jwt_crypto_provider();
     let header = decode_header(token)?;
     let kid = header
         .kid
@@ -307,7 +307,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
     }
 
     async fn seed_google_oidc_cache(kid: &str) {
-        crate::security::install_jwt_crypto_provider();
+        crate::control::security::install_jwt_crypto_provider();
         let mut keys = HashMap::new();
         keys.insert(
             kid.to_string(),
@@ -329,7 +329,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
         email: Option<&str>,
         email_verified: Option<bool>,
     ) -> String {
-        crate::security::install_jwt_crypto_provider();
+        crate::control::security::install_jwt_crypto_provider();
         let mut header = Header::new(Algorithm::RS256);
         header.kid = Some(kid.to_string());
         encode(
@@ -414,7 +414,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
         }
 
         let authenticator =
-            SchedulerRequestAuthenticator::from_config(&crate::config::Config::default())
+            SchedulerRequestAuthenticator::from_config(&crate::control::config::Config::default())
                 .await
                 .expect("authenticator should resolve");
 
@@ -446,7 +446,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
         }
 
         let authenticator =
-            SchedulerRequestAuthenticator::from_config(&crate::config::Config::default())
+            SchedulerRequestAuthenticator::from_config(&crate::control::config::Config::default())
                 .await
                 .expect("authenticator should resolve");
 

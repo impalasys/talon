@@ -1,11 +1,28 @@
 "use client";
 
 import * as React from "react";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
 
 export function ThemeProvider({
   children,
-  ...props
-}: React.PropsWithChildren<React.ComponentProps<typeof NextThemesProvider>>) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+}: React.PropsWithChildren) {
+  React.useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const root = document.documentElement;
+
+    const applySystemTheme = () => {
+      const isDark = media.matches;
+      root.classList.toggle("dark", isDark);
+      root.classList.toggle("light", !isDark);
+      root.style.colorScheme = isDark ? "dark" : "light";
+    };
+
+    applySystemTheme();
+    media.addEventListener("change", applySystemTheme);
+
+    return () => {
+      media.removeEventListener("change", applySystemTheme);
+    };
+  }, []);
+
+  return <>{children}</>;
 }

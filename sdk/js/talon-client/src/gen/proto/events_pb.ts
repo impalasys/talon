@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { ChannelMessage, SessionMessagePart } from "./models_pb.js";
+import { ChannelMessage, SessionMessagePart } from "./data/data_pb.js";
 
 /**
  * @generated from enum talon.events.SystemAction
@@ -145,6 +145,38 @@ proto3.util.setEnumType(ChannelEventKind, "talon.events.ChannelEventKind", [
   { no: 2, name: "CHANNEL_EVENT_KIND_SESSION_ROUTED" },
   { no: 3, name: "CHANNEL_EVENT_KIND_PUBLISH_SKIPPED" },
   { no: 4, name: "CHANNEL_EVENT_KIND_ERROR" },
+]);
+
+/**
+ * @generated from enum talon.events.ResourceChangeType
+ */
+export enum ResourceChangeType {
+  /**
+   * @generated from enum value: RESOURCE_CHANGE_TYPE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: RESOURCE_CHANGE_TYPE_CREATED = 1;
+   */
+  CREATED = 1,
+
+  /**
+   * @generated from enum value: RESOURCE_CHANGE_TYPE_UPDATED = 2;
+   */
+  UPDATED = 2,
+
+  /**
+   * @generated from enum value: RESOURCE_CHANGE_TYPE_DELETED = 3;
+   */
+  DELETED = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ResourceChangeType)
+proto3.util.setEnumType(ResourceChangeType, "talon.events.ResourceChangeType", [
+  { no: 0, name: "RESOURCE_CHANGE_TYPE_UNSPECIFIED" },
+  { no: 1, name: "RESOURCE_CHANGE_TYPE_CREATED" },
+  { no: 2, name: "RESOURCE_CHANGE_TYPE_UPDATED" },
+  { no: 3, name: "RESOURCE_CHANGE_TYPE_DELETED" },
 ]);
 
 /**
@@ -357,7 +389,7 @@ export class SessionMessagePartEvent extends Message<SessionMessagePartEvent> {
   kind = SessionMessagePartEventKind.UNSPECIFIED;
 
   /**
-   * @generated from field: talon.models.SessionMessagePart part = 3;
+   * @generated from field: talon.data.SessionMessagePart part = 3;
    */
   part?: SessionMessagePart;
 
@@ -435,7 +467,7 @@ export class ChannelEvent extends Message<ChannelEvent> {
   kind = ChannelEventKind.UNSPECIFIED;
 
   /**
-   * @generated from field: talon.models.ChannelMessage message = 4;
+   * @generated from field: talon.data.ChannelMessage message = 4;
    */
   message?: ChannelMessage;
 
@@ -570,6 +602,91 @@ export class WorkflowDispatchEvent extends Message<WorkflowDispatchEvent> {
 
   static equals(a: WorkflowDispatchEvent | PlainMessage<WorkflowDispatchEvent> | undefined, b: WorkflowDispatchEvent | PlainMessage<WorkflowDispatchEvent> | undefined): boolean {
     return proto3.util.equals(WorkflowDispatchEvent, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.events.ResourceChangedEvent
+ */
+export class ResourceChangedEvent extends Message<ResourceChangedEvent> {
+  /**
+   * @generated from field: string namespace = 1;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string resource_kind = 2;
+   */
+  resourceKind = "";
+
+  /**
+   * @generated from field: string name = 3;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string uid = 4;
+   */
+  uid = "";
+
+  /**
+   * @generated from field: string resource_version = 5;
+   */
+  resourceVersion = "";
+
+  /**
+   * @generated from field: uint64 generation = 6;
+   */
+  generation = protoInt64.zero;
+
+  /**
+   * @generated from field: talon.events.ResourceChangeType change_type = 7;
+   */
+  changeType = ResourceChangeType.UNSPECIFIED;
+
+  /**
+   * @generated from field: repeated string changed_sections = 8;
+   */
+  changedSections: string[] = [];
+
+  /**
+   * @generated from field: int64 timestamp = 9;
+   */
+  timestamp = protoInt64.zero;
+
+  constructor(data?: PartialMessage<ResourceChangedEvent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.events.ResourceChangedEvent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "resource_kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "uid", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "resource_version", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 7, name: "change_type", kind: "enum", T: proto3.getEnumType(ResourceChangeType) },
+    { no: 8, name: "changed_sections", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 9, name: "timestamp", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ResourceChangedEvent {
+    return new ResourceChangedEvent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ResourceChangedEvent {
+    return new ResourceChangedEvent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ResourceChangedEvent {
+    return new ResourceChangedEvent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ResourceChangedEvent | PlainMessage<ResourceChangedEvent> | undefined, b: ResourceChangedEvent | PlainMessage<ResourceChangedEvent> | undefined): boolean {
+    return proto3.util.equals(ResourceChangedEvent, a, b);
   }
 }
 

@@ -3,10 +3,10 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AgentResponse, AgentTemplateResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, CancelWorkflowRunRequest, ChannelMessageResponse, ChannelResponse, ChannelSubscriptionResponse, ClearSessionRequest, ClearSessionResponse, CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest, CreateChannelSubscriptionRequest, CreateMcpServerBindingRequest, CreateMcpServerRequest, CreateNamespaceKnowledgeRequest, CreateNamespaceRequest, CreateNamespaceSkillRequest, CreateScheduleRequest, CreateSessionRequest, CreateWorkflowRequest, CreateWorkflowRunRequest, DeleteAgentTemplateRequest, DeleteAgentTemplateResponse, DeleteChannelRequest, DeleteChannelResponse, DeleteChannelSubscriptionRequest, DeleteChannelSubscriptionResponse, DeleteMcpServerBindingRequest, DeleteMcpServerBindingResponse, DeleteMcpServerRequest, DeleteMcpServerResponse, DeleteNamespaceKnowledgeRequest, DeleteNamespaceKnowledgeResponse, DeleteNamespaceRequest, DeleteNamespaceSkillRequest, DeleteNamespaceSkillResponse, DeleteScheduleRequest, DeleteScheduleResponse, DeleteSessionRequest, DeleteSessionResponse, DeleteWorkflowRequest, DeleteWorkflowResponse, GetAgentRequest, GetAgentResponse, GetAgentTemplateRequest, GetChannelMessageRequest, GetChannelRequest, GetChannelSubscriptionRequest, GetKnowledgeRequest, GetMcpServerBindingRequest, GetMcpServerRequest, GetNamespaceKnowledgeRequest, GetNamespaceRequest, GetNamespaceSkillRequest, GetScheduleRequest, GetSessionRequest, GetWorkflowRequest, GetWorkflowRunRequest, KnowledgeResponse, ListAgentsRequest, ListAgentsResponse, ListAgentTemplatesRequest, ListAgentTemplatesResponse, ListChannelMessagesRequest, ListChannelMessagesResponse, ListChannelsRequest, ListChannelsResponse, ListChannelSubscriptionsRequest, ListChannelSubscriptionsResponse, ListMcpServerBindingsRequest, ListMcpServerBindingsResponse, ListMcpServersRequest, ListMcpServersResponse, ListNamespaceKnowledgeRequest, ListNamespaceKnowledgeResponse, ListNamespaceSkillsRequest, ListNamespaceSkillsResponse, ListNamespacesRequest, ListNamespacesResponse, ListSchedulesRequest, ListSchedulesResponse, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, ListWorkflowRunsRequest, ListWorkflowRunsResponse, ListWorkflowsRequest, ListWorkflowsResponse, McpServerBindingResponse, McpServerResponse, ModifyAgentRequest, ModifyChannelRequest, ModifyChannelSubscriptionRequest, ModifyScheduleRequest, NamespaceKnowledgeResponse, NamespaceResponse, NamespaceSkillResponse, PostChannelMessageRequest, PostChannelMessageResponse, ResumeWorkflowRunRequest, ScheduleResponse, SearchKnowledgeRequest, SearchKnowledgeResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamChannelEventsRequest, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, StreamWorkflowEventsRequest, WorkflowResponse, WorkflowRunResponse } from "./gateway_pb.js";
+import { AnswerSessionPermissionRequest, AnswerSessionPermissionResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, CancelWorkflowRunRequest, ChannelMessageResponse, ClearSessionRequest, ClearSessionResponse, CreateNamespaceRequest, CreateResourceRequest, CreateSessionRequest, CreateWorkflowRunRequest, DeleteNamespaceRequest, DeleteResourceRequest, DeleteResourceResponse, DeleteSessionRequest, DeleteSessionResponse, GetChannelMessageRequest, GetKnowledgeRequest, GetNamespaceRequest, GetResourceRequest, GetSessionRequest, GetWorkflowRunRequest, KnowledgeResponse, ListChannelMessagesRequest, ListChannelMessagesResponse, ListNamespacesRequest, ListNamespacesResponse, ListResourcesRequest, ListResourcesResponse, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, ListWorkflowRunsRequest, ListWorkflowRunsResponse, NamespaceResponse, PostChannelMessageRequest, PostChannelMessageResponse, ResourceResponse, ResumeWorkflowRunRequest, SearchKnowledgeRequest, SearchKnowledgeResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamChannelEventsRequest, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, StreamWorkflowEventsRequest, WorkflowRunResponse } from "./gateway_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 import { ChannelEvent, SessionMessagePartEvent } from "./events_pb.js";
-import { WorkflowRunEvent } from "./models_pb.js";
+import { WorkflowRunEvent } from "./data/data_pb.js";
 
 /**
  * @generated from service talon.gateway.GatewayService
@@ -15,45 +15,7 @@ export const GatewayService = {
   typeName: "talon.gateway.GatewayService",
   methods: {
     /**
-     * Agent Lifecycle
-     *
-     * @generated from rpc talon.gateway.GatewayService.CreateAgent
-     */
-    createAgent: {
-      name: "CreateAgent",
-      I: CreateAgentRequest,
-      O: AgentResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.GetAgent
-     */
-    getAgent: {
-      name: "GetAgent",
-      I: GetAgentRequest,
-      O: GetAgentResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ModifyAgent
-     */
-    modifyAgent: {
-      name: "ModifyAgent",
-      I: ModifyAgentRequest,
-      O: AgentResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ListAgents
-     */
-    listAgents: {
-      name: "ListAgents",
-      I: ListAgentsRequest,
-      O: ListAgentsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * Agent Knowledge
+     * Agent knowledge data-plane queries
      *
      * @generated from rpc talon.gateway.GatewayService.GetKnowledge
      */
@@ -70,78 +32,6 @@ export const GatewayService = {
       name: "SearchKnowledge",
       I: SearchKnowledgeRequest,
       O: SearchKnowledgeResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.CreateNamespaceKnowledge
-     */
-    createNamespaceKnowledge: {
-      name: "CreateNamespaceKnowledge",
-      I: CreateNamespaceKnowledgeRequest,
-      O: NamespaceKnowledgeResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.GetNamespaceKnowledge
-     */
-    getNamespaceKnowledge: {
-      name: "GetNamespaceKnowledge",
-      I: GetNamespaceKnowledgeRequest,
-      O: NamespaceKnowledgeResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ListNamespaceKnowledge
-     */
-    listNamespaceKnowledge: {
-      name: "ListNamespaceKnowledge",
-      I: ListNamespaceKnowledgeRequest,
-      O: ListNamespaceKnowledgeResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.DeleteNamespaceKnowledge
-     */
-    deleteNamespaceKnowledge: {
-      name: "DeleteNamespaceKnowledge",
-      I: DeleteNamespaceKnowledgeRequest,
-      O: DeleteNamespaceKnowledgeResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.CreateNamespaceSkill
-     */
-    createNamespaceSkill: {
-      name: "CreateNamespaceSkill",
-      I: CreateNamespaceSkillRequest,
-      O: NamespaceSkillResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.GetNamespaceSkill
-     */
-    getNamespaceSkill: {
-      name: "GetNamespaceSkill",
-      I: GetNamespaceSkillRequest,
-      O: NamespaceSkillResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ListNamespaceSkills
-     */
-    listNamespaceSkills: {
-      name: "ListNamespaceSkills",
-      I: ListNamespaceSkillsRequest,
-      O: ListNamespaceSkillsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.DeleteNamespaceSkill
-     */
-    deleteNamespaceSkill: {
-      name: "DeleteNamespaceSkill",
-      I: DeleteNamespaceSkillRequest,
-      O: DeleteNamespaceSkillResponse,
       kind: MethodKind.Unary,
     },
     /**
@@ -221,6 +111,15 @@ export const GatewayService = {
       kind: MethodKind.Unary,
     },
     /**
+     * @generated from rpc talon.gateway.GatewayService.AnswerSessionPermission
+     */
+    answerSessionPermission: {
+      name: "AnswerSessionPermission",
+      I: AnswerSessionPermissionRequest,
+      O: AnswerSessionPermissionResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
      * @generated from rpc talon.gateway.GatewayService.StopSessionGeneration
      */
     stopSessionGeneration: {
@@ -248,53 +147,8 @@ export const GatewayService = {
       kind: MethodKind.ServerStreaming,
     },
     /**
-     * Channels
+     * Channel data-plane actions
      *
-     * @generated from rpc talon.gateway.GatewayService.CreateChannel
-     */
-    createChannel: {
-      name: "CreateChannel",
-      I: CreateChannelRequest,
-      O: ChannelResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.GetChannel
-     */
-    getChannel: {
-      name: "GetChannel",
-      I: GetChannelRequest,
-      O: ChannelResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ModifyChannel
-     */
-    modifyChannel: {
-      name: "ModifyChannel",
-      I: ModifyChannelRequest,
-      O: ChannelResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ListChannels
-     */
-    listChannels: {
-      name: "ListChannels",
-      I: ListChannelsRequest,
-      O: ListChannelsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.DeleteChannel
-     */
-    deleteChannel: {
-      name: "DeleteChannel",
-      I: DeleteChannelRequest,
-      O: DeleteChannelResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
      * @generated from rpc talon.gateway.GatewayService.PostChannelMessage
      */
     postChannelMessage: {
@@ -322,51 +176,6 @@ export const GatewayService = {
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc talon.gateway.GatewayService.CreateChannelSubscription
-     */
-    createChannelSubscription: {
-      name: "CreateChannelSubscription",
-      I: CreateChannelSubscriptionRequest,
-      O: ChannelSubscriptionResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.GetChannelSubscription
-     */
-    getChannelSubscription: {
-      name: "GetChannelSubscription",
-      I: GetChannelSubscriptionRequest,
-      O: ChannelSubscriptionResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ModifyChannelSubscription
-     */
-    modifyChannelSubscription: {
-      name: "ModifyChannelSubscription",
-      I: ModifyChannelSubscriptionRequest,
-      O: ChannelSubscriptionResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ListChannelSubscriptions
-     */
-    listChannelSubscriptions: {
-      name: "ListChannelSubscriptions",
-      I: ListChannelSubscriptionsRequest,
-      O: ListChannelSubscriptionsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.DeleteChannelSubscription
-     */
-    deleteChannelSubscription: {
-      name: "DeleteChannelSubscription",
-      I: DeleteChannelSubscriptionRequest,
-      O: DeleteChannelSubscriptionResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
      * @generated from rpc talon.gateway.GatewayService.StreamChannelEvents
      */
     streamChannelEvents: {
@@ -376,91 +185,8 @@ export const GatewayService = {
       kind: MethodKind.ServerStreaming,
     },
     /**
-     * Schedules
+     * Workflow data-plane actions
      *
-     * @generated from rpc talon.gateway.GatewayService.CreateSchedule
-     */
-    createSchedule: {
-      name: "CreateSchedule",
-      I: CreateScheduleRequest,
-      O: ScheduleResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.GetSchedule
-     */
-    getSchedule: {
-      name: "GetSchedule",
-      I: GetScheduleRequest,
-      O: ScheduleResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ModifySchedule
-     */
-    modifySchedule: {
-      name: "ModifySchedule",
-      I: ModifyScheduleRequest,
-      O: ScheduleResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ListSchedules
-     */
-    listSchedules: {
-      name: "ListSchedules",
-      I: ListSchedulesRequest,
-      O: ListSchedulesResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.DeleteSchedule
-     */
-    deleteSchedule: {
-      name: "DeleteSchedule",
-      I: DeleteScheduleRequest,
-      O: DeleteScheduleResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * Workflows
-     *
-     * @generated from rpc talon.gateway.GatewayService.CreateWorkflow
-     */
-    createWorkflow: {
-      name: "CreateWorkflow",
-      I: CreateWorkflowRequest,
-      O: WorkflowResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.GetWorkflow
-     */
-    getWorkflow: {
-      name: "GetWorkflow",
-      I: GetWorkflowRequest,
-      O: WorkflowResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ListWorkflows
-     */
-    listWorkflows: {
-      name: "ListWorkflows",
-      I: ListWorkflowsRequest,
-      O: ListWorkflowsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.DeleteWorkflow
-     */
-    deleteWorkflow: {
-      name: "DeleteWorkflow",
-      I: DeleteWorkflowRequest,
-      O: DeleteWorkflowResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
      * @generated from rpc talon.gateway.GatewayService.CreateWorkflowRun
      */
     createWorkflowRun: {
@@ -553,115 +279,41 @@ export const GatewayService = {
       kind: MethodKind.Unary,
     },
     /**
-     * Agent Templates
+     * Generic resources
      *
-     * @generated from rpc talon.gateway.GatewayService.CreateAgentTemplate
+     * @generated from rpc talon.gateway.GatewayService.CreateResource
      */
-    createAgentTemplate: {
-      name: "CreateAgentTemplate",
-      I: CreateAgentTemplateRequest,
-      O: AgentTemplateResponse,
+    createResource: {
+      name: "CreateResource",
+      I: CreateResourceRequest,
+      O: ResourceResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc talon.gateway.GatewayService.GetAgentTemplate
+     * @generated from rpc talon.gateway.GatewayService.GetResource
      */
-    getAgentTemplate: {
-      name: "GetAgentTemplate",
-      I: GetAgentTemplateRequest,
-      O: AgentTemplateResponse,
+    getResource: {
+      name: "GetResource",
+      I: GetResourceRequest,
+      O: ResourceResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc talon.gateway.GatewayService.ListAgentTemplates
+     * @generated from rpc talon.gateway.GatewayService.ListResources
      */
-    listAgentTemplates: {
-      name: "ListAgentTemplates",
-      I: ListAgentTemplatesRequest,
-      O: ListAgentTemplatesResponse,
+    listResources: {
+      name: "ListResources",
+      I: ListResourcesRequest,
+      O: ListResourcesResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc talon.gateway.GatewayService.DeleteAgentTemplate
+     * @generated from rpc talon.gateway.GatewayService.DeleteResource
      */
-    deleteAgentTemplate: {
-      name: "DeleteAgentTemplate",
-      I: DeleteAgentTemplateRequest,
-      O: DeleteAgentTemplateResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * MCP Servers
-     *
-     * @generated from rpc talon.gateway.GatewayService.CreateMcpServer
-     */
-    createMcpServer: {
-      name: "CreateMcpServer",
-      I: CreateMcpServerRequest,
-      O: McpServerResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.GetMcpServer
-     */
-    getMcpServer: {
-      name: "GetMcpServer",
-      I: GetMcpServerRequest,
-      O: McpServerResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ListMcpServers
-     */
-    listMcpServers: {
-      name: "ListMcpServers",
-      I: ListMcpServersRequest,
-      O: ListMcpServersResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.DeleteMcpServer
-     */
-    deleteMcpServer: {
-      name: "DeleteMcpServer",
-      I: DeleteMcpServerRequest,
-      O: DeleteMcpServerResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.CreateMcpServerBinding
-     */
-    createMcpServerBinding: {
-      name: "CreateMcpServerBinding",
-      I: CreateMcpServerBindingRequest,
-      O: McpServerBindingResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.GetMcpServerBinding
-     */
-    getMcpServerBinding: {
-      name: "GetMcpServerBinding",
-      I: GetMcpServerBindingRequest,
-      O: McpServerBindingResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ListMcpServerBindings
-     */
-    listMcpServerBindings: {
-      name: "ListMcpServerBindings",
-      I: ListMcpServerBindingsRequest,
-      O: ListMcpServerBindingsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.DeleteMcpServerBinding
-     */
-    deleteMcpServerBinding: {
-      name: "DeleteMcpServerBinding",
-      I: DeleteMcpServerBindingRequest,
-      O: DeleteMcpServerBindingResponse,
+    deleteResource: {
+      name: "DeleteResource",
+      I: DeleteResourceRequest,
+      O: DeleteResourceResponse,
       kind: MethodKind.Unary,
     },
   }

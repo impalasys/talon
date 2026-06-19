@@ -1,32 +1,17 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-pub mod agents;
-pub mod config;
-pub mod connectors;
+pub mod cli;
 pub mod control;
-pub mod core;
 pub mod gateway;
-pub mod knowledge;
-pub mod llm;
-pub mod manifest;
-pub mod memory;
-pub mod native_tools;
-pub mod orchestrator;
-pub mod profiling;
-pub mod scheduling;
-pub mod security;
-pub mod skills;
-pub mod telemetry;
+pub mod harness;
 pub mod worker;
-pub mod workflows;
-pub use crate::core::executor::{
-    AgentExecutor, CaptureSink, ExecutionContext, ExecutionSink, NullSink,
+pub use crate::control::security::encryption::SecurityProvider;
+pub use crate::harness::executor::{
+    AgentExecutor, CaptureSink, EncryptedResult, ExecutionContext, ExecutionSink, NullSink,
+    RpcMessage, RpcRequest, RpcResponse, Task, TaskResult, TaskStatus,
 };
-pub use crate::core::rpc::{RpcMessage, RpcRequest, RpcResponse};
-pub use crate::core::task::{EncryptedResult, Task, TaskResult, TaskStatus};
-pub use crate::knowledge::{KnowledgeBook, KvKnowledgeBook};
-pub use crate::security::encryption::SecurityProvider;
+pub use crate::harness::knowledge::{KnowledgeBook, KvKnowledgeBook};
 
 pub mod test_support {
     use crate::control::keys::{ResourceKey, ResourceList};

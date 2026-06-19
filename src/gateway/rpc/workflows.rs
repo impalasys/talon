@@ -1,145 +1,53 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{models, proto, GrpcGatewayHandler};
+use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
+use crate::control::resources::ResourceStore;
 use crate::control::{keys, topics, KeyValueStore, ProtoKeyValueStoreExt};
-use crate::workflows;
+use crate::worker::workflows;
 use futures::{stream, StreamExt};
 use prost::Message;
-use rand::Rng;
 use std::collections::HashSet;
 
-const MAX_WORKFLOW_UPSERT_RETRIES: usize = 8;
-const WORKFLOW_UPSERT_RETRY_BACKOFF_MS: u64 = 10;
-const MAX_WORKFLOW_UPSERT_RETRY_BACKOFF_MS: u64 = 500;
 const DEFAULT_WORKFLOW_RUNS_PAGE_SIZE: usize = 50;
 const MAX_WORKFLOW_RUNS_PAGE_SIZE: usize = 200;
 const WORKFLOW_RUN_KEY_SCAN_BATCH_SIZE: usize = 512;
 const MAX_WORKFLOW_RUN_LIST_PAGES_SCANNED: usize = 10;
 
+fn workflow_from_resource(
+    resource: resources_proto::Resource,
+) -> Option<resources_proto::Workflow> {
+    let spec = resource.spec.and_then(|spec| match spec.kind {
+        Some(resources_proto::resource_spec::Kind::Workflow(spec)) => Some(spec),
+        _ => None,
+    })?;
+    let status = resource.status.and_then(|status| match status.kind {
+        Some(resources_proto::resource_status::Kind::Workflow(status)) => Some(status),
+        _ => None,
+    });
+    Some(resources_proto::Workflow {
+        metadata: resource.metadata,
+        spec: Some(spec),
+        status,
+    })
+}
+
 impl GrpcGatewayHandler {
-    pub async fn handle_create_workflow(
-        &self,
-        req: tonic::Request<proto::CreateWorkflowRequest>,
-    ) -> Result<tonic::Response<proto::WorkflowResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        let mut workflow = req
-            .workflow
-            .ok_or_else(|| tonic::Status::invalid_argument("workflow is required"))?;
-        workflow.ns = req.ns.clone();
-        workflows::validate_workflow(&workflow)
-            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
-        let key = keys::workflow(&req.ns, &workflow.name);
-        let payload = workflow.encode_to_vec();
-        for attempt in 0..MAX_WORKFLOW_UPSERT_RETRIES {
-            let current = self
-                .gateway
-                .kv
-                .get(&key)
-                .await
-                .map_err(|err| tonic::Status::internal(err.to_string()))?;
-            let updated = self
-                .gateway
-                .kv
-                .compare_and_swap(&key, current.as_deref(), &payload)
-                .await
-                .map_err(|err| tonic::Status::internal(err.to_string()))?;
-            if updated {
-                return Ok(tonic::Response::new(proto::WorkflowResponse {
-                    workflow: Some(workflow),
-                }));
-            }
-            if attempt + 1 < MAX_WORKFLOW_UPSERT_RETRIES {
-                tokio::time::sleep(std::time::Duration::from_millis(
-                    workflow_upsert_retry_backoff_ms(attempt),
-                ))
-                .await;
-            }
-        }
-        Err(tonic::Status::internal(
-            "failed to upsert workflow after concurrent modifications",
-        ))
-    }
-
-    pub async fn handle_get_workflow(
-        &self,
-        req: tonic::Request<proto::GetWorkflowRequest>,
-    ) -> Result<tonic::Response<proto::WorkflowResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        let workflow = self
-            .gateway
-            .kv
-            .get_msg::<models::Workflow>(&keys::workflow(&req.ns, &req.name))
-            .await
-            .map_err(|err| tonic::Status::internal(err.to_string()))?
-            .ok_or_else(|| tonic::Status::not_found("workflow not found"))?;
-        Ok(tonic::Response::new(proto::WorkflowResponse {
-            workflow: Some(workflow),
-        }))
-    }
-
-    pub async fn handle_list_workflows(
-        &self,
-        req: tonic::Request<proto::ListWorkflowsRequest>,
-    ) -> Result<tonic::Response<proto::ListWorkflowsResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        let mut entries = self
-            .gateway
-            .kv
-            .list_entries(&keys::workflow_prefix(&req.ns))
-            .await
-            .map_err(|err| tonic::Status::internal(err.to_string()))?;
-        entries.sort_by(|left, right| left.0.cmp(&right.0));
-        let mut workflows = Vec::new();
-        for (key, bytes) in entries {
-            match models::Workflow::decode(bytes.as_slice()) {
-                Ok(workflow) => workflows.push(workflow),
-                Err(err) => {
-                    tracing::warn!(
-                        workflow_key = %key,
-                        error = %err,
-                        "failed to decode workflow while listing; skipping entry"
-                    );
-                }
-            }
-        }
-        Ok(tonic::Response::new(proto::ListWorkflowsResponse {
-            workflows,
-        }))
-    }
-
-    pub async fn handle_delete_workflow(
-        &self,
-        req: tonic::Request<proto::DeleteWorkflowRequest>,
-    ) -> Result<tonic::Response<proto::DeleteWorkflowResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        self.gateway
-            .kv
-            .delete(&keys::workflow(&req.ns, &req.name))
-            .await
-            .map_err(|err| tonic::Status::internal(err.to_string()))?;
-        Ok(tonic::Response::new(proto::DeleteWorkflowResponse {
-            success: true,
-        }))
-    }
-
     pub async fn handle_create_workflow_run(
         &self,
         req: tonic::Request<proto::CreateWorkflowRunRequest>,
     ) -> Result<tonic::Response<proto::WorkflowRunResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
-        let workflow = self
-            .gateway
-            .kv
-            .get_msg::<models::Workflow>(&keys::workflow(&req.ns, &req.workflow))
+        let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
+        let resource = store
+            .get(&req.ns, "Workflow", &req.workflow)
             .await
             .map_err(|err| tonic::Status::internal(err.to_string()))?
             .ok_or_else(|| tonic::Status::not_found("workflow not found"))?;
+        let workflow = workflow_from_resource(resource).ok_or_else(|| {
+            tonic::Status::invalid_argument("Workflow resource missing workflow spec")
+        })?;
         let input = if req.input_json.trim().is_empty() {
             serde_json::json!({})
         } else {
@@ -176,7 +84,7 @@ impl GrpcGatewayHandler {
         let run = self
             .gateway
             .kv
-            .get_msg::<models::WorkflowRun>(&keys::workflow_run(
+            .get_msg::<data_proto::WorkflowRun>(&keys::workflow_run(
                 &req.ns,
                 &req.workflow,
                 &req.run_id,
@@ -234,7 +142,7 @@ impl GrpcGatewayHandler {
                 if runs.len() >= target_run_count {
                     break;
                 }
-                match models::WorkflowRun::decode(bytes.as_slice()) {
+                match data_proto::WorkflowRun::decode(bytes.as_slice()) {
                     Ok(run) => runs.push(run),
                     Err(err) => {
                         tracing::warn!(
@@ -324,7 +232,7 @@ impl GrpcGatewayHandler {
         let req = req.into_inner();
         self.gateway
             .kv
-            .get_msg::<models::WorkflowRun>(&keys::workflow_run(
+            .get_msg::<data_proto::WorkflowRun>(&keys::workflow_run(
                 &req.ns,
                 &req.workflow,
                 &req.run_id,
@@ -356,7 +264,7 @@ impl GrpcGatewayHandler {
 
         let mut historical = Vec::new();
         for (key, bytes) in entries {
-            match models::WorkflowRunEvent::decode(bytes.as_slice()) {
+            match data_proto::WorkflowRunEvent::decode(bytes.as_slice()) {
                 Ok(event) => historical.push(event),
                 Err(err) => {
                     tracing::warn!(
@@ -399,7 +307,7 @@ impl GrpcGatewayHandler {
                 if *terminated {
                     return futures::future::ready(None);
                 }
-                let item = match models::WorkflowRunEvent::decode(bytes.as_slice()) {
+                let item = match data_proto::WorkflowRunEvent::decode(bytes.as_slice()) {
                     Ok(event) => {
                         if !seen.insert(event.id.clone()) {
                             Some(None)
@@ -428,8 +336,8 @@ impl GrpcGatewayHandler {
 
 async fn load_sorted_workflow_step_runs(
     kv: &dyn KeyValueStore,
-    run: &models::WorkflowRun,
-) -> Result<Vec<models::WorkflowStepRun>, tonic::Status> {
+    run: &data_proto::WorkflowRun,
+) -> Result<Vec<data_proto::WorkflowStepRun>, tonic::Status> {
     let mut steps = workflows::load_step_runs(kv, run)
         .await
         .map_err(|err| tonic::Status::internal(err.to_string()))?
@@ -474,15 +382,6 @@ fn validated_workflow_runs_page_size(page_size: i32) -> Result<usize, tonic::Sta
     Ok(page_size.min(MAX_WORKFLOW_RUNS_PAGE_SIZE))
 }
 
-fn workflow_upsert_retry_backoff_ms(attempt: usize) -> u64 {
-    let shift = attempt.min(6) as u32;
-    let exponential = WORKFLOW_UPSERT_RETRY_BACKOFF_MS
-        .saturating_mul(1_u64 << shift)
-        .min(MAX_WORKFLOW_UPSERT_RETRY_BACKOFF_MS);
-    let jitter = rand::thread_rng().gen_range(0..=(exponential / 2));
-    exponential + jitter
-}
-
 fn is_terminal_workflow_event(event_type: &str) -> bool {
     matches!(event_type, "run_completed" | "run_failed" | "run_cancelled")
 }
@@ -510,19 +409,5 @@ mod tests {
     fn workflow_run_mutation_status_maps_unknown_errors_to_internal() {
         let status = workflow_run_mutation_status(anyhow::anyhow!("kv unavailable"));
         assert_eq!(status.code(), tonic::Code::Internal);
-    }
-
-    #[test]
-    fn workflow_upsert_retry_backoff_reaches_max_base_and_keeps_jitter() {
-        for _ in 0..100 {
-            let first = workflow_upsert_retry_backoff_ms(0);
-            assert!((10..=15).contains(&first));
-
-            let capped = workflow_upsert_retry_backoff_ms(6);
-            assert!((500..=750).contains(&capped));
-
-            let saturated = workflow_upsert_retry_backoff_ms(usize::MAX);
-            assert!((500..=750).contains(&saturated));
-        }
     }
 }

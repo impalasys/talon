@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package talon.events;
 
-import "proto/models.proto";
+import "proto/data/data.proto";
 
 enum SystemAction {
     SYSTEM_ACTION_UNSPECIFIED = 0;
@@ -55,7 +55,7 @@ enum SessionMessagePartEventKind {
 message SessionMessagePartEvent {
     string session_id = 1;
     SessionMessagePartEventKind kind = 2;
-    talon.models.SessionMessagePart part = 3;
+    talon.data.SessionMessagePart part = 3;
     int64 timestamp = 4;
     string agent = 5;
     string ns = 6;
@@ -74,7 +74,7 @@ message ChannelEvent {
     string ns = 1;
     string channel = 2;
     ChannelEventKind kind = 3;
-    talon.models.ChannelMessage message = 4;
+    talon.data.ChannelMessage message = 4;
     string session_id = 5;
     string agent = 6;
     string subscription = 7;
@@ -90,4 +90,23 @@ message WorkflowDispatchEvent {
     string step_id = 5;
     string child_session_id = 6;
     int64 timestamp = 7;
+}
+
+enum ResourceChangeType {
+    RESOURCE_CHANGE_TYPE_UNSPECIFIED = 0;
+    RESOURCE_CHANGE_TYPE_CREATED = 1;
+    RESOURCE_CHANGE_TYPE_UPDATED = 2;
+    RESOURCE_CHANGE_TYPE_DELETED = 3;
+}
+
+message ResourceChangedEvent {
+    string namespace = 1;
+    string resource_kind = 2;
+    string name = 3;
+    string uid = 4;
+    string resource_version = 5;
+    uint64 generation = 6;
+    ResourceChangeType change_type = 7;
+    repeated string changed_sections = 8;
+    int64 timestamp = 9;
 }

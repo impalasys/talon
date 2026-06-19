@@ -1,0 +1,23 @@
+apiVersion: talon.impalasys.com/v1
+kind: Template
+metadata:
+  name: coding-sandbox-policy
+  namespace: "{{ vars.source_ns }}"
+spec:
+  kind: SandboxPolicy
+  metadata:
+    name: coding
+  spec:
+    classRef:
+      namespace: system
+      name: "e2e-code-{{ vars.run_id }}"
+    template:
+      workspace:
+        mode: customer-repo
+        mountPath: /workspace
+      filesystem:
+        writable:
+          - /workspace
+      leasePolicy:
+        mode: exclusive
+    maxConcurrent: 1

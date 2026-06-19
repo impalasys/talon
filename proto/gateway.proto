@@ -3,38 +3,12 @@ syntax = "proto3";
 package talon.gateway;
 
 import "google/api/annotations.proto";
-import "proto/manifests.proto";
-import "proto/models.proto";
+import "proto/data/data.proto";
 import "proto/events.proto";
+import "proto/resources/resource.proto";
 
 service GatewayService {
-  // Agent Lifecycle
-  rpc CreateAgent(CreateAgentRequest) returns (AgentResponse) {
-    option (google.api.http) = {
-      post: "/v1/ns/{ns}/agents"
-      body: "*"
-    };
-  }
-
-  rpc GetAgent(GetAgentRequest) returns (GetAgentResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/agents/{name}"
-    };
-  }
-
-  rpc ModifyAgent(ModifyAgentRequest) returns (AgentResponse) {
-    option (google.api.http) = {
-      put: "/v1/ns/{ns}/agents/{agent}"
-      body: "*"
-    };
-  }
-  rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/agents"
-    };
-  }
-
-  // Agent Knowledge
+  // Agent knowledge data-plane queries
   rpc GetKnowledge(GetKnowledgeRequest) returns (KnowledgeResponse) {
     option (google.api.http) = {
       get: "/v1/ns/{ns}/agents/{agent}/knowledge"
@@ -44,48 +18,6 @@ service GatewayService {
     option (google.api.http) = {
       post: "/v1/ns/{ns}/agents/{agent}/knowledge/search"
       body: "*"
-    };
-  }
-  rpc CreateNamespaceKnowledge(CreateNamespaceKnowledgeRequest) returns (NamespaceKnowledgeResponse) {
-    option (google.api.http) = {
-      post: "/v1/namespaces/{ns}/knowledge"
-      body: "*"
-    };
-  }
-  rpc GetNamespaceKnowledge(GetNamespaceKnowledgeRequest) returns (NamespaceKnowledgeResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/knowledge/{name}"
-    };
-  }
-  rpc ListNamespaceKnowledge(ListNamespaceKnowledgeRequest) returns (ListNamespaceKnowledgeResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/knowledge"
-    };
-  }
-  rpc DeleteNamespaceKnowledge(DeleteNamespaceKnowledgeRequest) returns (DeleteNamespaceKnowledgeResponse) {
-    option (google.api.http) = {
-      delete: "/v1/namespaces/{ns}/knowledge/{name}"
-    };
-  }
-  rpc CreateNamespaceSkill(CreateNamespaceSkillRequest) returns (NamespaceSkillResponse) {
-    option (google.api.http) = {
-      post: "/v1/namespaces/{ns}/skills"
-      body: "*"
-    };
-  }
-  rpc GetNamespaceSkill(GetNamespaceSkillRequest) returns (NamespaceSkillResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/skills/{name}"
-    };
-  }
-  rpc ListNamespaceSkills(ListNamespaceSkillsRequest) returns (ListNamespaceSkillsResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/skills"
-    };
-  }
-  rpc DeleteNamespaceSkill(DeleteNamespaceSkillRequest) returns (DeleteNamespaceSkillResponse) {
-    option (google.api.http) = {
-      delete: "/v1/namespaces/{ns}/skills/{name}"
     };
   }
 
@@ -140,6 +72,13 @@ service GatewayService {
     };
   }
 
+  rpc AnswerSessionPermission(AnswerSessionPermissionRequest) returns (AnswerSessionPermissionResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}/permissions/{request_id}:answer"
+      body: "*"
+    };
+  }
+
   rpc StopSessionGeneration(StopSessionGenerationRequest) returns (StopSessionGenerationResponse) {
     option (google.api.http) = {
       post: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}:stop"
@@ -160,34 +99,7 @@ service GatewayService {
     };
   }
 
-  // Channels
-  rpc CreateChannel(CreateChannelRequest) returns (ChannelResponse) {
-    option (google.api.http) = {
-      post: "/v1/ns/{ns}/channels"
-      body: "*"
-    };
-  }
-  rpc GetChannel(GetChannelRequest) returns (ChannelResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/channels/{name}"
-    };
-  }
-  rpc ModifyChannel(ModifyChannelRequest) returns (ChannelResponse) {
-    option (google.api.http) = {
-      put: "/v1/ns/{ns}/channels/{name}"
-      body: "*"
-    };
-  }
-  rpc ListChannels(ListChannelsRequest) returns (ListChannelsResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/channels"
-    };
-  }
-  rpc DeleteChannel(DeleteChannelRequest) returns (DeleteChannelResponse) {
-    option (google.api.http) = {
-      delete: "/v1/ns/{ns}/channels/{name}"
-    };
-  }
+  // Channel data-plane actions
   rpc PostChannelMessage(PostChannelMessageRequest) returns (PostChannelMessageResponse) {
     option (google.api.http) = {
       post: "/v1/ns/{ns}/channels/{channel}/messages"
@@ -204,90 +116,13 @@ service GatewayService {
       get: "/v1/ns/{ns}/channels/{channel}/messages"
     };
   }
-  rpc CreateChannelSubscription(CreateChannelSubscriptionRequest) returns (ChannelSubscriptionResponse) {
-    option (google.api.http) = {
-      post: "/v1/ns/{ns}/channels/{channel}/subscriptions"
-      body: "*"
-    };
-  }
-  rpc GetChannelSubscription(GetChannelSubscriptionRequest) returns (ChannelSubscriptionResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/channels/{channel}/subscriptions/{name}"
-    };
-  }
-  rpc ModifyChannelSubscription(ModifyChannelSubscriptionRequest) returns (ChannelSubscriptionResponse) {
-    option (google.api.http) = {
-      put: "/v1/ns/{ns}/channels/{channel}/subscriptions/{name}"
-      body: "*"
-    };
-  }
-  rpc ListChannelSubscriptions(ListChannelSubscriptionsRequest) returns (ListChannelSubscriptionsResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/channels/{channel}/subscriptions"
-    };
-  }
-  rpc DeleteChannelSubscription(DeleteChannelSubscriptionRequest) returns (DeleteChannelSubscriptionResponse) {
-    option (google.api.http) = {
-      delete: "/v1/ns/{ns}/channels/{channel}/subscriptions/{name}"
-    };
-  }
   rpc StreamChannelEvents(StreamChannelEventsRequest) returns (stream talon.events.ChannelEvent) {
     option (google.api.http) = {
       get: "/v1/ns/{ns}/channels/{channel}/stream"
     };
   }
 
-  // Schedules
-  rpc CreateSchedule(CreateScheduleRequest) returns (ScheduleResponse) {
-    option (google.api.http) = {
-      post: "/v1/ns/{ns}/schedules"
-      body: "*"
-    };
-  }
-  rpc GetSchedule(GetScheduleRequest) returns (ScheduleResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/schedules/{name}"
-    };
-  }
-  rpc ModifySchedule(ModifyScheduleRequest) returns (ScheduleResponse) {
-    option (google.api.http) = {
-      put: "/v1/ns/{ns}/schedules/{name}"
-      body: "*"
-    };
-  }
-  rpc ListSchedules(ListSchedulesRequest) returns (ListSchedulesResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/schedules"
-    };
-  }
-  rpc DeleteSchedule(DeleteScheduleRequest) returns (DeleteScheduleResponse) {
-    option (google.api.http) = {
-      delete: "/v1/ns/{ns}/schedules/{name}"
-    };
-  }
-
-  // Workflows
-  rpc CreateWorkflow(CreateWorkflowRequest) returns (WorkflowResponse) {
-    option (google.api.http) = {
-      post: "/v1/ns/{ns}/workflows"
-      body: "*"
-    };
-  }
-  rpc GetWorkflow(GetWorkflowRequest) returns (WorkflowResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/workflows/{name}"
-    };
-  }
-  rpc ListWorkflows(ListWorkflowsRequest) returns (ListWorkflowsResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/workflows"
-    };
-  }
-  rpc DeleteWorkflow(DeleteWorkflowRequest) returns (DeleteWorkflowResponse) {
-    option (google.api.http) = {
-      delete: "/v1/ns/{ns}/workflows/{name}"
-    };
-  }
+  // Workflow data-plane actions
   rpc CreateWorkflowRun(CreateWorkflowRunRequest) returns (WorkflowRunResponse) {
     option (google.api.http) = {
       post: "/v1/ns/{ns}/workflows/{workflow}/runs"
@@ -316,7 +151,7 @@ service GatewayService {
       body: "*"
     };
   }
-  rpc StreamWorkflowEvents(StreamWorkflowEventsRequest) returns (stream talon.models.WorkflowRunEvent) {
+  rpc StreamWorkflowEvents(StreamWorkflowEventsRequest) returns (stream talon.data.WorkflowRunEvent) {
     option (google.api.http) = {
       get: "/v1/ns/{ns}/workflows/{workflow}/runs/{run_id}/stream"
     };
@@ -345,204 +180,63 @@ service GatewayService {
     };
   }
 
-  // Agent Templates
-  rpc CreateAgentTemplate(CreateAgentTemplateRequest) returns (AgentTemplateResponse) {
+  // Generic resources
+  rpc CreateResource(CreateResourceRequest) returns (ResourceResponse) {
     option (google.api.http) = {
-      post: "/v1/templates"
+      post: "/v1/ns/{ns}/resources"
       body: "*"
     };
   }
-  rpc GetAgentTemplate(GetAgentTemplateRequest) returns (AgentTemplateResponse) {
+  rpc GetResource(GetResourceRequest) returns (ResourceResponse) {
     option (google.api.http) = {
-      get: "/v1/templates/{name}"
+      get: "/v1/ns/{ns}/resources/{kind}/{name}"
     };
   }
-  rpc ListAgentTemplates(ListAgentTemplatesRequest) returns (ListAgentTemplatesResponse) {
+  rpc ListResources(ListResourcesRequest) returns (ListResourcesResponse) {
     option (google.api.http) = {
-      get: "/v1/templates"
+      get: "/v1/ns/{ns}/resources"
     };
   }
-  rpc DeleteAgentTemplate(DeleteAgentTemplateRequest) returns (DeleteAgentTemplateResponse) {
+  rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {
     option (google.api.http) = {
-      delete: "/v1/templates/{name}"
-    };
-  }
-
-  // MCP Servers
-  rpc CreateMcpServer(CreateMcpServerRequest) returns (McpServerResponse) {
-    option (google.api.http) = {
-      post: "/v1/mcp-servers"
-      body: "*"
-    };
-  }
-  rpc GetMcpServer(GetMcpServerRequest) returns (McpServerResponse) {
-    option (google.api.http) = {
-      get: "/v1/mcp-servers/{name}"
-    };
-  }
-  rpc ListMcpServers(ListMcpServersRequest) returns (ListMcpServersResponse) {
-    option (google.api.http) = {
-      get: "/v1/mcp-servers"
-    };
-  }
-  rpc DeleteMcpServer(DeleteMcpServerRequest) returns (DeleteMcpServerResponse) {
-    option (google.api.http) = {
-      delete: "/v1/mcp-servers/{name}"
-    };
-  }
-
-  rpc CreateMcpServerBinding(CreateMcpServerBindingRequest) returns (McpServerBindingResponse) {
-    option (google.api.http) = {
-      post: "/v1/namespaces/{ns}/mcp-bindings"
-      body: "*"
-    };
-  }
-  rpc GetMcpServerBinding(GetMcpServerBindingRequest) returns (McpServerBindingResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/mcp-bindings/{name}"
-    };
-  }
-  rpc ListMcpServerBindings(ListMcpServerBindingsRequest) returns (ListMcpServerBindingsResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/mcp-bindings"
-    };
-  }
-  rpc DeleteMcpServerBinding(DeleteMcpServerBindingRequest) returns (DeleteMcpServerBindingResponse) {
-    option (google.api.http) = {
-      delete: "/v1/namespaces/{ns}/mcp-bindings/{name}"
+      delete: "/v1/ns/{ns}/resources/{kind}/{name}"
     };
   }
 
 }
 
-// ---------------------------------------------------------
-// Agent Template Models
-// ---------------------------------------------------------
-
-message CreateAgentTemplateRequest {
-  talon.manifests.AgentTemplate template = 1;
+message CreateResourceRequest {
+  string ns = 1;
+  talon.resources.ResourceManifest manifest = 2;
 }
 
-message AgentTemplateResponse {
-  talon.manifests.AgentTemplate template = 1;
+message GetResourceRequest {
+  string ns = 1;
+  string kind = 2;
+  string name = 3;
 }
 
-message GetAgentTemplateRequest {
-  string name = 1;
+message ListResourcesRequest {
+  string ns = 1;
+  optional string kind = 2;
 }
 
-message DeleteAgentTemplateRequest {
-  string name = 1;
+message DeleteResourceRequest {
+  string ns = 1;
+  string kind = 2;
+  string name = 3;
 }
 
-message DeleteAgentTemplateResponse {
+message ResourceResponse {
+  talon.resources.Resource resource = 1;
+}
+
+message ListResourcesResponse {
+  repeated talon.resources.Resource resources = 1;
+}
+
+message DeleteResourceResponse {
   bool success = 1;
-}
-
-message ListAgentTemplatesRequest {
-}
-
-message ListAgentTemplatesResponse {
-  repeated talon.manifests.AgentTemplate templates = 1;
-}
-
-message CreateMcpServerRequest {
-  talon.manifests.McpServer server = 1;
-}
-
-message GetMcpServerRequest {
-  string name = 1;
-}
-
-message ListMcpServersRequest {
-}
-
-message DeleteMcpServerRequest {
-  string name = 1;
-}
-
-message DeleteMcpServerResponse {
-  bool success = 1;
-}
-
-message McpServerResponse {
-  talon.manifests.McpServer server = 1;
-}
-
-message ListMcpServersResponse {
-  repeated talon.manifests.McpServer servers = 1;
-}
-
-message CreateMcpServerBindingRequest {
-  string ns = 1;
-  talon.manifests.McpServerBinding binding = 2;
-}
-
-message GetMcpServerBindingRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ListMcpServerBindingsRequest {
-  string ns = 1;
-}
-
-message DeleteMcpServerBindingRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message DeleteMcpServerBindingResponse {
-  bool success = 1;
-}
-
-message McpServerBindingResponse {
-  talon.manifests.McpServerBinding binding = 1;
-}
-
-message ListMcpServerBindingsResponse {
-  repeated talon.manifests.McpServerBinding bindings = 1;
-}
-
-message GetAgentResponse {
-  talon.models.Agent agent = 1;
-}
-
-message GetAgentRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message CreateAgentRequest {
-  string ns = 1;
-  optional string name = 2;
-  talon.manifests.AgentDefinition definition = 3;
-  map<string, string> labels = 4;
-}
-
-message AgentResponse {
-  string agent = 1;
-  string ns = 2;
-  map<string, string> labels = 4;
-}
-
-
-
-message ListAgentsRequest {
-  string ns = 1;
-}
-
-message ListAgentsResponse {
-  repeated string agents = 1;
-}
-
-
-
-message ModifyAgentRequest {
-  string agent = 1;
-  string ns = 2;
-  talon.manifests.AgentDefinition definition = 3;
-  map<string, string> labels = 4;
 }
 
 // ---------------------------------------------------------
@@ -556,7 +250,7 @@ message GetKnowledgeRequest {
 }
 
 message KnowledgeResponse {
-  repeated talon.models.Knowledge modules = 1;
+  repeated talon.data.Knowledge modules = 1;
 }
 
 message SearchKnowledgeRequest {
@@ -566,69 +260,7 @@ message SearchKnowledgeRequest {
 }
 
 message SearchKnowledgeResponse {
-  repeated talon.models.KnowledgeSearchResult results = 1;
-}
-
-message CreateNamespaceKnowledgeRequest {
-  string ns = 1;
-  talon.manifests.Knowledge knowledge = 2;
-}
-
-message GetNamespaceKnowledgeRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ListNamespaceKnowledgeRequest {
-  string ns = 1;
-}
-
-message DeleteNamespaceKnowledgeRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message DeleteNamespaceKnowledgeResponse {
-  bool success = 1;
-}
-
-message NamespaceKnowledgeResponse {
-  talon.manifests.Knowledge knowledge = 1;
-}
-
-message ListNamespaceKnowledgeResponse {
-  repeated talon.manifests.Knowledge knowledge = 1;
-}
-
-message CreateNamespaceSkillRequest {
-  string ns = 1;
-  talon.manifests.Skill skill = 2;
-}
-
-message GetNamespaceSkillRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ListNamespaceSkillsRequest {
-  string ns = 1;
-}
-
-message DeleteNamespaceSkillRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message DeleteNamespaceSkillResponse {
-  bool success = 1;
-}
-
-message NamespaceSkillResponse {
-  talon.manifests.Skill skill = 1;
-}
-
-message ListNamespaceSkillsResponse {
-  repeated talon.manifests.Skill skills = 1;
+  repeated talon.data.KnowledgeSearchResult results = 1;
 }
 
 // ---------------------------------------------------------
@@ -664,7 +296,7 @@ message ListSessionMessagesResponseItem {
   reserved 2;
   reserved "steps";
 
-  talon.models.SessionMessage message = 1;
+  talon.data.SessionMessage message = 1;
 }
 
 message ListSessionMessagesResponse {
@@ -699,7 +331,7 @@ message SessionResponse {
   string session_id = 1;
   string agent = 2;
   string state = 3;
-  repeated talon.models.SessionMessage messages = 4;
+  repeated talon.data.SessionMessage messages = 4;
   map<string, string> labels = 6;
 }
 
@@ -723,43 +355,6 @@ message ClearSessionResponse {
   bool success = 1;
 }
 
-message CreateChannelRequest {
-  string ns = 1;
-  talon.models.Channel channel = 2;
-}
-
-message GetChannelRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ModifyChannelRequest {
-  string ns = 1;
-  string name = 2;
-  talon.models.Channel channel = 3;
-}
-
-message ListChannelsRequest {
-  string ns = 1;
-}
-
-message DeleteChannelRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ChannelResponse {
-  talon.models.Channel channel = 1;
-}
-
-message ListChannelsResponse {
-  repeated talon.models.Channel channels = 1;
-}
-
-message DeleteChannelResponse {
-  bool success = 1;
-}
-
 message PostChannelMessageRequest {
   string ns = 1;
   string channel = 2;
@@ -778,7 +373,7 @@ message RoutedChannelSession {
 }
 
 message PostChannelMessageResponse {
-  talon.models.ChannelMessage message = 1;
+  talon.data.ChannelMessage message = 1;
   repeated RoutedChannelSession routed_sessions = 2;
 }
 
@@ -789,7 +384,7 @@ message GetChannelMessageRequest {
 }
 
 message ChannelMessageResponse {
-  talon.models.ChannelMessage message = 1;
+  talon.data.ChannelMessage message = 1;
 }
 
 message ListChannelMessagesRequest {
@@ -801,120 +396,14 @@ message ListChannelMessagesRequest {
 }
 
 message ListChannelMessagesResponse {
-  repeated talon.models.ChannelMessage messages = 1;
+  repeated talon.data.ChannelMessage messages = 1;
   bool has_more = 2;
   optional string next_before_message_id = 3;
-}
-
-message CreateChannelSubscriptionRequest {
-  string ns = 1;
-  string channel = 2;
-  talon.models.ChannelSubscription subscription = 3;
-}
-
-message GetChannelSubscriptionRequest {
-  string ns = 1;
-  string channel = 2;
-  string name = 3;
-}
-
-message ModifyChannelSubscriptionRequest {
-  string ns = 1;
-  string channel = 2;
-  string name = 3;
-  talon.models.ChannelSubscription subscription = 4;
-}
-
-message ListChannelSubscriptionsRequest {
-  string ns = 1;
-  string channel = 2;
-}
-
-message DeleteChannelSubscriptionRequest {
-  string ns = 1;
-  string channel = 2;
-  string name = 3;
-}
-
-message ChannelSubscriptionResponse {
-  talon.models.ChannelSubscription subscription = 1;
-}
-
-message ListChannelSubscriptionsResponse {
-  repeated talon.models.ChannelSubscription subscriptions = 1;
-}
-
-message DeleteChannelSubscriptionResponse {
-  bool success = 1;
 }
 
 message StreamChannelEventsRequest {
   string ns = 1;
   string channel = 2;
-}
-
-message CreateScheduleRequest {
-  string ns = 1;
-  talon.models.Schedule schedule = 2;
-}
-
-message GetScheduleRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ModifyScheduleRequest {
-  string ns = 1;
-  string name = 2;
-  talon.models.Schedule schedule = 3;
-}
-
-message ListSchedulesRequest {
-  string ns = 1;
-}
-
-message ListSchedulesResponse {
-  repeated talon.models.Schedule schedules = 1;
-}
-
-message DeleteScheduleRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message DeleteScheduleResponse {
-  bool success = 1;
-}
-
-message CreateWorkflowRequest {
-  string ns = 1;
-  talon.models.Workflow workflow = 2;
-}
-
-message GetWorkflowRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ListWorkflowsRequest {
-  string ns = 1;
-}
-
-message DeleteWorkflowRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message WorkflowResponse {
-  talon.models.Workflow workflow = 1;
-}
-
-message ListWorkflowsResponse {
-  repeated talon.models.Workflow workflows = 1;
-}
-
-message DeleteWorkflowResponse {
-  bool success = 1;
 }
 
 message CreateWorkflowRunRequest {
@@ -958,18 +447,14 @@ message StreamWorkflowEventsRequest {
 }
 
 message WorkflowRunResponse {
-  talon.models.WorkflowRun run = 1;
-  repeated talon.models.WorkflowStepRun steps = 2;
+  talon.data.WorkflowRun run = 1;
+  repeated talon.data.WorkflowStepRun steps = 2;
 }
 
 message ListWorkflowRunsResponse {
-  repeated talon.models.WorkflowRun runs = 1;
+  repeated talon.data.WorkflowRun runs = 1;
   bool has_more = 2;
   string next_before_run_id = 3;
-}
-
-message ScheduleResponse {
-  talon.models.Schedule schedule = 1;
 }
 
 // ---------------------------------------------------------
@@ -993,12 +478,29 @@ message AppendSessionMessageRequest {
   string session_id = 1;
   string agent = 2;
   string ns = 3;
-  talon.models.SessionMessage message = 4;
+  talon.data.SessionMessage message = 4;
 }
 
 message AppendSessionMessageResponse {
   string session_id = 1;
-  talon.models.SessionMessage message = 2;
+  talon.data.SessionMessage message = 2;
+}
+
+message AnswerSessionPermissionRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+  string request_id = 4;
+  string outcome = 5;
+  string option_id = 6;
+  string decided_by = 7;
+}
+
+message AnswerSessionPermissionResponse {
+  string session_id = 1;
+  string request_id = 2;
+  string outcome = 3;
+  string option_id = 4;
 }
 
 message StopSessionGenerationRequest {

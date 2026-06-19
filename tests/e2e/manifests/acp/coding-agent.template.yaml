@@ -1,0 +1,25 @@
+apiVersion: talon.impalasys.com/v1
+kind: Template
+metadata:
+  name: coding-agent
+  namespace: "{{ vars.source_ns }}"
+spec:
+  kind: Agent
+  metadata:
+    name: coding
+  spec:
+    runtime:
+      kind: acp
+      acp:
+        command: "{{ vars.mock_acp_command }}"
+        args: []
+        cwd: "."
+        sandboxPolicyRef: coding
+        persistSession: false
+        permissionPolicy:
+          default: ask
+          filesystemWrite: allow
+          filesystemRead: allow
+          terminal: allow
+    systemPrompt: |
+      You are the coding agent for {% raw %}{{ namespace.name }}{% endraw %}.

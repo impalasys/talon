@@ -1,0 +1,25 @@
+apiVersion: talon.impalasys.com/v1
+kind: SandboxPolicy
+metadata:
+  name: coding
+  namespace: Example
+  labels:
+    example: acp-agents
+spec:
+  classRef:
+    namespace: Example
+    name: docker-codex
+  template:
+    spec:
+      workspace:
+        mode: customer-repo
+        mountPath: /workspace
+      network:
+        mode: bridge
+      filesystem:
+        writable:
+          - /workspace
+          - /tmp
+      leasePolicy:
+        mode: exclusive
+  maxConcurrent: 1

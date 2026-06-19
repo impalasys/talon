@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message Knowledge {
+  ResourceMeta metadata = 1;
+  KnowledgeSpec spec = 2;
+  CommonResourceStatus status = 3;
+}
+
+message KnowledgeSpec {
+  string path = 1;
+  string content = 2;
+}

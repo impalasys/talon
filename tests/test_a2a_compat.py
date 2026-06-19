@@ -6,7 +6,6 @@ import textwrap
 import uuid
 from urllib.parse import urlparse, urlunparse
 
-import grpc
 import httpx
 import pytest
 
@@ -18,8 +17,6 @@ from a2a.client.client import ClientConfig
 from a2a.client.client_factory import ClientFactory
 from a2a.types import Message, Role, TextPart, TransportProtocol
 import conftest
-from proto.gateway_pb2 import CreateNamespaceRequest
-from proto.gateway_pb2_grpc import GatewayServiceStub
 
 
 def card_resolver(client: httpx.AsyncClient, agent_card_url: str) -> A2ACardResolver:
@@ -103,13 +100,6 @@ def write_manifest(tmp_path, name, content):
 
 
 def create_a2a_fixture(namespace: str, agent_name: str, tmp_path):
-    channel = grpc.insecure_channel("127.0.0.1:50052")
-    try:
-        stub = GatewayServiceStub(channel)
-        stub.CreateNamespace(CreateNamespaceRequest(name=namespace, recursive=True))
-    finally:
-        channel.close()
-
     agent_path = write_manifest(
         tmp_path,
         "agent.yaml",
@@ -119,8 +109,7 @@ def create_a2a_fixture(namespace: str, agent_name: str, tmp_path):
         metadata:
           name: {agent_name}
           namespace: {namespace}
-        definition:
-          customSpec:
+        spec:
             modelPolicy:
               profiles:
                 - name: default

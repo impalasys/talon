@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message SessionSpec {
+  string agent = 1;
+  map<string, string> labels = 2;
+}
+
+message Session {
+  ResourceMeta metadata = 1;
+  SessionSpec spec = 2;
+  SessionStatus status = 3;
+}
+
+message SessionStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  int64 created_at = 4;
+  int64 last_active = 5;
+  string acp_session_id = 6;
+  // Sandbox resource name in the same namespace as this Session.
+  string sandbox_ref = 7;
+}

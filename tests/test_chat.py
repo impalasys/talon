@@ -13,30 +13,28 @@ import conftest
 import mock_llm
 from proto.gateway_pb2_grpc import GatewayServiceStub
 from proto.gateway_pb2 import (
-    CreateAgentRequest, 
     CreateSessionRequest, 
     SendMessageRequest,
     GetSessionRequest,
     CreateNamespaceRequest,
     StreamSessionPartsRequest,
-    CreateNamespaceKnowledgeRequest,
-    GetNamespaceKnowledgeRequest,
-    ListNamespaceKnowledgeRequest,
-    DeleteNamespaceKnowledgeRequest,
+    CreateResourceRequest,
+    GetResourceRequest,
+    ListResourcesRequest,
+    DeleteResourceRequest,
     GetKnowledgeRequest,
     SearchKnowledgeRequest,
-    CreateScheduleRequest,
-    CreateWorkflowRequest,
     CreateWorkflowRunRequest,
-    GetScheduleRequest,
     GetWorkflowRunRequest,
-    ListSchedulesRequest,
     ListWorkflowRunsRequest,
-    DeleteScheduleRequest,
     StreamWorkflowEventsRequest,
 )
-from proto.manifests_pb2 import AgentDefinition, AgentSpec, Model, Knowledge, ObjectMeta, KnowledgeSpec
-from proto.models_pb2 import Schedule, ScheduleSpec, ScheduleTarget, Workflow, WorkflowSpec, WorkflowStep
+from proto.resources.agents_pb2 import AgentSpec, Model
+from proto.resources.common_pb2 import ResourceMeta
+from proto.resources.knowledge_pb2 import KnowledgeSpec
+from proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
+from proto.resources.schedules_pb2 import ScheduleSpec, ScheduleTarget
+from proto.resources.workflows_pb2 import WorkflowSpec, WorkflowStep
 import threading
 import uuid
 
@@ -46,6 +44,26 @@ PART_TYPE_USAGE = 5
 
 def message_text(message):
     return "".join(part.content for part in message.parts if part.part_type == PART_TYPE_TEXT)
+
+def create_resource(stub, ns, kind, name, spec):
+    return stub.CreateResource(CreateResourceRequest(
+        ns=ns,
+        manifest=ResourceManifest(
+            api_version="talon.impalasys.com/v1",
+            kind=kind,
+            metadata=ResourceMeta(name=name, namespace=ns),
+            spec=spec,
+        ),
+    )).resource
+
+def create_agent_resource(stub, ns, name, spec):
+    return create_resource(
+        stub,
+        ns,
+        "Agent",
+        name,
+        ResourceSpec(agent=spec),
+    )
 
 @pytest.fixture
 def anyio_backend():
@@ -81,13 +99,9 @@ def test_single_turn_chat(gateway_channel, mock_llm_server):
         system_prompt="You are a helpful test assistant."
     )
     
-    agent = stub.CreateAgent(CreateAgentRequest(
-        ns="talon-test",
-        name="test-llm-agent",
-        definition=AgentDefinition(custom_spec=agent_spec),
-    ))
+    agent = create_agent_resource(stub, "talon-test", "test-llm-agent", agent_spec)
     
-    assert agent.agent == "test-llm-agent"
+    assert agent.metadata.name == "test-llm-agent"
     
     # 2. Create Session
     session = stub.CreateSession(CreateSessionRequest(
@@ -161,11 +175,7 @@ def test_streaming_chat(gateway_channel, mock_llm_server):
         system_prompt="Stream me."
     )
     
-    agent = stub.CreateAgent(CreateAgentRequest(
-        ns="talon-stream-test",
-        name="stream-agent",
-        definition=AgentDefinition(custom_spec=agent_spec),
-    ))
+    create_agent_resource(stub, "talon-stream-test", "stream-agent", agent_spec)
     
     session = stub.CreateSession(CreateSessionRequest(
         agent="stream-agent",
@@ -247,34 +257,33 @@ def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
         },
         system_prompt="Knowledge test agent."
     )
-    stub.CreateAgent(CreateAgentRequest(
-        ns=namespace,
-        name=agent_name,
-        definition=AgentDefinition(custom_spec=agent_spec),
-    ))
+    create_agent_resource(stub, namespace, agent_name, agent_spec)
 
-    created = stub.CreateNamespaceKnowledge(CreateNamespaceKnowledgeRequest(
-        ns=namespace,
-        knowledge=Knowledge(
-            metadata=ObjectMeta(name="guide"),
-            spec=KnowledgeSpec(
+    created = create_resource(
+        stub,
+        namespace,
+        "Knowledge",
+        "guide",
+        ResourceSpec(
+            knowledge=KnowledgeSpec(
                 path="guide.md",
-                content="Talon stores runtime facts in guide documents."
-            ),
+                content="Talon stores runtime facts in guide documents.",
+            )
         ),
-    ))
-    assert created.knowledge.metadata.name == "guide"
+    )
+    assert created.metadata.name == "guide"
 
-    fetched = stub.GetNamespaceKnowledge(GetNamespaceKnowledgeRequest(
+    fetched = stub.GetResource(GetResourceRequest(
         ns=namespace,
+        kind="Knowledge",
         name="guide",
     ))
-    assert fetched.knowledge.spec.path == "guide.md"
-    assert "runtime facts" in fetched.knowledge.spec.content
+    assert fetched.resource.spec.knowledge.path == "guide.md"
+    assert "runtime facts" in fetched.resource.spec.knowledge.content
 
-    listed = stub.ListNamespaceKnowledge(ListNamespaceKnowledgeRequest(ns=namespace))
-    assert len(listed.knowledge) == 1
-    assert listed.knowledge[0].metadata.name == "guide"
+    listed = stub.ListResources(ListResourcesRequest(ns=namespace, kind="Knowledge"))
+    assert len(listed.resources) == 1
+    assert listed.resources[0].metadata.name == "guide"
 
     modules = stub.GetKnowledge(GetKnowledgeRequest(
         ns=namespace,
@@ -293,8 +302,9 @@ def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
     assert len(search.results) >= 1
     assert search.results[0].path == "guide.md"
 
-    deleted = stub.DeleteNamespaceKnowledge(DeleteNamespaceKnowledgeRequest(
+    deleted = stub.DeleteResource(DeleteResourceRequest(
         ns=namespace,
+        kind="Knowledge",
         name="guide",
     ))
     assert deleted.success is True
@@ -319,17 +329,15 @@ def test_schedule_crud_round_trip(gateway_channel, mock_llm_server):
         },
         system_prompt="Schedule test agent."
     )
-    stub.CreateAgent(CreateAgentRequest(
-        ns=namespace,
-        name=agent_name,
-        definition=AgentDefinition(custom_spec=agent_spec),
-    ))
+    create_agent_resource(stub, namespace, agent_name, agent_spec)
 
-    created = stub.CreateSchedule(CreateScheduleRequest(
-        ns=namespace,
-        schedule=Schedule(
-            name=schedule_name,
-            spec=ScheduleSpec(
+    created = create_resource(
+        stub,
+        namespace,
+        "Schedule",
+        schedule_name,
+        ResourceSpec(
+            schedule=ScheduleSpec(
                 kind="every",
                 interval_seconds=300,
                 timezone="UTC",
@@ -337,22 +345,21 @@ def test_schedule_crud_round_trip(gateway_channel, mock_llm_server):
                 input_message="Run a periodic check-in",
                 enabled=True,
             ),
-            labels={"team": "ops"},
         ),
-    ))
-    assert created.schedule.name == schedule_name
-    assert created.schedule.ns == namespace
-    assert created.schedule.status.backend_armed is False
+    )
+    assert created.metadata.name == schedule_name
+    assert created.metadata.namespace == namespace
+    assert created.status.schedule.backend_armed is False
 
-    fetched = stub.GetSchedule(GetScheduleRequest(ns=namespace, name=schedule_name))
-    assert fetched.schedule.name == schedule_name
-    assert fetched.schedule.spec.target.agent == agent_name
+    fetched = stub.GetResource(GetResourceRequest(ns=namespace, kind="Schedule", name=schedule_name))
+    assert fetched.resource.metadata.name == schedule_name
+    assert fetched.resource.spec.schedule.target.agent == agent_name
 
-    listed = stub.ListSchedules(ListSchedulesRequest(ns=namespace))
-    assert len(listed.schedules) == 1
-    assert listed.schedules[0].name == schedule_name
+    listed = stub.ListResources(ListResourcesRequest(ns=namespace, kind="Schedule"))
+    assert len(listed.resources) == 1
+    assert listed.resources[0].metadata.name == schedule_name
 
-    deleted = stub.DeleteSchedule(DeleteScheduleRequest(ns=namespace, name=schedule_name))
+    deleted = stub.DeleteResource(DeleteResourceRequest(ns=namespace, kind="Schedule", name=schedule_name))
     assert deleted.success is True
 
 def test_workflow_transform_run_completes_through_worker(gateway_channel, mock_llm_server):
@@ -363,11 +370,13 @@ def test_workflow_transform_run_completes_through_worker(gateway_channel, mock_l
 
     stub.CreateNamespace(CreateNamespaceRequest(name=namespace, recursive=True))
 
-    created = stub.CreateWorkflow(CreateWorkflowRequest(
-        ns=namespace,
-        workflow=Workflow(
-            name=workflow_name,
-            spec=WorkflowSpec(
+    created = create_resource(
+        stub,
+        namespace,
+        "Workflow",
+        workflow_name,
+        ResourceSpec(
+            workflow=WorkflowSpec(
                 description="E2E transform workflow",
                 input_schema_json=json.dumps({
                     "type": "object",
@@ -397,10 +406,9 @@ def test_workflow_transform_run_completes_through_worker(gateway_channel, mock_l
                     "score": "${$.steps.summarize.output.score}",
                 }),
             ),
-            labels={"suite": "e2e"},
         ),
-    ))
-    assert created.workflow.name == workflow_name
+    )
+    assert created.metadata.name == workflow_name
 
     run = stub.CreateWorkflowRun(CreateWorkflowRunRequest(
         ns=namespace,

@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message SandboxClassSpec {
+  string provider = 1;
+  // Internal canonical JSON for provider-specific settings. User-facing YAML
+  // uses `providerConfig: {...}` and the manifest parser normalizes it here.
+  string provider_config_json = 2;
+  // Internal canonical JSON for provider credentials. User-facing YAML uses
+  // `credentials: {...}` and the manifest parser normalizes it here.
+  string credentials_json = 3;
+}
+
+message SandboxClass {
+  ResourceMeta metadata = 1;
+  SandboxClassSpec spec = 2;
+  CommonResourceStatus status = 3;
+}
+
+message SandboxWorkspaceSpec {
+  string mode = 1;
+  // Absolute workspace path inside the sandbox. The manifest parser rejects
+  // root/system mount points such as /, /etc, /usr, /proc, and /sys.
+  string mount_path = 2;
+}
+
+message SandboxSetupSpec {
+  repeated string packages = 1;
+  repeated string commands = 2;
+}
+
+message SandboxNetworkSpec {
+  string mode = 1;
+}
+
+message SandboxFilesystemSpec {
+  repeated string writable = 1;
+  repeated string readonly = 2;
+}
+
+message SandboxLeasePolicySpec {
+  string mode = 1;
+}
+
+message SandboxRuntimeTemplateSpec {
+  string image = 1;
+  SandboxWorkspaceSpec workspace = 2;
+  SandboxSetupSpec setup = 3;
+  SandboxNetworkSpec network = 4;
+  SandboxFilesystemSpec filesystem = 5;
+  SandboxLeasePolicySpec lease_policy = 6;
+}
+
+message SandboxPolicySpec {
+  ResourceRef class_ref = 1;
+  SandboxRuntimeTemplateSpec template = 2;
+  uint32 max_concurrent = 3;
+}
+
+message SandboxPolicy {
+  ResourceMeta metadata = 1;
+  SandboxPolicySpec spec = 2;
+  CommonResourceStatus status = 3;
+}
+
+message SandboxLease {
+  string owner_kind = 1;
+  string owner_agent = 2;
+  string owner_session_id = 3;
+  string token = 4;
+  // Unix timestamp in microseconds.
+  int64 acquired_at = 5;
+  // Unix timestamp in microseconds.
+  int64 expires_at = 6;
+  // Unix timestamp in microseconds.
+  int64 heartbeat_at = 7;
+}
+
+message SandboxProcessStatus {
+  string id = 1;
+  string command = 2;
+  repeated string args = 3;
+  string protocol = 4;
+  string phase = 5;
+}
+
+message SandboxStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  string backend_id = 4;
+  SandboxLease lease = 5;
+  repeated SandboxProcessStatus processes = 6;
+}
+
+message SandboxSpec {
+  // SandboxPolicy name resolved in the sandbox namespace.
+  string policy_ref = 1;
+  ResourceRef class_ref = 2;
+  SandboxRuntimeTemplateSpec runtime_template = 3;
+}
+
+message Sandbox {
+  ResourceMeta metadata = 1;
+  SandboxSpec spec = 2;
+  SandboxStatus status = 3;
+}
