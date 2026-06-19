@@ -93,7 +93,7 @@ type GatewayServiceClient interface {
 	GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
 	DeleteNamespace(ctx context.Context, in *DeleteNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
-	// Generic v2 resources
+	// Generic resources
 	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*ResourceResponse, error)
 	GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*ResourceResponse, error)
 	ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error)
@@ -502,7 +502,7 @@ type GatewayServiceServer interface {
 	GetNamespace(context.Context, *GetNamespaceRequest) (*NamespaceResponse, error)
 	DeleteNamespace(context.Context, *DeleteNamespaceRequest) (*NamespaceResponse, error)
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
-	// Generic v2 resources
+	// Generic resources
 	CreateResource(context.Context, *CreateResourceRequest) (*ResourceResponse, error)
 	GetResource(context.Context, *GetResourceRequest) (*ResourceResponse, error)
 	ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error)

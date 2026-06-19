@@ -279,7 +279,7 @@ export const GatewayService = {
       kind: MethodKind.Unary,
     },
     /**
-     * Generic v2 resources
+     * Generic resources
      *
      * @generated from rpc talon.gateway.GatewayService.CreateResource
      */

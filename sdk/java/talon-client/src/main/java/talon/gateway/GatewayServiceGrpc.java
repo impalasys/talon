@@ -1283,7 +1283,7 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Generic v2 resources
+     * Generic resources
      * </pre>
      */
     default void createResource(talon.gateway.Gateway.CreateResourceRequest request,
@@ -1584,7 +1584,7 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Generic v2 resources
+     * Generic resources
      * </pre>
      */
     public void createResource(talon.gateway.Gateway.CreateResourceRequest request,
@@ -1858,7 +1858,7 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Generic v2 resources
+     * Generic resources
      * </pre>
      */
     public talon.gateway.Gateway.ResourceResponse createResource(talon.gateway.Gateway.CreateResourceRequest request) throws io.grpc.StatusException {
@@ -2124,7 +2124,7 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Generic v2 resources
+     * Generic resources
      * </pre>
      */
     public talon.gateway.Gateway.ResourceResponse createResource(talon.gateway.Gateway.CreateResourceRequest request) {
@@ -2382,7 +2382,7 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
-     * Generic v2 resources
+     * Generic resources
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ResourceResponse> createResource(

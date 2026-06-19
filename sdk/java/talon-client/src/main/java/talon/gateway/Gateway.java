@@ -48310,16 +48310,16 @@ java.lang.String defaultValue) {
       "esResponse\"\026\202\323\344\223\002\020\022\016/v1/namespaces\022y\n\016Cr" +
       "eateResource\022$.talon.gateway.CreateResou" +
       "rceRequest\032\037.talon.gateway.ResourceRespo" +
-      "nse\" \202\323\344\223\002\032\"\025/v2/ns/{ns}/resources:\001*\022~\n" +
+      "nse\" \202\323\344\223\002\032\"\025/v1/ns/{ns}/resources:\001*\022~\n" +
       "\013GetResource\022!.talon.gateway.GetResource" +
       "Request\032\037.talon.gateway.ResourceResponse" +
-      "\"+\202\323\344\223\002%\022#/v2/ns/{ns}/resources/{kind}/{" +
+      "\"+\202\323\344\223\002%\022#/v1/ns/{ns}/resources/{kind}/{" +
       "name}\022y\n\rListResources\022#.talon.gateway.L" +
       "istResourcesRequest\032$.talon.gateway.List" +
-      "ResourcesResponse\"\035\202\323\344\223\002\027\022\025/v2/ns/{ns}/r" +
+      "ResourcesResponse\"\035\202\323\344\223\002\027\022\025/v1/ns/{ns}/r" +
       "esources\022\212\001\n\016DeleteResource\022$.talon.gate" +
       "way.DeleteResourceRequest\032%.talon.gatewa" +
-      "y.DeleteResourceResponse\"+\202\323\344\223\002%*#/v2/ns" +
+      "y.DeleteResourceResponse\"+\202\323\344\223\002%*#/v1/ns" +
       "/{ns}/resources/{kind}/{name}b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor

@@ -376,7 +376,7 @@ class GatewayServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def CreateResource(self, request, context):
-        """Generic v2 resources
+        """Generic resources
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')

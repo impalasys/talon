@@ -3619,10 +3619,10 @@ const file_proto_gateway_proto_rawDesc = "" +
 	"\fGetNamespace\x12\".talon.gateway.GetNamespaceRequest\x1a .talon.gateway.NamespaceResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/v1/namespaces/{name}\x12y\n" +
 	"\x0fDeleteNamespace\x12%.talon.gateway.DeleteNamespaceRequest\x1a .talon.gateway.NamespaceResponse\"\x1d\x82\xd3\xe4\x93\x02\x17*\x15/v1/namespaces/{name}\x12u\n" +
 	"\x0eListNamespaces\x12$.talon.gateway.ListNamespacesRequest\x1a%.talon.gateway.ListNamespacesResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/namespaces\x12y\n" +
-	"\x0eCreateResource\x12$.talon.gateway.CreateResourceRequest\x1a\x1f.talon.gateway.ResourceResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v2/ns/{ns}/resources\x12~\n" +
-	"\vGetResource\x12!.talon.gateway.GetResourceRequest\x1a\x1f.talon.gateway.ResourceResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v2/ns/{ns}/resources/{kind}/{name}\x12y\n" +
-	"\rListResources\x12#.talon.gateway.ListResourcesRequest\x1a$.talon.gateway.ListResourcesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/v2/ns/{ns}/resources\x12\x8a\x01\n" +
-	"\x0eDeleteResource\x12$.talon.gateway.DeleteResourceRequest\x1a%.talon.gateway.DeleteResourceResponse\"+\x82\xd3\xe4\x93\x02%*#/v2/ns/{ns}/resources/{kind}/{name}b\x06proto3"
+	"\x0eCreateResource\x12$.talon.gateway.CreateResourceRequest\x1a\x1f.talon.gateway.ResourceResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/ns/{ns}/resources\x12~\n" +
+	"\vGetResource\x12!.talon.gateway.GetResourceRequest\x1a\x1f.talon.gateway.ResourceResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/ns/{ns}/resources/{kind}/{name}\x12y\n" +
+	"\rListResources\x12#.talon.gateway.ListResourcesRequest\x1a$.talon.gateway.ListResourcesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/v1/ns/{ns}/resources\x12\x8a\x01\n" +
+	"\x0eDeleteResource\x12$.talon.gateway.DeleteResourceRequest\x1a%.talon.gateway.DeleteResourceResponse\"+\x82\xd3\xe4\x93\x02%*#/v1/ns/{ns}/resources/{kind}/{name}b\x06proto3"
 
 var (
 	file_proto_gateway_proto_rawDescOnce sync.Once

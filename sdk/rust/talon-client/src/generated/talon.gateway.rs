@@ -1357,7 +1357,7 @@ pub mod gateway_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        /// Generic v2 resources
+        /// Generic resources
         pub async fn create_resource(
             &mut self,
             request: impl tonic::IntoRequest<super::CreateResourceRequest>,
