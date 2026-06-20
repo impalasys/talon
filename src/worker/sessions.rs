@@ -627,6 +627,9 @@ impl WorkerEventHandler {
             .as_ref()
             .map(|(status, _)| *status)
             .unwrap_or(SessionCompletionStatus::Errored);
+        if let Err(err) = &outcome {
+            sink.on_error(&format!("Error: {:#}", err)).await;
+        }
 
         // Release the user-visible session lock after the worker has either
         // completed, failed, or panicked.
@@ -1385,6 +1388,132 @@ mod tests {
         assert!(error_part
             .content
             .contains("OpenAI provider config is missing api_key"));
+    }
+
+    #[tokio::test]
+    async fn handle_session_message_persists_setup_error_from_bad_journal() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv(kv.clone());
+        put_agent_resource(
+            kv.clone(),
+            "conic:test",
+            "assistant",
+            manifests::AgentSpec {
+                features: Vec::new(),
+                model_policy: None,
+                system_prompt: "assist".to_string(),
+                mcp_server_refs: Vec::new(),
+                capabilities: HashMap::new(),
+                a2a: None,
+                runtime: None,
+            },
+        )
+        .await;
+        kv.set_msg(
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "assistant".to_string(),
+                ns: "conic:test".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 0,
+                last_active: 123,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "user-1",
+            ),
+            &data_proto::SessionMessage {
+                id: "user-1".to_string(),
+                role: data_proto::MessageRole::RoleUser as i32,
+                created_at: 1,
+                labels: HashMap::new(),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: "000000".to_string(),
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
+                    content: "operator prompt".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 1,
+                    object: None,
+                }],
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session_journal_entry(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "user-1",
+                "000001",
+            ),
+            &data_proto::SessionJournalEntry {
+                submission_id: "user-1".to_string(),
+                journal_entry_id: "000001".to_string(),
+                attempt_id: "prior-attempt".to_string(),
+                phase: data_proto::SessionExecutionPhase::LlmResponse as i32,
+                payload: None,
+                created_at: 1,
+                updated_at: 1,
+                committed_at: None,
+                committed_message_id: None,
+            },
+        )
+        .await
+        .unwrap();
+
+        let result = handler
+            .handle_session_message(SessionMessageEvent {
+                ns: "conic:test".to_string(),
+                agent: "assistant".to_string(),
+                session_id: "session-1".to_string(),
+                message_id: "user-1".to_string(),
+                submission_id: "user-1".to_string(),
+                direction: MessageDirection::Inbound as i32,
+                message: "operator prompt".to_string(),
+                timestamp: 123,
+            })
+            .await;
+        assert!(result.is_err());
+
+        let session = kv
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(session.status, "ERROR");
+        let error_message = kv
+            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "user-1-assistant",
+            ))
+            .await
+            .unwrap()
+            .expect("assistant error should be persisted");
+        let error_part = error_message
+            .parts
+            .iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Error as i32)
+            .expect("error part should exist");
+        assert!(error_part
+            .content
+            .contains("LLM_RESPONSE entry is missing payload"));
     }
 
     #[tokio::test]
