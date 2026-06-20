@@ -1330,7 +1330,10 @@ mod tests {
         .unwrap();
 
         let dispatches = pubsub.messages.lock().await.clone();
-        let dispatch = events::SessionMessageEvent::decode(dispatches[0].as_slice()).unwrap();
+        let dispatch = dispatches
+            .iter()
+            .find_map(|message| events::SessionMessageEvent::decode(message.as_slice()).ok())
+            .expect("session dispatch event should be published");
         assert_eq!(dispatch.submission_id, dispatch.message_id);
         let submission = cp
             .kv
