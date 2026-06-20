@@ -77,14 +77,24 @@ impl IndexController {
                     .as_ref()
                     .map(|metadata| metadata.generation)
                     .unwrap_or_default();
-                if target.source_generation > 0 && current_generation > target.source_generation {
-                    tracing::debug!(
-                        resource_key = target.resource_key,
-                        event_generation = target.source_generation,
-                        current_generation,
-                        "skipping stale resource index event"
-                    );
-                    return Ok(Vec::new());
+                if target.source_generation > 0 {
+                    if current_generation > target.source_generation {
+                        tracing::debug!(
+                            resource_key = target.resource_key,
+                            event_generation = target.source_generation,
+                            current_generation,
+                            "skipping stale resource index event"
+                        );
+                        return Ok(Vec::new());
+                    }
+                    if current_generation < target.source_generation {
+                        anyhow::bail!(
+                            "resource {} generation {} is behind index event generation {}",
+                            target.resource_key,
+                            current_generation,
+                            target.source_generation
+                        );
+                    }
                 }
                 mapper::map_control_plane_resource(&key, &resource, now)
             }
@@ -439,5 +449,48 @@ mod tests {
             .await
             .unwrap()
             .is_some());
+    }
+
+    #[tokio::test]
+    async fn index_controller_retries_resource_events_ahead_of_canonical_generation() {
+        let kv = Arc::new(MockKvStore::default());
+        let documents = search::memory_document_store();
+        let cp = control_plane(kv.clone(), documents.clone());
+        let store = ResourceStore::new(kv.clone(), cp.pubsub.clone());
+        let resource = store
+            .upsert(
+                "acme",
+                crate::control::resource_model::agent_resource(
+                    "acme",
+                    "support",
+                    crate::gateway::rpc::resources_proto::AgentSpec::default(),
+                    Default::default(),
+                ),
+            )
+            .await
+            .unwrap();
+        let current_generation = resource.metadata.as_ref().unwrap().generation;
+        let key = keys::ResourceKey::new("acme", &[], "Agent", "support");
+        let document_id = search::document_id(&key.canonical(), search::DOCUMENT_KIND_METADATA, "");
+
+        let error = IndexController::new(cp)
+            .handle_event(IndexEvent {
+                target: Some(index_event::Target::Resource(IndexResourceTarget {
+                    resource_key: key.canonical(),
+                    source_generation: current_generation + 1,
+                })),
+                ..Default::default()
+            })
+            .await
+            .expect_err("future generation should retry instead of indexing stale state");
+
+        assert!(error
+            .to_string()
+            .contains("is behind index event generation"));
+        assert!(documents
+            .get_document("acme", &document_id)
+            .await
+            .unwrap()
+            .is_none());
     }
 }

@@ -801,6 +801,58 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn document_store_search_prefers_child_namespace_for_shadowed_paths() {
+        let kv = Arc::new(MockKvStore::new());
+        let documents = memory_document_store();
+        documents
+            .upsert_documents(&[
+                Document {
+                    id: "@Namespace/conic/@/Knowledge/docs:content".to_string(),
+                    namespace: "conic".to_string(),
+                    resource_kind: KIND_KNOWLEDGE.to_string(),
+                    resource_key: "@Namespace/conic/@/Knowledge/docs".to_string(),
+                    document_kind: DOCUMENT_KIND_CONTENT.to_string(),
+                    title: "docs.md".to_string(),
+                    text: "shared document store result".to_string(),
+                    snippet: "root result".to_string(),
+                    metadata_json: r#"{"path":"docs.md"}"#.to_string(),
+                    updated_at: 42,
+                    ..Default::default()
+                },
+                Document {
+                    id: "@Namespace/conic:wks:13/@/Knowledge/docs:content".to_string(),
+                    namespace: "conic:wks:13".to_string(),
+                    resource_kind: KIND_KNOWLEDGE.to_string(),
+                    resource_key: "@Namespace/conic:wks:13/@/Knowledge/docs".to_string(),
+                    document_kind: DOCUMENT_KIND_CONTENT.to_string(),
+                    title: "docs.md".to_string(),
+                    text: "shared document store result".to_string(),
+                    snippet: "child result".to_string(),
+                    metadata_json: r#"{"path":"docs.md"}"#.to_string(),
+                    updated_at: 41,
+                    ..Default::default()
+                },
+            ])
+            .await
+            .unwrap();
+        let book = KvKnowledgeBook::with_documents(
+            kv,
+            Arc::new(crate::test_support::EmptyPubSub),
+            documents,
+        );
+
+        let results = book
+            .search("conic:wks:13", "document-store", 5)
+            .await
+            .unwrap();
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].namespace, "conic:wks:13");
+        assert_eq!(results[0].path, "docs.md");
+        assert_eq!(results[0].excerpt, "child result");
+    }
+
+    #[tokio::test]
     async fn get_inherits_from_ancestor_namespace() {
         let kv = Arc::new(MockKvStore::new());
         let book = KvKnowledgeBook::new(kv.clone());

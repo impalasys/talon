@@ -273,11 +273,11 @@ pub fn document_id(resource_key: &str, document_kind: &str, subdocument_id: &str
 }
 
 pub fn snippet(text: &str) -> String {
-    let trimmed = text.trim();
-    if trimmed.chars().count() <= 240 {
-        return trimmed.to_string();
+    let normalized = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    if normalized.chars().count() <= 240 {
+        return normalized;
     }
-    let mut out = trimmed.chars().take(237).collect::<String>();
+    let mut out = normalized.chars().take(237).collect::<String>();
     out.push_str("...");
     out
 }
@@ -428,6 +428,19 @@ mod tests {
             query_terms("can't foo/bar a@example.com"),
             vec!["can", "t", "foo", "bar", "a", "example", "com"]
         );
+    }
+
+    #[test]
+    fn snippet_normalizes_whitespace_before_truncating() {
+        assert_eq!(
+            snippet("  refund\n\tpolicy   details  "),
+            "refund policy details"
+        );
+        let long = format!("{}\n{}", "a".repeat(200), "b".repeat(100));
+        let result = snippet(&long);
+        assert_eq!(result.chars().count(), 240);
+        assert!(result.ends_with("..."));
+        assert!(!result.contains('\n'));
     }
 
     #[tokio::test]

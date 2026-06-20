@@ -163,41 +163,49 @@ export function WorkspaceCommandPalette({
     [onSelect, selectedNamespace],
   );
 
-  const runSearch = useCallback(async () => {
+  useEffect(() => {
+    if (!open) return;
+
     const ns = selectedNamespace?.ns || 'default';
     const trimmedQuery = query.trim();
     if (!isConnected || !trimmedQuery) {
       setResults([]);
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await getGatewayClient().searches.search({
-        ns,
-        query: trimmedQuery,
-        resourceKinds: resourceKind ? [resourceKind] : [],
-        limit: 12,
-        mode: SearchMode.KEYWORD,
-        sort: SearchSort.RELEVANCE,
-      });
-      setResults(response.results);
-    } catch (err: any) {
-      setError(err?.message || 'Search failed');
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [isConnected, query, resourceKind, selectedNamespace?.ns]);
-
-  useEffect(() => {
-    if (!open) return;
-    const handle = window.setTimeout(() => {
-      void runSearch();
+    let active = true;
+    const handle = window.setTimeout(async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await getGatewayClient().searches.search({
+          ns,
+          query: trimmedQuery,
+          resourceKinds: resourceKind ? [resourceKind] : [],
+          limit: 12,
+          mode: SearchMode.KEYWORD,
+          sort: SearchSort.RELEVANCE,
+        });
+        if (active) {
+          setResults(response.results);
+        }
+      } catch (err: any) {
+        if (active) {
+          setError(err?.message || 'Search failed');
+          setResults([]);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
     }, 180);
-    return () => window.clearTimeout(handle);
-  }, [open, runSearch]);
+    return () => {
+      active = false;
+      window.clearTimeout(handle);
+    };
+  }, [open, isConnected, query, resourceKind, selectedNamespace?.ns]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -246,7 +254,6 @@ export function WorkspaceCommandPalette({
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === 'Escape') setOpen(false);
-                  if (event.key === 'Enter') void runSearch();
                 }}
                 placeholder="Search workspace"
                 className="h-10 flex-1 border-0 bg-transparent px-0 py-0 text-base text-foreground shadow-none ring-0 placeholder:text-muted-foreground focus:border-0 focus:ring-0"
