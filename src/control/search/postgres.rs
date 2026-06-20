@@ -323,11 +323,11 @@ fn push_query_filters<'a>(builder: &mut QueryBuilder<'a, Postgres>, query: &'a S
         builder.push(" AND d.created_at <= ").push_bind(end);
     }
     for (key, value) in &query.labels {
+        let filter_json = serde_json::json!({ key: value }).to_string();
         builder
-            .push(" AND d.labels_json ->> ")
-            .push_bind(key)
-            .push(" = ")
-            .push_bind(value);
+            .push(" AND d.labels_json @> ")
+            .push_bind(filter_json)
+            .push("::jsonb");
     }
 }
 

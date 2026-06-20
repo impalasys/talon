@@ -245,6 +245,14 @@ impl KvKnowledgeBook {
         })
     }
 
+    pub(crate) fn resource_name_for_path(path: &str) -> String {
+        let normalized = path.trim_matches('/');
+        if normalized.is_empty() {
+            return "untitled.md".to_string();
+        }
+        urlencoding::encode(normalized).into_owned()
+    }
+
     async fn find_entry(&self, ns: &str, path: &str) -> Result<Option<KnowledgeEntry>> {
         let key = crate::control::keys::knowledge(ns, path);
         if let Some(bytes) = self.kv.get(&key).await? {
@@ -413,7 +421,7 @@ impl KnowledgeBook for KvKnowledgeBook {
                         resources_proto::Resource {
                             kind: KIND_KNOWLEDGE.to_string(),
                             metadata: Some(resources_proto::ResourceMeta {
-                                name: path.to_string(),
+                                name: Self::resource_name_for_path(path),
                                 namespace: ns.to_string(),
                                 ..Default::default()
                             }),
@@ -798,6 +806,17 @@ mod tests {
         assert_eq!(results[0].path, "docs.md");
         assert_eq!(results[0].excerpt, "Document-store knowledge result");
         assert_eq!(results[0].updated_at, 42);
+    }
+
+    #[test]
+    fn knowledge_resource_names_are_stable_and_path_safe() {
+        let name = KvKnowledgeBook::resource_name_for_path("/docs/hello world.md");
+
+        assert_eq!(name, "docs%2Fhello%20world.md");
+        assert!(!name.contains('/'));
+        let key = crate::control::keys::ResourceKey::new("conic", &[], KIND_KNOWLEDGE, &name);
+        let parsed = crate::control::keys::ResourceKey::parse_canonical(&key.canonical()).unwrap();
+        assert_eq!(parsed.name, name);
     }
 
     #[tokio::test]
