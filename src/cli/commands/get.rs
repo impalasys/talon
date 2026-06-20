@@ -296,8 +296,41 @@ fn rest_get_path(
                 "workflow",
             ))
         }
+        "deployment"
+        | "deployments"
+        | "deploymentreplica"
+        | "deploymentreplicas"
+        | "deployment-replica"
+        | "deployment-replicas"
+        | "sandboxclass"
+        | "sandboxclasses"
+        | "sandbox-class"
+        | "sandbox-classes"
+        | "sandboxpolicy"
+        | "sandboxpolicies"
+        | "sandbox-policy"
+        | "sandbox-policies"
+        | "sandbox"
+        | "sandboxes" => rest_get_resource_path(kind, name, namespace),
         other => anyhow::bail!("Unsupported resource kind '{}' for REST mode", other),
     }
+}
+
+fn rest_get_resource_path(
+    kind: &str,
+    name: &str,
+    namespace: Option<&String>,
+) -> Result<(String, &'static str)> {
+    let (ns, kind, name) = resource_lookup_target(kind, name, namespace)?;
+    Ok((
+        format!(
+            "/v1/ns/{}/resources/{}/{}",
+            urlencoding::encode(&ns),
+            urlencoding::encode(&kind),
+            urlencoding::encode(&name)
+        ),
+        "resource",
+    ))
 }
 
 fn grpc_get_target(
@@ -944,6 +977,25 @@ mod tests {
             ResourceListTarget::Namespaces {
                 parent: Some("customers:acme".to_string()),
             }
+        );
+    }
+
+    #[test]
+    fn rest_get_path_supports_generic_resource_kinds() {
+        let namespace = "customers:acme".to_string();
+        assert_eq!(
+            rest_get_path("deployment", "conic-cmo", Some(&namespace)).unwrap(),
+            (
+                "/v1/ns/customers%3Aacme/resources/Deployment/conic-cmo".to_string(),
+                "resource"
+            )
+        );
+        assert_eq!(
+            rest_get_path("sandbox-class", "docker-codex", Some(&namespace)).unwrap(),
+            (
+                "/v1/ns/customers%3Aacme/resources/SandboxClass/docker-codex".to_string(),
+                "resource"
+            )
         );
     }
 
