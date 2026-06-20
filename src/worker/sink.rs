@@ -964,8 +964,13 @@ impl ExecutionSink for PubSubSessionSink {
                     {
                         tracing::error!(error = %err, "Failed to persist committed projection");
                     }
+                    self.publish_event(AgentEvent::Done(reply_for_event)).await;
+                } else {
+                    self.publish_event(AgentEvent::Error(
+                        "Error: failed to mark session submission terminal".to_string(),
+                    ))
+                    .await;
                 }
-                self.publish_event(AgentEvent::Done(reply_for_event)).await;
             }
             Err(e) => {
                 tracing::error!("Failed to persist final message: {}", e);
@@ -1560,6 +1565,17 @@ mod tests {
     async fn done_and_error_persist_and_publish_expected_events() {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        crate::control::ProtoKeyValueStoreExt::set_msg(
+            kv.as_ref(),
+            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &submission,
+        )
+        .await
+        .unwrap();
         let sink = PubSubSessionSink::new_with_token_publish_interval(
             kv.clone(),
             Arc::new(MockPubSub {
@@ -1625,6 +1641,37 @@ mod tests {
             reply_part_contents,
             vec!["partial ", "tool failed", "final reply"]
         );
+    }
+
+    #[tokio::test]
+    async fn done_publishes_error_when_terminal_mark_fails() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv,
+            Arc::new(MockPubSub {
+                events: events.clone(),
+            }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "missing-submission",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        sink.on_done("final reply").await;
+
+        let events = events.lock().await.clone();
+        assert!(events.iter().any(
+            |event| event.kind == SessionMessagePartEventKind::Error as i32
+                && event_part(event).content == "Error: failed to mark session submission terminal"
+        ));
+        assert!(!events
+            .iter()
+            .any(|event| event.kind == SessionMessagePartEventKind::Done as i32));
     }
 
     #[tokio::test]

@@ -652,7 +652,7 @@ impl WorkerEventHandler {
             .await
             {
                 Ok(Some(_)) => {
-                    let _ = sessions::mark_terminal(
+                    if let Err(err) = sessions::mark_terminal(
                         self.cp.kv.as_ref(),
                         ns,
                         &event.agent,
@@ -663,7 +663,16 @@ impl WorkerEventHandler {
                         &sink.reply_msg_id,
                         chrono::Utc::now().timestamp_micros(),
                     )
-                    .await;
+                    .await
+                    {
+                        tracing::error!(
+                            error = %err,
+                            agent = %event.agent,
+                            session = %event.session_id,
+                            submission = %submission.submission_id,
+                            "Failed to mark session submission terminal after execution failure"
+                        );
+                    }
                 }
                 Ok(None) => {
                     tracing::warn!(
