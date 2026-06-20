@@ -4,6 +4,7 @@ import shutil
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 
@@ -74,6 +75,31 @@ def check_cors_preflight():
             raise RuntimeError(f"CORS response did not expose {header!r}: {expose_headers!r}")
 
 
+def wait_for_agent_resource(namespace, agent):
+    deadline = time.time() + 120
+    path = (
+        f"/v1/ns/{urllib.parse.quote(namespace, safe='')}/resources"
+        f"?kind={urllib.parse.quote('Agent', safe='')}"
+    )
+    last_error = None
+    while time.time() < deadline:
+        try:
+            status, _, body = request("GET", path)
+            if status == 200:
+                resources = json.loads(body).get("resources", [])
+                for resource in resources:
+                    metadata = resource.get("metadata") or {}
+                    if metadata.get("name") == agent:
+                        return
+                last_error = f"Agent {agent!r} not found in {len(resources)} resource(s)"
+            else:
+                last_error = f"HTTP {status}: {body}"
+        except (OSError, urllib.error.URLError, ValueError) as err:
+            last_error = str(err)
+        time.sleep(2)
+    raise RuntimeError(f"Timed out waiting for Agent {namespace}/{agent}: {last_error}")
+
+
 def main():
     wait_for_health()
     check_cors_preflight()
@@ -97,6 +123,7 @@ def main():
         },
         timeout=180,
     )
+    wait_for_agent_resource(namespace, agent)
     session_id = e2e.session_create(cli, namespace, agent)
     e2e.session_send(
         cli,
