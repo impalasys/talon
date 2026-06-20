@@ -266,6 +266,9 @@ pub fn resource_spec_status_from_json(
         "Agent" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Agent(agent_spec_from_value(spec_value)?)),
         },
+        "Schedule" => resources_proto::ResourceSpec {
+            kind: Some(SpecKind::Schedule(schedule_spec_from_value(spec_value)?)),
+        },
         "Template" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Template(template_spec_from_value(spec_value)?)),
         },
@@ -362,6 +365,7 @@ fn resource_spec_status_to_yaml_values(
 
     let spec_json = match resource.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
         Some(SpecKind::Agent(spec)) => serde_json::to_string(&AgentSpecManifest::from_proto(spec))?,
+        Some(SpecKind::Schedule(spec)) => serde_json::to_string(&schedule_spec_to_json(spec))?,
         Some(SpecKind::Template(spec)) => serde_json::to_string(&serde_json::json!({
             "kind": spec.kind,
             "metadata": spec.metadata.as_ref().map(ObjectMetaManifest::from_resource_meta),
@@ -680,7 +684,10 @@ fn sandbox_policy_spec_from_value(
             .pointer("/quota/maxConcurrent")
             .or_else(|| value.get("maxConcurrent"))
             .and_then(|value| value.as_u64())
-            .unwrap_or(0) as u32,
+            .map(u32::try_from)
+            .transpose()
+            .map_err(|_| anyhow!("sandbox policy maxConcurrent exceeds u32 range"))?
+            .unwrap_or(0),
     })
 }
 
@@ -833,6 +840,87 @@ fn sandbox_spec_from_value(value: serde_json::Value) -> Result<resources_proto::
     })
 }
 
+fn schedule_spec_from_value(value: serde_json::Value) -> Result<resources_proto::ScheduleSpec> {
+    Ok(resources_proto::ScheduleSpec {
+        kind: value
+            .get("kind")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        cron: value
+            .get("cron")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        interval_seconds: value
+            .get("intervalSeconds")
+            .and_then(|value| value.as_u64())
+            .map(u32::try_from)
+            .transpose()
+            .map_err(|_| anyhow!("schedule spec intervalSeconds exceeds u32 range"))?
+            .unwrap_or(0),
+        run_at: value
+            .get("runAt")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        timezone: value
+            .get("timezone")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        target: value
+            .get("target")
+            .map(schedule_target_from_value)
+            .transpose()?,
+        input_message: value
+            .get("inputMessage")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        enabled: value
+            .get("enabled")
+            .and_then(|value| value.as_bool())
+            .unwrap_or(false),
+        input_json: value
+            .get("inputJson")
+            .map(|value| {
+                value
+                    .as_str()
+                    .map(str::to_string)
+                    .unwrap_or_else(|| value.to_string())
+            })
+            .unwrap_or_default(),
+    })
+}
+
+fn schedule_target_from_value(
+    value: &serde_json::Value,
+) -> Result<resources_proto::ScheduleTarget> {
+    Ok(resources_proto::ScheduleTarget {
+        agent: value
+            .get("agent")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        session_mode: value
+            .get("sessionMode")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        session_id: value
+            .get("sessionId")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        workflow: value
+            .get("workflow")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+    })
+}
+
 fn deployment_status_from_value(
     value: serde_json::Value,
 ) -> Result<resources_proto::DeploymentStatus> {
@@ -970,6 +1058,81 @@ fn schedule_status_to_json(status: &resources_proto::ScheduleStatus) -> serde_js
         json.insert(
             "recentEvents".to_string(),
             serde_json::to_value(&status.recent_events).unwrap_or_default(),
+        );
+    }
+    serde_json::Value::Object(json)
+}
+
+fn schedule_spec_to_json(spec: &resources_proto::ScheduleSpec) -> serde_json::Value {
+    let mut json = serde_json::Map::new();
+    json.insert(
+        "kind".to_string(),
+        serde_json::Value::String(spec.kind.clone()),
+    );
+    if !spec.cron.is_empty() {
+        json.insert(
+            "cron".to_string(),
+            serde_json::Value::String(spec.cron.clone()),
+        );
+    }
+    if spec.interval_seconds != 0 {
+        json.insert(
+            "intervalSeconds".to_string(),
+            serde_json::Value::Number(spec.interval_seconds.into()),
+        );
+    }
+    if !spec.run_at.is_empty() {
+        json.insert(
+            "runAt".to_string(),
+            serde_json::Value::String(spec.run_at.clone()),
+        );
+    }
+    if !spec.timezone.is_empty() {
+        json.insert(
+            "timezone".to_string(),
+            serde_json::Value::String(spec.timezone.clone()),
+        );
+    }
+    if let Some(target) = &spec.target {
+        let mut target_json = serde_json::Map::new();
+        if !target.agent.is_empty() {
+            target_json.insert(
+                "agent".to_string(),
+                serde_json::Value::String(target.agent.clone()),
+            );
+        }
+        if !target.session_mode.is_empty() {
+            target_json.insert(
+                "sessionMode".to_string(),
+                serde_json::Value::String(target.session_mode.clone()),
+            );
+        }
+        if !target.session_id.is_empty() {
+            target_json.insert(
+                "sessionId".to_string(),
+                serde_json::Value::String(target.session_id.clone()),
+            );
+        }
+        if !target.workflow.is_empty() {
+            target_json.insert(
+                "workflow".to_string(),
+                serde_json::Value::String(target.workflow.clone()),
+            );
+        }
+        json.insert("target".to_string(), serde_json::Value::Object(target_json));
+    }
+    if !spec.input_message.is_empty() {
+        json.insert(
+            "inputMessage".to_string(),
+            serde_json::Value::String(spec.input_message.clone()),
+        );
+    }
+    json.insert("enabled".to_string(), serde_json::Value::Bool(spec.enabled));
+    if !spec.input_json.is_empty() {
+        json.insert(
+            "inputJson".to_string(),
+            serde_json::from_str(&spec.input_json)
+                .unwrap_or_else(|_| serde_json::Value::String(spec.input_json.clone())),
         );
     }
     serde_json::Value::Object(json)

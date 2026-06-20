@@ -134,6 +134,42 @@ spec:
     }
 
     #[test]
+    fn sandbox_policy_manifest_rejects_max_concurrent_overflow() {
+        let error = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: SandboxPolicy
+metadata:
+  name: coding
+  namespace: customers
+spec:
+  quota:
+    maxConcurrent: 4294967296
+"#,
+        )
+        .expect_err("maxConcurrent above u32 range should fail");
+        assert!(error.to_string().contains("maxConcurrent"));
+    }
+
+    #[test]
+    fn schedule_manifest_rejects_interval_seconds_overflow() {
+        let error = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Schedule
+metadata:
+  name: daily
+  namespace: customers
+spec:
+  kind: every
+  intervalSeconds: 4294967296
+"#,
+        )
+        .expect_err("intervalSeconds above u32 range should fail");
+        assert!(error.to_string().contains("intervalSeconds"));
+    }
+
+    #[test]
     fn resource_yaml_renders_common_status_conditions_when_present() {
         let rendered = render_resource_yaml(&resources_proto::Resource {
             api_version: "talon.impalasys.com/v1".to_string(),

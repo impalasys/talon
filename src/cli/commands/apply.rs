@@ -31,6 +31,9 @@ pub(super) async fn run(cli: &Cli, command: &ApplyCommand) -> Result<()> {
     for file in files {
         let file = file.to_string_lossy().into_owned();
         let content = render_manifest_file(&file, &command.vars)?;
+        if content.trim().is_empty() {
+            continue;
+        }
 
         if cli.rest {
             rest_ensure_manifest_namespace(cli, &content).await?;

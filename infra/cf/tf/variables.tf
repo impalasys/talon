@@ -27,6 +27,17 @@ variable "d1_primary_location_hint" {
   default     = null
 }
 
+variable "d1_read_replication_mode" {
+  description = "D1 read replication mode. Defaults to disabled so Terraform does not try to clear Cloudflare's returned read_replication object."
+  type        = string
+  default     = "disabled"
+
+  validation {
+    condition     = contains(["auto", "disabled"], var.d1_read_replication_mode)
+    error_message = "d1_read_replication_mode must be either auto or disabled."
+  }
+}
+
 variable "r2_bucket_name" {
   description = "Name of the R2 bucket used for Talon object storage."
   type        = string

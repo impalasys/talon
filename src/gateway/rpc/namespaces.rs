@@ -3,8 +3,9 @@
 
 use crate::control::resource_model::{self, NamespaceResourceExt, TypedResource};
 use crate::control::ProtoKeyValueStoreExt;
-use crate::control::{keys, ns};
+use crate::control::{events, keys, ns, topics};
 use crate::gateway::rpc::{proto, resources_proto, GrpcGatewayHandler};
+use prost::Message;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn namespace_response(ns: resources_proto::Namespace) -> proto::NamespaceResponse {
@@ -71,6 +72,12 @@ impl GrpcGatewayHandler {
                             e
                         ))
                     })?;
+                self.warn_on_namespace_publish_error(
+                    &existing_ns,
+                    events::ResourceChangeType::Updated,
+                    &["metadata", "spec"],
+                )
+                .await;
 
                 return Ok(tonic::Response::new(namespace_response(existing_ns)));
             }
@@ -129,6 +136,12 @@ impl GrpcGatewayHandler {
                         .await;
 
                     let _ = self.gateway.kv.set_msg(&check_key, &p_ns).await;
+                    self.warn_on_namespace_publish_error(
+                        &p_ns,
+                        events::ResourceChangeType::Created,
+                        &["metadata", "spec"],
+                    )
+                    .await;
                 }
             }
         }
@@ -161,6 +174,12 @@ impl GrpcGatewayHandler {
         self.gateway.kv.set_msg(&meta_key, &ns).await.map_err(|e| {
             tonic::Status::internal(format!("Failed to write namespace metadata: {}", e))
         })?;
+        self.warn_on_namespace_publish_error(
+            &ns,
+            events::ResourceChangeType::Created,
+            &["metadata", "spec"],
+        )
+        .await;
 
         Ok(tonic::Response::new(namespace_response(ns)))
     }
@@ -226,6 +245,12 @@ impl GrpcGatewayHandler {
         self.gateway.kv.set_msg(&meta_key, &ns).await.map_err(|e| {
             tonic::Status::internal(format!("Failed to write namespace metadata: {}", e))
         })?;
+        self.warn_on_namespace_publish_error(
+            &ns,
+            events::ResourceChangeType::Deleted,
+            &["metadata", "status"],
+        )
+        .await;
 
         Ok(tonic::Response::new(namespace_response(ns)))
     }
@@ -275,6 +300,57 @@ impl GrpcGatewayHandler {
         Ok(tonic::Response::new(proto::ListNamespacesResponse {
             namespaces,
         }))
+    }
+
+    async fn publish_namespace_changed(
+        &self,
+        namespace: &resources_proto::Namespace,
+        change_type: events::ResourceChangeType,
+        changed_sections: &[&str],
+    ) -> std::result::Result<(), tonic::Status> {
+        let meta = namespace
+            .metadata
+            .as_ref()
+            .ok_or_else(|| tonic::Status::internal("Namespace metadata missing"))?;
+        let event = events::ResourceChangedEvent {
+            namespace: meta.namespace.clone(),
+            resource_kind: "Namespace".to_string(),
+            name: meta.name.clone(),
+            uid: meta.uid.clone(),
+            resource_version: meta.resource_version.clone(),
+            generation: meta.generation,
+            change_type: change_type as i32,
+            changed_sections: changed_sections
+                .iter()
+                .map(|section| section.to_string())
+                .collect(),
+            timestamp: chrono::Utc::now().timestamp_micros(),
+        };
+        self.gateway
+            .pubsub
+            .publish(topics::RESOURCE_LIFECYCLE_TOPIC, &event.encode_to_vec())
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to publish namespace change: {}", e))
+            })
+    }
+
+    async fn warn_on_namespace_publish_error(
+        &self,
+        namespace: &resources_proto::Namespace,
+        change_type: events::ResourceChangeType,
+        changed_sections: &[&str],
+    ) {
+        if let Err(err) = self
+            .publish_namespace_changed(namespace, change_type, changed_sections)
+            .await
+        {
+            tracing::warn!(
+                namespace = %namespace.name(),
+                error = %err,
+                "namespace changed event publish failed"
+            );
+        }
     }
 }
 

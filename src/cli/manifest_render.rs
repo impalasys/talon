@@ -24,6 +24,9 @@ pub(super) fn render_manifest_file(file: &str, vars: &[String]) -> Result<String
     let vars = parse_vars(vars)?;
     let rendered = render_manifest_template(&content, &vars)
         .with_context(|| format!("Failed to render manifest file: {}", file))?;
+    if rendered.trim().is_empty() {
+        return Ok(rendered);
+    }
     resolve_manifest_sources(file, &rendered)
 }
 

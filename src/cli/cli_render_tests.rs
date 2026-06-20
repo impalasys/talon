@@ -36,4 +36,25 @@ spec:
         render_manifest_template("name: {{ vars.missing }}", &vars)
             .expect_err("undefined var should fail");
     }
+
+    #[test]
+    fn render_manifest_file_allows_empty_rendered_template() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let path = dir.path().join("optional.yaml");
+        std::fs::write(
+            &path,
+            r#"{% if vars.enabled is defined and vars.enabled == "1" %}
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: optional
+{% endif %}
+"#,
+        )
+        .expect("write manifest");
+
+        let rendered = render_manifest_file(path.to_str().unwrap(), &[]).expect("render manifest");
+
+        assert!(rendered.trim().is_empty());
+    }
 }

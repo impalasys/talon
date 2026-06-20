@@ -8,6 +8,7 @@ use crate::gateway::rpc::resources_proto;
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
@@ -87,23 +88,48 @@ impl DeploymentController {
             .and_then(|placement| placement.namespace_selector.as_ref())
             .ok_or_else(|| anyhow!("Deployment placement.namespaceSelector is required"))?;
         let targets = self.target_namespaces(cp, selector).await?;
+        let mut existing_replicas = self
+            .replicas_for_deployment(&deployment_meta.namespace, &deployment_meta.name)
+            .await?;
+        let target_names = targets
+            .iter()
+            .map(|target| target.name().to_string())
+            .collect::<HashSet<_>>();
+        let stale_target_names = existing_replicas
+            .keys()
+            .filter(|target_namespace| !target_names.contains(*target_namespace))
+            .cloned()
+            .collect::<Vec<_>>();
+
+        for target_namespace in stale_target_names {
+            let Some(replica) = existing_replicas.remove(&target_namespace) else {
+                continue;
+            };
+            self.delete_replica_outputs(&replica, cp).await?;
+            if let Some(meta) = replica.metadata.as_ref() {
+                self.store
+                    .delete(&deployment_meta.namespace, "DeploymentReplica", &meta.name)
+                    .await?;
+            }
+        }
 
         for target in targets {
             let mut rendered_refs = Vec::new();
-            let mut rendered_hashes = std::collections::HashMap::new();
-            let mut last_rendered_json = std::collections::HashMap::new();
+            let mut rendered_hashes = HashMap::new();
+            let mut last_rendered_json = HashMap::new();
+            let mut conflicts = Vec::new();
             for template_name in &spec.templates {
-                let template = self
+                let Some(template) = self
                     .store
                     .get(&deployment_meta.namespace, "Template", template_name)
                     .await?
-                    .ok_or_else(|| {
-                        anyhow!(
-                            "Template '{}' not found in namespace '{}'",
-                            template_name,
-                            deployment_meta.namespace
-                        )
-                    })?;
+                else {
+                    conflicts.push(format!(
+                        "Template '{}' not found in namespace '{}'",
+                        template_name, deployment_meta.namespace
+                    ));
+                    continue;
+                };
                 let rendered = self.render_template_with_namespace(
                     &deployment_meta.namespace,
                     target.name(),
@@ -123,14 +149,21 @@ impl DeploymentController {
                     "{}/{}/{}",
                     rendered_meta.namespace, rendered.kind, rendered_meta.name
                 ));
-                self.apply_rendered(target.name(), rendered).await?;
+                self.apply_rendered(target.name(), rendered, cp).await?;
             }
 
-            let replica_name = format!(
-                "{}--{}",
-                deployment_meta.name,
-                escape_replica_namespace(target.name())
-            );
+            let rendered_ref_set = rendered_refs.iter().cloned().collect::<HashSet<_>>();
+            if let Some(previous) = existing_replicas.get(target.name()) {
+                self.delete_removed_outputs(previous, &rendered_ref_set, cp)
+                    .await?;
+            }
+
+            let replica_name = replica_name(&deployment_meta.name, target.name());
+            let phase = if conflicts.is_empty() {
+                "Ready"
+            } else {
+                "Degraded"
+            };
             let replica = resources_proto::Resource {
                 api_version: deployment.api_version.clone(),
                 kind: "DeploymentReplica".to_string(),
@@ -178,11 +211,11 @@ impl DeploymentController {
                     kind: Some(resources_proto::resource_status::Kind::DeploymentReplica(
                         resources_proto::DeploymentReplicaStatus {
                             observed_generation: 0,
-                            phase: "Ready".to_string(),
+                            phase: phase.to_string(),
                             conditions: Vec::new(),
                             rendered_resources: rendered_refs,
                             rendered_hashes,
-                            conflicts: Vec::new(),
+                            conflicts,
                             last_rendered_json,
                             owned_json_pointers: Vec::new(),
                         },
@@ -194,6 +227,106 @@ impl DeploymentController {
                 .await?;
         }
 
+        Ok(())
+    }
+
+    async fn replicas_for_deployment(
+        &self,
+        deployment_namespace: &str,
+        deployment_name: &str,
+    ) -> Result<HashMap<String, resources_proto::Resource>> {
+        let mut replicas = HashMap::new();
+        for replica in self
+            .store
+            .list(deployment_namespace, Some("DeploymentReplica"))
+            .await?
+        {
+            let Some(meta) = replica.metadata.as_ref() else {
+                continue;
+            };
+            if meta
+                .labels
+                .get("talon.impalasys.com/deployment")
+                .map(String::as_str)
+                != Some(deployment_name)
+            {
+                continue;
+            }
+            if let Some(target_namespace) = meta.labels.get("talon.impalasys.com/target-namespace")
+            {
+                replicas.insert(target_namespace.clone(), replica);
+            }
+        }
+        Ok(replicas)
+    }
+
+    async fn delete_replica_outputs(
+        &self,
+        replica: &resources_proto::Resource,
+        cp: &ControlPlane,
+    ) -> Result<()> {
+        let Some(resources_proto::resource_status::Kind::DeploymentReplica(status)) = replica
+            .status
+            .as_ref()
+            .and_then(|status| status.kind.as_ref())
+        else {
+            return Ok(());
+        };
+
+        for rendered_ref in &status.rendered_resources {
+            self.delete_rendered_ref(rendered_ref, cp).await?;
+        }
+        Ok(())
+    }
+
+    async fn delete_removed_outputs(
+        &self,
+        previous: &resources_proto::Resource,
+        desired_refs: &HashSet<String>,
+        cp: &ControlPlane,
+    ) -> Result<()> {
+        let Some(resources_proto::resource_status::Kind::DeploymentReplica(status)) = previous
+            .status
+            .as_ref()
+            .and_then(|status| status.kind.as_ref())
+        else {
+            return Ok(());
+        };
+
+        for rendered_ref in &status.rendered_resources {
+            if !desired_refs.contains(rendered_ref) {
+                self.delete_rendered_ref(rendered_ref, cp).await?;
+            }
+        }
+        Ok(())
+    }
+
+    async fn delete_rendered_ref(&self, rendered_ref: &str, cp: &ControlPlane) -> Result<()> {
+        let Some((namespace, kind, name)) = parse_rendered_ref(rendered_ref) else {
+            tracing::warn!(
+                rendered_ref,
+                "skipping malformed DeploymentReplica rendered resource ref"
+            );
+            return Ok(());
+        };
+        if kind == "Schedule" {
+            if let Some(schedule) = self.store.get(namespace, kind, name).await? {
+                if let Some(handle) =
+                    schedule
+                        .status
+                        .and_then(|status| status.kind)
+                        .and_then(|kind| match kind {
+                            resources_proto::resource_status::Kind::Schedule(status) => {
+                                status.backend_handle
+                            }
+                            _ => None,
+                        })
+                {
+                    cp.scheduler.cancel(&handle).await?;
+                }
+            }
+        }
+        self.store.delete(namespace, kind, name).await?;
         Ok(())
     }
 
@@ -368,9 +501,121 @@ impl DeploymentController {
         &self,
         namespace: &str,
         resource: resources_proto::Resource,
+        cp: &ControlPlane,
     ) -> Result<resources_proto::Resource> {
+        if resource.kind == "Schedule" {
+            return self.apply_rendered_schedule(namespace, resource, cp).await;
+        }
         self.store.upsert(namespace, resource).await
     }
+
+    async fn apply_rendered_schedule(
+        &self,
+        namespace: &str,
+        resource: resources_proto::Resource,
+        cp: &ControlPlane,
+    ) -> Result<resources_proto::Resource> {
+        use resources_proto::resource_spec::Kind as SpecKind;
+        use resources_proto::resource_status::Kind as StatusKind;
+
+        let api_version = resource.api_version.clone();
+        let metadata = resource
+            .metadata
+            .clone()
+            .ok_or_else(|| anyhow!("rendered Schedule metadata is required"))?;
+        let schedule_name = metadata.name.clone();
+        let spec = match resource.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
+            Some(SpecKind::Schedule(spec)) => spec.clone(),
+            _ => return Err(anyhow!("rendered Schedule is missing typed Schedule spec")),
+        };
+        let rendered_status = resource
+            .status
+            .as_ref()
+            .and_then(|status| status.kind.as_ref())
+            .and_then(|kind| match kind {
+                StatusKind::Schedule(status) => Some(status.clone()),
+                _ => None,
+            });
+        let existing_status = self
+            .store
+            .get(namespace, "Schedule", &metadata.name)
+            .await?
+            .and_then(|existing| existing.status)
+            .and_then(|status| status.kind)
+            .and_then(|kind| match kind {
+                StatusKind::Schedule(status) => Some(status),
+                _ => None,
+            });
+
+        let mut schedule = resources_proto::Schedule {
+            metadata: Some(metadata),
+            spec: Some(spec),
+            status: Some(
+                existing_status
+                    .or(rendered_status)
+                    .unwrap_or_else(resources_proto::ScheduleStatus::default),
+            ),
+        };
+        let next_run_at =
+            crate::control::scheduling::initialize_schedule(&mut schedule, chrono::Utc::now())?;
+        let stored = self
+            .store
+            .upsert(namespace, schedule_resource(&api_version, &schedule))
+            .await?;
+        let expected_resource_version = stored
+            .metadata
+            .as_ref()
+            .map(|meta| meta.resource_version.clone());
+        crate::control::scheduling::arm_schedule(cp.scheduler.as_ref(), &mut schedule, next_run_at)
+            .await?;
+
+        let status = resources_proto::ResourceStatus {
+            kind: Some(resources_proto::resource_status::Kind::Schedule(
+                schedule.status.clone().unwrap_or_default(),
+            )),
+        };
+        self.store
+            .patch_status(
+                namespace,
+                "Schedule",
+                &schedule_name,
+                expected_resource_version.as_deref(),
+                status,
+            )
+            .await
+    }
+}
+
+fn schedule_resource(
+    api_version: &str,
+    schedule: &resources_proto::Schedule,
+) -> resources_proto::Resource {
+    use resources_proto::resource_spec::Kind as SpecKind;
+    use resources_proto::resource_status::Kind as StatusKind;
+
+    resources_proto::Resource {
+        api_version: api_version.to_string(),
+        kind: "Schedule".to_string(),
+        metadata: schedule.metadata.clone(),
+        spec: Some(resources_proto::ResourceSpec {
+            kind: Some(SpecKind::Schedule(
+                schedule.spec.clone().unwrap_or_default(),
+            )),
+        }),
+        status: Some(resources_proto::ResourceStatus {
+            kind: Some(StatusKind::Schedule(
+                schedule.status.clone().unwrap_or_default(),
+            )),
+        }),
+    }
+}
+
+pub(crate) fn replica_name(deployment_name: &str, target_namespace: &str) -> String {
+    format!(
+        "{}--{}",
+        deployment_name,
+        escape_replica_namespace(target_namespace)
+    )
 }
 
 fn escape_replica_namespace(namespace: &str) -> String {
@@ -384,9 +629,15 @@ fn stable_hash(value: &str) -> String {
     format!("{:016x}", hasher.finish())
 }
 
+fn parse_rendered_ref(rendered_ref: &str) -> Option<(&str, &str, &str)> {
+    let mut parts = rendered_ref.splitn(3, '/');
+    Some((parts.next()?, parts.next()?, parts.next()?))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::control::ProtoKeyValueStoreExt;
     use crate::test_support::{MockKvStore, RecordingPubSub};
     use std::sync::Arc;
 
@@ -395,6 +646,35 @@ mod tests {
             Arc::new(MockKvStore::default()),
             Arc::new(RecordingPubSub::default()),
         ))
+    }
+
+    fn test_control_plane(kv: Arc<MockKvStore>, pubsub: Arc<RecordingPubSub>) -> ControlPlane {
+        ControlPlane {
+            kv,
+            pubsub,
+            scheduler: Arc::new(crate::control::scheduler::NoopSchedulerBackend),
+            objects: crate::control::object_store::default_object_store(),
+        }
+    }
+
+    async fn add_namespace(cp: &ControlPlane, namespace: resources_proto::Namespace) {
+        let name = namespace.name().to_string();
+        let parent = namespace.parent().to_string();
+        let child_segment = name.rsplit(':').next().unwrap_or(&name);
+        cp.kv
+            .set_msg(&keys::namespace_metadata(&name), &namespace)
+            .await
+            .expect("set namespace metadata");
+        cp.kv
+            .set(
+                &keys::namespace_ref(
+                    (!parent.is_empty()).then_some(parent.as_str()),
+                    child_segment,
+                ),
+                name.as_bytes(),
+            )
+            .await
+            .expect("set namespace ref");
     }
 
     fn deployment() -> resources_proto::Resource {
@@ -413,6 +693,26 @@ mod tests {
             }),
             status: None,
         }
+    }
+
+    fn deployment_with_templates(templates: &[&str]) -> resources_proto::Resource {
+        let mut deployment = deployment();
+        let Some(resources_proto::resource_spec::Kind::Deployment(spec)) =
+            deployment.spec.as_mut().and_then(|spec| spec.kind.as_mut())
+        else {
+            panic!("expected deployment spec");
+        };
+        spec.templates = templates.iter().map(|name| name.to_string()).collect();
+        spec.placement = Some(resources_proto::DeploymentPlacement {
+            namespace_selector: Some(resources_proto::NamespaceSelector {
+                parent: "customers".to_string(),
+                match_labels: std::collections::HashMap::from([(
+                    "tier".to_string(),
+                    "prod".to_string(),
+                )]),
+            }),
+        });
+        deployment
     }
 
     fn coding_template() -> resources_proto::Resource {
@@ -443,6 +743,54 @@ mod tests {
         }
     }
 
+    fn named_agent_template(template_name: &str, agent_name: &str) -> resources_proto::Resource {
+        let mut template = coding_template();
+        template.metadata.as_mut().unwrap().name = template_name.to_string();
+        let Some(resources_proto::resource_spec::Kind::Template(spec)) =
+            template.spec.as_mut().and_then(|spec| spec.kind.as_mut())
+        else {
+            panic!("expected template spec");
+        };
+        spec.metadata.as_mut().unwrap().name = agent_name.to_string();
+        template
+    }
+
+    fn wakeup_template() -> resources_proto::Resource {
+        resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Template".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "daily-wakeup".to_string(),
+                namespace: "customers".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::Template(
+                    resources_proto::TemplateSpec {
+                        kind: "Schedule".to_string(),
+                        metadata: Some(resources_proto::ResourceMeta {
+                            name: "daily-wakeup".to_string(),
+                            ..Default::default()
+                        }),
+                        spec_json: serde_json::json!({
+                            "kind": "cron",
+                            "cron": "0 9 * * *",
+                            "timezone": "America/Los_Angeles",
+                            "target": {
+                                "agent": "cmo",
+                                "sessionMode": "new"
+                            },
+                            "inputMessage": "Review {{ namespace.customerName }}.",
+                            "enabled": true
+                        })
+                        .to_string(),
+                    },
+                )),
+            }),
+            status: None,
+        }
+    }
+
     fn target_namespace(annotation: Option<&str>) -> resources_proto::Namespace {
         let mut annotations = std::collections::HashMap::new();
         if let Some(value) = annotation {
@@ -461,6 +809,17 @@ mod tests {
         }
     }
 
+    fn labeled_target_namespace(tier: &str) -> resources_proto::Namespace {
+        let mut namespace = target_namespace(Some("Acme"));
+        namespace
+            .metadata
+            .as_mut()
+            .unwrap()
+            .labels
+            .insert("tier".to_string(), tier.to_string());
+        namespace
+    }
+
     fn rendered_prompt(resource: resources_proto::Resource) -> String {
         let Some(resources_proto::resource_spec::Kind::Agent(spec)) =
             resource.spec.and_then(|spec| spec.kind)
@@ -468,6 +827,28 @@ mod tests {
             panic!("expected rendered Agent");
         };
         spec.system_prompt
+    }
+
+    fn rendered_schedule_spec(
+        resource: resources_proto::Resource,
+    ) -> resources_proto::ScheduleSpec {
+        let Some(resources_proto::resource_spec::Kind::Schedule(spec)) =
+            resource.spec.and_then(|spec| spec.kind)
+        else {
+            panic!("expected rendered Schedule");
+        };
+        spec
+    }
+
+    fn replica_status(
+        resource: resources_proto::Resource,
+    ) -> resources_proto::DeploymentReplicaStatus {
+        let Some(resources_proto::resource_status::Kind::DeploymentReplica(status)) =
+            resource.status.and_then(|status| status.kind)
+        else {
+            panic!("expected deployment replica status");
+        };
+        status
     }
 
     #[test]
@@ -499,5 +880,147 @@ mod tests {
             rendered_prompt(rendered),
             "You are the coding agent for customers:acme."
         );
+    }
+
+    #[test]
+    fn render_template_supports_schedule_specs() {
+        let rendered = controller()
+            .render_template_with_namespace(
+                "customers",
+                "customers:acme",
+                &target_namespace(Some("Acme")),
+                &deployment(),
+                &wakeup_template(),
+            )
+            .expect("render schedule");
+
+        assert_eq!(rendered.kind, "Schedule");
+        let spec = rendered_schedule_spec(rendered);
+        assert_eq!(spec.kind, "cron");
+        assert_eq!(spec.cron, "0 9 * * *");
+        assert_eq!(spec.timezone, "America/Los_Angeles");
+        assert_eq!(spec.input_message, "Review Acme.");
+        let target = spec.target.expect("schedule target");
+        assert_eq!(target.agent, "cmo");
+        assert_eq!(target.session_mode, "new");
+        assert!(spec.enabled);
+    }
+
+    #[tokio::test]
+    async fn reconcile_deletes_outputs_for_removed_template() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let store = ResourceStore::new(kv.clone(), pubsub.clone());
+        let controller = DeploymentController::new(store.clone());
+        let cp = test_control_plane(kv, pubsub);
+        add_namespace(&cp, labeled_target_namespace("prod")).await;
+
+        let deployment = deployment_with_templates(&["coding-agent", "legacy-agent"]);
+        store
+            .upsert("customers", deployment.clone())
+            .await
+            .expect("upsert deployment");
+        store
+            .upsert("customers", coding_template())
+            .await
+            .expect("upsert coding template");
+        store
+            .upsert("customers", named_agent_template("legacy-agent", "legacy"))
+            .await
+            .expect("upsert legacy template");
+
+        controller
+            .reconcile_once(&deployment, &cp)
+            .await
+            .expect("initial reconcile");
+        assert!(store
+            .get("customers:acme", "Agent", "legacy")
+            .await
+            .expect("get legacy")
+            .is_some());
+
+        store
+            .delete("customers", "Template", "legacy-agent")
+            .await
+            .expect("delete legacy template");
+        controller
+            .reconcile_once(&deployment, &cp)
+            .await
+            .expect("reconcile missing template");
+
+        assert!(store
+            .get("customers:acme", "Agent", "coding")
+            .await
+            .expect("get coding")
+            .is_some());
+        assert!(store
+            .get("customers:acme", "Agent", "legacy")
+            .await
+            .expect("get legacy")
+            .is_none());
+        let replica = store
+            .get(
+                "customers",
+                "DeploymentReplica",
+                &replica_name("company-builder", "customers:acme"),
+            )
+            .await
+            .expect("get replica")
+            .expect("replica exists");
+        let status = replica_status(replica);
+        assert_eq!(status.phase, "Degraded");
+        assert_eq!(status.rendered_resources.len(), 1);
+        assert_eq!(status.conflicts.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn reconcile_deletes_outputs_for_unmatched_namespace() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let store = ResourceStore::new(kv.clone(), pubsub.clone());
+        let controller = DeploymentController::new(store.clone());
+        let cp = test_control_plane(kv, pubsub);
+        add_namespace(&cp, labeled_target_namespace("prod")).await;
+
+        let deployment = deployment_with_templates(&["coding-agent"]);
+        store
+            .upsert("customers", deployment.clone())
+            .await
+            .expect("upsert deployment");
+        store
+            .upsert("customers", coding_template())
+            .await
+            .expect("upsert coding template");
+
+        controller
+            .reconcile_once(&deployment, &cp)
+            .await
+            .expect("initial reconcile");
+        assert!(store
+            .get("customers:acme", "Agent", "coding")
+            .await
+            .expect("get coding")
+            .is_some());
+
+        add_namespace(&cp, labeled_target_namespace("staging")).await;
+        controller
+            .reconcile_once(&deployment, &cp)
+            .await
+            .expect("reconcile unmatched namespace");
+
+        assert!(store
+            .get("customers:acme", "Agent", "coding")
+            .await
+            .expect("get coding")
+            .is_none());
+        assert!(store
+            .get(
+                "customers",
+                "DeploymentReplica",
+                &replica_name("company-builder", "customers:acme"),
+            )
+            .await
+            .expect("get replica")
+            .is_none());
     }
 }

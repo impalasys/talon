@@ -88,6 +88,14 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
             let workflow = crate::control::manifest::parse_workflow(content)?;
             Ok(json!({ "ns": workflow.namespace(), "workflow": workflow }))
         }
+        "Template"
+        | "Deployment"
+        | "DeploymentReplica"
+        | "Schedule"
+        | "SandboxClass"
+        | "SandboxPolicy"
+        | "Sandbox"
+        | "Skill" => Ok(json!({ "resource": manifest_value })),
         other => anyhow::bail!("Unsupported manifest kind '{}'", other),
     }
 }

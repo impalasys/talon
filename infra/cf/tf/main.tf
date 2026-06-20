@@ -29,6 +29,10 @@ resource "cloudflare_d1_database" "control_plane" {
   name                  = local.d1_database_name
   jurisdiction          = var.d1_jurisdiction
   primary_location_hint = var.d1_primary_location_hint
+
+  read_replication = {
+    mode = var.d1_read_replication_mode
+  }
 }
 
 resource "cloudflare_r2_bucket" "objects" {
