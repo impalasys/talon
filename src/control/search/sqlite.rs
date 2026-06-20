@@ -133,20 +133,6 @@ impl DocumentStore for SqliteDocumentStore {
         if scope.namespace.trim().is_empty() {
             return Ok(0);
         }
-        let mut count_builder = QueryBuilder::<Sqlite>::new(
-            "SELECT COUNT(*) AS count FROM talon_documents WHERE namespace = ",
-        );
-        count_builder.push_bind(&scope.namespace);
-        push_delete_filters(&mut count_builder, scope);
-        let count = count_builder
-            .build()
-            .fetch_one(&self.pool)
-            .await?
-            .try_get::<i64, _>("count")? as u64;
-        if count == 0 {
-            return Ok(0);
-        }
-
         let mut tx = self.pool.begin().await?;
         let mut fts_delete =
             QueryBuilder::<Sqlite>::new("DELETE FROM talon_documents_fts WHERE namespace = ");
@@ -161,9 +147,13 @@ impl DocumentStore for SqliteDocumentStore {
             QueryBuilder::<Sqlite>::new("DELETE FROM talon_documents WHERE namespace = ");
         document_delete.push_bind(&scope.namespace);
         push_delete_filters(&mut document_delete, scope);
-        document_delete.build().execute(&mut *tx).await?;
+        let deleted = document_delete
+            .build()
+            .execute(&mut *tx)
+            .await?
+            .rows_affected();
         tx.commit().await?;
-        Ok(count)
+        Ok(deleted)
     }
 
     async fn search(&self, query: &SearchQuery) -> Result<SearchResponse> {
