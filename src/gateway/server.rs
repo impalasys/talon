@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::{
-    object_store::ObjectStore, scheduler::SchedulerBackend, KeyValueStore, MessagePublisher,
+    object_store::ObjectStore, scheduler::SchedulerBackend, ControlPlane, KeyValueStore,
+    MessagePublisher,
 };
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::session_streams::SessionStreamHub;
@@ -49,6 +50,15 @@ impl Gateway {
             objects: self.objects.clone(),
             session_streams: self.session_streams.clone(),
         }
+    }
+
+    pub fn control_plane(&self) -> ControlPlane {
+        ControlPlane::new(
+            self.kv.clone(),
+            self.pubsub.clone(),
+            self.scheduler.clone(),
+            self.objects.clone(),
+        )
     }
 
     pub fn http_ui_router(&self) -> Router {

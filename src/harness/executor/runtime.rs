@@ -648,9 +648,7 @@ mod tests {
         LoopMessage,
     };
     use crate::control::config::Config;
-    use crate::control::keys::{ResourceKey, ResourceList};
-    use crate::control::scheduler::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend};
-    use crate::control::{ControlPlane, KeyValueStore, MessagePublisher};
+    use crate::control::ControlPlane;
     use crate::gateway::rpc::{
         manifests,
         protobuf_value::{value::Kind as ProtoValueKind, ListValue, Value as ProtoValue},
@@ -667,69 +665,14 @@ mod tests {
     use crate::harness::skills::registry::ToolRegistry;
     use anyhow::Result;
     use async_trait::async_trait;
-    use futures::Stream;
     use serde_json::json;
     use std::collections::HashMap;
-    use std::pin::Pin;
     use std::sync::{Arc, Mutex};
     use tempfile::tempdir;
     use tokio_util::sync::CancellationToken;
 
     #[derive(Default)]
     struct EmptyKnowledgeBook;
-
-    struct NoopKv;
-
-    #[async_trait]
-    impl KeyValueStore for NoopKv {
-        async fn get(&self, _key: &ResourceKey) -> Result<Option<Vec<u8>>> {
-            Ok(None)
-        }
-        async fn set(&self, _key: &ResourceKey, _value: &[u8]) -> Result<()> {
-            Ok(())
-        }
-        async fn compare_and_swap(
-            &self,
-            _key: &ResourceKey,
-            _expected: Option<&[u8]>,
-            _value: &[u8],
-        ) -> Result<bool> {
-            Ok(true)
-        }
-        async fn delete(&self, _key: &ResourceKey) -> Result<()> {
-            Ok(())
-        }
-        async fn list_keys(&self, _list: &ResourceList) -> Result<Vec<ResourceKey>> {
-            Ok(Vec::new())
-        }
-    }
-
-    struct NoopPubSub;
-
-    #[async_trait]
-    impl MessagePublisher for NoopPubSub {
-        async fn publish(&self, _topic: &str, _message: &[u8]) -> Result<()> {
-            Ok(())
-        }
-        async fn subscribe(
-            &self,
-            _topic: &str,
-        ) -> Result<Pin<Box<dyn Stream<Item = Vec<u8>> + Send>>> {
-            Ok(Box::pin(futures::stream::empty()))
-        }
-    }
-
-    struct NoopScheduler;
-
-    #[async_trait]
-    impl SchedulerBackend for NoopScheduler {
-        async fn schedule(&self, _req: ScheduleWakeupRequest) -> Result<ScheduledWakeup> {
-            Ok(ScheduledWakeup::default())
-        }
-        async fn cancel(&self, _handle: &str) -> Result<()> {
-            Ok(())
-        }
-    }
 
     #[async_trait]
     impl KnowledgeBook for EmptyKnowledgeBook {
@@ -928,12 +871,7 @@ mod tests {
             Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
-            ControlPlane {
-                kv: Arc::new(NoopKv),
-                pubsub: Arc::new(NoopPubSub),
-                scheduler: Arc::new(NoopScheduler),
-                objects: crate::control::object_store::default_object_store(),
-            },
+            ControlPlane::noop(),
             manifests::AgentSpec::default(),
             HashMap::new(),
         );
@@ -1029,12 +967,7 @@ mod tests {
             Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
-            ControlPlane {
-                kv: Arc::new(NoopKv),
-                pubsub: Arc::new(NoopPubSub),
-                scheduler: Arc::new(NoopScheduler),
-                objects: crate::control::object_store::default_object_store(),
-            },
+            ControlPlane::noop(),
             spec.clone(),
             HashMap::new(),
         );
@@ -1122,12 +1055,7 @@ mod tests {
             Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
-            ControlPlane {
-                kv: Arc::new(NoopKv),
-                pubsub: Arc::new(NoopPubSub),
-                scheduler: Arc::new(NoopScheduler),
-                objects: crate::control::object_store::default_object_store(),
-            },
+            ControlPlane::noop(),
             manifests::AgentSpec::default(),
             HashMap::new(),
         );
@@ -1221,12 +1149,7 @@ mod tests {
             knowledge.clone(),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
-            ControlPlane {
-                kv: Arc::new(NoopKv),
-                pubsub: Arc::new(NoopPubSub),
-                scheduler: Arc::new(NoopScheduler),
-                objects: crate::control::object_store::default_object_store(),
-            },
+            ControlPlane::noop(),
             manifests::AgentSpec::default(),
             HashMap::new(),
         );

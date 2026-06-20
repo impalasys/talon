@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use std::pin::Pin;
+use std::{pin::Pin, sync::Arc};
 pub mod config;
 pub mod events;
 pub mod keys;
@@ -169,10 +169,140 @@ pub trait MessagePublisher: Send + Sync {
 
 #[derive(Clone)]
 pub struct ControlPlane {
-    pub kv: std::sync::Arc<dyn KeyValueStore + Send + Sync>,
-    pub pubsub: std::sync::Arc<dyn MessagePublisher + Send + Sync>,
-    pub scheduler: std::sync::Arc<dyn scheduler::SchedulerBackend + Send + Sync>,
-    pub objects: std::sync::Arc<dyn object_store::ObjectStore + Send + Sync>,
+    pub kv: SharedKeyValueStore,
+    pub pubsub: SharedMessagePublisher,
+    pub scheduler: SharedSchedulerBackend,
+    pub objects: SharedObjectStore,
+}
+
+pub type SharedKeyValueStore = Arc<dyn KeyValueStore + Send + Sync>;
+pub type SharedMessagePublisher = Arc<dyn MessagePublisher + Send + Sync>;
+pub type SharedSchedulerBackend = Arc<dyn scheduler::SchedulerBackend + Send + Sync>;
+pub type SharedObjectStore = Arc<dyn object_store::ObjectStore + Send + Sync>;
+
+impl ControlPlane {
+    pub fn new(
+        kv: SharedKeyValueStore,
+        pubsub: SharedMessagePublisher,
+        scheduler: SharedSchedulerBackend,
+        objects: SharedObjectStore,
+    ) -> Self {
+        Self {
+            kv,
+            pubsub,
+            scheduler,
+            objects,
+        }
+    }
+
+    /// Start a control-plane builder with lightweight defaults for services
+    /// that many tests do not exercise.
+    ///
+    /// Production wiring should prefer `ControlPlane::new` or
+    /// `build_control_plane`; this builder defaults the scheduler and object
+    /// store so tests can specify only the dependencies relevant to the case.
+    pub fn builder(kv: SharedKeyValueStore, pubsub: SharedMessagePublisher) -> ControlPlaneBuilder {
+        ControlPlaneBuilder {
+            kv,
+            pubsub,
+            scheduler: Arc::new(scheduler::NoopSchedulerBackend),
+            objects: object_store::default_object_store(),
+        }
+    }
+
+    /// Build a black-hole control plane for tests that only need to satisfy an
+    /// API shape. Writes and publishes are accepted, but stored data is not
+    /// retained.
+    pub fn noop() -> Self {
+        Self::builder(Arc::new(NoopKeyValueStore), Arc::new(NoopMessagePublisher)).build()
+    }
+}
+
+pub struct ControlPlaneBuilder {
+    kv: SharedKeyValueStore,
+    pubsub: SharedMessagePublisher,
+    scheduler: SharedSchedulerBackend,
+    objects: SharedObjectStore,
+}
+
+impl ControlPlaneBuilder {
+    pub fn scheduler(mut self, scheduler: SharedSchedulerBackend) -> Self {
+        self.scheduler = scheduler;
+        self
+    }
+
+    pub fn objects(mut self, objects: SharedObjectStore) -> Self {
+        self.objects = objects;
+        self
+    }
+
+    pub fn build(self) -> ControlPlane {
+        ControlPlane::new(self.kv, self.pubsub, self.scheduler, self.objects)
+    }
+}
+
+struct NoopKeyValueStore;
+
+#[async_trait::async_trait]
+impl KeyValueStore for NoopKeyValueStore {
+    async fn get(&self, _key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
+        Ok(None)
+    }
+
+    async fn set(&self, _key: &ResourceKey, _value: &[u8]) -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    async fn compare_and_swap(
+        &self,
+        _key: &ResourceKey,
+        _expected: Option<&[u8]>,
+        _value: &[u8],
+    ) -> anyhow::Result<bool> {
+        Ok(true)
+    }
+
+    async fn delete(&self, _key: &ResourceKey) -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    async fn list_keys(&self, _list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
+        Ok(Vec::new())
+    }
+
+    async fn list_keys_page(
+        &self,
+        _list: &ResourceList,
+        _before_name: Option<&str>,
+        _limit: usize,
+    ) -> anyhow::Result<Vec<ResourceKey>> {
+        Ok(Vec::new())
+    }
+
+    async fn list_entries_page(
+        &self,
+        _list: &ResourceList,
+        _before_name: Option<&str>,
+        _limit: usize,
+    ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
+        Ok(Vec::new())
+    }
+}
+
+struct NoopMessagePublisher;
+
+#[async_trait::async_trait]
+impl MessagePublisher for NoopMessagePublisher {
+    async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    async fn subscribe(
+        &self,
+        _topic: &str,
+    ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+        Ok(Box::pin(futures::stream::empty()))
+    }
 }
 
 async fn ensure_builtin_namespaces(kv: &(dyn KeyValueStore + Send + Sync)) -> anyhow::Result<()> {
@@ -233,7 +363,7 @@ pub async fn build_control_plane(
         .database
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("control_plane.database configuration is missing"))?;
-    let kv: std::sync::Arc<dyn KeyValueStore + Send + Sync>;
+    let kv: SharedKeyValueStore;
     let scheduler_database_url: Option<String>;
     match db_config.driver.as_str() {
         "postgres" => {
@@ -243,20 +373,20 @@ pub async fn build_control_plane(
                 .ok_or_else(|| anyhow::anyhow!("Database URL secret is missing"))?;
             let pg_url: String = url_secret.resolve().await?;
             println!("Connecting to PostgresKvStore at {}...", pg_url);
-            kv = std::sync::Arc::new(kv::PostgresKvStore::new(&pg_url, "talon_kv_store").await?);
+            kv = Arc::new(kv::PostgresKvStore::new(&pg_url, "talon_kv_store").await?);
             scheduler_database_url = Some(pg_url);
         }
         "sqlite" => {
             let sqlite_url = sqlite_database_url(db_config).await?;
             println!("Connecting to SqliteKvStore at {}...", sqlite_url);
-            kv = std::sync::Arc::new(kv::SqliteKvStore::new(&sqlite_url, "talon_kv_store").await?);
+            kv = Arc::new(kv::SqliteKvStore::new(&sqlite_url, "talon_kv_store").await?);
             scheduler_database_url = Some(sqlite_url);
         }
         "d1" => {
             println!("Connecting to D1KvStore...");
             let store = kv::D1KvStore::from_env();
             store.init().await?;
-            kv = std::sync::Arc::new(store);
+            kv = Arc::new(store);
             scheduler_database_url = None;
         }
         #[cfg(feature = "rocksdb")]
@@ -266,7 +396,7 @@ pub async fn build_control_plane(
                 "Connecting to RocksDbKvStore at {}...",
                 rocksdb_path.display()
             );
-            kv = std::sync::Arc::new(kv::RocksDbKvStore::new(&rocksdb_path)?);
+            kv = Arc::new(kv::RocksDbKvStore::new(&rocksdb_path)?);
             scheduler_database_url = None;
         }
         #[cfg(not(feature = "rocksdb"))]
@@ -283,11 +413,10 @@ pub async fn build_control_plane(
     ensure_builtin_namespaces(kv.as_ref()).await?;
 
     let mb_config = message_broker_config(cp)?;
-    let pubsub: std::sync::Arc<dyn MessagePublisher + Send + Sync> = match mb_config.driver.as_str()
-    {
+    let pubsub: SharedMessagePublisher = match mb_config.driver.as_str() {
         "gcp_pubsub" => {
             println!("Initializing GcpPubSubPublisher...");
-            std::sync::Arc::new(pubsub::GcpPubSubPublisher::new().await?)
+            Arc::new(pubsub::GcpPubSubPublisher::new().await?)
         }
         "local_socket" => {
             let default_root =
@@ -301,11 +430,11 @@ pub async fn build_control_plane(
                 "Initializing LocalSocketMessagePublisher at {}...",
                 socket_path.display()
             );
-            std::sync::Arc::new(pubsub::LocalSocketMessagePublisher::new(socket_path).await?)
+            Arc::new(pubsub::LocalSocketMessagePublisher::new(socket_path).await?)
         }
         "cf_queues" => {
             println!("Initializing CfQueuesPublisher...");
-            std::sync::Arc::new(pubsub::CfQueuesPublisher::from_env())
+            Arc::new(pubsub::CfQueuesPublisher::from_env())
         }
         other => {
             return Err(anyhow::anyhow!(
@@ -315,85 +444,80 @@ pub async fn build_control_plane(
         }
     };
 
-    let scheduler: std::sync::Arc<dyn scheduler::SchedulerBackend + Send + Sync> =
-        match scheduler_driver().as_deref() {
-            Some("local_postgres") => {
-                if let Some(database_url) = scheduler_database_url.as_deref() {
-                    match scheduler::LocalPostgresSchedulerBackend::new(
-                        database_url,
-                        std::env::var("TALON_LOCAL_SCHEDULER_TABLE").ok(),
-                        std::env::var("TALON_LOCAL_SCHEDULER_TARGET_URL").ok(),
-                        std::env::var("TALON_SCHEDULER_AUTH_TOKEN").ok(),
-                        std::env::var("TALON_LOCAL_SCHEDULER_RUNNER")
-                            .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
-                            .unwrap_or(false),
-                    )
-                    .await
-                    {
-                        Ok(backend) => std::sync::Arc::new(backend),
-                        Err(err) => {
-                            tracing::warn!(error = %err, "Failed to initialize local_postgres scheduler; using noop");
-                            std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
-                        }
-                    }
-                } else {
-                    std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
-                }
-            }
-            Some("local_sqlite") => {
-                if let Some(database_url) = scheduler_database_url.as_deref() {
-                    match scheduler::LocalSqliteSchedulerBackend::new(
-                        database_url,
-                        std::env::var("TALON_LOCAL_SCHEDULER_TABLE").ok(),
-                        std::env::var("TALON_LOCAL_SCHEDULER_TARGET_URL").ok(),
-                        std::env::var("TALON_SCHEDULER_AUTH_TOKEN").ok(),
-                        std::env::var("TALON_LOCAL_SCHEDULER_RUNNER")
-                            .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
-                            .unwrap_or(false),
-                    )
-                    .await
-                    {
-                        Ok(backend) => std::sync::Arc::new(backend),
-                        Err(err) => {
-                            tracing::warn!(error = %err, "Failed to initialize local_sqlite scheduler; using noop");
-                            std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
-                        }
-                    }
-                } else {
-                    std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
-                }
-            }
-            Some("cf_alarms") => {
-                std::sync::Arc::new(scheduler::CfAlarmsSchedulerBackend::from_env())
-            }
-            _ => match configured_scheduler(cp.scheduler.as_ref()) {
-                Some(crate::control::config::proto::SchedulerConfig {
-                    backend:
-                        Some(crate::control::config::proto::scheduler_config::Backend::CloudTasks(cfg)),
-                }) => match scheduler::CloudTasksSchedulerBackend::new(&cfg).await {
-                    Ok(backend) => std::sync::Arc::new(backend),
+    let scheduler: SharedSchedulerBackend = match scheduler_driver().as_deref() {
+        Some("local_postgres") => {
+            if let Some(database_url) = scheduler_database_url.as_deref() {
+                match scheduler::LocalPostgresSchedulerBackend::new(
+                    database_url,
+                    std::env::var("TALON_LOCAL_SCHEDULER_TABLE").ok(),
+                    std::env::var("TALON_LOCAL_SCHEDULER_TARGET_URL").ok(),
+                    std::env::var("TALON_SCHEDULER_AUTH_TOKEN").ok(),
+                    std::env::var("TALON_LOCAL_SCHEDULER_RUNNER")
+                        .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
+                        .unwrap_or(false),
+                )
+                .await
+                {
+                    Ok(backend) => Arc::new(backend),
                     Err(err) => {
-                        tracing::warn!(error = %err, "Failed to initialize Cloud Tasks scheduler; using noop");
-                        std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
+                        return Err(anyhow::anyhow!(
+                            "Failed to initialize local_postgres scheduler: {err}"
+                        ));
                     }
-                },
-                Some(crate::control::config::proto::SchedulerConfig { backend: None }) => {
-                    std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
                 }
-                None => std::sync::Arc::new(scheduler::NoopSchedulerBackend::default()),
+            } else {
+                Arc::new(scheduler::NoopSchedulerBackend)
+            }
+        }
+        Some("local_sqlite") => {
+            if let Some(database_url) = scheduler_database_url.as_deref() {
+                match scheduler::LocalSqliteSchedulerBackend::new(
+                    database_url,
+                    std::env::var("TALON_LOCAL_SCHEDULER_TABLE").ok(),
+                    std::env::var("TALON_LOCAL_SCHEDULER_TARGET_URL").ok(),
+                    std::env::var("TALON_SCHEDULER_AUTH_TOKEN").ok(),
+                    std::env::var("TALON_LOCAL_SCHEDULER_RUNNER")
+                        .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
+                        .unwrap_or(false),
+                )
+                .await
+                {
+                    Ok(backend) => Arc::new(backend),
+                    Err(err) => {
+                        return Err(anyhow::anyhow!(
+                            "Failed to initialize local_sqlite scheduler: {err}"
+                        ));
+                    }
+                }
+            } else {
+                Arc::new(scheduler::NoopSchedulerBackend)
+            }
+        }
+        Some("cf_alarms") => Arc::new(scheduler::CfAlarmsSchedulerBackend::from_env()),
+        _ => match configured_scheduler(cp.scheduler.as_ref()) {
+            Some(crate::control::config::proto::SchedulerConfig {
+                backend:
+                    Some(crate::control::config::proto::scheduler_config::Backend::CloudTasks(cfg)),
+            }) => match scheduler::CloudTasksSchedulerBackend::new(&cfg).await {
+                Ok(backend) => Arc::new(backend),
+                Err(err) => {
+                    return Err(anyhow::anyhow!(
+                        "Failed to initialize Cloud Tasks scheduler: {err}"
+                    ));
+                }
             },
-        };
+            Some(crate::control::config::proto::SchedulerConfig { backend: None }) => {
+                Arc::new(scheduler::NoopSchedulerBackend)
+            }
+            None => Arc::new(scheduler::NoopSchedulerBackend),
+        },
+    };
 
     let objects =
         object_store::object_store_from_config(cp.object_store.as_ref(), &config.workspace_dir)
             .await?;
 
-    Ok(ControlPlane {
-        kv,
-        pubsub,
-        scheduler,
-        objects,
-    })
+    Ok(ControlPlane::new(kv, pubsub, scheduler, objects))
 }
 
 fn configured_scheduler(
@@ -841,6 +965,47 @@ mod tests {
         assert!(err
             .to_string()
             .contains("control_plane.message_broker configuration is missing"));
+    }
+
+    #[test]
+    fn build_control_plane_errors_when_configured_scheduler_fails_to_initialize() {
+        let _lock = crate::test_support::env_lock();
+        let _driver = EnvGuard::remove("TALON_SCHEDULER_DRIVER");
+        let _project = EnvGuard::remove("TALON_SCHEDULER_PROJECT_ID");
+        let _gcp_project = EnvGuard::remove("GCP_PROJECT_ID");
+        let _location = EnvGuard::remove("TALON_SCHEDULER_LOCATION");
+        let _queue = EnvGuard::remove("TALON_SCHEDULER_QUEUE");
+        let _target = EnvGuard::remove("TALON_SCHEDULER_TARGET_URL");
+        let dir = tempdir().unwrap();
+        let config = proto::TalonConfig {
+            workspace_dir: dir.path().display().to_string(),
+            control_plane: Some(proto::ControlPlaneConfig {
+                database: Some(proto::DatabaseConfig {
+                    data_dir: dir.path().display().to_string(),
+                    driver: "sqlite".to_string(),
+                    url: None,
+                }),
+                message_broker: Some(proto::MessageBrokerConfig {
+                    driver: "cf_queues".to_string(),
+                }),
+                scheduler: Some(proto::SchedulerConfig {
+                    backend: Some(scheduler_config::Backend::CloudTasks(
+                        proto::CloudTasksSchedulerConfig::default(),
+                    )),
+                }),
+                object_store: None,
+            }),
+            ..Default::default()
+        };
+
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let err = match runtime.block_on(build_control_plane(&config)) {
+            Ok(_) => panic!("expected scheduler initialization error"),
+            Err(err) => err,
+        };
+        assert!(err
+            .to_string()
+            .contains("Failed to initialize Cloud Tasks scheduler"));
     }
 
     #[tokio::test]

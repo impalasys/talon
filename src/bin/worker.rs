@@ -993,9 +993,7 @@ mod tests {
     use talon::control::config::Config;
     use talon::control::{
         events::{LifecycleEvent, SessionControlEvent},
-        keys,
-        scheduler::NoopSchedulerBackend,
-        ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+        keys, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use talon::gateway::rpc::resources_proto;
     use talon::test_support::{EmptyPubSub, MockKvStore};
@@ -1010,12 +1008,7 @@ mod tests {
 
     fn handler_with_auth(authenticator: SchedulerRequestAuthenticator) -> WorkerEventHandler {
         WorkerEventHandler {
-            cp: Arc::new(ControlPlane {
-                kv: Arc::new(MockKvStore::default()),
-                pubsub: Arc::new(EmptyPubSub),
-                scheduler: Arc::new(NoopSchedulerBackend),
-                objects: talon::control::object_store::default_object_store(),
-            }),
+            cp: Arc::new(ControlPlane::noop()),
             config: Arc::new(Config::default()),
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(authenticator),
@@ -1238,12 +1231,7 @@ mod tests {
             "projects/demo/subscriptions/talon-workflow-dispatch-sub"
         );
 
-        let cp = Arc::new(ControlPlane {
-            kv: Arc::new(MockKvStore::default()),
-            pubsub: Arc::new(EmptyPubSub),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: talon::control::object_store::default_object_store(),
-        });
+        let cp = Arc::new(ControlPlane::noop());
         let config = Arc::new(Config::default());
         let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());
         let handler = build_worker_handler(cp.clone(), config.clone(), auth.clone());
@@ -1356,12 +1344,7 @@ mod tests {
             object_store: None,
         });
         let handler = WorkerEventHandler {
-            cp: Arc::new(ControlPlane {
-                kv: Arc::new(MockKvStore::default()),
-                pubsub: Arc::new(EmptyPubSub),
-                scheduler: Arc::new(NoopSchedulerBackend),
-                objects: talon::control::object_store::default_object_store(),
-            }),
+            cp: Arc::new(ControlPlane::noop()),
             config: Arc::new(config),
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
@@ -1703,12 +1686,7 @@ mod tests {
         .unwrap();
 
         let handler = WorkerEventHandler {
-            cp: Arc::new(ControlPlane {
-                kv,
-                pubsub: Arc::new(EmptyPubSub),
-                scheduler: Arc::new(NoopSchedulerBackend),
-                objects: talon::control::object_store::default_object_store(),
-            }),
+            cp: Arc::new(ControlPlane::builder(kv, Arc::new(EmptyPubSub)).build()),
             config: Arc::new(Config::default()),
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::shared_secret(
@@ -1766,12 +1744,7 @@ mod tests {
 
     #[tokio::test]
     async fn run_worker_with_routes_pull_mode_and_http_startup() {
-        let cp = Arc::new(ControlPlane {
-            kv: Arc::new(MockKvStore::default()),
-            pubsub: Arc::new(EmptyPubSub),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: talon::control::object_store::default_object_store(),
-        });
+        let cp = Arc::new(ControlPlane::noop());
         let config = Arc::new(Config::default());
         let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());
         let spawned = Arc::new(std::sync::Mutex::new(Vec::<(bool, String)>::new()));
@@ -1813,12 +1786,7 @@ mod tests {
 
     #[tokio::test]
     async fn run_worker_with_surfaces_http_errors_without_pull_mode() {
-        let cp = Arc::new(ControlPlane {
-            kv: Arc::new(MockKvStore::default()),
-            pubsub: Arc::new(EmptyPubSub),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: talon::control::object_store::default_object_store(),
-        });
+        let cp = Arc::new(ControlPlane::noop());
         let config = Arc::new(Config::default());
         let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());
         let spawned = Arc::new(std::sync::Mutex::new(Vec::<(bool, String)>::new()));
@@ -1853,12 +1821,7 @@ mod tests {
 
     #[tokio::test]
     async fn run_worker_with_awaits_http_shutdown_after_signal() {
-        let cp = Arc::new(ControlPlane {
-            kv: Arc::new(MockKvStore::default()),
-            pubsub: Arc::new(EmptyPubSub),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: talon::control::object_store::default_object_store(),
-        });
+        let cp = Arc::new(ControlPlane::noop());
         let config = Arc::new(Config::default());
         let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
@@ -1902,14 +1865,7 @@ mod tests {
     async fn run_worker_main_with_surfaces_bootstrap_failures() {
         let config_err = run_worker_main_with(
             || anyhow::bail!("config failed"),
-            |_| async {
-                Ok(Arc::new(ControlPlane {
-                    kv: Arc::new(MockKvStore::default()),
-                    pubsub: Arc::new(EmptyPubSub),
-                    scheduler: Arc::new(NoopSchedulerBackend),
-                    objects: talon::control::object_store::default_object_store(),
-                }))
-            },
+            |_| async { Ok(Arc::new(ControlPlane::noop())) },
             |_| async { Ok(Arc::new(SchedulerRequestAuthenticator::deny_all())) },
             |_| None,
             |_handler, _pull_mode, _project_id, _shutdown_token| Vec::new(),
@@ -1935,14 +1891,7 @@ mod tests {
 
         let auth_err = run_worker_main_with(
             || Ok(Arc::new(Config::default())),
-            |_| async {
-                Ok(Arc::new(ControlPlane {
-                    kv: Arc::new(MockKvStore::default()),
-                    pubsub: Arc::new(EmptyPubSub),
-                    scheduler: Arc::new(NoopSchedulerBackend),
-                    objects: talon::control::object_store::default_object_store(),
-                }))
-            },
+            |_| async { Ok(Arc::new(ControlPlane::noop())) },
             |_| async { anyhow::bail!("scheduler auth failed") },
             |_| None,
             |_handler, _pull_mode, _project_id, _shutdown_token| Vec::new(),
@@ -1959,14 +1908,7 @@ mod tests {
         let spawned = Arc::new(std::sync::Mutex::new(Vec::<(bool, String)>::new()));
         let result = run_worker_main_with(
             || Ok(Arc::new(Config::default())),
-            |_| async {
-                Ok(Arc::new(ControlPlane {
-                    kv: Arc::new(MockKvStore::default()),
-                    pubsub: Arc::new(EmptyPubSub),
-                    scheduler: Arc::new(NoopSchedulerBackend),
-                    objects: talon::control::object_store::default_object_store(),
-                }))
-            },
+            |_| async { Ok(Arc::new(ControlPlane::noop())) },
             |_| async { Ok(Arc::new(SchedulerRequestAuthenticator::deny_all())) },
             |name| match name {
                 "PULL_MODE" => Some("1".to_string()),
@@ -2256,12 +2198,7 @@ mod tests {
 
     #[tokio::test]
     async fn run_worker_with_waits_for_pull_tasks_on_shutdown() {
-        let cp = Arc::new(ControlPlane {
-            kv: Arc::new(MockKvStore::default()),
-            pubsub: Arc::new(EmptyPubSub),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: talon::control::object_store::default_object_store(),
-        });
+        let cp = Arc::new(ControlPlane::noop());
         let config = Arc::new(Config::default());
         let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();

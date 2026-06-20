@@ -360,13 +360,9 @@ impl GrpcGatewayHandler {
         if channel.phase() == "closed" {
             return Err(tonic::Status::failed_precondition("channel is closed"));
         }
+        let cp = self.gateway.control_plane();
         let message = persist_channel_message(
-            &ControlPlane {
-                kv: self.gateway.kv.clone(),
-                pubsub: self.gateway.pubsub.clone(),
-                scheduler: self.gateway.scheduler.clone(),
-                objects: self.gateway.objects.clone(),
-            },
+            &cp,
             data_proto::ChannelMessage {
                 id: uuid::Uuid::now_v7().to_string(),
                 ns: req.ns.clone(),
@@ -387,17 +383,7 @@ impl GrpcGatewayHandler {
         .await
         .map_err(|e| tonic::Status::internal(format!("failed to persist channel message: {e}")))?;
 
-        let routed_sessions = route_channel_message(
-            &ControlPlane {
-                kv: self.gateway.kv.clone(),
-                pubsub: self.gateway.pubsub.clone(),
-                scheduler: self.gateway.scheduler.clone(),
-                objects: self.gateway.objects.clone(),
-            },
-            &message,
-            &req.subscription_names,
-        )
-        .await;
+        let routed_sessions = route_channel_message(&cp, &message, &req.subscription_names).await;
 
         Ok(tonic::Response::new(proto::PostChannelMessageResponse {
             message: Some(message),
