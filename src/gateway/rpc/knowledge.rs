@@ -5,7 +5,7 @@ use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::control::keys;
 use crate::control::ns;
 use crate::control::resources::ResourceStore;
-use crate::control::search::{SearchQuery, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
+use crate::control::search::{SearchQuery, SearchSort, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
 use crate::gateway::rpc::resources_proto;
 use crate::harness::knowledge::KnowledgeEntry;
 use std::collections::HashMap;
@@ -188,13 +188,27 @@ impl GrpcGatewayHandler {
                 .into_values()
                 .map(|(_, result)| result)
                 .collect::<Vec<_>>();
-            search_results.sort_by(|left, right| {
-                right
-                    .score
-                    .partial_cmp(&left.score)
-                    .unwrap_or(std::cmp::Ordering::Equal)
-                    .then_with(|| right.document.updated_at.cmp(&left.document.updated_at))
-            });
+            match sort {
+                SearchSort::Recency => search_results.sort_by(|left, right| {
+                    right
+                        .document
+                        .updated_at
+                        .cmp(&left.document.updated_at)
+                        .then_with(|| {
+                            right
+                                .score
+                                .partial_cmp(&left.score)
+                                .unwrap_or(std::cmp::Ordering::Equal)
+                        })
+                }),
+                SearchSort::Relevance => search_results.sort_by(|left, right| {
+                    right
+                        .score
+                        .partial_cmp(&left.score)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                        .then_with(|| right.document.updated_at.cmp(&left.document.updated_at))
+                }),
+            }
             search_results.truncate(super::search::limit(req.limit));
             if search_results.is_empty() {
                 // Metadata documents make workspace search richer, but the legacy

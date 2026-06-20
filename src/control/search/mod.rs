@@ -273,10 +273,17 @@ pub fn document_id(resource_key: &str, document_kind: &str, subdocument_id: &str
 }
 
 pub fn snippet(text: &str) -> String {
+    let original_len = text.len();
+    let prefix_end = text
+        .char_indices()
+        .nth(1000)
+        .map(|(index, _)| index)
+        .unwrap_or(text.len());
+    let text = &text[..prefix_end];
     let mut normalized = String::new();
     let mut chars = 0usize;
     let mut first_word = true;
-    let mut truncated = false;
+    let mut truncated = prefix_end < original_len;
 
     'words: for word in text.split_whitespace() {
         if !first_word {

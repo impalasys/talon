@@ -392,9 +392,9 @@ pub async fn build_control_plane(
                 .as_ref()
                 .ok_or_else(|| anyhow::anyhow!("Database URL secret is missing"))?;
             let pg_url: String = url_secret.resolve().await?;
-            println!("Connecting to PostgresKvStore at {}...", pg_url);
+            println!("Connecting to PostgresKvStore...");
             kv = Arc::new(kv::PostgresKvStore::new(&pg_url, "talon_kv_store").await?);
-            println!("Connecting to PostgresDocumentStore at {}...", pg_url);
+            println!("Connecting to PostgresDocumentStore...");
             documents = Arc::new(search::PostgresDocumentStore::new(&pg_url).await?);
             scheduler_database_url = Some(pg_url);
         }

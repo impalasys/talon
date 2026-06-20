@@ -52,6 +52,7 @@ const SELECTION_TYPE_BY_RESOURCE_KIND: Partial<Record<string, Selection['type']>
   McpServer: 'mcp-server',
   McpServerBinding: 'mcp-binding',
   Knowledge: 'knowledge',
+  Workflow: 'workflow',
 };
 
 type WorkspaceCommandPaletteProps = {

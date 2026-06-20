@@ -69,6 +69,12 @@ impl WorkerEventHandler {
                     return self.handle_workflow_dispatch(event).await;
                 }
 
+                if let Ok(event) = crate::control::events::IndexEvent::decode(payload) {
+                    let controller =
+                        crate::worker::controllers::index::IndexController::new(self.cp.clone());
+                    return controller.handle_event(event).await;
+                }
+
                 if let Ok(event) = crate::control::events::ResourceChangedEvent::decode(payload) {
                     return self.handle_resource_changed_event(event).await;
                 }

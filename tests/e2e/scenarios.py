@@ -253,10 +253,10 @@ def search_result_summaries(response):
     return [document_summary(result) for result in response.results]
 
 
-def search_call(stub, request):
+def search_call(stub, request, **kwargs):
     if hasattr(stub, "Search"):
-        return stub.Search(request)
-    return stub.searches.Search(request)
+        return stub.Search(request, **kwargs)
+    return stub.searches.Search(request, **kwargs)
 
 
 def wait_for_session_search(
@@ -292,6 +292,7 @@ def wait_for_session_search(
                 mode=SEARCH_MODE_KEYWORD,
                 sort=SEARCH_SORT_RELEVANCE,
             ),
+            timeout=5,
         )
         last_summaries = search_result_summaries(response)
         for result in response.results:
@@ -339,6 +340,7 @@ def wait_for_search(
                 mode=SEARCH_MODE_KEYWORD,
                 sort=SEARCH_SORT_RELEVANCE,
             ),
+            timeout=5,
         )
         last_summaries = search_result_summaries(response)
         for result in response.results:
@@ -376,6 +378,7 @@ def wait_for_no_session_search_results(
                 mode=SEARCH_MODE_KEYWORD,
                 sort=SEARCH_SORT_RELEVANCE,
             ),
+            timeout=5,
         )
         last_summaries = search_result_summaries(response)
         if not response.results:

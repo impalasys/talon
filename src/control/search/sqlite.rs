@@ -338,15 +338,12 @@ fn push_query_filters<'a>(builder: &mut QueryBuilder<'a, Sqlite>, query: &'a Sea
     }
     for (key, value) in &query.labels {
         builder
-            .push(" AND json_extract(d.labels_json, ")
-            .push_bind(sqlite_json_label_path(key))
-            .push(") = ")
+            .push(" AND EXISTS (SELECT 1 FROM json_each(d.labels_json) WHERE key = ")
+            .push_bind(key)
+            .push(" AND CAST(value AS TEXT) = ")
             .push_bind(value);
+        builder.push(")");
     }
-}
-
-fn sqlite_json_label_path(key: &str) -> String {
-    format!("$.{}", serde_json::to_string(key).unwrap_or_default())
 }
 
 fn push_delete_filters<'a>(builder: &mut QueryBuilder<'a, Sqlite>, scope: &'a DeleteScope) {
@@ -363,7 +360,8 @@ fn push_delete_filters<'a>(builder: &mut QueryBuilder<'a, Sqlite>, scope: &'a De
     if !scope.resource_key_prefix.is_empty() {
         builder
             .push(" AND resource_key LIKE ")
-            .push_bind(format!("{}%", scope.resource_key_prefix));
+            .push_bind(like_prefix_pattern(&scope.resource_key_prefix))
+            .push(" ESCAPE '\\'");
     }
     if !scope.agent.is_empty() {
         builder.push(" AND agent = ").push_bind(&scope.agent);
@@ -381,6 +379,18 @@ fn push_delete_filters<'a>(builder: &mut QueryBuilder<'a, Sqlite>, scope: &'a De
             .push(" AND source_generation <= ")
             .push_bind(scope.max_source_generation as i64);
     }
+}
+
+fn like_prefix_pattern(prefix: &str) -> String {
+    let mut escaped = String::with_capacity(prefix.len() + 1);
+    for ch in prefix.chars() {
+        if matches!(ch, '\\' | '%' | '_') {
+            escaped.push('\\');
+        }
+        escaped.push(ch);
+    }
+    escaped.push('%');
+    escaped
 }
 
 fn document_from_sqlite_row(row: &SqliteRow) -> Result<Document> {
@@ -529,5 +539,10 @@ mod tests {
             .unwrap();
         assert_eq!(deleted, 1);
         assert!(store.get_document("acme", "doc-1").await.unwrap().is_none());
+    }
+
+    #[test]
+    fn sqlite_like_prefix_pattern_escapes_wildcards() {
+        assert_eq!(like_prefix_pattern(r"a_b%c\d"), r"a\_b\%c\\d%");
     }
 }
