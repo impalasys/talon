@@ -338,8 +338,20 @@ impl WorkerEventHandler {
             }
         };
 
-        // Build the deterministic assistant reply sink. The sink owns live UI
-        // fanout plus mutable SessionMessage projection writes for this attempt.
+        // Keep this claimed submission and its user-visible session lock alive
+        // while the attempt is executing.
+        let lease_renewal = sessions::SubmissionLeaseRenewer::start(
+            self.cp.kv.clone(),
+            sessions::SubmissionLease {
+                ns: ns.to_string(),
+                agent: event.agent.clone(),
+                session_id: event.session_id.clone(),
+                submission_id: submission.submission_id.clone(),
+                attempt_id: submission.attempt_id.clone(),
+                ttl_micros: crate::control::scheduling::session_processing_timeout_micros(),
+            },
+            event.timestamp,
+        );
         let cancellation_token = CancellationToken::new();
         self.session_cancellations
             .lock()
@@ -352,6 +364,9 @@ impl WorkerEventHandler {
             &event.session_id,
             &reply_msg_id,
         );
+
+        // Build the deterministic assistant reply sink. The sink owns live UI
+        // fanout plus mutable SessionMessage projection writes for this attempt.
         let sink = PubSubSessionSink::new(
             self.cp.kv.clone(),
             self.cp.pubsub.clone(),
@@ -438,7 +453,7 @@ impl WorkerEventHandler {
                 ns,
                 &event.agent,
                 &event.session_id,
-                event.timestamp,
+                lease_renewal.last_renewed_at(),
                 SessionCompletionStatus::Completed,
             )
             .await;
@@ -615,7 +630,7 @@ impl WorkerEventHandler {
             ns,
             &event.agent,
             &event.session_id,
-            event.timestamp,
+            lease_renewal.last_renewed_at(),
             completion_status,
         )
         .instrument(tracing::info_span!(
