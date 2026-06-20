@@ -14,6 +14,9 @@ impl GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::SearchResponse>, tonic::Status> {
         let metadata = req.metadata().clone();
         let req = req.into_inner();
+        if req.ns.trim().is_empty() {
+            return Err(tonic::Status::invalid_argument("namespace is required"));
+        }
         let mut query = SearchQuery {
             query: req.query,
             namespaces: vec![req.ns],
@@ -47,6 +50,9 @@ impl GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::GetSearchResultResponse>, tonic::Status> {
         let metadata = req.metadata().clone();
         let req = req.into_inner();
+        if req.ns.trim().is_empty() {
+            return Err(tonic::Status::invalid_argument("namespace is required"));
+        }
         authorize_search_namespace(self, &metadata, &req.ns)?;
         let document = self
             .gateway

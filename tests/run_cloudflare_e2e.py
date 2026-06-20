@@ -7,6 +7,12 @@ import urllib.error
 import urllib.request
 import uuid
 
+TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+
+# Important: Add generated protos to path so "proto.xxx" resolves locally and not to proto_plus.
+sys.path.insert(0, TESTS_DIR)
+sys.path.insert(0, os.path.join(TESTS_DIR, "generated"))
+
 from e2e.cli_harness import TalonCli
 from e2e import scenarios as e2e
 

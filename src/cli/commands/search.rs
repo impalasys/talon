@@ -159,7 +159,7 @@ fn print_results(results: Vec<crate::gateway::rpc::proto::SearchResult>) {
             document.document_kind,
             document.id,
             result.score,
-            document.snippet.replace('\n', " ")
+            document.snippet.replace(['\n', '\t'], " ")
         );
     }
 }

@@ -133,29 +133,33 @@ impl DocumentStore for SqliteDocumentStore {
         if scope.namespace.trim().is_empty() {
             return Ok(0);
         }
-        let mut builder = QueryBuilder::<Sqlite>::new(
-            "SELECT namespace, id FROM talon_documents WHERE namespace = ",
-        );
+        let mut builder =
+            QueryBuilder::<Sqlite>::new("SELECT id FROM talon_documents WHERE namespace = ");
         builder.push_bind(&scope.namespace);
         push_delete_filters(&mut builder, scope);
         let rows = builder.build().fetch_all(&self.pool).await?;
+        let ids = rows
+            .into_iter()
+            .map(|row| row.try_get::<String, _>("id"))
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        if ids.is_empty() {
+            return Ok(0);
+        }
         let mut tx = self.pool.begin().await?;
-        for row in &rows {
-            let namespace: String = row.try_get("namespace")?;
-            let id: String = row.try_get("id")?;
-            sqlx::query("DELETE FROM talon_documents_fts WHERE namespace = ? AND id = ?")
-                .bind(&namespace)
-                .bind(&id)
-                .execute(&mut *tx)
-                .await?;
-            sqlx::query("DELETE FROM talon_documents WHERE namespace = ? AND id = ?")
-                .bind(&namespace)
-                .bind(&id)
-                .execute(&mut *tx)
-                .await?;
+        for table in ["talon_documents_fts", "talon_documents"] {
+            let mut delete_builder =
+                QueryBuilder::<Sqlite>::new(format!("DELETE FROM {table} WHERE namespace = "));
+            delete_builder.push_bind(&scope.namespace);
+            delete_builder.push(" AND id IN (");
+            let mut separated = delete_builder.separated(", ");
+            for id in &ids {
+                separated.push_bind(id);
+            }
+            separated.push_unseparated(")");
+            delete_builder.build().execute(&mut *tx).await?;
         }
         tx.commit().await?;
-        Ok(rows.len() as u64)
+        Ok(ids.len() as u64)
     }
 
     async fn search(&self, query: &SearchQuery) -> Result<SearchResponse> {
@@ -341,10 +345,14 @@ fn push_query_filters<'a>(builder: &mut QueryBuilder<'a, Sqlite>, query: &'a Sea
     for (key, value) in &query.labels {
         builder
             .push(" AND json_extract(d.labels_json, ")
-            .push_bind(format!("$.{key}"))
+            .push_bind(sqlite_json_label_path(key))
             .push(") = ")
             .push_bind(value);
     }
+}
+
+fn sqlite_json_label_path(key: &str) -> String {
+    format!("$.{}", serde_json::to_string(key).unwrap_or_default())
 }
 
 fn push_delete_filters<'a>(builder: &mut QueryBuilder<'a, Sqlite>, scope: &'a DeleteScope) {
@@ -450,6 +458,7 @@ mod tests {
         let store = SqliteDocumentStore::new(&url).await.unwrap();
         let mut labels = HashMap::new();
         labels.insert("tier".to_string(), "gold".to_string());
+        labels.insert("talon.io/agent".to_string(), "support".to_string());
         let document = Document {
             id: "doc-1".to_string(),
             namespace: "acme".to_string(),
@@ -486,9 +495,12 @@ mod tests {
                 namespaces: vec!["acme".to_string()],
                 resource_kinds: vec!["SessionMessage".to_string()],
                 agent: "support".to_string(),
-                labels: [("tier".to_string(), "gold".to_string())]
-                    .into_iter()
-                    .collect(),
+                labels: [
+                    ("tier".to_string(), "gold".to_string()),
+                    ("talon.io/agent".to_string(), "support".to_string()),
+                ]
+                .into_iter()
+                .collect(),
                 limit: 10,
                 ..Default::default()
             })
