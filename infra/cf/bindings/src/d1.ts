@@ -75,7 +75,8 @@ export async function handleD1(request: Request, env: TalonCfBindingsEnv): Promi
   let payload: D1ExecuteRequest | undefined;
   try {
     payload = await body<D1ExecuteRequest>(request);
-    const statement = env.TALON_D1.prepare(payload.sql).bind(...(payload.params ?? []).map(decodeParam));
+    const db = env.TALON_D1.withSession("first-primary");
+    const statement = db.prepare(payload.sql).bind(...(payload.params ?? []).map(decodeParam));
 
     if (payload.mode === "run") {
       const result = await statement.run();
