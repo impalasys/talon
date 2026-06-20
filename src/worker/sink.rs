@@ -607,7 +607,7 @@ impl PubSubSessionSink {
         }
     }
 
-    async fn maybe_flush_kv(&self, _current_text: String) {
+    async fn maybe_flush_kv(&self) {
         let should_flush = {
             let mut last = self.last_flush.lock().unwrap();
             if last.elapsed().as_millis() > 1000 {
@@ -766,16 +766,15 @@ impl ExecutionSink for PubSubSessionSink {
     async fn on_token(&self, token: &str) {
         *self.input_token_chunks.lock().unwrap() += 1;
         *self.input_token_chars.lock().unwrap() += token.len();
-        let current_text = {
+        {
             let mut acc = self.accumulated.lock().unwrap();
             acc.push_str(token);
-            acc.clone()
-        };
+        }
         self.pending_token_event_buffer
             .lock()
             .unwrap()
             .push_str(token);
-        self.maybe_flush_kv(current_text).await;
+        self.maybe_flush_kv().await;
         if self.should_flush_token_event() {
             self.flush_token_event_buffer().await;
         }

@@ -413,6 +413,31 @@ impl WorkerEventHandler {
             let committed_message_id = committed_message_id
                 .filter(|id| !id.is_empty())
                 .ok_or_else(|| anyhow!("COMMITTED journal entry is missing message id"))?;
+            let committed_message_key = crate::control::keys::session_message(
+                ns,
+                &event.agent,
+                &event.session_id,
+                &committed_message_id,
+            );
+            if let Some(mut message) = self
+                .cp
+                .kv
+                .get_msg::<data_proto::SessionMessage>(&committed_message_key)
+                .await?
+            {
+                if message
+                    .labels
+                    .get("talon.session.projection_state")
+                    .map(String::as_str)
+                    != Some("committed")
+                {
+                    message.labels.insert(
+                        "talon.session.projection_state".to_string(),
+                        "committed".to_string(),
+                    );
+                    self.cp.kv.set_msg(&committed_message_key, &message).await?;
+                }
+            }
             sessions::mark_terminal(
                 self.cp.kv.as_ref(),
                 ns,
@@ -1591,7 +1616,10 @@ mod tests {
                 id: "user-1-assistant".to_string(),
                 role: data_proto::MessageRole::RoleAssistant as i32,
                 created_at: 124,
-                labels: HashMap::new(),
+                labels: HashMap::from([(
+                    "talon.session.projection_state".to_string(),
+                    "complete_uncommitted".to_string(),
+                )]),
                 parts: vec![data_proto::SessionMessagePart {
                     id: "000000".to_string(),
                     part_type: data_proto::SessionMessagePartType::Text as i32,
@@ -1657,6 +1685,23 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(messages.len(), 1);
+        let assistant_message = kv
+            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "user-1-assistant",
+            ))
+            .await
+            .unwrap()
+            .expect("committed assistant message should remain readable");
+        assert_eq!(
+            assistant_message
+                .labels
+                .get("talon.session.projection_state")
+                .map(String::as_str),
+            Some("committed")
+        );
         let submission = kv
             .get_msg::<crate::harness::sessions::SessionSubmission>(
                 &crate::control::keys::session_submission(
