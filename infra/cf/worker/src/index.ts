@@ -210,6 +210,7 @@ export class GatewayContainer extends Container<Env> {
   defaultPort = 50052;
   requiredPorts = [50051, 50052];
   enableInternet = true;
+  entrypoint = ["talon-server"];
   envVars = {
     ...FORWARDED_WORKER_ENV,
     GRPC_ADDR: "0.0.0.0:50051",
@@ -238,6 +239,7 @@ export class WorkerContainer extends Container<Env> {
 export class EnvoyContainer extends Container<Env> {
   defaultPort = 8081;
   enableInternet = false;
+  entrypoint = ["/usr/local/bin/talon-envoy-entrypoint", "envoy", "-c", "/tmp/envoy.yaml"];
   envVars = {
     TALON_ENVOY_GATEWAY_GRPC_HOST: "gateway.internal",
     TALON_ENVOY_GATEWAY_HTTP_HOST: "gateway.internal",
