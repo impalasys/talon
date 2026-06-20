@@ -297,6 +297,21 @@ impl GrpcGatewayHandler {
             )));
         }
 
+        let usage_subject = crate::control::usage::UsageSubject {
+            namespace: req.ns.clone(),
+            agent: req.agent.clone(),
+            provider: String::new(),
+            model: String::new(),
+        };
+        crate::control::usage::check_namespace_usage(
+            self.gateway.kv.as_ref(),
+            &usage_subject,
+            &[crate::control::usage::METRIC_AGENT_SESSIONS],
+            chrono::Utc::now().timestamp(),
+        )
+        .await
+        .map_err(|e| tonic::Status::resource_exhausted(e.to_string()))?;
+
         // Use ULID (UUID v7 gives time-sorted guarantees like ULID)
         let session_id = uuid::Uuid::now_v7().to_string();
 
@@ -318,6 +333,17 @@ impl GrpcGatewayHandler {
             .set_msg(&session_db_key, &session)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to save session state: {}", e)))?;
+        crate::control::usage::charge_namespace_usage(
+            self.gateway.kv.as_ref(),
+            &usage_subject,
+            &[crate::control::usage::UsageCharge {
+                metric: crate::control::usage::METRIC_AGENT_SESSIONS,
+                delta: 1,
+            }],
+            chrono::Utc::now().timestamp(),
+        )
+        .await
+        .map_err(|e| tonic::Status::internal(format!("Failed to charge session usage: {}", e)))?;
 
         let event = events::LifecycleEvent {
             resource_type: "Session".to_string(),

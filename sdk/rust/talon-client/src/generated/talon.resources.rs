@@ -949,6 +949,74 @@ pub struct Skill {
     #[prost(message, optional, tag = "3")]
     pub status: ::core::option::Option<CommonResourceStatus>,
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UsageSelector {
+    #[prost(string, tag = "1")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub provider: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub model: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UsageLimit {
+    #[prost(message, optional, tag = "1")]
+    pub selector: ::core::option::Option<UsageSelector>,
+    #[prost(string, tag = "2")]
+    pub metric: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub max: u64,
+    #[prost(string, tag = "4")]
+    pub window: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UsagePolicySpec {
+    #[prost(string, tag = "1")]
+    pub namespace_scope: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "2")]
+    pub hard: ::prost::alloc::vec::Vec<UsageLimit>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UsageLimitStatus {
+    #[prost(message, optional, tag = "1")]
+    pub selector: ::core::option::Option<UsageSelector>,
+    #[prost(string, tag = "2")]
+    pub metric: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub max: u64,
+    #[prost(string, tag = "4")]
+    pub window: ::prost::alloc::string::String,
+    #[prost(int64, tag = "5")]
+    pub window_start: i64,
+    #[prost(int64, tag = "6")]
+    pub reset_at: i64,
+    #[prost(uint64, tag = "7")]
+    pub used: u64,
+    #[prost(uint64, tag = "8")]
+    pub remaining: u64,
+    #[prost(bool, tag = "9")]
+    pub exceeded: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UsagePolicyStatus {
+    #[prost(uint64, tag = "1")]
+    pub observed_generation: u64,
+    #[prost(string, tag = "2")]
+    pub phase: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "3")]
+    pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    #[prost(message, repeated, tag = "4")]
+    pub hard: ::prost::alloc::vec::Vec<UsageLimitStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UsagePolicy {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<UsagePolicySpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<UsagePolicyStatus>,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct WorkerSpec {}
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1029,7 +1097,7 @@ pub struct RawResourceStatus {
 pub struct ResourceSpec {
     #[prost(
         oneof = "resource_spec::Kind",
-        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 1000"
+        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
     )]
     pub kind: ::core::option::Option<resource_spec::Kind>,
 }
@@ -1073,6 +1141,8 @@ pub mod resource_spec {
         Sandbox(super::SandboxSpec),
         #[prost(message, tag = "50")]
         Worker(super::WorkerSpec),
+        #[prost(message, tag = "60")]
+        UsagePolicy(super::UsagePolicySpec),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceSpec),
     }
@@ -1081,7 +1151,7 @@ pub mod resource_spec {
 pub struct ResourceStatus {
     #[prost(
         oneof = "resource_status::Kind",
-        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 1000"
+        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
     )]
     pub kind: ::core::option::Option<resource_status::Kind>,
 }
@@ -1125,6 +1195,8 @@ pub mod resource_status {
         Sandbox(super::SandboxStatus),
         #[prost(message, tag = "50")]
         Worker(super::WorkerStatus),
+        #[prost(message, tag = "60")]
+        UsagePolicy(super::UsagePolicyStatus),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceStatus),
     }

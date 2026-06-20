@@ -18,6 +18,7 @@ pub mod scheduling;
 pub mod security;
 pub mod telemetry;
 pub mod topics;
+pub mod usage;
 
 use std::path::PathBuf;
 

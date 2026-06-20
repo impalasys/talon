@@ -542,6 +542,19 @@ pub async fn create_session_with_labels(
         .get_agent(ns, agent)
         .await?
         .ok_or_else(|| anyhow!("agent '{}' not found", agent))?;
+    let usage_subject = crate::control::usage::UsageSubject {
+        namespace: ns.to_string(),
+        agent: agent.to_string(),
+        provider: String::new(),
+        model: String::new(),
+    };
+    crate::control::usage::check_namespace_usage(
+        cp.kv.as_ref(),
+        &usage_subject,
+        &[crate::control::usage::METRIC_AGENT_SESSIONS],
+        chrono::Utc::now().timestamp(),
+    )
+    .await?;
     let session_id = uuid::Uuid::now_v7().to_string();
     let session = data_proto::Session {
         id: session_id.clone(),
@@ -556,6 +569,16 @@ pub async fn create_session_with_labels(
     cp.kv
         .set_msg(&keys::session(ns, agent, &session_id), &session)
         .await?;
+    crate::control::usage::charge_namespace_usage(
+        cp.kv.as_ref(),
+        &usage_subject,
+        &[crate::control::usage::UsageCharge {
+            metric: crate::control::usage::METRIC_AGENT_SESSIONS,
+            delta: 1,
+        }],
+        chrono::Utc::now().timestamp(),
+    )
+    .await?;
     tracing::info!(
         namespace = %ns,
         agent = %agent,

@@ -18,6 +18,7 @@ PROTO_SRCS=(
   proto/resources/sandboxes.proto
   proto/resources/sessions.proto
   proto/resources/skills.proto
+  proto/resources/usage.proto
   proto/resources/workers.proto
   proto/resources/resource.proto
   proto/harness/llm.proto
@@ -79,6 +80,7 @@ GO_OPTS=(
   "--go_opt=Mproto/resources/sandboxes.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/sessions.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/skills.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/usage.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/workers.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/harness/llm.proto=${GO_MODULE}/talon/harness"
@@ -100,6 +102,7 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/resources/sandboxes.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/sessions.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/skills.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/usage.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/workers.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/harness/llm.proto=${GO_MODULE}/talon/harness"

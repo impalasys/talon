@@ -23,6 +23,13 @@ use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 
 const DEFAULT_EXECUTION_TURN_LIMIT: usize = 25;
+const LLM_PREFLIGHT_METRICS: &[&str] = &[
+    crate::control::usage::METRIC_LLM_REQUESTS,
+    crate::control::usage::METRIC_LLM_INPUT_TOKENS,
+    crate::control::usage::METRIC_LLM_OUTPUT_TOKENS,
+    crate::control::usage::METRIC_LLM_REASONING_TOKENS,
+    crate::control::usage::METRIC_LLM_TOTAL_TOKENS,
+];
 
 fn tool_error_result(name: &str, error: &anyhow::Error) -> String {
     serde_json::json!({
@@ -350,6 +357,8 @@ impl ContextAssembler {
 
 pub struct AgentExecutor {
     pub llm: Arc<dyn LlmProvider>,
+    pub llm_provider_key: String,
+    pub llm_model: String,
     pub assembler: ContextAssembler,
     pub registry: Arc<tokio::sync::RwLock<ToolRegistry>>,
     pub config: Arc<Config>,
@@ -371,6 +380,8 @@ pub struct RegisteredMcpTool {
 impl AgentExecutor {
     pub fn new(
         llm: Arc<dyn LlmProvider>,
+        llm_provider_key: String,
+        llm_model: String,
         assembler: ContextAssembler,
         registry: Arc<tokio::sync::RwLock<ToolRegistry>>,
         config: Arc<Config>,
@@ -383,6 +394,8 @@ impl AgentExecutor {
     ) -> Self {
         Self::new_with_session(
             llm,
+            llm_provider_key,
+            llm_model,
             assembler,
             registry,
             config,
@@ -398,6 +411,8 @@ impl AgentExecutor {
 
     pub fn new_with_session(
         llm: Arc<dyn LlmProvider>,
+        llm_provider_key: String,
+        llm_model: String,
         assembler: ContextAssembler,
         registry: Arc<tokio::sync::RwLock<ToolRegistry>>,
         config: Arc<Config>,
@@ -411,6 +426,8 @@ impl AgentExecutor {
     ) -> Self {
         Self {
             llm,
+            llm_provider_key,
+            llm_model,
             assembler,
             registry,
             config,
@@ -474,6 +491,14 @@ impl AgentExecutor {
             let mut final_usage: Option<ChatUsage> = None;
             let thinking = resolve_model_profile(self.agent_spec.model_policy.as_ref())
                 .and_then(|model| model.thinking.clone());
+            let usage_subject = self.usage_subject();
+            crate::control::usage::check_namespace_usage(
+                self.control_plane.kv.as_ref(),
+                &usage_subject,
+                LLM_PREFLIGHT_METRICS,
+                chrono::Utc::now().timestamp(),
+            )
+            .await?;
             let mut stream = self
                 .llm
                 .stream_chat_completion(ChatRequest {
@@ -556,6 +581,13 @@ impl AgentExecutor {
                 usage: final_usage,
             };
             sink.on_llm_response(&llm_response).await?;
+            crate::control::usage::charge_namespace_usage(
+                self.control_plane.kv.as_ref(),
+                &usage_subject,
+                &crate::control::usage::llm_usage_charges(llm_response.usage.as_ref()),
+                chrono::Utc::now().timestamp(),
+            )
+            .await?;
 
             // Record assistant turn
             let mut assistant_message = LoopMessage::text("assistant", final_reply.clone());
@@ -569,10 +601,27 @@ impl AgentExecutor {
             if !tool_calls.is_empty() {
                 for tool in &tool_calls {
                     let input = Self::tool_call_input(tool);
+                    crate::control::usage::check_namespace_usage(
+                        self.control_plane.kv.as_ref(),
+                        &self.usage_subject(),
+                        &[crate::control::usage::METRIC_TOOL_CALLS],
+                        chrono::Utc::now().timestamp(),
+                    )
+                    .await?;
                     sink.on_tool_call(&tool.id, &tool.name, &input).await;
                     let result = self.execute_tool_call_result(tool).await;
                     sink.on_tool_result_recorded(&tool.id, &tool.name, &result)
                         .await?;
+                    crate::control::usage::charge_namespace_usage(
+                        self.control_plane.kv.as_ref(),
+                        &self.usage_subject(),
+                        &[crate::control::usage::UsageCharge {
+                            metric: crate::control::usage::METRIC_TOOL_CALLS,
+                            delta: 1,
+                        }],
+                        chrono::Utc::now().timestamp(),
+                    )
+                    .await?;
                     sink.on_tool_result(&tool.id, &tool.name, &result).await;
                     context.push(tool_result_loop_message(&tool.id, &result));
                 }
@@ -592,6 +641,15 @@ impl AgentExecutor {
 
     pub fn tool_call_input(tool: &ToolCall) -> Value {
         serde_json::from_str(&tool.arguments).unwrap_or(Value::Null)
+    }
+
+    fn usage_subject(&self) -> crate::control::usage::UsageSubject {
+        crate::control::usage::UsageSubject {
+            namespace: self.namespace.clone(),
+            agent: self.agent_id.clone(),
+            provider: self.llm_provider_key.clone(),
+            model: self.llm_model.clone(),
+        }
     }
 
     async fn execute_tool_call_result(&self, tool: &ToolCall) -> String {
@@ -865,6 +923,8 @@ mod tests {
         let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
         let executor = AgentExecutor::new(
             llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
             ContextAssembler::new("."),
             registry,
             Arc::new(Config::default()),
@@ -961,6 +1021,8 @@ mod tests {
         );
         let executor = AgentExecutor::new(
             llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
             ContextAssembler::new("."),
             registry.clone(),
             Arc::new(Config::default()),
@@ -1049,6 +1111,8 @@ mod tests {
         let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
         let executor = AgentExecutor::new(
             llm,
+            "test-provider".to_string(),
+            "test-model".to_string(),
             ContextAssembler::new("."),
             registry,
             Arc::new(Config::default()),
@@ -1143,6 +1207,8 @@ mod tests {
         let knowledge = Arc::new(RecordingKnowledgeBook::default());
         let executor = AgentExecutor::new(
             Arc::new(RecordingLlmProvider::default()),
+            "test-provider".to_string(),
+            "test-model".to_string(),
             ContextAssembler::new("."),
             Arc::new(tokio::sync::RwLock::new(ToolRegistry::new())),
             Arc::new(Config::default()),

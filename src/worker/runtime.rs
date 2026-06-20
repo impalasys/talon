@@ -240,7 +240,9 @@ impl AgentRuntime {
 
         // 5. Build executor
         let executor = AgentExecutor::new_with_session(
-            llm,
+            llm.provider,
+            llm.provider_key,
+            llm.model,
             ContextAssembler::new("."),
             registry,
             Arc::new(config.clone()),

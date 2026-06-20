@@ -9,6 +9,12 @@ use crate::control::config::Config;
 use crate::gateway::rpc::manifests::{self, AgentSpec};
 use crate::harness::llm::LlmProvider;
 
+pub struct ResolvedLlm {
+    pub provider: Arc<dyn LlmProvider + Send + Sync>,
+    pub provider_key: String,
+    pub model: String,
+}
+
 pub fn resolve_model_profile(policy: Option<&manifests::ModelPolicy>) -> Option<&manifests::Model> {
     policy
         .and_then(|policy| {
@@ -32,10 +38,7 @@ pub fn resolve_model_profile(policy: Option<&manifests::ModelPolicy>) -> Option<
 ///   2. Config's default_provider
 /// Returns an error when the selected provider is missing, unsupported, or
 /// cannot resolve its credentials.
-pub async fn resolve_llm(
-    spec: &AgentSpec,
-    config: &Config,
-) -> Result<Arc<dyn LlmProvider + Send + Sync>> {
+pub async fn resolve_llm(spec: &AgentSpec, config: &Config) -> Result<ResolvedLlm> {
     let selected_model = resolve_model_profile(spec.model_policy.as_ref());
     let spec_provider = selected_model.map(|m| m.provider.as_str());
     let spec_model = selected_model.map(|m| m.name.as_str());
@@ -75,11 +78,15 @@ pub async fn resolve_llm(
                 .unwrap_or(&openai.model)
                 .to_string();
 
-            Ok(Arc::new(
-                crate::harness::llm::openai::OpenAiCompatibleProvider::new(
-                    api_key, base_url, model,
-                ),
-            ))
+            Ok(ResolvedLlm {
+                provider: Arc::new(crate::harness::llm::openai::OpenAiCompatibleProvider::new(
+                    api_key,
+                    base_url,
+                    model.clone(),
+                )),
+                provider_key: provider_name.to_string(),
+                model,
+            })
         }
         Some(crate::control::config::proto::llm_provider_config::Config::Anthropic(anthropic)) => {
             let api_key = anthropic
@@ -94,9 +101,14 @@ pub async fn resolve_llm(
                 .unwrap_or(&anthropic.model)
                 .to_string();
 
-            Ok(Arc::new(
-                crate::harness::llm::anthropic::AnthropicProvider::new(api_key, model),
-            ))
+            Ok(ResolvedLlm {
+                provider: Arc::new(crate::harness::llm::anthropic::AnthropicProvider::new(
+                    api_key,
+                    model.clone(),
+                )),
+                provider_key: provider_name.to_string(),
+                model,
+            })
         }
         Some(crate::control::config::proto::llm_provider_config::Config::OpenaiCompatible(
             generic,
@@ -122,11 +134,15 @@ pub async fn resolve_llm(
                 .unwrap_or(&generic.model)
                 .to_string();
 
-            Ok(Arc::new(
-                crate::harness::llm::openai::OpenAiCompatibleProvider::new(
-                    api_key, base_url, model,
-                ),
-            ))
+            Ok(ResolvedLlm {
+                provider: Arc::new(crate::harness::llm::openai::OpenAiCompatibleProvider::new(
+                    api_key,
+                    base_url,
+                    model.clone(),
+                )),
+                provider_key: provider_name.to_string(),
+                model,
+            })
         }
         Some(crate::control::config::proto::llm_provider_config::Config::Google(_)) => {
             Err(anyhow!(
@@ -285,7 +301,9 @@ mod tests {
         );
         let spec = spec_with_default_model("secondary", "spec-model");
         let llm = resolve_llm(&spec, &config).await.unwrap();
-        let response = llm.completion("ping").await.unwrap();
+        assert_eq!(llm.provider_key, "secondary");
+        assert_eq!(llm.model, "spec-model");
+        let response = llm.provider.completion("ping").await.unwrap();
         assert_eq!(response, "resolved via spec provider");
 
         server.abort();
@@ -326,7 +344,9 @@ mod tests {
         let llm = resolve_llm(&manifests::AgentSpec::default(), &config)
             .await
             .unwrap();
-        let response = llm.completion("ping").await.unwrap();
+        assert_eq!(llm.provider_key, "primary");
+        assert_eq!(llm.model, "config-model");
+        let response = llm.provider.completion("ping").await.unwrap();
         assert_eq!(response, "resolved via env override");
 
         unsafe {

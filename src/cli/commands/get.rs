@@ -162,6 +162,12 @@ fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<Resour
             ns: ns_or_default(),
             kind: Some("Sandbox".to_string()),
         }),
+        "usagepolicy" | "usagepolicies" | "usage-policy" | "usage-policies" => {
+            Ok(ResourceListTarget::Resources {
+                ns: ns_or_default(),
+                kind: Some("UsagePolicy".to_string()),
+            })
+        }
         other => anyhow::bail!("Unsupported resource kind '{}'", other),
     }
 }
@@ -403,6 +409,7 @@ fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String>
         StatusKind::Deployment(status) => Some(status.phase.clone()),
         StatusKind::DeploymentReplica(status) => Some(status.phase.clone()),
         StatusKind::Sandbox(status) => Some(status.phase.clone()),
+        StatusKind::UsagePolicy(status) => Some(status.phase.clone()),
         StatusKind::Raw(status) => serde_json::from_str::<serde_json::Value>(&status.json)
             .ok()
             .and_then(|value| {
