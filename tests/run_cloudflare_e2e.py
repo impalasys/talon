@@ -13,6 +13,7 @@ from e2e import scenarios as e2e
 
 
 BASE_URL = os.environ.get("TALON_CLOUDFLARE_URL", "http://127.0.0.1:8787").rstrip("/")
+D1_URL = os.environ.get("TALON_CLOUDFLARE_D1_URL", "http://talon-d1.internal:8787").rstrip()
 SIGHTLINE_ORIGIN = os.environ.get(
     "TALON_CLOUDFLARE_CORS_ORIGIN", "https://sightline.impala.systems"
 )
@@ -30,6 +31,54 @@ def request(method, path, *, headers=None):
     with urllib.request.urlopen(req, timeout=15) as response:
         headers = {key.lower(): value for key, value in response.headers.items()}
         return response.status, headers, response.read().decode()
+
+
+def d1_execute(payload):
+    data = json.dumps(payload).encode()
+    req = urllib.request.Request(
+        f"{D1_URL}/execute",
+        data=data,
+        method="POST",
+        headers={"content-type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=15) as response:
+        return json.loads(response.read().decode())
+
+
+def d1_cell_value(cell):
+    kind = cell.get("type")
+    if kind == "null":
+        return None
+    if kind == "bytes":
+        return cell.get("valueBase64", "")
+    return cell.get("value")
+
+
+def dump_kv_keys():
+    try:
+        result = d1_execute(
+            {
+                "mode": "all",
+                "sql": """
+                    SELECT
+                        namespace,
+                        parent_path,
+                        kind,
+                        name,
+                        length(value) AS value_len
+                    FROM talon_kv_store
+                    ORDER BY namespace, parent_path, kind, name
+                """,
+                "params": [],
+            }
+        )
+        rows = result.get("results", [])
+        print(f"Cloudflare D1 talon_kv_store keys ({len(rows)} rows):", file=sys.stderr)
+        for row in rows:
+            decoded = {key: d1_cell_value(value) for key, value in row.items()}
+            print(json.dumps(decoded, sort_keys=True), file=sys.stderr)
+    except Exception as err:
+        print(f"Could not dump Cloudflare D1 KV keys: {err}", file=sys.stderr)
 
 
 def wait_for_health():
@@ -193,4 +242,5 @@ if __name__ == "__main__":
         main()
     except Exception as err:
         print(f"Cloudflare Talon E2E failed: {err}", file=sys.stderr)
+        dump_kv_keys()
         raise
