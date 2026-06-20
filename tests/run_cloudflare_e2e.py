@@ -14,7 +14,6 @@ from e2e import scenarios as e2e
 
 BASE_URL = os.environ.get("TALON_CLOUDFLARE_URL", "http://127.0.0.1:8787").rstrip("/")
 D1_URL = os.environ.get("TALON_CLOUDFLARE_D1_URL", "http://talon-d1.internal:8787").rstrip()
-ENVOY_URL = os.environ.get("TALON_CLOUDFLARE_ENVOY_URL", "http://envoy:8081").rstrip()
 SIGHTLINE_ORIGIN = os.environ.get(
     "TALON_CLOUDFLARE_CORS_ORIGIN", "https://sightline.impala.systems"
 )
@@ -189,42 +188,6 @@ def describe_agent_visibility(namespace, agent):
     return "; ".join(details)
 
 
-def describe_session_create_route(namespace, agent):
-    path = (
-        f"/v1/ns/{urllib.parse.quote(namespace, safe='')}/agents/"
-        f"{urllib.parse.quote(agent, safe='')}/sessions"
-    )
-    payload = json.dumps(
-        {
-            "ns": namespace,
-            "agent": agent,
-            "labels": {"talon.e2e.diagnostic": "true"},
-        }
-    ).encode()
-    details = []
-    for label, base_url in (("worker", BASE_URL), ("envoy", ENVOY_URL)):
-        try:
-            status, headers, body = request(
-                "POST",
-                path,
-                base_url=base_url,
-                headers={"content-type": "application/json"},
-                data=payload,
-            )
-            details.append(
-                f"{label}=HTTP {status} grpc-status={headers.get('grpc-status')} body={body[:300]}"
-            )
-        except urllib.error.HTTPError as err:
-            body = err.read().decode(errors="replace")
-            headers = {key.lower(): value for key, value in err.headers.items()}
-            details.append(
-                f"{label}=HTTP {err.code} grpc-status={headers.get('grpc-status')} body={body[:300]}"
-            )
-        except Exception as err:
-            details.append(f"{label}=error {err}")
-    return "; ".join(details)
-
-
 def main():
     wait_for_health()
     check_cors_preflight()
@@ -253,11 +216,7 @@ def main():
         session_id = e2e.session_create(cli, namespace, agent)
     except Exception as err:
         visibility = describe_agent_visibility(namespace, agent)
-        route = describe_session_create_route(namespace, agent)
-        raise RuntimeError(
-            f"{err}; agent visibility after session-create failure: {visibility}; "
-            f"session create route diagnostics: {route}"
-        ) from err
+        raise RuntimeError(f"{err}; agent visibility after session-create failure: {visibility}") from err
     e2e.session_send(
         cli,
         namespace,
