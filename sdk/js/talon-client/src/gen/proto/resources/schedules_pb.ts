@@ -359,4 +359,3 @@ export class Schedule extends Message<Schedule> {
     return proto3.util.equals(Schedule, a, b);
   }
 }
-

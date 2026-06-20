@@ -531,4 +531,3 @@ export class ResourceStatus extends Message<ResourceStatus> {
     return proto3.util.equals(ResourceStatus, a, b);
   }
 }
-

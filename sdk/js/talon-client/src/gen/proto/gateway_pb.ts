@@ -2698,4 +2698,3 @@ export class ListNamespacesResponse extends Message<ListNamespacesResponse> {
     return proto3.util.equals(ListNamespacesResponse, a, b);
   }
 }
-

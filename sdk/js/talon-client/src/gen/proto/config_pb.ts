@@ -1135,4 +1135,3 @@ export class ServerConfig extends Message<ServerConfig> {
     return proto3.util.equals(ServerConfig, a, b);
   }
 }
-

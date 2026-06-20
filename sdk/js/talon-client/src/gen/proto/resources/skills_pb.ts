@@ -98,4 +98,3 @@ export class Skill extends Message<Skill> {
     return proto3.util.equals(Skill, a, b);
   }
 }
-

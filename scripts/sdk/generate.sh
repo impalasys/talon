@@ -214,6 +214,18 @@ PATH="$NPM_BIN:$PATH" "$PROTOC" -I. -Ithird_party/googleapis \
   "${PROTO_SRCS[@]}" \
   google/api/http.proto \
   google/api/annotations.proto
+python3 - <<'PY'
+from pathlib import Path
+
+root = Path("sdk/js/talon-client/src/gen")
+for path in root.rglob("*.ts"):
+    source = path.read_text()
+    lines = [line.rstrip() for line in source.splitlines()]
+    while lines and lines[-1] == "":
+        lines.pop()
+    stripped = "\n".join(lines)
+    path.write_text(stripped + "\n")
+PY
 
 PYTHON_CODEGEN="${PYTHON_CODEGEN:-python3}"
 PY_TOOLS="$ROOT/.tools/python-codegen"

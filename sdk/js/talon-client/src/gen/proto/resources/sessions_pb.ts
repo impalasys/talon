@@ -173,4 +173,3 @@ export class SessionStatus extends Message<SessionStatus> {
     return proto3.util.equals(SessionStatus, a, b);
   }
 }
-

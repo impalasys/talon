@@ -695,4 +695,3 @@ export class ResourceChangedEvent extends Message<ResourceChangedEvent> {
     return proto3.util.equals(ResourceChangedEvent, a, b);
   }
 }
-

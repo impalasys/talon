@@ -390,4 +390,3 @@ export class WorkflowStatus extends Message<WorkflowStatus> {
     return proto3.util.equals(WorkflowStatus, a, b);
   }
 }
-
