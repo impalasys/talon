@@ -14,7 +14,7 @@ sed \
   /etc/envoy/envoy.yaml.template > /tmp/envoy.yaml
 
 if [ "$#" -eq 0 ]; then
-  set -- envoy -c /tmp/envoy.yaml
+  set -- envoy --disable-hot-restart -c /tmp/envoy.yaml
 fi
 
 exec "$@"

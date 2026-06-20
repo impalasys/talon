@@ -27,4 +27,4 @@ COPY dockerfiles/talon-envoy-entrypoint.sh /usr/local/bin/talon-envoy-entrypoint
 RUN chmod +x /usr/local/bin/talon-envoy-entrypoint
 
 ENTRYPOINT ["/usr/local/bin/talon-envoy-entrypoint"]
-CMD ["envoy", "-c", "/tmp/envoy.yaml"]
+CMD ["envoy", "--disable-hot-restart", "-c", "/tmp/envoy.yaml"]
