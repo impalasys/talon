@@ -325,7 +325,6 @@ export class GatewayContainer extends Container<Env> {
   entrypoint = GATEWAY_CONTAINER_DEFAULT_START_OPTIONS.entrypoint;
   // Rust processes call internal hostnames during bootstrap; install outbound handlers before start().
   usingInterception = true;
-  static outboundByHost = outboundByHost;
 }
 
 export class WorkerContainer extends Container<Env> {
@@ -334,7 +333,6 @@ export class WorkerContainer extends Container<Env> {
   enableInternet = WORKER_CONTAINER_DEFAULT_START_OPTIONS.enableInternet;
   entrypoint = WORKER_CONTAINER_DEFAULT_START_OPTIONS.entrypoint;
   usingInterception = true;
-  static outboundByHost = outboundByHost;
 }
 
 export class EnvoyContainer extends Container<Env> {
@@ -344,8 +342,13 @@ export class EnvoyContainer extends Container<Env> {
   entrypoint = ENVOY_CONTAINER_DEFAULT_START_OPTIONS.entrypoint;
   envVars = ENVOY_CONTAINER_START_PROFILE.startOptions.envVars;
   usingInterception = true;
-  static outboundByHost = outboundByHost;
 }
+
+// Assign after class declarations so @cloudflare/containers' inherited static
+// setter registers these handlers for ContainerProxy.
+GatewayContainer.outboundByHost = outboundByHost;
+WorkerContainer.outboundByHost = outboundByHost;
+EnvoyContainer.outboundByHost = outboundByHost;
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
