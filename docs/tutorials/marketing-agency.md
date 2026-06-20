@@ -33,10 +33,10 @@ This tutorial stays inside real surfaces that exist in the repo. It does not pre
 ## 1. Apply the workspace resources
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/marketing-agency/namespace.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/marketing-agency/strategist-template.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/marketing-agency/campaign-writer.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/marketing-agency/campaign-reviewer.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/marketing-agency/namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/marketing-agency/strategist-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/marketing-agency/campaign-writer.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/marketing-agency/campaign-reviewer.yaml
 ```
 
 That creates:
@@ -49,7 +49,7 @@ That creates:
 ## 2. Sync the shared knowledge
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest knowledge sync \
+cargo run --bin talon-cli -- --gateway http://localhost:18789 knowledge sync \
   --namespace marketing-agency \
   --dir manifests/examples/marketing-agency/knowledge
 ```

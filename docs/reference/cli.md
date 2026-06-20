@@ -11,7 +11,7 @@ sidebar_position: 2
 - `--password`: basic-auth password
 - `--token`: bearer token
 - `--jwt-secret`: shared JWT secret for short-lived admin tokens
-- `--rest`: use HTTP-transcoded endpoints instead of native gRPC
+- `--grpc-web`: use gRPC-Web over HTTP/1.1 instead of native gRPC
 
 ## Commands
 
@@ -55,17 +55,8 @@ Delete a resource by kind, name, and optional namespace.
 
 Generate a TypeScript client SDK from manifest files.
 
-## When to use `--rest`
-
-Use `--rest` when you want to exercise the HTTP-transcoded surface instead of native gRPC.
-
-That is useful for:
-
-- verifying Envoy route behavior
-- debugging HTTP clients
-- matching the public edge surface more closely
-
 ## Notes
 
 - The CLI is best thought of as an operator/admin tool, not the only integration surface.
-- For service-to-service integrations, prefer the gateway contracts directly.
+- The CLI talks to the gateway RPC surface directly. Use native gRPC by default, and `--grpc-web` for Cloudflare-backed gateways that do not expose native gRPC.
+- For service-to-service integrations, prefer the generated gateway contracts directly.

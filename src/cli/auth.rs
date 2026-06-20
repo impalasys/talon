@@ -4,20 +4,10 @@
 use anyhow::{Context, Result};
 use base64::Engine;
 use jsonwebtoken::{EncodingKey, Header};
-use reqwest::header::AUTHORIZATION;
 use serde::{Deserialize, Serialize};
-use tonic::metadata::MetadataValue;
-use tonic::service::Interceptor;
-use tonic::{Request, Status};
-
-use crate::gateway::rpc::proto::gateway_service_client::GatewayServiceClient;
+use talon_client::{GatewayClientOptions, GatewayTransport, TalonGatewayClient};
 
 use super::commands::Cli;
-
-#[derive(Clone)]
-pub(crate) struct AuthInterceptor {
-    authorization: Option<MetadataValue<tonic::metadata::Ascii>>,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CliClaims {
@@ -32,15 +22,6 @@ struct CliClaims {
     session: Option<String>,
     #[serde(rename = "talon:channel", skip_serializing_if = "Option::is_none")]
     channel: Option<String>,
-}
-
-impl Interceptor for AuthInterceptor {
-    fn call(&mut self, mut req: Request<()>) -> std::result::Result<Request<()>, Status> {
-        if let Some(auth) = &self.authorization {
-            req.metadata_mut().insert("authorization", auth.clone());
-        }
-        Ok(req)
-    }
 }
 
 pub(crate) fn resolve_gateway_password(cli: &Cli) -> Option<String> {
@@ -183,53 +164,7 @@ pub(crate) fn mint_channel_jwt(
     .context("Failed to sign Talon channel JWT")
 }
 
-pub(crate) fn auth_interceptor(cli: &Cli) -> Result<AuthInterceptor> {
-    let authorization = if let Some(token) = resolve_gateway_token(cli) {
-        Some(
-            MetadataValue::try_from(format!("Bearer {}", token))
-                .context("Failed to encode bearer authorization header")?,
-        )
-    } else if let Some(secret) = resolve_gateway_jwt_secret(cli) {
-        let token = mint_gateway_jwt(&secret)?;
-        Some(
-            MetadataValue::try_from(format!("Bearer {}", token))
-                .context("Failed to encode JWT authorization header")?,
-        )
-    } else {
-        resolve_gateway_password(cli)
-            .map(|password| {
-                let token =
-                    base64::engine::general_purpose::STANDARD.encode(format!(":{}", password));
-                MetadataValue::try_from(format!("Basic {}", token))
-            })
-            .transpose()
-            .context("Failed to encode basic authorization header")?
-    };
-
-    Ok(AuthInterceptor { authorization })
-}
-
-pub(crate) async fn connect_gateway(
-    cli: &Cli,
-) -> Result<
-    GatewayServiceClient<
-        tonic::service::interceptor::InterceptedService<tonic::transport::Channel, AuthInterceptor>,
-    >,
-> {
-    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-        .connect_timeout(std::time::Duration::from_secs(5))
-        .timeout(std::time::Duration::from_secs(30))
-        .connect()
-        .await
-        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
-    Ok(GatewayServiceClient::with_interceptor(
-        channel,
-        auth_interceptor(cli)?,
-    ))
-}
-
-pub(crate) fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
+fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
     if let Some(token) = resolve_gateway_token(cli) {
         Ok(Some(format!("Bearer {}", token)))
     } else if let Some(secret) = resolve_gateway_jwt_secret(cli) {
@@ -243,17 +178,22 @@ pub(crate) fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> 
     }
 }
 
-pub(crate) fn rest_client(cli: &Cli) -> Result<reqwest::Client> {
-    let mut headers = reqwest::header::HeaderMap::new();
-    if let Some(auth) = resolve_authorization_header(cli)? {
-        headers.insert(
-            AUTHORIZATION,
-            reqwest::header::HeaderValue::from_str(&auth)
-                .context("Failed to encode REST authorization header")?,
-        );
-    }
-    reqwest::Client::builder()
-        .default_headers(headers)
-        .build()
-        .context("Failed to build REST client")
+fn grpc_web_enabled(cli: &Cli) -> bool {
+    cli.grpc_web
+        || std::env::var("TALON_GRPC_WEB")
+            .map(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
+            .unwrap_or(false)
+}
+
+pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonGatewayClient> {
+    let mut options = GatewayClientOptions::new(cli.gateway.clone());
+    options.transport = if grpc_web_enabled(cli) {
+        GatewayTransport::GrpcWeb
+    } else {
+        GatewayTransport::Grpc
+    };
+    options.authorization = resolve_authorization_header(cli)?;
+    TalonGatewayClient::connect_with_options(options)
+        .await
+        .map_err(|err| anyhow::anyhow!("Could not connect to gateway at {}: {}", cli.gateway, err))
 }

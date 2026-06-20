@@ -50,9 +50,9 @@ Open Sightline at `http://localhost:3000` and connect it to `http://localhost:18
 Apply the example manifests one by one:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/namespace.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/support-docs-template.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/support-docs-agent.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/chatgpt-app/namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/chatgpt-app/support-docs-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/chatgpt-app/support-docs-agent.yaml
 ```
 
 ## 3. Load the product docs as knowledge
@@ -60,7 +60,7 @@ cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f ma
 Sync the tutorial knowledge into the namespace:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest knowledge sync \
+cargo run --bin talon-cli -- --gateway http://localhost:18789 knowledge sync \
   --namespace chatgpt-app \
   --dir manifests/examples/chatgpt-app/knowledge
 ```
@@ -68,7 +68,7 @@ cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest knowledge s
 Verify one document loaded:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest knowledge get \
+cargo run --bin talon-cli -- --gateway http://localhost:18789 knowledge get \
   --namespace chatgpt-app \
   --path product-docs.md
 ```

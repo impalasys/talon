@@ -72,6 +72,7 @@ google-cloud-pubsub = "0.25.0"
 google-cloud-googleapis = { version = "0.13.0", features = ["pubsub"] }
 clap = { version = "4.6.0", features = ["derive"] }
 tokio-util = "0.7.18"
+talon-client = { path = "sdk/rust/talon-client" }
 
 [build-dependencies]
 prost-build = "0.13"

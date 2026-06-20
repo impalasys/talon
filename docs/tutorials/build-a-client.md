@@ -27,49 +27,48 @@ Use:
 - REST when you want straightforward CRUD with `curl` or ordinary HTTP clients
 - the UI session surface when you want a browser chat client like Sightline
 
-## Option 1: typed client with Connect
+## Option 1: typed client with the SDK
 
 The UI end-to-end tests already create namespaces, agents, and sessions through the gateway. The working example lives in `ui/e2e/chat.spec.ts`.
 
 The core flow is:
 
 ```ts
-import { createClient } from "@connectrpc/connect";
-import { createGrpcWebTransport } from "@connectrpc/connect-web";
-import { GatewayService } from "../proto/proto/gateway_pb";
+import { agents, common, createGatewayClient, gateway, resources } from "@impalasys/talon-client";
 
-const client = createClient(
-  GatewayService,
-  createGrpcWebTransport({ baseUrl: "http://127.0.0.1:18789" }),
-);
+const client = createGatewayClient("http://127.0.0.1:18789");
 
 await client.createNamespace({ name: "client-demo", recursive: true });
 
-await client.createAgent({
+await client.createResource(new gateway.CreateResourceRequest({
   ns: "client-demo",
-  name: "docs-agent",
-  definition: {
-    source: {
-      case: "customSpec",
-      value: {
-        systemPrompt: "Answer from the tutorial client.",
-        modelPolicy: {
-          profiles: [
-            {
-              name: "default",
-              model: { provider: "openai", name: "gpt-5.4-nano", temperature: 0.0 },
-            },
-          ],
-        },
+  manifest: new resources.ResourceManifest({
+    apiVersion: "talon.impalasys.com/v1",
+    kind: "Agent",
+    metadata: new common.ResourceMeta({ namespace: "client-demo", name: "docs-agent" }),
+    spec: new resources.ResourceSpec({
+      kind: {
+        case: "agent",
+        value: new agents.AgentSpec({
+          systemPrompt: "Answer from the tutorial client.",
+          modelPolicy: new agents.ModelPolicy({
+            profiles: [
+              new agents.ModelProfile({
+                name: "default",
+                model: new agents.Model({ provider: "openai", name: "gpt-5.4-nano", temperature: 0.0 }),
+              }),
+            ],
+          }),
+        }),
       },
-    },
-  },
-});
+    }),
+  }),
+}));
 
 const session = await client.createSession({ ns: "client-demo", agent: "docs-agent" });
 ```
 
-Use this path when Talon is one service inside a larger typed system.
+Use this path when Talon is one service inside a larger typed system. Browser clients use gRPC-Web through the SDK helper; backend services can use native gRPC.
 
 ## Option 2: CRUD with REST
 

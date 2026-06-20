@@ -23,6 +23,7 @@ FROM chef AS planner
 COPY Cargo.toml Cargo.lock build.rs ./
 COPY third_party ./third_party
 COPY proto ./proto
+COPY sdk/rust/talon-client ./sdk/rust/talon-client
 COPY src ./src
 COPY talon.yaml ./talon.yaml
 RUN cargo chef prepare --recipe-path recipe.json
@@ -30,6 +31,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS builder
 
 COPY --from=planner /usr/src/talon/recipe.json recipe.json
+COPY sdk/rust/talon-client ./sdk/rust/talon-client
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     cargo chef cook --release --features rocksdb --recipe-path recipe.json
@@ -37,6 +39,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 COPY Cargo.toml Cargo.lock build.rs ./
 COPY third_party ./third_party
 COPY proto ./proto
+COPY sdk/rust/talon-client ./sdk/rust/talon-client
 COPY src ./src
 COPY talon.yaml ./talon.yaml
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

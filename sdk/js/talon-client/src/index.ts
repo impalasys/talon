@@ -1,3 +1,11 @@
+import {
+  createPromiseClient,
+  type Interceptor,
+  type PromiseClient,
+  type Transport,
+} from "@connectrpc/connect";
+import { createGrpcWebTransport } from "@connectrpc/connect-web";
+
 export * as config from "./gen/proto/config_pb.js";
 export * as data from "./gen/proto/data/data_pb.js";
 export * as events from "./gen/proto/events_pb.js";
@@ -15,3 +23,28 @@ export * as sandboxes from "./gen/proto/resources/sandboxes_pb.js";
 export * as schedules from "./gen/proto/resources/schedules_pb.js";
 export * as sessions from "./gen/proto/resources/sessions_pb.js";
 export * as workflows from "./gen/proto/resources/workflows_pb.js";
+
+import { GatewayService } from "./gen/proto/gateway_connect.js";
+
+export type GatewayClient = PromiseClient<typeof GatewayService>;
+
+export type GatewayClientOptions = {
+  baseUrl: string;
+  fetch?: typeof globalThis.fetch;
+  interceptors?: Interceptor[];
+  useBinaryFormat?: boolean;
+};
+
+export function createGatewayTransport(options: GatewayClientOptions): Transport {
+  return createGrpcWebTransport({
+    baseUrl: options.baseUrl,
+    fetch: options.fetch,
+    interceptors: options.interceptors,
+    useBinaryFormat: options.useBinaryFormat,
+  });
+}
+
+export function createGatewayClient(options: string | GatewayClientOptions): GatewayClient {
+  const resolved = typeof options === "string" ? { baseUrl: options } : options;
+  return createPromiseClient(GatewayService, createGatewayTransport(resolved));
+}

@@ -75,7 +75,7 @@ EOF
 Apply it:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f /tmp/quickstart-namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f /tmp/quickstart-namespace.yaml
 ```
 
 ## 5. Create an agent directly
@@ -106,13 +106,13 @@ EOF
 Apply it:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f /tmp/quickstart-agent.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f /tmp/quickstart-agent.yaml
 ```
 
 Verify it exists:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest get agent hello-agent --namespace quickstart
+cargo run --bin talon-cli -- --gateway http://localhost:18789 get agent hello-agent --namespace quickstart
 ```
 
 ## 6. Create a session

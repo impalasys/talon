@@ -117,9 +117,9 @@ The convenience wrapper in [`run.sh`](./run.sh) does the same startup and also l
 ### Apply a namespace and agent
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/namespace.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/support-docs-template.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/support-docs-agent.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/chatgpt-app/namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/chatgpt-app/support-docs-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/chatgpt-app/support-docs-agent.yaml
 ```
 
 This is the core Talon loop in practice:
@@ -194,8 +194,8 @@ Common environment variables used by the runtime:
 Examples:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest get agent support-docs --namespace chatgpt-app
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest knowledge sync --namespace chatgpt-app --manifest manifests/examples/chatgpt-app/support-docs-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 get agent support-docs --namespace chatgpt-app
+cargo run --bin talon-cli -- --gateway http://localhost:18789 knowledge sync --namespace chatgpt-app --manifest manifests/examples/chatgpt-app/support-docs-template.yaml
 ```
 
 ## Development

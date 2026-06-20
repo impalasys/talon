@@ -196,7 +196,7 @@ def main():
     if not cli_binary:
         raise RuntimeError("talon-cli not found; set TALON_CLI or add it to PATH")
 
-    cli = TalonCli(cli_binary, BASE_URL, rest=True, timeout=180)
+    cli = TalonCli(cli_binary, BASE_URL, grpc_web=True, timeout=180)
     run_id = uuid.uuid4().hex[:8]
     namespace = f"talon-cf-{run_id}"
     agent = "cf-agent"
