@@ -7,7 +7,7 @@ use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{events, keys, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::data_proto;
 use crate::gateway::session_streams::{SessionStreamReceiver, SessionStreamTarget};
-use futures::Stream;
+use futures::{Stream, StreamExt};
 use prost::Message;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -15,6 +15,7 @@ use std::time::Duration;
 
 const SESSION_STREAM_LEASE_CHECK_MAX_MICROS: u64 = 5_000_000;
 const SESSION_STREAM_LEASE_CHECK_MIN_MICROS: u64 = 1_000_000;
+const SESSION_STREAM_LEASE_CHECK_CONCURRENCY: usize = 16;
 
 pub(super) type SessionPartEventStream = Pin<
     Box<
@@ -45,6 +46,7 @@ pub(super) fn session_parts_event_stream(
         let mut lease_check = tokio::time::interval(stream_session_lease_check_interval());
         lease_check.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
         lease_check.tick().await;
+        let mut lease_check_task: Option<tokio::task::JoinHandle<()>> = None;
 
         loop {
             tokio::select! {
@@ -55,26 +57,55 @@ pub(super) fn session_parts_event_stream(
                     yield event;
                 }
                 _ = lease_check.tick() => {
-                    for target in &targets {
-                        if let Err(err) = redispatch_expired_session_lease(
-                            kv.as_ref(),
-                            pubsub.as_ref(),
-                            target,
-                            chrono::Utc::now().timestamp_micros(),
-                        ).await {
-                            tracing::warn!(
-                                namespace = %target.ns,
-                                agent = %target.agent,
-                                session = %target.session_id,
-                                error = %err,
-                                "Failed to check session submission lease while streaming"
-                            );
-                        }
+                    if lease_check_task.as_ref().is_some_and(|task| task.is_finished()) {
+                        lease_check_task = None;
+                    }
+                    if lease_check_task.is_none() {
+                        lease_check_task = Some(tokio::spawn(check_session_leases(
+                            targets.clone(),
+                            kv.clone(),
+                            pubsub.clone(),
+                        )));
                     }
                 }
             }
         }
+        if let Some(task) = lease_check_task {
+            task.abort();
+        }
     })
+}
+
+async fn check_session_leases(
+    targets: Vec<SessionStreamTarget>,
+    kv: Arc<dyn KeyValueStore + Send + Sync>,
+    pubsub: Arc<dyn MessagePublisher + Send + Sync>,
+) {
+    let now_micros = chrono::Utc::now().timestamp_micros();
+    futures::stream::iter(targets)
+        .for_each_concurrent(SESSION_STREAM_LEASE_CHECK_CONCURRENCY, |target| {
+            let kv = kv.clone();
+            let pubsub = pubsub.clone();
+            async move {
+                if let Err(err) = redispatch_expired_session_lease(
+                    kv.as_ref(),
+                    pubsub.as_ref(),
+                    &target,
+                    now_micros,
+                )
+                .await
+                {
+                    tracing::warn!(
+                        namespace = %target.ns,
+                        agent = %target.agent,
+                        session = %target.session_id,
+                        error = %err,
+                        "Failed to check session submission lease while streaming"
+                    );
+                }
+            }
+        })
+        .await;
 }
 
 async fn redispatch_expired_session_lease(

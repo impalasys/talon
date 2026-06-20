@@ -68,8 +68,8 @@ impl SubmissionLeaseRenewer {
                         )
                         .await
                         {
-                            Ok(()) => {
-                                task_last_renewed_at.store(now_micros, Ordering::SeqCst);
+                            Ok(renewed_at) => {
+                                task_last_renewed_at.store(renewed_at, Ordering::SeqCst);
                             }
                             Err(err) => {
                                 tracing::warn!(
@@ -138,15 +138,15 @@ async fn renew_session_lock_timestamp(
     agent: &str,
     session_id: &str,
     now_micros: i64,
-) -> Result<()> {
+) -> Result<i64> {
     let key = keys::session(ns, agent, session_id);
     for _ in 0..MAX_SESSION_RENEW_CAS_RETRIES {
         let Some(current) = kv.get(&key).await? else {
-            return Ok(());
+            return Ok(now_micros);
         };
         let mut session = data_proto::Session::decode(current.as_slice())?;
         if session.status != "PROCESSING" || session.last_active >= now_micros {
-            return Ok(());
+            return Ok(session.last_active);
         }
         session.last_active = now_micros;
         let updated = session.encode_to_vec();
@@ -154,8 +154,79 @@ async fn renew_session_lock_timestamp(
             .compare_and_swap(&key, Some(current.as_slice()), &updated)
             .await?
         {
-            return Ok(());
+            return Ok(now_micros);
         }
     }
     anyhow::bail!("failed to atomically renew session processing lock")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::control::ProtoKeyValueStoreExt;
+    use crate::test_support::MockKvStore;
+
+    #[tokio::test]
+    async fn renew_session_lock_timestamp_returns_existing_future_timestamp() {
+        let kv = MockKvStore::default();
+        kv.set_msg(
+            &keys::session("conic", "infra", "session-1"),
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "infra".to_string(),
+                ns: "conic".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 1,
+                last_active: 200,
+                metadata: std::collections::HashMap::new(),
+                labels: std::collections::HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let renewed_at = renew_session_lock_timestamp(&kv, "conic", "infra", "session-1", 100)
+            .await
+            .unwrap();
+
+        assert_eq!(renewed_at, 200);
+        let session = kv
+            .get_msg::<data_proto::Session>(&keys::session("conic", "infra", "session-1"))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(session.last_active, 200);
+    }
+
+    #[tokio::test]
+    async fn renew_session_lock_timestamp_returns_written_timestamp() {
+        let kv = MockKvStore::default();
+        kv.set_msg(
+            &keys::session("conic", "infra", "session-1"),
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "infra".to_string(),
+                ns: "conic".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 1,
+                last_active: 100,
+                metadata: std::collections::HashMap::new(),
+                labels: std::collections::HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let renewed_at = renew_session_lock_timestamp(&kv, "conic", "infra", "session-1", 200)
+            .await
+            .unwrap();
+
+        assert_eq!(renewed_at, 200);
+        let session = kv
+            .get_msg::<data_proto::Session>(&keys::session("conic", "infra", "session-1"))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(session.last_active, 200);
+    }
 }
