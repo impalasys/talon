@@ -4,7 +4,6 @@ import {
   switchPort,
   type ContainerStartConfigOptions,
 } from "@cloudflare/containers";
-import { env as workerEnv } from "cloudflare:workers";
 import {
   ScheduleShard,
   SessionStreamShard,
@@ -30,6 +29,7 @@ type Env = Omit<TalonCfBindingsEnv, "WORKER_CONTAINER"> & {
   TALON_WORKER_CONTAINER_COUNT?: string;
   TALON_ENVOY_CONTAINER_COUNT?: string;
   TALON_CONFIG_INLINE_YAML?: string;
+  TALON_SCHEDULER_AUTH_TOKEN?: string;
   TALON_CF_DEV_EXTERNAL_CONTAINERS?: string;
   TALON_CF_DEV_GATEWAY_URL?: string;
   TALON_CF_DEV_WORKER_URL?: string;
@@ -43,23 +43,15 @@ const RESERVED_CONTAINER_ENV = new Set([
   "TALON_ENVOY_CONTAINER_COUNT",
 ]);
 
-const TALON_CONFIG_INLINE_YAML = (
-  workerEnv as unknown as { TALON_CONFIG_INLINE_YAML?: string }
-).TALON_CONFIG_INLINE_YAML;
-const TALON_SCHEDULER_AUTH_TOKEN = (
-  workerEnv as unknown as { TALON_SCHEDULER_AUTH_TOKEN?: string }
-).TALON_SCHEDULER_AUTH_TOKEN;
-
-function forwardedWorkerEnv(): Record<string, string> {
+function forwardedWorkerEnv(env: Env): Record<string, string> {
   const forwarded: Record<string, string> = {};
-  for (const [key, value] of Object.entries(workerEnv as Record<string, unknown>)) {
+  for (const [key, value] of Object.entries(env as Record<string, unknown>)) {
     if (RESERVED_CONTAINER_ENV.has(key)) continue;
     if (typeof value === "string") forwarded[key] = value;
   }
   return forwarded;
 }
 
-const FORWARDED_WORKER_ENV = forwardedWorkerEnv();
 const CONTAINER_START_OPTIONS = {
   instanceGetTimeoutMS: 10_000,
   portReadyTimeoutMS: 15_000,
@@ -80,39 +72,53 @@ type ContainerStartAndWaitOptions = {
   cancellationOptions: typeof CONTAINER_START_OPTIONS;
 };
 
-const GATEWAY_CONTAINER_START_PROFILE = {
-  ports: [50051, 50052],
-  startOptions: {
-    entrypoint: ["talon-server"],
-    enableInternet: true,
-    envVars: {
-      ...FORWARDED_WORKER_ENV,
-      GRPC_ADDR: "0.0.0.0:50051",
-      GATEWAY_UI_ADDR: "0.0.0.0:50052",
-      ...(TALON_CONFIG_INLINE_YAML ? { TALON_CONFIG_INLINE_YAML } : {}),
-      TALON_SCHEDULER_DRIVER: "cf_alarms",
-      ...(TALON_SCHEDULER_AUTH_TOKEN ? { TALON_SCHEDULER_AUTH_TOKEN } : {}),
+const GATEWAY_CONTAINER_PORTS = [50051, 50052];
+const WORKER_CONTAINER_PORTS = [8081];
+const ENVOY_CONTAINER_PORTS = [8081];
+
+const GATEWAY_CONTAINER_ENTRYPOINT = ["/usr/local/bin/talon-server"];
+const WORKER_CONTAINER_ENTRYPOINT = ["/usr/local/bin/talon-worker"];
+const ENVOY_CONTAINER_ENTRYPOINT = ["/usr/local/bin/talon-envoy-entrypoint", "envoy", "-c", "/tmp/envoy.yaml"];
+
+function gatewayContainerStartProfile(env: Env): ContainerStartProfile {
+  return {
+    ports: GATEWAY_CONTAINER_PORTS,
+    startOptions: {
+      entrypoint: GATEWAY_CONTAINER_ENTRYPOINT,
+      enableInternet: true,
+      envVars: {
+        ...forwardedWorkerEnv(env),
+        GRPC_ADDR: "0.0.0.0:50051",
+        GATEWAY_UI_ADDR: "0.0.0.0:50052",
+        ...(env.TALON_CONFIG_INLINE_YAML ? { TALON_CONFIG_INLINE_YAML: env.TALON_CONFIG_INLINE_YAML } : {}),
+        TALON_SCHEDULER_DRIVER: "cf_alarms",
+        ...(env.TALON_SCHEDULER_AUTH_TOKEN ? { TALON_SCHEDULER_AUTH_TOKEN: env.TALON_SCHEDULER_AUTH_TOKEN } : {}),
+      },
     },
-  },
-} satisfies ContainerStartProfile;
-const WORKER_CONTAINER_START_PROFILE = {
-  ports: [8081],
-  startOptions: {
-    entrypoint: ["talon-worker"],
-    enableInternet: true,
-    envVars: {
-      ...FORWARDED_WORKER_ENV,
-      PORT: "8081",
-      ...(TALON_CONFIG_INLINE_YAML ? { TALON_CONFIG_INLINE_YAML } : {}),
-      TALON_SCHEDULER_DRIVER: "cf_alarms",
-      ...(TALON_SCHEDULER_AUTH_TOKEN ? { TALON_SCHEDULER_AUTH_TOKEN } : {}),
+  };
+}
+
+function workerContainerStartProfile(env: Env): ContainerStartProfile {
+  return {
+    ports: WORKER_CONTAINER_PORTS,
+    startOptions: {
+      entrypoint: WORKER_CONTAINER_ENTRYPOINT,
+      enableInternet: true,
+      envVars: {
+        ...forwardedWorkerEnv(env),
+        PORT: "8081",
+        ...(env.TALON_CONFIG_INLINE_YAML ? { TALON_CONFIG_INLINE_YAML: env.TALON_CONFIG_INLINE_YAML } : {}),
+        TALON_SCHEDULER_DRIVER: "cf_alarms",
+        ...(env.TALON_SCHEDULER_AUTH_TOKEN ? { TALON_SCHEDULER_AUTH_TOKEN: env.TALON_SCHEDULER_AUTH_TOKEN } : {}),
+      },
     },
-  },
-} satisfies ContainerStartProfile;
+  };
+}
+
 const ENVOY_CONTAINER_START_PROFILE = {
-  ports: [8081],
+  ports: ENVOY_CONTAINER_PORTS,
   startOptions: {
-    entrypoint: ["/usr/local/bin/talon-envoy-entrypoint", "envoy", "-c", "/tmp/envoy.yaml"],
+    entrypoint: ENVOY_CONTAINER_ENTRYPOINT,
     enableInternet: false,
     envVars: {
       TALON_ENVOY_GATEWAY_GRPC_HOST: "gateway.internal",
@@ -120,6 +126,19 @@ const ENVOY_CONTAINER_START_PROFILE = {
     },
   },
 } satisfies ContainerStartProfile;
+
+const GATEWAY_CONTAINER_DEFAULT_START_OPTIONS = {
+  entrypoint: GATEWAY_CONTAINER_ENTRYPOINT,
+  enableInternet: true,
+} satisfies ContainerStartConfigOptions;
+const WORKER_CONTAINER_DEFAULT_START_OPTIONS = {
+  entrypoint: WORKER_CONTAINER_ENTRYPOINT,
+  enableInternet: true,
+} satisfies ContainerStartConfigOptions;
+const ENVOY_CONTAINER_DEFAULT_START_OPTIONS = {
+  entrypoint: ENVOY_CONTAINER_ENTRYPOINT,
+  enableInternet: false,
+} satisfies ContainerStartConfigOptions;
 
 function startAndWaitOptions(profile: ContainerStartProfile): ContainerStartAndWaitOptions {
   return {
@@ -294,17 +313,16 @@ const outboundByHost = {
     return fetchStartedContainer(
       gateway,
       port ? switchPort(request, port) : request,
-      GATEWAY_CONTAINER_START_PROFILE,
+      gatewayContainerStartProfile(env),
     );
   },
 };
 
 export class GatewayContainer extends Container<Env> {
   defaultPort = 50052;
-  requiredPorts = GATEWAY_CONTAINER_START_PROFILE.ports;
-  enableInternet = GATEWAY_CONTAINER_START_PROFILE.startOptions.enableInternet;
-  entrypoint = GATEWAY_CONTAINER_START_PROFILE.startOptions.entrypoint;
-  envVars = GATEWAY_CONTAINER_START_PROFILE.startOptions.envVars;
+  requiredPorts = GATEWAY_CONTAINER_PORTS;
+  enableInternet = GATEWAY_CONTAINER_DEFAULT_START_OPTIONS.enableInternet;
+  entrypoint = GATEWAY_CONTAINER_DEFAULT_START_OPTIONS.entrypoint;
   // Rust processes call internal hostnames during bootstrap; install outbound handlers before start().
   usingInterception = true;
   static outboundByHost = outboundByHost;
@@ -312,19 +330,18 @@ export class GatewayContainer extends Container<Env> {
 
 export class WorkerContainer extends Container<Env> {
   defaultPort = 8081;
-  requiredPorts = WORKER_CONTAINER_START_PROFILE.ports;
-  enableInternet = WORKER_CONTAINER_START_PROFILE.startOptions.enableInternet;
-  entrypoint = WORKER_CONTAINER_START_PROFILE.startOptions.entrypoint;
-  envVars = WORKER_CONTAINER_START_PROFILE.startOptions.envVars;
+  requiredPorts = WORKER_CONTAINER_PORTS;
+  enableInternet = WORKER_CONTAINER_DEFAULT_START_OPTIONS.enableInternet;
+  entrypoint = WORKER_CONTAINER_DEFAULT_START_OPTIONS.entrypoint;
   usingInterception = true;
   static outboundByHost = outboundByHost;
 }
 
 export class EnvoyContainer extends Container<Env> {
   defaultPort = 8081;
-  requiredPorts = ENVOY_CONTAINER_START_PROFILE.ports;
-  enableInternet = ENVOY_CONTAINER_START_PROFILE.startOptions.enableInternet;
-  entrypoint = ENVOY_CONTAINER_START_PROFILE.startOptions.entrypoint;
+  requiredPorts = ENVOY_CONTAINER_PORTS;
+  enableInternet = ENVOY_CONTAINER_DEFAULT_START_OPTIONS.enableInternet;
+  entrypoint = ENVOY_CONTAINER_DEFAULT_START_OPTIONS.entrypoint;
   envVars = ENVOY_CONTAINER_START_PROFILE.startOptions.envVars;
   usingInterception = true;
   static outboundByHost = outboundByHost;
@@ -350,7 +367,7 @@ export default {
         );
       }
       const gateway = gatewayContainer(env, url.pathname);
-      return withCors(await fetchStartedContainer(gateway, request, GATEWAY_CONTAINER_START_PROFILE), request);
+      return withCors(await fetchStartedContainer(gateway, request, gatewayContainerStartProfile(env)), request);
     }
 
     if (shouldRouteThroughEnvoy(url.pathname)) {
@@ -398,7 +415,7 @@ export default {
           "gateway",
           gatewayContainer(env),
           new Request("https://talon-health.internal/"),
-          GATEWAY_CONTAINER_START_PROFILE,
+          gatewayContainerStartProfile(env),
         ),
         containerReady(
           "worker",
@@ -408,7 +425,7 @@ export default {
             headers: TEXT_JSON,
             body: "{}",
           }),
-          WORKER_CONTAINER_START_PROFILE,
+          workerContainerStartProfile(env),
         ),
         containerReady(
           "envoy",
@@ -454,7 +471,7 @@ export default {
     }
 
     const gateway = gatewayContainer(env);
-    return withCors(await fetchStartedContainer(gateway, request, GATEWAY_CONTAINER_START_PROFILE), request);
+    return withCors(await fetchStartedContainer(gateway, request, gatewayContainerStartProfile(env)), request);
   },
 
   async queue(batch: MessageBatch, env: Env): Promise<void> {
