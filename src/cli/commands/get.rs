@@ -715,13 +715,16 @@ fn normalize_json_int64_fields(value: &mut serde_json::Value, fields: &[&str]) -
 }
 
 fn render_rest_agent_yaml(agent: serde_json::Value) -> Result<String> {
+    let metadata = agent.get("metadata");
     let name = agent
         .get("name")
         .or_else(|| agent.get("agent"))
+        .or_else(|| metadata.and_then(|metadata| metadata.get("name")))
         .and_then(|name| name.as_str())
         .context("Agent response missing name")?;
     let namespace = agent
         .get("ns")
+        .or_else(|| metadata.and_then(|metadata| metadata.get("namespace")))
         .and_then(|namespace| namespace.as_str())
         .context("Agent response missing ns")?;
     let spec = agent
@@ -730,6 +733,7 @@ fn render_rest_agent_yaml(agent: serde_json::Value) -> Result<String> {
         .context("Agent response missing spec")?;
     let labels = agent
         .get("labels")
+        .or_else(|| metadata.and_then(|metadata| metadata.get("labels")))
         .filter(|labels| !labels.is_null())
         .cloned()
         .unwrap_or_else(|| json!({}));
@@ -997,6 +1001,32 @@ mod tests {
                 "resource"
             )
         );
+    }
+
+    #[test]
+    fn render_rest_agent_yaml_accepts_resource_metadata_shape() {
+        let yaml = render_rest_agent_yaml(json!({
+            "metadata": {
+                "name": "ctl",
+                "namespace": "conic",
+                "labels": {
+                    "app": "talon",
+                },
+            },
+            "spec": {
+                "template": "conic-cmo",
+            },
+            "status": {
+                "phase": "Ready",
+            },
+        }))
+        .unwrap();
+
+        assert!(yaml.contains("kind: Agent"));
+        assert!(yaml.contains("name: ctl"));
+        assert!(yaml.contains("namespace: conic"));
+        assert!(yaml.contains("template: conic-cmo"));
+        assert!(yaml.contains("app: talon"));
     }
 
     #[test]
