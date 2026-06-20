@@ -1,4 +1,4 @@
-import { Container, ContainerProxy } from "@cloudflare/containers";
+import { Container, ContainerProxy, switchPort } from "@cloudflare/containers";
 import { env as workerEnv } from "cloudflare:workers";
 import {
   ScheduleShard,
@@ -55,6 +55,11 @@ function forwardedWorkerEnv(): Record<string, string> {
 }
 
 const FORWARDED_WORKER_ENV = forwardedWorkerEnv();
+const CONTAINER_START_OPTIONS = {
+  instanceGetTimeoutMS: 10_000,
+  portReadyTimeoutMS: 15_000,
+  waitInterval: 500,
+};
 
 function configuredCount(raw: string | undefined): number {
   const parsed = Number.parseInt(raw ?? "", 10);
@@ -124,6 +129,7 @@ async function containerReady(
   request: Request,
 ): Promise<{ ready: boolean; status: number }> {
   try {
+    await container.startAndWaitForPorts({ cancellationOptions: CONTAINER_START_OPTIONS });
     const response = await container.fetch(request);
     const ready = response.status < 500;
     if (!ready) {
@@ -138,6 +144,19 @@ async function containerReady(
     console.error(`${name} container readiness probe threw`, error);
     return { ready: false, status: 0 };
   }
+}
+
+async function fetchStartedContainer(
+  container: DurableObjectStub<Container<Env>>,
+  request: Request,
+): Promise<Response> {
+  await container.startAndWaitForPorts({ cancellationOptions: CONTAINER_START_OPTIONS });
+  return container.fetch(request);
+}
+
+function requestPort(request: Request): number | undefined {
+  const port = Number(new URL(request.url).port);
+  return Number.isInteger(port) && port > 0 ? port : undefined;
 }
 
 async function serviceReady(origin: string, path: string, init?: RequestInit): Promise<boolean> {
@@ -202,7 +221,8 @@ const outboundByHost = {
   },
   "gateway.internal": async (request: Request, env: Env) => {
     const gateway = gatewayContainer(env, new URL(request.url).pathname);
-    return gateway.fetch(request);
+    const port = requestPort(request);
+    return fetchStartedContainer(gateway, port ? switchPort(request, port) : request);
   },
 };
 
@@ -267,7 +287,7 @@ export default {
         );
       }
       const gateway = gatewayContainer(env, url.pathname);
-      return withCors(await gateway.fetch(request), request);
+      return withCors(await fetchStartedContainer(gateway, request), request);
     }
 
     if (shouldRouteThroughEnvoy(url.pathname)) {
@@ -278,7 +298,7 @@ export default {
         );
       }
       const envoy = envoyContainer(env);
-      return await envoy.fetch(request);
+      return await fetchStartedContainer(envoy, request);
     }
 
     if (url.pathname === "/healthz") {
