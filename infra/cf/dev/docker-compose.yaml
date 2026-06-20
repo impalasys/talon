@@ -105,7 +105,7 @@ services:
       context: ../../..
       dockerfile: dockerfiles/oss-runtime.Dockerfile
     working_dir: /repo
-    command: sh -c "apt-get update && apt-get install -y --no-install-recommends python3 python3-venv && python3 -m venv /tmp/talon-e2e-venv && /tmp/talon-e2e-venv/bin/pip install -r tests/requirements.txt && /tmp/talon-e2e-venv/bin/python tests/run_cloudflare_e2e.py"
+    command: /opt/talon-e2e-venv/bin/python tests/run_cloudflare_e2e.py
     environment:
       - TALON_CLOUDFLARE_URL=http://cloudflare-dev:8787
     volumes:

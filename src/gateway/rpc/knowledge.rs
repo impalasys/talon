@@ -264,7 +264,7 @@ impl GrpcGatewayHandler {
                     || module.path.to_lowercase().contains(&query)
                     || module.content.to_lowercase().contains(&query)
             })
-            .take(5)
+            .take(super::search::limit(req.limit))
             .map(|module| data_proto::KnowledgeSearchResult {
                 namespace: module.namespace,
                 path: module.path,
