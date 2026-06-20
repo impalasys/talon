@@ -568,8 +568,9 @@ impl AgentExecutor {
 
             if !tool_calls.is_empty() {
                 for tool in &tool_calls {
-                    let (input, result) = self.execute_tool_call(tool).await;
+                    let input = Self::tool_call_input(tool);
                     sink.on_tool_call(&tool.id, &tool.name, &input).await;
+                    let result = self.execute_tool_call_result(tool).await;
                     sink.on_tool_result_recorded(&tool.id, &tool.name, &result)
                         .await?;
                     sink.on_tool_result(&tool.id, &tool.name, &result).await;
@@ -584,12 +585,21 @@ impl AgentExecutor {
     }
 
     pub async fn execute_tool_call(&self, tool: &ToolCall) -> (Value, String) {
-        let input: Value = serde_json::from_str(&tool.arguments).unwrap_or(Value::Null);
+        let input = Self::tool_call_input(tool);
+        let result = self.execute_tool_call_result(tool).await;
+        (input, result)
+    }
+
+    pub fn tool_call_input(tool: &ToolCall) -> Value {
+        serde_json::from_str(&tool.arguments).unwrap_or(Value::Null)
+    }
+
+    async fn execute_tool_call_result(&self, tool: &ToolCall) -> String {
         let result = match self.execute_tool(&tool.name, &tool.arguments).await {
             Ok(result) => result,
             Err(error) => tool_error_result(&tool.name, &error),
         };
-        (input, result)
+        result
     }
 
     async fn execute_tool(&self, name: &str, input: &str) -> Result<String> {
@@ -1043,6 +1053,18 @@ mod tests {
             "That failed because the minimum interval is 300 seconds."
         );
         let events = sink.events();
+        let action_index = events
+            .iter()
+            .position(|event| matches!(event, AgentEvent::Action { name, .. } if name == "create_schedule"))
+            .expect("expected a tool action");
+        let observation_index = events
+            .iter()
+            .position(|event| matches!(event, AgentEvent::Observation { name, .. } if name == "create_schedule"))
+            .expect("expected a tool observation");
+        assert!(
+            action_index < observation_index,
+            "tool call should be published before its result"
+        );
         let observation = events
             .iter()
             .find_map(|event| match event {
