@@ -427,13 +427,13 @@ impl WorkerEventHandler {
             {
                 if message
                     .labels
-                    .get("talon.session.projection_state")
+                    .get(sessions::SESSION_LABEL_PROJECTION_STATE)
                     .map(String::as_str)
-                    != Some("committed")
+                    != Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
                 {
                     message.labels.insert(
-                        "talon.session.projection_state".to_string(),
-                        "committed".to_string(),
+                        sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
+                        sessions::SESSION_PROJECTION_STATE_COMMITTED.to_string(),
                     );
                     self.cp.kv.set_msg(&committed_message_key, &message).await?;
                 }
@@ -840,6 +840,7 @@ mod tests {
     };
     use crate::gateway::rpc::{data_proto, manifests, resources_proto};
     use crate::harness::executor::ExecutionSink;
+    use crate::harness::sessions;
     use crate::worker::{
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
@@ -1755,8 +1756,8 @@ mod tests {
                 role: data_proto::MessageRole::RoleAssistant as i32,
                 created_at: 124,
                 labels: HashMap::from([(
-                    "talon.session.projection_state".to_string(),
-                    "complete_uncommitted".to_string(),
+                    sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
+                    sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED.to_string(),
                 )]),
                 parts: vec![data_proto::SessionMessagePart {
                     id: "000000".to_string(),
@@ -1836,9 +1837,9 @@ mod tests {
         assert_eq!(
             assistant_message
                 .labels
-                .get("talon.session.projection_state")
+                .get(sessions::SESSION_LABEL_PROJECTION_STATE)
                 .map(String::as_str),
-            Some("committed")
+            Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
         );
         let submission = kv
             .get_msg::<crate::harness::sessions::SessionSubmission>(

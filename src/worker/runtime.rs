@@ -18,6 +18,9 @@ use crate::harness::executor::{
 };
 use crate::harness::knowledge::KvKnowledgeBook;
 use crate::harness::llm::{image_data_part, image_url_part, text_part, ChatContentPart, ToolCall};
+use crate::harness::sessions::{
+    SESSION_LABEL_PROJECTION_STATE, SESSION_PROJECTION_STATE_COMMITTED,
+};
 use crate::harness::skills::registry::ToolRegistry;
 use base64::{engine::general_purpose, Engine as _};
 use prost::Message;
@@ -92,8 +95,8 @@ impl AgentRuntime {
                 if msg.role == data_proto::MessageRole::RoleAssistant as i32
                     && msg
                         .labels
-                        .get("talon.session.projection_state")
-                        .is_some_and(|state| state != "committed")
+                        .get(SESSION_LABEL_PROJECTION_STATE)
+                        .is_some_and(|state| state != SESSION_PROJECTION_STATE_COMMITTED)
                 {
                     continue;
                 }

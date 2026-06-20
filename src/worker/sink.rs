@@ -527,20 +527,20 @@ impl PubSubSessionSink {
     fn projection_labels(&self, state: &str) -> std::collections::HashMap<String, String> {
         let mut labels = std::collections::HashMap::new();
         labels.insert(
-            "talon.session.submission_id".to_string(),
+            sessions::SESSION_LABEL_SUBMISSION_ID.to_string(),
             self.submission_id.clone(),
         );
         labels.insert(
-            "talon.session.attempt_id".to_string(),
+            sessions::SESSION_LABEL_ATTEMPT_ID.to_string(),
             self.attempt_id.clone(),
         );
         labels.insert(
-            "talon.session.projection_state".to_string(),
+            sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
             state.to_string(),
         );
         if let Some(entry_id) = self.latest_journal_entry_id.lock().unwrap().clone() {
             labels.insert(
-                "talon.session.latest_journal_entry_id".to_string(),
+                sessions::SESSION_LABEL_LATEST_JOURNAL_ENTRY_ID.to_string(),
                 entry_id,
             );
         }
@@ -619,7 +619,7 @@ impl PubSubSessionSink {
             }
         };
         if should_flush {
-            let msg = self.projection_message("in_progress", "");
+            let msg = self.projection_message(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS, "");
             let span = tracing::info_span!(
                 "PubSubSessionSink.persist_projection_message",
                 namespace = %self.ns,
@@ -660,7 +660,7 @@ impl PubSubSessionSink {
             id: self.reply_msg_id.clone(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
-            labels: self.projection_labels("complete_uncommitted"),
+            labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED),
             parts: self.durable_parts.lock().unwrap().clone(),
         };
         let result = async {
@@ -925,7 +925,7 @@ impl ExecutionSink for PubSubSessionSink {
             id: self.reply_msg_id.clone(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
-            labels: self.projection_labels("complete_uncommitted"),
+            labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED),
             parts: self.final_message_parts(&reply),
         };
         let result = async {
@@ -951,7 +951,8 @@ impl ExecutionSink for PubSubSessionSink {
                     .await
                 {
                     let committed_msg = data_proto::SessionMessage {
-                        labels: self.projection_labels("committed"),
+                        labels: self
+                            .projection_labels(sessions::SESSION_PROJECTION_STATE_COMMITTED),
                         ..msg
                     };
                     let _guard = self.persist_lock.lock().await;
@@ -1002,7 +1003,7 @@ impl ExecutionSink for PubSubSessionSink {
             id: self.reply_msg_id.clone(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
-            labels: self.projection_labels("failed"),
+            labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_FAILED),
             parts: self.durable_parts.lock().unwrap().clone(),
         };
         let result = async {
@@ -1415,9 +1416,9 @@ mod tests {
         assert_eq!(
             projection
                 .labels
-                .get("talon.session.projection_state")
+                .get(sessions::SESSION_LABEL_PROJECTION_STATE)
                 .map(String::as_str),
-            Some("in_progress")
+            Some(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS)
         );
         let projection_text = projection
             .parts
