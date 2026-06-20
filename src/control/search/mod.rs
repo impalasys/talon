@@ -273,13 +273,39 @@ pub fn document_id(resource_key: &str, document_kind: &str, subdocument_id: &str
 }
 
 pub fn snippet(text: &str) -> String {
-    let normalized = text.split_whitespace().collect::<Vec<_>>().join(" ");
-    if normalized.chars().count() <= 240 {
+    let mut normalized = String::new();
+    let mut chars = 0usize;
+    let mut first_word = true;
+    let mut truncated = false;
+
+    'words: for word in text.split_whitespace() {
+        if !first_word {
+            if chars == 240 {
+                truncated = true;
+                break;
+            }
+            normalized.push(' ');
+            chars += 1;
+        }
+        first_word = false;
+
+        for ch in word.chars() {
+            if chars == 240 {
+                truncated = true;
+                break 'words;
+            }
+            normalized.push(ch);
+            chars += 1;
+        }
+    }
+
+    if !truncated {
         return normalized;
     }
-    let mut out = normalized.chars().take(237).collect::<String>();
-    out.push_str("...");
-    out
+
+    let mut truncated = normalized.chars().take(237).collect::<String>();
+    truncated.push_str("...");
+    truncated
 }
 
 pub fn unique_namespaces(namespaces: impl IntoIterator<Item = String>) -> Vec<String> {

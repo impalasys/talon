@@ -132,21 +132,27 @@ impl GrpcGatewayHandler {
         let mode = super::search::mode(req.mode)?;
         let sort = super::search::sort(req.sort);
         let namespaces = super::search::knowledge_namespaces(&req.ns);
-        let indexed = self
-            .gateway
-            .documents
-            .search(&SearchQuery {
-                query: req.query.clone(),
-                namespaces: namespaces.clone(),
-                resource_kinds: vec![KIND_KNOWLEDGE.to_string()],
-                limit: super::search::limit(req.limit).saturating_mul(namespaces.len().max(1)),
-                mode,
-                sort,
-                ..Default::default()
-            })
-            .await
-            .map_err(super::search::search_error)?;
-        if !indexed.results.is_empty() {
+        let indexed = if self.gateway.documents.is_enabled() {
+            Some(
+                self.gateway
+                    .documents
+                    .search(&SearchQuery {
+                        query: req.query.clone(),
+                        namespaces: namespaces.clone(),
+                        resource_kinds: vec![KIND_KNOWLEDGE.to_string()],
+                        limit: super::search::limit(req.limit)
+                            .saturating_mul(namespaces.len().max(1)),
+                        mode,
+                        sort,
+                        ..Default::default()
+                    })
+                    .await
+                    .map_err(super::search::search_error)?,
+            )
+        } else {
+            None
+        };
+        if let Some(indexed) = indexed.filter(|indexed| !indexed.results.is_empty()) {
             let namespace_rank = namespaces
                 .iter()
                 .enumerate()
@@ -347,6 +353,13 @@ mod tests {
     }
 
     fn handler(kv: Arc<MockKvStore>) -> GrpcGatewayHandler {
+        handler_with_documents(kv, crate::control::search::memory_document_store())
+    }
+
+    fn handler_with_documents(
+        kv: Arc<MockKvStore>,
+        documents: Arc<dyn crate::control::search::DocumentStore + Send + Sync>,
+    ) -> GrpcGatewayHandler {
         let pubsub = Arc::new(MockPubSub);
         GrpcGatewayHandler {
             gateway: Arc::new(Gateway {
@@ -356,7 +369,7 @@ mod tests {
                 pubsub: pubsub.clone(),
                 scheduler: Arc::new(crate::control::scheduler::NoopSchedulerBackend),
                 objects: crate::control::object_store::default_object_store(),
-                documents: crate::control::search::memory_document_store(),
+                documents,
                 session_streams: Arc::new(SessionStreamHub::new(pubsub)),
             }),
         }
@@ -473,5 +486,41 @@ mod tests {
         assert_eq!(response.results.len(), 1);
         assert_eq!(response.results[0].path, "guide.md");
         assert_eq!(response.results[0].namespace, "acme");
+    }
+
+    #[tokio::test]
+    async fn handle_search_knowledge_falls_back_when_document_store_is_disabled() {
+        let kv = Arc::new(MockKvStore::default());
+        let entry = crate::harness::knowledge::KnowledgeEntry {
+            namespace: "acme".to_string(),
+            name: "guide.md".to_string(),
+            path: "guide.md".to_string(),
+            content: "Rust scheduling notes".to_string(),
+            updated_at: 7,
+        };
+        kv.set(
+            &keys::knowledge("acme", "guide.md"),
+            &serde_json::to_vec(&entry).unwrap(),
+        )
+        .await
+        .unwrap();
+
+        let response =
+            handler_with_documents(kv, crate::control::search::disabled_document_store())
+                .handle_search_knowledge(tonic::Request::new(proto::SearchKnowledgeRequest {
+                    agent: "agent".to_string(),
+                    ns: "acme".to_string(),
+                    query: "scheduling".to_string(),
+                    limit: 0,
+                    mode: proto::SearchMode::Keyword as i32,
+                    sort: proto::SearchSort::Relevance as i32,
+                }))
+                .await
+                .unwrap()
+                .into_inner();
+
+        assert_eq!(response.results.len(), 1);
+        assert_eq!(response.results[0].path, "guide.md");
+        assert!(response.search_results.is_empty());
     }
 }
