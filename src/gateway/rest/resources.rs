@@ -30,7 +30,7 @@ struct CreateNamespaceBody {
 #[serde(rename_all = "camelCase")]
 struct CreateResourceBody {
     ns: String,
-    manifest: resources_proto::ResourceManifest,
+    manifest: Value,
 }
 
 #[derive(Deserialize)]
@@ -171,6 +171,94 @@ fn typed_resource_json(resource: resources_proto::Resource, kind: &str) -> Resul
     }
 }
 
+fn resource_manifest_from_json(
+    value: Value,
+) -> Result<resources_proto::ResourceManifest, Response> {
+    let api_version = value
+        .get("apiVersion")
+        .or_else(|| value.get("api_version"))
+        .and_then(Value::as_str)
+        .unwrap_or("talon.impalasys.com/v1")
+        .to_string();
+    let kind = value
+        .get("kind")
+        .and_then(Value::as_str)
+        .ok_or_else(|| {
+            json_error(
+                StatusCode::BAD_REQUEST,
+                "resource manifest kind is required",
+            )
+        })?
+        .to_string();
+    let metadata = value
+        .get("metadata")
+        .cloned()
+        .map(serde_json::from_value)
+        .transpose()
+        .map_err(|_| json_error(StatusCode::BAD_REQUEST, "invalid resource metadata"))?;
+    let spec_value = value.get("spec").cloned().unwrap_or_else(|| json!({}));
+    let spec = Some(resources_proto::ResourceSpec {
+        kind: resource_spec_kind_from_json(&kind, spec_value)?,
+    });
+    Ok(resources_proto::ResourceManifest {
+        api_version,
+        kind,
+        metadata,
+        spec,
+    })
+}
+
+fn resource_spec_kind_from_json(
+    kind: &str,
+    spec_value: Value,
+) -> Result<Option<resources_proto::resource_spec::Kind>, Response> {
+    use resources_proto::resource_spec::Kind;
+
+    fn field(spec_value: &Value, field: &str) -> Value {
+        spec_value
+            .get(field)
+            .cloned()
+            .unwrap_or_else(|| spec_value.clone())
+    }
+
+    macro_rules! decode_kind {
+        ($variant:ident, $field:literal) => {
+            Some(Kind::$variant(
+                serde_json::from_value(field(&spec_value, $field))
+                    .map_err(|_| json_error(StatusCode::BAD_REQUEST, "invalid resource spec"))?,
+            ))
+        };
+    }
+
+    let spec = match kind {
+        "Agent" => decode_kind!(Agent, "agent"),
+        "Workflow" => decode_kind!(Workflow, "workflow"),
+        "Schedule" => decode_kind!(Schedule, "schedule"),
+        "Channel" => decode_kind!(Channel, "channel"),
+        "ChannelSubscription" => decode_kind!(ChannelSubscription, "channelSubscription"),
+        "McpServer" => decode_kind!(McpServer, "mcpServer"),
+        "McpServerBinding" => decode_kind!(McpServerBinding, "mcpServerBinding"),
+        "Knowledge" => decode_kind!(Knowledge, "knowledge"),
+        "Namespace" => decode_kind!(Namespace, "namespace"),
+        "Session" => decode_kind!(Session, "session"),
+        "Skill" => decode_kind!(Skill, "skill"),
+        "Template" => decode_kind!(Template, "template"),
+        "Deployment" => decode_kind!(Deployment, "deployment"),
+        "DeploymentReplica" => decode_kind!(DeploymentReplica, "deploymentReplica"),
+        "SandboxClass" => decode_kind!(SandboxClass, "sandboxClass"),
+        "SandboxPolicy" => decode_kind!(SandboxPolicy, "sandboxPolicy"),
+        "Sandbox" => decode_kind!(Sandbox, "sandbox"),
+        "Raw" => decode_kind!(Raw, "raw"),
+        _ => {
+            return Err(json_error(
+                StatusCode::BAD_REQUEST,
+                "unsupported resource kind",
+            ))
+        }
+    };
+    Ok(spec)
+}
+
 async fn create_namespace(
     State(gateway): State<Arc<Gateway>>,
     headers: HeaderMap,
@@ -251,7 +339,10 @@ async fn create_resource(
         &headers,
         proto::CreateResourceRequest {
             ns: if body.ns.is_empty() { ns } else { body.ns },
-            manifest: Some(body.manifest),
+            manifest: Some(match resource_manifest_from_json(body.manifest) {
+                Ok(manifest) => manifest,
+                Err(response) => return response,
+            }),
         },
     ) {
         Ok(request) => request,
