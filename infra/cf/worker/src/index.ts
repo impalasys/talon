@@ -118,6 +118,25 @@ function fetcherForOrigin(origin: string): { fetch(input: RequestInfo | URL, ini
   };
 }
 
+async function fetchContainer(
+  container: DurableObjectStub<Container<Env>>,
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  await container.startAndWaitForPorts();
+  return container.fetch(input, init);
+}
+
+async function containerReady(container: DurableObjectStub<Container<Env>>): Promise<boolean> {
+  try {
+    await container.startAndWaitForPorts();
+    return true;
+  } catch (error) {
+    console.error("container readiness check failed", error);
+    return false;
+  }
+}
+
 async function serviceReady(origin: string, path: string, init?: RequestInit): Promise<boolean> {
   try {
     const response = await fetch(new URL(path, origin), init);
@@ -180,7 +199,7 @@ const outboundByHost = {
   },
   "gateway.internal": async (request: Request, env: Env) => {
     const gateway = gatewayContainer(env, new URL(request.url).pathname);
-    return gateway.fetch(request);
+    return fetchContainer(gateway, request);
   },
 };
 
@@ -243,7 +262,7 @@ export default {
         );
       }
       const gateway = gatewayContainer(env, url.pathname);
-      return withCors(await gateway.fetch(request), request);
+      return withCors(await fetchContainer(gateway, request), request);
     }
 
     if (shouldRouteThroughEnvoy(url.pathname)) {
@@ -254,7 +273,7 @@ export default {
         );
       }
       const envoy = envoyContainer(env);
-      return await envoy.fetch(request);
+      return await fetchContainer(envoy, request);
     }
 
     if (url.pathname === "/healthz") {
@@ -286,15 +305,30 @@ export default {
           request,
         );
       }
+      const [gatewayReady, workerReady, envoyReady] = await Promise.all([
+        containerReady(gatewayContainer(env)),
+        containerReady(workerContainer(env)),
+        containerReady(envoyContainer(env)),
+      ]);
+      const ok = gatewayReady && workerReady && envoyReady;
       return withCors(
         json({
-          ok: true,
+          ok,
           containers: {
-            gateway: configuredCount(env.TALON_GATEWAY_CONTAINER_COUNT),
-            worker: configuredCount(env.TALON_WORKER_CONTAINER_COUNT),
-            envoy: configuredCount(env.TALON_ENVOY_CONTAINER_COUNT),
+            gateway: {
+              count: configuredCount(env.TALON_GATEWAY_CONTAINER_COUNT),
+              ready: gatewayReady,
+            },
+            worker: {
+              count: configuredCount(env.TALON_WORKER_CONTAINER_COUNT),
+              ready: workerReady,
+            },
+            envoy: {
+              count: configuredCount(env.TALON_ENVOY_CONTAINER_COUNT),
+              ready: envoyReady,
+            },
           },
-        }),
+        }, { status: ok ? 200 : 503 }),
         request,
       );
     }
@@ -307,7 +341,7 @@ export default {
     }
 
     const gateway = gatewayContainer(env);
-    return withCors(await gateway.fetch(request), request);
+    return withCors(await fetchContainer(gateway, request), request);
   },
 
   async queue(batch: MessageBatch, env: Env): Promise<void> {
@@ -315,7 +349,12 @@ export default {
       if (externalContainersEnabled(env)) {
         return fetcherForOrigin(env.TALON_CF_DEV_WORKER_URL ?? "http://worker:8081");
       }
-      return workerContainer(env, message.id);
+      const worker = workerContainer(env, message.id);
+      return {
+        async fetch(input, init) {
+          return fetchContainer(worker, input, init);
+        },
+      };
     });
   },
 };
