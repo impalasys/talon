@@ -2,19 +2,17 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use anyhow::{Context, Result};
-use serde_json::json;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::control::ns;
 use crate::control::resource_model::TypedResource;
-use crate::gateway::rpc::proto::gateway_service_client::GatewayServiceClient;
 use crate::gateway::rpc::proto::{CreateNamespaceRequest, CreateResourceRequest};
 use crate::gateway::rpc::resources_proto;
 
 use super::Cli;
-use crate::cli::{auth_interceptor, parse_raw_manifest, render_manifest_file, rest_request_json};
+use crate::cli::{connect_gateway, parse_raw_manifest, render_manifest_file};
 
 #[derive(clap::Args)]
 pub(crate) struct ApplyCommand {
@@ -35,12 +33,7 @@ pub(super) async fn run(cli: &Cli, command: &ApplyCommand) -> Result<()> {
             continue;
         }
 
-        if cli.rest {
-            rest_ensure_manifest_namespace(cli, &content).await?;
-            println!("{}", rest_apply_manifest(cli, &content).await?);
-        } else {
-            println!("{}", grpc_apply_manifest(cli, &content).await?);
-        }
+        println!("{}", grpc_apply_manifest(cli, &content).await?);
     }
     Ok(())
 }
@@ -83,39 +76,6 @@ fn is_yaml_file(path: &Path) -> bool {
             extension.eq_ignore_ascii_case("yaml") || extension.eq_ignore_ascii_case("yml")
         })
         .unwrap_or(false)
-}
-
-fn namespace_to_ensure(content: &str) -> Result<Option<String>> {
-    let raw = parse_raw_manifest(content)?;
-    if matches!(raw.kind.as_str(), "Namespace" | "MCPServer" | "McpServer") {
-        return Ok(None);
-    }
-    Ok(raw
-        .metadata
-        .get("namespace")
-        .and_then(|value| value.as_str())
-        .map(str::trim)
-        .filter(|namespace| !namespace.is_empty())
-        .map(str::to_string))
-}
-
-async fn rest_ensure_manifest_namespace(cli: &Cli, content: &str) -> Result<()> {
-    let Some(namespace) = namespace_to_ensure(content)? else {
-        return Ok(());
-    };
-    rest_request_json(
-        cli,
-        reqwest::Method::POST,
-        &format!("/v1/namespaces/{}", urlencoding::encode(&namespace)),
-        Some(json!({
-            "name": namespace.clone(),
-            "recursive": true,
-            "labels": {},
-        })),
-    )
-    .await
-    .with_context(|| format!("Gateway rejected implicit Namespace '{}'", namespace))?;
-    Ok(())
 }
 
 fn is_generic_resource_kind(kind: &str) -> bool {
@@ -284,96 +244,6 @@ fn reject_status_field(content: &str) -> Result<()> {
     Ok(())
 }
 
-fn resource_manifest_proto_json(
-    resource: &resources_proto::ResourceManifest,
-) -> Result<serde_json::Value> {
-    Ok(json!({
-        "apiVersion": resource.api_version,
-        "kind": resource.kind,
-        "metadata": resource.metadata.as_ref().map(resource_meta_proto_json),
-        "spec": resource
-            .spec
-            .as_ref()
-            .map(resource_spec_proto_json)
-            .transpose()?,
-    }))
-}
-
-fn resource_meta_proto_json(meta: &resources_proto::ResourceMeta) -> serde_json::Value {
-    json!({
-        "name": meta.name,
-        "namespace": meta.namespace,
-        "labels": meta.labels,
-        "annotations": meta.annotations,
-        "ownerReferences": meta.owner_references.iter().map(owner_reference_proto_json).collect::<Vec<_>>(),
-        "finalizers": meta.finalizers,
-        "generation": meta.generation,
-        "resourceVersion": meta.resource_version,
-        "uid": meta.uid,
-        "deletionTimestamp": meta.deletion_timestamp,
-    })
-}
-
-fn owner_reference_proto_json(reference: &resources_proto::OwnerReference) -> serde_json::Value {
-    json!({
-        "apiVersion": reference.api_version,
-        "kind": reference.kind,
-        "namespace": reference.namespace,
-        "name": reference.name,
-        "uid": reference.uid,
-        "controller": reference.controller,
-        "blockOwnerDeletion": reference.block_owner_deletion,
-    })
-}
-
-fn resource_spec_proto_json(spec: &resources_proto::ResourceSpec) -> Result<serde_json::Value> {
-    use resources_proto::resource_spec::Kind;
-
-    let Some(kind) = spec.kind.as_ref() else {
-        return Ok(json!({}));
-    };
-
-    let (field, value) = match kind {
-        Kind::Agent(spec) => ("agent", serde_json::to_value(spec)?),
-        Kind::Workflow(spec) => ("workflow", serde_json::to_value(spec)?),
-        Kind::Schedule(spec) => ("schedule", serde_json::to_value(spec)?),
-        Kind::Channel(spec) => ("channel", serde_json::to_value(spec)?),
-        Kind::ChannelSubscription(spec) => {
-            ("channelSubscription", serde_json::to_value(spec)?)
-        }
-        Kind::McpServer(spec) => ("mcpServer", serde_json::to_value(spec)?),
-        Kind::McpServerBinding(spec) => ("mcpServerBinding", serde_json::to_value(spec)?),
-        Kind::Knowledge(spec) => ("knowledge", serde_json::to_value(spec)?),
-        Kind::Namespace(spec) => ("namespace", serde_json::to_value(spec)?),
-        Kind::Session(spec) => ("session", serde_json::to_value(spec)?),
-        Kind::Skill(spec) => ("skill", serde_json::to_value(spec)?),
-        Kind::Template(spec) => ("template", serde_json::to_value(spec)?),
-        Kind::Deployment(spec) => ("deployment", serde_json::to_value(spec)?),
-        Kind::DeploymentReplica(spec) => ("deploymentReplica", serde_json::to_value(spec)?),
-        Kind::SandboxClass(spec) => ("sandboxClass", serde_json::to_value(spec)?),
-        Kind::SandboxPolicy(spec) => ("sandboxPolicy", serde_json::to_value(spec)?),
-        Kind::Sandbox(spec) => ("sandbox", serde_json::to_value(spec)?),
-        Kind::Raw(spec) => ("raw", serde_json::to_value(spec)?),
-    };
-    Ok(json!({ field: value }))
-}
-
-pub(super) async fn rest_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
-    let plan = build_rest_apply_plan(content)?;
-    rest_request_json(cli, plan.method, &plan.path, Some(plan.payload))
-        .await
-        .with_context(|| format!("Gateway rejected {}", plan.success_label))?;
-    Ok(format!("✓ {} applied successfully.", plan.success_label))
-}
-
-#[derive(Debug)]
-struct RestApplyPlan {
-    method: reqwest::Method,
-    path: String,
-    payload: serde_json::Value,
-    success_label: String,
-}
-
 #[derive(Debug)]
 enum GrpcApplyPlan {
     Namespace {
@@ -386,34 +256,6 @@ enum GrpcApplyPlan {
         name: String,
         manifest: resources_proto::ResourceManifest,
     },
-}
-
-fn build_rest_apply_plan(content: &str) -> Result<RestApplyPlan> {
-    let raw = parse_raw_manifest(content)?;
-    if raw.kind == "Namespace" {
-        let namespace = crate::control::manifest::parse_namespace(content)?;
-        let name = namespace.name();
-        return Ok(RestApplyPlan {
-            method: reqwest::Method::POST,
-            path: format!("/v1/namespaces/{}", urlencoding::encode(&name)),
-            payload: json!({
-                "name": name,
-                "recursive": true,
-                "labels": namespace.labels(),
-            }),
-            success_label: format!("Namespace '{}'", name),
-        });
-    }
-    let (ns, kind, name, manifest) = resource_manifest_from_manifest(content)?;
-    Ok(RestApplyPlan {
-        method: reqwest::Method::POST,
-        path: format!("/v1/ns/{}/resources", urlencoding::encode(&ns)),
-        payload: json!({
-            "ns": ns,
-            "manifest": resource_manifest_proto_json(&manifest)?,
-        }),
-        success_label: format!("{} '{}/{}'", kind, ns, name),
-    })
 }
 
 fn build_grpc_apply_plan(content: &str) -> Result<GrpcApplyPlan> {
@@ -448,12 +290,7 @@ fn grpc_plan_namespace_to_ensure(plan: &GrpcApplyPlan) -> Option<&str> {
 
 pub(super) async fn grpc_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
     let plan = build_grpc_apply_plan(content)?;
-    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-        .connect()
-        .await
-        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
-    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+    let mut client = connect_gateway(cli).await?;
     if let Some(namespace) = grpc_plan_namespace_to_ensure(&plan) {
         client
             .create_namespace(CreateNamespaceRequest {
@@ -542,27 +379,4 @@ mod tests {
         assert!(err.to_string().contains("does not exist"));
     }
 
-    #[test]
-    fn rest_apply_plan_encodes_agent_spec_oneof() {
-        let plan = build_rest_apply_plan(
-            r#"
-apiVersion: talon.impalasys.com/v1
-kind: Agent
-metadata:
-  name: cf-agent
-  namespace: Example
-spec:
-  systemPrompt: You are a Cloudflare E2E test assistant.
-"#,
-        )
-        .expect("build REST plan");
-
-        assert_eq!(plan.path, "/v1/ns/Example/resources");
-        assert_eq!(plan.payload["ns"], "Example");
-        assert_eq!(plan.payload["manifest"]["kind"], "Agent");
-        assert_eq!(
-            plan.payload["manifest"]["spec"]["agent"]["systemPrompt"],
-            "You are a Cloudflare E2E test assistant."
-        );
-    }
 }

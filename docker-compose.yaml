@@ -100,17 +100,16 @@ services:
     env_file:
       - .env
     environment:
-      - TALON_GATEWAY=http://gateway:50051
+      - TALON_GATEWAY=http://envoy:8081
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
         set -eu
-        REST_GATEWAY=http://envoy:8081
-        GRPC_GATEWAY=http://gateway:50051
+        ENVOY_GATEWAY=http://envoy:8081
         talon-cli apply -f /manifests/default_agent.yaml
-        talon-cli --gateway "$$REST_GATEWAY" --rest apply -f /manifests/examples/chatgpt-app/namespace.yaml
-        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/chatgpt-app/support-docs-template.yaml
-        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/chatgpt-app/support-docs-agent.yaml
+        talon-cli --gateway "$$ENVOY_GATEWAY" apply -f /manifests/examples/chatgpt-app/namespace.yaml
+        talon-cli --gateway "$$ENVOY_GATEWAY" apply -f /manifests/examples/chatgpt-app/support-docs-template.yaml
+        talon-cli --gateway "$$ENVOY_GATEWAY" apply -f /manifests/examples/chatgpt-app/support-docs-agent.yaml
 
   init-tutorial-channels:
     profiles: ["tutorial-channels"]
@@ -130,15 +129,14 @@ services:
     command:
       - |
         set -eu
-        REST_GATEWAY=http://envoy:8081
-        GRPC_GATEWAY=http://gateway:50051
-        talon-cli --gateway "$$REST_GATEWAY" --rest apply -f /manifests/examples/channel-collaboration/namespace.yaml
-        talon-cli --gateway "$$GRPC_GATEWAY" get template channel-agent-template >/dev/null 2>&1 || talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/channel-agent-template.yaml
-        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/triage-agent.yaml
-        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/scribe-agent.yaml
-        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/incident-room.channel.yaml
-        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/triage.subscription.yaml
-        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/scribe.subscription.yaml
+        ENVOY_GATEWAY=http://envoy:8081
+        talon-cli --gateway "$$ENVOY_GATEWAY" apply -f /manifests/examples/channel-collaboration/namespace.yaml
+        talon-cli --gateway "$$ENVOY_GATEWAY" get template channel-agent-template >/dev/null 2>&1 || talon-cli --gateway "$$ENVOY_GATEWAY" apply -f /manifests/examples/channel-collaboration/channel-agent-template.yaml
+        talon-cli --gateway "$$ENVOY_GATEWAY" apply -f /manifests/examples/channel-collaboration/triage-agent.yaml
+        talon-cli --gateway "$$ENVOY_GATEWAY" apply -f /manifests/examples/channel-collaboration/scribe-agent.yaml
+        talon-cli --gateway "$$ENVOY_GATEWAY" apply -f /manifests/examples/channel-collaboration/incident-room.channel.yaml
+        talon-cli --gateway "$$ENVOY_GATEWAY" apply -f /manifests/examples/channel-collaboration/triage.subscription.yaml
+        talon-cli --gateway "$$ENVOY_GATEWAY" apply -f /manifests/examples/channel-collaboration/scribe.subscription.yaml
 
   pubsub:
     image: gcr.io/google.com/cloudsdktool/cloud-sdk:emulators

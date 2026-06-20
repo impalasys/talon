@@ -3,22 +3,17 @@
 
 use anyhow::{Context, Result};
 use clap::{Args, Subcommand};
-use futures::StreamExt;
 use serde_json::json;
 use std::collections::HashMap;
 use std::fs;
 
 use super::{Cli, RunOutcome};
-use crate::cli::{
-    connect_gateway, rest_client, rest_grpc_error_details, rest_request_json,
-};
+use crate::cli::connect_gateway;
 use crate::gateway::rpc::data_proto;
 use crate::gateway::rpc::proto::{
     CancelWorkflowRunRequest, CreateWorkflowRunRequest, GetWorkflowRunRequest,
     ListWorkflowRunsRequest, ResumeWorkflowRunRequest, StreamWorkflowEventsRequest,
 };
-
-const MAX_REST_STREAM_BUFFER_BYTES: usize = 10 * 1024 * 1024;
 
 #[derive(Args)]
 pub(crate) struct WorkflowCommand {
@@ -169,19 +164,6 @@ async fn workflow_run_create(
     workflow: &str,
     input_json: String,
 ) -> Result<serde_json::Value> {
-    if cli.rest {
-        return rest_request_json(
-            cli,
-            reqwest::Method::POST,
-            &format!(
-                "/v1/ns/{}/workflows/{}/runs",
-                urlencoding::encode(namespace),
-                urlencoding::encode(workflow)
-            ),
-            Some(json!({ "ns": namespace, "workflow": workflow, "inputJson": input_json })),
-        )
-        .await;
-    }
     let mut client = connect_gateway(cli).await?;
     let response = client
         .create_workflow_run(CreateWorkflowRunRequest {
@@ -203,20 +185,6 @@ async fn workflow_run_get(
     workflow: &str,
     run_id: &str,
 ) -> Result<serde_json::Value> {
-    if cli.rest {
-        return rest_request_json(
-            cli,
-            reqwest::Method::GET,
-            &format!(
-                "/v1/ns/{}/workflows/{}/runs/{}",
-                urlencoding::encode(namespace),
-                urlencoding::encode(workflow),
-                urlencoding::encode(run_id)
-            ),
-            None,
-        )
-        .await;
-    }
     let mut client = connect_gateway(cli).await?;
     let response = client
         .get_workflow_run(GetWorkflowRunRequest {
@@ -238,35 +206,6 @@ async fn workflow_run_list(
     page_size: i32,
     before_run_id: &str,
 ) -> Result<serde_json::Value> {
-    if cli.rest {
-        let mut query = Vec::new();
-        if page_size != 0 {
-            query.push(format!("page_size={page_size}"));
-        }
-        if !before_run_id.is_empty() {
-            query.push(format!(
-                "before_run_id={}",
-                urlencoding::encode(before_run_id)
-            ));
-        }
-        let query = if query.is_empty() {
-            String::new()
-        } else {
-            format!("?{}", query.join("&"))
-        };
-        return rest_request_json(
-            cli,
-            reqwest::Method::GET,
-            &format!(
-                "/v1/ns/{}/workflows/{}/runs{}",
-                urlencoding::encode(namespace),
-                urlencoding::encode(workflow),
-                query
-            ),
-            None,
-        )
-        .await;
-    }
     let mut client = connect_gateway(cli).await?;
     let response = client
         .list_workflow_runs(ListWorkflowRunsRequest {
@@ -293,26 +232,6 @@ async fn workflow_run_resume(
     step_id: &str,
     resume_json: String,
 ) -> Result<serde_json::Value> {
-    if cli.rest {
-        return rest_request_json(
-            cli,
-            reqwest::Method::POST,
-            &format!(
-                "/v1/ns/{}/workflows/{}/runs/{}:resume",
-                urlencoding::encode(namespace),
-                urlencoding::encode(workflow),
-                urlencoding::encode(run_id)
-            ),
-            Some(json!({
-                "ns": namespace,
-                "workflow": workflow,
-                "runId": run_id,
-                "stepId": step_id,
-                "resumeJson": resume_json,
-            })),
-        )
-        .await;
-    }
     let mut client = connect_gateway(cli).await?;
     let response = client
         .resume_workflow_run(ResumeWorkflowRunRequest {
@@ -335,20 +254,6 @@ async fn workflow_run_cancel(
     workflow: &str,
     run_id: &str,
 ) -> Result<serde_json::Value> {
-    if cli.rest {
-        return rest_request_json(
-            cli,
-            reqwest::Method::POST,
-            &format!(
-                "/v1/ns/{}/workflows/{}/runs/{}:cancel",
-                urlencoding::encode(namespace),
-                urlencoding::encode(workflow),
-                urlencoding::encode(run_id)
-            ),
-            Some(json!({ "ns": namespace, "workflow": workflow, "runId": run_id })),
-        )
-        .await;
-    }
     let mut client = connect_gateway(cli).await?;
     let response = client
         .cancel_workflow_run(CancelWorkflowRunRequest {
@@ -369,10 +274,6 @@ async fn workflow_run_events(
     workflow: &str,
     run_id: &str,
 ) -> Result<()> {
-    if cli.rest {
-        rest_stream_workflow_events(cli, namespace, workflow, run_id).await?;
-        return Ok(());
-    }
     let mut client = connect_gateway(cli).await?;
     let mut stream = client
         .stream_workflow_events(StreamWorkflowEventsRequest {
@@ -389,93 +290,6 @@ async fn workflow_run_events(
         .context("Failed to read workflow event")?
     {
         println!("{}", serde_json::to_string(&workflow_event_json(&event))?);
-    }
-    Ok(())
-}
-
-async fn rest_stream_workflow_events(
-    cli: &Cli,
-    namespace: &str,
-    workflow: &str,
-    run_id: &str,
-) -> Result<()> {
-    let client = rest_client(cli)?;
-    let path = format!(
-        "/v1/ns/{}/workflows/{}/runs/{}/stream",
-        urlencoding::encode(namespace),
-        urlencoding::encode(workflow),
-        urlencoding::encode(run_id)
-    );
-    let url = format!("{}{}", cli.gateway.trim_end_matches('/'), path);
-    let response = client
-        .get(&url)
-        .send()
-        .await
-        .with_context(|| format!("Failed to call REST endpoint {}", url))?;
-    let status = response.status();
-    let headers = response.headers().clone();
-    if !status.is_success() {
-        let text = response
-            .text()
-            .await
-            .with_context(|| format!("Failed to read REST response body from {}", url))?;
-        anyhow::bail!(
-            "REST {} {} failed: status={} body={}{}",
-            path,
-            url,
-            status,
-            text.trim(),
-            rest_grpc_error_details(&headers)
-        );
-    }
-
-    let mut stream = response.bytes_stream();
-    let mut buffer = Vec::new();
-    while let Some(chunk) = stream.next().await {
-        let chunk = chunk.with_context(|| format!("Failed to read REST stream from {}", url))?;
-        buffer.extend_from_slice(&chunk);
-        ensure_rest_stream_buffer_within_limit(buffer.len())?;
-        let mut last_index = 0;
-        while let Some(newline) = buffer[last_index..].iter().position(|byte| *byte == b'\n') {
-            let absolute_newline = last_index + newline;
-            let line = String::from_utf8_lossy(&buffer[last_index..absolute_newline]);
-            print_stream_event_line(line.trim_end_matches('\r'))?;
-            last_index = absolute_newline + 1;
-        }
-        if last_index > 0 {
-            buffer.drain(..last_index);
-        }
-    }
-    if !buffer.is_empty() {
-        let line = String::from_utf8_lossy(&buffer);
-        print_stream_event_line(line.trim_end_matches('\r'))?;
-    }
-    Ok(())
-}
-
-fn ensure_rest_stream_buffer_within_limit(buffer_len: usize) -> Result<()> {
-    if buffer_len > MAX_REST_STREAM_BUFFER_BYTES {
-        anyhow::bail!(
-            "REST stream exceeded maximum buffer limit of {} bytes without a newline",
-            MAX_REST_STREAM_BUFFER_BYTES
-        );
-    }
-    Ok(())
-}
-
-fn print_stream_event_line(line: &str) -> Result<()> {
-    let line = line.trim();
-    if line.is_empty() || line.starts_with(':') || line.starts_with("event:") {
-        return Ok(());
-    }
-    let payload = line.strip_prefix("data:").map(str::trim).unwrap_or(line);
-    if payload.is_empty() || payload == "[DONE]" {
-        return Ok(());
-    }
-    if let Ok(json) = serde_json::from_str::<serde_json::Value>(payload) {
-        println!("{}", serde_json::to_string(&json)?);
-    } else {
-        println!("{}", payload);
     }
     Ok(())
 }

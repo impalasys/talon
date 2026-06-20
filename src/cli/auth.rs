@@ -4,7 +4,6 @@
 use anyhow::{Context, Result};
 use base64::Engine;
 use jsonwebtoken::{EncodingKey, Header};
-use reqwest::header::AUTHORIZATION;
 use serde::{Deserialize, Serialize};
 use tonic::metadata::MetadataValue;
 use tonic::service::Interceptor;
@@ -227,33 +226,4 @@ pub(crate) async fn connect_gateway(
         channel,
         auth_interceptor(cli)?,
     ))
-}
-
-pub(crate) fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
-    if let Some(token) = resolve_gateway_token(cli) {
-        Ok(Some(format!("Bearer {}", token)))
-    } else if let Some(secret) = resolve_gateway_jwt_secret(cli) {
-        let token = mint_gateway_jwt(&secret)?;
-        Ok(Some(format!("Bearer {}", token)))
-    } else if let Some(password) = resolve_gateway_password(cli) {
-        let token = base64::engine::general_purpose::STANDARD.encode(format!(":{}", password));
-        Ok(Some(format!("Basic {}", token)))
-    } else {
-        Ok(None)
-    }
-}
-
-pub(crate) fn rest_client(cli: &Cli) -> Result<reqwest::Client> {
-    let mut headers = reqwest::header::HeaderMap::new();
-    if let Some(auth) = resolve_authorization_header(cli)? {
-        headers.insert(
-            AUTHORIZATION,
-            reqwest::header::HeaderValue::from_str(&auth)
-                .context("Failed to encode REST authorization header")?,
-        );
-    }
-    reqwest::Client::builder()
-        .default_headers(headers)
-        .build()
-        .context("Failed to build REST client")
 }

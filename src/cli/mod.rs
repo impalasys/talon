@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 include!("prelude.rs");
-include!("transport.rs");
 include!("resource_targets.rs");
 include!("entry.rs");
 include!("manifest_render.rs");

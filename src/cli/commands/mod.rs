@@ -43,10 +43,6 @@ pub(crate) struct Cli {
     #[arg(long)]
     pub(crate) jwt_secret: Option<String>,
 
-    /// Use the REST-transcoded public HTTP endpoints instead of native gRPC.
-    #[arg(long, default_value_t = false)]
-    pub(crate) rest: bool,
-
     #[command(subcommand)]
     pub(crate) command: Commands,
 }

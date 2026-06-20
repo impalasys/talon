@@ -5,10 +5,7 @@ use anyhow::{Context, Result};
 use serde_json::json;
 
 use super::Cli;
-use crate::cli::{
-    agent_lookup_target, auth_interceptor, resource_lookup_target, rest_request_json,
-};
-use crate::gateway::rpc::proto::gateway_service_client::GatewayServiceClient;
+use crate::cli::{connect_gateway, resource_lookup_target};
 use crate::gateway::rpc::proto::{GetResourceRequest, ListNamespacesRequest, ListResourcesRequest};
 use crate::gateway::rpc::resources_proto;
 
@@ -41,20 +38,12 @@ pub(super) async fn run(cli: &Cli, command: &GetCommand) -> Result<()> {
     let Some(name) = command.name.as_ref() else {
         let output = match command.output.unwrap_or(GetOutput::Table) {
             GetOutput::Table => {
-                if cli.rest {
-                    rest_list_resources_table(cli, &command.kind, command.namespace.as_ref())
-                        .await?
-                } else {
-                    grpc_list_resources_table(cli, &command.kind, command.namespace.as_ref())
-                        .await?
-                }
+                grpc_list_resources_table(cli, &command.kind, command.namespace.as_ref()).await?
             }
             GetOutput::Json => {
-                let value = if cli.rest {
-                    rest_list_resources_json(cli, &command.kind, command.namespace.as_ref()).await?
-                } else {
-                    grpc_list_resources_json(cli, &command.kind, command.namespace.as_ref()).await?
-                };
+                let value =
+                    grpc_list_resources_json(cli, &command.kind, command.namespace.as_ref())
+                        .await?;
                 serde_json::to_string_pretty(&value)?
             }
             GetOutput::Yaml => anyhow::bail!("list output format 'yaml' is not supported"),
@@ -64,19 +53,11 @@ pub(super) async fn run(cli: &Cli, command: &GetCommand) -> Result<()> {
     };
 
     let output = match command.output.unwrap_or(GetOutput::Yaml) {
-        GetOutput::Yaml => {
-            if cli.rest {
-                rest_get_yaml(cli, &command.kind, name, command.namespace.as_ref()).await?
-            } else {
-                grpc_get_yaml(cli, &command.kind, name, command.namespace.as_ref()).await?
-            }
-        }
+        GetOutput::Yaml => grpc_get_yaml(cli, &command.kind, name, command.namespace.as_ref())
+            .await?,
         GetOutput::Json => {
-            let value = if cli.rest {
-                rest_get_json(cli, &command.kind, name, command.namespace.as_ref()).await?
-            } else {
-                grpc_get_json(cli, &command.kind, name, command.namespace.as_ref()).await?
-            };
+            let value =
+                grpc_get_json(cli, &command.kind, name, command.namespace.as_ref()).await?;
             serde_json::to_string_pretty(&value)?
         }
         GetOutput::Table => anyhow::bail!("single resource output format 'table' is not supported"),
@@ -181,125 +162,6 @@ fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<Resour
     }
 }
 
-fn rest_get_path(
-    kind: &str,
-    name: &str,
-    namespace: Option<&String>,
-) -> Result<(String, &'static str)> {
-    match kind.to_lowercase().as_str() {
-        "agenttemplate" | "templates" | "template" => {
-            let ns = namespace
-                .cloned()
-                .unwrap_or_else(|| crate::control::ns::TALON_SYSTEM.to_string());
-            Ok((
-                format!(
-                    "/v1/ns/{}/resources/Template/{}",
-                    urlencoding::encode(&ns),
-                    urlencoding::encode(name)
-                ),
-                "resource",
-            ))
-        }
-        "mcpserver" | "mcpservers" | "mcp" => Ok((
-            format!("/v1/mcp-servers/{}", urlencoding::encode(name)),
-            "server",
-        )),
-        "agent" | "agents" => {
-            let (ns, agent_name) = agent_lookup_target(name, namespace);
-            Ok((
-                format!(
-                    "/v1/ns/{}/agents/{}",
-                    urlencoding::encode(&ns),
-                    urlencoding::encode(&agent_name)
-                ),
-                "agent",
-            ))
-        }
-        "mcpserverbinding" | "mcpbindings" | "mcpbinding" => {
-            let ns = namespace
-                .as_ref()
-                .context("namespace is required for McpServerBinding get")?;
-            Ok((
-                format!(
-                    "/v1/namespaces/{}/mcp-bindings/{}",
-                    urlencoding::encode(ns),
-                    urlencoding::encode(name)
-                ),
-                "binding",
-            ))
-        }
-        "namespace" | "namespaces" => Ok((
-            format!("/v1/namespaces/{}", urlencoding::encode(name)),
-            "namespace",
-        )),
-        "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
-            let ns = namespace.as_ref().context("Knowledge get requires --namespace")?;
-            Ok((
-                format!(
-                    "/v1/namespaces/{}/knowledge/{}",
-                    urlencoding::encode(ns),
-                    urlencoding::encode(name)
-                ),
-                "knowledge",
-            ))
-        }
-        "schedule" | "schedules" => {
-            let ns = namespace.as_ref().context("Schedule get requires --namespace")?;
-            Ok((
-                format!(
-                    "/v1/ns/{}/schedules/{}",
-                    urlencoding::encode(ns),
-                    urlencoding::encode(name)
-                ),
-                "schedule",
-            ))
-        }
-        "channel" | "channels" => {
-            let ns = namespace.as_ref().context("Channel get requires --namespace")?;
-            Ok((
-                format!(
-                    "/v1/ns/{}/channels/{}",
-                    urlencoding::encode(ns),
-                    urlencoding::encode(name)
-                ),
-                "channel",
-            ))
-        }
-        "channelsubscription"
-        | "channelsubscriptions"
-        | "channel-subscription"
-        | "channel-subscriptions" => {
-            let ns = namespace
-                .as_ref()
-                .context("ChannelSubscription get requires --namespace")?;
-            let (channel, subscription) = name
-                .split_once('/')
-                .context("ChannelSubscription name must be '<channel>/<subscription>'")?;
-            Ok((
-                format!(
-                    "/v1/ns/{}/channels/{}/subscriptions/{}",
-                    urlencoding::encode(ns),
-                    urlencoding::encode(channel),
-                    urlencoding::encode(subscription)
-                ),
-                "subscription",
-            ))
-        }
-        "workflow" | "workflows" => {
-            let ns = namespace.as_ref().context("Workflow get requires --namespace")?;
-            Ok((
-                format!(
-                    "/v1/ns/{}/workflows/{}",
-                    urlencoding::encode(ns),
-                    urlencoding::encode(name)
-                ),
-                "workflow",
-            ))
-        }
-        other => anyhow::bail!("Unsupported resource kind '{}' for REST mode", other),
-    }
-}
-
 fn grpc_get_target(
     kind: &str,
     name: &str,
@@ -315,12 +177,7 @@ async fn grpc_get_yaml(
     name: &str,
     namespace: Option<&String>,
 ) -> Result<String> {
-    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-        .connect()
-        .await
-        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
-    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+    let mut client = connect_gateway(cli).await?;
 
     let target = grpc_get_target(kind, name, namespace)?;
     let resp = client
@@ -346,12 +203,7 @@ async fn grpc_get_json(
     name: &str,
     namespace: Option<&String>,
 ) -> Result<serde_json::Value> {
-    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-        .connect()
-        .await
-        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
-    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+    let mut client = connect_gateway(cli).await?;
 
     let target = grpc_get_target(kind, name, namespace)?;
     let resp = client
@@ -371,69 +223,12 @@ async fn grpc_get_json(
     resource_manifest_json(&resource)
 }
 
-async fn rest_get_yaml(
-    cli: &Cli,
-    kind: &str,
-    name: &str,
-    namespace: Option<&String>,
-) -> Result<String> {
-    let (path, response_key) = rest_get_path(kind, name, namespace)?;
-    let resp = rest_request_json(cli, reqwest::Method::GET, &path, None)
-        .await
-        .with_context(|| format!("Failed to fetch {} '{}'", kind, name))?;
-    let value = if response_key == "namespace" {
-        resp
-    } else {
-        resp.get(response_key)
-            .cloned()
-            .or_else(|| (response_key == "card" && resp.get("cards").is_some()).then_some(resp))
-            .with_context(|| format!("REST response missing {}", response_key))?
-    };
-    render_rest_get_yaml(response_key, value)
-        .with_context(|| format!("Failed to serialize {} YAML", kind))
-}
-
-async fn rest_get_json(
-    cli: &Cli,
-    kind: &str,
-    name: &str,
-    namespace: Option<&String>,
-) -> Result<serde_json::Value> {
-    let (path, response_key) = rest_get_path(kind, name, namespace)?;
-    let resp = rest_request_json(cli, reqwest::Method::GET, &path, None)
-        .await
-        .with_context(|| format!("Failed to fetch {} '{}'", kind, name))?;
-    let value = if response_key == "namespace" {
-        resp
-    } else {
-        resp.get(response_key)
-            .cloned()
-            .or_else(|| (response_key == "card" && resp.get("cards").is_some()).then_some(resp))
-            .with_context(|| format!("REST response missing {}", response_key))?
-    };
-    match response_key {
-        "resource" => {
-            let mut value = value;
-            normalize_manifest_metadata_maps(&mut value);
-            let resource: resources_proto::Resource =
-                serde_json::from_value(value).context("Failed to decode Resource JSON")?;
-            resource_manifest_json(&resource)
-        }
-        _ => Ok(value),
-    }
-}
-
 async fn grpc_list_resources_table(
     cli: &Cli,
     kind: &str,
     namespace: Option<&String>,
 ) -> Result<String> {
-    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-        .connect()
-        .await
-        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
-    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+    let mut client = connect_gateway(cli).await?;
 
     match resource_list_target(kind, namespace)? {
         ResourceListTarget::Resources { ns, kind } => {
@@ -465,12 +260,7 @@ async fn grpc_list_resources_json(
     kind: &str,
     namespace: Option<&String>,
 ) -> Result<serde_json::Value> {
-    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-        .connect()
-        .await
-        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
-    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+    let mut client = connect_gateway(cli).await?;
 
     match resource_list_target(kind, namespace)? {
         ResourceListTarget::Resources { ns, kind } => {
@@ -505,235 +295,6 @@ async fn grpc_list_resources_json(
             }))
         }
     }
-}
-
-async fn rest_list_resources_table(
-    cli: &Cli,
-    kind: &str,
-    namespace: Option<&String>,
-) -> Result<String> {
-    match resource_list_target(kind, namespace)? {
-        ResourceListTarget::Resources { ns, kind } => {
-            let mut path = format!("/v1/ns/{}/resources", urlencoding::encode(&ns));
-            if let Some(kind) = kind {
-                path.push_str(&format!("?kind={}", urlencoding::encode(&kind)));
-            }
-            let resp = rest_request_json(cli, reqwest::Method::GET, &path, None)
-                .await
-                .with_context(|| format!("Failed to list resources in '{}'", ns))?;
-            let resources = resp
-                .get("resources")
-                .and_then(|value| value.as_array())
-                .cloned()
-                .unwrap_or_default()
-                .into_iter()
-                .map(|mut value| {
-                    normalize_manifest_metadata_maps(&mut value);
-                    serde_json::from_value::<resources_proto::Resource>(value)
-                        .context("Failed to decode Resource JSON")
-                })
-                .collect::<Result<Vec<_>>>()?;
-            Ok(render_resource_list_table(&resources))
-        }
-        ResourceListTarget::Namespaces { parent } => {
-            let path = match parent {
-                Some(parent) => format!("/v1/namespaces?parent={}", urlencoding::encode(&parent)),
-                None => "/v1/namespaces".to_string(),
-            };
-            let resp = rest_request_json(cli, reqwest::Method::GET, &path, None)
-                .await
-                .context("Failed to list namespaces")?;
-            Ok(render_namespace_list_table_from_json(&resp))
-        }
-    }
-}
-
-async fn rest_list_resources_json(
-    cli: &Cli,
-    kind: &str,
-    namespace: Option<&String>,
-) -> Result<serde_json::Value> {
-    match resource_list_target(kind, namespace)? {
-        ResourceListTarget::Resources { ns, kind } => {
-            let mut path = format!("/v1/ns/{}/resources", urlencoding::encode(&ns));
-            if let Some(kind) = kind {
-                path.push_str(&format!("?kind={}", urlencoding::encode(&kind)));
-            }
-            let resp = rest_request_json(cli, reqwest::Method::GET, &path, None)
-                .await
-                .with_context(|| format!("Failed to list resources in '{}'", ns))?;
-            let resources = resp
-                .get("resources")
-                .and_then(|value| value.as_array())
-                .cloned()
-                .unwrap_or_default()
-                .into_iter()
-                .map(|mut value| {
-                    normalize_manifest_metadata_maps(&mut value);
-                    serde_json::from_value::<resources_proto::Resource>(value)
-                        .context("Failed to decode Resource JSON")
-                })
-                .collect::<Result<Vec<_>>>()?;
-            resources_list_json(resources)
-        }
-        ResourceListTarget::Namespaces { parent } => {
-            let path = match parent {
-                Some(parent) => format!("/v1/namespaces?parent={}", urlencoding::encode(&parent)),
-                None => "/v1/namespaces".to_string(),
-            };
-            rest_request_json(cli, reqwest::Method::GET, &path, None)
-                .await
-                .context("Failed to list namespaces")
-        }
-    }
-}
-
-fn render_rest_get_yaml(response_key: &str, value: serde_json::Value) -> Result<String> {
-    match response_key {
-        "resource" => {
-            let mut value = value;
-            normalize_manifest_metadata_maps(&mut value);
-            let resource: resources_proto::Resource =
-                serde_json::from_value(value).context("Failed to decode Resource JSON")?;
-            crate::control::manifest::render_resource_yaml(&resource)
-        }
-        "agent" => render_rest_agent_yaml(value),
-        "namespace" => render_rest_namespace_yaml(value),
-        "server" => {
-            let mut value = value;
-            normalize_manifest_metadata_maps(&mut value);
-            let server: crate::gateway::rpc::manifests::McpServer =
-                serde_json::from_value(value).context("Failed to decode MCPServer JSON")?;
-            crate::control::manifest::render_mcp_server_yaml(&server)
-        }
-        "binding" => {
-            let mut value = value;
-            normalize_manifest_metadata_maps(&mut value);
-            let binding: crate::gateway::rpc::manifests::McpServerBinding =
-                serde_json::from_value(value).context("Failed to decode McpServerBinding JSON")?;
-            crate::control::manifest::render_mcp_server_binding_yaml(&binding)
-        }
-        "knowledge" => {
-            let mut value = value;
-            normalize_manifest_metadata_maps(&mut value);
-            let knowledge: crate::gateway::rpc::manifests::Knowledge =
-                serde_json::from_value(value).context("Failed to decode Knowledge JSON")?;
-            crate::control::manifest::render_knowledge_yaml(&knowledge)
-        }
-        "schedule" => serde_yaml::to_string(&value).context("Failed to serialize Schedule YAML"),
-        "channel" => {
-            let mut value = value;
-            normalize_json_int64_fields(
-                &mut value,
-                &["createdAt", "created_at", "updatedAt", "updated_at"],
-            )?;
-            let channel: resources_proto::Channel =
-                serde_json::from_value(value).context("Failed to decode Channel JSON")?;
-            crate::control::manifest::render_channel_yaml(&channel)
-        }
-        "subscription" => {
-            let subscription: resources_proto::ChannelSubscription = serde_json::from_value(value)
-                .context("Failed to decode ChannelSubscription JSON")?;
-            crate::control::manifest::render_channel_subscription_yaml(&subscription)
-        }
-        "workflow" => {
-            let workflow: resources_proto::Workflow =
-                serde_json::from_value(value).context("Failed to decode Workflow JSON")?;
-            crate::control::manifest::render_workflow_yaml(&workflow)
-        }
-        other => anyhow::bail!("Unsupported REST response resource '{}'", other),
-    }
-}
-
-fn normalize_manifest_metadata_maps(value: &mut serde_json::Value) {
-    let Some(metadata) = value
-        .get_mut("metadata")
-        .and_then(|metadata| metadata.as_object_mut())
-    else {
-        return;
-    };
-
-    for key in ["labels", "annotations"] {
-        if metadata.get(key).is_some_and(|value| value.is_null()) {
-            metadata.insert(key.to_string(), json!({}));
-        }
-    }
-}
-
-fn normalize_json_int64_fields(value: &mut serde_json::Value, fields: &[&str]) -> Result<()> {
-    let Some(object) = value.as_object_mut() else {
-        return Ok(());
-    };
-
-    for field in fields {
-        let Some(field_value) = object.get_mut(*field) else {
-            continue;
-        };
-        let Some(raw) = field_value.as_str() else {
-            continue;
-        };
-        let parsed = raw
-            .parse::<i64>()
-            .with_context(|| format!("Failed to parse {field} as int64"))?;
-        *field_value = serde_json::Value::Number(parsed.into());
-    }
-
-    Ok(())
-}
-
-fn render_rest_agent_yaml(agent: serde_json::Value) -> Result<String> {
-    let name = agent
-        .get("name")
-        .or_else(|| agent.get("agent"))
-        .and_then(|name| name.as_str())
-        .context("Agent response missing name")?;
-    let namespace = agent
-        .get("ns")
-        .and_then(|namespace| namespace.as_str())
-        .context("Agent response missing ns")?;
-    let spec = agent
-        .get("spec")
-        .cloned()
-        .context("Agent response missing spec")?;
-    let labels = agent
-        .get("labels")
-        .filter(|labels| !labels.is_null())
-        .cloned()
-        .unwrap_or_else(|| json!({}));
-
-    serde_yaml::to_string(&json!({
-        "apiVersion": "talon.impalasys.com/v1",
-        "kind": "Agent",
-        "metadata": {
-            "name": name,
-            "namespace": namespace,
-            "labels": labels,
-        },
-        "spec": spec,
-    }))
-    .context("Failed to serialize Agent YAML")
-}
-
-fn render_rest_namespace_yaml(namespace: serde_json::Value) -> Result<String> {
-    let name = namespace
-        .get("name")
-        .and_then(|name| name.as_str())
-        .context("Namespace response missing name")?;
-    let labels = namespace
-        .get("labels")
-        .filter(|labels| !labels.is_null())
-        .cloned()
-        .unwrap_or_else(|| json!({}));
-
-    serde_yaml::to_string(&json!({
-        "apiVersion": "talon.impalasys.com/v1",
-        "kind": "Namespace",
-        "metadata": {
-            "name": name,
-            "labels": labels,
-        },
-    }))
-    .context("Failed to serialize Namespace YAML")
 }
 
 fn render_resource_list_table(resources: &[resources_proto::Resource]) -> String {
@@ -776,40 +337,6 @@ fn render_namespace_list_table_from_proto(
             namespace.name.clone(),
             namespace.parent.clone().unwrap_or_else(|| "-".to_string()),
             namespace.is_deleted.to_string(),
-        ]);
-    }
-    render_table(rows)
-}
-
-fn render_namespace_list_table_from_json(value: &serde_json::Value) -> String {
-    let mut rows = vec![vec![
-        "NAME".to_string(),
-        "PARENT".to_string(),
-        "DELETED".to_string(),
-    ]];
-    for namespace in value
-        .get("namespaces")
-        .and_then(|value| value.as_array())
-        .into_iter()
-        .flatten()
-    {
-        rows.push(vec![
-            namespace
-                .get("name")
-                .and_then(|value| value.as_str())
-                .unwrap_or("-")
-                .to_string(),
-            namespace
-                .get("parent")
-                .and_then(|value| value.as_str())
-                .filter(|value| !value.is_empty())
-                .unwrap_or("-")
-                .to_string(),
-            namespace
-                .get("isDeleted")
-                .and_then(|value| value.as_bool())
-                .unwrap_or(false)
-                .to_string(),
         ]);
     }
     render_table(rows)

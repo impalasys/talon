@@ -8,7 +8,7 @@ use serde_json::json;
 use std::collections::HashMap;
 
 use super::{Cli, RunOutcome};
-use crate::cli::{connect_gateway, rest_request_json};
+use crate::cli::connect_gateway;
 use crate::control::events::SessionMessagePartEventKind;
 use crate::gateway::rpc::data_proto;
 use crate::gateway::rpc::proto::{
@@ -358,24 +358,6 @@ async fn session_create(
     agent: &str,
     labels: HashMap<String, String>,
 ) -> Result<serde_json::Value> {
-    if cli.rest {
-        return rest_request_json(
-            cli,
-            reqwest::Method::POST,
-            &format!(
-                "/v1/ns/{}/agents/{}/sessions",
-                urlencoding::encode(namespace),
-                urlencoding::encode(agent)
-            ),
-            Some(json!({
-                "ns": namespace,
-                "agent": agent,
-                "labels": labels,
-            })),
-        )
-        .await;
-    }
-
     let mut client = connect_gateway(cli).await?;
     let response = client
         .create_session(CreateSessionRequest {
@@ -400,9 +382,6 @@ async fn session_send(
     json_output: bool,
 ) -> Result<()> {
     if stream {
-        if cli.rest {
-            anyhow::bail!("session send --stream requires gRPC mode");
-        }
         let mut stream_client = connect_gateway(cli).await?;
         let mut events = stream_client
             .stream_session_parts(StreamSessionPartsRequest {
@@ -441,27 +420,6 @@ async fn send_message(
     message: &str,
     labels: HashMap<String, String>,
 ) -> Result<serde_json::Value> {
-    if cli.rest {
-        return rest_request_json(
-            cli,
-            reqwest::Method::POST,
-            &format!(
-                "/v1/ns/{}/agents/{}/sessions/{}/message",
-                urlencoding::encode(namespace),
-                urlencoding::encode(agent),
-                urlencoding::encode(session_id)
-            ),
-            Some(json!({
-                "ns": namespace,
-                "agent": agent,
-                "sessionId": session_id,
-                "message": message,
-                "labels": labels,
-            })),
-        )
-        .await;
-    }
-
     let mut client = connect_gateway(cli).await?;
     let response = client
         .send_message(SendMessageRequest {
@@ -487,9 +445,6 @@ async fn session_stream(
     session_id: &str,
     json_output: bool,
 ) -> Result<()> {
-    if cli.rest {
-        anyhow::bail!("session stream requires gRPC mode");
-    }
     let mut client = connect_gateway(cli).await?;
     let mut events = client
         .stream_session_parts(StreamSessionPartsRequest {
@@ -520,19 +475,6 @@ async fn session_get(
     session_id: &str,
     message_limit: i32,
 ) -> Result<serde_json::Value> {
-    if cli.rest {
-        let mut path = format!(
-            "/v1/ns/{}/agents/{}/sessions/{}",
-            urlencoding::encode(namespace),
-            urlencoding::encode(agent),
-            urlencoding::encode(session_id)
-        );
-        if message_limit != 0 {
-            path.push_str(&format!("?messageLimit={message_limit}"));
-        }
-        return rest_request_json(cli, reqwest::Method::GET, &path, None).await;
-    }
-
     let mut client = connect_gateway(cli).await?;
     let response = client
         .get_session(GetSessionRequest {
@@ -548,20 +490,6 @@ async fn session_get(
 }
 
 async fn session_list(cli: &Cli, namespace: &str, agent: &str) -> Result<serde_json::Value> {
-    if cli.rest {
-        return rest_request_json(
-            cli,
-            reqwest::Method::GET,
-            &format!(
-                "/v1/ns/{}/agents/{}/sessions",
-                urlencoding::encode(namespace),
-                urlencoding::encode(agent)
-            ),
-            None,
-        )
-        .await;
-    }
-
     let mut client = connect_gateway(cli).await?;
     let response = client
         .list_sessions(ListSessionsRequest {
@@ -591,23 +519,6 @@ async fn session_messages(
     page_size: i32,
     before_message_id: &Option<String>,
 ) -> Result<serde_json::Value> {
-    if cli.rest {
-        let mut path = format!(
-            "/v1/ns/{}/agents/{}/sessions/{}/messages?pageSize={}",
-            urlencoding::encode(namespace),
-            urlencoding::encode(agent),
-            urlencoding::encode(session_id),
-            page_size
-        );
-        if let Some(before_message_id) = before_message_id {
-            path.push_str(&format!(
-                "&beforeMessageId={}",
-                urlencoding::encode(before_message_id)
-            ));
-        }
-        return rest_request_json(cli, reqwest::Method::GET, &path, None).await;
-    }
-
     let mut client = connect_gateway(cli).await?;
     let response = client
         .list_session_messages(ListSessionMessagesRequest {
@@ -642,30 +553,6 @@ async fn session_answer_permission(
     option_id: &str,
     decided_by: &str,
 ) -> Result<serde_json::Value> {
-    if cli.rest {
-        return rest_request_json(
-            cli,
-            reqwest::Method::POST,
-            &format!(
-                "/v1/ns/{}/agents/{}/sessions/{}/permissions/{}:answer",
-                urlencoding::encode(namespace),
-                urlencoding::encode(agent),
-                urlencoding::encode(session_id),
-                urlencoding::encode(request_id)
-            ),
-            Some(json!({
-                "ns": namespace,
-                "agent": agent,
-                "sessionId": session_id,
-                "requestId": request_id,
-                "outcome": outcome,
-                "optionId": option_id,
-                "decidedBy": decided_by,
-            })),
-        )
-        .await;
-    }
-
     let mut client = connect_gateway(cli).await?;
     let response = client
         .answer_session_permission(AnswerSessionPermissionRequest {
@@ -696,25 +583,6 @@ async fn session_stop(
     agent: &str,
     session_id: &str,
 ) -> Result<serde_json::Value> {
-    if cli.rest {
-        return rest_request_json(
-            cli,
-            reqwest::Method::POST,
-            &format!(
-                "/v1/ns/{}/agents/{}/sessions/{}:stop",
-                urlencoding::encode(namespace),
-                urlencoding::encode(agent),
-                urlencoding::encode(session_id)
-            ),
-            Some(json!({
-                "ns": namespace,
-                "agent": agent,
-                "sessionId": session_id,
-            })),
-        )
-        .await;
-    }
-
     let mut client = connect_gateway(cli).await?;
     let response = client
         .stop_session_generation(StopSessionGenerationRequest {
@@ -734,25 +602,6 @@ async fn session_clear(
     agent: &str,
     session_id: &str,
 ) -> Result<serde_json::Value> {
-    if cli.rest {
-        return rest_request_json(
-            cli,
-            reqwest::Method::POST,
-            &format!(
-                "/v1/ns/{}/agents/{}/sessions/{}:clear",
-                urlencoding::encode(namespace),
-                urlencoding::encode(agent),
-                urlencoding::encode(session_id)
-            ),
-            Some(json!({
-                "ns": namespace,
-                "agent": agent,
-                "sessionId": session_id,
-            })),
-        )
-        .await;
-    }
-
     let mut client = connect_gateway(cli).await?;
     let response = client
         .clear_session(ClearSessionRequest {
@@ -772,21 +621,6 @@ async fn session_delete(
     agent: &str,
     session_id: &str,
 ) -> Result<serde_json::Value> {
-    if cli.rest {
-        return rest_request_json(
-            cli,
-            reqwest::Method::DELETE,
-            &format!(
-                "/v1/ns/{}/agents/{}/sessions/{}",
-                urlencoding::encode(namespace),
-                urlencoding::encode(agent),
-                urlencoding::encode(session_id)
-            ),
-            None,
-        )
-        .await;
-    }
-
     let mut client = connect_gateway(cli).await?;
     let response = client
         .delete_session(DeleteSessionRequest {

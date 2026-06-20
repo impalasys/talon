@@ -51,8 +51,8 @@ Use the `auth` command to mint scoped tokens from `TALON_JWT_SECRET`, `GATEWAY_J
 
 It can also target either:
 
-- native gRPC by default
-- REST-transcoded endpoints with `--rest`
+- the gateway's native gRPC listener
+- Envoy's native gRPC ingress
 
 ## Browser and UI access
 
