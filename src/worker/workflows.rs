@@ -1269,10 +1269,7 @@ async fn load_run_spec(
 }
 
 fn workflow_claim_owner() -> String {
-    std::env::var("TALON_WORKER_ID")
-        .ok()
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| format!("worker-{}", uuid::Uuid::now_v7()))
+    crate::worker::registration::worker_id()
 }
 
 fn workflow_concurrency(spec: &resources_proto::WorkflowSpec) -> usize {

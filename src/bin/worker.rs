@@ -724,6 +724,15 @@ where
     let pull_mode = pull_mode_enabled(&env_get);
     let project_id = pubsub_project_id(&env_get);
     let shutdown_token = CancellationToken::new();
+    let worker_registration = talon::worker::registration::WorkerRegistration::new(
+        talon::worker::registration::worker_id(),
+        env!("CARGO_PKG_VERSION"),
+    );
+    let heartbeat_task = tokio::spawn(talon::worker::registration::run_worker_heartbeat(
+        handler.cp.clone(),
+        worker_registration,
+        shutdown_token.child_token(),
+    ));
     let pull_tasks = spawn(
         handler.clone(),
         pull_mode,
@@ -743,6 +752,7 @@ where
     };
     shutdown_token.cancel();
     join_pull_subscription_tasks(pull_tasks).await;
+    join_pull_subscription_tasks(vec![heartbeat_task]).await;
     result
 }
 

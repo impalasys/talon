@@ -9,39 +9,13 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 
 - Service: `talon.gateway.GatewayService`
 - Transport modes: gRPC, gRPC-web, REST via `google.api.http` annotations, and the browser-oriented `/v1/ui/... ` stream path documented separately in the hand-written guides
-- Total RPC methods: **66**
-
-## Agents
-
-### `CreateAgent`
-
-- Request: `CreateAgentRequest`
-- Response: `AgentResponse`
-- REST mapping: `POST /v1/ns/{ns}/agents`
-- REST body: `*`
-
-### `GetAgent`
-
-- Request: `GetAgentRequest`
-- Response: `GetAgentResponse`
-- REST mapping: `GET /v1/ns/{ns}/agents/{name}`
-
-### `ModifyAgent`
-
-- Request: `ModifyAgentRequest`
-- Response: `AgentResponse`
-- REST mapping: `PUT /v1/ns/{ns}/agents/{agent}`
-- REST body: `*`
-
-### `ListAgents`
-
-- Request: `ListAgentsRequest`
-- Response: `ListAgentsResponse`
-- REST mapping: `GET /v1/ns/{ns}/agents`
+- Total RPC methods: **32**
 
 ## Knowledge
 
 ### `GetKnowledge`
+
+Agent knowledge data-plane queries
 
 - Request: `GetKnowledgeRequest`
 - Response: `KnowledgeResponse`
@@ -53,31 +27,6 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 - Response: `SearchKnowledgeResponse`
 - REST mapping: `POST /v1/ns/{ns}/agents/{agent}/knowledge/search`
 - REST body: `*`
-
-### `CreateNamespaceKnowledge`
-
-- Request: `CreateNamespaceKnowledgeRequest`
-- Response: `NamespaceKnowledgeResponse`
-- REST mapping: `POST /v1/namespaces/{ns}/knowledge`
-- REST body: `*`
-
-### `GetNamespaceKnowledge`
-
-- Request: `GetNamespaceKnowledgeRequest`
-- Response: `NamespaceKnowledgeResponse`
-- REST mapping: `GET /v1/namespaces/{ns}/knowledge/{name}`
-
-### `ListNamespaceKnowledge`
-
-- Request: `ListNamespaceKnowledgeRequest`
-- Response: `ListNamespaceKnowledgeResponse`
-- REST mapping: `GET /v1/namespaces/{ns}/knowledge`
-
-### `DeleteNamespaceKnowledge`
-
-- Request: `DeleteNamespaceKnowledgeRequest`
-- Response: `DeleteNamespaceKnowledgeResponse`
-- REST mapping: `DELETE /v1/namespaces/{ns}/knowledge/{name}`
 
 ## Sessions
 
@@ -133,6 +82,13 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 - REST mapping: `POST /v1/ns/{ns}/agents/{agent}/sessions/{session_id}/messages:append`
 - REST body: `*`
 
+### `AnswerSessionPermission`
+
+- Request: `AnswerSessionPermissionRequest`
+- Response: `AnswerSessionPermissionResponse`
+- REST mapping: `POST /v1/ns/{ns}/agents/{agent}/sessions/{session_id}/permissions/{request_id}:answer`
+- REST body: `*`
+
 ### `StopSessionGeneration`
 
 - Request: `StopSessionGenerationRequest`
@@ -145,40 +101,6 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 - Request: `StreamSessionPartsRequest`
 - Response: `talon.events.SessionMessagePartEvent` (server stream)
 - REST mapping: `GET /v1/ns/{ns}/agents/{agent}/sessions/{session_id}/stream`
-
-## Schedules
-
-### `CreateSchedule`
-
-- Request: `CreateScheduleRequest`
-- Response: `ScheduleResponse`
-- REST mapping: `POST /v1/ns/{ns}/schedules`
-- REST body: `*`
-
-### `GetSchedule`
-
-- Request: `GetScheduleRequest`
-- Response: `ScheduleResponse`
-- REST mapping: `GET /v1/ns/{ns}/schedules/{name}`
-
-### `ModifySchedule`
-
-- Request: `ModifyScheduleRequest`
-- Response: `ScheduleResponse`
-- REST mapping: `PUT /v1/ns/{ns}/schedules/{name}`
-- REST body: `*`
-
-### `ListSchedules`
-
-- Request: `ListSchedulesRequest`
-- Response: `ListSchedulesResponse`
-- REST mapping: `GET /v1/ns/{ns}/schedules`
-
-### `DeleteSchedule`
-
-- Request: `DeleteScheduleRequest`
-- Response: `DeleteScheduleResponse`
-- REST mapping: `DELETE /v1/ns/{ns}/schedules/{name}`
 
 ## Namespaces
 
@@ -207,58 +129,6 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 - Response: `ListNamespacesResponse`
 - REST mapping: `GET /v1/namespaces`
 
-## MCP
-
-### `CreateMcpServer`
-
-- Request: `CreateMcpServerRequest`
-- Response: `McpServerResponse`
-- REST mapping: `POST /v1/mcp-servers`
-- REST body: `*`
-
-### `GetMcpServer`
-
-- Request: `GetMcpServerRequest`
-- Response: `McpServerResponse`
-- REST mapping: `GET /v1/mcp-servers/{name}`
-
-### `ListMcpServers`
-
-- Request: `ListMcpServersRequest`
-- Response: `ListMcpServersResponse`
-- REST mapping: `GET /v1/mcp-servers`
-
-### `DeleteMcpServer`
-
-- Request: `DeleteMcpServerRequest`
-- Response: `DeleteMcpServerResponse`
-- REST mapping: `DELETE /v1/mcp-servers/{name}`
-
-### `CreateMcpServerBinding`
-
-- Request: `CreateMcpServerBindingRequest`
-- Response: `McpServerBindingResponse`
-- REST mapping: `POST /v1/namespaces/{ns}/mcp-bindings`
-- REST body: `*`
-
-### `GetMcpServerBinding`
-
-- Request: `GetMcpServerBindingRequest`
-- Response: `McpServerBindingResponse`
-- REST mapping: `GET /v1/namespaces/{ns}/mcp-bindings/{name}`
-
-### `ListMcpServerBindings`
-
-- Request: `ListMcpServerBindingsRequest`
-- Response: `ListMcpServerBindingsResponse`
-- REST mapping: `GET /v1/namespaces/{ns}/mcp-bindings`
-
-### `DeleteMcpServerBinding`
-
-- Request: `DeleteMcpServerBindingRequest`
-- Response: `DeleteMcpServerBindingResponse`
-- REST mapping: `DELETE /v1/namespaces/{ns}/mcp-bindings/{name}`
-
 ## Other
 
 ### `StreamSessionPartsBatch`
@@ -268,41 +138,9 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 - REST mapping: `POST /v1/session-streams:batch`
 - REST body: `*`
 
-### `CreateChannel`
-
-Channels
-
-- Request: `CreateChannelRequest`
-- Response: `ChannelResponse`
-- REST mapping: `POST /v1/ns/{ns}/channels`
-- REST body: `*`
-
-### `GetChannel`
-
-- Request: `GetChannelRequest`
-- Response: `ChannelResponse`
-- REST mapping: `GET /v1/ns/{ns}/channels/{name}`
-
-### `ModifyChannel`
-
-- Request: `ModifyChannelRequest`
-- Response: `ChannelResponse`
-- REST mapping: `PUT /v1/ns/{ns}/channels/{name}`
-- REST body: `*`
-
-### `ListChannels`
-
-- Request: `ListChannelsRequest`
-- Response: `ListChannelsResponse`
-- REST mapping: `GET /v1/ns/{ns}/channels`
-
-### `DeleteChannel`
-
-- Request: `DeleteChannelRequest`
-- Response: `DeleteChannelResponse`
-- REST mapping: `DELETE /v1/ns/{ns}/channels/{name}`
-
 ### `PostChannelMessage`
+
+Channel data-plane actions
 
 - Request: `PostChannelMessageRequest`
 - Response: `PostChannelMessageResponse`
@@ -321,72 +159,15 @@ Channels
 - Response: `ListChannelMessagesResponse`
 - REST mapping: `GET /v1/ns/{ns}/channels/{channel}/messages`
 
-### `CreateChannelSubscription`
-
-- Request: `CreateChannelSubscriptionRequest`
-- Response: `ChannelSubscriptionResponse`
-- REST mapping: `POST /v1/ns/{ns}/channels/{channel}/subscriptions`
-- REST body: `*`
-
-### `GetChannelSubscription`
-
-- Request: `GetChannelSubscriptionRequest`
-- Response: `ChannelSubscriptionResponse`
-- REST mapping: `GET /v1/ns/{ns}/channels/{channel}/subscriptions/{name}`
-
-### `ModifyChannelSubscription`
-
-- Request: `ModifyChannelSubscriptionRequest`
-- Response: `ChannelSubscriptionResponse`
-- REST mapping: `PUT /v1/ns/{ns}/channels/{channel}/subscriptions/{name}`
-- REST body: `*`
-
-### `ListChannelSubscriptions`
-
-- Request: `ListChannelSubscriptionsRequest`
-- Response: `ListChannelSubscriptionsResponse`
-- REST mapping: `GET /v1/ns/{ns}/channels/{channel}/subscriptions`
-
-### `DeleteChannelSubscription`
-
-- Request: `DeleteChannelSubscriptionRequest`
-- Response: `DeleteChannelSubscriptionResponse`
-- REST mapping: `DELETE /v1/ns/{ns}/channels/{channel}/subscriptions/{name}`
-
 ### `StreamChannelEvents`
 
 - Request: `StreamChannelEventsRequest`
 - Response: `talon.events.ChannelEvent` (server stream)
 - REST mapping: `GET /v1/ns/{ns}/channels/{channel}/stream`
 
-### `CreateWorkflow`
-
-Workflows
-
-- Request: `CreateWorkflowRequest`
-- Response: `WorkflowResponse`
-- REST mapping: `POST /v1/ns/{ns}/workflows`
-- REST body: `*`
-
-### `GetWorkflow`
-
-- Request: `GetWorkflowRequest`
-- Response: `WorkflowResponse`
-- REST mapping: `GET /v1/ns/{ns}/workflows/{name}`
-
-### `ListWorkflows`
-
-- Request: `ListWorkflowsRequest`
-- Response: `ListWorkflowsResponse`
-- REST mapping: `GET /v1/ns/{ns}/workflows`
-
-### `DeleteWorkflow`
-
-- Request: `DeleteWorkflowRequest`
-- Response: `DeleteWorkflowResponse`
-- REST mapping: `DELETE /v1/ns/{ns}/workflows/{name}`
-
 ### `CreateWorkflowRun`
+
+Workflow data-plane actions
 
 - Request: `CreateWorkflowRunRequest`
 - Response: `WorkflowRunResponse`
@@ -427,27 +208,27 @@ Workflows
 
 ### `CreateResource`
 
-Generic v2 resources
+Generic resources
 
 - Request: `CreateResourceRequest`
 - Response: `ResourceResponse`
-- REST mapping: `POST /v2/ns/{ns}/resources`
+- REST mapping: `POST /v1/ns/{ns}/resources`
 - REST body: `*`
 
 ### `GetResource`
 
 - Request: `GetResourceRequest`
 - Response: `ResourceResponse`
-- REST mapping: `GET /v2/ns/{ns}/resources/{kind}/{name}`
+- REST mapping: `GET /v1/ns/{ns}/resources/{kind}/{name}`
 
 ### `ListResources`
 
 - Request: `ListResourcesRequest`
 - Response: `ListResourcesResponse`
-- REST mapping: `GET /v2/ns/{ns}/resources`
+- REST mapping: `GET /v1/ns/{ns}/resources`
 
 ### `DeleteResource`
 
 - Request: `DeleteResourceRequest`
 - Response: `DeleteResourceResponse`
-- REST mapping: `DELETE /v2/ns/{ns}/resources/{kind}/{name}`
+- REST mapping: `DELETE /v1/ns/{ns}/resources/{kind}/{name}`

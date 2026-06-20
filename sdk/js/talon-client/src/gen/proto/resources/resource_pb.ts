@@ -17,6 +17,7 @@ import { SessionSpec, SessionStatus } from "./sessions_pb.js";
 import { SkillSpec } from "./skills_pb.js";
 import { DeploymentReplicaSpec, DeploymentReplicaStatus, DeploymentSpec, DeploymentStatus, TemplateSpec } from "./deployments_pb.js";
 import { SandboxClassSpec, SandboxPolicySpec, SandboxSpec, SandboxStatus } from "./sandboxes_pb.js";
+import { WorkerSpec, WorkerStatus } from "./workers_pb.js";
 
 /**
  * @generated from message talon.resources.Resource
@@ -319,6 +320,12 @@ export class ResourceSpec extends Message<ResourceSpec> {
     case: "sandbox";
   } | {
     /**
+     * @generated from field: talon.resources.WorkerSpec worker = 50;
+     */
+    value: WorkerSpec;
+    case: "worker";
+  } | {
+    /**
      * @generated from field: talon.resources.RawResourceSpec raw = 1000;
      */
     value: RawResourceSpec;
@@ -350,6 +357,7 @@ export class ResourceSpec extends Message<ResourceSpec> {
     { no: 40, name: "sandbox_class", kind: "message", T: SandboxClassSpec, oneof: "kind" },
     { no: 41, name: "sandbox_policy", kind: "message", T: SandboxPolicySpec, oneof: "kind" },
     { no: 42, name: "sandbox", kind: "message", T: SandboxSpec, oneof: "kind" },
+    { no: 50, name: "worker", kind: "message", T: WorkerSpec, oneof: "kind" },
     { no: 1000, name: "raw", kind: "message", T: RawResourceSpec, oneof: "kind" },
   ]);
 
@@ -481,6 +489,12 @@ export class ResourceStatus extends Message<ResourceStatus> {
     case: "sandbox";
   } | {
     /**
+     * @generated from field: talon.resources.WorkerStatus worker = 50;
+     */
+    value: WorkerStatus;
+    case: "worker";
+  } | {
+    /**
      * @generated from field: talon.resources.RawResourceStatus raw = 1000;
      */
     value: RawResourceStatus;
@@ -512,6 +526,7 @@ export class ResourceStatus extends Message<ResourceStatus> {
     { no: 40, name: "sandbox_class", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 41, name: "sandbox_policy", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 42, name: "sandbox", kind: "message", T: SandboxStatus, oneof: "kind" },
+    { no: 50, name: "worker", kind: "message", T: WorkerStatus, oneof: "kind" },
     { no: 1000, name: "raw", kind: "message", T: RawResourceStatus, oneof: "kind" },
   ]);
 

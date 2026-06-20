@@ -949,6 +949,48 @@ pub struct Skill {
     #[prost(message, optional, tag = "3")]
     pub status: ::core::option::Option<CommonResourceStatus>,
 }
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct WorkerSpec {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkerEndpoint {
+    #[prost(string, tag = "1")]
+    pub url: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub protocol: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub audience: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkerStatus {
+    #[prost(uint64, tag = "1")]
+    pub observed_generation: u64,
+    #[prost(string, tag = "2")]
+    pub phase: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "3")]
+    pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    /// Unix timestamp in microseconds.
+    #[prost(int64, tag = "4")]
+    pub started_at: i64,
+    /// Unix timestamp in microseconds.
+    #[prost(int64, tag = "5")]
+    pub heartbeat_at: i64,
+    /// Unix timestamp in microseconds.
+    #[prost(int64, tag = "6")]
+    pub expires_at: i64,
+    #[prost(string, tag = "7")]
+    pub version: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "8")]
+    pub endpoints: ::prost::alloc::vec::Vec<WorkerEndpoint>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Worker {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<WorkerSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<WorkerStatus>,
+}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Resource {
     #[prost(string, tag = "1")]
@@ -987,7 +1029,7 @@ pub struct RawResourceStatus {
 pub struct ResourceSpec {
     #[prost(
         oneof = "resource_spec::Kind",
-        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 1000"
+        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 1000"
     )]
     pub kind: ::core::option::Option<resource_spec::Kind>,
 }
@@ -1029,6 +1071,8 @@ pub mod resource_spec {
         SandboxPolicy(super::SandboxPolicySpec),
         #[prost(message, tag = "42")]
         Sandbox(super::SandboxSpec),
+        #[prost(message, tag = "50")]
+        Worker(super::WorkerSpec),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceSpec),
     }
@@ -1037,7 +1081,7 @@ pub mod resource_spec {
 pub struct ResourceStatus {
     #[prost(
         oneof = "resource_status::Kind",
-        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 1000"
+        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 1000"
     )]
     pub kind: ::core::option::Option<resource_status::Kind>,
 }
@@ -1079,6 +1123,8 @@ pub mod resource_status {
         SandboxPolicy(super::CommonResourceStatus),
         #[prost(message, tag = "42")]
         Sandbox(super::SandboxStatus),
+        #[prost(message, tag = "50")]
+        Worker(super::WorkerStatus),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceStatus),
     }

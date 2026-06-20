@@ -152,7 +152,7 @@ async fn run() -> Result<()> {
         .await?,
         spawn_subscription(
             Arc::clone(&cp.pubsub),
-            handler,
+            handler.clone(),
             topics::SESSION_CONTROL_TOPIC,
             "session_control",
             1,
@@ -160,7 +160,6 @@ async fn run() -> Result<()> {
         )
         .await?,
     ];
-
     let gateway = Gateway::new(
         Some(select_auth_config()),
         Arc::clone(&cp.kv),

@@ -225,6 +225,7 @@ impl_typed_resource!(
     resources_proto::McpServerBinding,
     resources_proto::Namespace,
     resources_proto::Schedule,
+    resources_proto::Worker,
     resources_proto::Workflow,
 );
 

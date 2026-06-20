@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message WorkerSpec {}
+
+message WorkerEndpoint {
+  string url = 1;
+  string protocol = 2;
+  string audience = 3;
+}
+
+message WorkerStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  // Unix timestamp in microseconds.
+  int64 started_at = 4;
+  // Unix timestamp in microseconds.
+  int64 heartbeat_at = 5;
+  // Unix timestamp in microseconds.
+  int64 expires_at = 6;
+  string version = 7;
+  repeated WorkerEndpoint endpoints = 8;
+}
+
+message Worker {
+  ResourceMeta metadata = 1;
+  WorkerSpec spec = 2;
+  WorkerStatus status = 3;
+}

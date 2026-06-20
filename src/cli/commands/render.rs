@@ -19,6 +19,21 @@ pub(crate) struct RenderCommand {
     format: RenderFormat,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn render_rejects_worker_manifests() {
+        let err = render_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: Worker\nmetadata:\n  name: worker-a\n",
+        )
+        .expect_err("Worker manifests should not be rendered as user-authored resources");
+
+        assert!(err.to_string().contains("Unsupported manifest kind"));
+    }
+}
+
 #[derive(Clone, Copy, clap::ValueEnum)]
 enum RenderFormat {
     Yaml,

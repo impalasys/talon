@@ -298,6 +298,9 @@ pub fn resource_spec_status_from_json(
         "Skill" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Skill(skill_spec_from_value(spec_value)?)),
         },
+        "Worker" => resources_proto::ResourceSpec {
+            kind: Some(SpecKind::Worker(worker_spec_from_value(spec_value)?)),
+        },
         _ => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Raw(resources_proto::RawResourceSpec {
                 json: spec_json.to_string(),
@@ -346,6 +349,9 @@ pub fn resource_spec_status_from_json(
         },
         "Skill" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Skill(common_status_from_value(status_value)?)),
+        },
+        "Worker" => resources_proto::ResourceStatus {
+            kind: Some(StatusKind::Worker(worker_status_from_value(status_value)?)),
         },
         _ => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Raw(resources_proto::RawResourceStatus {
@@ -403,6 +409,7 @@ fn resource_spec_status_to_yaml_values(
             "description": spec.description,
             "instructions": spec.instructions,
         }))?,
+        Some(SpecKind::Worker(_)) => "{}".to_string(),
         Some(SpecKind::Raw(raw)) => raw.json.clone(),
         _ => "{}".to_string(),
     };
@@ -524,6 +531,7 @@ fn resource_spec_status_to_yaml_values(
         | Some(StatusKind::SandboxPolicy(status)) => {
             serde_json::to_string(&common_status_to_json(status))?
         }
+        Some(StatusKind::Worker(status)) => serde_json::to_string(&worker_status_to_json(status))?,
         Some(StatusKind::Raw(raw)) => raw.json.clone(),
         _ => "{}".to_string(),
     };
@@ -577,6 +585,10 @@ fn skill_spec_from_value(value: serde_json::Value) -> Result<resources_proto::Sk
         bail!("Skill spec.instructions is required");
     }
     Ok(spec)
+}
+
+fn worker_spec_from_value(value: serde_json::Value) -> Result<resources_proto::WorkerSpec> {
+    Ok(serde_json::from_value::<resources_proto::WorkerSpec>(value)?)
 }
 
 fn validate_acp_permission_policy_manifest(spec: &resources_proto::AgentSpec) -> Result<()> {
@@ -1295,6 +1307,50 @@ fn agent_status_from_value(value: serde_json::Value) -> Result<resources_proto::
     })
 }
 
+fn worker_status_from_value(value: serde_json::Value) -> Result<resources_proto::WorkerStatus> {
+    Ok(resources_proto::WorkerStatus {
+        observed_generation: value
+            .get("observedGeneration")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0),
+        phase: value
+            .get("phase")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        conditions: conditions_from_value(&value),
+        started_at: value
+            .get("startedAt")
+            .and_then(|value| value.as_i64())
+            .unwrap_or_default(),
+        heartbeat_at: value
+            .get("heartbeatAt")
+            .and_then(|value| value.as_i64())
+            .unwrap_or_default(),
+        expires_at: value
+            .get("expiresAt")
+            .and_then(|value| value.as_i64())
+            .unwrap_or_default(),
+        version: value
+            .get("version")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        endpoints: value
+            .get("endpoints")
+            .and_then(|value| value.as_array())
+            .map(|endpoints| {
+                endpoints
+                    .iter()
+                    .cloned()
+                    .map(serde_json::from_value::<resources_proto::WorkerEndpoint>)
+                    .collect::<std::result::Result<Vec<_>, _>>()
+            })
+            .transpose()?
+            .unwrap_or_default(),
+    })
+}
+
 fn common_status_from_value(
     value: serde_json::Value,
 ) -> Result<resources_proto::CommonResourceStatus> {
@@ -1318,6 +1374,30 @@ fn common_status_to_json(status: &resources_proto::CommonResourceStatus) -> serd
         &status.phase,
         &status.conditions,
     ))
+}
+
+fn worker_status_to_json(status: &resources_proto::WorkerStatus) -> serde_json::Value {
+    let mut json = common_status_map(
+        status.observed_generation,
+        &status.phase,
+        &status.conditions,
+    );
+    json.insert("startedAt".to_string(), status.started_at.into());
+    json.insert("heartbeatAt".to_string(), status.heartbeat_at.into());
+    json.insert("expiresAt".to_string(), status.expires_at.into());
+    if !status.version.is_empty() {
+        json.insert(
+            "version".to_string(),
+            serde_json::Value::String(status.version.clone()),
+        );
+    }
+    if !status.endpoints.is_empty() {
+        json.insert(
+            "endpoints".to_string(),
+            serde_json::to_value(&status.endpoints).unwrap_or_default(),
+        );
+    }
+    serde_json::Value::Object(json)
 }
 
 fn common_status_map(

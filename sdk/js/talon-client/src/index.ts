@@ -22,6 +22,7 @@ export * as resources from "./gen/proto/resources/resource_pb.js";
 export * as sandboxes from "./gen/proto/resources/sandboxes_pb.js";
 export * as schedules from "./gen/proto/resources/schedules_pb.js";
 export * as sessions from "./gen/proto/resources/sessions_pb.js";
+export * as workers from "./gen/proto/resources/workers_pb.js";
 export * as workflows from "./gen/proto/resources/workflows_pb.js";
 
 import { GatewayService } from "./gen/proto/gateway_connect.js";
