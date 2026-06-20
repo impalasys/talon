@@ -263,10 +263,28 @@ impl GrpcGatewayHandler {
             self.gateway.kv.clone(),
             self.gateway.pubsub.clone(),
         );
-        let agent_exists = store
+        let mut agent_exists = store
             .get_agent(&req.ns, &req.agent)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to verify agent: {}", e)))?;
+        if agent_exists.is_none() {
+            // Cloudflare/D1 can make a just-applied resource visible through
+            // prefix listing before an exact point lookup observes it.
+            agent_exists = store
+                .list(&req.ns, Some("Agent"))
+                .await
+                .map_err(|e| tonic::Status::internal(format!("Failed to list agents: {}", e)))?
+                .into_iter()
+                .find(|resource| {
+                    resource
+                        .metadata
+                        .as_ref()
+                        .is_some_and(|metadata| metadata.name == req.agent)
+                })
+                .map(crate::control::resources::agent_from_resource)
+                .transpose()
+                .map_err(|e| tonic::Status::internal(format!("Failed to decode agent: {}", e)))?;
+        }
 
         if agent_exists.is_none() {
             return Err(tonic::Status::not_found(format!(
