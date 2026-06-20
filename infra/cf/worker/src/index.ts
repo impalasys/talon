@@ -264,6 +264,14 @@ function shouldRouteThroughEnvoy(pathname: string): boolean {
   return pathname.startsWith("/v1/") && !isGatewayUiPath(pathname);
 }
 
+function isGatewayRestPath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/v1/ns/") ||
+    pathname.startsWith("/v1/namespaces") ||
+    pathname.startsWith("/v1/mcp-servers/")
+  );
+}
+
 function isGatewayGrpcPath(pathname: string): boolean {
   return pathname.startsWith("/talon.gateway.");
 }
@@ -364,6 +372,17 @@ export default {
     }
 
     if (isGatewayUiPath(url.pathname)) {
+      if (externalContainersEnabled(env)) {
+        return withCors(
+          await fetch(requestToOrigin(request, env.TALON_CF_DEV_GATEWAY_URL ?? "http://gateway:50052")),
+          request,
+        );
+      }
+      const gateway = gatewayContainer(env, url.pathname);
+      return withCors(await fetchStartedContainer(gateway, request, gatewayContainerStartProfile(env)), request);
+    }
+
+    if (isGatewayRestPath(url.pathname)) {
       if (externalContainersEnabled(env)) {
         return withCors(
           await fetch(requestToOrigin(request, env.TALON_CF_DEV_GATEWAY_URL ?? "http://gateway:50052")),
