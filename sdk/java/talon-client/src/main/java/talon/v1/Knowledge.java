@@ -1655,6 +1655,34 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
      */
     com.google.protobuf.ByteString
         getQueryBytes();
+
+    /**
+     * <code>int32 limit = 4;</code>
+     * @return The limit.
+     */
+    int getLimit();
+
+    /**
+     * <code>.talon.v1.SearchMode mode = 5;</code>
+     * @return The enum numeric value on the wire for mode.
+     */
+    int getModeValue();
+    /**
+     * <code>.talon.v1.SearchMode mode = 5;</code>
+     * @return The mode.
+     */
+    talon.v1.Search.SearchMode getMode();
+
+    /**
+     * <code>.talon.v1.SearchSort sort = 6;</code>
+     * @return The enum numeric value on the wire for sort.
+     */
+    int getSortValue();
+    /**
+     * <code>.talon.v1.SearchSort sort = 6;</code>
+     * @return The sort.
+     */
+    talon.v1.Search.SearchSort getSort();
   }
   /**
    * Protobuf type {@code talon.v1.SearchKnowledgeRequest}
@@ -1681,6 +1709,8 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
       agent_ = "";
       ns_ = "";
       query_ = "";
+      mode_ = 0;
+      sort_ = 0;
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -1818,6 +1848,53 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
       }
     }
 
+    public static final int LIMIT_FIELD_NUMBER = 4;
+    private int limit_ = 0;
+    /**
+     * <code>int32 limit = 4;</code>
+     * @return The limit.
+     */
+    @java.lang.Override
+    public int getLimit() {
+      return limit_;
+    }
+
+    public static final int MODE_FIELD_NUMBER = 5;
+    private int mode_ = 0;
+    /**
+     * <code>.talon.v1.SearchMode mode = 5;</code>
+     * @return The enum numeric value on the wire for mode.
+     */
+    @java.lang.Override public int getModeValue() {
+      return mode_;
+    }
+    /**
+     * <code>.talon.v1.SearchMode mode = 5;</code>
+     * @return The mode.
+     */
+    @java.lang.Override public talon.v1.Search.SearchMode getMode() {
+      talon.v1.Search.SearchMode result = talon.v1.Search.SearchMode.forNumber(mode_);
+      return result == null ? talon.v1.Search.SearchMode.UNRECOGNIZED : result;
+    }
+
+    public static final int SORT_FIELD_NUMBER = 6;
+    private int sort_ = 0;
+    /**
+     * <code>.talon.v1.SearchSort sort = 6;</code>
+     * @return The enum numeric value on the wire for sort.
+     */
+    @java.lang.Override public int getSortValue() {
+      return sort_;
+    }
+    /**
+     * <code>.talon.v1.SearchSort sort = 6;</code>
+     * @return The sort.
+     */
+    @java.lang.Override public talon.v1.Search.SearchSort getSort() {
+      talon.v1.Search.SearchSort result = talon.v1.Search.SearchSort.forNumber(sort_);
+      return result == null ? talon.v1.Search.SearchSort.UNRECOGNIZED : result;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -1841,6 +1918,15 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(query_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 3, query_);
       }
+      if (limit_ != 0) {
+        output.writeInt32(4, limit_);
+      }
+      if (mode_ != talon.v1.Search.SearchMode.SEARCH_MODE_UNSPECIFIED.getNumber()) {
+        output.writeEnum(5, mode_);
+      }
+      if (sort_ != talon.v1.Search.SearchSort.SEARCH_SORT_UNSPECIFIED.getNumber()) {
+        output.writeEnum(6, sort_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -1858,6 +1944,18 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(query_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(3, query_);
+      }
+      if (limit_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(4, limit_);
+      }
+      if (mode_ != talon.v1.Search.SearchMode.SEARCH_MODE_UNSPECIFIED.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(5, mode_);
+      }
+      if (sort_ != talon.v1.Search.SearchSort.SEARCH_SORT_UNSPECIFIED.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(6, sort_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -1880,6 +1978,10 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
           .equals(other.getNs())) return false;
       if (!getQuery()
           .equals(other.getQuery())) return false;
+      if (getLimit()
+          != other.getLimit()) return false;
+      if (mode_ != other.mode_) return false;
+      if (sort_ != other.sort_) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1897,6 +1999,12 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
       hash = (53 * hash) + getNs().hashCode();
       hash = (37 * hash) + QUERY_FIELD_NUMBER;
       hash = (53 * hash) + getQuery().hashCode();
+      hash = (37 * hash) + LIMIT_FIELD_NUMBER;
+      hash = (53 * hash) + getLimit();
+      hash = (37 * hash) + MODE_FIELD_NUMBER;
+      hash = (53 * hash) + mode_;
+      hash = (37 * hash) + SORT_FIELD_NUMBER;
+      hash = (53 * hash) + sort_;
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -2031,6 +2139,9 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
         agent_ = "";
         ns_ = "";
         query_ = "";
+        limit_ = 0;
+        mode_ = 0;
+        sort_ = 0;
         return this;
       }
 
@@ -2073,6 +2184,15 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000004) != 0)) {
           result.query_ = query_;
         }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.limit_ = limit_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.mode_ = mode_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.sort_ = sort_;
+        }
       }
 
       @java.lang.Override
@@ -2101,6 +2221,15 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
           query_ = other.query_;
           bitField0_ |= 0x00000004;
           onChanged();
+        }
+        if (other.getLimit() != 0) {
+          setLimit(other.getLimit());
+        }
+        if (other.mode_ != 0) {
+          setModeValue(other.getModeValue());
+        }
+        if (other.sort_ != 0) {
+          setSortValue(other.getSortValue());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -2143,6 +2272,21 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
+              case 32: {
+                limit_ = input.readInt32();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+              case 40: {
+                mode_ = input.readEnum();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 40
+              case 48: {
+                sort_ = input.readEnum();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 48
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -2376,6 +2520,142 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
+      private int limit_ ;
+      /**
+       * <code>int32 limit = 4;</code>
+       * @return The limit.
+       */
+      @java.lang.Override
+      public int getLimit() {
+        return limit_;
+      }
+      /**
+       * <code>int32 limit = 4;</code>
+       * @param value The limit to set.
+       * @return This builder for chaining.
+       */
+      public Builder setLimit(int value) {
+
+        limit_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int32 limit = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearLimit() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        limit_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int mode_ = 0;
+      /**
+       * <code>.talon.v1.SearchMode mode = 5;</code>
+       * @return The enum numeric value on the wire for mode.
+       */
+      @java.lang.Override public int getModeValue() {
+        return mode_;
+      }
+      /**
+       * <code>.talon.v1.SearchMode mode = 5;</code>
+       * @param value The enum numeric value on the wire for mode to set.
+       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * @return This builder for chaining.
+       */
+      public Builder setModeValue(int value) {
+        mode_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.v1.SearchMode mode = 5;</code>
+       * @return The mode.
+       */
+      @java.lang.Override
+      public talon.v1.Search.SearchMode getMode() {
+        talon.v1.Search.SearchMode result = talon.v1.Search.SearchMode.forNumber(mode_);
+        return result == null ? talon.v1.Search.SearchMode.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.talon.v1.SearchMode mode = 5;</code>
+       * @param value The mode to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMode(talon.v1.Search.SearchMode value) {
+        if (value == null) { throw new NullPointerException(); }
+        bitField0_ |= 0x00000010;
+        mode_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.v1.SearchMode mode = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMode() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        mode_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int sort_ = 0;
+      /**
+       * <code>.talon.v1.SearchSort sort = 6;</code>
+       * @return The enum numeric value on the wire for sort.
+       */
+      @java.lang.Override public int getSortValue() {
+        return sort_;
+      }
+      /**
+       * <code>.talon.v1.SearchSort sort = 6;</code>
+       * @param value The enum numeric value on the wire for sort to set.
+       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * @return This builder for chaining.
+       */
+      public Builder setSortValue(int value) {
+        sort_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.v1.SearchSort sort = 6;</code>
+       * @return The sort.
+       */
+      @java.lang.Override
+      public talon.v1.Search.SearchSort getSort() {
+        talon.v1.Search.SearchSort result = talon.v1.Search.SearchSort.forNumber(sort_);
+        return result == null ? talon.v1.Search.SearchSort.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.talon.v1.SearchSort sort = 6;</code>
+       * @param value The sort to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSort(talon.v1.Search.SearchSort value) {
+        if (value == null) { throw new NullPointerException(); }
+        bitField0_ |= 0x00000020;
+        sort_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.v1.SearchSort sort = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSort() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        sort_ = 0;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.v1.SearchKnowledgeRequest)
     }
 
@@ -2454,6 +2734,42 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
      */
     talon.data.Data.KnowledgeSearchResultOrBuilder getResultsOrBuilder(
         int index);
+
+    /**
+     * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+     */
+    java.util.List<talon.v1.Search.SearchResult>
+        getSearchResultsList();
+    /**
+     * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+     */
+    talon.v1.Search.SearchResult getSearchResults(int index);
+    /**
+     * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+     */
+    int getSearchResultsCount();
+    /**
+     * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+     */
+    java.util.List<? extends talon.v1.Search.SearchResultOrBuilder>
+        getSearchResultsOrBuilderList();
+    /**
+     * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+     */
+    talon.v1.Search.SearchResultOrBuilder getSearchResultsOrBuilder(
+        int index);
+
+    /**
+     * <code>string next_page_token = 3;</code>
+     * @return The nextPageToken.
+     */
+    java.lang.String getNextPageToken();
+    /**
+     * <code>string next_page_token = 3;</code>
+     * @return The bytes for nextPageToken.
+     */
+    com.google.protobuf.ByteString
+        getNextPageTokenBytes();
   }
   /**
    * Protobuf type {@code talon.v1.SearchKnowledgeResponse}
@@ -2478,6 +2794,8 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
     }
     private SearchKnowledgeResponse() {
       results_ = java.util.Collections.emptyList();
+      searchResults_ = java.util.Collections.emptyList();
+      nextPageToken_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -2539,6 +2857,86 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
       return results_.get(index);
     }
 
+    public static final int SEARCH_RESULTS_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private java.util.List<talon.v1.Search.SearchResult> searchResults_;
+    /**
+     * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+     */
+    @java.lang.Override
+    public java.util.List<talon.v1.Search.SearchResult> getSearchResultsList() {
+      return searchResults_;
+    }
+    /**
+     * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+     */
+    @java.lang.Override
+    public java.util.List<? extends talon.v1.Search.SearchResultOrBuilder>
+        getSearchResultsOrBuilderList() {
+      return searchResults_;
+    }
+    /**
+     * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+     */
+    @java.lang.Override
+    public int getSearchResultsCount() {
+      return searchResults_.size();
+    }
+    /**
+     * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+     */
+    @java.lang.Override
+    public talon.v1.Search.SearchResult getSearchResults(int index) {
+      return searchResults_.get(index);
+    }
+    /**
+     * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+     */
+    @java.lang.Override
+    public talon.v1.Search.SearchResultOrBuilder getSearchResultsOrBuilder(
+        int index) {
+      return searchResults_.get(index);
+    }
+
+    public static final int NEXT_PAGE_TOKEN_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object nextPageToken_ = "";
+    /**
+     * <code>string next_page_token = 3;</code>
+     * @return The nextPageToken.
+     */
+    @java.lang.Override
+    public java.lang.String getNextPageToken() {
+      java.lang.Object ref = nextPageToken_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        nextPageToken_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string next_page_token = 3;</code>
+     * @return The bytes for nextPageToken.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNextPageTokenBytes() {
+      java.lang.Object ref = nextPageToken_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        nextPageToken_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -2555,6 +2953,12 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
                         throws java.io.IOException {
       for (int i = 0; i < results_.size(); i++) {
         output.writeMessage(1, results_.get(i));
+      }
+      for (int i = 0; i < searchResults_.size(); i++) {
+        output.writeMessage(2, searchResults_.get(i));
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(nextPageToken_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, nextPageToken_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -2574,6 +2978,18 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
             }
             size += 1 * count;
           }
+
+          {
+            final int count = searchResults_.size();
+            for (int i = 0; i < count; i++) {
+              size += com.google.protobuf.CodedOutputStream
+                .computeMessageSizeNoTag(searchResults_.get(i));
+            }
+            size += 1 * count;
+          }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(nextPageToken_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, nextPageToken_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -2591,6 +3007,10 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
 
       if (!getResultsList()
           .equals(other.getResultsList())) return false;
+      if (!getSearchResultsList()
+          .equals(other.getSearchResultsList())) return false;
+      if (!getNextPageToken()
+          .equals(other.getNextPageToken())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -2606,6 +3026,12 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
         hash = (37 * hash) + RESULTS_FIELD_NUMBER;
         hash = (53 * hash) + getResultsList().hashCode();
       }
+      if (getSearchResultsCount() > 0) {
+        hash = (37 * hash) + SEARCH_RESULTS_FIELD_NUMBER;
+        hash = (53 * hash) + getSearchResultsList().hashCode();
+      }
+      hash = (37 * hash) + NEXT_PAGE_TOKEN_FIELD_NUMBER;
+      hash = (53 * hash) + getNextPageToken().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -2744,6 +3170,14 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
           resultsBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000001);
+        if (searchResultsBuilder_ == null) {
+          searchResults_ = java.util.Collections.emptyList();
+        } else {
+          searchResults_ = null;
+          searchResultsBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000002);
+        nextPageToken_ = "";
         return this;
       }
 
@@ -2786,10 +3220,22 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
         } else {
           result.results_ = resultsBuilder_.build();
         }
+        if (searchResultsBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) != 0)) {
+            searchResults_ = java.util.Collections.unmodifiableList(searchResults_);
+            bitField0_ = (bitField0_ & ~0x00000002);
+          }
+          result.searchResults_ = searchResults_;
+        } else {
+          result.searchResults_ = searchResultsBuilder_.build();
+        }
       }
 
       private void buildPartial0(talon.v1.Knowledge.SearchKnowledgeResponse result) {
         int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.nextPageToken_ = nextPageToken_;
+        }
       }
 
       @java.lang.Override
@@ -2830,6 +3276,37 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
             }
           }
         }
+        if (searchResultsBuilder_ == null) {
+          if (!other.searchResults_.isEmpty()) {
+            if (searchResults_.isEmpty()) {
+              searchResults_ = other.searchResults_;
+              bitField0_ = (bitField0_ & ~0x00000002);
+            } else {
+              ensureSearchResultsIsMutable();
+              searchResults_.addAll(other.searchResults_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.searchResults_.isEmpty()) {
+            if (searchResultsBuilder_.isEmpty()) {
+              searchResultsBuilder_.dispose();
+              searchResultsBuilder_ = null;
+              searchResults_ = other.searchResults_;
+              bitField0_ = (bitField0_ & ~0x00000002);
+              searchResultsBuilder_ =
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   internalGetSearchResultsFieldBuilder() : null;
+            } else {
+              searchResultsBuilder_.addAllMessages(other.searchResults_);
+            }
+          }
+        }
+        if (!other.getNextPageToken().isEmpty()) {
+          nextPageToken_ = other.nextPageToken_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -2869,6 +3346,24 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
                 }
                 break;
               } // case 10
+              case 18: {
+                talon.v1.Search.SearchResult m =
+                    input.readMessage(
+                        talon.v1.Search.SearchResult.parser(),
+                        extensionRegistry);
+                if (searchResultsBuilder_ == null) {
+                  ensureSearchResultsIsMutable();
+                  searchResults_.add(m);
+                } else {
+                  searchResultsBuilder_.addMessage(m);
+                }
+                break;
+              } // case 18
+              case 26: {
+                nextPageToken_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3126,6 +3621,318 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
         return resultsBuilder_;
       }
 
+      private java.util.List<talon.v1.Search.SearchResult> searchResults_ =
+        java.util.Collections.emptyList();
+      private void ensureSearchResultsIsMutable() {
+        if (!((bitField0_ & 0x00000002) != 0)) {
+          searchResults_ = new java.util.ArrayList<talon.v1.Search.SearchResult>(searchResults_);
+          bitField0_ |= 0x00000002;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.v1.Search.SearchResult, talon.v1.Search.SearchResult.Builder, talon.v1.Search.SearchResultOrBuilder> searchResultsBuilder_;
+
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public java.util.List<talon.v1.Search.SearchResult> getSearchResultsList() {
+        if (searchResultsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(searchResults_);
+        } else {
+          return searchResultsBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public int getSearchResultsCount() {
+        if (searchResultsBuilder_ == null) {
+          return searchResults_.size();
+        } else {
+          return searchResultsBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public talon.v1.Search.SearchResult getSearchResults(int index) {
+        if (searchResultsBuilder_ == null) {
+          return searchResults_.get(index);
+        } else {
+          return searchResultsBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public Builder setSearchResults(
+          int index, talon.v1.Search.SearchResult value) {
+        if (searchResultsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureSearchResultsIsMutable();
+          searchResults_.set(index, value);
+          onChanged();
+        } else {
+          searchResultsBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public Builder setSearchResults(
+          int index, talon.v1.Search.SearchResult.Builder builderForValue) {
+        if (searchResultsBuilder_ == null) {
+          ensureSearchResultsIsMutable();
+          searchResults_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          searchResultsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public Builder addSearchResults(talon.v1.Search.SearchResult value) {
+        if (searchResultsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureSearchResultsIsMutable();
+          searchResults_.add(value);
+          onChanged();
+        } else {
+          searchResultsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public Builder addSearchResults(
+          int index, talon.v1.Search.SearchResult value) {
+        if (searchResultsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureSearchResultsIsMutable();
+          searchResults_.add(index, value);
+          onChanged();
+        } else {
+          searchResultsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public Builder addSearchResults(
+          talon.v1.Search.SearchResult.Builder builderForValue) {
+        if (searchResultsBuilder_ == null) {
+          ensureSearchResultsIsMutable();
+          searchResults_.add(builderForValue.build());
+          onChanged();
+        } else {
+          searchResultsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public Builder addSearchResults(
+          int index, talon.v1.Search.SearchResult.Builder builderForValue) {
+        if (searchResultsBuilder_ == null) {
+          ensureSearchResultsIsMutable();
+          searchResults_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          searchResultsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public Builder addAllSearchResults(
+          java.lang.Iterable<? extends talon.v1.Search.SearchResult> values) {
+        if (searchResultsBuilder_ == null) {
+          ensureSearchResultsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, searchResults_);
+          onChanged();
+        } else {
+          searchResultsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public Builder clearSearchResults() {
+        if (searchResultsBuilder_ == null) {
+          searchResults_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000002);
+          onChanged();
+        } else {
+          searchResultsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public Builder removeSearchResults(int index) {
+        if (searchResultsBuilder_ == null) {
+          ensureSearchResultsIsMutable();
+          searchResults_.remove(index);
+          onChanged();
+        } else {
+          searchResultsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public talon.v1.Search.SearchResult.Builder getSearchResultsBuilder(
+          int index) {
+        return internalGetSearchResultsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public talon.v1.Search.SearchResultOrBuilder getSearchResultsOrBuilder(
+          int index) {
+        if (searchResultsBuilder_ == null) {
+          return searchResults_.get(index);  } else {
+          return searchResultsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public java.util.List<? extends talon.v1.Search.SearchResultOrBuilder>
+           getSearchResultsOrBuilderList() {
+        if (searchResultsBuilder_ != null) {
+          return searchResultsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(searchResults_);
+        }
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public talon.v1.Search.SearchResult.Builder addSearchResultsBuilder() {
+        return internalGetSearchResultsFieldBuilder().addBuilder(
+            talon.v1.Search.SearchResult.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public talon.v1.Search.SearchResult.Builder addSearchResultsBuilder(
+          int index) {
+        return internalGetSearchResultsFieldBuilder().addBuilder(
+            index, talon.v1.Search.SearchResult.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.v1.SearchResult search_results = 2;</code>
+       */
+      public java.util.List<talon.v1.Search.SearchResult.Builder>
+           getSearchResultsBuilderList() {
+        return internalGetSearchResultsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.v1.Search.SearchResult, talon.v1.Search.SearchResult.Builder, talon.v1.Search.SearchResultOrBuilder>
+          internalGetSearchResultsFieldBuilder() {
+        if (searchResultsBuilder_ == null) {
+          searchResultsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              talon.v1.Search.SearchResult, talon.v1.Search.SearchResult.Builder, talon.v1.Search.SearchResultOrBuilder>(
+                  searchResults_,
+                  ((bitField0_ & 0x00000002) != 0),
+                  getParentForChildren(),
+                  isClean());
+          searchResults_ = null;
+        }
+        return searchResultsBuilder_;
+      }
+
+      private java.lang.Object nextPageToken_ = "";
+      /**
+       * <code>string next_page_token = 3;</code>
+       * @return The nextPageToken.
+       */
+      public java.lang.String getNextPageToken() {
+        java.lang.Object ref = nextPageToken_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          nextPageToken_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string next_page_token = 3;</code>
+       * @return The bytes for nextPageToken.
+       */
+      public com.google.protobuf.ByteString
+          getNextPageTokenBytes() {
+        java.lang.Object ref = nextPageToken_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          nextPageToken_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string next_page_token = 3;</code>
+       * @param value The nextPageToken to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNextPageToken(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        nextPageToken_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string next_page_token = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNextPageToken() {
+        nextPageToken_ = getDefaultInstance().getNextPageToken();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string next_page_token = 3;</code>
+       * @param value The bytes for nextPageToken to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNextPageTokenBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        nextPageToken_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.v1.SearchKnowledgeResponse)
     }
 
@@ -3207,24 +4014,29 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
   static {
     java.lang.String[] descriptorData = {
       "\n\036proto/talon/v1/knowledge.proto\022\010talon." +
-      "v1\032\025proto/data/data.proto\"L\n\023GetKnowledg" +
-      "eRequest\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\021\n\004p" +
-      "ath\030\003 \001(\tH\000\210\001\001B\007\n\005_path\";\n\021KnowledgeResp" +
-      "onse\022&\n\007modules\030\001 \003(\0132\025.talon.data.Knowl" +
-      "edge\"B\n\026SearchKnowledgeRequest\022\r\n\005agent\030" +
-      "\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\r\n\005query\030\003 \001(\t\"M\n\027Sear" +
-      "chKnowledgeResponse\0222\n\007results\030\001 \003(\0132!.t" +
-      "alon.data.KnowledgeSearchResult2\244\001\n\020Know" +
-      "ledgeService\022A\n\003Get\022\035.talon.v1.GetKnowle" +
-      "dgeRequest\032\033.talon.v1.KnowledgeResponse\022" +
-      "M\n\006Search\022 .talon.v1.SearchKnowledgeRequ" +
-      "est\032!.talon.v1.SearchKnowledgeResponseb\006" +
-      "proto3"
+      "v1\032\025proto/data/data.proto\032\033proto/talon/v" +
+      "1/search.proto\"L\n\023GetKnowledgeRequest\022\r\n" +
+      "\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\021\n\004path\030\003 \001(\tH\000" +
+      "\210\001\001B\007\n\005_path\";\n\021KnowledgeResponse\022&\n\007mod" +
+      "ules\030\001 \003(\0132\025.talon.data.Knowledge\"\231\001\n\026Se" +
+      "archKnowledgeRequest\022\r\n\005agent\030\001 \001(\t\022\n\n\002n" +
+      "s\030\002 \001(\t\022\r\n\005query\030\003 \001(\t\022\r\n\005limit\030\004 \001(\005\022\"\n" +
+      "\004mode\030\005 \001(\0162\024.talon.v1.SearchMode\022\"\n\004sor" +
+      "t\030\006 \001(\0162\024.talon.v1.SearchSort\"\226\001\n\027Search" +
+      "KnowledgeResponse\0222\n\007results\030\001 \003(\0132!.tal" +
+      "on.data.KnowledgeSearchResult\022.\n\016search_" +
+      "results\030\002 \003(\0132\026.talon.v1.SearchResult\022\027\n" +
+      "\017next_page_token\030\003 \001(\t2\244\001\n\020KnowledgeServ" +
+      "ice\022A\n\003Get\022\035.talon.v1.GetKnowledgeReques" +
+      "t\032\033.talon.v1.KnowledgeResponse\022M\n\006Search" +
+      "\022 .talon.v1.SearchKnowledgeRequest\032!.tal" +
+      "on.v1.SearchKnowledgeResponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           talon.data.Data.getDescriptor(),
+          talon.v1.Search.getDescriptor(),
         });
     internal_static_talon_v1_GetKnowledgeRequest_descriptor =
       getDescriptor().getMessageType(0);
@@ -3243,15 +4055,16 @@ public final class Knowledge extends com.google.protobuf.GeneratedFile {
     internal_static_talon_v1_SearchKnowledgeRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SearchKnowledgeRequest_descriptor,
-        new java.lang.String[] { "Agent", "Ns", "Query", });
+        new java.lang.String[] { "Agent", "Ns", "Query", "Limit", "Mode", "Sort", });
     internal_static_talon_v1_SearchKnowledgeResponse_descriptor =
       getDescriptor().getMessageType(3);
     internal_static_talon_v1_SearchKnowledgeResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SearchKnowledgeResponse_descriptor,
-        new java.lang.String[] { "Results", });
+        new java.lang.String[] { "Results", "SearchResults", "NextPageToken", });
     descriptor.resolveAllFeaturesImmutable();
     talon.data.Data.getDescriptor();
+    talon.v1.Search.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

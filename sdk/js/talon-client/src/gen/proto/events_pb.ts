@@ -180,6 +180,32 @@ proto3.util.setEnumType(ResourceChangeType, "talon.events.ResourceChangeType", [
 ]);
 
 /**
+ * @generated from enum talon.events.IndexOperation
+ */
+export enum IndexOperation {
+  /**
+   * @generated from enum value: INDEX_OPERATION_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: INDEX_OPERATION_UPSERT = 1;
+   */
+  UPSERT = 1,
+
+  /**
+   * @generated from enum value: INDEX_OPERATION_DELETE = 2;
+   */
+  DELETE = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(IndexOperation)
+proto3.util.setEnumType(IndexOperation, "talon.events.IndexOperation", [
+  { no: 0, name: "INDEX_OPERATION_UNSPECIFIED" },
+  { no: 1, name: "INDEX_OPERATION_UPSERT" },
+  { no: 2, name: "INDEX_OPERATION_DELETE" },
+]);
+
+/**
  * @generated from message talon.events.LifecycleEvent
  */
 export class LifecycleEvent extends Message<LifecycleEvent> {
@@ -693,5 +719,239 @@ export class ResourceChangedEvent extends Message<ResourceChangedEvent> {
 
   static equals(a: ResourceChangedEvent | PlainMessage<ResourceChangedEvent> | undefined, b: ResourceChangedEvent | PlainMessage<ResourceChangedEvent> | undefined): boolean {
     return proto3.util.equals(ResourceChangedEvent, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.events.IndexEvent
+ */
+export class IndexEvent extends Message<IndexEvent> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: talon.events.IndexOperation operation = 2;
+   */
+  operation = IndexOperation.UNSPECIFIED;
+
+  /**
+   * @generated from field: int64 created_at = 3;
+   */
+  createdAt = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 updated_at = 4;
+   */
+  updatedAt = protoInt64.zero;
+
+  /**
+   * @generated from oneof talon.events.IndexEvent.target
+   */
+  target: {
+    /**
+     * @generated from field: talon.events.IndexResourceTarget resource = 10;
+     */
+    value: IndexResourceTarget;
+    case: "resource";
+  } | {
+    /**
+     * @generated from field: talon.events.IndexSessionMessageTarget session_message = 11;
+     */
+    value: IndexSessionMessageTarget;
+    case: "sessionMessage";
+  } | {
+    /**
+     * @generated from field: talon.events.IndexSessionTarget session = 12;
+     */
+    value: IndexSessionTarget;
+    case: "session";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<IndexEvent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.events.IndexEvent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "operation", kind: "enum", T: proto3.getEnumType(IndexOperation) },
+    { no: 3, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 4, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 10, name: "resource", kind: "message", T: IndexResourceTarget, oneof: "target" },
+    { no: 11, name: "session_message", kind: "message", T: IndexSessionMessageTarget, oneof: "target" },
+    { no: 12, name: "session", kind: "message", T: IndexSessionTarget, oneof: "target" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IndexEvent {
+    return new IndexEvent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IndexEvent {
+    return new IndexEvent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IndexEvent {
+    return new IndexEvent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: IndexEvent | PlainMessage<IndexEvent> | undefined, b: IndexEvent | PlainMessage<IndexEvent> | undefined): boolean {
+    return proto3.util.equals(IndexEvent, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.events.IndexResourceTarget
+ */
+export class IndexResourceTarget extends Message<IndexResourceTarget> {
+  /**
+   * @generated from field: string resource_key = 1;
+   */
+  resourceKey = "";
+
+  /**
+   * @generated from field: uint64 source_generation = 2;
+   */
+  sourceGeneration = protoInt64.zero;
+
+  constructor(data?: PartialMessage<IndexResourceTarget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.events.IndexResourceTarget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "resource_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "source_generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IndexResourceTarget {
+    return new IndexResourceTarget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IndexResourceTarget {
+    return new IndexResourceTarget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IndexResourceTarget {
+    return new IndexResourceTarget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: IndexResourceTarget | PlainMessage<IndexResourceTarget> | undefined, b: IndexResourceTarget | PlainMessage<IndexResourceTarget> | undefined): boolean {
+    return proto3.util.equals(IndexResourceTarget, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.events.IndexSessionMessageTarget
+ */
+export class IndexSessionMessageTarget extends Message<IndexSessionMessageTarget> {
+  /**
+   * @generated from field: string namespace = 1;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string session_id = 3;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string message_id = 4;
+   */
+  messageId = "";
+
+  /**
+   * @generated from field: uint64 source_generation = 5;
+   */
+  sourceGeneration = protoInt64.zero;
+
+  constructor(data?: PartialMessage<IndexSessionMessageTarget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.events.IndexSessionMessageTarget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "message_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "source_generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IndexSessionMessageTarget {
+    return new IndexSessionMessageTarget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IndexSessionMessageTarget {
+    return new IndexSessionMessageTarget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IndexSessionMessageTarget {
+    return new IndexSessionMessageTarget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: IndexSessionMessageTarget | PlainMessage<IndexSessionMessageTarget> | undefined, b: IndexSessionMessageTarget | PlainMessage<IndexSessionMessageTarget> | undefined): boolean {
+    return proto3.util.equals(IndexSessionMessageTarget, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.events.IndexSessionTarget
+ */
+export class IndexSessionTarget extends Message<IndexSessionTarget> {
+  /**
+   * @generated from field: string namespace = 1;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string session_id = 3;
+   */
+  sessionId = "";
+
+  constructor(data?: PartialMessage<IndexSessionTarget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.events.IndexSessionTarget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IndexSessionTarget {
+    return new IndexSessionTarget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IndexSessionTarget {
+    return new IndexSessionTarget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IndexSessionTarget {
+    return new IndexSessionTarget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: IndexSessionTarget | PlainMessage<IndexSessionTarget> | undefined, b: IndexSessionTarget | PlainMessage<IndexSessionTarget> | undefined): boolean {
+    return proto3.util.equals(IndexSessionTarget, a, b);
   }
 }

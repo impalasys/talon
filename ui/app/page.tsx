@@ -35,6 +35,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { TalonChannel, TalonCopilot, type TalonChatObjectRef, type TalonImageUploadContext } from '@impalasys/talon-chat';
 import { NamespaceExplorer, type Selection } from '../components/Namespaces/NamespaceExplorer';
+import { WorkspaceCommandPalette } from '../components/Search/WorkspaceCommandPalette';
 import {
   getDefaultGatewayUrl,
   getGatewayClient,
@@ -1329,6 +1330,11 @@ function DebuggerPageContent() {
           </div>
 
           <div className="flex items-center gap-4">
+            <WorkspaceCommandPalette
+              isConnected={isConnected}
+              selectedNamespace={selectedNamespace}
+              onSelect={setSelectedNamespace}
+            />
             {isConnected ? (
               <div 
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[13px] font-medium transition-all bg-emerald-500/9 text-emerald-300 border border-emerald-500/16 cursor-pointer hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/16"

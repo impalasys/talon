@@ -719,6 +719,132 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     // @@protoc_insertion_point(enum_scope:talon.events.ResourceChangeType)
   }
 
+  /**
+   * Protobuf enum {@code talon.events.IndexOperation}
+   */
+  public enum IndexOperation
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>INDEX_OPERATION_UNSPECIFIED = 0;</code>
+     */
+    INDEX_OPERATION_UNSPECIFIED(0),
+    /**
+     * <code>INDEX_OPERATION_UPSERT = 1;</code>
+     */
+    INDEX_OPERATION_UPSERT(1),
+    /**
+     * <code>INDEX_OPERATION_DELETE = 2;</code>
+     */
+    INDEX_OPERATION_DELETE(2),
+    UNRECOGNIZED(-1),
+    ;
+
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "IndexOperation");
+    }
+    /**
+     * <code>INDEX_OPERATION_UNSPECIFIED = 0;</code>
+     */
+    public static final int INDEX_OPERATION_UNSPECIFIED_VALUE = 0;
+    /**
+     * <code>INDEX_OPERATION_UPSERT = 1;</code>
+     */
+    public static final int INDEX_OPERATION_UPSERT_VALUE = 1;
+    /**
+     * <code>INDEX_OPERATION_DELETE = 2;</code>
+     */
+    public static final int INDEX_OPERATION_DELETE_VALUE = 2;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static IndexOperation valueOf(int value) {
+      return forNumber(value);
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
+    public static IndexOperation forNumber(int value) {
+      switch (value) {
+        case 0: return INDEX_OPERATION_UNSPECIFIED;
+        case 1: return INDEX_OPERATION_UPSERT;
+        case 2: return INDEX_OPERATION_DELETE;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<IndexOperation>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        IndexOperation> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<IndexOperation>() {
+            public IndexOperation findValueByNumber(int number) {
+              return IndexOperation.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
+      return getDescriptor().getValue(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return talon.events.Events.getDescriptor().getEnumType(5);
+    }
+
+    private static final IndexOperation[] VALUES = values();
+
+    public static IndexOperation valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private IndexOperation(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:talon.events.IndexOperation)
+  }
+
   public interface LifecycleEventOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.events.LifecycleEvent)
       com.google.protobuf.MessageOrBuilder {
@@ -10053,6 +10179,3948 @@ public final class Events extends com.google.protobuf.GeneratedFile {
 
   }
 
+  public interface IndexEventOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.events.IndexEvent)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    java.lang.String getId();
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    /**
+     * <code>.talon.events.IndexOperation operation = 2;</code>
+     * @return The enum numeric value on the wire for operation.
+     */
+    int getOperationValue();
+    /**
+     * <code>.talon.events.IndexOperation operation = 2;</code>
+     * @return The operation.
+     */
+    talon.events.Events.IndexOperation getOperation();
+
+    /**
+     * <code>int64 created_at = 3;</code>
+     * @return The createdAt.
+     */
+    long getCreatedAt();
+
+    /**
+     * <code>int64 updated_at = 4;</code>
+     * @return The updatedAt.
+     */
+    long getUpdatedAt();
+
+    /**
+     * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+     * @return Whether the resource field is set.
+     */
+    boolean hasResource();
+    /**
+     * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+     * @return The resource.
+     */
+    talon.events.Events.IndexResourceTarget getResource();
+    /**
+     * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+     */
+    talon.events.Events.IndexResourceTargetOrBuilder getResourceOrBuilder();
+
+    /**
+     * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+     * @return Whether the sessionMessage field is set.
+     */
+    boolean hasSessionMessage();
+    /**
+     * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+     * @return The sessionMessage.
+     */
+    talon.events.Events.IndexSessionMessageTarget getSessionMessage();
+    /**
+     * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+     */
+    talon.events.Events.IndexSessionMessageTargetOrBuilder getSessionMessageOrBuilder();
+
+    /**
+     * <code>.talon.events.IndexSessionTarget session = 12;</code>
+     * @return Whether the session field is set.
+     */
+    boolean hasSession();
+    /**
+     * <code>.talon.events.IndexSessionTarget session = 12;</code>
+     * @return The session.
+     */
+    talon.events.Events.IndexSessionTarget getSession();
+    /**
+     * <code>.talon.events.IndexSessionTarget session = 12;</code>
+     */
+    talon.events.Events.IndexSessionTargetOrBuilder getSessionOrBuilder();
+
+    talon.events.Events.IndexEvent.TargetCase getTargetCase();
+  }
+  /**
+   * Protobuf type {@code talon.events.IndexEvent}
+   */
+  public static final class IndexEvent extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.events.IndexEvent)
+      IndexEventOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "IndexEvent");
+    }
+    // Use IndexEvent.newBuilder() to construct.
+    private IndexEvent(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private IndexEvent() {
+      id_ = "";
+      operation_ = 0;
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.events.Events.internal_static_talon_events_IndexEvent_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.events.Events.internal_static_talon_events_IndexEvent_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.events.Events.internal_static_talon_events_IndexEvent_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.events.Events.IndexEvent.class, talon.events.Events.IndexEvent.Builder.class);
+    }
+
+    private int targetCase_ = 0;
+    @SuppressWarnings("serial")
+    private java.lang.Object target_;
+    public enum TargetCase
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
+      RESOURCE(10),
+      SESSION_MESSAGE(11),
+      SESSION(12),
+      TARGET_NOT_SET(0);
+      private final int value;
+      private TargetCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static TargetCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static TargetCase forNumber(int value) {
+        switch (value) {
+          case 10: return RESOURCE;
+          case 11: return SESSION_MESSAGE;
+          case 12: return SESSION;
+          case 0: return TARGET_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public TargetCase
+    getTargetCase() {
+      return TargetCase.forNumber(
+          targetCase_);
+    }
+
+    public static final int ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object id_ = "";
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OPERATION_FIELD_NUMBER = 2;
+    private int operation_ = 0;
+    /**
+     * <code>.talon.events.IndexOperation operation = 2;</code>
+     * @return The enum numeric value on the wire for operation.
+     */
+    @java.lang.Override public int getOperationValue() {
+      return operation_;
+    }
+    /**
+     * <code>.talon.events.IndexOperation operation = 2;</code>
+     * @return The operation.
+     */
+    @java.lang.Override public talon.events.Events.IndexOperation getOperation() {
+      talon.events.Events.IndexOperation result = talon.events.Events.IndexOperation.forNumber(operation_);
+      return result == null ? talon.events.Events.IndexOperation.UNRECOGNIZED : result;
+    }
+
+    public static final int CREATED_AT_FIELD_NUMBER = 3;
+    private long createdAt_ = 0L;
+    /**
+     * <code>int64 created_at = 3;</code>
+     * @return The createdAt.
+     */
+    @java.lang.Override
+    public long getCreatedAt() {
+      return createdAt_;
+    }
+
+    public static final int UPDATED_AT_FIELD_NUMBER = 4;
+    private long updatedAt_ = 0L;
+    /**
+     * <code>int64 updated_at = 4;</code>
+     * @return The updatedAt.
+     */
+    @java.lang.Override
+    public long getUpdatedAt() {
+      return updatedAt_;
+    }
+
+    public static final int RESOURCE_FIELD_NUMBER = 10;
+    /**
+     * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+     * @return Whether the resource field is set.
+     */
+    @java.lang.Override
+    public boolean hasResource() {
+      return targetCase_ == 10;
+    }
+    /**
+     * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+     * @return The resource.
+     */
+    @java.lang.Override
+    public talon.events.Events.IndexResourceTarget getResource() {
+      if (targetCase_ == 10) {
+         return (talon.events.Events.IndexResourceTarget) target_;
+      }
+      return talon.events.Events.IndexResourceTarget.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+     */
+    @java.lang.Override
+    public talon.events.Events.IndexResourceTargetOrBuilder getResourceOrBuilder() {
+      if (targetCase_ == 10) {
+         return (talon.events.Events.IndexResourceTarget) target_;
+      }
+      return talon.events.Events.IndexResourceTarget.getDefaultInstance();
+    }
+
+    public static final int SESSION_MESSAGE_FIELD_NUMBER = 11;
+    /**
+     * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+     * @return Whether the sessionMessage field is set.
+     */
+    @java.lang.Override
+    public boolean hasSessionMessage() {
+      return targetCase_ == 11;
+    }
+    /**
+     * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+     * @return The sessionMessage.
+     */
+    @java.lang.Override
+    public talon.events.Events.IndexSessionMessageTarget getSessionMessage() {
+      if (targetCase_ == 11) {
+         return (talon.events.Events.IndexSessionMessageTarget) target_;
+      }
+      return talon.events.Events.IndexSessionMessageTarget.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+     */
+    @java.lang.Override
+    public talon.events.Events.IndexSessionMessageTargetOrBuilder getSessionMessageOrBuilder() {
+      if (targetCase_ == 11) {
+         return (talon.events.Events.IndexSessionMessageTarget) target_;
+      }
+      return talon.events.Events.IndexSessionMessageTarget.getDefaultInstance();
+    }
+
+    public static final int SESSION_FIELD_NUMBER = 12;
+    /**
+     * <code>.talon.events.IndexSessionTarget session = 12;</code>
+     * @return Whether the session field is set.
+     */
+    @java.lang.Override
+    public boolean hasSession() {
+      return targetCase_ == 12;
+    }
+    /**
+     * <code>.talon.events.IndexSessionTarget session = 12;</code>
+     * @return The session.
+     */
+    @java.lang.Override
+    public talon.events.Events.IndexSessionTarget getSession() {
+      if (targetCase_ == 12) {
+         return (talon.events.Events.IndexSessionTarget) target_;
+      }
+      return talon.events.Events.IndexSessionTarget.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.events.IndexSessionTarget session = 12;</code>
+     */
+    @java.lang.Override
+    public talon.events.Events.IndexSessionTargetOrBuilder getSessionOrBuilder() {
+      if (targetCase_ == 12) {
+         return (talon.events.Events.IndexSessionTarget) target_;
+      }
+      return talon.events.Events.IndexSessionTarget.getDefaultInstance();
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      }
+      if (operation_ != talon.events.Events.IndexOperation.INDEX_OPERATION_UNSPECIFIED.getNumber()) {
+        output.writeEnum(2, operation_);
+      }
+      if (createdAt_ != 0L) {
+        output.writeInt64(3, createdAt_);
+      }
+      if (updatedAt_ != 0L) {
+        output.writeInt64(4, updatedAt_);
+      }
+      if (targetCase_ == 10) {
+        output.writeMessage(10, (talon.events.Events.IndexResourceTarget) target_);
+      }
+      if (targetCase_ == 11) {
+        output.writeMessage(11, (talon.events.Events.IndexSessionMessageTarget) target_);
+      }
+      if (targetCase_ == 12) {
+        output.writeMessage(12, (talon.events.Events.IndexSessionTarget) target_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      }
+      if (operation_ != talon.events.Events.IndexOperation.INDEX_OPERATION_UNSPECIFIED.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(2, operation_);
+      }
+      if (createdAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, createdAt_);
+      }
+      if (updatedAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, updatedAt_);
+      }
+      if (targetCase_ == 10) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(10, (talon.events.Events.IndexResourceTarget) target_);
+      }
+      if (targetCase_ == 11) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(11, (talon.events.Events.IndexSessionMessageTarget) target_);
+      }
+      if (targetCase_ == 12) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(12, (talon.events.Events.IndexSessionTarget) target_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.events.Events.IndexEvent)) {
+        return super.equals(obj);
+      }
+      talon.events.Events.IndexEvent other = (talon.events.Events.IndexEvent) obj;
+
+      if (!getId()
+          .equals(other.getId())) return false;
+      if (operation_ != other.operation_) return false;
+      if (getCreatedAt()
+          != other.getCreatedAt()) return false;
+      if (getUpdatedAt()
+          != other.getUpdatedAt()) return false;
+      if (!getTargetCase().equals(other.getTargetCase())) return false;
+      switch (targetCase_) {
+        case 10:
+          if (!getResource()
+              .equals(other.getResource())) return false;
+          break;
+        case 11:
+          if (!getSessionMessage()
+              .equals(other.getSessionMessage())) return false;
+          break;
+        case 12:
+          if (!getSession()
+              .equals(other.getSession())) return false;
+          break;
+        case 0:
+        default:
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + OPERATION_FIELD_NUMBER;
+      hash = (53 * hash) + operation_;
+      hash = (37 * hash) + CREATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCreatedAt());
+      hash = (37 * hash) + UPDATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getUpdatedAt());
+      switch (targetCase_) {
+        case 10:
+          hash = (37 * hash) + RESOURCE_FIELD_NUMBER;
+          hash = (53 * hash) + getResource().hashCode();
+          break;
+        case 11:
+          hash = (37 * hash) + SESSION_MESSAGE_FIELD_NUMBER;
+          hash = (53 * hash) + getSessionMessage().hashCode();
+          break;
+        case 12:
+          hash = (37 * hash) + SESSION_FIELD_NUMBER;
+          hash = (53 * hash) + getSession().hashCode();
+          break;
+        case 0:
+        default:
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.events.Events.IndexEvent parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.events.Events.IndexEvent parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.events.Events.IndexEvent parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.events.Events.IndexEvent prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.events.IndexEvent}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.events.IndexEvent)
+        talon.events.Events.IndexEventOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.events.Events.internal_static_talon_events_IndexEvent_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.events.Events.internal_static_talon_events_IndexEvent_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.events.Events.IndexEvent.class, talon.events.Events.IndexEvent.Builder.class);
+      }
+
+      // Construct using talon.events.Events.IndexEvent.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        id_ = "";
+        operation_ = 0;
+        createdAt_ = 0L;
+        updatedAt_ = 0L;
+        if (resourceBuilder_ != null) {
+          resourceBuilder_.clear();
+        }
+        if (sessionMessageBuilder_ != null) {
+          sessionMessageBuilder_.clear();
+        }
+        if (sessionBuilder_ != null) {
+          sessionBuilder_.clear();
+        }
+        targetCase_ = 0;
+        target_ = null;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.events.Events.internal_static_talon_events_IndexEvent_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexEvent getDefaultInstanceForType() {
+        return talon.events.Events.IndexEvent.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexEvent build() {
+        talon.events.Events.IndexEvent result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexEvent buildPartial() {
+        talon.events.Events.IndexEvent result = new talon.events.Events.IndexEvent(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        buildPartialOneofs(result);
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.events.Events.IndexEvent result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.id_ = id_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.operation_ = operation_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.createdAt_ = createdAt_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.updatedAt_ = updatedAt_;
+        }
+      }
+
+      private void buildPartialOneofs(talon.events.Events.IndexEvent result) {
+        result.targetCase_ = targetCase_;
+        result.target_ = this.target_;
+        if (targetCase_ == 10 &&
+            resourceBuilder_ != null) {
+          result.target_ = resourceBuilder_.build();
+        }
+        if (targetCase_ == 11 &&
+            sessionMessageBuilder_ != null) {
+          result.target_ = sessionMessageBuilder_.build();
+        }
+        if (targetCase_ == 12 &&
+            sessionBuilder_ != null) {
+          result.target_ = sessionBuilder_.build();
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.events.Events.IndexEvent) {
+          return mergeFrom((talon.events.Events.IndexEvent)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.events.Events.IndexEvent other) {
+        if (other == talon.events.Events.IndexEvent.getDefaultInstance()) return this;
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (other.operation_ != 0) {
+          setOperationValue(other.getOperationValue());
+        }
+        if (other.getCreatedAt() != 0L) {
+          setCreatedAt(other.getCreatedAt());
+        }
+        if (other.getUpdatedAt() != 0L) {
+          setUpdatedAt(other.getUpdatedAt());
+        }
+        switch (other.getTargetCase()) {
+          case RESOURCE: {
+            mergeResource(other.getResource());
+            break;
+          }
+          case SESSION_MESSAGE: {
+            mergeSessionMessage(other.getSessionMessage());
+            break;
+          }
+          case SESSION: {
+            mergeSession(other.getSession());
+            break;
+          }
+          case TARGET_NOT_SET: {
+            break;
+          }
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 16: {
+                operation_ = input.readEnum();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              case 24: {
+                createdAt_ = input.readInt64();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              case 32: {
+                updatedAt_ = input.readInt64();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+              case 82: {
+                input.readMessage(
+                    internalGetResourceFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                targetCase_ = 10;
+                break;
+              } // case 82
+              case 90: {
+                input.readMessage(
+                    internalGetSessionMessageFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                targetCase_ = 11;
+                break;
+              } // case 90
+              case 98: {
+                input.readMessage(
+                    internalGetSessionFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                targetCase_ = 12;
+                break;
+              } // case 98
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int targetCase_ = 0;
+      private java.lang.Object target_;
+      public TargetCase
+          getTargetCase() {
+        return TargetCase.forNumber(
+            targetCase_);
+      }
+
+      public Builder clearTarget() {
+        targetCase_ = 0;
+        target_ = null;
+        onChanged();
+        return this;
+      }
+
+      private int bitField0_;
+
+      private java.lang.Object id_ = "";
+      /**
+       * <code>string id = 1;</code>
+       * @return The id.
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearId() {
+        id_ = getDefaultInstance().getId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private int operation_ = 0;
+      /**
+       * <code>.talon.events.IndexOperation operation = 2;</code>
+       * @return The enum numeric value on the wire for operation.
+       */
+      @java.lang.Override public int getOperationValue() {
+        return operation_;
+      }
+      /**
+       * <code>.talon.events.IndexOperation operation = 2;</code>
+       * @param value The enum numeric value on the wire for operation to set.
+       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * @return This builder for chaining.
+       */
+      public Builder setOperationValue(int value) {
+        operation_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexOperation operation = 2;</code>
+       * @return The operation.
+       */
+      @java.lang.Override
+      public talon.events.Events.IndexOperation getOperation() {
+        talon.events.Events.IndexOperation result = talon.events.Events.IndexOperation.forNumber(operation_);
+        return result == null ? talon.events.Events.IndexOperation.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.talon.events.IndexOperation operation = 2;</code>
+       * @param value The operation to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOperation(talon.events.Events.IndexOperation value) {
+        if (value == null) { throw new NullPointerException(); }
+        bitField0_ |= 0x00000002;
+        operation_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexOperation operation = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOperation() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        operation_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private long createdAt_ ;
+      /**
+       * <code>int64 created_at = 3;</code>
+       * @return The createdAt.
+       */
+      @java.lang.Override
+      public long getCreatedAt() {
+        return createdAt_;
+      }
+      /**
+       * <code>int64 created_at = 3;</code>
+       * @param value The createdAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedAt(long value) {
+
+        createdAt_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 created_at = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCreatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        createdAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long updatedAt_ ;
+      /**
+       * <code>int64 updated_at = 4;</code>
+       * @return The updatedAt.
+       */
+      @java.lang.Override
+      public long getUpdatedAt() {
+        return updatedAt_;
+      }
+      /**
+       * <code>int64 updated_at = 4;</code>
+       * @param value The updatedAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUpdatedAt(long value) {
+
+        updatedAt_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 updated_at = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUpdatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        updatedAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.events.Events.IndexResourceTarget, talon.events.Events.IndexResourceTarget.Builder, talon.events.Events.IndexResourceTargetOrBuilder> resourceBuilder_;
+      /**
+       * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+       * @return Whether the resource field is set.
+       */
+      @java.lang.Override
+      public boolean hasResource() {
+        return targetCase_ == 10;
+      }
+      /**
+       * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+       * @return The resource.
+       */
+      @java.lang.Override
+      public talon.events.Events.IndexResourceTarget getResource() {
+        if (resourceBuilder_ == null) {
+          if (targetCase_ == 10) {
+            return (talon.events.Events.IndexResourceTarget) target_;
+          }
+          return talon.events.Events.IndexResourceTarget.getDefaultInstance();
+        } else {
+          if (targetCase_ == 10) {
+            return resourceBuilder_.getMessage();
+          }
+          return talon.events.Events.IndexResourceTarget.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+       */
+      public Builder setResource(talon.events.Events.IndexResourceTarget value) {
+        if (resourceBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          target_ = value;
+          onChanged();
+        } else {
+          resourceBuilder_.setMessage(value);
+        }
+        targetCase_ = 10;
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+       */
+      public Builder setResource(
+          talon.events.Events.IndexResourceTarget.Builder builderForValue) {
+        if (resourceBuilder_ == null) {
+          target_ = builderForValue.build();
+          onChanged();
+        } else {
+          resourceBuilder_.setMessage(builderForValue.build());
+        }
+        targetCase_ = 10;
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+       */
+      public Builder mergeResource(talon.events.Events.IndexResourceTarget value) {
+        if (resourceBuilder_ == null) {
+          if (targetCase_ == 10 &&
+              target_ != talon.events.Events.IndexResourceTarget.getDefaultInstance()) {
+            target_ = talon.events.Events.IndexResourceTarget.newBuilder((talon.events.Events.IndexResourceTarget) target_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            target_ = value;
+          }
+          onChanged();
+        } else {
+          if (targetCase_ == 10) {
+            resourceBuilder_.mergeFrom(value);
+          } else {
+            resourceBuilder_.setMessage(value);
+          }
+        }
+        targetCase_ = 10;
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+       */
+      public Builder clearResource() {
+        if (resourceBuilder_ == null) {
+          if (targetCase_ == 10) {
+            targetCase_ = 0;
+            target_ = null;
+            onChanged();
+          }
+        } else {
+          if (targetCase_ == 10) {
+            targetCase_ = 0;
+            target_ = null;
+          }
+          resourceBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+       */
+      public talon.events.Events.IndexResourceTarget.Builder getResourceBuilder() {
+        return internalGetResourceFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+       */
+      @java.lang.Override
+      public talon.events.Events.IndexResourceTargetOrBuilder getResourceOrBuilder() {
+        if ((targetCase_ == 10) && (resourceBuilder_ != null)) {
+          return resourceBuilder_.getMessageOrBuilder();
+        } else {
+          if (targetCase_ == 10) {
+            return (talon.events.Events.IndexResourceTarget) target_;
+          }
+          return talon.events.Events.IndexResourceTarget.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.events.IndexResourceTarget resource = 10;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.events.Events.IndexResourceTarget, talon.events.Events.IndexResourceTarget.Builder, talon.events.Events.IndexResourceTargetOrBuilder>
+          internalGetResourceFieldBuilder() {
+        if (resourceBuilder_ == null) {
+          if (!(targetCase_ == 10)) {
+            target_ = talon.events.Events.IndexResourceTarget.getDefaultInstance();
+          }
+          resourceBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.events.Events.IndexResourceTarget, talon.events.Events.IndexResourceTarget.Builder, talon.events.Events.IndexResourceTargetOrBuilder>(
+                  (talon.events.Events.IndexResourceTarget) target_,
+                  getParentForChildren(),
+                  isClean());
+          target_ = null;
+        }
+        targetCase_ = 10;
+        onChanged();
+        return resourceBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.events.Events.IndexSessionMessageTarget, talon.events.Events.IndexSessionMessageTarget.Builder, talon.events.Events.IndexSessionMessageTargetOrBuilder> sessionMessageBuilder_;
+      /**
+       * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+       * @return Whether the sessionMessage field is set.
+       */
+      @java.lang.Override
+      public boolean hasSessionMessage() {
+        return targetCase_ == 11;
+      }
+      /**
+       * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+       * @return The sessionMessage.
+       */
+      @java.lang.Override
+      public talon.events.Events.IndexSessionMessageTarget getSessionMessage() {
+        if (sessionMessageBuilder_ == null) {
+          if (targetCase_ == 11) {
+            return (talon.events.Events.IndexSessionMessageTarget) target_;
+          }
+          return talon.events.Events.IndexSessionMessageTarget.getDefaultInstance();
+        } else {
+          if (targetCase_ == 11) {
+            return sessionMessageBuilder_.getMessage();
+          }
+          return talon.events.Events.IndexSessionMessageTarget.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+       */
+      public Builder setSessionMessage(talon.events.Events.IndexSessionMessageTarget value) {
+        if (sessionMessageBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          target_ = value;
+          onChanged();
+        } else {
+          sessionMessageBuilder_.setMessage(value);
+        }
+        targetCase_ = 11;
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+       */
+      public Builder setSessionMessage(
+          talon.events.Events.IndexSessionMessageTarget.Builder builderForValue) {
+        if (sessionMessageBuilder_ == null) {
+          target_ = builderForValue.build();
+          onChanged();
+        } else {
+          sessionMessageBuilder_.setMessage(builderForValue.build());
+        }
+        targetCase_ = 11;
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+       */
+      public Builder mergeSessionMessage(talon.events.Events.IndexSessionMessageTarget value) {
+        if (sessionMessageBuilder_ == null) {
+          if (targetCase_ == 11 &&
+              target_ != talon.events.Events.IndexSessionMessageTarget.getDefaultInstance()) {
+            target_ = talon.events.Events.IndexSessionMessageTarget.newBuilder((talon.events.Events.IndexSessionMessageTarget) target_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            target_ = value;
+          }
+          onChanged();
+        } else {
+          if (targetCase_ == 11) {
+            sessionMessageBuilder_.mergeFrom(value);
+          } else {
+            sessionMessageBuilder_.setMessage(value);
+          }
+        }
+        targetCase_ = 11;
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+       */
+      public Builder clearSessionMessage() {
+        if (sessionMessageBuilder_ == null) {
+          if (targetCase_ == 11) {
+            targetCase_ = 0;
+            target_ = null;
+            onChanged();
+          }
+        } else {
+          if (targetCase_ == 11) {
+            targetCase_ = 0;
+            target_ = null;
+          }
+          sessionMessageBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+       */
+      public talon.events.Events.IndexSessionMessageTarget.Builder getSessionMessageBuilder() {
+        return internalGetSessionMessageFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+       */
+      @java.lang.Override
+      public talon.events.Events.IndexSessionMessageTargetOrBuilder getSessionMessageOrBuilder() {
+        if ((targetCase_ == 11) && (sessionMessageBuilder_ != null)) {
+          return sessionMessageBuilder_.getMessageOrBuilder();
+        } else {
+          if (targetCase_ == 11) {
+            return (talon.events.Events.IndexSessionMessageTarget) target_;
+          }
+          return talon.events.Events.IndexSessionMessageTarget.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.events.IndexSessionMessageTarget session_message = 11;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.events.Events.IndexSessionMessageTarget, talon.events.Events.IndexSessionMessageTarget.Builder, talon.events.Events.IndexSessionMessageTargetOrBuilder>
+          internalGetSessionMessageFieldBuilder() {
+        if (sessionMessageBuilder_ == null) {
+          if (!(targetCase_ == 11)) {
+            target_ = talon.events.Events.IndexSessionMessageTarget.getDefaultInstance();
+          }
+          sessionMessageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.events.Events.IndexSessionMessageTarget, talon.events.Events.IndexSessionMessageTarget.Builder, talon.events.Events.IndexSessionMessageTargetOrBuilder>(
+                  (talon.events.Events.IndexSessionMessageTarget) target_,
+                  getParentForChildren(),
+                  isClean());
+          target_ = null;
+        }
+        targetCase_ = 11;
+        onChanged();
+        return sessionMessageBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.events.Events.IndexSessionTarget, talon.events.Events.IndexSessionTarget.Builder, talon.events.Events.IndexSessionTargetOrBuilder> sessionBuilder_;
+      /**
+       * <code>.talon.events.IndexSessionTarget session = 12;</code>
+       * @return Whether the session field is set.
+       */
+      @java.lang.Override
+      public boolean hasSession() {
+        return targetCase_ == 12;
+      }
+      /**
+       * <code>.talon.events.IndexSessionTarget session = 12;</code>
+       * @return The session.
+       */
+      @java.lang.Override
+      public talon.events.Events.IndexSessionTarget getSession() {
+        if (sessionBuilder_ == null) {
+          if (targetCase_ == 12) {
+            return (talon.events.Events.IndexSessionTarget) target_;
+          }
+          return talon.events.Events.IndexSessionTarget.getDefaultInstance();
+        } else {
+          if (targetCase_ == 12) {
+            return sessionBuilder_.getMessage();
+          }
+          return talon.events.Events.IndexSessionTarget.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.events.IndexSessionTarget session = 12;</code>
+       */
+      public Builder setSession(talon.events.Events.IndexSessionTarget value) {
+        if (sessionBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          target_ = value;
+          onChanged();
+        } else {
+          sessionBuilder_.setMessage(value);
+        }
+        targetCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexSessionTarget session = 12;</code>
+       */
+      public Builder setSession(
+          talon.events.Events.IndexSessionTarget.Builder builderForValue) {
+        if (sessionBuilder_ == null) {
+          target_ = builderForValue.build();
+          onChanged();
+        } else {
+          sessionBuilder_.setMessage(builderForValue.build());
+        }
+        targetCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexSessionTarget session = 12;</code>
+       */
+      public Builder mergeSession(talon.events.Events.IndexSessionTarget value) {
+        if (sessionBuilder_ == null) {
+          if (targetCase_ == 12 &&
+              target_ != talon.events.Events.IndexSessionTarget.getDefaultInstance()) {
+            target_ = talon.events.Events.IndexSessionTarget.newBuilder((talon.events.Events.IndexSessionTarget) target_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            target_ = value;
+          }
+          onChanged();
+        } else {
+          if (targetCase_ == 12) {
+            sessionBuilder_.mergeFrom(value);
+          } else {
+            sessionBuilder_.setMessage(value);
+          }
+        }
+        targetCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexSessionTarget session = 12;</code>
+       */
+      public Builder clearSession() {
+        if (sessionBuilder_ == null) {
+          if (targetCase_ == 12) {
+            targetCase_ = 0;
+            target_ = null;
+            onChanged();
+          }
+        } else {
+          if (targetCase_ == 12) {
+            targetCase_ = 0;
+            target_ = null;
+          }
+          sessionBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexSessionTarget session = 12;</code>
+       */
+      public talon.events.Events.IndexSessionTarget.Builder getSessionBuilder() {
+        return internalGetSessionFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.events.IndexSessionTarget session = 12;</code>
+       */
+      @java.lang.Override
+      public talon.events.Events.IndexSessionTargetOrBuilder getSessionOrBuilder() {
+        if ((targetCase_ == 12) && (sessionBuilder_ != null)) {
+          return sessionBuilder_.getMessageOrBuilder();
+        } else {
+          if (targetCase_ == 12) {
+            return (talon.events.Events.IndexSessionTarget) target_;
+          }
+          return talon.events.Events.IndexSessionTarget.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.events.IndexSessionTarget session = 12;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.events.Events.IndexSessionTarget, talon.events.Events.IndexSessionTarget.Builder, talon.events.Events.IndexSessionTargetOrBuilder>
+          internalGetSessionFieldBuilder() {
+        if (sessionBuilder_ == null) {
+          if (!(targetCase_ == 12)) {
+            target_ = talon.events.Events.IndexSessionTarget.getDefaultInstance();
+          }
+          sessionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.events.Events.IndexSessionTarget, talon.events.Events.IndexSessionTarget.Builder, talon.events.Events.IndexSessionTargetOrBuilder>(
+                  (talon.events.Events.IndexSessionTarget) target_,
+                  getParentForChildren(),
+                  isClean());
+          target_ = null;
+        }
+        targetCase_ = 12;
+        onChanged();
+        return sessionBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.events.IndexEvent)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.events.IndexEvent)
+    private static final talon.events.Events.IndexEvent DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.events.Events.IndexEvent();
+    }
+
+    public static talon.events.Events.IndexEvent getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<IndexEvent>
+        PARSER = new com.google.protobuf.AbstractParser<IndexEvent>() {
+      @java.lang.Override
+      public IndexEvent parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<IndexEvent> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<IndexEvent> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.events.Events.IndexEvent getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface IndexResourceTargetOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.events.IndexResourceTarget)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string resource_key = 1;</code>
+     * @return The resourceKey.
+     */
+    java.lang.String getResourceKey();
+    /**
+     * <code>string resource_key = 1;</code>
+     * @return The bytes for resourceKey.
+     */
+    com.google.protobuf.ByteString
+        getResourceKeyBytes();
+
+    /**
+     * <code>uint64 source_generation = 2;</code>
+     * @return The sourceGeneration.
+     */
+    long getSourceGeneration();
+  }
+  /**
+   * Protobuf type {@code talon.events.IndexResourceTarget}
+   */
+  public static final class IndexResourceTarget extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.events.IndexResourceTarget)
+      IndexResourceTargetOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "IndexResourceTarget");
+    }
+    // Use IndexResourceTarget.newBuilder() to construct.
+    private IndexResourceTarget(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private IndexResourceTarget() {
+      resourceKey_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.events.Events.internal_static_talon_events_IndexResourceTarget_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.events.Events.internal_static_talon_events_IndexResourceTarget_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.events.Events.internal_static_talon_events_IndexResourceTarget_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.events.Events.IndexResourceTarget.class, talon.events.Events.IndexResourceTarget.Builder.class);
+    }
+
+    public static final int RESOURCE_KEY_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object resourceKey_ = "";
+    /**
+     * <code>string resource_key = 1;</code>
+     * @return The resourceKey.
+     */
+    @java.lang.Override
+    public java.lang.String getResourceKey() {
+      java.lang.Object ref = resourceKey_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        resourceKey_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string resource_key = 1;</code>
+     * @return The bytes for resourceKey.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getResourceKeyBytes() {
+      java.lang.Object ref = resourceKey_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        resourceKey_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SOURCE_GENERATION_FIELD_NUMBER = 2;
+    private long sourceGeneration_ = 0L;
+    /**
+     * <code>uint64 source_generation = 2;</code>
+     * @return The sourceGeneration.
+     */
+    @java.lang.Override
+    public long getSourceGeneration() {
+      return sourceGeneration_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(resourceKey_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, resourceKey_);
+      }
+      if (sourceGeneration_ != 0L) {
+        output.writeUInt64(2, sourceGeneration_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(resourceKey_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, resourceKey_);
+      }
+      if (sourceGeneration_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(2, sourceGeneration_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.events.Events.IndexResourceTarget)) {
+        return super.equals(obj);
+      }
+      talon.events.Events.IndexResourceTarget other = (talon.events.Events.IndexResourceTarget) obj;
+
+      if (!getResourceKey()
+          .equals(other.getResourceKey())) return false;
+      if (getSourceGeneration()
+          != other.getSourceGeneration()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + RESOURCE_KEY_FIELD_NUMBER;
+      hash = (53 * hash) + getResourceKey().hashCode();
+      hash = (37 * hash) + SOURCE_GENERATION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getSourceGeneration());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.events.Events.IndexResourceTarget parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexResourceTarget parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexResourceTarget parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexResourceTarget parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexResourceTarget parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexResourceTarget parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexResourceTarget parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.IndexResourceTarget parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.events.Events.IndexResourceTarget parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.events.Events.IndexResourceTarget parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.events.Events.IndexResourceTarget parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.IndexResourceTarget parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.events.Events.IndexResourceTarget prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.events.IndexResourceTarget}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.events.IndexResourceTarget)
+        talon.events.Events.IndexResourceTargetOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.events.Events.internal_static_talon_events_IndexResourceTarget_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.events.Events.internal_static_talon_events_IndexResourceTarget_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.events.Events.IndexResourceTarget.class, talon.events.Events.IndexResourceTarget.Builder.class);
+      }
+
+      // Construct using talon.events.Events.IndexResourceTarget.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        resourceKey_ = "";
+        sourceGeneration_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.events.Events.internal_static_talon_events_IndexResourceTarget_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexResourceTarget getDefaultInstanceForType() {
+        return talon.events.Events.IndexResourceTarget.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexResourceTarget build() {
+        talon.events.Events.IndexResourceTarget result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexResourceTarget buildPartial() {
+        talon.events.Events.IndexResourceTarget result = new talon.events.Events.IndexResourceTarget(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.events.Events.IndexResourceTarget result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.resourceKey_ = resourceKey_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.sourceGeneration_ = sourceGeneration_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.events.Events.IndexResourceTarget) {
+          return mergeFrom((talon.events.Events.IndexResourceTarget)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.events.Events.IndexResourceTarget other) {
+        if (other == talon.events.Events.IndexResourceTarget.getDefaultInstance()) return this;
+        if (!other.getResourceKey().isEmpty()) {
+          resourceKey_ = other.resourceKey_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (other.getSourceGeneration() != 0L) {
+          setSourceGeneration(other.getSourceGeneration());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                resourceKey_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 16: {
+                sourceGeneration_ = input.readUInt64();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object resourceKey_ = "";
+      /**
+       * <code>string resource_key = 1;</code>
+       * @return The resourceKey.
+       */
+      public java.lang.String getResourceKey() {
+        java.lang.Object ref = resourceKey_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          resourceKey_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string resource_key = 1;</code>
+       * @return The bytes for resourceKey.
+       */
+      public com.google.protobuf.ByteString
+          getResourceKeyBytes() {
+        java.lang.Object ref = resourceKey_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          resourceKey_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string resource_key = 1;</code>
+       * @param value The resourceKey to set.
+       * @return This builder for chaining.
+       */
+      public Builder setResourceKey(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        resourceKey_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string resource_key = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearResourceKey() {
+        resourceKey_ = getDefaultInstance().getResourceKey();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string resource_key = 1;</code>
+       * @param value The bytes for resourceKey to set.
+       * @return This builder for chaining.
+       */
+      public Builder setResourceKeyBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        resourceKey_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private long sourceGeneration_ ;
+      /**
+       * <code>uint64 source_generation = 2;</code>
+       * @return The sourceGeneration.
+       */
+      @java.lang.Override
+      public long getSourceGeneration() {
+        return sourceGeneration_;
+      }
+      /**
+       * <code>uint64 source_generation = 2;</code>
+       * @param value The sourceGeneration to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSourceGeneration(long value) {
+
+        sourceGeneration_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 source_generation = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSourceGeneration() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        sourceGeneration_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.events.IndexResourceTarget)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.events.IndexResourceTarget)
+    private static final talon.events.Events.IndexResourceTarget DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.events.Events.IndexResourceTarget();
+    }
+
+    public static talon.events.Events.IndexResourceTarget getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<IndexResourceTarget>
+        PARSER = new com.google.protobuf.AbstractParser<IndexResourceTarget>() {
+      @java.lang.Override
+      public IndexResourceTarget parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<IndexResourceTarget> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<IndexResourceTarget> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.events.Events.IndexResourceTarget getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface IndexSessionMessageTargetOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.events.IndexSessionMessageTarget)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    java.lang.String getNamespace();
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    com.google.protobuf.ByteString
+        getNamespaceBytes();
+
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+
+    /**
+     * <code>string session_id = 3;</code>
+     * @return The sessionId.
+     */
+    java.lang.String getSessionId();
+    /**
+     * <code>string session_id = 3;</code>
+     * @return The bytes for sessionId.
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <code>string message_id = 4;</code>
+     * @return The messageId.
+     */
+    java.lang.String getMessageId();
+    /**
+     * <code>string message_id = 4;</code>
+     * @return The bytes for messageId.
+     */
+    com.google.protobuf.ByteString
+        getMessageIdBytes();
+
+    /**
+     * <code>uint64 source_generation = 5;</code>
+     * @return The sourceGeneration.
+     */
+    long getSourceGeneration();
+  }
+  /**
+   * Protobuf type {@code talon.events.IndexSessionMessageTarget}
+   */
+  public static final class IndexSessionMessageTarget extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.events.IndexSessionMessageTarget)
+      IndexSessionMessageTargetOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "IndexSessionMessageTarget");
+    }
+    // Use IndexSessionMessageTarget.newBuilder() to construct.
+    private IndexSessionMessageTarget(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private IndexSessionMessageTarget() {
+      namespace_ = "";
+      agent_ = "";
+      sessionId_ = "";
+      messageId_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.events.Events.internal_static_talon_events_IndexSessionMessageTarget_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.events.Events.internal_static_talon_events_IndexSessionMessageTarget_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.events.Events.internal_static_talon_events_IndexSessionMessageTarget_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.events.Events.IndexSessionMessageTarget.class, talon.events.Events.IndexSessionMessageTarget.Builder.class);
+    }
+
+    public static final int NAMESPACE_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object namespace_ = "";
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    @java.lang.Override
+    public java.lang.String getNamespace() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        namespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNamespaceBytes() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        namespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SESSION_ID_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sessionId_ = "";
+    /**
+     * <code>string session_id = 3;</code>
+     * @return The sessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSessionId() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string session_id = 3;</code>
+     * @return The bytes for sessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int MESSAGE_ID_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object messageId_ = "";
+    /**
+     * <code>string message_id = 4;</code>
+     * @return The messageId.
+     */
+    @java.lang.Override
+    public java.lang.String getMessageId() {
+      java.lang.Object ref = messageId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        messageId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string message_id = 4;</code>
+     * @return The bytes for messageId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getMessageIdBytes() {
+      java.lang.Object ref = messageId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        messageId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SOURCE_GENERATION_FIELD_NUMBER = 5;
+    private long sourceGeneration_ = 0L;
+    /**
+     * <code>uint64 source_generation = 5;</code>
+     * @return The sourceGeneration.
+     */
+    @java.lang.Override
+    public long getSourceGeneration() {
+      return sourceGeneration_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(messageId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, messageId_);
+      }
+      if (sourceGeneration_ != 0L) {
+        output.writeUInt64(5, sourceGeneration_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(messageId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, messageId_);
+      }
+      if (sourceGeneration_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(5, sourceGeneration_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.events.Events.IndexSessionMessageTarget)) {
+        return super.equals(obj);
+      }
+      talon.events.Events.IndexSessionMessageTarget other = (talon.events.Events.IndexSessionMessageTarget) obj;
+
+      if (!getNamespace()
+          .equals(other.getNamespace())) return false;
+      if (!getAgent()
+          .equals(other.getAgent())) return false;
+      if (!getSessionId()
+          .equals(other.getSessionId())) return false;
+      if (!getMessageId()
+          .equals(other.getMessageId())) return false;
+      if (getSourceGeneration()
+          != other.getSourceGeneration()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getNamespace().hashCode();
+      hash = (37 * hash) + AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getAgent().hashCode();
+      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSessionId().hashCode();
+      hash = (37 * hash) + MESSAGE_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getMessageId().hashCode();
+      hash = (37 * hash) + SOURCE_GENERATION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getSourceGeneration());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.events.Events.IndexSessionMessageTarget parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexSessionMessageTarget parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexSessionMessageTarget parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexSessionMessageTarget parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexSessionMessageTarget parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexSessionMessageTarget parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexSessionMessageTarget parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.IndexSessionMessageTarget parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.events.Events.IndexSessionMessageTarget parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.events.Events.IndexSessionMessageTarget parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.events.Events.IndexSessionMessageTarget parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.IndexSessionMessageTarget parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.events.Events.IndexSessionMessageTarget prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.events.IndexSessionMessageTarget}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.events.IndexSessionMessageTarget)
+        talon.events.Events.IndexSessionMessageTargetOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.events.Events.internal_static_talon_events_IndexSessionMessageTarget_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.events.Events.internal_static_talon_events_IndexSessionMessageTarget_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.events.Events.IndexSessionMessageTarget.class, talon.events.Events.IndexSessionMessageTarget.Builder.class);
+      }
+
+      // Construct using talon.events.Events.IndexSessionMessageTarget.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        namespace_ = "";
+        agent_ = "";
+        sessionId_ = "";
+        messageId_ = "";
+        sourceGeneration_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.events.Events.internal_static_talon_events_IndexSessionMessageTarget_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexSessionMessageTarget getDefaultInstanceForType() {
+        return talon.events.Events.IndexSessionMessageTarget.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexSessionMessageTarget build() {
+        talon.events.Events.IndexSessionMessageTarget result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexSessionMessageTarget buildPartial() {
+        talon.events.Events.IndexSessionMessageTarget result = new talon.events.Events.IndexSessionMessageTarget(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.events.Events.IndexSessionMessageTarget result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.namespace_ = namespace_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.agent_ = agent_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.sessionId_ = sessionId_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.messageId_ = messageId_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.sourceGeneration_ = sourceGeneration_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.events.Events.IndexSessionMessageTarget) {
+          return mergeFrom((talon.events.Events.IndexSessionMessageTarget)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.events.Events.IndexSessionMessageTarget other) {
+        if (other == talon.events.Events.IndexSessionMessageTarget.getDefaultInstance()) return this;
+        if (!other.getNamespace().isEmpty()) {
+          namespace_ = other.namespace_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getAgent().isEmpty()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getSessionId().isEmpty()) {
+          sessionId_ = other.sessionId_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getMessageId().isEmpty()) {
+          messageId_ = other.messageId_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (other.getSourceGeneration() != 0L) {
+          setSourceGeneration(other.getSourceGeneration());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                namespace_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                sessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                messageId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 40: {
+                sourceGeneration_ = input.readUInt64();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 40
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object namespace_ = "";
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The namespace.
+       */
+      public java.lang.String getNamespace() {
+        java.lang.Object ref = namespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          namespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The bytes for namespace.
+       */
+      public com.google.protobuf.ByteString
+          getNamespaceBytes() {
+        java.lang.Object ref = namespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          namespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNamespace() {
+        namespace_ = getDefaultInstance().getNamespace();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The bytes for namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <code>string agent = 2;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object sessionId_ = "";
+      /**
+       * <code>string session_id = 3;</code>
+       * @return The sessionId.
+       */
+      public java.lang.String getSessionId() {
+        java.lang.Object ref = sessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 3;</code>
+       * @return The bytes for sessionId.
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 3;</code>
+       * @param value The sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sessionId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSessionId() {
+        sessionId_ = getDefaultInstance().getSessionId();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 3;</code>
+       * @param value The bytes for sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sessionId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object messageId_ = "";
+      /**
+       * <code>string message_id = 4;</code>
+       * @return The messageId.
+       */
+      public java.lang.String getMessageId() {
+        java.lang.Object ref = messageId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          messageId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string message_id = 4;</code>
+       * @return The bytes for messageId.
+       */
+      public com.google.protobuf.ByteString
+          getMessageIdBytes() {
+        java.lang.Object ref = messageId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          messageId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string message_id = 4;</code>
+       * @param value The messageId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMessageId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        messageId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string message_id = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMessageId() {
+        messageId_ = getDefaultInstance().getMessageId();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string message_id = 4;</code>
+       * @param value The bytes for messageId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMessageIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        messageId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private long sourceGeneration_ ;
+      /**
+       * <code>uint64 source_generation = 5;</code>
+       * @return The sourceGeneration.
+       */
+      @java.lang.Override
+      public long getSourceGeneration() {
+        return sourceGeneration_;
+      }
+      /**
+       * <code>uint64 source_generation = 5;</code>
+       * @param value The sourceGeneration to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSourceGeneration(long value) {
+
+        sourceGeneration_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 source_generation = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSourceGeneration() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        sourceGeneration_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.events.IndexSessionMessageTarget)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.events.IndexSessionMessageTarget)
+    private static final talon.events.Events.IndexSessionMessageTarget DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.events.Events.IndexSessionMessageTarget();
+    }
+
+    public static talon.events.Events.IndexSessionMessageTarget getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<IndexSessionMessageTarget>
+        PARSER = new com.google.protobuf.AbstractParser<IndexSessionMessageTarget>() {
+      @java.lang.Override
+      public IndexSessionMessageTarget parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<IndexSessionMessageTarget> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<IndexSessionMessageTarget> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.events.Events.IndexSessionMessageTarget getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface IndexSessionTargetOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.events.IndexSessionTarget)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    java.lang.String getNamespace();
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    com.google.protobuf.ByteString
+        getNamespaceBytes();
+
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+
+    /**
+     * <code>string session_id = 3;</code>
+     * @return The sessionId.
+     */
+    java.lang.String getSessionId();
+    /**
+     * <code>string session_id = 3;</code>
+     * @return The bytes for sessionId.
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+  }
+  /**
+   * Protobuf type {@code talon.events.IndexSessionTarget}
+   */
+  public static final class IndexSessionTarget extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.events.IndexSessionTarget)
+      IndexSessionTargetOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "IndexSessionTarget");
+    }
+    // Use IndexSessionTarget.newBuilder() to construct.
+    private IndexSessionTarget(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private IndexSessionTarget() {
+      namespace_ = "";
+      agent_ = "";
+      sessionId_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.events.Events.internal_static_talon_events_IndexSessionTarget_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.events.Events.internal_static_talon_events_IndexSessionTarget_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.events.Events.internal_static_talon_events_IndexSessionTarget_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.events.Events.IndexSessionTarget.class, talon.events.Events.IndexSessionTarget.Builder.class);
+    }
+
+    public static final int NAMESPACE_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object namespace_ = "";
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    @java.lang.Override
+    public java.lang.String getNamespace() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        namespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNamespaceBytes() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        namespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SESSION_ID_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sessionId_ = "";
+    /**
+     * <code>string session_id = 3;</code>
+     * @return The sessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSessionId() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string session_id = 3;</code>
+     * @return The bytes for sessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, sessionId_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, sessionId_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.events.Events.IndexSessionTarget)) {
+        return super.equals(obj);
+      }
+      talon.events.Events.IndexSessionTarget other = (talon.events.Events.IndexSessionTarget) obj;
+
+      if (!getNamespace()
+          .equals(other.getNamespace())) return false;
+      if (!getAgent()
+          .equals(other.getAgent())) return false;
+      if (!getSessionId()
+          .equals(other.getSessionId())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getNamespace().hashCode();
+      hash = (37 * hash) + AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getAgent().hashCode();
+      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSessionId().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.events.Events.IndexSessionTarget parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexSessionTarget parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexSessionTarget parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexSessionTarget parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexSessionTarget parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexSessionTarget parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexSessionTarget parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.IndexSessionTarget parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.events.Events.IndexSessionTarget parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.events.Events.IndexSessionTarget parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.events.Events.IndexSessionTarget parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.IndexSessionTarget parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.events.Events.IndexSessionTarget prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.events.IndexSessionTarget}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.events.IndexSessionTarget)
+        talon.events.Events.IndexSessionTargetOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.events.Events.internal_static_talon_events_IndexSessionTarget_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.events.Events.internal_static_talon_events_IndexSessionTarget_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.events.Events.IndexSessionTarget.class, talon.events.Events.IndexSessionTarget.Builder.class);
+      }
+
+      // Construct using talon.events.Events.IndexSessionTarget.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        namespace_ = "";
+        agent_ = "";
+        sessionId_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.events.Events.internal_static_talon_events_IndexSessionTarget_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexSessionTarget getDefaultInstanceForType() {
+        return talon.events.Events.IndexSessionTarget.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexSessionTarget build() {
+        talon.events.Events.IndexSessionTarget result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexSessionTarget buildPartial() {
+        talon.events.Events.IndexSessionTarget result = new talon.events.Events.IndexSessionTarget(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.events.Events.IndexSessionTarget result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.namespace_ = namespace_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.agent_ = agent_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.sessionId_ = sessionId_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.events.Events.IndexSessionTarget) {
+          return mergeFrom((talon.events.Events.IndexSessionTarget)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.events.Events.IndexSessionTarget other) {
+        if (other == talon.events.Events.IndexSessionTarget.getDefaultInstance()) return this;
+        if (!other.getNamespace().isEmpty()) {
+          namespace_ = other.namespace_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getAgent().isEmpty()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getSessionId().isEmpty()) {
+          sessionId_ = other.sessionId_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                namespace_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                sessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object namespace_ = "";
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The namespace.
+       */
+      public java.lang.String getNamespace() {
+        java.lang.Object ref = namespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          namespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The bytes for namespace.
+       */
+      public com.google.protobuf.ByteString
+          getNamespaceBytes() {
+        java.lang.Object ref = namespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          namespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNamespace() {
+        namespace_ = getDefaultInstance().getNamespace();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The bytes for namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <code>string agent = 2;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object sessionId_ = "";
+      /**
+       * <code>string session_id = 3;</code>
+       * @return The sessionId.
+       */
+      public java.lang.String getSessionId() {
+        java.lang.Object ref = sessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 3;</code>
+       * @return The bytes for sessionId.
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 3;</code>
+       * @param value The sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sessionId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSessionId() {
+        sessionId_ = getDefaultInstance().getSessionId();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 3;</code>
+       * @param value The bytes for sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sessionId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.events.IndexSessionTarget)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.events.IndexSessionTarget)
+    private static final talon.events.Events.IndexSessionTarget DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.events.Events.IndexSessionTarget();
+    }
+
+    public static talon.events.Events.IndexSessionTarget getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<IndexSessionTarget>
+        PARSER = new com.google.protobuf.AbstractParser<IndexSessionTarget>() {
+      @java.lang.Override
+      public IndexSessionTarget parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<IndexSessionTarget> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<IndexSessionTarget> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.events.Events.IndexSessionTarget getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_events_LifecycleEvent_descriptor;
   private static final
@@ -10088,6 +14156,26 @@ public final class Events extends com.google.protobuf.GeneratedFile {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_events_ResourceChangedEvent_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_events_IndexEvent_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_events_IndexEvent_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_events_IndexResourceTarget_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_events_IndexResourceTarget_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_events_IndexSessionMessageTarget_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_events_IndexSessionMessageTarget_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_events_IndexSessionTarget_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_events_IndexSessionTarget_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -10130,29 +14218,46 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       "ion\030\005 \001(\t\022\022\n\ngeneration\030\006 \001(\004\0225\n\013change_" +
       "type\030\007 \001(\0162 .talon.events.ResourceChange" +
       "Type\022\030\n\020changed_sections\030\010 \003(\t\022\021\n\ttimest" +
-      "amp\030\t \001(\003*\260\001\n\014SystemAction\022\035\n\031SYSTEM_ACT" +
-      "ION_UNSPECIFIED\020\000\022\030\n\024SYSTEM_ACTION_CREAT" +
-      "E\020\001\022\030\n\024SYSTEM_ACTION_UPDATE\020\002\022\030\n\024SYSTEM_" +
-      "ACTION_DELETE\020\003\022\031\n\025SYSTEM_ACTION_SUSPEND" +
-      "\020\004\022\030\n\024SYSTEM_ACTION_RESUME\020\005*t\n\020MessageD" +
-      "irection\022!\n\035MESSAGE_DIRECTION_UNSPECIFIE" +
-      "D\020\000\022\035\n\031MESSAGE_DIRECTION_INBOUND\020\001\022\036\n\032ME" +
-      "SSAGE_DIRECTION_OUTBOUND\020\002*\316\001\n\033SessionMe" +
-      "ssagePartEventKind\022/\n+SESSION_MESSAGE_PA" +
-      "RT_EVENT_KIND_UNSPECIFIED\020\000\022)\n%SESSION_M" +
-      "ESSAGE_PART_EVENT_KIND_DELTA\020\001\022(\n$SESSIO" +
-      "N_MESSAGE_PART_EVENT_KIND_DONE\020\002\022)\n%SESS" +
-      "ION_MESSAGE_PART_EVENT_KIND_ERROR\020\003*\313\001\n\020" +
-      "ChannelEventKind\022\"\n\036CHANNEL_EVENT_KIND_U" +
-      "NSPECIFIED\020\000\022&\n\"CHANNEL_EVENT_KIND_MESSA" +
-      "GE_CREATED\020\001\022%\n!CHANNEL_EVENT_KIND_SESSI" +
-      "ON_ROUTED\020\002\022&\n\"CHANNEL_EVENT_KIND_PUBLIS" +
-      "H_SKIPPED\020\003\022\034\n\030CHANNEL_EVENT_KIND_ERROR\020" +
-      "\004*\240\001\n\022ResourceChangeType\022$\n RESOURCE_CHA" +
-      "NGE_TYPE_UNSPECIFIED\020\000\022 \n\034RESOURCE_CHANG" +
-      "E_TYPE_CREATED\020\001\022 \n\034RESOURCE_CHANGE_TYPE" +
-      "_UPDATED\020\002\022 \n\034RESOURCE_CHANGE_TYPE_DELET" +
-      "ED\020\003b\006proto3"
+      "amp\030\t \001(\003\"\253\002\n\nIndexEvent\022\n\n\002id\030\001 \001(\t\022/\n\t" +
+      "operation\030\002 \001(\0162\034.talon.events.IndexOper" +
+      "ation\022\022\n\ncreated_at\030\003 \001(\003\022\022\n\nupdated_at\030" +
+      "\004 \001(\003\0225\n\010resource\030\n \001(\0132!.talon.events.I" +
+      "ndexResourceTargetH\000\022B\n\017session_message\030" +
+      "\013 \001(\0132\'.talon.events.IndexSessionMessage" +
+      "TargetH\000\0223\n\007session\030\014 \001(\0132 .talon.events" +
+      ".IndexSessionTargetH\000B\010\n\006target\"F\n\023Index" +
+      "ResourceTarget\022\024\n\014resource_key\030\001 \001(\t\022\031\n\021" +
+      "source_generation\030\002 \001(\004\"\200\001\n\031IndexSession" +
+      "MessageTarget\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005agen" +
+      "t\030\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t\022\022\n\nmessage_i" +
+      "d\030\004 \001(\t\022\031\n\021source_generation\030\005 \001(\004\"J\n\022In" +
+      "dexSessionTarget\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005a" +
+      "gent\030\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t*\260\001\n\014Syste" +
+      "mAction\022\035\n\031SYSTEM_ACTION_UNSPECIFIED\020\000\022\030" +
+      "\n\024SYSTEM_ACTION_CREATE\020\001\022\030\n\024SYSTEM_ACTIO" +
+      "N_UPDATE\020\002\022\030\n\024SYSTEM_ACTION_DELETE\020\003\022\031\n\025" +
+      "SYSTEM_ACTION_SUSPEND\020\004\022\030\n\024SYSTEM_ACTION" +
+      "_RESUME\020\005*t\n\020MessageDirection\022!\n\035MESSAGE" +
+      "_DIRECTION_UNSPECIFIED\020\000\022\035\n\031MESSAGE_DIRE" +
+      "CTION_INBOUND\020\001\022\036\n\032MESSAGE_DIRECTION_OUT" +
+      "BOUND\020\002*\316\001\n\033SessionMessagePartEventKind\022" +
+      "/\n+SESSION_MESSAGE_PART_EVENT_KIND_UNSPE" +
+      "CIFIED\020\000\022)\n%SESSION_MESSAGE_PART_EVENT_K" +
+      "IND_DELTA\020\001\022(\n$SESSION_MESSAGE_PART_EVEN" +
+      "T_KIND_DONE\020\002\022)\n%SESSION_MESSAGE_PART_EV" +
+      "ENT_KIND_ERROR\020\003*\313\001\n\020ChannelEventKind\022\"\n" +
+      "\036CHANNEL_EVENT_KIND_UNSPECIFIED\020\000\022&\n\"CHA" +
+      "NNEL_EVENT_KIND_MESSAGE_CREATED\020\001\022%\n!CHA" +
+      "NNEL_EVENT_KIND_SESSION_ROUTED\020\002\022&\n\"CHAN" +
+      "NEL_EVENT_KIND_PUBLISH_SKIPPED\020\003\022\034\n\030CHAN" +
+      "NEL_EVENT_KIND_ERROR\020\004*\240\001\n\022ResourceChang" +
+      "eType\022$\n RESOURCE_CHANGE_TYPE_UNSPECIFIE" +
+      "D\020\000\022 \n\034RESOURCE_CHANGE_TYPE_CREATED\020\001\022 \n" +
+      "\034RESOURCE_CHANGE_TYPE_UPDATED\020\002\022 \n\034RESOU" +
+      "RCE_CHANGE_TYPE_DELETED\020\003*i\n\016IndexOperat" +
+      "ion\022\037\n\033INDEX_OPERATION_UNSPECIFIED\020\000\022\032\n\026" +
+      "INDEX_OPERATION_UPSERT\020\001\022\032\n\026INDEX_OPERAT" +
+      "ION_DELETE\020\002b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -10201,6 +14306,30 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_events_ResourceChangedEvent_descriptor,
         new java.lang.String[] { "Namespace", "ResourceKind", "Name", "Uid", "ResourceVersion", "Generation", "ChangeType", "ChangedSections", "Timestamp", });
+    internal_static_talon_events_IndexEvent_descriptor =
+      getDescriptor().getMessageType(7);
+    internal_static_talon_events_IndexEvent_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_events_IndexEvent_descriptor,
+        new java.lang.String[] { "Id", "Operation", "CreatedAt", "UpdatedAt", "Resource", "SessionMessage", "Session", "Target", });
+    internal_static_talon_events_IndexResourceTarget_descriptor =
+      getDescriptor().getMessageType(8);
+    internal_static_talon_events_IndexResourceTarget_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_events_IndexResourceTarget_descriptor,
+        new java.lang.String[] { "ResourceKey", "SourceGeneration", });
+    internal_static_talon_events_IndexSessionMessageTarget_descriptor =
+      getDescriptor().getMessageType(9);
+    internal_static_talon_events_IndexSessionMessageTarget_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_events_IndexSessionMessageTarget_descriptor,
+        new java.lang.String[] { "Namespace", "Agent", "SessionId", "MessageId", "SourceGeneration", });
+    internal_static_talon_events_IndexSessionTarget_descriptor =
+      getDescriptor().getMessageType(10);
+    internal_static_talon_events_IndexSessionTarget_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_events_IndexSessionTarget_descriptor,
+        new java.lang.String[] { "Namespace", "Agent", "SessionId", });
     descriptor.resolveAllFeaturesImmutable();
     talon.data.Data.getDescriptor();
   }

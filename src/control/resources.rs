@@ -109,6 +109,8 @@ impl ResourceStore {
         self.kv
             .set(&key, &encode_stored_resource(&resource)?)
             .await?;
+        self.publish_index_event(&resource, events::ResourceChangeType::Updated, &key)
+            .await;
         self.publish_changed(&resource, change_type, &["metadata", "spec"])
             .await?;
         Ok(resource)
@@ -204,6 +206,8 @@ impl ResourceStore {
                 .compare_and_swap(&key, Some(current.as_slice()), &next)
                 .await?
             {
+                self.publish_index_event(&resource, events::ResourceChangeType::Updated, &key)
+                    .await;
                 self.publish_changed(
                     &resource,
                     events::ResourceChangeType::Updated,
@@ -274,6 +278,8 @@ impl ResourceStore {
             self.kv
                 .set(&key, &encode_stored_resource(&resource)?)
                 .await?;
+            self.publish_index_event(&resource, events::ResourceChangeType::Updated, &key)
+                .await;
             self.publish_changed(
                 &resource,
                 events::ResourceChangeType::Updated,
@@ -282,6 +288,8 @@ impl ResourceStore {
             .await?;
         } else {
             self.kv.delete(&key).await?;
+            self.publish_index_event(&resource, events::ResourceChangeType::Deleted, &key)
+                .await;
             self.publish_changed(
                 &resource,
                 events::ResourceChangeType::Deleted,
@@ -319,6 +327,43 @@ impl ResourceStore {
         self.pubsub
             .publish(topics::RESOURCE_LIFECYCLE_TOPIC, &event.encode_to_vec())
             .await
+    }
+
+    async fn publish_index_event(
+        &self,
+        resource: &resources_proto::Resource,
+        change_type: events::ResourceChangeType,
+        key: &keys::ResourceKey,
+    ) {
+        let Some(meta) = resource.metadata.as_ref() else {
+            return;
+        };
+        let operation = if change_type == events::ResourceChangeType::Deleted {
+            events::IndexOperation::Delete
+        } else {
+            events::IndexOperation::Upsert
+        };
+        let event = events::IndexEvent {
+            operation: operation as i32,
+            target: Some(events::index_event::Target::Resource(
+                events::IndexResourceTarget {
+                    resource_key: key.canonical(),
+                    source_generation: meta.generation,
+                },
+            )),
+            ..Default::default()
+        };
+        if let Err(error) =
+            crate::control::search::publish_index_event(self.pubsub.as_ref(), event).await
+        {
+            tracing::warn!(
+                error = %error,
+                namespace = %meta.namespace,
+                kind = %resource.kind,
+                name = %meta.name,
+                "failed to publish search index event"
+            );
+        }
     }
 
     pub async fn get_agent(
@@ -1237,9 +1282,12 @@ mod tests {
         assert_eq!(listed[0].kind, "Template");
 
         let published = pubsub.published.lock().await;
-        assert_eq!(published.len(), 1);
-        assert_eq!(published[0].0, topics::RESOURCE_LIFECYCLE_TOPIC);
-        let event = events::ResourceChangedEvent::decode(published[0].1.as_slice()).unwrap();
+        assert_eq!(published.len(), 2);
+        let lifecycle = published
+            .iter()
+            .find(|(topic, _)| topic == topics::RESOURCE_LIFECYCLE_TOPIC)
+            .expect("resource lifecycle event should be published");
+        let event = events::ResourceChangedEvent::decode(lifecycle.1.as_slice()).unwrap();
         assert_eq!(event.resource_kind, "Template");
         assert_eq!(
             event.change_type,

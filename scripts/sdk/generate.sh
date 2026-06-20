@@ -10,6 +10,7 @@ V1_PROTO_SRCS=(
   proto/talon/v1/knowledge.proto
   proto/talon/v1/namespaces.proto
   proto/talon/v1/resources.proto
+  proto/talon/v1/search.proto
   proto/talon/v1/sessions.proto
   proto/talon/v1/workflows.proto
 )
@@ -103,6 +104,7 @@ GO_OPTS=(
   "--go_opt=Mproto/talon/v1/knowledge.proto=${GO_MODULE}/talon/v1"
   "--go_opt=Mproto/talon/v1/namespaces.proto=${GO_MODULE}/talon/v1"
   "--go_opt=Mproto/talon/v1/resources.proto=${GO_MODULE}/talon/v1"
+  "--go_opt=Mproto/talon/v1/search.proto=${GO_MODULE}/talon/v1"
   "--go_opt=Mproto/talon/v1/sessions.proto=${GO_MODULE}/talon/v1"
   "--go_opt=Mproto/talon/v1/workflows.proto=${GO_MODULE}/talon/v1"
   "--go-grpc_opt=Mproto/config.proto=${GO_MODULE}/talon/config"
@@ -131,6 +133,7 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/talon/v1/knowledge.proto=${GO_MODULE}/talon/v1"
   "--go-grpc_opt=Mproto/talon/v1/namespaces.proto=${GO_MODULE}/talon/v1"
   "--go-grpc_opt=Mproto/talon/v1/resources.proto=${GO_MODULE}/talon/v1"
+  "--go-grpc_opt=Mproto/talon/v1/search.proto=${GO_MODULE}/talon/v1"
   "--go-grpc_opt=Mproto/talon/v1/sessions.proto=${GO_MODULE}/talon/v1"
   "--go-grpc_opt=Mproto/talon/v1/workflows.proto=${GO_MODULE}/talon/v1"
 )

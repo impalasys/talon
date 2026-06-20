@@ -686,6 +686,34 @@ impl PubSubSessionSink {
                 "Failed to persist durable message: {}",
                 e
             );
+            return;
+        }
+        if let Err(error) = crate::control::search::publish_index_event(
+            self.pubsub.as_ref(),
+            crate::control::events::IndexEvent {
+                operation: crate::control::events::IndexOperation::Upsert as i32,
+                target: Some(crate::control::events::index_event::Target::SessionMessage(
+                    crate::control::events::IndexSessionMessageTarget {
+                        namespace: self.ns.clone(),
+                        agent: self.agent_id.clone(),
+                        session_id: self.session_id.clone(),
+                        message_id: self.reply_msg_id.clone(),
+                        ..Default::default()
+                    },
+                )),
+                ..Default::default()
+            },
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %error,
+                namespace = %self.ns,
+                agent = %self.agent_id,
+                session_id = %self.session_id,
+                message_id = %self.reply_msg_id,
+                "failed to publish search index event for durable assistant message"
+            );
         }
     }
 

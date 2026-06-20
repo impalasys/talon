@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::control::search::DocumentStore;
 use crate::control::{
     config::proto::TrustConfig, object_store::ObjectStore, scheduler::SchedulerBackend,
     ControlPlane, KeyValueStore, MessagePublisher,
@@ -29,6 +30,7 @@ pub struct Gateway {
     pub pubsub: Arc<dyn MessagePublisher + Send + Sync>,
     pub scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
     pub objects: Arc<dyn ObjectStore + Send + Sync>,
+    pub documents: Arc<dyn DocumentStore + Send + Sync>,
     pub session_streams: Arc<SessionStreamHub>,
 }
 
@@ -39,8 +41,9 @@ impl Gateway {
         pubsub: Arc<dyn MessagePublisher + Send + Sync>,
         scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
         objects: Arc<dyn ObjectStore + Send + Sync>,
+        documents: Arc<dyn DocumentStore + Send + Sync>,
     ) -> Self {
-        Self::new_with_trust(auth_config, None, kv, pubsub, scheduler, objects)
+        Self::new_with_trust(auth_config, None, kv, pubsub, scheduler, objects, documents)
     }
 
     pub fn new_with_trust(
@@ -50,6 +53,7 @@ impl Gateway {
         pubsub: Arc<dyn MessagePublisher + Send + Sync>,
         scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
         objects: Arc<dyn ObjectStore + Send + Sync>,
+        documents: Arc<dyn DocumentStore + Send + Sync>,
     ) -> Self {
         let session_streams = Arc::new(SessionStreamHub::new(pubsub.clone()));
         Self {
@@ -59,6 +63,7 @@ impl Gateway {
             pubsub,
             scheduler,
             objects,
+            documents,
             session_streams,
         }
     }
@@ -71,6 +76,7 @@ impl Gateway {
             pubsub: self.pubsub.clone(),
             scheduler: self.scheduler.clone(),
             objects: self.objects.clone(),
+            documents: self.documents.clone(),
             session_streams: self.session_streams.clone(),
         }
     }
@@ -81,6 +87,7 @@ impl Gateway {
             self.pubsub.clone(),
             self.scheduler.clone(),
             self.objects.clone(),
+            self.documents.clone(),
         )
     }
 
@@ -140,6 +147,12 @@ impl Gateway {
         let knowledge_service = tonic_web::enable(
             crate::gateway::rpc::proto::knowledge_service_server::KnowledgeServiceServer::with_interceptor(
                 handler.clone(),
+                interceptor.clone(),
+            ),
+        );
+        let search_service = tonic_web::enable(
+            crate::gateway::rpc::proto::search_service_server::SearchServiceServer::with_interceptor(
+                handler.clone(),
                 interceptor,
             ),
         );
@@ -155,6 +168,7 @@ impl Gateway {
             .add_service(channel_service)
             .add_service(workflow_service)
             .add_service(knowledge_service)
+            .add_service(search_service)
             .add_service(auth_service)
             .into_service::<BoxBody>();
 

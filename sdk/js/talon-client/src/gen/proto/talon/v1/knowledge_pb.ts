@@ -6,6 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Knowledge, KnowledgeSearchResult } from "../../data/data_pb.js";
+import { SearchMode, SearchResult, SearchSort } from "./search_pb.js";
 
 /**
  * @generated from message talon.v1.GetKnowledgeRequest
@@ -112,6 +113,21 @@ export class SearchKnowledgeRequest extends Message<SearchKnowledgeRequest> {
    */
   query = "";
 
+  /**
+   * @generated from field: int32 limit = 4;
+   */
+  limit = 0;
+
+  /**
+   * @generated from field: talon.v1.SearchMode mode = 5;
+   */
+  mode = SearchMode.UNSPECIFIED;
+
+  /**
+   * @generated from field: talon.v1.SearchSort sort = 6;
+   */
+  sort = SearchSort.UNSPECIFIED;
+
   constructor(data?: PartialMessage<SearchKnowledgeRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -123,6 +139,9 @@ export class SearchKnowledgeRequest extends Message<SearchKnowledgeRequest> {
     { no: 1, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "query", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "limit", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 5, name: "mode", kind: "enum", T: proto3.getEnumType(SearchMode) },
+    { no: 6, name: "sort", kind: "enum", T: proto3.getEnumType(SearchSort) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SearchKnowledgeRequest {
@@ -151,6 +170,16 @@ export class SearchKnowledgeResponse extends Message<SearchKnowledgeResponse> {
    */
   results: KnowledgeSearchResult[] = [];
 
+  /**
+   * @generated from field: repeated talon.v1.SearchResult search_results = 2;
+   */
+  searchResults: SearchResult[] = [];
+
+  /**
+   * @generated from field: string next_page_token = 3;
+   */
+  nextPageToken = "";
+
   constructor(data?: PartialMessage<SearchKnowledgeResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -160,6 +189,8 @@ export class SearchKnowledgeResponse extends Message<SearchKnowledgeResponse> {
   static readonly typeName = "talon.v1.SearchKnowledgeResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "results", kind: "message", T: KnowledgeSearchResult, repeated: true },
+    { no: 2, name: "search_results", kind: "message", T: SearchResult, repeated: true },
+    { no: 3, name: "next_page_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SearchKnowledgeResponse {

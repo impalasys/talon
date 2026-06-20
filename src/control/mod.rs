@@ -15,6 +15,7 @@ pub mod resource_model;
 pub mod resources;
 pub mod scheduler;
 pub mod scheduling;
+pub mod search;
 pub mod security;
 pub mod telemetry;
 pub mod topics;
@@ -174,12 +175,14 @@ pub struct ControlPlane {
     pub pubsub: SharedMessagePublisher,
     pub scheduler: SharedSchedulerBackend,
     pub objects: SharedObjectStore,
+    pub documents: SharedDocumentStore,
 }
 
 pub type SharedKeyValueStore = Arc<dyn KeyValueStore + Send + Sync>;
 pub type SharedMessagePublisher = Arc<dyn MessagePublisher + Send + Sync>;
 pub type SharedSchedulerBackend = Arc<dyn scheduler::SchedulerBackend + Send + Sync>;
 pub type SharedObjectStore = Arc<dyn object_store::ObjectStore + Send + Sync>;
+pub type SharedDocumentStore = Arc<dyn search::DocumentStore + Send + Sync>;
 
 impl ControlPlane {
     pub fn new(
@@ -187,12 +190,14 @@ impl ControlPlane {
         pubsub: SharedMessagePublisher,
         scheduler: SharedSchedulerBackend,
         objects: SharedObjectStore,
+        documents: SharedDocumentStore,
     ) -> Self {
         Self {
             kv,
             pubsub,
             scheduler,
             objects,
+            documents,
         }
     }
 
@@ -208,6 +213,7 @@ impl ControlPlane {
             pubsub,
             scheduler: Arc::new(scheduler::NoopSchedulerBackend),
             objects: object_store::default_object_store(),
+            documents: search::memory_document_store(),
         }
     }
 
@@ -224,6 +230,7 @@ pub struct ControlPlaneBuilder {
     pubsub: SharedMessagePublisher,
     scheduler: SharedSchedulerBackend,
     objects: SharedObjectStore,
+    documents: SharedDocumentStore,
 }
 
 impl ControlPlaneBuilder {
@@ -237,8 +244,19 @@ impl ControlPlaneBuilder {
         self
     }
 
+    pub fn documents(mut self, documents: SharedDocumentStore) -> Self {
+        self.documents = documents;
+        self
+    }
+
     pub fn build(self) -> ControlPlane {
-        ControlPlane::new(self.kv, self.pubsub, self.scheduler, self.objects)
+        ControlPlane::new(
+            self.kv,
+            self.pubsub,
+            self.scheduler,
+            self.objects,
+            self.documents,
+        )
     }
 }
 
@@ -365,6 +383,7 @@ pub async fn build_control_plane(
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("control_plane.database configuration is missing"))?;
     let kv: SharedKeyValueStore;
+    let documents: SharedDocumentStore;
     let scheduler_database_url: Option<String>;
     match db_config.driver.as_str() {
         "postgres" => {
@@ -375,12 +394,16 @@ pub async fn build_control_plane(
             let pg_url: String = url_secret.resolve().await?;
             println!("Connecting to PostgresKvStore at {}...", pg_url);
             kv = Arc::new(kv::PostgresKvStore::new(&pg_url, "talon_kv_store").await?);
+            println!("Connecting to PostgresDocumentStore at {}...", pg_url);
+            documents = Arc::new(search::PostgresDocumentStore::new(&pg_url).await?);
             scheduler_database_url = Some(pg_url);
         }
         "sqlite" => {
             let sqlite_url = sqlite_database_url(db_config).await?;
             println!("Connecting to SqliteKvStore at {}...", sqlite_url);
             kv = Arc::new(kv::SqliteKvStore::new(&sqlite_url, "talon_kv_store").await?);
+            println!("Connecting to SqliteDocumentStore at {}...", sqlite_url);
+            documents = Arc::new(search::SqliteDocumentStore::new(&sqlite_url).await?);
             scheduler_database_url = Some(sqlite_url);
         }
         "d1" => {
@@ -388,6 +411,7 @@ pub async fn build_control_plane(
             let store = kv::D1KvStore::from_env();
             store.init().await?;
             kv = Arc::new(store);
+            documents = search::disabled_document_store();
             scheduler_database_url = None;
         }
         #[cfg(feature = "rocksdb")]
@@ -398,6 +422,7 @@ pub async fn build_control_plane(
                 rocksdb_path.display()
             );
             kv = Arc::new(kv::RocksDbKvStore::new(&rocksdb_path)?);
+            documents = search::disabled_document_store();
             scheduler_database_url = None;
         }
         #[cfg(not(feature = "rocksdb"))]
@@ -518,7 +543,7 @@ pub async fn build_control_plane(
         object_store::object_store_from_config(cp.object_store.as_ref(), &config.workspace_dir)
             .await?;
 
-    Ok(ControlPlane::new(kv, pubsub, scheduler, objects))
+    Ok(ControlPlane::new(kv, pubsub, scheduler, objects, documents))
 }
 
 fn configured_scheduler(

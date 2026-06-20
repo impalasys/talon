@@ -3,4 +3,5 @@
 
 pub mod controller;
 pub mod deployment;
+pub mod index;
 pub mod sandbox;

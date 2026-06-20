@@ -188,6 +188,28 @@ pub fn check_auth_for_operation(
     check_auth_header_for_operation(auth_header, auth_config, operation, ns, agent, session)
 }
 
+pub fn jwt_claims_from_metadata(
+    metadata: &MetadataMap,
+    auth_config: &AuthConfig,
+) -> Result<Option<Claims>, Status> {
+    if auth_config.mode != AuthMode::Jwt {
+        return Ok(None);
+    }
+    let auth_header = metadata
+        .get("authorization")
+        .and_then(|v| v.to_str().ok())
+        .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
+    if check_basic_password(auth_header, auth_config.jwt_secret.as_ref())? {
+        return Ok(None);
+    }
+    let token = bearer_token(auth_header)?;
+    let secret = auth_config
+        .jwt_secret
+        .as_ref()
+        .ok_or_else(|| Status::internal("JWT secret not configured"))?;
+    verify_jwt(token, secret).map(Some)
+}
+
 pub fn check_auth_header(
     auth_header: Option<&str>,
     auth_config: &AuthConfig,
@@ -589,6 +611,7 @@ mod tests {
             Arc::new(EmptyPubSub),
             Arc::new(NoopSchedulerBackend),
             crate::control::object_store::default_object_store(),
+            crate::control::search::memory_document_store(),
         ))
     }
 

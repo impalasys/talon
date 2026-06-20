@@ -5,8 +5,10 @@ use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::control::keys;
 use crate::control::ns;
 use crate::control::resources::ResourceStore;
+use crate::control::search::{SearchQuery, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
 use crate::gateway::rpc::resources_proto;
 use crate::harness::knowledge::KnowledgeEntry;
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::sync::Arc;
 
@@ -127,6 +129,107 @@ impl GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::SearchKnowledgeResponse>, tonic::Status> {
         crate::require_auth!(read, self, req, &req.get_ref().ns, &req.get_ref().agent);
         let req = req.into_inner();
+        let mode = super::search::mode(req.mode)?;
+        let sort = super::search::sort(req.sort);
+        let namespaces = super::search::knowledge_namespaces(&req.ns);
+        let indexed = self
+            .gateway
+            .documents
+            .search(&SearchQuery {
+                query: req.query.clone(),
+                namespaces: namespaces.clone(),
+                resource_kinds: vec![KIND_KNOWLEDGE.to_string()],
+                limit: super::search::limit(req.limit).saturating_mul(namespaces.len().max(1)),
+                mode,
+                sort,
+                ..Default::default()
+            })
+            .await
+            .map_err(super::search::search_error)?;
+        if !indexed.results.is_empty() {
+            let namespace_rank = namespaces
+                .iter()
+                .enumerate()
+                .map(|(index, namespace)| (namespace.clone(), index))
+                .collect::<HashMap<_, _>>();
+            let mut by_path: HashMap<String, (usize, crate::control::search::SearchResult)> =
+                HashMap::new();
+            for result in indexed.results {
+                if result.document.document_kind != DOCUMENT_KIND_CONTENT {
+                    continue;
+                }
+                let path =
+                    serde_json::from_str::<serde_json::Value>(&result.document.metadata_json)
+                        .ok()
+                        .and_then(|value| {
+                            value
+                                .get("path")
+                                .and_then(|path| path.as_str())
+                                .map(str::to_string)
+                        })
+                        .unwrap_or_else(|| result.document.title.clone());
+                let rank = *namespace_rank
+                    .get(&result.document.namespace)
+                    .unwrap_or(&usize::MAX);
+                match by_path.get(&path) {
+                    Some((current_rank, _)) if *current_rank <= rank => {}
+                    _ => {
+                        by_path.insert(path, (rank, result));
+                    }
+                }
+            }
+            let mut search_results = by_path
+                .into_values()
+                .map(|(_, result)| result)
+                .collect::<Vec<_>>();
+            search_results.sort_by(|left, right| {
+                right
+                    .score
+                    .partial_cmp(&left.score)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| right.document.updated_at.cmp(&left.document.updated_at))
+            });
+            search_results.truncate(super::search::limit(req.limit));
+            if search_results.is_empty() {
+                // Metadata documents make workspace search richer, but the legacy
+                // knowledge endpoint should return knowledge content only.
+            } else {
+                let legacy_results = search_results
+                    .iter()
+                    .map(|result| {
+                        let path = serde_json::from_str::<serde_json::Value>(
+                            &result.document.metadata_json,
+                        )
+                        .ok()
+                        .and_then(|value| {
+                            value
+                                .get("path")
+                                .and_then(|path| path.as_str())
+                                .map(str::to_string)
+                        })
+                        .unwrap_or_else(|| result.document.title.clone());
+                        data_proto::KnowledgeSearchResult {
+                            namespace: result.document.namespace.clone(),
+                            path,
+                            snippet: result.document.snippet.clone(),
+                            score: result.score,
+                            timestamp: result.document.updated_at,
+                        }
+                    })
+                    .collect();
+                return Ok(tonic::Response::new(proto::SearchKnowledgeResponse {
+                    results: legacy_results,
+                    search_results: search_results
+                        .into_iter()
+                        .map(|result| proto::SearchResult {
+                            document: Some(super::search::document_proto(result.document)),
+                            score: result.score,
+                        })
+                        .collect(),
+                    next_page_token: indexed.next_page_token,
+                }));
+            }
+        }
         let modules = list_namespace_knowledge(
             self.gateway.kv.clone(),
             self.gateway.pubsub.clone(),
@@ -153,6 +256,8 @@ impl GrpcGatewayHandler {
 
         Ok(tonic::Response::new(proto::SearchKnowledgeResponse {
             results,
+            search_results: Vec::new(),
+            next_page_token: String::new(),
         }))
     }
 }
@@ -251,6 +356,7 @@ mod tests {
                 pubsub: pubsub.clone(),
                 scheduler: Arc::new(crate::control::scheduler::NoopSchedulerBackend),
                 objects: crate::control::object_store::default_object_store(),
+                documents: crate::control::search::memory_document_store(),
                 session_streams: Arc::new(SessionStreamHub::new(pubsub)),
             }),
         }
@@ -356,6 +462,9 @@ mod tests {
                 agent: "agent".to_string(),
                 ns: "acme".to_string(),
                 query: "scheduling".to_string(),
+                limit: 0,
+                mode: proto::SearchMode::Keyword as i32,
+                sort: proto::SearchSort::Relevance as i32,
             }))
             .await
             .unwrap()

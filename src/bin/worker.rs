@@ -180,7 +180,7 @@ fn worker_bind_addr(port: &str) -> String {
     format!("0.0.0.0:{}", port)
 }
 
-fn pull_subscription_specs() -> [PullSubscriptionSpec; 4] {
+fn pull_subscription_specs() -> [PullSubscriptionSpec; 5] {
     [
         PullSubscriptionSpec {
             topic_name: topics::SESSION_DISPATCH_TOPIC,
@@ -201,6 +201,11 @@ fn pull_subscription_specs() -> [PullSubscriptionSpec; 4] {
             topic_name: topics::WORKFLOW_DISPATCH_TOPIC,
             subscription_name: "talon-workflow-dispatch-sub",
             event_type: "workflow_dispatch",
+        },
+        PullSubscriptionSpec {
+            topic_name: topics::INDEX_EVENTS_TOPIC,
+            subscription_name: "talon-index-events-sub",
+            event_type: "index",
         },
     ]
 }
@@ -1160,7 +1165,7 @@ mod tests {
     #[test]
     fn pull_mode_helpers_cover_specs_and_qualified_names() {
         let specs = pull_subscription_specs();
-        assert_eq!(specs.len(), 4);
+        assert_eq!(specs.len(), 5);
         assert_eq!(
             specs[0].topic_name,
             talon::control::topics::SESSION_DISPATCH_TOPIC
@@ -1172,6 +1177,12 @@ mod tests {
             talon::control::topics::WORKFLOW_DISPATCH_TOPIC
         );
         assert_eq!(specs[3].event_type, "workflow_dispatch");
+        assert_eq!(
+            specs[4].topic_name,
+            talon::control::topics::INDEX_EVENTS_TOPIC
+        );
+        assert_eq!(specs[4].subscription_name, "talon-index-events-sub");
+        assert_eq!(specs[4].event_type, "index");
 
         assert_eq!(
             fully_qualified_topic("demo", "events"),

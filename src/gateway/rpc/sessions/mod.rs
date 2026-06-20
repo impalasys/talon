@@ -761,6 +761,30 @@ impl GrpcGatewayHandler {
             .delete(&session_db_key)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to delete session: {}", e)))?;
+        if let Err(error) = crate::control::search::publish_index_event(
+            self.gateway.pubsub.as_ref(),
+            crate::control::events::IndexEvent {
+                operation: crate::control::events::IndexOperation::Delete as i32,
+                target: Some(crate::control::events::index_event::Target::Session(
+                    crate::control::events::IndexSessionTarget {
+                        namespace: req.ns.clone(),
+                        agent: req.agent.clone(),
+                        session_id: req.session_id.clone(),
+                    },
+                )),
+                ..Default::default()
+            },
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %error,
+                namespace = %req.ns,
+                agent = %req.agent,
+                session_id = %req.session_id,
+                "failed to publish search delete event for deleted session"
+            );
+        }
 
         let event = events::LifecycleEvent {
             resource_type: "Session".to_string(),
@@ -820,6 +844,30 @@ impl GrpcGatewayHandler {
         }
 
         release_clear_session_lock(self.gateway.kv.as_ref(), &session_db_key, now_micros).await?;
+        if let Err(error) = crate::control::search::publish_index_event(
+            self.gateway.pubsub.as_ref(),
+            crate::control::events::IndexEvent {
+                operation: crate::control::events::IndexOperation::Delete as i32,
+                target: Some(crate::control::events::index_event::Target::Session(
+                    crate::control::events::IndexSessionTarget {
+                        namespace: req.ns.clone(),
+                        agent: req.agent.clone(),
+                        session_id: req.session_id.clone(),
+                    },
+                )),
+                ..Default::default()
+            },
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %error,
+                namespace = %req.ns,
+                agent = %req.agent,
+                session_id = %req.session_id,
+                "failed to publish search delete event for cleared session"
+            );
+        }
 
         Ok(tonic::Response::new(proto::ClearSessionResponse {
             success: true,
@@ -931,6 +979,33 @@ impl GrpcGatewayHandler {
             .set_msg(&session_db_key, session)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to update session: {}", e)))?;
+        if let Err(error) = crate::control::search::publish_index_event(
+            self.gateway.pubsub.as_ref(),
+            crate::control::events::IndexEvent {
+                operation: crate::control::events::IndexOperation::Upsert as i32,
+                target: Some(crate::control::events::index_event::Target::SessionMessage(
+                    crate::control::events::IndexSessionMessageTarget {
+                        namespace: req.ns.clone(),
+                        agent: req.agent.clone(),
+                        session_id: req.session_id.clone(),
+                        message_id: message.id.clone(),
+                        ..Default::default()
+                    },
+                )),
+                ..Default::default()
+            },
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %error,
+                namespace = %req.ns,
+                agent = %req.agent,
+                session_id = %req.session_id,
+                message_id = %message.id,
+                "failed to publish search index event for appended session message"
+            );
+        }
 
         Ok(tonic::Response::new(proto::AppendSessionMessageResponse {
             session_id: req.session_id,
@@ -1322,6 +1397,7 @@ mod tests {
                 pubsub,
                 Arc::new(NoopSchedulerBackend),
                 crate::control::object_store::default_object_store(),
+                crate::control::search::memory_document_store(),
             )),
         }
     }

@@ -131,6 +131,9 @@ type SearchKnowledgeRequest struct {
 	Agent         string                 `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
 	Ns            string                 `protobuf:"bytes,2,opt,name=ns,proto3" json:"ns,omitempty"`
 	Query         string                 `protobuf:"bytes,3,opt,name=query,proto3" json:"query,omitempty"`
+	Limit         int32                  `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
+	Mode          SearchMode             `protobuf:"varint,5,opt,name=mode,proto3,enum=talon.v1.SearchMode" json:"mode,omitempty"`
+	Sort          SearchSort             `protobuf:"varint,6,opt,name=sort,proto3,enum=talon.v1.SearchSort" json:"sort,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -186,9 +189,32 @@ func (x *SearchKnowledgeRequest) GetQuery() string {
 	return ""
 }
 
+func (x *SearchKnowledgeRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *SearchKnowledgeRequest) GetMode() SearchMode {
+	if x != nil {
+		return x.Mode
+	}
+	return SearchMode_SEARCH_MODE_UNSPECIFIED
+}
+
+func (x *SearchKnowledgeRequest) GetSort() SearchSort {
+	if x != nil {
+		return x.Sort
+	}
+	return SearchSort_SEARCH_SORT_UNSPECIFIED
+}
+
 type SearchKnowledgeResponse struct {
 	state         protoimpl.MessageState        `protogen:"open.v1"`
 	Results       []*data.KnowledgeSearchResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	SearchResults []*SearchResult               `protobuf:"bytes,2,rep,name=search_results,json=searchResults,proto3" json:"search_results,omitempty"`
+	NextPageToken string                        `protobuf:"bytes,3,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -230,24 +256,43 @@ func (x *SearchKnowledgeResponse) GetResults() []*data.KnowledgeSearchResult {
 	return nil
 }
 
+func (x *SearchKnowledgeResponse) GetSearchResults() []*SearchResult {
+	if x != nil {
+		return x.SearchResults
+	}
+	return nil
+}
+
+func (x *SearchKnowledgeResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
 var File_proto_talon_v1_knowledge_proto protoreflect.FileDescriptor
 
 const file_proto_talon_v1_knowledge_proto_rawDesc = "" +
 	"\n" +
-	"\x1eproto/talon/v1/knowledge.proto\x12\btalon.v1\x1a\x15proto/data/data.proto\"]\n" +
+	"\x1eproto/talon/v1/knowledge.proto\x12\btalon.v1\x1a\x15proto/data/data.proto\x1a\x1bproto/talon/v1/search.proto\"]\n" +
 	"\x13GetKnowledgeRequest\x12\x14\n" +
 	"\x05agent\x18\x01 \x01(\tR\x05agent\x12\x0e\n" +
 	"\x02ns\x18\x02 \x01(\tR\x02ns\x12\x17\n" +
 	"\x04path\x18\x03 \x01(\tH\x00R\x04path\x88\x01\x01B\a\n" +
 	"\x05_path\"D\n" +
 	"\x11KnowledgeResponse\x12/\n" +
-	"\amodules\x18\x01 \x03(\v2\x15.talon.data.KnowledgeR\amodules\"T\n" +
+	"\amodules\x18\x01 \x03(\v2\x15.talon.data.KnowledgeR\amodules\"\xbe\x01\n" +
 	"\x16SearchKnowledgeRequest\x12\x14\n" +
 	"\x05agent\x18\x01 \x01(\tR\x05agent\x12\x0e\n" +
 	"\x02ns\x18\x02 \x01(\tR\x02ns\x12\x14\n" +
-	"\x05query\x18\x03 \x01(\tR\x05query\"V\n" +
+	"\x05query\x18\x03 \x01(\tR\x05query\x12\x14\n" +
+	"\x05limit\x18\x04 \x01(\x05R\x05limit\x12(\n" +
+	"\x04mode\x18\x05 \x01(\x0e2\x14.talon.v1.SearchModeR\x04mode\x12(\n" +
+	"\x04sort\x18\x06 \x01(\x0e2\x14.talon.v1.SearchSortR\x04sort\"\xbd\x01\n" +
 	"\x17SearchKnowledgeResponse\x12;\n" +
-	"\aresults\x18\x01 \x03(\v2!.talon.data.KnowledgeSearchResultR\aresults2\xa4\x01\n" +
+	"\aresults\x18\x01 \x03(\v2!.talon.data.KnowledgeSearchResultR\aresults\x12=\n" +
+	"\x0esearch_results\x18\x02 \x03(\v2\x16.talon.v1.SearchResultR\rsearchResults\x12&\n" +
+	"\x0fnext_page_token\x18\x03 \x01(\tR\rnextPageToken2\xa4\x01\n" +
 	"\x10KnowledgeService\x12A\n" +
 	"\x03Get\x12\x1d.talon.v1.GetKnowledgeRequest\x1a\x1b.talon.v1.KnowledgeResponse\x12M\n" +
 	"\x06Search\x12 .talon.v1.SearchKnowledgeRequest\x1a!.talon.v1.SearchKnowledgeResponseb\x06proto3"
@@ -271,20 +316,26 @@ var file_proto_talon_v1_knowledge_proto_goTypes = []any{
 	(*SearchKnowledgeRequest)(nil),     // 2: talon.v1.SearchKnowledgeRequest
 	(*SearchKnowledgeResponse)(nil),    // 3: talon.v1.SearchKnowledgeResponse
 	(*data.Knowledge)(nil),             // 4: talon.data.Knowledge
-	(*data.KnowledgeSearchResult)(nil), // 5: talon.data.KnowledgeSearchResult
+	(SearchMode)(0),                    // 5: talon.v1.SearchMode
+	(SearchSort)(0),                    // 6: talon.v1.SearchSort
+	(*data.KnowledgeSearchResult)(nil), // 7: talon.data.KnowledgeSearchResult
+	(*SearchResult)(nil),               // 8: talon.v1.SearchResult
 }
 var file_proto_talon_v1_knowledge_proto_depIdxs = []int32{
 	4, // 0: talon.v1.KnowledgeResponse.modules:type_name -> talon.data.Knowledge
-	5, // 1: talon.v1.SearchKnowledgeResponse.results:type_name -> talon.data.KnowledgeSearchResult
-	0, // 2: talon.v1.KnowledgeService.Get:input_type -> talon.v1.GetKnowledgeRequest
-	2, // 3: talon.v1.KnowledgeService.Search:input_type -> talon.v1.SearchKnowledgeRequest
-	1, // 4: talon.v1.KnowledgeService.Get:output_type -> talon.v1.KnowledgeResponse
-	3, // 5: talon.v1.KnowledgeService.Search:output_type -> talon.v1.SearchKnowledgeResponse
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	5, // 1: talon.v1.SearchKnowledgeRequest.mode:type_name -> talon.v1.SearchMode
+	6, // 2: talon.v1.SearchKnowledgeRequest.sort:type_name -> talon.v1.SearchSort
+	7, // 3: talon.v1.SearchKnowledgeResponse.results:type_name -> talon.data.KnowledgeSearchResult
+	8, // 4: talon.v1.SearchKnowledgeResponse.search_results:type_name -> talon.v1.SearchResult
+	0, // 5: talon.v1.KnowledgeService.Get:input_type -> talon.v1.GetKnowledgeRequest
+	2, // 6: talon.v1.KnowledgeService.Search:input_type -> talon.v1.SearchKnowledgeRequest
+	1, // 7: talon.v1.KnowledgeService.Get:output_type -> talon.v1.KnowledgeResponse
+	3, // 8: talon.v1.KnowledgeService.Search:output_type -> talon.v1.SearchKnowledgeResponse
+	7, // [7:9] is the sub-list for method output_type
+	5, // [5:7] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_proto_talon_v1_knowledge_proto_init() }
@@ -292,6 +343,7 @@ func file_proto_talon_v1_knowledge_proto_init() {
 	if File_proto_talon_v1_knowledge_proto != nil {
 		return
 	}
+	file_proto_talon_v1_search_proto_init()
 	file_proto_talon_v1_knowledge_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

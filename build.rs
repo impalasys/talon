@@ -181,6 +181,7 @@ fn main() -> std::io::Result<()> {
             "proto/talon/v1/knowledge.proto",
             "proto/talon/v1/namespaces.proto",
             "proto/talon/v1/resources.proto",
+            "proto/talon/v1/search.proto",
             "proto/talon/v1/sessions.proto",
             "proto/talon/v1/workflows.proto",
         ],

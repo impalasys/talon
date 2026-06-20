@@ -1,0 +1,542 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
+use super::{
+    document_id, snippet, Document, ResourceRef, DOCUMENT_KIND_CONTENT, DOCUMENT_KIND_MESSAGE_PART,
+    DOCUMENT_KIND_METADATA, KIND_SESSION_MESSAGE,
+};
+use crate::control::keys;
+use crate::gateway::rpc::{data_proto, resources_proto};
+use anyhow::{anyhow, Result};
+use prost::Message;
+use serde_json::json;
+
+pub fn map_control_plane_resource(
+    key: &keys::ResourceKey,
+    resource: &resources_proto::Resource,
+    indexed_at: i64,
+) -> Result<Vec<Document>> {
+    let meta = resource
+        .metadata
+        .as_ref()
+        .ok_or_else(|| anyhow!("resource metadata is required"))?;
+    let source = resource_ref(key, resource);
+    let mut documents = vec![metadata_document(key, resource, &source, indexed_at)?];
+
+    if let Some(resources_proto::resource_spec::Kind::Knowledge(spec)) =
+        resource.spec.as_ref().and_then(|spec| spec.kind.as_ref())
+    {
+        if !spec.content.trim().is_empty() {
+            documents.push(Document {
+                id: document_id(&source.key, DOCUMENT_KIND_CONTENT, ""),
+                namespace: source.namespace.clone(),
+                resource_kind: source.kind.clone(),
+                resource_key: source.key.clone(),
+                document_kind: DOCUMENT_KIND_CONTENT.to_string(),
+                parent_kind: source.parent_kind.clone(),
+                parent_key: source.parent_key.clone(),
+                title: spec.path.clone(),
+                text: spec.content.clone(),
+                snippet: snippet(&spec.content),
+                labels: meta.labels.clone(),
+                metadata_json: json!({
+                    "documentKind": DOCUMENT_KIND_CONTENT,
+                    "path": spec.path,
+                    "name": meta.name,
+                    "uid": meta.uid,
+                    "resourceVersion": meta.resource_version,
+                })
+                .to_string(),
+                acl_scope_json: acl_scope_json(key, resource),
+                indexed_at,
+                source_generation: meta.generation,
+                ..Default::default()
+            });
+        }
+    }
+
+    Ok(documents)
+}
+
+pub fn map_session_message(
+    key: &keys::ResourceKey,
+    message: data_proto::SessionMessage,
+    source_generation: u64,
+    indexed_at: i64,
+) -> Vec<Document> {
+    let agent = parent_segment(key, "Agent").unwrap_or_default();
+    let session_id = parent_segment(key, "Session").unwrap_or_default();
+    let role = data_proto::MessageRole::try_from(message.role)
+        .ok()
+        .map(|role| format!("{role:?}"))
+        .unwrap_or_else(|| "ROLE_UNSPECIFIED".to_string());
+    let mut docs = Vec::new();
+    for part in message.parts {
+        if part.part_type != data_proto::SessionMessagePartType::Text as i32 {
+            continue;
+        }
+        if part.content.trim().is_empty() {
+            continue;
+        }
+        docs.push(Document {
+            id: document_id(&key.canonical(), DOCUMENT_KIND_MESSAGE_PART, &part.id),
+            namespace: key.namespace.clone(),
+            resource_kind: KIND_SESSION_MESSAGE.to_string(),
+            resource_key: key.canonical(),
+            document_kind: DOCUMENT_KIND_MESSAGE_PART.to_string(),
+            parent_kind: "Session".to_string(),
+            parent_key: keys::session(&key.namespace, &agent, &session_id).canonical(),
+            agent: agent.clone(),
+            session_id: session_id.clone(),
+            message_id: message.id.clone(),
+            part_id: part.id,
+            part_type: "TEXT".to_string(),
+            role: role.clone(),
+            title: format!("{agent} / {session_id}"),
+            snippet: snippet(&part.content),
+            text: part.content,
+            labels: message.labels.clone(),
+            metadata_json: json!({ "documentKind": DOCUMENT_KIND_MESSAGE_PART }).to_string(),
+            acl_scope_json: json!({
+                "namespace": key.namespace,
+                "agent": agent,
+                "session": session_id
+            })
+            .to_string(),
+            created_at: if part.created_at == 0 {
+                message.created_at
+            } else {
+                part.created_at
+            },
+            updated_at: if part.created_at == 0 {
+                message.created_at
+            } else {
+                part.created_at
+            },
+            indexed_at,
+            source_generation,
+            ..Default::default()
+        });
+    }
+    docs
+}
+
+fn metadata_document(
+    key: &keys::ResourceKey,
+    resource: &resources_proto::Resource,
+    source: &ResourceRef,
+    indexed_at: i64,
+) -> Result<Document> {
+    let meta = resource
+        .metadata
+        .as_ref()
+        .ok_or_else(|| anyhow!("resource metadata is required"))?;
+    let (created_at, updated_at) = resource_timestamps(resource);
+    let text = metadata_text(resource);
+    Ok(Document {
+        id: document_id(&source.key, DOCUMENT_KIND_METADATA, ""),
+        namespace: source.namespace.clone(),
+        resource_kind: source.kind.clone(),
+        resource_key: source.key.clone(),
+        document_kind: DOCUMENT_KIND_METADATA.to_string(),
+        parent_kind: source.parent_kind.clone(),
+        parent_key: source.parent_key.clone(),
+        agent: derived_agent(key, resource),
+        session_id: derived_session(key, resource),
+        channel: derived_channel(key, resource),
+        title: format!("{}/{}", source.kind, meta.name),
+        snippet: snippet(&text),
+        text,
+        labels: meta.labels.clone(),
+        metadata_json: json!({
+            "documentKind": DOCUMENT_KIND_METADATA,
+            "apiVersion": resource.api_version,
+            "kind": resource.kind,
+            "name": meta.name,
+            "namespace": meta.namespace,
+            "uid": meta.uid,
+            "generation": meta.generation,
+            "resourceVersion": meta.resource_version,
+            "annotations": meta.annotations,
+            "ownerReferences": meta.owner_references,
+            "phase": status_phase(resource),
+        })
+        .to_string(),
+        acl_scope_json: acl_scope_json(key, resource),
+        created_at,
+        updated_at,
+        indexed_at,
+        source_generation: meta.generation,
+        ..Default::default()
+    })
+}
+
+fn resource_ref(key: &keys::ResourceKey, resource: &resources_proto::Resource) -> ResourceRef {
+    let meta = resource.metadata.as_ref();
+    let (parent_kind, parent_key) = parent_ref(key);
+    ResourceRef {
+        namespace: key.namespace.clone(),
+        kind: resource.kind.clone(),
+        key: key.canonical(),
+        name: meta
+            .map(|meta| meta.name.clone())
+            .unwrap_or_else(|| key.name.clone()),
+        parent_kind,
+        parent_key,
+        uid: meta.map(|meta| meta.uid.clone()).unwrap_or_default(),
+        generation: meta.map(|meta| meta.generation).unwrap_or_default(),
+        resource_version: meta
+            .map(|meta| meta.resource_version.clone())
+            .unwrap_or_default(),
+    }
+}
+
+fn parent_ref(key: &keys::ResourceKey) -> (String, String) {
+    let Ok(segments) = key.parent_segments() else {
+        return ("Namespace".to_string(), key.namespace.clone());
+    };
+    let Some(parent) = segments.last() else {
+        return ("Namespace".to_string(), key.namespace.clone());
+    };
+    (parent.kind.clone(), key.parent_path.clone())
+}
+
+fn metadata_text(resource: &resources_proto::Resource) -> String {
+    let Some(meta) = resource.metadata.as_ref() else {
+        return resource.kind.clone();
+    };
+    let mut fields = vec![
+        resource.kind.clone(),
+        meta.name.clone(),
+        meta.namespace.clone(),
+        status_phase(resource),
+    ];
+    fields.extend(
+        meta.labels
+            .iter()
+            .flat_map(|(key, value)| [key.clone(), value.clone()]),
+    );
+    fields.extend(
+        meta.annotations
+            .iter()
+            .flat_map(|(key, value)| [key.clone(), value.clone()]),
+    );
+    for owner in &meta.owner_references {
+        fields.push(owner.kind.clone());
+        fields.push(owner.namespace.clone());
+        fields.push(owner.name.clone());
+    }
+    fields.extend(safe_spec_text(resource));
+    fields.retain(|value| !value.trim().is_empty());
+    fields.join(" ")
+}
+
+fn safe_spec_text(resource: &resources_proto::Resource) -> Vec<String> {
+    match resource.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
+        Some(resources_proto::resource_spec::Kind::Knowledge(spec)) => {
+            vec![spec.path.clone()]
+        }
+        Some(resources_proto::resource_spec::Kind::Namespace(spec)) => {
+            vec![spec.parent.clone()]
+        }
+        Some(resources_proto::resource_spec::Kind::Channel(spec)) => {
+            vec![spec.title.clone()]
+        }
+        Some(resources_proto::resource_spec::Kind::ChannelSubscription(spec)) => vec![
+            spec.channel.clone(),
+            spec.agent.clone(),
+            spec.trigger.clone(),
+            spec.reply_mode.clone(),
+        ],
+        Some(resources_proto::resource_spec::Kind::Session(spec)) => {
+            vec![spec.agent.clone()]
+        }
+        Some(resources_proto::resource_spec::Kind::Schedule(spec)) => {
+            let mut fields = vec![
+                spec.kind.clone(),
+                spec.cron.clone(),
+                spec.run_at.clone(),
+                spec.timezone.clone(),
+            ];
+            if let Some(target) = spec.target.as_ref() {
+                fields.push(target.agent.clone());
+                fields.push(target.session_id.clone());
+                fields.push(target.workflow.clone());
+            }
+            fields
+        }
+        Some(resources_proto::resource_spec::Kind::Workflow(spec)) => {
+            vec![spec.description.clone()]
+        }
+        Some(resources_proto::resource_spec::Kind::Skill(spec)) => {
+            vec![spec.description.clone()]
+        }
+        _ => Vec::new(),
+    }
+}
+
+fn status_phase(resource: &resources_proto::Resource) -> String {
+    let Some(status) = resource
+        .status
+        .as_ref()
+        .and_then(|status| status.kind.as_ref())
+    else {
+        return String::new();
+    };
+    match status {
+        resources_proto::resource_status::Kind::Agent(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Workflow(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Schedule(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Channel(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::ChannelSubscription(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::McpServer(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::McpServerBinding(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Knowledge(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Namespace(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Session(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Skill(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Template(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Deployment(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::DeploymentReplica(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::SandboxClass(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::SandboxPolicy(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Sandbox(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Raw(status) => status.json.clone(),
+    }
+}
+
+fn resource_timestamps(resource: &resources_proto::Resource) -> (i64, i64) {
+    match resource
+        .status
+        .as_ref()
+        .and_then(|status| status.kind.as_ref())
+    {
+        Some(resources_proto::resource_status::Kind::Channel(status)) => {
+            (status.created_at, status.updated_at)
+        }
+        Some(resources_proto::resource_status::Kind::Session(status)) => {
+            (status.created_at, status.last_active)
+        }
+        _ => (0, 0),
+    }
+}
+
+fn acl_scope_json(key: &keys::ResourceKey, resource: &resources_proto::Resource) -> String {
+    json!({
+        "namespace": key.namespace,
+        "agent": derived_agent(key, resource),
+        "session": derived_session(key, resource),
+        "channel": derived_channel(key, resource),
+    })
+    .to_string()
+}
+
+fn derived_agent(key: &keys::ResourceKey, resource: &resources_proto::Resource) -> String {
+    if let Some(agent) = parent_segment(key, "Agent") {
+        return agent;
+    }
+    match resource.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
+        Some(resources_proto::resource_spec::Kind::Session(spec)) => spec.agent.clone(),
+        Some(resources_proto::resource_spec::Kind::ChannelSubscription(spec)) => spec.agent.clone(),
+        Some(resources_proto::resource_spec::Kind::Schedule(spec)) => spec
+            .target
+            .as_ref()
+            .map(|target| target.agent.clone())
+            .unwrap_or_default(),
+        _ => String::new(),
+    }
+}
+
+fn derived_session(key: &keys::ResourceKey, resource: &resources_proto::Resource) -> String {
+    if let Some(session) = parent_segment(key, "Session") {
+        return session;
+    }
+    if resource.kind == "Session" {
+        return resource
+            .metadata
+            .as_ref()
+            .map(|meta| meta.name.clone())
+            .unwrap_or_default();
+    }
+    match resource.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
+        Some(resources_proto::resource_spec::Kind::Schedule(spec)) => spec
+            .target
+            .as_ref()
+            .map(|target| target.session_id.clone())
+            .unwrap_or_default(),
+        _ => String::new(),
+    }
+}
+
+fn derived_channel(key: &keys::ResourceKey, resource: &resources_proto::Resource) -> String {
+    if let Some(channel) = parent_segment(key, "Channel") {
+        return channel;
+    }
+    if resource.kind == "Channel" {
+        return resource
+            .metadata
+            .as_ref()
+            .map(|meta| meta.name.clone())
+            .unwrap_or_default();
+    }
+    match resource.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
+        Some(resources_proto::resource_spec::Kind::ChannelSubscription(spec)) => {
+            spec.channel.clone()
+        }
+        _ => String::new(),
+    }
+}
+
+fn parent_segment(key: &keys::ResourceKey, kind: &str) -> Option<String> {
+    key.parent_segments()
+        .ok()?
+        .into_iter()
+        .find(|segment| segment.kind == kind)
+        .map(|segment| segment.name)
+}
+
+pub fn decode_session_message(bytes: &[u8]) -> Result<data_proto::SessionMessage> {
+    Ok(data_proto::SessionMessage::decode(bytes)?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::control::search::KIND_KNOWLEDGE;
+
+    #[test]
+    fn generic_resource_emits_metadata_document() {
+        let key = keys::ResourceKey::new("acme", &[], "Agent", "support");
+        let resource = resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Agent".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "support".to_string(),
+                namespace: "acme".to_string(),
+                labels: [("team".to_string(), "care".to_string())]
+                    .into_iter()
+                    .collect(),
+                generation: 2,
+                resource_version: "rv1".to_string(),
+                uid: "uid1".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::Agent(
+                    resources_proto::AgentSpec::default(),
+                )),
+            }),
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resources_proto::resource_status::Kind::Agent(
+                    resources_proto::AgentStatus {
+                        phase: "Ready".to_string(),
+                        ..Default::default()
+                    },
+                )),
+            }),
+        };
+
+        let documents = map_control_plane_resource(&key, &resource, 10).unwrap();
+        assert_eq!(documents.len(), 1);
+        assert_eq!(documents[0].id, format!("{}:metadata", key.canonical()));
+        assert_eq!(documents[0].resource_kind, "Agent");
+        assert_eq!(documents[0].document_kind, DOCUMENT_KIND_METADATA);
+        assert!(documents[0].text.contains("support"));
+        assert!(documents[0].text.contains("Ready"));
+    }
+
+    #[test]
+    fn knowledge_resource_emits_metadata_and_content_documents() {
+        let key = keys::ResourceKey::new("acme", &[], KIND_KNOWLEDGE, "refunds");
+        let resource = resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: KIND_KNOWLEDGE.to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "refunds".to_string(),
+                namespace: "acme".to_string(),
+                generation: 3,
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::Knowledge(
+                    resources_proto::KnowledgeSpec {
+                        path: "policies/refunds.md".to_string(),
+                        content: "Refund policy details".to_string(),
+                    },
+                )),
+            }),
+            ..Default::default()
+        };
+
+        let documents = map_control_plane_resource(&key, &resource, 10).unwrap();
+        assert_eq!(documents.len(), 2);
+        assert_eq!(documents[0].document_kind, DOCUMENT_KIND_METADATA);
+        assert_eq!(documents[1].document_kind, DOCUMENT_KIND_CONTENT);
+        assert_eq!(documents[1].text, "Refund policy details");
+    }
+
+    #[test]
+    fn raw_resource_emits_safe_metadata_only() {
+        let key = keys::ResourceKey::new("acme", &[], "Custom", "raw-one");
+        let resource = resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Custom".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "raw-one".to_string(),
+                namespace: "acme".to_string(),
+                labels: [("visible".to_string(), "yes".to_string())]
+                    .into_iter()
+                    .collect(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::Raw(
+                    resources_proto::RawResourceSpec {
+                        json: r#"{"secret":"do-not-index"}"#.to_string(),
+                    },
+                )),
+            }),
+            ..Default::default()
+        };
+
+        let documents = map_control_plane_resource(&key, &resource, 10).unwrap();
+        assert_eq!(documents.len(), 1);
+        assert_eq!(documents[0].document_kind, DOCUMENT_KIND_METADATA);
+        assert!(documents[0].text.contains("raw-one"));
+        assert!(!documents[0].text.contains("do-not-index"));
+    }
+
+    #[test]
+    fn session_message_emits_one_text_part_document_per_text_part() {
+        let key = keys::session_message("acme", "support", "s1", "m1");
+        let documents = map_session_message(
+            &key,
+            data_proto::SessionMessage {
+                id: "m1".to_string(),
+                role: data_proto::MessageRole::RoleUser as i32,
+                created_at: 100,
+                parts: vec![
+                    data_proto::SessionMessagePart {
+                        id: "000000".to_string(),
+                        part_type: data_proto::SessionMessagePartType::Text as i32,
+                        content: "hello".to_string(),
+                        created_at: 101,
+                        ..Default::default()
+                    },
+                    data_proto::SessionMessagePart {
+                        id: "000001".to_string(),
+                        part_type: data_proto::SessionMessagePartType::ToolCall as i32,
+                        content: "ignored".to_string(),
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            },
+            4,
+            200,
+        );
+        assert_eq!(documents.len(), 1);
+        assert_eq!(documents[0].id, format!("{}:part:000000", key.canonical()));
+        assert_eq!(documents[0].document_kind, DOCUMENT_KIND_MESSAGE_PART);
+    }
+}

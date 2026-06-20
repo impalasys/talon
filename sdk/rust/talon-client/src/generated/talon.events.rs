@@ -123,6 +123,60 @@ pub struct ResourceChangedEvent {
     #[prost(int64, tag = "9")]
     pub timestamp: i64,
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct IndexEvent {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(enumeration = "IndexOperation", tag = "2")]
+    pub operation: i32,
+    #[prost(int64, tag = "3")]
+    pub created_at: i64,
+    #[prost(int64, tag = "4")]
+    pub updated_at: i64,
+    #[prost(oneof = "index_event::Target", tags = "10, 11, 12")]
+    pub target: ::core::option::Option<index_event::Target>,
+}
+/// Nested message and enum types in `IndexEvent`.
+pub mod index_event {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Target {
+        #[prost(message, tag = "10")]
+        Resource(super::IndexResourceTarget),
+        #[prost(message, tag = "11")]
+        SessionMessage(super::IndexSessionMessageTarget),
+        #[prost(message, tag = "12")]
+        Session(super::IndexSessionTarget),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct IndexResourceTarget {
+    #[prost(string, tag = "1")]
+    pub resource_key: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "2")]
+    pub source_generation: u64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct IndexSessionMessageTarget {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub message_id: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "5")]
+    pub source_generation: u64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct IndexSessionTarget {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub session_id: ::prost::alloc::string::String,
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum SystemAction {
@@ -285,6 +339,35 @@ impl ResourceChangeType {
             "RESOURCE_CHANGE_TYPE_CREATED" => Some(Self::Created),
             "RESOURCE_CHANGE_TYPE_UPDATED" => Some(Self::Updated),
             "RESOURCE_CHANGE_TYPE_DELETED" => Some(Self::Deleted),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum IndexOperation {
+    Unspecified = 0,
+    Upsert = 1,
+    Delete = 2,
+}
+impl IndexOperation {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "INDEX_OPERATION_UNSPECIFIED",
+            Self::Upsert => "INDEX_OPERATION_UPSERT",
+            Self::Delete => "INDEX_OPERATION_DELETE",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "INDEX_OPERATION_UNSPECIFIED" => Some(Self::Unspecified),
+            "INDEX_OPERATION_UPSERT" => Some(Self::Upsert),
+            "INDEX_OPERATION_DELETE" => Some(Self::Delete),
             _ => None,
         }
     }

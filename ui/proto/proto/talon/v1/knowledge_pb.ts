@@ -6,13 +6,15 @@ import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegen
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Knowledge, KnowledgeSearchResult } from "../../data/data_pb";
 import { file_proto_data_data } from "../../data/data_pb";
+import type { SearchMode, SearchResult, SearchSort } from "./search_pb";
+import { file_proto_talon_v1_search } from "./search_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file proto/talon/v1/knowledge.proto.
  */
 export const file_proto_talon_v1_knowledge: GenFile = /*@__PURE__*/
-  fileDesc("Ch5wcm90by90YWxvbi92MS9rbm93bGVkZ2UucHJvdG8SCHRhbG9uLnYxIkwKE0dldEtub3dsZWRnZVJlcXVlc3QSDQoFYWdlbnQYASABKAkSCgoCbnMYAiABKAkSEQoEcGF0aBgDIAEoCUgAiAEBQgcKBV9wYXRoIjsKEUtub3dsZWRnZVJlc3BvbnNlEiYKB21vZHVsZXMYASADKAsyFS50YWxvbi5kYXRhLktub3dsZWRnZSJCChZTZWFyY2hLbm93bGVkZ2VSZXF1ZXN0Eg0KBWFnZW50GAEgASgJEgoKAm5zGAIgASgJEg0KBXF1ZXJ5GAMgASgJIk0KF1NlYXJjaEtub3dsZWRnZVJlc3BvbnNlEjIKB3Jlc3VsdHMYASADKAsyIS50YWxvbi5kYXRhLktub3dsZWRnZVNlYXJjaFJlc3VsdDKkAQoQS25vd2xlZGdlU2VydmljZRJBCgNHZXQSHS50YWxvbi52MS5HZXRLbm93bGVkZ2VSZXF1ZXN0GhsudGFsb24udjEuS25vd2xlZGdlUmVzcG9uc2USTQoGU2VhcmNoEiAudGFsb24udjEuU2VhcmNoS25vd2xlZGdlUmVxdWVzdBohLnRhbG9uLnYxLlNlYXJjaEtub3dsZWRnZVJlc3BvbnNlYgZwcm90bzM", [file_proto_data_data]);
+  fileDesc("Ch5wcm90by90YWxvbi92MS9rbm93bGVkZ2UucHJvdG8SCHRhbG9uLnYxIkwKE0dldEtub3dsZWRnZVJlcXVlc3QSDQoFYWdlbnQYASABKAkSCgoCbnMYAiABKAkSEQoEcGF0aBgDIAEoCUgAiAEBQgcKBV9wYXRoIjsKEUtub3dsZWRnZVJlc3BvbnNlEiYKB21vZHVsZXMYASADKAsyFS50YWxvbi5kYXRhLktub3dsZWRnZSKZAQoWU2VhcmNoS25vd2xlZGdlUmVxdWVzdBINCgVhZ2VudBgBIAEoCRIKCgJucxgCIAEoCRINCgVxdWVyeRgDIAEoCRINCgVsaW1pdBgEIAEoBRIiCgRtb2RlGAUgASgOMhQudGFsb24udjEuU2VhcmNoTW9kZRIiCgRzb3J0GAYgASgOMhQudGFsb24udjEuU2VhcmNoU29ydCKWAQoXU2VhcmNoS25vd2xlZGdlUmVzcG9uc2USMgoHcmVzdWx0cxgBIAMoCzIhLnRhbG9uLmRhdGEuS25vd2xlZGdlU2VhcmNoUmVzdWx0Ei4KDnNlYXJjaF9yZXN1bHRzGAIgAygLMhYudGFsb24udjEuU2VhcmNoUmVzdWx0EhcKD25leHRfcGFnZV90b2tlbhgDIAEoCTKkAQoQS25vd2xlZGdlU2VydmljZRJBCgNHZXQSHS50YWxvbi52MS5HZXRLbm93bGVkZ2VSZXF1ZXN0GhsudGFsb24udjEuS25vd2xlZGdlUmVzcG9uc2USTQoGU2VhcmNoEiAudGFsb24udjEuU2VhcmNoS25vd2xlZGdlUmVxdWVzdBohLnRhbG9uLnYxLlNlYXJjaEtub3dsZWRnZVJlc3BvbnNlYgZwcm90bzM", [file_proto_data_data, file_proto_talon_v1_search]);
 
 /**
  * @generated from message talon.v1.GetKnowledgeRequest
@@ -76,6 +78,21 @@ export type SearchKnowledgeRequest = Message<"talon.v1.SearchKnowledgeRequest"> 
    * @generated from field: string query = 3;
    */
   query: string;
+
+  /**
+   * @generated from field: int32 limit = 4;
+   */
+  limit: number;
+
+  /**
+   * @generated from field: talon.v1.SearchMode mode = 5;
+   */
+  mode: SearchMode;
+
+  /**
+   * @generated from field: talon.v1.SearchSort sort = 6;
+   */
+  sort: SearchSort;
 };
 
 /**
@@ -93,6 +110,16 @@ export type SearchKnowledgeResponse = Message<"talon.v1.SearchKnowledgeResponse"
    * @generated from field: repeated talon.data.KnowledgeSearchResult results = 1;
    */
   results: KnowledgeSearchResult[];
+
+  /**
+   * @generated from field: repeated talon.v1.SearchResult search_results = 2;
+   */
+  searchResults: SearchResult[];
+
+  /**
+   * @generated from field: string next_page_token = 3;
+   */
+  nextPageToken: string;
 };
 
 /**

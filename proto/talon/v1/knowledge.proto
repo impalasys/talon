@@ -3,6 +3,7 @@ syntax = "proto3";
 package talon.v1;
 
 import "proto/data/data.proto";
+import "proto/talon/v1/search.proto";
 
 service KnowledgeService {
   rpc Get(GetKnowledgeRequest) returns (KnowledgeResponse);
@@ -23,8 +24,13 @@ message SearchKnowledgeRequest {
   string agent = 1;
   string ns = 2;
   string query = 3;
+  int32 limit = 4;
+  SearchMode mode = 5;
+  SearchSort sort = 6;
 }
 
 message SearchKnowledgeResponse {
   repeated talon.data.KnowledgeSearchResult results = 1;
+  repeated SearchResult search_results = 2;
+  string next_page_token = 3;
 }

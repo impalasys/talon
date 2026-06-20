@@ -1716,6 +1716,325 @@ pub mod workflow_service_client {
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SearchRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub query: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "3")]
+    pub resource_kinds: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag = "4")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub channel: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub role: ::prost::alloc::string::String,
+    #[prost(string, tag = "8")]
+    pub part_type: ::prost::alloc::string::String,
+    #[prost(map = "string, string", tag = "9")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    #[prost(int64, optional, tag = "10")]
+    pub start_time: ::core::option::Option<i64>,
+    #[prost(int64, optional, tag = "11")]
+    pub end_time: ::core::option::Option<i64>,
+    #[prost(int32, tag = "12")]
+    pub limit: i32,
+    #[prost(string, tag = "13")]
+    pub page_token: ::prost::alloc::string::String,
+    #[prost(enumeration = "SearchMode", tag = "14")]
+    pub mode: i32,
+    #[prost(enumeration = "SearchSort", tag = "15")]
+    pub sort: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Document {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub resource_kind: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub resource_key: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub parent_kind: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub parent_key: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "8")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "9")]
+    pub channel: ::prost::alloc::string::String,
+    #[prost(string, tag = "10")]
+    pub message_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "11")]
+    pub run_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "12")]
+    pub part_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "13")]
+    pub part_type: ::prost::alloc::string::String,
+    #[prost(string, tag = "14")]
+    pub role: ::prost::alloc::string::String,
+    #[prost(string, tag = "15")]
+    pub title: ::prost::alloc::string::String,
+    #[prost(string, tag = "16")]
+    pub snippet: ::prost::alloc::string::String,
+    #[prost(map = "string, string", tag = "17")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    #[prost(string, tag = "18")]
+    pub metadata_json: ::prost::alloc::string::String,
+    #[prost(string, tag = "19")]
+    pub acl_scope_json: ::prost::alloc::string::String,
+    #[prost(int64, tag = "20")]
+    pub created_at: i64,
+    #[prost(int64, tag = "21")]
+    pub updated_at: i64,
+    #[prost(int64, tag = "22")]
+    pub indexed_at: i64,
+    #[prost(uint64, tag = "23")]
+    pub source_generation: u64,
+    #[prost(string, tag = "24")]
+    pub embedding_ref: ::prost::alloc::string::String,
+    #[prost(string, tag = "25")]
+    pub document_kind: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SearchResult {
+    #[prost(message, optional, tag = "1")]
+    pub document: ::core::option::Option<Document>,
+    #[prost(float, tag = "2")]
+    pub score: f32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SearchResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub results: ::prost::alloc::vec::Vec<SearchResult>,
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetSearchResultRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub document_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetSearchResultResponse {
+    #[prost(message, optional, tag = "1")]
+    pub document: ::core::option::Option<Document>,
+    #[prost(string, tag = "2")]
+    pub content: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum SearchMode {
+    Unspecified = 0,
+    Keyword = 1,
+    Semantic = 2,
+    Hybrid = 3,
+}
+impl SearchMode {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "SEARCH_MODE_UNSPECIFIED",
+            Self::Keyword => "SEARCH_MODE_KEYWORD",
+            Self::Semantic => "SEARCH_MODE_SEMANTIC",
+            Self::Hybrid => "SEARCH_MODE_HYBRID",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "SEARCH_MODE_UNSPECIFIED" => Some(Self::Unspecified),
+            "SEARCH_MODE_KEYWORD" => Some(Self::Keyword),
+            "SEARCH_MODE_SEMANTIC" => Some(Self::Semantic),
+            "SEARCH_MODE_HYBRID" => Some(Self::Hybrid),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum SearchSort {
+    Unspecified = 0,
+    Relevance = 1,
+    Recency = 2,
+}
+impl SearchSort {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "SEARCH_SORT_UNSPECIFIED",
+            Self::Relevance => "SEARCH_SORT_RELEVANCE",
+            Self::Recency => "SEARCH_SORT_RECENCY",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "SEARCH_SORT_UNSPECIFIED" => Some(Self::Unspecified),
+            "SEARCH_SORT_RELEVANCE" => Some(Self::Relevance),
+            "SEARCH_SORT_RECENCY" => Some(Self::Recency),
+            _ => None,
+        }
+    }
+}
+/// Generated client implementations.
+pub mod search_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    #[derive(Debug, Clone)]
+    pub struct SearchServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl SearchServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> SearchServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> SearchServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            SearchServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        pub async fn search(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SearchRequest>,
+        ) -> std::result::Result<tonic::Response<super::SearchResponse>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.SearchService/Search",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.SearchService", "Search"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_result(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetSearchResultRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetSearchResultResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.SearchService/GetResult",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.SearchService", "GetResult"));
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetKnowledgeRequest {
     #[prost(string, tag = "1")]
     pub agent: ::prost::alloc::string::String,
@@ -1737,11 +2056,21 @@ pub struct SearchKnowledgeRequest {
     pub ns: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub query: ::prost::alloc::string::String,
+    #[prost(int32, tag = "4")]
+    pub limit: i32,
+    #[prost(enumeration = "SearchMode", tag = "5")]
+    pub mode: i32,
+    #[prost(enumeration = "SearchSort", tag = "6")]
+    pub sort: i32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SearchKnowledgeResponse {
     #[prost(message, repeated, tag = "1")]
     pub results: ::prost::alloc::vec::Vec<super::data::KnowledgeSearchResult>,
+    #[prost(message, repeated, tag = "2")]
+    pub search_results: ::prost::alloc::vec::Vec<SearchResult>,
+    #[prost(string, tag = "3")]
+    pub next_page_token: ::prost::alloc::string::String,
 }
 /// Generated client implementations.
 pub mod knowledge_service_client {

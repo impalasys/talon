@@ -111,3 +111,41 @@ message ResourceChangedEvent {
     repeated string changed_sections = 8;
     int64 timestamp = 9;
 }
+
+enum IndexOperation {
+    INDEX_OPERATION_UNSPECIFIED = 0;
+    INDEX_OPERATION_UPSERT = 1;
+    INDEX_OPERATION_DELETE = 2;
+}
+
+message IndexEvent {
+    string id = 1;
+    IndexOperation operation = 2;
+    int64 created_at = 3;
+    int64 updated_at = 4;
+
+    oneof target {
+        IndexResourceTarget resource = 10;
+        IndexSessionMessageTarget session_message = 11;
+        IndexSessionTarget session = 12;
+    }
+}
+
+message IndexResourceTarget {
+    string resource_key = 1;
+    uint64 source_generation = 2;
+}
+
+message IndexSessionMessageTarget {
+    string namespace = 1;
+    string agent = 2;
+    string session_id = 3;
+    string message_id = 4;
+    uint64 source_generation = 5;
+}
+
+message IndexSessionTarget {
+    string namespace = 1;
+    string agent = 2;
+    string session_id = 3;
+}

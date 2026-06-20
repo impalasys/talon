@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package talon.v1;
+
+service SearchService {
+  rpc Search(SearchRequest) returns (SearchResponse);
+  rpc GetResult(GetSearchResultRequest) returns (GetSearchResultResponse);
+}
+
+enum SearchMode {
+  SEARCH_MODE_UNSPECIFIED = 0;
+  SEARCH_MODE_KEYWORD = 1;
+  SEARCH_MODE_SEMANTIC = 2;
+  SEARCH_MODE_HYBRID = 3;
+}
+
+enum SearchSort {
+  SEARCH_SORT_UNSPECIFIED = 0;
+  SEARCH_SORT_RELEVANCE = 1;
+  SEARCH_SORT_RECENCY = 2;
+}
+
+message SearchRequest {
+  string ns = 1;
+  string query = 2;
+  repeated string resource_kinds = 3;
+  string agent = 4;
+  string session_id = 5;
+  string channel = 6;
+  string role = 7;
+  string part_type = 8;
+  map<string, string> labels = 9;
+  optional int64 start_time = 10;
+  optional int64 end_time = 11;
+  int32 limit = 12;
+  string page_token = 13;
+  SearchMode mode = 14;
+  SearchSort sort = 15;
+}
+
+message Document {
+  string id = 1;
+  string namespace = 2;
+  string resource_kind = 3;
+  string resource_key = 4;
+  string parent_kind = 5;
+  string parent_key = 6;
+  string agent = 7;
+  string session_id = 8;
+  string channel = 9;
+  string message_id = 10;
+  string run_id = 11;
+  string part_id = 12;
+  string part_type = 13;
+  string role = 14;
+  string title = 15;
+  string snippet = 16;
+  map<string, string> labels = 17;
+  string metadata_json = 18;
+  string acl_scope_json = 19;
+  int64 created_at = 20;
+  int64 updated_at = 21;
+  int64 indexed_at = 22;
+  uint64 source_generation = 23;
+  string embedding_ref = 24;
+  string document_kind = 25;
+}
+
+message SearchResult {
+  Document document = 1;
+  float score = 2;
+}
+
+message SearchResponse {
+  repeated SearchResult results = 1;
+  string next_page_token = 2;
+}
+
+message GetSearchResultRequest {
+  string ns = 1;
+  string document_id = 2;
+}
+
+message GetSearchResultResponse {
+  Document document = 1;
+  string content = 2;
+}

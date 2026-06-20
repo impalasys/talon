@@ -8,6 +8,7 @@ use crate::v1::{
     channel_service_client::ChannelServiceClient,
     workflow_service_client::WorkflowServiceClient,
     knowledge_service_client::KnowledgeServiceClient,
+    search_service_client::SearchServiceClient,
     auth_service_client::AuthServiceClient,
 };
 
@@ -19,6 +20,7 @@ pub struct TalonClientset<T> {
     pub channels: ChannelServiceClient<T>,
     pub workflows: WorkflowServiceClient<T>,
     pub knowledge: KnowledgeServiceClient<T>,
+    pub searches: SearchServiceClient<T>,
     pub auth: AuthServiceClient<T>,
 }
 
@@ -37,6 +39,7 @@ where
             channels: ChannelServiceClient::new(service.clone()),
             workflows: WorkflowServiceClient::new(service.clone()),
             knowledge: KnowledgeServiceClient::new(service.clone()),
+            searches: SearchServiceClient::new(service.clone()),
             auth: AuthServiceClient::new(service.clone()),
         }
     }
@@ -301,6 +304,20 @@ impl crate::TalonClient {
         search,
         crate::v1::SearchKnowledgeRequest,
         crate::v1::SearchKnowledgeResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        search,
+        searches,
+        search,
+        crate::v1::SearchRequest,
+        crate::v1::SearchResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        get_search_result,
+        searches,
+        get_result,
+        crate::v1::GetSearchResultRequest,
+        crate::v1::GetSearchResultResponse,
     );
     delegate_dynamic_unary_rpc!(
         get_sso_config,

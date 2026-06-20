@@ -156,6 +156,15 @@ async fn run() -> Result<()> {
             shutdown.child_token(),
         )
         .await?,
+        spawn_subscription(
+            Arc::clone(&cp.pubsub),
+            handler,
+            topics::INDEX_EVENTS_TOPIC,
+            "index",
+            1,
+            shutdown.child_token(),
+        )
+        .await?,
     ];
     let gateway = Gateway::new(
         Some(select_auth_config()),
@@ -163,6 +172,7 @@ async fn run() -> Result<()> {
         Arc::clone(&cp.pubsub),
         Arc::clone(&cp.scheduler),
         Arc::clone(&cp.objects),
+        Arc::clone(&cp.documents),
     );
     let rpc_addr = gateway_addr();
     let mut rpc_task = tokio::spawn({

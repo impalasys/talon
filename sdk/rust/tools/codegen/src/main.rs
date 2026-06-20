@@ -99,6 +99,7 @@ fn talon_v1_protos(root: &std::path::Path) -> Vec<PathBuf> {
         "channels.proto",
         "workflows.proto",
         "knowledge.proto",
+        "search.proto",
         "auth.proto",
     ]
     .into_iter()

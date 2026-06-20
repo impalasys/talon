@@ -6,6 +6,7 @@ import { ChannelService } from "./gen/proto/talon/v1/channels_connect.js";
 import { KnowledgeService } from "./gen/proto/talon/v1/knowledge_connect.js";
 import { NamespaceService } from "./gen/proto/talon/v1/namespaces_connect.js";
 import { ResourceService } from "./gen/proto/talon/v1/resources_connect.js";
+import { SearchService } from "./gen/proto/talon/v1/search_connect.js";
 import { SessionService } from "./gen/proto/talon/v1/sessions_connect.js";
 import { WorkflowService } from "./gen/proto/talon/v1/workflows_connect.js";
 
@@ -15,6 +16,7 @@ export type TalonClient = {
   knowledge: PromiseClient<typeof KnowledgeService>;
   namespaces: PromiseClient<typeof NamespaceService>;
   resources: PromiseClient<typeof ResourceService>;
+  searches: PromiseClient<typeof SearchService>;
   sessions: PromiseClient<typeof SessionService>;
   workflows: PromiseClient<typeof WorkflowService>;
 };
@@ -26,6 +28,7 @@ export function createTalonClientset(transport: Transport): TalonClient {
     knowledge: createPromiseClient(KnowledgeService, transport),
     namespaces: createPromiseClient(NamespaceService, transport),
     resources: createPromiseClient(ResourceService, transport),
+    searches: createPromiseClient(SearchService, transport),
     sessions: createPromiseClient(SessionService, transport),
     workflows: createPromiseClient(WorkflowService, transport),
   };

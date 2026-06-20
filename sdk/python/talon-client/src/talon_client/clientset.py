@@ -7,6 +7,7 @@ from talon_client.proto.talon.v1 import channels_pb2_grpc
 from talon_client.proto.talon.v1 import knowledge_pb2_grpc
 from talon_client.proto.talon.v1 import namespaces_pb2_grpc
 from talon_client.proto.talon.v1 import resources_pb2_grpc
+from talon_client.proto.talon.v1 import search_pb2_grpc
 from talon_client.proto.talon.v1 import sessions_pb2_grpc
 from talon_client.proto.talon.v1 import workflows_pb2_grpc
 
@@ -17,6 +18,7 @@ class TalonClient:
     knowledge: knowledge_pb2_grpc.KnowledgeServiceStub
     namespaces: namespaces_pb2_grpc.NamespaceServiceStub
     resources: resources_pb2_grpc.ResourceServiceStub
+    searches: search_pb2_grpc.SearchServiceStub
     sessions: sessions_pb2_grpc.SessionServiceStub
     workflows: workflows_pb2_grpc.WorkflowServiceStub
 
@@ -26,5 +28,6 @@ class TalonClient:
         self.knowledge = knowledge_pb2_grpc.KnowledgeServiceStub(channel)
         self.namespaces = namespaces_pb2_grpc.NamespaceServiceStub(channel)
         self.resources = resources_pb2_grpc.ResourceServiceStub(channel)
+        self.searches = search_pb2_grpc.SearchServiceStub(channel)
         self.sessions = sessions_pb2_grpc.SessionServiceStub(channel)
         self.workflows = workflows_pb2_grpc.WorkflowServiceStub(channel)
