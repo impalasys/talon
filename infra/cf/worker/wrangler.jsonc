@@ -94,14 +94,17 @@
   "containers": [
     {
       "class_name": "GatewayContainer",
+      "max_instances": 1,
       "image": "ghcr.io/impalasys/talon-runtime:latest"
     },
     {
       "class_name": "WorkerContainer",
+      "max_instances": 1,
       "image": "ghcr.io/impalasys/talon-runtime:latest"
     },
     {
       "class_name": "EnvoyContainer",
+      "max_instances": 1,
       "image": "ghcr.io/impalasys/talon-envoy:latest"
     }
   ]

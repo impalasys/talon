@@ -204,16 +204,19 @@ if not dev_external_containers:
     dev["containers"] = [
         {
             "class_name": "GatewayContainer",
+            "max_instances": 1,
             "image": env("TALON_CF_DEV_RUNTIME_IMAGE"),
             "image_build_context": env("TALON_CF_DEV_RUNTIME_BUILD_CONTEXT"),
         },
         {
             "class_name": "WorkerContainer",
+            "max_instances": 1,
             "image": env("TALON_CF_DEV_RUNTIME_IMAGE"),
             "image_build_context": env("TALON_CF_DEV_RUNTIME_BUILD_CONTEXT"),
         },
         {
             "class_name": "EnvoyContainer",
+            "max_instances": 1,
             "image": env("TALON_CF_DEV_ENVOY_IMAGE"),
             "image_build_context": env("TALON_CF_DEV_ENVOY_BUILD_CONTEXT"),
         },
@@ -223,14 +226,17 @@ prod = base_config(env("TALON_CF_PROD_MAIN"), prod_config_yaml, None, True)
 prod["containers"] = [
     {
         "class_name": "GatewayContainer",
+        "max_instances": 1,
         "image": env("TALON_CF_PROD_RUNTIME_IMAGE"),
     },
     {
         "class_name": "WorkerContainer",
+        "max_instances": 1,
         "image": env("TALON_CF_PROD_RUNTIME_IMAGE"),
     },
     {
         "class_name": "EnvoyContainer",
+        "max_instances": 1,
         "image": env("TALON_CF_PROD_ENVOY_IMAGE"),
     },
 ]
