@@ -169,7 +169,10 @@ pub(super) async fn update_submission_from_entry(
                 entry.attempt_id
             ));
         }
-        if !terminal_update && submission_is_terminal(&submission) {
+        if submission_is_terminal(&submission) {
+            if terminal_update {
+                return Ok(());
+            }
             return Err(anyhow!("session submission already terminal"));
         }
         if let Some(current_journal_entry_id) = submission.current_journal_entry_id.as_deref() {

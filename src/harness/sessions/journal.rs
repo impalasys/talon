@@ -328,10 +328,7 @@ async fn committed_journal_entry(
 ) -> Result<Option<SessionJournalEntry>> {
     let prefix = keys::session_journal_entry_prefix(ns, agent, session_id, submission_id);
     let mut found: Option<SessionJournalEntry> = None;
-    for key in kv.list_keys(&prefix).await? {
-        let Some(bytes) = kv.get(&key).await? else {
-            continue;
-        };
+    for (_, bytes) in kv.list_entries(&prefix).await? {
         let entry = SessionJournalEntry::decode(bytes.as_slice())?;
         if entry.phase == SessionExecutionPhase::Committed as i32
             && entry.committed_message_id.as_deref() == Some(committed_message_id)
