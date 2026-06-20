@@ -15,6 +15,14 @@ pub enum ClaimOutcome {
     Busy(SessionSubmission),
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum RenewOutcome {
+    Renewed(SessionSubmission),
+    NotCurrent(SessionSubmission),
+    AlreadyTerminal(SessionSubmission),
+    Missing,
+}
+
 pub fn pending_submission(
     submission_id: impl Into<String>,
     session_id: impl Into<String>,
@@ -111,6 +119,49 @@ pub async fn claim_submission(
     Err(anyhow!("failed to atomically claim session submission"))
 }
 
+pub async fn renew_submission_claim(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    submission_id: &str,
+    attempt_id: &str,
+    now_micros: i64,
+    claim_ttl_micros: i64,
+) -> Result<RenewOutcome> {
+    let key = keys::session_submission(ns, agent, session_id, submission_id);
+    for _ in 0..8 {
+        let Some(current) = kv.get(&key).await? else {
+            return Ok(RenewOutcome::Missing);
+        };
+        let mut submission = SessionSubmission::decode(current.as_slice())?;
+        if submission_is_terminal(&submission) {
+            return Ok(RenewOutcome::AlreadyTerminal(submission));
+        }
+        if submission.attempt_id != attempt_id
+            || submission.status != SessionSubmissionStatus::Claimed as i32
+            || submission
+                .claim_expires_at
+                .is_some_and(|expires_at| expires_at <= now_micros)
+        {
+            return Ok(RenewOutcome::NotCurrent(submission));
+        }
+
+        submission.claim_expires_at = Some(now_micros.saturating_add(claim_ttl_micros));
+        submission.updated_at = now_micros;
+        let updated = submission.encode_to_vec();
+        if kv
+            .compare_and_swap(&key, Some(current.as_slice()), &updated)
+            .await?
+        {
+            return Ok(RenewOutcome::Renewed(submission));
+        }
+    }
+    Err(anyhow!(
+        "failed to atomically renew session submission claim"
+    ))
+}
+
 pub(super) async fn ensure_submission_attempt_current(
     kv: &dyn KeyValueStore,
     ns: &str,
@@ -129,6 +180,13 @@ pub(super) async fn ensure_submission_attempt_current(
     let submission = SessionSubmission::decode(current.as_slice())?;
     if submission_is_terminal(&submission) {
         return Err(anyhow!("session submission already terminal"));
+    }
+    let now_micros = chrono::Utc::now().timestamp_micros();
+    if submission
+        .claim_expires_at
+        .is_some_and(|expires_at| expires_at <= now_micros)
+    {
+        return Err(anyhow!("session submission claim expired"));
     }
     if submission.attempt_id != attempt_id {
         return Err(anyhow!(
@@ -168,6 +226,12 @@ pub(super) async fn update_submission_from_entry(
                 submission.attempt_id,
                 entry.attempt_id
             ));
+        }
+        if submission
+            .claim_expires_at
+            .is_some_and(|expires_at| expires_at <= now_micros)
+        {
+            return Err(anyhow!("session submission claim expired"));
         }
         if submission_is_terminal(&submission) {
             if terminal_update {

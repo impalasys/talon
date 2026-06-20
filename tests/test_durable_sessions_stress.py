@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import json
 import os
 import shutil
@@ -34,8 +33,6 @@ from proto.data.session_journal_entry_pb2 import (
     SessionJournalEntry,
 )
 from proto.events_pb2 import (
-    MESSAGE_DIRECTION_INBOUND,
-    SessionMessageEvent,
     SessionMessagePartEvent,
 )
 from proto.gateway_pb2 import (
@@ -55,7 +52,6 @@ from proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
 import conftest
 
 
-SESSION_DISPATCH_TOPIC = "talon.session.dispatch"
 BLOCKING_MCP_SERVER = "durable-slow"
 BLOCKING_MCP_TOOL = "mcp_durable_slow_blocking_lookup"
 BLOCKING_TOOL_CALL_ID = "call_blocking_lookup_1"
@@ -302,37 +298,6 @@ control_plane:
     def restart_worker(self) -> subprocess.Popen:
         self.kill_worker()
         return self.start_worker()
-
-    def republish_session_dispatch(
-        self,
-        namespace: str,
-        agent: str,
-        session_id: str,
-        submission: SubmissionRecord,
-        message: str = "durable stress redelivery",
-    ) -> None:
-        event = SessionMessageEvent(
-            session_id=session_id,
-            message_id=submission["userMessageId"],
-            submission_id=submission["submissionId"],
-            direction=MESSAGE_DIRECTION_INBOUND,
-            timestamp=submission["createdAt"],
-            agent=agent,
-            message=message,
-            ns=namespace,
-        )
-        response = requests.post(
-            f"http://127.0.0.1:{self.worker_port}/pubsub/push",
-            json={
-                "message": {
-                    "data": base64.b64encode(event.SerializeToString()).decode("ascii"),
-                    "messageId": f"redelivery-{submission['submissionId']}",
-                },
-                "subscription": f"projects/test/subscriptions/{SESSION_DISPATCH_TOPIC}",
-            },
-            timeout=20,
-        )
-        response.raise_for_status()
 
 
 class SessionStreamBuffer:
@@ -758,6 +723,24 @@ class SessionSnooper:
             lambda: self.kv.read_submission(self.namespace, self.agent, self.session_id),
         )
 
+    def wait_for_reclaimed_submission(
+        self, submission_id: str, previous_attempt_count: int
+    ) -> SubmissionRecord:
+        def reclaimed_submission() -> SubmissionRecord | None:
+            submission = self.kv.read_submission(
+                self.namespace, self.agent, self.session_id, submission_id
+            )
+            if submission and submission["attemptCount"] > previous_attempt_count:
+                return submission
+            return None
+
+        return self._wait_for_condition(
+            "stream-triggered session submission reclaim",
+            reclaimed_submission,
+            attempts=120,
+            delay=0.1,
+        )
+
     def wait_for_in_progress_projection(self) -> SessionMessage:
         return self._wait_for_condition(
             "in-progress assistant projection",
@@ -900,9 +883,16 @@ def test_provider_started_worker_kill_restart_redelivery_is_non_polluting(
     infra.restart_worker()
     time.sleep(1.3)
     mock_control("POST", "/__control/unblock_stream")
-    infra.republish_session_dispatch(namespace, agent, session_id, submission)
-
-    session = snooper.wait_for_completed_session("session completion after worker restart")
+    with SessionStreamBuffer(
+        grpc_port=infra.grpc_port,
+        namespace=namespace,
+        agent=agent,
+        session_id=session_id,
+    ):
+        snooper.wait_for_reclaimed_submission(
+            submission_id, submission["attemptCount"]
+        )
+        session = snooper.wait_for_completed_session("session completion after worker restart")
     assistants = [message for message in session.messages if message.role == ROLE_ASSISTANT]
     users = [message for message in session.messages if message.role == ROLE_USER]
     assert len(users) == 1
@@ -1002,13 +992,18 @@ def test_tool_call_recorded_worker_kill_restart_recovers_from_journal(
     time.sleep(1.3)
     mock_control("POST", "/__control/unblock_mcp_tool")
     infra.start_worker()
-    infra.republish_session_dispatch(
-        namespace, agent, session_id, submission, message=message
-    )
-
-    session = snooper.wait_for_completed_session(
-        "tool-call journal recovery after worker restart"
-    )
+    with SessionStreamBuffer(
+        grpc_port=infra.grpc_port,
+        namespace=namespace,
+        agent=agent,
+        session_id=session_id,
+    ):
+        snooper.wait_for_reclaimed_submission(
+            submission_id, submission["attemptCount"]
+        )
+        session = snooper.wait_for_completed_session(
+            "tool-call journal recovery after worker restart"
+        )
     assistants = [message for message in session.messages if message.role == ROLE_ASSISTANT]
     assert len(assistants) == 1
     assistant_parts = text_parts_for(assistants[0])
@@ -1074,12 +1069,13 @@ def test_tool_result_recorded_worker_kill_restart_does_not_duplicate_message_par
     mock_control("POST", "/__control/block_mcp_tool")
     mock_control("POST", "/__control/block_stream_after_chunks", {"chunks": 1})
 
-    with SessionStreamBuffer(
+    stream = SessionStreamBuffer(
         grpc_port=infra.grpc_port,
         namespace=namespace,
         agent=agent,
         session_id=session_id,
-    ) as stream:
+    )
+    with stream:
         message = "Please run a blocking lookup docs.example.com and summarize what you found."
         stub.SendMessage(
             SendMessageRequest(
@@ -1118,11 +1114,17 @@ def test_tool_result_recorded_worker_kill_restart_does_not_duplicate_message_par
         assert mock_state_at_crash["mcp_tool_call_count"] == 1
 
         infra.kill_worker()
-        time.sleep(1.3)
-        mock_control("POST", "/__control/unblock_stream")
-        infra.start_worker()
-        infra.republish_session_dispatch(
-            namespace, agent, session_id, submission, message=message
+    time.sleep(1.3)
+    mock_control("POST", "/__control/unblock_stream")
+    infra.start_worker()
+    with SessionStreamBuffer(
+        grpc_port=infra.grpc_port,
+        namespace=namespace,
+        agent=agent,
+        session_id=session_id,
+    ):
+        snooper.wait_for_reclaimed_submission(
+            submission_id, submission["attemptCount"]
         )
 
         session = snooper.wait_for_completed_session(
@@ -1146,8 +1148,8 @@ def test_tool_result_recorded_worker_kill_restart_does_not_duplicate_message_par
             tool_call_id=BLOCKING_TOOL_CALL_ID,
         )
 
-        assert len(entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_TOOL_RESULT)) == 1
-        assert len(entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_COMMITTED)) == 1
-        assert final_mock_state["mcp_tool_call_count"] == 1
-        assert len(streamed_tool_calls) == 1
-        assert len(streamed_tool_results) == 1
+    assert len(entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_TOOL_RESULT)) == 1
+    assert len(entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_COMMITTED)) == 1
+    assert final_mock_state["mcp_tool_call_count"] == 1
+    assert len(streamed_tool_calls) == 1
+    assert len(streamed_tool_results) == 1

@@ -20,7 +20,7 @@ use crate::control::{
 use crate::gateway::rpc::{data_proto, resources_proto};
 
 pub const MIN_RECURRING_INTERVAL_SECONDS: u32 = 300;
-const DEFAULT_SESSION_PROCESSING_TIMEOUT_SECONDS: i64 = 30 * 60;
+const DEFAULT_SESSION_PROCESSING_TIMEOUT_SECONDS: i64 = 10;
 const DEFAULT_SCHEDULE_CLAIM_TIMEOUT_SECONDS: i64 = 60;
 const MAX_CAS_RETRIES: usize = 8;
 const MAX_RECENT_SCHEDULE_EVENTS: usize = 20;
@@ -751,7 +751,7 @@ pub async fn send_session_message(
     Ok(())
 }
 
-fn session_message_text_projection(message: &data_proto::SessionMessage) -> String {
+pub(crate) fn session_message_text_projection(message: &data_proto::SessionMessage) -> String {
     let text = message
         .parts
         .iter()
@@ -1121,7 +1121,7 @@ mod tests {
     }
 
     #[test]
-    fn session_processing_timeout_defaults_to_30_minutes() {
+    fn session_processing_timeout_defaults_to_10_seconds() {
         unsafe {
             std::env::remove_var("TALON_SESSION_PROCESSING_TIMEOUT_SECONDS");
         }

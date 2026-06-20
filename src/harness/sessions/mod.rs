@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 mod journal;
+mod lease;
 mod submission;
 
 pub const SESSION_LABEL_SUBMISSION_ID: &str = "talon.session.submission_id";
@@ -19,7 +20,8 @@ pub use journal::{
     append_llm_response, append_tool_result, list_journal_entries, mark_terminal,
     repair_submission_pointer_to_latest,
 };
+pub use lease::{SubmissionLease, SubmissionLeaseRenewer};
 pub use submission::{
-    claim_submission, create_submission_if_absent, pending_submission, submission_is_terminal,
-    ClaimOutcome,
+    claim_submission, create_submission_if_absent, pending_submission, renew_submission_claim,
+    submission_is_terminal, ClaimOutcome, RenewOutcome,
 };

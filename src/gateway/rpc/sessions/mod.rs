@@ -11,6 +11,10 @@ use prost::Message;
 use serde_json::{json, Value};
 use std::sync::OnceLock;
 
+mod watcher;
+
+use watcher::session_parts_event_stream;
+
 const LARGE_SESSION_PAYLOAD_WARNING_BYTES: usize = 128 * 1024;
 const DEFAULT_SESSION_MESSAGES_PAGE_SIZE: usize = 50;
 const MAX_SESSION_MESSAGES_PAGE_SIZE: usize = 200;
@@ -1094,6 +1098,11 @@ impl GrpcGatewayHandler {
         );
         let req = req.into_inner();
 
+        let targets = vec![SessionStreamTarget::new(
+            req.ns.clone(),
+            req.agent.clone(),
+            req.session_id.clone(),
+        )];
         let receiver = self
             .gateway
             .session_streams
@@ -1103,14 +1112,14 @@ impl GrpcGatewayHandler {
                 tonic::Status::internal(format!("Failed to subscribe to session stream: {}", e))
             })?;
 
-        let event_stream = async_stream::stream! {
-            let mut receiver = receiver;
-            while let Some(event) = receiver.recv().await {
-                yield event;
-            }
-        };
+        let event_stream = session_parts_event_stream(
+            receiver,
+            targets,
+            self.gateway.kv.clone(),
+            self.gateway.pubsub.clone(),
+        );
 
-        Ok(tonic::Response::new(Box::pin(event_stream)))
+        Ok(tonic::Response::new(event_stream))
     }
 
     pub async fn handle_stream_session_parts_batch(
@@ -1158,20 +1167,20 @@ impl GrpcGatewayHandler {
         let receiver = self
             .gateway
             .session_streams
-            .subscribe_many(targets)
+            .subscribe_many(targets.clone())
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to subscribe to session stream: {}", e))
             })?;
 
-        let event_stream = async_stream::stream! {
-            let mut receiver = receiver;
-            while let Some(event) = receiver.recv().await {
-                yield event;
-            }
-        };
+        let event_stream = session_parts_event_stream(
+            receiver,
+            targets,
+            self.gateway.kv.clone(),
+            self.gateway.pubsub.clone(),
+        );
 
-        Ok(tonic::Response::new(Box::pin(event_stream)))
+        Ok(tonic::Response::new(event_stream))
     }
 }
 
