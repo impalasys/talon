@@ -261,10 +261,11 @@ function isGatewayUiPath(pathname: string): boolean {
 }
 
 function shouldRouteThroughEnvoy(pathname: string): boolean {
-  return (
-    (pathname.startsWith("/v1/") && !isGatewayUiPath(pathname)) ||
-    pathname.startsWith("/talon.gateway.")
-  );
+  return pathname.startsWith("/v1/") && !isGatewayUiPath(pathname);
+}
+
+function isGatewayGrpcPath(pathname: string): boolean {
+  return pathname.startsWith("/talon.gateway.");
 }
 
 const CORS_ALLOW_METHODS = "GET,PUT,DELETE,POST,OPTIONS";
@@ -373,6 +374,20 @@ export default {
       return withCors(await fetchStartedContainer(gateway, request, gatewayContainerStartProfile(env)), request);
     }
 
+    if (isGatewayGrpcPath(url.pathname)) {
+      if (externalContainersEnabled(env)) {
+        return withCors(
+          await fetch(requestToOrigin(request, env.TALON_CF_DEV_GATEWAY_URL ?? "http://gateway:50051")),
+          request,
+        );
+      }
+      const gateway = gatewayContainer(env, url.pathname);
+      return withCors(
+        await fetchStartedContainer(gateway, switchPort(request, 50051), gatewayContainerStartProfile(env)),
+        request,
+      );
+    }
+
     if (shouldRouteThroughEnvoy(url.pathname)) {
       if (externalContainersEnabled(env)) {
         return withCors(
@@ -413,7 +428,7 @@ export default {
           request,
         );
       }
-      const [gateway, worker, envoy] = await Promise.all([
+      const [gateway, worker] = await Promise.all([
         containerReady(
           "gateway",
           gatewayContainer(env),
@@ -430,14 +445,8 @@ export default {
           }),
           workerContainerStartProfile(env),
         ),
-        containerReady(
-          "envoy",
-          envoyContainer(env),
-          new Request("https://talon-health.internal/v1/namespaces"),
-          ENVOY_CONTAINER_START_PROFILE,
-        ),
       ]);
-      const ok = gateway.ready && worker.ready && envoy.ready;
+      const ok = gateway.ready && worker.ready;
       return withCors(
         json({
           ok,
@@ -453,12 +462,6 @@ export default {
               ready: worker.ready,
               status: worker.status,
               error: worker.error,
-            },
-            envoy: {
-              count: configuredCount(env.TALON_ENVOY_CONTAINER_COUNT),
-              ready: envoy.ready,
-              status: envoy.status,
-              error: envoy.error,
             },
           },
         }, { status: ok ? 200 : 503 }),
