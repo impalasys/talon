@@ -165,11 +165,15 @@ pub trait ExecutionSink: Send + Sync {
     /// The agent chose to call a tool.
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value);
     /// The full completed LLM response reached a durable recovery boundary.
-    async fn on_llm_response(&self, _: &crate::harness::llm::ChatResponse) {}
+    async fn on_llm_response(&self, _: &crate::harness::llm::ChatResponse) -> Result<()> {
+        Ok(())
+    }
     /// The tool returned a result.
     async fn on_tool_result(&self, id: &str, name: &str, result: &str);
     /// A tool result has been durably recorded.
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &str) {}
+    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &str) -> Result<()> {
+        Ok(())
+    }
     /// The agent requested permission from the user/client.
     async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
     /// The permission request was answered or cancelled.
@@ -190,9 +194,13 @@ impl ExecutionSink for NullSink {
     async fn on_token(&self, _: &str) {}
     async fn on_reasoning(&self, _: &str) {}
     async fn on_tool_call(&self, _: &str, _: &str, _: &Value) {}
-    async fn on_llm_response(&self, _: &crate::harness::llm::ChatResponse) {}
+    async fn on_llm_response(&self, _: &crate::harness::llm::ChatResponse) -> Result<()> {
+        Ok(())
+    }
     async fn on_tool_result(&self, _: &str, _: &str, _: &str) {}
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &str) {}
+    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &str) -> Result<()> {
+        Ok(())
+    }
     async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
     async fn on_permission_result(&self, _: &str, _: &Value) {}
     async fn on_usage(&self, _: &ChatUsage) {}
@@ -245,7 +253,9 @@ impl ExecutionSink for CaptureSink {
             output: result.to_string(),
         });
     }
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &str) {}
+    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &str) -> Result<()> {
+        Ok(())
+    }
     async fn on_request_permission(&self, id: &str, action: &str, payload: &Value) {
         self.events
             .lock()
@@ -545,7 +555,7 @@ impl AgentExecutor {
                 tool_calls: tool_calls.clone(),
                 usage: final_usage,
             };
-            sink.on_llm_response(&llm_response).await;
+            sink.on_llm_response(&llm_response).await?;
 
             // Record assistant turn
             let mut assistant_message = LoopMessage::text("assistant", final_reply.clone());
@@ -561,7 +571,7 @@ impl AgentExecutor {
                     let (input, result) = self.execute_tool_call(tool).await;
                     sink.on_tool_call(&tool.id, &tool.name, &input).await;
                     sink.on_tool_result_recorded(&tool.id, &tool.name, &result)
-                        .await;
+                        .await?;
                     sink.on_tool_result(&tool.id, &tool.name, &result).await;
                     context.push(tool_result_loop_message(&tool.id, &result));
                 }

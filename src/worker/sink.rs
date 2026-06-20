@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use anyhow::Result;
 use async_trait::async_trait;
 use prost::Message;
 use serde_json::Value;
@@ -741,8 +742,8 @@ impl PubSubSessionSink {
 
 #[async_trait]
 impl ExecutionSink for PubSubSessionSink {
-    async fn on_llm_response(&self, response: &ChatResponse) {
-        match sessions::append_llm_response(
+    async fn on_llm_response(&self, response: &ChatResponse) -> Result<()> {
+        let entry = sessions::append_llm_response(
             self.kv.as_ref(),
             &self.ns,
             &self.agent_id,
@@ -752,15 +753,9 @@ impl ExecutionSink for PubSubSessionSink {
             response,
             chrono::Utc::now().timestamp_micros(),
         )
-        .await
-        {
-            Ok(entry) => {
-                *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
-            }
-            Err(err) => {
-                tracing::error!(error = %err, "Failed to append LLM response journal entry")
-            }
-        }
+        .await?;
+        *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
+        Ok(())
     }
 
     async fn on_token(&self, token: &str) {
@@ -815,8 +810,8 @@ impl ExecutionSink for PubSubSessionSink {
         .await;
     }
 
-    async fn on_tool_result_recorded(&self, id: &str, name: &str, result: &str) {
-        match sessions::append_tool_result(
+    async fn on_tool_result_recorded(&self, id: &str, name: &str, result: &str) -> Result<()> {
+        let entry = sessions::append_tool_result(
             self.kv.as_ref(),
             &self.ns,
             &self.agent_id,
@@ -828,15 +823,9 @@ impl ExecutionSink for PubSubSessionSink {
             result,
             chrono::Utc::now().timestamp_micros(),
         )
-        .await
-        {
-            Ok(entry) => {
-                *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
-            }
-            Err(err) => {
-                tracing::error!(error = %err, "Failed to append tool-result journal entry");
-            }
-        }
+        .await?;
+        *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
+        Ok(())
     }
 
     async fn on_tool_result(&self, id: &str, name: &str, result: &str) {
@@ -1481,15 +1470,18 @@ mod tests {
             tool_calls: tool_calls.clone(),
             usage: None,
         })
-        .await;
+        .await
+        .unwrap();
         sink.on_tool_result_recorded("call-a", "search", "result-a")
-            .await;
+            .await
+            .unwrap();
         sink.on_llm_response(&ChatResponse {
             content: "final".to_string(),
             tool_calls: Vec::new(),
             usage: None,
         })
-        .await;
+        .await
+        .unwrap();
         sink.on_done("final").await;
 
         let entry_keys = kv
