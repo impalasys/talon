@@ -5,5 +5,6 @@ export const TOPICS = {
   sessionDispatch: "talon.session.dispatch",
   resourceLifecycle: "talon.resource.lifecycle",
   sessionControl: "talon.session.control",
+  indexEvents: "talon.index.events",
   sessionPartsPrefix: "talon.session.parts.",
 } as const;

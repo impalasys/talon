@@ -50,6 +50,7 @@ variable "queue_names" {
     session_dispatch   = optional(string)
     resource_lifecycle = optional(string)
     session_control    = optional(string)
+    index_events       = optional(string)
   })
   default = {}
 }

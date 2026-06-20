@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+pub mod d1;
 pub mod disabled;
 mod events;
 pub mod mapper;
@@ -11,6 +12,7 @@ pub mod store;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
+pub use d1::D1DocumentStore;
 pub use disabled::{disabled_document_store, DisabledDocumentStore};
 pub(crate) use events::publish_index_event;
 pub use postgres::PostgresDocumentStore;

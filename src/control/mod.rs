@@ -408,10 +408,13 @@ pub async fn build_control_plane(
         }
         "d1" => {
             println!("Connecting to D1KvStore...");
-            let store = kv::D1KvStore::from_env();
-            store.init().await?;
-            kv = Arc::new(store);
-            documents = search::disabled_document_store();
+            let kv_store = kv::D1KvStore::from_env();
+            kv_store.init().await?;
+            kv = Arc::new(kv_store);
+            println!("Connecting to D1DocumentStore...");
+            let document_store = search::D1DocumentStore::from_env();
+            document_store.init().await?;
+            documents = Arc::new(document_store);
             scheduler_database_url = None;
         }
         #[cfg(feature = "rocksdb")]

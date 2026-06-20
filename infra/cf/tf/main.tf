@@ -6,6 +6,7 @@ locals {
     session_dispatch   = coalesce(var.queue_names.session_dispatch, "${var.name_prefix}-session-dispatch")
     resource_lifecycle = coalesce(var.queue_names.resource_lifecycle, "${var.name_prefix}-resource-lifecycle")
     session_control    = coalesce(var.queue_names.session_control, "${var.name_prefix}-session-control")
+    index_events       = coalesce(var.queue_names.index_events, "${var.name_prefix}-index-events")
   }
 
   queue_bindings = {
@@ -20,6 +21,10 @@ locals {
     session_control = {
       binding = "SESSION_CONTROL_QUEUE"
       topic   = "talon.session.control"
+    }
+    index_events = {
+      binding = "INDEX_EVENTS_QUEUE"
+      topic   = "talon.index.events"
     }
   }
 }

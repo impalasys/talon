@@ -32,10 +32,12 @@ export TALON_CF_R2_BUCKET_NAME="${TALON_CF_R2_BUCKET_NAME:-talon-objects}"
 export TALON_CF_SESSION_DISPATCH_QUEUE="${TALON_CF_SESSION_DISPATCH_QUEUE:-talon-session-dispatch}"
 export TALON_CF_RESOURCE_LIFECYCLE_QUEUE="${TALON_CF_RESOURCE_LIFECYCLE_QUEUE:-talon-resource-lifecycle}"
 export TALON_CF_SESSION_CONTROL_QUEUE="${TALON_CF_SESSION_CONTROL_QUEUE:-talon-session-control}"
+export TALON_CF_INDEX_EVENTS_QUEUE="${TALON_CF_INDEX_EVENTS_QUEUE:-talon-index-events}"
 
 export TALON_CF_SESSION_DISPATCH_BINDING="${TALON_CF_SESSION_DISPATCH_BINDING:-SESSION_DISPATCH_QUEUE}"
 export TALON_CF_RESOURCE_LIFECYCLE_BINDING="${TALON_CF_RESOURCE_LIFECYCLE_BINDING:-RESOURCE_LIFECYCLE_QUEUE}"
 export TALON_CF_SESSION_CONTROL_BINDING="${TALON_CF_SESSION_CONTROL_BINDING:-SESSION_CONTROL_QUEUE}"
+export TALON_CF_INDEX_EVENTS_BINDING="${TALON_CF_INDEX_EVENTS_BINDING:-INDEX_EVENTS_QUEUE}"
 
 export TALON_CF_DEV_MAIN="${TALON_CF_DEV_MAIN:-../worker/src/index.ts}"
 export TALON_CF_PROD_MAIN="${TALON_CF_PROD_MAIN:-src/index.ts}"
@@ -156,11 +158,16 @@ def base_config(
                     "binding": env("TALON_CF_SESSION_CONTROL_BINDING"),
                     "queue": env("TALON_CF_SESSION_CONTROL_QUEUE"),
                 },
+                {
+                    "binding": env("TALON_CF_INDEX_EVENTS_BINDING"),
+                    "queue": env("TALON_CF_INDEX_EVENTS_QUEUE"),
+                },
             ],
             "consumers": [
                 {"queue": env("TALON_CF_SESSION_DISPATCH_QUEUE"), "max_batch_size": 10},
                 {"queue": env("TALON_CF_RESOURCE_LIFECYCLE_QUEUE"), "max_batch_size": 10},
                 {"queue": env("TALON_CF_SESSION_CONTROL_QUEUE"), "max_batch_size": 10},
+                {"queue": env("TALON_CF_INDEX_EVENTS_QUEUE"), "max_batch_size": 10},
             ],
         },
         "durable_objects": {

@@ -27,6 +27,9 @@ function queueForTopic(env: TalonCfBindingsEnv, topic: string): { queue: Queue; 
   if (topic === TOPICS.sessionControl) {
     return { queue: env.SESSION_CONTROL_QUEUE, eventType: "session_control" };
   }
+  if (topic === TOPICS.indexEvents) {
+    return { queue: env.INDEX_EVENTS_QUEUE, eventType: "index" };
+  }
   return null;
 }
 
