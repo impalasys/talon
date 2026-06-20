@@ -20,16 +20,16 @@ use std::{
 const DEFAULT_THINKING_BUDGET_TOKENS: u32 = 1024;
 const THINKING_COMPLETION_BUFFER_TOKENS: u32 = 4096;
 
-fn openai_content_part(part: ChatContentPart) -> serde_json::Value {
-    match part.content {
+fn openai_content_part(part: &ChatContentPart) -> serde_json::Value {
+    match part.content.as_ref() {
         Some(chat_content_part::Content::Text(text)) => serde_json::json!({
             "type": "text",
             "text": text,
         }),
         Some(chat_content_part::Content::ImageUrl(image)) => {
-            let mut image_url = serde_json::json!({ "url": image.url });
-            if let Some(detail) = image.detail {
-                image_url["detail"] = serde_json::Value::String(detail);
+            let mut image_url = serde_json::json!({ "url": image.url.clone() });
+            if let Some(detail) = &image.detail {
+                image_url["detail"] = serde_json::Value::String(detail.clone());
             }
             serde_json::json!({
                 "type": "image_url",
@@ -40,8 +40,8 @@ fn openai_content_part(part: ChatContentPart) -> serde_json::Value {
             let mut image_url = serde_json::json!({
                 "url": format!("data:{};base64,{}", image.media_type, image.data_base64),
             });
-            if let Some(detail) = image.detail {
-                image_url["detail"] = serde_json::Value::String(detail);
+            if let Some(detail) = &image.detail {
+                image_url["detail"] = serde_json::Value::String(detail.clone());
             }
             serde_json::json!({
                 "type": "image_url",
@@ -91,7 +91,7 @@ impl OpenAiCompatibleProvider {
                         _ => serde_json::Value::Array(
                             message
                                 .content_parts
-                                .into_iter()
+                                .iter()
                                 .map(openai_content_part)
                                 .collect(),
                         ),
@@ -99,7 +99,7 @@ impl OpenAiCompatibleProvider {
                     _ => serde_json::Value::Array(
                         message
                             .content_parts
-                            .into_iter()
+                            .iter()
                             .map(openai_content_part)
                             .collect(),
                     ),
