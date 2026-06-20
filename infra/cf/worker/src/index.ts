@@ -78,6 +78,7 @@ const ENVOY_CONTAINER_PORTS = [8081];
 
 const GATEWAY_CONTAINER_ENTRYPOINT = ["/usr/local/bin/talon-server"];
 const WORKER_CONTAINER_ENTRYPOINT = ["/usr/local/bin/talon-worker"];
+const ENVOY_CONTAINER_ENTRYPOINT = ["/usr/local/bin/talon-envoy-entrypoint"];
 
 function gatewayContainerStartProfile(env: Env): ContainerStartProfile {
   return {
@@ -117,6 +118,7 @@ function workerContainerStartProfile(env: Env): ContainerStartProfile {
 const ENVOY_CONTAINER_START_PROFILE = {
   ports: ENVOY_CONTAINER_PORTS,
   startOptions: {
+    entrypoint: ENVOY_CONTAINER_ENTRYPOINT,
     enableInternet: false,
     envVars: {
       TALON_ENVOY_GATEWAY_GRPC_HOST: "gateway.internal",
@@ -134,6 +136,7 @@ const WORKER_CONTAINER_DEFAULT_START_OPTIONS = {
   enableInternet: true,
 } satisfies ContainerStartConfigOptions;
 const ENVOY_CONTAINER_DEFAULT_START_OPTIONS = {
+  entrypoint: ENVOY_CONTAINER_ENTRYPOINT,
   enableInternet: false,
 } satisfies ContainerStartConfigOptions;
 
@@ -336,6 +339,7 @@ export class EnvoyContainer extends Container<Env> {
   defaultPort = 8081;
   requiredPorts = ENVOY_CONTAINER_PORTS;
   enableInternet = ENVOY_CONTAINER_DEFAULT_START_OPTIONS.enableInternet;
+  entrypoint = ENVOY_CONTAINER_DEFAULT_START_OPTIONS.entrypoint;
   envVars = ENVOY_CONTAINER_START_PROFILE.startOptions.envVars;
 }
 

@@ -13,4 +13,8 @@ sed \
   -e "s|{{TALON_ENVOY_GATEWAY_HTTP_PORT}}|${TALON_ENVOY_GATEWAY_HTTP_PORT}|g" \
   /etc/envoy/envoy.yaml.template > /tmp/envoy.yaml
 
+if [ "$#" -eq 0 ]; then
+  set -- envoy -c /tmp/envoy.yaml
+fi
+
 exec "$@"
