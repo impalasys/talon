@@ -341,12 +341,14 @@ export class EnvoyContainer extends Container<Env> {
   enableInternet = ENVOY_CONTAINER_DEFAULT_START_OPTIONS.enableInternet;
   entrypoint = ENVOY_CONTAINER_DEFAULT_START_OPTIONS.entrypoint;
   envVars = ENVOY_CONTAINER_START_PROFILE.startOptions.envVars;
+  usingInterception = true;
 }
 
 // Assign after class declarations so @cloudflare/containers' inherited static
 // setter registers these handlers for ContainerProxy.
 GatewayContainer.outboundByHost = outboundByHost;
 WorkerContainer.outboundByHost = outboundByHost;
+EnvoyContainer.outboundByHost = outboundByHost;
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
