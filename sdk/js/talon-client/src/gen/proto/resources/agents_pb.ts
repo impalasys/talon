@@ -1033,4 +1033,3 @@ export class AgentCardSkill extends Message<AgentCardSkill> {
     return proto3.util.equals(AgentCardSkill, a, b);
   }
 }
-

@@ -373,4 +373,3 @@ export class NamespaceSelector extends Message<NamespaceSelector> {
     return proto3.util.equals(NamespaceSelector, a, b);
   }
 }
-

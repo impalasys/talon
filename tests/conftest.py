@@ -320,6 +320,7 @@ def talon_infrastructure_sqlite():
     env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
     env["GATEWAY_UI_ADDR"] = f"127.0.0.1:{test_ui_port}"
     env["PORT"] = str(worker_port)
+    env["TALON_SESSION_PROCESSING_TIMEOUT_SECONDS"] = "1"
 
     temp_dir = Path(tempfile.mkdtemp(prefix="talon-sqlite-e2e-"))
     data_dir = temp_dir / "data"
@@ -356,17 +357,26 @@ control_plane:
         worker_pull_mode=True,
     )
 
-    yield {
+    state = {
         "grpc_port": test_grpc_port,
         "ui_port": test_ui_port,
         "worker_port": worker_port,
         "config_path": str(config_path),
         "data_dir": str(data_dir),
+        "env": env,
+        "server_proc": server_proc,
+        "worker_proc": worker_proc,
+        "restarted_workers": [],
     }
+    yield state
 
     print("\nShutting down SQLite + local_socket Talon stack...")
+    for proc in state.get("restarted_workers", []):
+        proc.terminate()
     server_proc.terminate()
     worker_proc.terminate()
+    for proc in state.get("restarted_workers", []):
+        proc.wait()
     server_proc.wait()
     worker_proc.wait()
     shutil.rmtree(temp_dir, ignore_errors=True)

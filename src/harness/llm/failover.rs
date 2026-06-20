@@ -105,7 +105,7 @@ impl LlmProvider for FailoverProvider {
 mod tests {
     use super::*;
     use crate::harness::llm::mock::MockLlmProvider;
-    use crate::harness::llm::ChatStreamEvent;
+    use crate::harness::llm::{chat_stream_event, text_delta_event};
     use futures::StreamExt;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -172,7 +172,9 @@ mod tests {
         let items: Vec<_> = stream.collect().await;
         assert_eq!(items.len(), 1);
         match items[0].as_ref().unwrap() {
-            ChatStreamEvent::TextDelta(text) => assert!(text.contains("Mock response")),
+            crate::harness::llm::ChatStreamEvent {
+                event: Some(chat_stream_event::Event::TextDelta(text)),
+            } => assert!(text.contains("Mock response")),
             other => panic!("Unexpected stream event: {:?}", other),
         }
     }
@@ -214,9 +216,9 @@ mod tests {
             if call < self.fail_until {
                 Err(anyhow!("stream fail {}", call + 1))
             } else {
-                Ok(Box::pin(futures::stream::iter(vec![Ok(
-                    ChatStreamEvent::TextDelta("stream ok".to_string()),
-                )])))
+                Ok(Box::pin(futures::stream::iter(vec![Ok(text_delta_event(
+                    "stream ok",
+                ))])))
             }
         }
 

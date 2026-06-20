@@ -997,4 +997,3 @@ export class WorkflowRunEvent extends Message<WorkflowRunEvent> {
     return proto3.util.equals(WorkflowRunEvent, a, b);
   }
 }
-

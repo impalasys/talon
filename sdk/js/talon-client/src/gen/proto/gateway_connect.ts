@@ -318,4 +318,3 @@ export const GatewayService = {
     },
   }
 } as const;
-

@@ -287,4 +287,3 @@ export class McpAuthBrokerSpec extends Message<McpAuthBrokerSpec> {
     return proto3.util.equals(McpAuthBrokerSpec, a, b);
   }
 }
-

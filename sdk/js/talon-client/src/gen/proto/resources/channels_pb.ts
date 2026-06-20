@@ -324,4 +324,3 @@ export class ChannelSubscriptionSpec extends Message<ChannelSubscriptionSpec> {
     return proto3.util.equals(ChannelSubscriptionSpec, a, b);
   }
 }
-

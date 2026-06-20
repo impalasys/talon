@@ -9,6 +9,9 @@ pub mod generated {
         pub mod data {
             include!("generated/talon.data.rs");
         }
+        pub mod harness {
+            include!("generated/talon.harness.rs");
+        }
         pub mod resources {
             include!("generated/talon.resources.rs");
         }

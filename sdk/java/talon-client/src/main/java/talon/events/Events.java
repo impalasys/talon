@@ -1787,6 +1787,18 @@ public final class Events extends com.google.protobuf.GeneratedFile {
      */
     com.google.protobuf.ByteString
         getNsBytes();
+
+    /**
+     * <code>string submission_id = 8;</code>
+     * @return The submissionId.
+     */
+    java.lang.String getSubmissionId();
+    /**
+     * <code>string submission_id = 8;</code>
+     * @return The bytes for submissionId.
+     */
+    com.google.protobuf.ByteString
+        getSubmissionIdBytes();
   }
   /**
    * Protobuf type {@code talon.events.SessionMessageEvent}
@@ -1816,6 +1828,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       agent_ = "";
       message_ = "";
       ns_ = "";
+      submissionId_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -2060,6 +2073,45 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       }
     }
 
+    public static final int SUBMISSION_ID_FIELD_NUMBER = 8;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object submissionId_ = "";
+    /**
+     * <code>string submission_id = 8;</code>
+     * @return The submissionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSubmissionId() {
+      java.lang.Object ref = submissionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        submissionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string submission_id = 8;</code>
+     * @return The bytes for submissionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSubmissionIdBytes() {
+      java.lang.Object ref = submissionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        submissionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -2095,6 +2147,9 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 7, ns_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(submissionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, submissionId_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -2127,6 +2182,9 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(7, ns_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(submissionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, submissionId_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -2155,6 +2213,8 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           .equals(other.getMessage())) return false;
       if (!getNs()
           .equals(other.getNs())) return false;
+      if (!getSubmissionId()
+          .equals(other.getSubmissionId())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -2181,6 +2241,8 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       hash = (53 * hash) + getMessage().hashCode();
       hash = (37 * hash) + NS_FIELD_NUMBER;
       hash = (53 * hash) + getNs().hashCode();
+      hash = (37 * hash) + SUBMISSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSubmissionId().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -2319,6 +2381,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         agent_ = "";
         message_ = "";
         ns_ = "";
+        submissionId_ = "";
         return this;
       }
 
@@ -2373,6 +2436,9 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000040) != 0)) {
           result.ns_ = ns_;
         }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.submissionId_ = submissionId_;
+        }
       }
 
       @java.lang.Override
@@ -2416,6 +2482,11 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         if (!other.getNs().isEmpty()) {
           ns_ = other.ns_;
           bitField0_ |= 0x00000040;
+          onChanged();
+        }
+        if (!other.getSubmissionId().isEmpty()) {
+          submissionId_ = other.submissionId_;
+          bitField0_ |= 0x00000080;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -2479,6 +2550,11 @@ public final class Events extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000040;
                 break;
               } // case 58
+              case 66: {
+                submissionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 66
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -2936,6 +3012,78 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         checkByteStringIsUtf8(value);
         ns_ = value;
         bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object submissionId_ = "";
+      /**
+       * <code>string submission_id = 8;</code>
+       * @return The submissionId.
+       */
+      public java.lang.String getSubmissionId() {
+        java.lang.Object ref = submissionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          submissionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string submission_id = 8;</code>
+       * @return The bytes for submissionId.
+       */
+      public com.google.protobuf.ByteString
+          getSubmissionIdBytes() {
+        java.lang.Object ref = submissionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          submissionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string submission_id = 8;</code>
+       * @param value The submissionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSubmissionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        submissionId_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string submission_id = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSubmissionId() {
+        submissionId_ = getDefaultInstance().getSubmissionId();
+        bitField0_ = (bitField0_ & ~0x00000080);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string submission_id = 8;</code>
+       * @param value The bytes for submissionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSubmissionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        submissionId_ = value;
+        bitField0_ |= 0x00000080;
         onChanged();
         return this;
       }
@@ -9953,57 +10101,58 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       "o/data/data.proto\"\200\001\n\016LifecycleEvent\022\025\n\r" +
       "resource_type\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\n\n\002ns\030" +
       "\003 \001(\t\022*\n\006action\030\004 \001(\0162\032.talon.events.Sys" +
-      "temAction\022\021\n\ttimestamp\030\005 \001(\003\"\257\001\n\023Session" +
+      "temAction\022\021\n\ttimestamp\030\005 \001(\003\"\306\001\n\023Session" +
       "MessageEvent\022\022\n\nsession_id\030\001 \001(\t\022\022\n\nmess" +
       "age_id\030\002 \001(\t\0221\n\tdirection\030\003 \001(\0162\036.talon." +
       "events.MessageDirection\022\021\n\ttimestamp\030\004 \001" +
       "(\003\022\r\n\005agent\030\005 \001(\t\022\017\n\007message\030\006 \001(\t\022\n\n\002ns" +
-      "\030\007 \001(\t\"g\n\023SessionControlEvent\022\022\n\nsession" +
-      "_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006" +
-      "action\030\004 \001(\t\022\021\n\ttimestamp\030\005 \001(\003\"\326\001\n\027Sess" +
-      "ionMessagePartEvent\022\022\n\nsession_id\030\001 \001(\t\022" +
-      "7\n\004kind\030\002 \001(\0162).talon.events.SessionMess" +
-      "agePartEventKind\022,\n\004part\030\003 \001(\0132\036.talon.d" +
-      "ata.SessionMessagePart\022\021\n\ttimestamp\030\004 \001(" +
-      "\003\022\r\n\005agent\030\005 \001(\t\022\n\n\002ns\030\006 \001(\t\022\022\n\nmessage_" +
-      "id\030\007 \001(\t\"\341\001\n\014ChannelEvent\022\n\n\002ns\030\001 \001(\t\022\017\n" +
-      "\007channel\030\002 \001(\t\022,\n\004kind\030\003 \001(\0162\036.talon.eve" +
-      "nts.ChannelEventKind\022+\n\007message\030\004 \001(\0132\032." +
-      "talon.data.ChannelMessage\022\022\n\nsession_id\030" +
-      "\005 \001(\t\022\r\n\005agent\030\006 \001(\t\022\024\n\014subscription\030\007 \001" +
-      "(\t\022\r\n\005error\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003\"\223\001\n" +
-      "\025WorkflowDispatchEvent\022\n\n\002ns\030\001 \001(\t\022\020\n\010wo" +
-      "rkflow\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\022\016\n\006reason\030\004" +
-      " \001(\t\022\017\n\007step_id\030\005 \001(\t\022\030\n\020child_session_i" +
-      "d\030\006 \001(\t\022\021\n\ttimestamp\030\007 \001(\003\"\355\001\n\024ResourceC" +
-      "hangedEvent\022\021\n\tnamespace\030\001 \001(\t\022\025\n\rresour" +
-      "ce_kind\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\013\n\003uid\030\004 \001(\t" +
-      "\022\030\n\020resource_version\030\005 \001(\t\022\022\n\ngeneration" +
-      "\030\006 \001(\004\0225\n\013change_type\030\007 \001(\0162 .talon.even" +
-      "ts.ResourceChangeType\022\030\n\020changed_section" +
-      "s\030\010 \003(\t\022\021\n\ttimestamp\030\t \001(\003*\260\001\n\014SystemAct" +
-      "ion\022\035\n\031SYSTEM_ACTION_UNSPECIFIED\020\000\022\030\n\024SY" +
-      "STEM_ACTION_CREATE\020\001\022\030\n\024SYSTEM_ACTION_UP" +
-      "DATE\020\002\022\030\n\024SYSTEM_ACTION_DELETE\020\003\022\031\n\025SYST" +
-      "EM_ACTION_SUSPEND\020\004\022\030\n\024SYSTEM_ACTION_RES" +
-      "UME\020\005*t\n\020MessageDirection\022!\n\035MESSAGE_DIR" +
-      "ECTION_UNSPECIFIED\020\000\022\035\n\031MESSAGE_DIRECTIO" +
-      "N_INBOUND\020\001\022\036\n\032MESSAGE_DIRECTION_OUTBOUN" +
-      "D\020\002*\316\001\n\033SessionMessagePartEventKind\022/\n+S" +
-      "ESSION_MESSAGE_PART_EVENT_KIND_UNSPECIFI" +
-      "ED\020\000\022)\n%SESSION_MESSAGE_PART_EVENT_KIND_" +
-      "DELTA\020\001\022(\n$SESSION_MESSAGE_PART_EVENT_KI" +
-      "ND_DONE\020\002\022)\n%SESSION_MESSAGE_PART_EVENT_" +
-      "KIND_ERROR\020\003*\313\001\n\020ChannelEventKind\022\"\n\036CHA" +
-      "NNEL_EVENT_KIND_UNSPECIFIED\020\000\022&\n\"CHANNEL" +
-      "_EVENT_KIND_MESSAGE_CREATED\020\001\022%\n!CHANNEL" +
-      "_EVENT_KIND_SESSION_ROUTED\020\002\022&\n\"CHANNEL_" +
-      "EVENT_KIND_PUBLISH_SKIPPED\020\003\022\034\n\030CHANNEL_" +
-      "EVENT_KIND_ERROR\020\004*\240\001\n\022ResourceChangeTyp" +
-      "e\022$\n RESOURCE_CHANGE_TYPE_UNSPECIFIED\020\000\022" +
-      " \n\034RESOURCE_CHANGE_TYPE_CREATED\020\001\022 \n\034RES" +
-      "OURCE_CHANGE_TYPE_UPDATED\020\002\022 \n\034RESOURCE_" +
-      "CHANGE_TYPE_DELETED\020\003b\006proto3"
+      "\030\007 \001(\t\022\025\n\rsubmission_id\030\010 \001(\t\"g\n\023Session" +
+      "ControlEvent\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agen" +
+      "t\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006action\030\004 \001(\t\022\021\n\tt" +
+      "imestamp\030\005 \001(\003\"\326\001\n\027SessionMessagePartEve" +
+      "nt\022\022\n\nsession_id\030\001 \001(\t\0227\n\004kind\030\002 \001(\0162).t" +
+      "alon.events.SessionMessagePartEventKind\022" +
+      ",\n\004part\030\003 \001(\0132\036.talon.data.SessionMessag" +
+      "ePart\022\021\n\ttimestamp\030\004 \001(\003\022\r\n\005agent\030\005 \001(\t\022" +
+      "\n\n\002ns\030\006 \001(\t\022\022\n\nmessage_id\030\007 \001(\t\"\341\001\n\014Chan" +
+      "nelEvent\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001(\t\022,\n" +
+      "\004kind\030\003 \001(\0162\036.talon.events.ChannelEventK" +
+      "ind\022+\n\007message\030\004 \001(\0132\032.talon.data.Channe" +
+      "lMessage\022\022\n\nsession_id\030\005 \001(\t\022\r\n\005agent\030\006 " +
+      "\001(\t\022\024\n\014subscription\030\007 \001(\t\022\r\n\005error\030\010 \001(\t" +
+      "\022\021\n\ttimestamp\030\t \001(\003\"\223\001\n\025WorkflowDispatch" +
+      "Event\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\016\n\006r" +
+      "un_id\030\003 \001(\t\022\016\n\006reason\030\004 \001(\t\022\017\n\007step_id\030\005" +
+      " \001(\t\022\030\n\020child_session_id\030\006 \001(\t\022\021\n\ttimest" +
+      "amp\030\007 \001(\003\"\355\001\n\024ResourceChangedEvent\022\021\n\tna" +
+      "mespace\030\001 \001(\t\022\025\n\rresource_kind\030\002 \001(\t\022\014\n\004" +
+      "name\030\003 \001(\t\022\013\n\003uid\030\004 \001(\t\022\030\n\020resource_vers" +
+      "ion\030\005 \001(\t\022\022\n\ngeneration\030\006 \001(\004\0225\n\013change_" +
+      "type\030\007 \001(\0162 .talon.events.ResourceChange" +
+      "Type\022\030\n\020changed_sections\030\010 \003(\t\022\021\n\ttimest" +
+      "amp\030\t \001(\003*\260\001\n\014SystemAction\022\035\n\031SYSTEM_ACT" +
+      "ION_UNSPECIFIED\020\000\022\030\n\024SYSTEM_ACTION_CREAT" +
+      "E\020\001\022\030\n\024SYSTEM_ACTION_UPDATE\020\002\022\030\n\024SYSTEM_" +
+      "ACTION_DELETE\020\003\022\031\n\025SYSTEM_ACTION_SUSPEND" +
+      "\020\004\022\030\n\024SYSTEM_ACTION_RESUME\020\005*t\n\020MessageD" +
+      "irection\022!\n\035MESSAGE_DIRECTION_UNSPECIFIE" +
+      "D\020\000\022\035\n\031MESSAGE_DIRECTION_INBOUND\020\001\022\036\n\032ME" +
+      "SSAGE_DIRECTION_OUTBOUND\020\002*\316\001\n\033SessionMe" +
+      "ssagePartEventKind\022/\n+SESSION_MESSAGE_PA" +
+      "RT_EVENT_KIND_UNSPECIFIED\020\000\022)\n%SESSION_M" +
+      "ESSAGE_PART_EVENT_KIND_DELTA\020\001\022(\n$SESSIO" +
+      "N_MESSAGE_PART_EVENT_KIND_DONE\020\002\022)\n%SESS" +
+      "ION_MESSAGE_PART_EVENT_KIND_ERROR\020\003*\313\001\n\020" +
+      "ChannelEventKind\022\"\n\036CHANNEL_EVENT_KIND_U" +
+      "NSPECIFIED\020\000\022&\n\"CHANNEL_EVENT_KIND_MESSA" +
+      "GE_CREATED\020\001\022%\n!CHANNEL_EVENT_KIND_SESSI" +
+      "ON_ROUTED\020\002\022&\n\"CHANNEL_EVENT_KIND_PUBLIS" +
+      "H_SKIPPED\020\003\022\034\n\030CHANNEL_EVENT_KIND_ERROR\020" +
+      "\004*\240\001\n\022ResourceChangeType\022$\n RESOURCE_CHA" +
+      "NGE_TYPE_UNSPECIFIED\020\000\022 \n\034RESOURCE_CHANG" +
+      "E_TYPE_CREATED\020\001\022 \n\034RESOURCE_CHANGE_TYPE" +
+      "_UPDATED\020\002\022 \n\034RESOURCE_CHANGE_TYPE_DELET" +
+      "ED\020\003b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -10021,7 +10170,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     internal_static_talon_events_SessionMessageEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_events_SessionMessageEvent_descriptor,
-        new java.lang.String[] { "SessionId", "MessageId", "Direction", "Timestamp", "Agent", "Message", "Ns", });
+        new java.lang.String[] { "SessionId", "MessageId", "Direction", "Timestamp", "Agent", "Message", "Ns", "SubmissionId", });
     internal_static_talon_events_SessionControlEvent_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_events_SessionControlEvent_fieldAccessorTable = new

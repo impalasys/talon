@@ -30,6 +30,51 @@ function makeStreamResponse(lines: string[]) {
   } as any;
 }
 
+function makeControllableStreamResponse() {
+  const encoder = new TextEncoder();
+  let releaseNextRead: ((line: string | null) => void) | null = null;
+  const releasedLines: Array<string | null> = [];
+
+  return {
+    response: {
+      ok: true,
+      body: {
+        getReader() {
+          return {
+            async read() {
+              const next = releasedLines.shift();
+              if (next !== undefined) {
+                return next === null
+                  ? { done: true, value: undefined }
+                  : { done: false, value: encoder.encode(next) };
+              }
+              return new Promise((resolve) => {
+                releaseNextRead = (line) => {
+                  resolve(
+                    line === null
+                      ? { done: true, value: undefined }
+                      : { done: false, value: encoder.encode(line) },
+                  );
+                };
+              });
+            },
+            cancel: jest.fn().mockResolvedValue(undefined),
+          };
+        },
+      },
+    } as any,
+    release(line: string | null) {
+      if (releaseNextRead) {
+        const release = releaseNextRead;
+        releaseNextRead = null;
+        release(line);
+      } else {
+        releasedLines.push(line);
+      }
+    },
+  };
+}
+
 describe('TalonCopilot', () => {
   afterEach(() => {
     jest.restoreAllMocks();
@@ -830,6 +875,92 @@ describe('TalonCopilot', () => {
     expect(await screen.findByText('Recovered after stream timeout.')).toBeInTheDocument();
     expect(screen.queryByText('recover this')).not.toBeInTheDocument();
     expect(screen.queryByText(/system incident/i)).not.toBeInTheDocument();
+  });
+
+  it('aborts an existing session resume stream before sending a new message', async () => {
+    const resumeStream = makeControllableStreamResponse();
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest
+        .fn()
+        .mockResolvedValueOnce({
+          sessionId: 'sess-existing-processing',
+          state: 'PROCESSING',
+          messages: [
+            {
+              id: 'user-existing',
+              role: 'ROLE_USER',
+              content: 'Previous request',
+              createdAt: String(Date.now() * 1000),
+            },
+          ],
+          steps: [],
+        })
+        .mockResolvedValueOnce({
+          sessionId: 'sess-existing-processing',
+          state: 'IDLE',
+          messages: [
+            {
+              id: 'user-existing',
+              role: 'ROLE_USER',
+              content: 'Previous request',
+              createdAt: String(Date.now() * 1000),
+            },
+            {
+              id: 'assistant-existing',
+              role: 'ROLE_ASSISTANT',
+              content: 'Sure',
+              createdAt: String(Date.now() * 1000),
+            },
+          ],
+          steps: [],
+        }),
+      getSession: jest.fn(),
+    };
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock.mockImplementation((_url, init) => {
+      if (init?.method === 'POST') {
+        return Promise.resolve(makeStreamResponse([
+          'f:{"messageId":"assistant-existing"}\n',
+          '0:"Sure"\n',
+        ]));
+      }
+      return Promise.resolve(resumeStream.response);
+    });
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-existing-processing"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        'http://localhost:18789/v1/ui/ns/ops/agents/copilot/sessions/sess-existing-processing',
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
+    });
+    const resumeSignal = fetchMock.mock.calls[0][1].signal as AbortSignal;
+
+    fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
+      target: { value: 'new request' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send message/i }));
+
+    await waitFor(() => expect(resumeSignal.aborted).toBe(true));
+    resumeStream.release('f:{"messageId":"assistant-existing"}\n');
+    resumeStream.release('0:"Sure"\n');
+    resumeStream.release(null);
+
+    expect(await screen.findByText('Sure')).toBeInTheDocument();
+    await waitFor(() => expect(gatewayClient.listSessionMessages).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText('SureSure')).not.toBeInTheDocument();
+    expect(gatewayClient.createSession).not.toHaveBeenCalled();
   });
 });
 

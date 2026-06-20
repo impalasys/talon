@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package talon.harness;
+
+import "proto/resources/agents.proto";
+
+message ChatImageUrl {
+  string url = 1;
+  optional string detail = 2;
+}
+
+message ChatImageData {
+  string media_type = 1;
+  string data_base64 = 2;
+  optional string detail = 3;
+}
+
+message ChatContentPart {
+  oneof content {
+    string text = 1;
+    ChatImageUrl image_url = 2;
+    ChatImageData image_data = 3;
+  }
+}
+
+message ToolCall {
+  string id = 1;
+  string name = 2;
+  // Provider-native JSON argument string.
+  string arguments = 3;
+}
+
+message ToolCallDelta {
+  uint32 index = 1;
+  optional string id = 2;
+  optional string name = 3;
+  optional string arguments = 4;
+}
+
+message ChatMessage {
+  string role = 1;
+  repeated ChatContentPart content_parts = 2;
+  repeated ToolCall tool_calls = 3;
+  optional string tool_call_id = 4;
+}
+
+message ChatUsage {
+  uint64 input_tokens = 1;
+  uint64 output_tokens = 2;
+  uint64 reasoning_tokens = 3;
+  uint64 total_tokens = 4;
+}
+
+message ChatResponse {
+  string content = 1;
+  repeated ToolCall tool_calls = 2;
+  optional ChatUsage usage = 3;
+}
+
+message Tool {
+  string name = 1;
+  string description = 2;
+  // JSON Schema encoded as a stable provider-neutral JSON string.
+  string input_schema_json = 3;
+}
+
+message ChatRequest {
+  repeated ChatMessage messages = 1;
+  repeated Tool tools = 2;
+  optional talon.resources.ThinkingConfig thinking = 3;
+}
+
+message ChatStreamEvent {
+  oneof event {
+    string text_delta = 1;
+    string reasoning_delta = 2;
+    ToolCallDelta tool_call_delta = 3;
+    ChatUsage usage = 4;
+  }
+}

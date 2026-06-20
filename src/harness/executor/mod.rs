@@ -9,7 +9,7 @@ pub mod task;
 pub use context_budget::{compact_history_for_llm, tool_result_preview, ContextBudget};
 pub use rpc::{RpcMessage, RpcRequest, RpcResponse};
 pub use runtime::{
-    AgentEvent, AgentExecutor, CaptureSink, ContextAssembler, ExecutionContext, ExecutionSink,
-    LoopMessage, NullSink, RegisteredMcpTool,
+    tool_result_loop_message, AgentEvent, AgentExecutor, CaptureSink, ContextAssembler,
+    ExecutionContext, ExecutionSink, LoopMessage, NullSink, RegisteredMcpTool,
 };
 pub use task::{EncryptedResult, Task, TaskResult, TaskStatus};

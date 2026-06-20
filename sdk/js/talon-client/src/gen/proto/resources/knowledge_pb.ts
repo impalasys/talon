@@ -98,4 +98,3 @@ export class KnowledgeSpec extends Message<KnowledgeSpec> {
     return proto3.util.equals(KnowledgeSpec, a, b);
   }
 }
-

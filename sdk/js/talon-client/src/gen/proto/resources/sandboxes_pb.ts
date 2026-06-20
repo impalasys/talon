@@ -788,4 +788,3 @@ export class Sandbox extends Message<Sandbox> {
     return proto3.util.equals(Sandbox, a, b);
   }
 }
-

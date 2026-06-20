@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package talon.data;
+
+import "proto/harness/llm.proto";
+
+enum SessionExecutionPhase {
+  // Default value; should not be written for an active journal entry.
+  SESSION_EXECUTION_PHASE_UNSPECIFIED = 0;
+
+  // A full LLM response completed. Recovery can hydrate assistant text and any
+  // requested tool calls from this entry without replaying the LLM call.
+  SESSION_EXECUTION_PHASE_LLM_RESPONSE = 1;
+
+  // One tool result completed. Recovery can preserve this result and execute
+  // only missing calls from the preceding LLM_RESPONSE tool-call batch.
+  SESSION_EXECUTION_PHASE_TOOL_RESULT = 2;
+
+  // The submission reached a commit boundary and its canonical assistant
+  // SessionMessage was written.
+  SESSION_EXECUTION_PHASE_COMMITTED = 3;
+}
+
+message SessionJournalEntryPayloadLlmResponse {
+  talon.harness.ChatResponse response = 1;
+}
+
+message SessionJournalEntryPayloadToolResult {
+  string tool_call_id = 1;
+  string name = 2;
+  string output = 3;
+}
+
+message SessionJournalEntryPayloadCommit {
+  string committed_message_id = 1;
+}
+
+message SessionJournalEntryPayload {
+  oneof payload {
+    SessionJournalEntryPayloadLlmResponse llm_response = 1;
+    SessionJournalEntryPayloadToolResult tool_result = 2;
+    SessionJournalEntryPayloadCommit commit = 3;
+  }
+}
+
+message SessionJournalEntry {
+  string submission_id = 1;
+  string journal_entry_id = 2;
+  string attempt_id = 3;
+  SessionExecutionPhase phase = 4;
+  SessionJournalEntryPayload payload = 5;
+  // Unix timestamp in microseconds.
+  int64 created_at = 6;
+  // Unix timestamp in microseconds.
+  int64 updated_at = 7;
+  // Unix timestamp in microseconds.
+  optional int64 committed_at = 8;
+  optional string committed_message_id = 9;
+}

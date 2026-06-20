@@ -18,6 +18,9 @@ pub mod generated {
     pub mod data {
         tonic::include_proto!("talon.data");
     }
+    pub mod harness {
+        tonic::include_proto!("talon.harness");
+    }
     pub mod events {
         pub use crate::control::events::*;
     }
@@ -34,6 +37,9 @@ pub mod generated {
     pub mod data {
         pub use talon_data_proto::talon::data::*;
     }
+    pub mod harness {
+        pub use talon_harness_proto::talon::harness::*;
+    }
     pub mod resources {
         pub use talon_resources_proto::talon::resources::*;
     }
@@ -48,6 +54,10 @@ pub mod proto {
 
 pub mod data_proto {
     pub use super::generated::data::*;
+}
+
+pub mod harness_proto {
+    pub use super::generated::harness::*;
 }
 
 pub mod resources_proto {

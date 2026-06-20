@@ -153,4 +153,3 @@ export class NamespaceStatus extends Message<NamespaceStatus> {
     return proto3.util.equals(NamespaceStatus, a, b);
   }
 }
-

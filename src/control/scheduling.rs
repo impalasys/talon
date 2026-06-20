@@ -692,6 +692,30 @@ pub async fn send_session_message(
     }
 
     let message_id = user_msg.id.clone();
+    let submission_id = message_id.clone();
+    let submission = crate::harness::sessions::pending_submission(
+        submission_id.clone(),
+        session_id.to_string(),
+        message_id.clone(),
+        now_micros,
+    );
+    if let Err(err) = crate::harness::sessions::create_submission_if_absent(
+        kv,
+        ns,
+        agent,
+        session_id,
+        &submission,
+    )
+    .await
+    {
+        log_session_release_failure(
+            try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
+            ns,
+            &key,
+        );
+        return Err(err);
+    }
+
     let message_text = session_message_text_projection(&user_msg);
     let message_event = events::SessionMessageEvent {
         session_id: session_id.to_string(),
@@ -701,6 +725,7 @@ pub async fn send_session_message(
         agent: agent.to_string(),
         message: message_text,
         ns: ns.to_string(),
+        submission_id,
     };
     if let Err(err) = pubsub
         .publish(
@@ -914,7 +939,7 @@ mod tests {
     use crate::control::{
         keys::{ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
-        KeyValueStore, MessagePublisher,
+        KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::manifests;
     use futures::stream;
@@ -1248,7 +1273,7 @@ mod tests {
         let pubsub = Arc::new(MockPubSub::default());
         let cp = ControlPlane {
             kv: kv.clone(),
-            pubsub,
+            pubsub: pubsub.clone(),
             scheduler: Arc::new(NoopSchedulerBackend),
             objects: crate::control::object_store::default_object_store(),
         };
@@ -1285,6 +1310,29 @@ mod tests {
         )
         .await
         .unwrap();
+
+        let dispatches = pubsub.messages.lock().await.clone();
+        let dispatch = events::SessionMessageEvent::decode(dispatches[0].as_slice()).unwrap();
+        assert_eq!(dispatch.submission_id, dispatch.message_id);
+        let submission = cp
+            .kv
+            .get_msg::<crate::harness::sessions::SessionSubmission>(&keys::session_submission(
+                "conic:test",
+                "assistant",
+                "session-1",
+                &dispatch.submission_id,
+            ))
+            .await
+            .unwrap()
+            .expect("session submission should be created");
+        assert_eq!(submission.submission_id, dispatch.message_id);
+        assert_eq!(submission.user_message_id, dispatch.message_id);
+        assert_eq!(
+            submission.status,
+            crate::gateway::rpc::data_proto::SessionSubmissionStatus::Pending as i32
+        );
+        assert_eq!(submission.completed_at, None);
+        assert_eq!(submission.committed_message_id, None);
 
         let err = send_message(
             cp.kv.as_ref(),

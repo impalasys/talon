@@ -462,4 +462,3 @@ export class DeploymentReplicaStatus extends Message<DeploymentReplicaStatus> {
     return proto3.util.equals(DeploymentReplicaStatus, a, b);
   }
 }
-

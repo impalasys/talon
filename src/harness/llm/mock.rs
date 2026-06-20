@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::harness::llm::provider::{
-    ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider,
+    text_delta_event, ChatRequest, ChatResponse, ChatStream, LlmProvider,
 };
 use crate::harness::memory::Embedding;
 use anyhow::Result;
@@ -26,8 +26,7 @@ impl LlmProvider for MockLlmProvider {
 
     async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
         let response = self.chat_completion(request).await?;
-        let stream =
-            futures::stream::once(async move { Ok(ChatStreamEvent::TextDelta(response.content)) });
+        let stream = futures::stream::once(async move { Ok(text_delta_event(response.content)) });
         Ok(Box::pin(stream))
     }
 
@@ -79,9 +78,7 @@ mod tests {
             .expect("stream items should succeed");
         assert_eq!(
             events,
-            vec![ChatStreamEvent::TextDelta(
-                "Mock response to 1 messages".to_string()
-            )]
+            vec![text_delta_event("Mock response to 1 messages")]
         );
 
         let text = provider

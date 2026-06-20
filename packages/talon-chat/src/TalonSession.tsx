@@ -1335,6 +1335,8 @@ export function TalonSession({
 
     setError(null);
     setStreamEvents([]);
+    resumeAbortControllerRef.current?.abort();
+    resumeAbortControllerRef.current = null;
 
     try {
       let session = currentSessionRef.current;

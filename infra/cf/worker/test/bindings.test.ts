@@ -31,8 +31,14 @@ class MockD1Statement {
 class MockD1Database {
   lastSql = "";
   lastParams: unknown[] = [];
+  lastSessionConstraint: unknown = undefined;
   rows: Record<string, unknown>[] = [];
   firstRow: Record<string, unknown> | null = null;
+
+  withSession(constraint: unknown) {
+    this.lastSessionConstraint = constraint;
+    return this;
+  }
 
   prepare(sql: string) {
     return new MockD1Statement(this, sql);
@@ -129,6 +135,7 @@ test("D1 bridge decodes Rust execute params and forwards prepared SQL", async ()
   );
 
   assert.equal(response.status, 200);
+  assert.equal(d1.lastSessionConstraint, "first-primary");
   assert.equal(d1.lastSql, "INSERT INTO \"talon_kv_store\" VALUES (?1, ?2, ?3, ?4, ?5)");
   assert.deepEqual(d1.lastParams.slice(0, 4), ["default", "Agent/demo", "Session", "s1"]);
   assert.deepEqual([...d1.lastParams[4] as Uint8Array], [...new TextEncoder().encode("hello")]);

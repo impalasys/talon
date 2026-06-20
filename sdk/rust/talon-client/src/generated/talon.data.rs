@@ -336,3 +336,199 @@ impl SessionMessagePartType {
         }
     }
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SessionJournalEntryPayloadLlmResponse {
+    #[prost(message, optional, tag = "1")]
+    pub response: ::core::option::Option<super::harness::ChatResponse>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SessionJournalEntryPayloadToolResult {
+    #[prost(string, tag = "1")]
+    pub tool_call_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub output: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SessionJournalEntryPayloadCommit {
+    #[prost(string, tag = "1")]
+    pub committed_message_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SessionJournalEntryPayload {
+    #[prost(oneof = "session_journal_entry_payload::Payload", tags = "1, 2, 3")]
+    pub payload: ::core::option::Option<session_journal_entry_payload::Payload>,
+}
+/// Nested message and enum types in `SessionJournalEntryPayload`.
+pub mod session_journal_entry_payload {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Payload {
+        #[prost(message, tag = "1")]
+        LlmResponse(super::SessionJournalEntryPayloadLlmResponse),
+        #[prost(message, tag = "2")]
+        ToolResult(super::SessionJournalEntryPayloadToolResult),
+        #[prost(message, tag = "3")]
+        Commit(super::SessionJournalEntryPayloadCommit),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SessionJournalEntry {
+    #[prost(string, tag = "1")]
+    pub submission_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub journal_entry_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub attempt_id: ::prost::alloc::string::String,
+    #[prost(enumeration = "SessionExecutionPhase", tag = "4")]
+    pub phase: i32,
+    #[prost(message, optional, tag = "5")]
+    pub payload: ::core::option::Option<SessionJournalEntryPayload>,
+    /// Unix timestamp in microseconds.
+    #[prost(int64, tag = "6")]
+    pub created_at: i64,
+    /// Unix timestamp in microseconds.
+    #[prost(int64, tag = "7")]
+    pub updated_at: i64,
+    /// Unix timestamp in microseconds.
+    #[prost(int64, optional, tag = "8")]
+    pub committed_at: ::core::option::Option<i64>,
+    #[prost(string, optional, tag = "9")]
+    pub committed_message_id: ::core::option::Option<::prost::alloc::string::String>,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum SessionExecutionPhase {
+    /// Default value; should not be written for an active journal entry.
+    Unspecified = 0,
+    /// A full LLM response completed. Recovery can hydrate assistant text and any
+    /// requested tool calls from this entry without replaying the LLM call.
+    LlmResponse = 1,
+    /// One tool result completed. Recovery can preserve this result and execute
+    /// only missing calls from the preceding LLM_RESPONSE tool-call batch.
+    ToolResult = 2,
+    /// The submission reached a commit boundary and its canonical assistant
+    /// SessionMessage was written.
+    Committed = 3,
+}
+impl SessionExecutionPhase {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "SESSION_EXECUTION_PHASE_UNSPECIFIED",
+            Self::LlmResponse => "SESSION_EXECUTION_PHASE_LLM_RESPONSE",
+            Self::ToolResult => "SESSION_EXECUTION_PHASE_TOOL_RESULT",
+            Self::Committed => "SESSION_EXECUTION_PHASE_COMMITTED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "SESSION_EXECUTION_PHASE_UNSPECIFIED" => Some(Self::Unspecified),
+            "SESSION_EXECUTION_PHASE_LLM_RESPONSE" => Some(Self::LlmResponse),
+            "SESSION_EXECUTION_PHASE_TOOL_RESULT" => Some(Self::ToolResult),
+            "SESSION_EXECUTION_PHASE_COMMITTED" => Some(Self::Committed),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SessionSubmission {
+    /// Stable idempotency key for one accepted user submission.
+    #[prost(string, tag = "1")]
+    pub submission_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub session_id: ::prost::alloc::string::String,
+    /// Canonical user SessionMessage that caused this submission.
+    #[prost(string, tag = "3")]
+    pub user_message_id: ::prost::alloc::string::String,
+    /// Lease/idempotency status for the submission as a whole.
+    #[prost(enumeration = "SessionSubmissionStatus", tag = "4")]
+    pub status: i32,
+    /// Current lease owner. Journal appends are fenced by this value so stale
+    /// workers cannot move the submission pointer backward.
+    #[prost(string, tag = "5")]
+    pub attempt_id: ::prost::alloc::string::String,
+    /// Number of successful claims/reclaims for this submission.
+    #[prost(uint32, tag = "6")]
+    pub attempt_count: u32,
+    /// Lease expiration for the current claim. Cleared when the submission becomes
+    /// terminal.
+    /// Unix timestamp in microseconds.
+    #[prost(int64, optional, tag = "7")]
+    pub claim_expires_at: ::core::option::Option<i64>,
+    /// Unix timestamp in microseconds.
+    #[prost(int64, tag = "8")]
+    pub created_at: i64,
+    /// Unix timestamp in microseconds.
+    #[prost(int64, tag = "9")]
+    pub updated_at: i64,
+    /// Set when the submission reaches a terminal status.
+    /// Unix timestamp in microseconds.
+    #[prost(int64, optional, tag = "10")]
+    pub completed_at: ::core::option::Option<i64>,
+    /// Canonical assistant SessionMessage produced by this submission, when one
+    /// was committed.
+    #[prost(string, optional, tag = "11")]
+    pub committed_message_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// Fast pointer to the latest known execution phase. The append-only
+    /// SessionJournalEntry list remains authoritative for recovery.
+    #[prost(enumeration = "SessionExecutionPhase", tag = "12")]
+    pub current_phase: i32,
+    /// Fast pointer to the journal entry that supplied current_phase. Recovery may
+    /// repair this from the latest journal entry if a crash happens between entry
+    /// append and pointer update.
+    #[prost(string, optional, tag = "13")]
+    pub current_journal_entry_id: ::core::option::Option<::prost::alloc::string::String>,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum SessionSubmissionStatus {
+    /// Default value; should not be written for an accepted submission.
+    Unspecified = 0,
+    /// The user submission was accepted and durably recorded, but no worker has
+    /// claimed it yet.
+    Pending = 1,
+    /// A worker owns the submission lease and may append journal entries while the
+    /// lease remains current.
+    Claimed = 2,
+    /// The submission reached a canonical commit boundary and wrote its final
+    /// assistant SessionMessage. Duplicate deliveries should no-op.
+    Committed = 3,
+    /// The submission ended with a durable error message or terminal failure.
+    Failed = 4,
+    /// The submission was stopped before a normal commit boundary. Recovery policy
+    /// may inspect the journal to decide whether a later retry is possible.
+    Interrupted = 5,
+}
+impl SessionSubmissionStatus {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "SESSION_SUBMISSION_STATUS_UNSPECIFIED",
+            Self::Pending => "SESSION_SUBMISSION_STATUS_PENDING",
+            Self::Claimed => "SESSION_SUBMISSION_STATUS_CLAIMED",
+            Self::Committed => "SESSION_SUBMISSION_STATUS_COMMITTED",
+            Self::Failed => "SESSION_SUBMISSION_STATUS_FAILED",
+            Self::Interrupted => "SESSION_SUBMISSION_STATUS_INTERRUPTED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "SESSION_SUBMISSION_STATUS_UNSPECIFIED" => Some(Self::Unspecified),
+            "SESSION_SUBMISSION_STATUS_PENDING" => Some(Self::Pending),
+            "SESSION_SUBMISSION_STATUS_CLAIMED" => Some(Self::Claimed),
+            "SESSION_SUBMISSION_STATUS_COMMITTED" => Some(Self::Committed),
+            "SESSION_SUBMISSION_STATUS_FAILED" => Some(Self::Failed),
+            "SESSION_SUBMISSION_STATUS_INTERRUPTED" => Some(Self::Interrupted),
+            _ => None,
+        }
+    }
+}

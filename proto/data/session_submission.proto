@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package talon.data;
+
+import "proto/data/session_journal_entry.proto";
+
+enum SessionSubmissionStatus {
+  // Default value; should not be written for an accepted submission.
+  SESSION_SUBMISSION_STATUS_UNSPECIFIED = 0;
+
+  // The user submission was accepted and durably recorded, but no worker has
+  // claimed it yet.
+  SESSION_SUBMISSION_STATUS_PENDING = 1;
+
+  // A worker owns the submission lease and may append journal entries while the
+  // lease remains current.
+  SESSION_SUBMISSION_STATUS_CLAIMED = 2;
+
+  // The submission reached a canonical commit boundary and wrote its final
+  // assistant SessionMessage. Duplicate deliveries should no-op.
+  SESSION_SUBMISSION_STATUS_COMMITTED = 3;
+
+  // The submission ended with a durable error message or terminal failure.
+  SESSION_SUBMISSION_STATUS_FAILED = 4;
+
+  // The submission was stopped before a normal commit boundary. Recovery policy
+  // may inspect the journal to decide whether a later retry is possible.
+  SESSION_SUBMISSION_STATUS_INTERRUPTED = 5;
+}
+
+message SessionSubmission {
+  // Stable idempotency key for one accepted user submission.
+  string submission_id = 1;
+
+  string session_id = 2;
+
+  // Canonical user SessionMessage that caused this submission.
+  string user_message_id = 3;
+
+  // Lease/idempotency status for the submission as a whole.
+  SessionSubmissionStatus status = 4;
+
+  // Current lease owner. Journal appends are fenced by this value so stale
+  // workers cannot move the submission pointer backward.
+  string attempt_id = 5;
+
+  // Number of successful claims/reclaims for this submission.
+  uint32 attempt_count = 6;
+
+  // Lease expiration for the current claim. Cleared when the submission becomes
+  // terminal.
+  // Unix timestamp in microseconds.
+  optional int64 claim_expires_at = 7;
+
+  // Unix timestamp in microseconds.
+  int64 created_at = 8;
+
+  // Unix timestamp in microseconds.
+  int64 updated_at = 9;
+
+  // Set when the submission reaches a terminal status.
+  // Unix timestamp in microseconds.
+  optional int64 completed_at = 10;
+
+  // Canonical assistant SessionMessage produced by this submission, when one
+  // was committed.
+  optional string committed_message_id = 11;
+
+  // Fast pointer to the latest known execution phase. The append-only
+  // SessionJournalEntry list remains authoritative for recovery.
+  SessionExecutionPhase current_phase = 12;
+
+  // Fast pointer to the journal entry that supplied current_phase. Recovery may
+  // repair this from the latest journal entry if a crash happens between entry
+  // append and pointer update.
+  optional string current_journal_entry_id = 13;
+}

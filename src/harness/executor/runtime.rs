@@ -7,7 +7,8 @@ use crate::harness::executor::context_budget::{compact_history_for_llm, tool_res
 use crate::harness::knowledge::KnowledgeBook;
 use crate::harness::llm::resolver::resolve_model_profile;
 use crate::harness::llm::{
-    ChatContentPart, ChatMessage, ChatRequest, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall,
+    chat_content_part, chat_stream_event, text_part, ChatContentPart, ChatMessage, ChatRequest,
+    ChatResponse, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall,
 };
 use crate::harness::mcp::{call_tool_for_config, McpConnectionConfig};
 use crate::harness::skills::registry::ToolRegistry;
@@ -50,7 +51,7 @@ impl LoopMessage {
             content_parts: if content.is_empty() {
                 Vec::new()
             } else {
-                vec![ChatContentPart::Text { text: content }]
+                vec![text_part(content)]
             },
             tool_calls: None,
             tool_call_id: None,
@@ -62,10 +63,13 @@ impl LoopMessage {
     }
 
     pub fn is_empty_content(&self) -> bool {
-        self.content_parts.iter().all(|part| match part {
-            ChatContentPart::Text { text } => text.is_empty(),
-            _ => false,
-        })
+        self.content_parts
+            .iter()
+            .all(|part| match part.content.as_ref() {
+                Some(chat_content_part::Content::Text(text)) => text.is_empty(),
+                None => true,
+                _ => false,
+            })
     }
 }
 
@@ -128,6 +132,24 @@ impl ExecutionContext {
     pub fn push(&mut self, msg: LoopMessage) {
         self.history.push(msg);
     }
+
+    pub fn has_system_message(&self) -> bool {
+        self.history.iter().any(|msg| msg.role == "system")
+    }
+
+    pub fn prepend_system_message(&mut self, msg: LoopMessage) {
+        self.history.insert(0, msg);
+    }
+
+    pub fn push_user_text_if_missing(&mut self, text: &str) {
+        let already_present = self
+            .history
+            .iter()
+            .any(|msg| msg.role == "user" && msg.text_content() == text);
+        if !already_present {
+            self.history.push(LoopMessage::text("user", text));
+        }
+    }
 }
 
 // ─── ExecutionSink ────────────────────────────────────────────────────────────
@@ -142,8 +164,16 @@ pub trait ExecutionSink: Send + Sync {
     async fn on_reasoning(&self, reasoning: &str);
     /// The agent chose to call a tool.
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value);
+    /// The full completed LLM response reached a durable recovery boundary.
+    async fn on_llm_response(&self, _: &crate::harness::llm::ChatResponse) -> Result<()> {
+        Ok(())
+    }
     /// The tool returned a result.
     async fn on_tool_result(&self, id: &str, name: &str, result: &str);
+    /// A tool result has been durably recorded.
+    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &str) -> Result<()> {
+        Ok(())
+    }
     /// The agent requested permission from the user/client.
     async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
     /// The permission request was answered or cancelled.
@@ -164,7 +194,13 @@ impl ExecutionSink for NullSink {
     async fn on_token(&self, _: &str) {}
     async fn on_reasoning(&self, _: &str) {}
     async fn on_tool_call(&self, _: &str, _: &str, _: &Value) {}
+    async fn on_llm_response(&self, _: &crate::harness::llm::ChatResponse) -> Result<()> {
+        Ok(())
+    }
     async fn on_tool_result(&self, _: &str, _: &str, _: &str) {}
+    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &str) -> Result<()> {
+        Ok(())
+    }
     async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
     async fn on_permission_result(&self, _: &str, _: &Value) {}
     async fn on_usage(&self, _: &ChatUsage) {}
@@ -216,6 +252,9 @@ impl ExecutionSink for CaptureSink {
             name: name.to_string(),
             output: result.to_string(),
         });
+    }
+    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &str) -> Result<()> {
+        Ok(())
     }
     async fn on_request_permission(&self, id: &str, action: &str, payload: &Value) {
         self.events
@@ -385,28 +424,27 @@ impl AgentExecutor {
         }
     }
 
-    /// Run a task to completion, emitting events to `sink` along the way.
+    pub async fn system_loop_message(&self) -> Result<LoopMessage> {
+        Ok(LoopMessage::text(
+            "system",
+            self.assembler.assemble().await?,
+        ))
+    }
+
+    /// Run the prepared execution context to completion, emitting events to
+    /// `sink` along the way.
     /// Returns the final reply text.
     #[tracing::instrument(
         name = "AgentExecutor.execute",
         skip_all,
-        fields(agent_id = %context.agent_id, task_chars = task.len())
+        fields(agent_id = %context.agent_id, history_len = context.history.len())
     )]
     pub async fn execute(
         &self,
         context: &mut ExecutionContext,
-        task: &str,
         sink: &dyn ExecutionSink,
         cancellation_token: Option<&CancellationToken>,
     ) -> Result<String> {
-        // Inject system prompt on first turn
-        if context.history.is_empty() {
-            let soul = self.assembler.assemble().await?;
-            context.push(LoopMessage::text("system", soul));
-        }
-
-        context.push(LoopMessage::text("user", task));
-
         let mut turn_limit = DEFAULT_EXECUTION_TURN_LIMIT;
         loop {
             if turn_limit == 0 {
@@ -421,7 +459,7 @@ impl AgentExecutor {
                 .map(|m| ChatMessage {
                     role: m.role.clone(),
                     content_parts: m.content_parts.clone(),
-                    tool_calls: m.tool_calls.clone(),
+                    tool_calls: m.tool_calls.clone().unwrap_or_default(),
                     tool_call_id: m.tool_call_id.clone(),
                 })
                 .collect();
@@ -433,6 +471,7 @@ impl AgentExecutor {
 
             let mut final_reply = String::new();
             let mut tool_calls_by_index: BTreeMap<usize, ToolCall> = BTreeMap::new();
+            let mut final_usage: Option<ChatUsage> = None;
             let thinking = resolve_model_profile(self.agent_spec.model_policy.as_ref())
                 .and_then(|model| model.thinking.clone());
             let mut stream = self
@@ -464,22 +503,27 @@ impl AgentExecutor {
                 };
 
                 match chunk? {
-                    ChatStreamEvent::TextDelta(token) => {
+                    ChatStreamEvent {
+                        event: Some(chat_stream_event::Event::TextDelta(token)),
+                    } => {
                         final_reply.push_str(&token);
                         sink.on_token(&token).await;
                     }
-                    ChatStreamEvent::ReasoningDelta(reasoning) => {
+                    ChatStreamEvent {
+                        event: Some(chat_stream_event::Event::ReasoningDelta(reasoning)),
+                    } => {
                         sink.on_reasoning(&reasoning).await;
                     }
-                    ChatStreamEvent::ToolCallDelta(delta) => {
-                        let entry =
-                            tool_calls_by_index
-                                .entry(delta.index)
-                                .or_insert_with(|| ToolCall {
-                                    id: format!("tool_call_{}", delta.index),
-                                    name: String::new(),
-                                    arguments: String::new(),
-                                });
+                    ChatStreamEvent {
+                        event: Some(chat_stream_event::Event::ToolCallDelta(delta)),
+                    } => {
+                        let entry = tool_calls_by_index
+                            .entry(delta.index as usize)
+                            .or_insert_with(|| ToolCall {
+                                id: format!("tool_call_{}", delta.index),
+                                name: String::new(),
+                                arguments: String::new(),
+                            });
 
                         if let Some(id) = delta.id {
                             entry.id = id;
@@ -491,9 +535,13 @@ impl AgentExecutor {
                             entry.arguments.push_str(&arguments);
                         }
                     }
-                    ChatStreamEvent::Usage(usage) => {
+                    ChatStreamEvent {
+                        event: Some(chat_stream_event::Event::Usage(usage)),
+                    } => {
+                        final_usage = Some(usage.clone());
                         sink.on_usage(&usage).await;
                     }
+                    ChatStreamEvent { event: None } => {}
                 }
             }
 
@@ -501,6 +549,13 @@ impl AgentExecutor {
                 .into_values()
                 .filter(|tool| !tool.name.is_empty())
                 .collect();
+
+            let llm_response = ChatResponse {
+                content: final_reply.clone(),
+                tool_calls: tool_calls.clone(),
+                usage: final_usage,
+            };
+            sink.on_llm_response(&llm_response).await?;
 
             // Record assistant turn
             let mut assistant_message = LoopMessage::text("assistant", final_reply.clone());
@@ -513,18 +568,13 @@ impl AgentExecutor {
 
             if !tool_calls.is_empty() {
                 for tool in &tool_calls {
-                    let input: Value = serde_json::from_str(&tool.arguments).unwrap_or(Value::Null);
+                    let input = Self::tool_call_input(tool);
                     sink.on_tool_call(&tool.id, &tool.name, &input).await;
-                    let result = match self.execute_tool(&tool.name, &tool.arguments).await {
-                        Ok(result) => result,
-                        Err(error) => tool_error_result(&tool.name, &error),
-                    };
+                    let result = self.execute_tool_call_result(tool).await;
+                    sink.on_tool_result_recorded(&tool.id, &tool.name, &result)
+                        .await?;
                     sink.on_tool_result(&tool.id, &tool.name, &result).await;
-                    let preview = tool_result_preview(&result);
-
-                    let mut tool_message = LoopMessage::text("tool", preview);
-                    tool_message.tool_call_id = Some(tool.id.clone());
-                    context.push(tool_message);
+                    context.push(tool_result_loop_message(&tool.id, &result));
                 }
                 continue;
             }
@@ -532,6 +582,24 @@ impl AgentExecutor {
             sink.on_done(&final_reply).await;
             return Ok(final_reply);
         }
+    }
+
+    pub async fn execute_tool_call(&self, tool: &ToolCall) -> (Value, String) {
+        let input = Self::tool_call_input(tool);
+        let result = self.execute_tool_call_result(tool).await;
+        (input, result)
+    }
+
+    pub fn tool_call_input(tool: &ToolCall) -> Value {
+        serde_json::from_str(&tool.arguments).unwrap_or(Value::Null)
+    }
+
+    async fn execute_tool_call_result(&self, tool: &ToolCall) -> String {
+        let result = match self.execute_tool(&tool.name, &tool.arguments).await {
+            Ok(result) => result,
+            Err(error) => tool_error_result(&tool.name, &error),
+        };
+        result
     }
 
     async fn execute_tool(&self, name: &str, input: &str) -> Result<String> {
@@ -567,6 +635,12 @@ impl AgentExecutor {
     }
 }
 
+pub fn tool_result_loop_message(tool_call_id: &str, result: &str) -> LoopMessage {
+    let mut tool_message = LoopMessage::text("tool", tool_result_preview(result));
+    tool_message.tool_call_id = Some(tool_call_id.to_string());
+    tool_message
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
@@ -586,7 +660,8 @@ mod tests {
         KnowledgeBook, KnowledgeEntry, KnowledgeListEntry, KnowledgeResult,
     };
     use crate::harness::llm::provider::{
-        ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider,
+        text_delta_event, tool_call_delta_event, ChatMessage, ChatRequest, ChatResponse,
+        ChatStream, LlmProvider,
     };
     use crate::harness::memory::Embedding;
     use crate::harness::skills::registry::ToolRegistry;
@@ -774,7 +849,7 @@ mod tests {
         async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
             let response = self.chat_completion(request).await?;
             Ok(Box::pin(futures::stream::once(async move {
-                Ok(ChatStreamEvent::TextDelta(response.content))
+                Ok(text_delta_event(response.content))
             })))
         }
 
@@ -816,7 +891,7 @@ mod tests {
             let stream = if *call_count == 0 {
                 *call_count += 1;
                 Box::pin(futures::stream::iter(vec![
-                    Ok(ChatStreamEvent::ToolCallDelta(crate::harness::llm::provider::ToolCallDelta {
+                    Ok(tool_call_delta_event(crate::harness::llm::provider::ToolCallDelta {
                         index: 0,
                         id: Some("tool-1".to_string()),
                         name: Some("create_schedule".to_string()),
@@ -828,7 +903,7 @@ mod tests {
                 ])) as ChatStream
             } else {
                 Box::pin(futures::stream::once(async {
-                    Ok(ChatStreamEvent::TextDelta(
+                    Ok(text_delta_event(
                         "That failed because the minimum interval is 300 seconds.".to_string(),
                     ))
                 })) as ChatStream
@@ -890,13 +965,12 @@ mod tests {
         history.push(tool_message);
 
         let mut context = ExecutionContext::with_history("cmo", history);
+        context.push(LoopMessage::text(
+            "user",
+            "I'm talking about the blogs link in the footer and the blogs pages",
+        ));
         let reply = executor
-            .execute(
-                &mut context,
-                "I'm talking about the blogs link in the footer and the blogs pages",
-                &CaptureSink::new(),
-                None,
-            )
+            .execute(&mut context, &CaptureSink::new(), None)
             .await
             .unwrap();
 
@@ -921,12 +995,7 @@ mod tests {
         );
         let assistant_tool_call = messages
             .iter()
-            .find(|message| {
-                message
-                    .tool_calls
-                    .as_ref()
-                    .is_some_and(|calls| calls.iter().any(|call| call.id == "tool-1"))
-            })
+            .find(|message| message.tool_calls.iter().any(|call| call.id == "tool-1"))
             .unwrap();
         assert_eq!(assistant_tool_call.role, "assistant");
         assert!(messages.iter().any(|message| {
@@ -975,17 +1044,27 @@ mod tests {
         }
 
         let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage::text("user", "Create a 1-minute schedule"));
         let sink = CaptureSink::new();
-        let reply = executor
-            .execute(&mut context, "Create a 1-minute schedule", &sink, None)
-            .await
-            .unwrap();
+        let reply = executor.execute(&mut context, &sink, None).await.unwrap();
 
         assert_eq!(
             reply,
             "That failed because the minimum interval is 300 seconds."
         );
         let events = sink.events();
+        let action_index = events
+            .iter()
+            .position(|event| matches!(event, AgentEvent::Action { name, .. } if name == "create_schedule"))
+            .expect("expected a tool action");
+        let observation_index = events
+            .iter()
+            .position(|event| matches!(event, AgentEvent::Observation { name, .. } if name == "create_schedule"))
+            .expect("expected a tool observation");
+        assert!(
+            action_index < observation_index,
+            "tool call should be published before its result"
+        );
         let observation = events
             .iter()
             .find_map(|event| match event {
@@ -1021,7 +1100,7 @@ mod tests {
                         1 => " world",
                         _ => " trailing",
                     };
-                    Some((Ok(ChatStreamEvent::TextDelta(token.to_string())), state + 1))
+                    Some((Ok(text_delta_event(token.to_string())), state + 1))
                 },
             )))
         }
@@ -1061,13 +1140,22 @@ mod tests {
         });
 
         let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage::text("user", "Say hello"));
         let sink = CaptureSink::new();
         let reply = executor
-            .execute(&mut context, "Say hello", &sink, Some(&cancellation))
+            .execute(&mut context, &sink, Some(&cancellation))
             .await
             .unwrap();
 
         assert_eq!(reply, "Hello");
+        assert_eq!(
+            context
+                .history
+                .iter()
+                .filter(|message| message.role == "user")
+                .count(),
+            1
+        );
         assert!(matches!(
             sink.events().last(),
             Some(AgentEvent::Done(content)) if content == "Hello"

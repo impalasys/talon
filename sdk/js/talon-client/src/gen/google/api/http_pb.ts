@@ -536,4 +536,3 @@ export class CustomHttpPattern extends Message<CustomHttpPattern> {
     return proto3.util.equals(CustomHttpPattern, a, b);
   }
 }
-

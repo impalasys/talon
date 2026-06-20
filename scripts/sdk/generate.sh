@@ -19,7 +19,10 @@ PROTO_SRCS=(
   proto/resources/sessions.proto
   proto/resources/skills.proto
   proto/resources/resource.proto
+  proto/harness/llm.proto
   proto/data/data.proto
+  proto/data/session_submission.proto
+  proto/data/session_journal_entry.proto
   proto/events.proto
   proto/gateway.proto
 )
@@ -76,7 +79,10 @@ GO_OPTS=(
   "--go_opt=Mproto/resources/sessions.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/skills.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/harness/llm.proto=${GO_MODULE}/talon/harness"
   "--go_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
+  "--go_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"
+  "--go_opt=Mproto/data/session_journal_entry.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
   "--go_opt=Mproto/gateway.proto=${GO_MODULE}/talon/gateway"
   "--go-grpc_opt=Mproto/config.proto=${GO_MODULE}/talon/config"
@@ -93,7 +99,10 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/resources/sessions.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/skills.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/harness/llm.proto=${GO_MODULE}/talon/harness"
   "--go-grpc_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
+  "--go-grpc_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"
+  "--go-grpc_opt=Mproto/data/session_journal_entry.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
   "--go-grpc_opt=Mproto/gateway.proto=${GO_MODULE}/talon/gateway"
 )
@@ -205,6 +214,18 @@ PATH="$NPM_BIN:$PATH" "$PROTOC" -I. -Ithird_party/googleapis \
   "${PROTO_SRCS[@]}" \
   google/api/http.proto \
   google/api/annotations.proto
+python3 - <<'PY'
+from pathlib import Path
+
+root = Path("sdk/js/talon-client/src/gen")
+for path in root.rglob("*.ts"):
+    source = path.read_text()
+    lines = [line.rstrip() for line in source.splitlines()]
+    while lines and lines[-1] == "":
+        lines.pop()
+    stripped = "\n".join(lines)
+    path.write_text(stripped + "\n")
+PY
 
 PYTHON_CODEGEN="${PYTHON_CODEGEN:-python3}"
 PY_TOOLS="$ROOT/.tools/python-codegen"

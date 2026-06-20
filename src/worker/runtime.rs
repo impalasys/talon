@@ -17,7 +17,10 @@ use crate::harness::executor::{
     AgentExecutor, ContextAssembler, ExecutionContext, LoopMessage, RegisteredMcpTool,
 };
 use crate::harness::knowledge::KvKnowledgeBook;
-use crate::harness::llm::{ChatContentPart, ToolCall};
+use crate::harness::llm::{image_data_part, image_url_part, text_part, ChatContentPart, ToolCall};
+use crate::harness::sessions::{
+    SESSION_LABEL_PROJECTION_STATE, SESSION_PROJECTION_STATE_COMMITTED,
+};
 use crate::harness::skills::registry::ToolRegistry;
 use base64::{engine::general_purpose, Engine as _};
 use prost::Message;
@@ -89,6 +92,14 @@ impl AgentRuntime {
         let mut history = Vec::new();
         for (_, value) in msg_entries {
             if let Ok(msg) = data_proto::SessionMessage::decode(value.as_slice()) {
+                if msg.role == data_proto::MessageRole::RoleAssistant as i32
+                    && msg
+                        .labels
+                        .get(SESSION_LABEL_PROJECTION_STATE)
+                        .is_some_and(|state| state != SESSION_PROJECTION_STATE_COMMITTED)
+                {
+                    continue;
+                }
                 let role = match data_proto::MessageRole::try_from(msg.role) {
                     Ok(data_proto::MessageRole::RoleUser) => "user",
                     Ok(data_proto::MessageRole::RoleAssistant) => "assistant",
@@ -393,9 +404,7 @@ async fn message_content_parts(
     for part in &message.parts {
         if part.part_type == data_proto::SessionMessagePartType::Text as i32 {
             if !part.content.is_empty() {
-                content_parts.push(ChatContentPart::Text {
-                    text: part.content.clone(),
-                });
+                content_parts.push(text_part(part.content.clone()));
             }
             continue;
         }
@@ -405,9 +414,7 @@ async fn message_content_parts(
         }
 
         if !part.content.is_empty() {
-            content_parts.push(ChatContentPart::Text {
-                text: part.content.clone(),
-            });
+            content_parts.push(text_part(part.content.clone()));
         }
 
         let payload = serde_json::from_str::<serde_json::Value>(&part.payload_json)
@@ -417,10 +424,7 @@ async fn message_content_parts(
             .and_then(|value| value.as_str())
             .map(ToString::to_string);
         if let Some(url) = payload.get("url").and_then(|value| value.as_str()) {
-            content_parts.push(ChatContentPart::ImageUrl {
-                url: url.to_string(),
-                detail,
-            });
+            content_parts.push(image_url_part(url.to_string(), detail));
             continue;
         }
 
@@ -450,11 +454,11 @@ async fn message_content_parts(
                 object.key
             ));
         }
-        content_parts.push(ChatContentPart::ImageData {
+        content_parts.push(image_data_part(
             media_type,
-            data_base64: general_purpose::STANDARD.encode(stored.bytes),
+            general_purpose::STANDARD.encode(stored.bytes),
             detail,
-        });
+        ));
     }
     Ok(content_parts)
 }
@@ -488,7 +492,7 @@ mod tests {
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{data_proto, manifests, protobuf_value, resources_proto};
-    use crate::harness::llm::ChatContentPart;
+    use crate::harness::llm::{image_data_part, text_part};
     use crate::harness::mcp::McpConnectionConfig;
     use futures::stream;
     use prost::Message;
@@ -1183,14 +1187,8 @@ mod tests {
         assert_eq!(
             runtime.context.history[0].content_parts,
             vec![
-                ChatContentPart::Text {
-                    text: "describe this".to_string(),
-                },
-                ChatContentPart::ImageData {
-                    media_type: "image/png".to_string(),
-                    data_base64: "cG5nLWJ5dGVz".to_string(),
-                    detail: None,
-                },
+                text_part("describe this"),
+                image_data_part("image/png", "cG5nLWJ5dGVz", None::<String>),
             ]
         );
     }
@@ -1226,11 +1224,11 @@ mod tests {
 
         assert_eq!(
             parts,
-            vec![ChatContentPart::ImageData {
-                media_type: "image/jpeg".to_string(),
-                data_base64: "anBlZy1ieXRlcw==".to_string(),
-                detail: None,
-            }]
+            vec![image_data_part(
+                "image/jpeg",
+                "anBlZy1ieXRlcw==",
+                None::<String>
+            )]
         );
     }
 

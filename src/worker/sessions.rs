@@ -1,18 +1,22 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use futures::FutureExt;
 use prost::Message;
+use serde_json::Value;
+use std::collections::BTreeMap;
 use std::panic::AssertUnwindSafe;
 
 use super::runtime::AgentRuntime;
 use super::sink::PubSubSessionSink;
 use super::WorkerEventHandler;
-use crate::control::events::SessionMessageEvent;
-use crate::control::ProtoKeyValueStoreExt;
-use crate::gateway::rpc::data_proto;
-use crate::harness::executor::ExecutionSink;
+use crate::control::{events::SessionMessageEvent, ControlPlane, ProtoKeyValueStoreExt};
+use crate::gateway::rpc::data_proto::{
+    self, session_journal_entry_payload, SessionExecutionPhase, SessionSubmissionStatus,
+};
+use crate::harness::executor::{tool_result_loop_message, ExecutionSink, LoopMessage};
+use crate::harness::sessions::{self, ClaimOutcome};
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
 
@@ -57,10 +61,205 @@ where
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum SessionCompletionStatus {
+pub(super) enum SessionCompletionStatus {
     Completed,
     Errored,
     Panicked,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum PreparedSubmissionState {
+    ContinueExecution,
+    FinalResponseReady { content: String },
+}
+
+#[derive(Debug, Clone, PartialEq)]
+enum RecoveredProjectionPart {
+    Text {
+        content: String,
+    },
+    ToolCall {
+        id: String,
+        name: String,
+        input: Value,
+    },
+    ToolResult {
+        id: String,
+        name: String,
+        result: String,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq)]
+struct PreparedSubmission {
+    state: PreparedSubmissionState,
+    projection_parts: Vec<RecoveredProjectionPart>,
+}
+
+async fn prepare_context_for_claimed_submission(
+    cp: &ControlPlane,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    submission_id: &str,
+    attempt_id: &str,
+    journal_entries: &[sessions::SessionJournalEntry],
+    runtime: &mut AgentRuntime,
+) -> Result<PreparedSubmission> {
+    let mut latest_final_response = None;
+    let mut projection_parts = Vec::new();
+    let mut index = 0;
+    while index < journal_entries.len() {
+        let entry = &journal_entries[index];
+        let response = match (
+            entry.phase,
+            entry
+                .payload
+                .as_ref()
+                .and_then(|payload| payload.payload.as_ref()),
+        ) {
+            (phase, Some(session_journal_entry_payload::Payload::LlmResponse(payload)))
+                if phase == SessionExecutionPhase::LlmResponse as i32 =>
+            {
+                payload
+                    .response
+                    .clone()
+                    .ok_or_else(|| anyhow!("LLM_RESPONSE entry is missing response"))?
+            }
+            (phase, Some(_)) if phase == SessionExecutionPhase::LlmResponse as i32 => {
+                return Err(anyhow!("LLM_RESPONSE entry has non-LLM payload"));
+            }
+            (phase, None) if phase == SessionExecutionPhase::LlmResponse as i32 => {
+                return Err(anyhow!("LLM_RESPONSE entry is missing payload"));
+            }
+            (phase, Some(session_journal_entry_payload::Payload::ToolResult(result)))
+                if phase == SessionExecutionPhase::ToolResult as i32 =>
+            {
+                return Err(anyhow!(
+                    "TOOL_RESULT references unknown tool call '{}'",
+                    result.tool_call_id
+                ));
+            }
+            (phase, Some(_)) if phase == SessionExecutionPhase::ToolResult as i32 => {
+                return Err(anyhow!("TOOL_RESULT entry has non-tool-result payload"));
+            }
+            (phase, None) if phase == SessionExecutionPhase::ToolResult as i32 => {
+                return Err(anyhow!("TOOL_RESULT entry is missing payload"));
+            }
+            _ => {
+                index += 1;
+                continue;
+            }
+        };
+
+        index += 1;
+        if response.tool_calls.is_empty() {
+            latest_final_response = Some(response);
+            continue;
+        }
+
+        latest_final_response = None;
+        let tool_calls = response.tool_calls.clone();
+        let mut assistant_message = LoopMessage::text("assistant", response.content.clone());
+        assistant_message.tool_calls = Some(tool_calls.clone());
+        runtime.context.push(assistant_message);
+        if !response.content.is_empty() {
+            projection_parts.push(RecoveredProjectionPart::Text {
+                content: response.content.clone(),
+            });
+        }
+
+        let mut results_by_call_id = BTreeMap::new();
+        while index < journal_entries.len() {
+            let entry = &journal_entries[index];
+            if entry.phase == SessionExecutionPhase::LlmResponse as i32
+                || entry.phase == SessionExecutionPhase::Committed as i32
+            {
+                break;
+            }
+            match (
+                entry.phase,
+                entry
+                    .payload
+                    .as_ref()
+                    .and_then(|payload| payload.payload.as_ref()),
+            ) {
+                (phase, Some(session_journal_entry_payload::Payload::ToolResult(result)))
+                    if phase == SessionExecutionPhase::ToolResult as i32 =>
+                {
+                    if !tool_calls.iter().any(|tool| tool.id == result.tool_call_id) {
+                        return Err(anyhow!(
+                            "TOOL_RESULT references unknown tool call '{}'",
+                            result.tool_call_id
+                        ));
+                    }
+                    results_by_call_id
+                        .entry(result.tool_call_id.clone())
+                        .or_insert_with(|| result.clone());
+                }
+                (phase, Some(_)) if phase == SessionExecutionPhase::ToolResult as i32 => {
+                    return Err(anyhow!("TOOL_RESULT entry has non-tool-result payload"));
+                }
+                (phase, None) if phase == SessionExecutionPhase::ToolResult as i32 => {
+                    return Err(anyhow!("TOOL_RESULT entry is missing payload"));
+                }
+                _ => {}
+            }
+            index += 1;
+        }
+
+        for tool in &tool_calls {
+            let input_json: Value = serde_json::from_str(&tool.arguments).unwrap_or(Value::Null);
+            projection_parts.push(RecoveredProjectionPart::ToolCall {
+                id: tool.id.clone(),
+                name: tool.name.clone(),
+                input: input_json,
+            });
+
+            let result = if let Some(recorded) = results_by_call_id.get(&tool.id) {
+                recorded.output.clone()
+            } else {
+                let (_input, result) = runtime.executor.execute_tool_call(tool).await;
+                sessions::append_tool_result(
+                    cp.kv.as_ref(),
+                    ns,
+                    agent,
+                    session_id,
+                    submission_id,
+                    attempt_id,
+                    &tool.id,
+                    &tool.name,
+                    &result,
+                    chrono::Utc::now().timestamp_micros(),
+                )
+                .await?;
+                result
+            };
+
+            projection_parts.push(RecoveredProjectionPart::ToolResult {
+                id: tool.id.clone(),
+                name: tool.name.clone(),
+                result: result.clone(),
+            });
+            runtime
+                .context
+                .push(tool_result_loop_message(&tool.id, &result));
+        }
+    }
+
+    if let Some(response) = latest_final_response {
+        return Ok(PreparedSubmission {
+            state: PreparedSubmissionState::FinalResponseReady {
+                content: response.content,
+            },
+            projection_parts,
+        });
+    }
+
+    Ok(PreparedSubmission {
+        state: PreparedSubmissionState::ContinueExecution,
+        projection_parts,
+    })
 }
 
 impl WorkerEventHandler {
@@ -82,36 +281,77 @@ impl WorkerEventHandler {
         );
 
         let ns = &event.ns;
+        let now_micros = chrono::Utc::now().timestamp_micros();
+
+        // Claim the durable submission. This is the idempotency boundary for
+        // one accepted user message, and it fences later journal/projection
+        // writes with a fresh attempt id.
+        let submission_id = if event.submission_id.is_empty() {
+            event.message_id.as_str()
+        } else {
+            event.submission_id.as_str()
+        };
+        let claim = sessions::claim_submission(
+            self.cp.kv.as_ref(),
+            ns,
+            &event.agent,
+            &event.session_id,
+            submission_id,
+            &event.message_id,
+            now_micros,
+            crate::control::scheduling::session_processing_timeout_micros(),
+        )
+        .instrument(tracing::info_span!(
+            "WorkerEventHandler.claim_session_submission"
+        ))
+        .await?;
+        let submission = match claim {
+            ClaimOutcome::Claimed(submission) => submission,
+            ClaimOutcome::AlreadyTerminal(submission) => {
+                tracing::info!(
+                    agent = %event.agent,
+                    session = %event.session_id,
+                    submission = %submission.submission_id,
+                    status = %submission.status,
+                    committed_message_id = ?submission.committed_message_id,
+                    "Session submission already terminal; skipping duplicate delivery"
+                );
+                self.release_session_lock(
+                    ns,
+                    &event.agent,
+                    &event.session_id,
+                    event.timestamp,
+                    SessionCompletionStatus::Completed,
+                )
+                .await;
+                return Ok(());
+            }
+            ClaimOutcome::Busy(submission) => {
+                tracing::info!(
+                    agent = %event.agent,
+                    session = %event.session_id,
+                    submission = %submission.submission_id,
+                    claim_expires_at = ?submission.claim_expires_at,
+                    "Session submission already claimed; skipping concurrent duplicate delivery"
+                );
+                return Ok(());
+            }
+        };
+
+        // Build the deterministic assistant reply sink. The sink owns live UI
+        // fanout plus mutable SessionMessage projection writes for this attempt.
         let cancellation_token = CancellationToken::new();
         self.session_cancellations
             .lock()
             .await
             .insert(event.session_id.clone(), cancellation_token.clone());
-        // Pre-allocate the assistant reply slot before runtime construction so
-        // provider/config errors can be recorded in the session history.
-        let reply_msg_id = uuid::Uuid::now_v7().to_string();
+        let reply_msg_id = format!("{}-assistant", submission.submission_id);
         let reply_msg_key = crate::control::keys::session_message(
             ns,
             &event.agent,
             &event.session_id,
             &reply_msg_id,
         );
-        let _ = self
-            .cp
-            .kv
-            .set_msg(
-                &reply_msg_key,
-                &data_proto::SessionMessage {
-                    id: reply_msg_id.clone(),
-                    role: data_proto::MessageRole::RoleAssistant as i32,
-                    created_at: chrono::Utc::now().timestamp_micros(),
-                    labels: std::collections::HashMap::new(),
-                    parts: Vec::new(),
-                },
-            )
-            .instrument(tracing::info_span!("WorkerEventHandler.create_reply_slot"))
-            .await;
-
         let sink = PubSubSessionSink::new(
             self.cp.kv.clone(),
             self.cp.pubsub.clone(),
@@ -120,9 +360,94 @@ impl WorkerEventHandler {
             event.agent.clone(),
             reply_msg_id,
             reply_msg_key,
+            submission.submission_id.clone(),
+            submission.attempt_id.clone(),
         );
 
+        // Load the ordered recovery journal once. If the last durable boundary
+        // is COMMITTED, repair the mutable submission tombstone and stop here.
+        let journal_entries = sessions::list_journal_entries(
+            self.cp.kv.as_ref(),
+            ns,
+            &event.agent,
+            &event.session_id,
+            &submission.submission_id,
+        )
+        .await?;
+        if let Some(entry) = journal_entries
+            .last()
+            .filter(|entry| entry.phase == SessionExecutionPhase::Committed as i32)
+        {
+            let committed_message_id = entry.committed_message_id.clone().or_else(|| {
+                match entry
+                    .payload
+                    .as_ref()
+                    .and_then(|payload| payload.payload.as_ref())
+                {
+                    Some(session_journal_entry_payload::Payload::Commit(commit)) => {
+                        Some(commit.committed_message_id.clone())
+                    }
+                    _ => None,
+                }
+            });
+            let committed_message_id = committed_message_id
+                .filter(|id| !id.is_empty())
+                .ok_or_else(|| anyhow!("COMMITTED journal entry is missing message id"))?;
+            let committed_message_key = crate::control::keys::session_message(
+                ns,
+                &event.agent,
+                &event.session_id,
+                &committed_message_id,
+            );
+            if let Some(mut message) = self
+                .cp
+                .kv
+                .get_msg::<data_proto::SessionMessage>(&committed_message_key)
+                .await?
+            {
+                if message
+                    .labels
+                    .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+                    .map(String::as_str)
+                    != Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
+                {
+                    message.labels.insert(
+                        sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
+                        sessions::SESSION_PROJECTION_STATE_COMMITTED.to_string(),
+                    );
+                    self.cp.kv.set_msg(&committed_message_key, &message).await?;
+                }
+            }
+            sessions::mark_terminal(
+                self.cp.kv.as_ref(),
+                ns,
+                &event.agent,
+                &event.session_id,
+                &submission.submission_id,
+                &submission.attempt_id,
+                SessionSubmissionStatus::Committed as i32,
+                &committed_message_id,
+                chrono::Utc::now().timestamp_micros(),
+            )
+            .await?;
+            self.session_cancellations
+                .lock()
+                .await
+                .remove(&event.session_id);
+            self.release_session_lock(
+                ns,
+                &event.agent,
+                &event.session_id,
+                event.timestamp,
+                SessionCompletionStatus::Completed,
+            )
+            .await;
+            return Ok(());
+        }
+
         let outcome = async {
+            // Load the agent resource before deciding which runtime owns the
+            // rest of the session execution.
             let store = crate::control::resources::ResourceStore::new(
                 self.cp.kv.clone(),
                 self.cp.pubsub.clone(),
@@ -159,6 +484,8 @@ impl WorkerEventHandler {
                 .unwrap_or(false);
 
             if is_acp {
+                // ACP runtimes are not journal-hydrated by this durable LLM
+                // loop; they keep their existing execution path.
                 let runtime = match crate::harness::acp::AcpAgentRuntime::build_from_agent(
                     ns,
                     &event.agent,
@@ -194,7 +521,8 @@ impl WorkerEventHandler {
                 .map(|status| (status, sink.summary()));
             }
 
-            // Build the fully-resolved runtime (spec, history, LLM, tools, knowledge)
+            // Build the LLM-loop runtime from canonical SessionMessage history.
+            // Active in-progress projections are ignored by AgentRuntime.
             let mut runtime = match AgentRuntime::build_from_agent(
                 ns,
                 &event.agent,
@@ -220,13 +548,45 @@ impl WorkerEventHandler {
                 }
             };
 
+            // Hydrate the runtime context from the stable journal and execute
+            // any missing tool results before returning to the LLM loop.
+            let prepared_submission = prepare_context_for_claimed_submission(
+                &self.cp,
+                ns,
+                &event.agent,
+                &event.session_id,
+                &submission.submission_id,
+                &submission.attempt_id,
+                &journal_entries,
+                &mut runtime,
+            )
+            .await?;
+            for part in &prepared_submission.projection_parts {
+                match part {
+                    RecoveredProjectionPart::Text { content } => {
+                        sink.seed_recovered_text_part(content);
+                    }
+                    RecoveredProjectionPart::ToolCall { id, name, input } => {
+                        sink.seed_recovered_tool_call_part(id, name, input);
+                    }
+                    RecoveredProjectionPart::ToolResult { id, name, result } => {
+                        sink.seed_recovered_tool_result_part(id, name, result);
+                    }
+                }
+            }
+            if let PreparedSubmissionState::FinalResponseReady { content } =
+                prepared_submission.state
+            {
+                sink.on_done(&content).await;
+                return Ok((SessionCompletionStatus::Completed, sink.summary()));
+            }
+
+            // Continue execution from the prepared context. The executor only
+            // appends new durable journal boundaries after this point.
             execute_with_panic_boundary(
-                runtime.executor.execute(
-                    &mut runtime.context,
-                    &event.message,
-                    &sink,
-                    Some(&cancellation_token),
-                ),
+                runtime
+                    .executor
+                    .execute(&mut runtime.context, &sink, Some(&cancellation_token)),
                 &sink,
                 &event.agent,
                 &event.session_id,
@@ -245,6 +605,12 @@ impl WorkerEventHandler {
             .as_ref()
             .map(|(status, _)| *status)
             .unwrap_or(SessionCompletionStatus::Errored);
+        if let Err(err) = &outcome {
+            sink.on_error(&format!("Error: {:#}", err)).await;
+        }
+
+        // Release the user-visible session lock after the worker has either
+        // completed, failed, or panicked.
         self.release_session_lock(
             ns,
             &event.agent,
@@ -256,6 +622,52 @@ impl WorkerEventHandler {
             "WorkerEventHandler.release_session_lock"
         ))
         .await;
+
+        // If execution failed after writing a reply projection, terminalize the
+        // submission as failed so redelivery does not treat it as still claimed.
+        if outcome.is_err() || completion_status != SessionCompletionStatus::Completed {
+            match crate::control::ProtoKeyValueStoreExt::get_msg::<data_proto::SessionMessage>(
+                self.cp.kv.as_ref(),
+                &sink.reply_msg_key,
+            )
+            .await
+            {
+                Ok(Some(_)) => {
+                    if let Err(err) = sessions::mark_terminal(
+                        self.cp.kv.as_ref(),
+                        ns,
+                        &event.agent,
+                        &event.session_id,
+                        &submission.submission_id,
+                        &submission.attempt_id,
+                        SessionSubmissionStatus::Failed as i32,
+                        &sink.reply_msg_id,
+                        chrono::Utc::now().timestamp_micros(),
+                    )
+                    .await
+                    {
+                        tracing::error!(
+                            error = %err,
+                            agent = %event.agent,
+                            session = %event.session_id,
+                            submission = %submission.submission_id,
+                            "Failed to mark session submission terminal after execution failure"
+                        );
+                    }
+                }
+                Ok(None) => {
+                    tracing::warn!(
+                        agent = %event.agent,
+                        session = %event.session_id,
+                        submission = %submission.submission_id,
+                        "Skipping terminal session submission update because reply message was not persisted"
+                    );
+                }
+                Err(err) => {
+                    tracing::error!(error = %err, "Failed to inspect reply message before terminal update");
+                }
+            }
+        }
 
         if let Ok((status, summary)) = &outcome {
             tracing::info!(
@@ -406,6 +818,7 @@ mod tests {
     };
     use crate::gateway::rpc::{data_proto, manifests, resources_proto};
     use crate::harness::executor::ExecutionSink;
+    use crate::harness::sessions;
     use crate::worker::{
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
@@ -413,6 +826,7 @@ mod tests {
     use async_trait::async_trait;
     use axum::{routing::post, Json, Router};
     use futures::stream;
+    use prost::Message;
     use serde_json::json;
     use serde_json::Value;
     use std::collections::HashMap;
@@ -889,13 +1303,13 @@ mod tests {
         )
         .await
         .unwrap();
-
         handler
             .handle_session_message(SessionMessageEvent {
                 ns: "conic:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
                 message_id: "user-1".to_string(),
+                submission_id: "user-1".to_string(),
                 direction: MessageDirection::Inbound as i32,
                 message: "operator prompt".to_string(),
                 timestamp: 123,
@@ -953,6 +1367,132 @@ mod tests {
         assert!(error_part
             .content
             .contains("OpenAI provider config is missing api_key"));
+    }
+
+    #[tokio::test]
+    async fn handle_session_message_persists_setup_error_from_bad_journal() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv(kv.clone());
+        put_agent_resource(
+            kv.clone(),
+            "conic:test",
+            "assistant",
+            manifests::AgentSpec {
+                features: Vec::new(),
+                model_policy: None,
+                system_prompt: "assist".to_string(),
+                mcp_server_refs: Vec::new(),
+                capabilities: HashMap::new(),
+                a2a: None,
+                runtime: None,
+            },
+        )
+        .await;
+        kv.set_msg(
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "assistant".to_string(),
+                ns: "conic:test".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 0,
+                last_active: 123,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "user-1",
+            ),
+            &data_proto::SessionMessage {
+                id: "user-1".to_string(),
+                role: data_proto::MessageRole::RoleUser as i32,
+                created_at: 1,
+                labels: HashMap::new(),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: "000000".to_string(),
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
+                    content: "operator prompt".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 1,
+                    object: None,
+                }],
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session_journal_entry(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "user-1",
+                "000001",
+            ),
+            &data_proto::SessionJournalEntry {
+                submission_id: "user-1".to_string(),
+                journal_entry_id: "000001".to_string(),
+                attempt_id: "prior-attempt".to_string(),
+                phase: data_proto::SessionExecutionPhase::LlmResponse as i32,
+                payload: None,
+                created_at: 1,
+                updated_at: 1,
+                committed_at: None,
+                committed_message_id: None,
+            },
+        )
+        .await
+        .unwrap();
+
+        let result = handler
+            .handle_session_message(SessionMessageEvent {
+                ns: "conic:test".to_string(),
+                agent: "assistant".to_string(),
+                session_id: "session-1".to_string(),
+                message_id: "user-1".to_string(),
+                submission_id: "user-1".to_string(),
+                direction: MessageDirection::Inbound as i32,
+                message: "operator prompt".to_string(),
+                timestamp: 123,
+            })
+            .await;
+        assert!(result.is_err());
+
+        let session = kv
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(session.status, "ERROR");
+        let error_message = kv
+            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "user-1-assistant",
+            ))
+            .await
+            .unwrap()
+            .expect("assistant error should be persisted");
+        let error_part = error_message
+            .parts
+            .iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Error as i32)
+            .expect("error part should exist");
+        assert!(error_part
+            .content
+            .contains("LLM_RESPONSE entry is missing payload"));
     }
 
     #[tokio::test]
@@ -1014,6 +1554,7 @@ mod tests {
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
                 message_id: "user-1".to_string(),
+                submission_id: "submission-1".to_string(),
                 direction: MessageDirection::Inbound as i32,
                 message: "hello".to_string(),
                 timestamp: 123,
@@ -1065,9 +1606,248 @@ mod tests {
         let reply = reply.expect("assistant reply should be stored");
         assert_eq!(reply.role, 2);
 
+        let submission = kv
+            .get_msg::<crate::harness::sessions::SessionSubmission>(
+                &crate::control::keys::session_submission(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                    "submission-1",
+                ),
+            )
+            .await
+            .unwrap()
+            .expect("submission tombstone should exist");
+        assert_eq!(submission.submission_id, "submission-1");
+        assert_eq!(submission.user_message_id, "user-1");
+        assert_eq!(
+            submission.status,
+            crate::gateway::rpc::data_proto::SessionSubmissionStatus::Committed as i32
+        );
+        assert_eq!(submission.completed_at.is_some(), true);
+        assert_eq!(
+            submission.committed_message_id.as_deref(),
+            Some(reply.id.as_str())
+        );
+
+        assert_eq!(
+            submission.current_phase,
+            crate::gateway::rpc::data_proto::SessionExecutionPhase::Committed as i32
+        );
+        let journal_entry_id = submission
+            .current_journal_entry_id
+            .as_deref()
+            .expect("submission should point at committed journal entry");
+        let journal_entry_key = crate::control::keys::session_journal_entry(
+            "conic:test",
+            "assistant",
+            "session-1",
+            "submission-1",
+            journal_entry_id,
+        );
+        let journal_entry = kv
+            .get(&journal_entry_key)
+            .await
+            .unwrap()
+            .map(|bytes| {
+                crate::harness::sessions::SessionJournalEntry::decode(bytes.as_slice())
+                    .map_err(anyhow::Error::from)
+            })
+            .transpose()
+            .unwrap()
+            .expect("committed journal entry should exist");
+        assert_eq!(
+            journal_entry.phase,
+            crate::gateway::rpc::data_proto::SessionExecutionPhase::Committed as i32
+        );
+        assert_eq!(journal_entry.committed_at.is_some(), true);
+        assert_eq!(
+            journal_entry.committed_message_id.as_deref(),
+            Some(reply.id.as_str())
+        );
+
+        let before_duplicate_keys = kv
+            .list_keys(&crate::control::keys::session_message_prefix(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .unwrap();
+        handler
+            .handle_session_message(SessionMessageEvent {
+                ns: "conic:test".to_string(),
+                agent: "assistant".to_string(),
+                session_id: "session-1".to_string(),
+                message_id: "user-1".to_string(),
+                submission_id: "submission-1".to_string(),
+                direction: MessageDirection::Inbound as i32,
+                message: "hello".to_string(),
+                timestamp: 123,
+            })
+            .await
+            .unwrap();
+        let after_duplicate_keys = kv
+            .list_keys(&crate::control::keys::session_message_prefix(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .unwrap();
+        assert_eq!(after_duplicate_keys.len(), before_duplicate_keys.len());
+
         unsafe {
             std::env::remove_var("NOVITA_BASE_URL");
         }
         server.abort();
+    }
+
+    #[tokio::test]
+    async fn redelivery_with_committed_journal_repairs_submission_without_duplicate_execution() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv(kv.clone());
+        kv.set_msg(
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "assistant".to_string(),
+                ns: "conic:test".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 1,
+                last_active: 123,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "user-1-assistant",
+            ),
+            &data_proto::SessionMessage {
+                id: "user-1-assistant".to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 124,
+                labels: HashMap::from([(
+                    sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
+                    sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED.to_string(),
+                )]),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: "000000".to_string(),
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
+                    content: "already committed".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 124,
+                    object: None,
+                }],
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session_journal_entry(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "user-1",
+                "000001",
+            ),
+            &data_proto::SessionJournalEntry {
+                submission_id: "user-1".to_string(),
+                journal_entry_id: "000001".to_string(),
+                attempt_id: "prior-attempt".to_string(),
+                phase: data_proto::SessionExecutionPhase::Committed as i32,
+                payload: Some(data_proto::SessionJournalEntryPayload {
+                    payload: Some(data_proto::session_journal_entry_payload::Payload::Commit(
+                        data_proto::SessionJournalEntryPayloadCommit {
+                            committed_message_id: "user-1-assistant".to_string(),
+                        },
+                    )),
+                }),
+                created_at: 124,
+                updated_at: 124,
+                committed_at: Some(124),
+                committed_message_id: Some("user-1-assistant".to_string()),
+            },
+        )
+        .await
+        .unwrap();
+
+        handler
+            .handle_session_message(SessionMessageEvent {
+                ns: "conic:test".to_string(),
+                agent: "assistant".to_string(),
+                session_id: "session-1".to_string(),
+                message_id: "user-1".to_string(),
+                submission_id: "user-1".to_string(),
+                direction: MessageDirection::Inbound as i32,
+                message: "hello".to_string(),
+                timestamp: 123,
+            })
+            .await
+            .unwrap();
+
+        let messages = kv
+            .list_keys(&crate::control::keys::session_message_prefix(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .unwrap();
+        assert_eq!(messages.len(), 1);
+        let assistant_message = kv
+            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "user-1-assistant",
+            ))
+            .await
+            .unwrap()
+            .expect("committed assistant message should remain readable");
+        assert_eq!(
+            assistant_message
+                .labels
+                .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+                .map(String::as_str),
+            Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
+        );
+        let submission = kv
+            .get_msg::<crate::harness::sessions::SessionSubmission>(
+                &crate::control::keys::session_submission(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                    "user-1",
+                ),
+            )
+            .await
+            .unwrap()
+            .expect("submission should be tombstoned");
+        assert_eq!(
+            submission.status,
+            crate::gateway::rpc::data_proto::SessionSubmissionStatus::Committed as i32
+        );
+        assert_eq!(
+            submission.committed_message_id.as_deref(),
+            Some("user-1-assistant")
+        );
+        let session = kv
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(session.status, "IDLE");
     }
 }
