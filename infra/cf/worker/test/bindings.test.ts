@@ -135,6 +135,27 @@ test("D1 bridge decodes Rust execute params and forwards prepared SQL", async ()
   assert.deepEqual(await response.json(), { meta: { changes: 1 } });
 });
 
+test("D1 bridge returns logged errors for malformed execute bodies", async () => {
+  const errors: unknown[][] = [];
+  const originalError = console.error;
+  console.error = (...args: unknown[]) => errors.push(args);
+  try {
+    const response = await handleD1(
+      new Request("http://talon-d1.internal/execute", {
+        method: "POST",
+        body: "{",
+      }),
+      baseEnv(),
+    );
+
+    assert.equal(response.status, 500);
+    assert.match((await response.json() as { error: string }).error, /JSON|parse|Unexpected/i);
+    assert.equal(errors[0]?.[0], "D1 bridge request failed");
+  } finally {
+    console.error = originalError;
+  }
+});
+
 test("Queue bridge fans out session part topics through live stream Durable Objects", async () => {
   const env = baseEnv();
   const controller = new AbortController();

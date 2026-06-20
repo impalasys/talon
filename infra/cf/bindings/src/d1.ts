@@ -72,8 +72,9 @@ function encodeRow(row: Record<string, unknown>): Record<string, D1Cell> {
 export async function handleD1(request: Request, env: TalonCfBindingsEnv): Promise<Response> {
   const path = new URL(request.url).pathname;
   if (path !== "/execute") return new Response("not found", { status: 404 });
-  const payload = await body<D1ExecuteRequest>(request);
+  let payload: D1ExecuteRequest | undefined;
   try {
+    payload = await body<D1ExecuteRequest>(request);
     const statement = env.TALON_D1.prepare(payload.sql).bind(...(payload.params ?? []).map(decodeParam));
 
     if (payload.mode === "run") {
@@ -98,9 +99,9 @@ export async function handleD1(request: Request, env: TalonCfBindingsEnv): Promi
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("D1 bridge request failed", {
-      mode: payload.mode,
-      sql: payload.sql.slice(0, 200),
-      paramCount: payload.params?.length ?? 0,
+      mode: payload?.mode,
+      sql: payload?.sql?.slice(0, 200),
+      paramCount: payload?.params?.length ?? 0,
       error: message,
     });
     return json({ error: message }, { status: 500 });
