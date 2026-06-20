@@ -162,7 +162,7 @@ pub(super) async fn update_submission_from_entry(
         };
         let mut submission = SessionSubmission::decode(current.as_slice())?;
         let terminal_update = terminal_status.is_some();
-        if !terminal_update && submission.attempt_id != entry.attempt_id {
+        if submission.attempt_id != entry.attempt_id {
             return Err(anyhow!(
                 "stale session submission attempt: current={}, entry={}",
                 submission.attempt_id,

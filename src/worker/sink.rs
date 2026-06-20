@@ -963,6 +963,11 @@ impl ExecutionSink for PubSubSessionSink {
                     .await
                     {
                         tracing::error!(error = %err, "Failed to persist committed projection");
+                        self.publish_event(AgentEvent::Error(
+                            "Error: failed to persist committed assistant message".to_string(),
+                        ))
+                        .await;
+                        return;
                     }
                     self.publish_event(AgentEvent::Done(reply_for_event)).await;
                 } else {
@@ -1061,6 +1066,8 @@ mod tests {
     #[derive(Default)]
     struct MockKvStore {
         entries: Arc<Mutex<Vec<(String, Vec<u8>)>>>,
+        fail_reply_sets_after: Option<usize>,
+        reply_set_count: Arc<Mutex<usize>>,
     }
 
     fn reply_key() -> ResourceKey {
@@ -1080,6 +1087,16 @@ mod tests {
                 .map(|(_, value)| value.clone()))
         }
         async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
+            if key.to_string() == reply_key().to_string() {
+                let mut count = self.reply_set_count.lock().await;
+                *count += 1;
+                if self
+                    .fail_reply_sets_after
+                    .is_some_and(|limit| *count > limit)
+                {
+                    anyhow::bail!("injected reply write failure");
+                }
+            }
             self.entries
                 .lock()
                 .await
@@ -1668,6 +1685,52 @@ mod tests {
         assert!(events.iter().any(
             |event| event.kind == SessionMessagePartEventKind::Error as i32
                 && event_part(event).content == "Error: failed to mark session submission terminal"
+        ));
+        assert!(!events
+            .iter()
+            .any(|event| event.kind == SessionMessagePartEventKind::Done as i32));
+    }
+
+    #[tokio::test]
+    async fn done_publishes_error_when_committed_projection_write_fails() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore {
+            fail_reply_sets_after: Some(1),
+            ..MockKvStore::default()
+        });
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        crate::control::ProtoKeyValueStoreExt::set_msg(
+            kv.as_ref(),
+            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &submission,
+        )
+        .await
+        .unwrap();
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv,
+            Arc::new(MockPubSub {
+                events: events.clone(),
+            }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        sink.on_done("final reply").await;
+
+        let events = events.lock().await.clone();
+        assert!(events.iter().any(
+            |event| event.kind == SessionMessagePartEventKind::Error as i32
+                && event_part(event).content
+                    == "Error: failed to persist committed assistant message"
         ));
         assert!(!events
             .iter()

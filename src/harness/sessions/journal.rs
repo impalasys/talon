@@ -101,19 +101,21 @@ pub async fn mark_terminal(
     )
     .await?
     {
-        update_submission_from_entry(
-            kv,
-            ns,
-            agent,
-            session_id,
-            submission_id,
-            &existing,
-            Some(status),
-            Some(committed_message_id),
-            now_micros,
-        )
-        .await?;
-        return Ok(existing);
+        if existing.attempt_id == attempt_id {
+            update_submission_from_entry(
+                kv,
+                ns,
+                agent,
+                session_id,
+                submission_id,
+                &existing,
+                Some(status),
+                Some(committed_message_id),
+                now_micros,
+            )
+            .await?;
+            return Ok(existing);
+        }
     }
 
     let entry = append_journal_entry_raw(
@@ -467,6 +469,75 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(entries.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn terminal_mark_is_attempt_fenced() {
+        let kv = crate::test_support::MockKvStore::default();
+        let mut submission = pending_submission("submission-1", "session-1", "user-1", 1);
+        submission.status = SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-2".to_string();
+        create_submission_if_absent(&kv, "ns", "agent", "session-1", &submission)
+            .await
+            .unwrap();
+        kv.set_msg(
+            &keys::session_journal_entry("ns", "agent", "session-1", "submission-1", "000001"),
+            &SessionJournalEntry {
+                submission_id: "submission-1".to_string(),
+                journal_entry_id: "000001".to_string(),
+                attempt_id: "attempt-1".to_string(),
+                phase: SessionExecutionPhase::Committed as i32,
+                payload: Some(SessionJournalEntryPayload {
+                    payload: Some(session_journal_entry_payload::Payload::Commit(
+                        SessionJournalEntryPayloadCommit {
+                            committed_message_id: "reply-1".to_string(),
+                        },
+                    )),
+                }),
+                created_at: 2,
+                updated_at: 2,
+                committed_at: Some(2),
+                committed_message_id: Some("reply-1".to_string()),
+            },
+        )
+        .await
+        .unwrap();
+
+        let stale = mark_terminal(
+            &kv,
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            SessionSubmissionStatus::Committed as i32,
+            "reply-1",
+            3,
+        )
+        .await
+        .unwrap_err();
+        assert!(stale
+            .to_string()
+            .contains("stale session submission attempt"));
+
+        let repaired = mark_terminal(
+            &kv,
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-2",
+            SessionSubmissionStatus::Committed as i32,
+            "reply-1",
+            4,
+        )
+        .await
+        .unwrap();
+        assert_eq!(repaired.journal_entry_id, "000002");
+        let entries = list_journal_entries(&kv, "ns", "agent", "session-1", "submission-1")
+            .await
+            .unwrap();
+        assert_eq!(entries.len(), 2);
     }
 
     #[tokio::test]
