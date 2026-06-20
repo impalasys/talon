@@ -689,6 +689,18 @@ def assert_single_tool_call_and_result(
     assert part_payload(tool_result_parts[0])["tool_call_id"] == tool_call_id
 
 
+def assert_mock_llm_saw_user_message_once(mock_state: dict[str, Any], message: str) -> None:
+    requests_seen = mock_state.get("chat_requests") or []
+    assert requests_seen, "mock LLM should have received at least one chat request"
+    for request in requests_seen:
+        user_messages = [
+            item
+            for item in request.get("messages", [])
+            if item.get("role") == "user" and item.get("content") == message
+        ]
+        assert len(user_messages) == 1, request.get("messages", [])
+
+
 def text_from_parts(parts: list[Any]) -> str:
     return "".join(part.content for part in parts)
 
@@ -1034,6 +1046,7 @@ def test_tool_call_recorded_worker_kill_restart_recovers_from_journal(
     # Correct recovery should execute the journaled pending tool call, then make
     # only the follow-up LLM call needed to produce the final assistant answer.
     assert final_mock_state["request_count"] == mock_state_at_crash["request_count"] + 1
+    assert_mock_llm_saw_user_message_once(final_mock_state, message)
 
 
 @pytest.mark.stress

@@ -29,6 +29,7 @@ CONTROL_STATE = {
     "mcp_tool_blocked": False,
     "mcp_tool_unblocked": False,
     "mcp_tool_call_count": 0,
+    "chat_requests": [],
 }
 
 
@@ -44,6 +45,7 @@ def reset_control_state():
             "mcp_tool_blocked": False,
             "mcp_tool_unblocked": False,
             "mcp_tool_call_count": 0,
+            "chat_requests": [],
         }
     )
 
@@ -283,6 +285,17 @@ async def chat_completions(request: Request):
     # Very rudimentary context extraction to mock a response
     messages = data.get("messages", [])
     tools = data.get("tools", [])
+    CONTROL_STATE["chat_requests"].append(
+        {
+            "messages": messages,
+            "stream": bool(data.get("stream", False)),
+            "toolNames": [
+                tool.get("function", {}).get("name")
+                for tool in tools
+                if isinstance(tool, dict)
+            ],
+        }
+    )
     last_message = last_message_text(messages)
     model = data.get("model", "minimax-m2.7")
 

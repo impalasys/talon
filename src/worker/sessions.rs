@@ -101,31 +101,11 @@ async fn prepare_context_for_claimed_submission(
     ns: &str,
     agent: &str,
     session_id: &str,
-    user_message_id: &str,
-    fallback_user_text: &str,
     submission_id: &str,
     attempt_id: &str,
     journal_entries: &[sessions::SessionJournalEntry],
     runtime: &mut AgentRuntime,
 ) -> Result<PreparedSubmission> {
-    if !runtime.context.has_system_message() {
-        let system = runtime.executor.system_loop_message().await?;
-        runtime.context.prepend_system_message(system);
-    }
-
-    let user_message_key =
-        crate::control::keys::session_message(ns, agent, session_id, user_message_id);
-    if cp
-        .kv
-        .get_msg::<data_proto::SessionMessage>(&user_message_key)
-        .await?
-        .is_none()
-    {
-        runtime
-            .context
-            .push_user_text_if_missing(fallback_user_text);
-    }
-
     let mut latest_final_response = None;
     let mut projection_parts = Vec::new();
     let mut index = 0;
@@ -575,8 +555,6 @@ impl WorkerEventHandler {
                 ns,
                 &event.agent,
                 &event.session_id,
-                &event.message_id,
-                &event.message,
                 &submission.submission_id,
                 &submission.attempt_id,
                 &journal_entries,
