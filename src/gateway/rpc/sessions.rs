@@ -255,6 +255,11 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::CreateSessionRequest>,
     ) -> std::result::Result<tonic::Response<proto::SessionResponse>, tonic::Status> {
+        tracing::info!(
+            namespace = %req.get_ref().ns,
+            agent = %req.get_ref().agent,
+            "CreateSession request received"
+        );
         crate::require_auth!(self, req, &req.get_ref().ns, &req.get_ref().agent);
         let req = req.into_inner();
 
@@ -287,6 +292,11 @@ impl GrpcGatewayHandler {
         }
 
         if agent_exists.is_none() {
+            tracing::warn!(
+                namespace = %req.ns,
+                agent = %req.agent,
+                "CreateSession rejected because agent was not found"
+            );
             return Err(tonic::Status::not_found(format!(
                 "Agent {} not found in ns {}",
                 req.agent, req.ns
