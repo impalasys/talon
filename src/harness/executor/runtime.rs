@@ -660,8 +660,8 @@ mod tests {
         KnowledgeBook, KnowledgeEntry, KnowledgeListEntry, KnowledgeResult,
     };
     use crate::harness::llm::provider::{
-        text_delta_event, tool_call_delta_event, ChatMessage, ChatRequest, ChatResponse,
-        ChatStream, LlmProvider,
+        text_delta_event, tool_call_delta_event, ChatMessage, ChatMessageExt, ChatRequest,
+        ChatResponse, ChatStream, LlmProvider,
     };
     use crate::harness::memory::Embedding;
     use crate::harness::skills::registry::ToolRegistry;

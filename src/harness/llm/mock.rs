@@ -52,7 +52,7 @@ mod tests {
 
         let response = provider
             .chat_completion(ChatRequest {
-                messages: vec![crate::harness::llm::ChatMessage::text("user", "hi")],
+                messages: vec![crate::harness::llm::chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: None,
             })
@@ -64,7 +64,7 @@ mod tests {
 
         let stream = provider
             .stream_chat_completion(ChatRequest {
-                messages: vec![crate::harness::llm::ChatMessage::text("user", "stream")],
+                messages: vec![crate::harness::llm::chat_message_text("user", "stream")],
                 tools: vec![],
                 thinking: None,
             })

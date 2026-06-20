@@ -56,26 +56,31 @@ pub fn content_parts_text(parts: &[ChatContentPart]) -> String {
         .join("")
 }
 
-impl ChatMessage {
-    pub fn text(role: impl Into<String>, content: impl Into<String>) -> Self {
-        let content = content.into();
-        Self {
-            role: role.into(),
-            content_parts: if content.is_empty() {
-                Vec::new()
-            } else {
-                vec![text_part(content)]
-            },
-            tool_calls: Vec::new(),
-            tool_call_id: None,
-        }
+pub fn chat_message_text(role: impl Into<String>, content: impl Into<String>) -> ChatMessage {
+    let content = content.into();
+    ChatMessage {
+        role: role.into(),
+        content_parts: if content.is_empty() {
+            Vec::new()
+        } else {
+            vec![text_part(content)]
+        },
+        tool_calls: Vec::new(),
+        tool_call_id: None,
     }
+}
 
-    pub fn text_content(&self) -> String {
+pub trait ChatMessageExt {
+    fn text_content(&self) -> String;
+    fn is_empty_content(&self) -> bool;
+}
+
+impl ChatMessageExt for ChatMessage {
+    fn text_content(&self) -> String {
         content_parts_text(&self.content_parts)
     }
 
-    pub fn is_empty_content(&self) -> bool {
+    fn is_empty_content(&self) -> bool {
         self.content_parts
             .iter()
             .all(|part| match part.content.as_ref() {

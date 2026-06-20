@@ -3,8 +3,9 @@
 
 use crate::gateway::rpc::manifests;
 use crate::harness::llm::provider::{
-    chat_content_part, chat_stream_event, text_delta_event, usage_event, ChatContentPart,
-    ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, ChatUsage, LlmProvider,
+    chat_content_part, chat_message_text, chat_stream_event, text_delta_event, usage_event,
+    ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent,
+    ChatUsage, LlmProvider,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -280,7 +281,7 @@ impl LlmProvider for AnthropicProvider {
 
     async fn completion(&self, prompt: &str) -> Result<String> {
         self.chat_completion(ChatRequest {
-            messages: vec![ChatMessage::text("user", prompt)],
+            messages: vec![chat_message_text("user", prompt)],
             tools: vec![],
             thinking: None,
         })
@@ -421,7 +422,7 @@ mod tests {
             tool_calls: Vec::new(),
             tool_call_id: None,
         });
-        let text = AnthropicProvider::serialize_message(&ChatMessage::text("user", "hello"));
+        let text = AnthropicProvider::serialize_message(&chat_message_text("user", "hello"));
 
         assert_eq!(empty["content"], "");
         assert_eq!(text["content"], "hello");
@@ -591,8 +592,8 @@ mod tests {
 
         let provider = test_provider(format!("http://{}", addr));
         let messages = vec![
-            ChatMessage::text("system", "top-level system prompt"),
-            ChatMessage::text("user", "hello"),
+            chat_message_text("system", "top-level system prompt"),
+            chat_message_text("user", "hello"),
         ];
 
         let response = provider
@@ -608,7 +609,7 @@ mod tests {
 
         let api_err = provider
             .chat_completion(ChatRequest {
-                messages: vec![ChatMessage::text("user", "cause-error")],
+                messages: vec![chat_message_text("user", "cause-error")],
                 tools: vec![],
                 thinking: None,
             })
@@ -618,7 +619,7 @@ mod tests {
 
         let format_err = provider
             .chat_completion(ChatRequest {
-                messages: vec![ChatMessage::text("user", "bad-format")],
+                messages: vec![chat_message_text("user", "bad-format")],
                 tools: vec![],
                 thinking: None,
             })
@@ -667,8 +668,8 @@ mod tests {
 
         let provider = test_provider(format!("http://{}", addr));
         let messages = vec![
-            ChatMessage::text("system", "top-level system prompt"),
-            ChatMessage::text("user", "stream"),
+            chat_message_text("system", "top-level system prompt"),
+            chat_message_text("user", "stream"),
         ];
 
         let mut stream = provider
@@ -695,7 +696,7 @@ mod tests {
 
         let err = match provider
             .stream_chat_completion(ChatRequest {
-                messages: vec![ChatMessage::text("user", "stream-error")],
+                messages: vec![chat_message_text("user", "stream-error")],
                 tools: vec![],
                 thinking: None,
             })

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::harness::llm::provider::{
-    chat_content_part, chat_stream_event, text_delta_event, tool_call_delta_event, usage_event,
-    ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent,
-    ChatUsage, LlmProvider, ToolCallDelta,
+    chat_content_part, chat_message_text, chat_stream_event, text_delta_event,
+    tool_call_delta_event, usage_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse,
+    ChatStream, ChatStreamEvent, ChatUsage, LlmProvider, ToolCallDelta,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -713,7 +713,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
 
     async fn completion(&self, prompt: &str) -> Result<String> {
         self.chat_completion(ChatRequest {
-            messages: vec![ChatMessage::text("user", prompt)],
+            messages: vec![chat_message_text("user", prompt)],
             tools: vec![],
             thinking: None,
         })
@@ -980,7 +980,7 @@ mod tests {
     #[test]
     fn serialize_messages_omits_absent_tool_fields() {
         let serialized =
-            OpenAiCompatibleProvider::serialize_messages(vec![ChatMessage::text("user", "hello")]);
+            OpenAiCompatibleProvider::serialize_messages(vec![chat_message_text("user", "hello")]);
 
         assert_eq!(serialized[0]["role"], "user");
         assert_eq!(serialized[0]["content"], "hello");
@@ -1175,7 +1175,7 @@ mod tests {
 
         provider
             .chat_completion(ChatRequest {
-                messages: vec![ChatMessage::text("user", "hi")],
+                messages: vec![chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: Some(ThinkingConfig {
                     enabled: true,
@@ -1220,7 +1220,7 @@ mod tests {
 
         provider
             .chat_completion(ChatRequest {
-                messages: vec![ChatMessage::text("user", "hi")],
+                messages: vec![chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: Some(ThinkingConfig {
                     enabled: true,
@@ -1269,7 +1269,7 @@ mod tests {
         );
         let result = provider
             .chat_completion(ChatRequest {
-                messages: vec![ChatMessage::text("user", "hi")],
+                messages: vec![chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: None,
             })
@@ -1312,7 +1312,7 @@ mod tests {
         let err = provider
             .send_chat_request(
                 ChatRequest {
-                    messages: vec![ChatMessage::text("user", "hi")],
+                    messages: vec![chat_message_text("user", "hi")],
                     tools: vec![],
                     thinking: None,
                 },
@@ -1381,7 +1381,7 @@ mod tests {
         let response = provider
             .send_chat_request(
                 ChatRequest {
-                    messages: vec![ChatMessage::text("user", "hi")],
+                    messages: vec![chat_message_text("user", "hi")],
                     tools: vec![],
                     thinking: None,
                 },
@@ -1506,7 +1506,7 @@ mod tests {
         );
         let mut stream = provider
             .stream_chat_completion(ChatRequest {
-                messages: vec![ChatMessage::text("user", "hi")],
+                messages: vec![chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: None,
             })
@@ -1569,7 +1569,7 @@ mod tests {
         );
         let mut stream = provider
             .stream_chat_completion(ChatRequest {
-                messages: vec![ChatMessage::text("user", "hi")],
+                messages: vec![chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: None,
             })
