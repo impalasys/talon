@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::harness::llm::provider::{
+    chat_content_part, chat_stream_event, text_delta_event, tool_call_delta_event, usage_event,
     ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent,
     ChatUsage, LlmProvider, ToolCallDelta,
 };
@@ -20,14 +21,14 @@ const DEFAULT_THINKING_BUDGET_TOKENS: u32 = 1024;
 const THINKING_COMPLETION_BUFFER_TOKENS: u32 = 4096;
 
 fn openai_content_part(part: ChatContentPart) -> serde_json::Value {
-    match part {
-        ChatContentPart::Text { text } => serde_json::json!({
+    match part.content {
+        Some(chat_content_part::Content::Text(text)) => serde_json::json!({
             "type": "text",
             "text": text,
         }),
-        ChatContentPart::ImageUrl { url, detail } => {
-            let mut image_url = serde_json::json!({ "url": url });
-            if let Some(detail) = detail {
+        Some(chat_content_part::Content::ImageUrl(image)) => {
+            let mut image_url = serde_json::json!({ "url": image.url });
+            if let Some(detail) = image.detail {
                 image_url["detail"] = serde_json::Value::String(detail);
             }
             serde_json::json!({
@@ -35,15 +36,11 @@ fn openai_content_part(part: ChatContentPart) -> serde_json::Value {
                 "image_url": image_url,
             })
         }
-        ChatContentPart::ImageData {
-            media_type,
-            data_base64,
-            detail,
-        } => {
+        Some(chat_content_part::Content::ImageData(image)) => {
             let mut image_url = serde_json::json!({
-                "url": format!("data:{media_type};base64,{data_base64}"),
+                "url": format!("data:{};base64,{}", image.media_type, image.data_base64),
             });
-            if let Some(detail) = detail {
+            if let Some(detail) = image.detail {
                 image_url["detail"] = serde_json::Value::String(detail);
             }
             serde_json::json!({
@@ -51,6 +48,7 @@ fn openai_content_part(part: ChatContentPart) -> serde_json::Value {
                 "image_url": image_url,
             })
         }
+        None => serde_json::json!({"type": "text", "text": ""}),
     }
 }
 
@@ -86,7 +84,18 @@ impl OpenAiCompatibleProvider {
             .map(|message| {
                 let content = match message.content_parts.as_slice() {
                     [] => serde_json::Value::String(String::new()),
-                    [ChatContentPart::Text { text }] => serde_json::Value::String(text.clone()),
+                    [part] => match part.content.as_ref() {
+                        Some(chat_content_part::Content::Text(text)) => {
+                            serde_json::Value::String(text.clone())
+                        }
+                        _ => serde_json::Value::Array(
+                            message
+                                .content_parts
+                                .into_iter()
+                                .map(openai_content_part)
+                                .collect(),
+                        ),
+                    },
                     _ => serde_json::Value::Array(
                         message
                             .content_parts
@@ -100,8 +109,9 @@ impl OpenAiCompatibleProvider {
                     "content": content,
                 });
 
-                if let Some(tool_calls) = message.tool_calls {
-                    let openai_tool_calls: Vec<serde_json::Value> = tool_calls
+                if !message.tool_calls.is_empty() {
+                    let openai_tool_calls: Vec<serde_json::Value> = message
+                        .tool_calls
                         .into_iter()
                         .map(|tool| {
                             serde_json::json!({
@@ -135,9 +145,9 @@ impl OpenAiCompatibleProvider {
         tools_were_sent
             && self.base_url.contains("novita.ai")
             && err_text.contains("internal_server_error")
-            && messages.iter().any(|m| {
-                m.role == "tool" || m.tool_calls.as_ref().is_some_and(|calls| !calls.is_empty())
-            })
+            && messages
+                .iter()
+                .any(|m| m.role == "tool" || !m.tool_calls.is_empty())
     }
 
     fn supports_stream_options_retry(&self, stream: bool, err_text: &str) -> bool {
@@ -199,13 +209,7 @@ impl OpenAiCompatibleProvider {
             .sum::<usize>();
         let tool_schema_chars = tools
             .iter()
-            .map(|tool| {
-                serde_json::to_string(&tool.input_schema)
-                    .unwrap_or_default()
-                    .len()
-                    + tool.name.len()
-                    + tool.description.len()
-            })
+            .map(|tool| tool.input_schema_json.len() + tool.name.len() + tool.description.len())
             .sum::<usize>();
         let payload_chars = serde_json::to_string(payload).unwrap_or_default().len();
 
@@ -355,7 +359,8 @@ impl OpenAiCompatibleProvider {
                             "function": {
                                 "name": tool.name,
                                 "description": tool.description,
-                                "parameters": tool.input_schema
+                                "parameters": serde_json::from_str::<Value>(&tool.input_schema_json)
+                                    .unwrap_or(Value::Null)
                             }
                         })
                     })
@@ -647,7 +652,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
                                 .pointer("/choices/0/delta/content")
                                 .and_then(|v| v.as_str())
                             {
-                                items.push(Ok(ChatStreamEvent::TextDelta(content.to_string())));
+                                items.push(Ok(text_delta_event(content.to_string())));
                             }
                             if let Some(reasoning) = value
                                 .pointer("/choices/0/delta/reasoning")
@@ -658,9 +663,11 @@ impl LlmProvider for OpenAiCompatibleProvider {
                                         .and_then(|v| v.as_str())
                                 })
                             {
-                                items.push(Ok(ChatStreamEvent::ReasoningDelta(
-                                    reasoning.to_string(),
-                                )));
+                                items.push(Ok(ChatStreamEvent {
+                                    event: Some(chat_stream_event::Event::ReasoningDelta(
+                                        reasoning.to_string(),
+                                    )),
+                                }));
                             }
                             if let Some(tool_calls) = value
                                 .pointer("/choices/0/delta/tool_calls")
@@ -668,7 +675,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
                             {
                                 for call in tool_calls {
                                     let delta = ToolCallDelta {
-                                        index: call["index"].as_u64().unwrap_or(0) as usize,
+                                        index: call["index"].as_u64().unwrap_or(0) as u32,
                                         id: call["id"].as_str().map(ToString::to_string),
                                         name: call
                                             .pointer("/function/name")
@@ -683,12 +690,12 @@ impl LlmProvider for OpenAiCompatibleProvider {
                                         || delta.name.is_some()
                                         || delta.arguments.is_some()
                                     {
-                                        items.push(Ok(ChatStreamEvent::ToolCallDelta(delta)));
+                                        items.push(Ok(tool_call_delta_event(delta)));
                                     }
                                 }
                             }
                             if let Some(usage) = extract_usage(&value) {
-                                items.push(Ok(ChatStreamEvent::Usage(usage)));
+                                items.push(Ok(usage_event(usage)));
                             }
                         }
                     }
@@ -765,6 +772,7 @@ fn extract_usage(value: &serde_json::Value) -> Option<ChatUsage> {
 mod tests {
     use super::*;
     use crate::gateway::rpc::manifests::ThinkingConfig;
+    use crate::harness::llm::{image_data_part, text_part};
     use axum::{extract::State, routing::post, Json, Router};
     use std::{
         net::SocketAddr,
@@ -779,11 +787,11 @@ mod tests {
         ChatMessage {
             role: "assistant".to_string(),
             content_parts: Vec::new(),
-            tool_calls: Some(vec![crate::harness::llm::provider::ToolCall {
+            tool_calls: vec![crate::harness::llm::provider::ToolCall {
                 id: "call_1".to_string(),
                 name: name.to_string(),
                 arguments: arguments.to_string(),
-            }]),
+            }],
             tool_call_id: None,
         }
     }
@@ -791,10 +799,8 @@ mod tests {
     fn tool_result_message(content: &str) -> ChatMessage {
         ChatMessage {
             role: "tool".to_string(),
-            content_parts: vec![ChatContentPart::Text {
-                text: content.to_string(),
-            }],
-            tool_calls: None,
+            content_parts: vec![text_part(content.to_string())],
+            tool_calls: Vec::new(),
             tool_call_id: Some("call_1".to_string()),
         }
     }
@@ -808,12 +814,13 @@ mod tests {
         let tools = vec![crate::harness::llm::provider::Tool {
             name: "search".to_string(),
             description: "find things".to_string(),
-            input_schema: serde_json::json!({
+            input_schema_json: serde_json::json!({
                 "type": "object",
                 "properties": {
                     "q": {"type": "string"}
                 }
-            }),
+            })
+            .to_string(),
         }];
         let payload = serde_json::json!({
             "model": "minimax/minimax-m2.7",
@@ -862,16 +869,10 @@ mod tests {
         let serialized = OpenAiCompatibleProvider::serialize_messages(vec![ChatMessage {
             role: "user".to_string(),
             content_parts: vec![
-                ChatContentPart::Text {
-                    text: "look at this".to_string(),
-                },
-                ChatContentPart::ImageData {
-                    media_type: "image/png".to_string(),
-                    data_base64: "cG5nLWJ5dGVz".to_string(),
-                    detail: Some("low".to_string()),
-                },
+                text_part("look at this"),
+                image_data_part("image/png", "cG5nLWJ5dGVz", Some("low")),
             ],
-            tool_calls: None,
+            tool_calls: Vec::new(),
             tool_call_id: None,
         }]);
 
@@ -992,7 +993,7 @@ mod tests {
         let serialized = OpenAiCompatibleProvider::serialize_messages(vec![ChatMessage {
             role: "assistant".to_string(),
             content_parts: Vec::new(),
-            tool_calls: None,
+            tool_calls: Vec::new(),
             tool_call_id: None,
         }]);
 
@@ -1087,7 +1088,7 @@ mod tests {
         let tools = vec![crate::harness::llm::provider::Tool {
             name: "search".to_string(),
             description: "find things".to_string(),
-            input_schema: serde_json::json!({"type": "object"}),
+            input_schema_json: serde_json::json!({"type": "object"}).to_string(),
         }];
 
         let response = provider
@@ -1448,7 +1449,7 @@ mod tests {
                     tools: vec![crate::harness::llm::provider::Tool {
                         name: "search".to_string(),
                         description: "find things".to_string(),
-                        input_schema: serde_json::json!({"type": "object"}),
+                        input_schema_json: serde_json::json!({"type": "object"}).to_string(),
                     }],
                     thinking: None,
                 },
@@ -1514,13 +1515,17 @@ mod tests {
 
         let first = stream.next().await.unwrap().unwrap();
         match first {
-            ChatStreamEvent::TextDelta(text) => assert_eq!(text, "hello"),
+            ChatStreamEvent {
+                event: Some(chat_stream_event::Event::TextDelta(text)),
+            } => assert_eq!(text, "hello"),
             other => panic!("unexpected event: {other:?}"),
         }
 
         let second = stream.next().await.unwrap().unwrap();
         match second {
-            ChatStreamEvent::ToolCallDelta(delta) => {
+            ChatStreamEvent {
+                event: Some(chat_stream_event::Event::ToolCallDelta(delta)),
+            } => {
                 assert_eq!(delta.index, 0);
                 assert_eq!(delta.id.as_deref(), Some("call_1"));
                 assert_eq!(delta.name.as_deref(), Some("search"));

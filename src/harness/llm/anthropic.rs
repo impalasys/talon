@@ -3,8 +3,8 @@
 
 use crate::gateway::rpc::manifests;
 use crate::harness::llm::provider::{
-    ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent,
-    ChatUsage, LlmProvider,
+    chat_content_part, chat_stream_event, text_delta_event, usage_event, ChatContentPart,
+    ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, ChatUsage, LlmProvider,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -79,7 +79,18 @@ impl AnthropicProvider {
     fn serialize_message(message: &ChatMessage) -> serde_json::Value {
         let content = match message.content_parts.as_slice() {
             [] => serde_json::Value::String(String::new()),
-            [ChatContentPart::Text { text }] => serde_json::Value::String(text.clone()),
+            [part] => match part.content.as_ref() {
+                Some(chat_content_part::Content::Text(text)) => {
+                    serde_json::Value::String(text.clone())
+                }
+                _ => serde_json::Value::Array(
+                    message
+                        .content_parts
+                        .iter()
+                        .map(anthropic_content_part)
+                        .collect(),
+                ),
+            },
             _ => serde_json::Value::Array(
                 message
                     .content_parts
@@ -96,27 +107,24 @@ impl AnthropicProvider {
 }
 
 fn anthropic_content_part(part: &ChatContentPart) -> serde_json::Value {
-    match part {
-        ChatContentPart::Text { text } => json!({
+    match part.content.as_ref() {
+        Some(chat_content_part::Content::Text(text)) => json!({
             "type": "text",
             "text": text,
         }),
-        ChatContentPart::ImageUrl { url, .. } => json!({
+        Some(chat_content_part::Content::ImageUrl(image)) => json!({
             "type": "text",
-            "text": format!("[Image URL: {url}]"),
+            "text": format!("[Image URL: {}]", image.url),
         }),
-        ChatContentPart::ImageData {
-            media_type,
-            data_base64,
-            ..
-        } => json!({
+        Some(chat_content_part::Content::ImageData(image)) => json!({
             "type": "image",
             "source": {
                 "type": "base64",
-                "media_type": media_type,
-                "data": data_base64,
+                "media_type": image.media_type,
+                "data": image.data_base64,
             }
         }),
+        None => json!({"type": "text", "text": ""}),
     }
 }
 
@@ -228,14 +236,16 @@ impl LlmProvider for AnthropicProvider {
                                 if let Some(text) =
                                     value.pointer("/delta/text").and_then(|v| v.as_str())
                                 {
-                                    items.push(Ok(ChatStreamEvent::TextDelta(text.to_string())));
+                                    items.push(Ok(text_delta_event(text.to_string())));
                                 }
                                 if let Some(thinking) =
                                     value.pointer("/delta/thinking").and_then(|v| v.as_str())
                                 {
-                                    items.push(Ok(ChatStreamEvent::ReasoningDelta(
-                                        thinking.to_string(),
-                                    )));
+                                    items.push(Ok(ChatStreamEvent {
+                                        event: Some(chat_stream_event::Event::ReasoningDelta(
+                                            thinking.to_string(),
+                                        )),
+                                    }));
                                 }
                             }
                         } else if last_event == "message_start" || last_event == "message_delta" {
@@ -252,7 +262,7 @@ impl LlmProvider for AnthropicProvider {
                                     }
                                     current_usage.total_tokens =
                                         current_usage.input_tokens + current_usage.output_tokens;
-                                    items.push(Ok(ChatStreamEvent::Usage(current_usage.clone())));
+                                    items.push(Ok(usage_event(current_usage.clone())));
                                 }
                             }
                         } else if last_event == "message_stop" {
@@ -313,6 +323,7 @@ fn extract_usage(result: &serde_json::Value) -> Option<ChatUsage> {
 mod tests {
     use super::*;
     use crate::gateway::rpc::manifests::ThinkingConfig;
+    use crate::harness::llm::{image_data_part, image_url_part};
     use axum::{routing::post, Json, Router};
     use serde_json::json;
     use tokio::net::TcpListener;
@@ -376,10 +387,10 @@ mod tests {
     #[test]
     fn anthropic_content_part_falls_back_to_text_for_image_urls() {
         assert_eq!(
-            anthropic_content_part(&ChatContentPart::ImageUrl {
-                url: "https://example.com/image.png".to_string(),
-                detail: Some("high".to_string()),
-            }),
+            anthropic_content_part(&image_url_part(
+                "https://example.com/image.png",
+                Some("high")
+            )),
             json!({
                 "type": "text",
                 "text": "[Image URL: https://example.com/image.png]",
@@ -390,11 +401,7 @@ mod tests {
     #[test]
     fn anthropic_content_part_serializes_image_data_as_base64() {
         assert_eq!(
-            anthropic_content_part(&ChatContentPart::ImageData {
-                media_type: "image/png".to_string(),
-                data_base64: "cG5n".to_string(),
-                detail: None,
-            }),
+            anthropic_content_part(&image_data_part("image/png", "cG5n", None::<String>)),
             json!({
                 "type": "image",
                 "source": {
@@ -411,7 +418,7 @@ mod tests {
         let empty = AnthropicProvider::serialize_message(&ChatMessage {
             role: "assistant".to_string(),
             content_parts: Vec::new(),
-            tool_calls: None,
+            tool_calls: Vec::new(),
             tool_call_id: None,
         });
         let text = AnthropicProvider::serialize_message(&ChatMessage::text("user", "hello"));
@@ -675,7 +682,9 @@ mod tests {
         let mut deltas = Vec::new();
         while let Some(event) = stream.next().await {
             match event.unwrap() {
-                ChatStreamEvent::TextDelta(text) => deltas.push(text),
+                ChatStreamEvent {
+                    event: Some(chat_stream_event::Event::TextDelta(text)),
+                } => deltas.push(text),
                 other => panic!("unexpected stream event: {:?}", other),
             }
         }

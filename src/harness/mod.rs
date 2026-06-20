@@ -10,4 +10,5 @@ pub mod mcp;
 pub mod memory;
 pub mod native_tools;
 pub mod sandbox;
+pub mod sessions;
 pub mod skills;

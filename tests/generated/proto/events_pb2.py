@@ -25,35 +25,35 @@ _sym_db = _symbol_database.Default()
 from proto.data import data_pb2 as proto_dot_data_dot_data__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12proto/events.proto\x12\x0ctalon.events\x1a\x15proto/data/data.proto\"\x80\x01\n\x0eLifecycleEvent\x12\x15\n\rresource_type\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\n\n\x02ns\x18\x03 \x01(\t\x12*\n\x06\x61\x63tion\x18\x04 \x01(\x0e\x32\x1a.talon.events.SystemAction\x12\x11\n\ttimestamp\x18\x05 \x01(\x03\"\xaf\x01\n\x13SessionMessageEvent\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x12\n\nmessage_id\x18\x02 \x01(\t\x12\x31\n\tdirection\x18\x03 \x01(\x0e\x32\x1e.talon.events.MessageDirection\x12\x11\n\ttimestamp\x18\x04 \x01(\x03\x12\r\n\x05\x61gent\x18\x05 \x01(\t\x12\x0f\n\x07message\x18\x06 \x01(\t\x12\n\n\x02ns\x18\x07 \x01(\t\"g\n\x13SessionControlEvent\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\r\n\x05\x61gent\x18\x02 \x01(\t\x12\n\n\x02ns\x18\x03 \x01(\t\x12\x0e\n\x06\x61\x63tion\x18\x04 \x01(\t\x12\x11\n\ttimestamp\x18\x05 \x01(\x03\"\xd6\x01\n\x17SessionMessagePartEvent\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x37\n\x04kind\x18\x02 \x01(\x0e\x32).talon.events.SessionMessagePartEventKind\x12,\n\x04part\x18\x03 \x01(\x0b\x32\x1e.talon.data.SessionMessagePart\x12\x11\n\ttimestamp\x18\x04 \x01(\x03\x12\r\n\x05\x61gent\x18\x05 \x01(\t\x12\n\n\x02ns\x18\x06 \x01(\t\x12\x12\n\nmessage_id\x18\x07 \x01(\t\"\xe1\x01\n\x0c\x43hannelEvent\x12\n\n\x02ns\x18\x01 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x02 \x01(\t\x12,\n\x04kind\x18\x03 \x01(\x0e\x32\x1e.talon.events.ChannelEventKind\x12+\n\x07message\x18\x04 \x01(\x0b\x32\x1a.talon.data.ChannelMessage\x12\x12\n\nsession_id\x18\x05 \x01(\t\x12\r\n\x05\x61gent\x18\x06 \x01(\t\x12\x14\n\x0csubscription\x18\x07 \x01(\t\x12\r\n\x05\x65rror\x18\x08 \x01(\t\x12\x11\n\ttimestamp\x18\t \x01(\x03\"\x93\x01\n\x15WorkflowDispatchEvent\x12\n\n\x02ns\x18\x01 \x01(\t\x12\x10\n\x08workflow\x18\x02 \x01(\t\x12\x0e\n\x06run_id\x18\x03 \x01(\t\x12\x0e\n\x06reason\x18\x04 \x01(\t\x12\x0f\n\x07step_id\x18\x05 \x01(\t\x12\x18\n\x10\x63hild_session_id\x18\x06 \x01(\t\x12\x11\n\ttimestamp\x18\x07 \x01(\x03\"\xed\x01\n\x14ResourceChangedEvent\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x15\n\rresource_kind\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\x0b\n\x03uid\x18\x04 \x01(\t\x12\x18\n\x10resource_version\x18\x05 \x01(\t\x12\x12\n\ngeneration\x18\x06 \x01(\x04\x12\x35\n\x0b\x63hange_type\x18\x07 \x01(\x0e\x32 .talon.events.ResourceChangeType\x12\x18\n\x10\x63hanged_sections\x18\x08 \x03(\t\x12\x11\n\ttimestamp\x18\t \x01(\x03*\xb0\x01\n\x0cSystemAction\x12\x1d\n\x19SYSTEM_ACTION_UNSPECIFIED\x10\x00\x12\x18\n\x14SYSTEM_ACTION_CREATE\x10\x01\x12\x18\n\x14SYSTEM_ACTION_UPDATE\x10\x02\x12\x18\n\x14SYSTEM_ACTION_DELETE\x10\x03\x12\x19\n\x15SYSTEM_ACTION_SUSPEND\x10\x04\x12\x18\n\x14SYSTEM_ACTION_RESUME\x10\x05*t\n\x10MessageDirection\x12!\n\x1dMESSAGE_DIRECTION_UNSPECIFIED\x10\x00\x12\x1d\n\x19MESSAGE_DIRECTION_INBOUND\x10\x01\x12\x1e\n\x1aMESSAGE_DIRECTION_OUTBOUND\x10\x02*\xce\x01\n\x1bSessionMessagePartEventKind\x12/\n+SESSION_MESSAGE_PART_EVENT_KIND_UNSPECIFIED\x10\x00\x12)\n%SESSION_MESSAGE_PART_EVENT_KIND_DELTA\x10\x01\x12(\n$SESSION_MESSAGE_PART_EVENT_KIND_DONE\x10\x02\x12)\n%SESSION_MESSAGE_PART_EVENT_KIND_ERROR\x10\x03*\xcb\x01\n\x10\x43hannelEventKind\x12\"\n\x1e\x43HANNEL_EVENT_KIND_UNSPECIFIED\x10\x00\x12&\n\"CHANNEL_EVENT_KIND_MESSAGE_CREATED\x10\x01\x12%\n!CHANNEL_EVENT_KIND_SESSION_ROUTED\x10\x02\x12&\n\"CHANNEL_EVENT_KIND_PUBLISH_SKIPPED\x10\x03\x12\x1c\n\x18\x43HANNEL_EVENT_KIND_ERROR\x10\x04*\xa0\x01\n\x12ResourceChangeType\x12$\n RESOURCE_CHANGE_TYPE_UNSPECIFIED\x10\x00\x12 \n\x1cRESOURCE_CHANGE_TYPE_CREATED\x10\x01\x12 \n\x1cRESOURCE_CHANGE_TYPE_UPDATED\x10\x02\x12 \n\x1cRESOURCE_CHANGE_TYPE_DELETED\x10\x03\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12proto/events.proto\x12\x0ctalon.events\x1a\x15proto/data/data.proto\"\x80\x01\n\x0eLifecycleEvent\x12\x15\n\rresource_type\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\n\n\x02ns\x18\x03 \x01(\t\x12*\n\x06\x61\x63tion\x18\x04 \x01(\x0e\x32\x1a.talon.events.SystemAction\x12\x11\n\ttimestamp\x18\x05 \x01(\x03\"\xc6\x01\n\x13SessionMessageEvent\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x12\n\nmessage_id\x18\x02 \x01(\t\x12\x31\n\tdirection\x18\x03 \x01(\x0e\x32\x1e.talon.events.MessageDirection\x12\x11\n\ttimestamp\x18\x04 \x01(\x03\x12\r\n\x05\x61gent\x18\x05 \x01(\t\x12\x0f\n\x07message\x18\x06 \x01(\t\x12\n\n\x02ns\x18\x07 \x01(\t\x12\x15\n\rsubmission_id\x18\x08 \x01(\t\"g\n\x13SessionControlEvent\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\r\n\x05\x61gent\x18\x02 \x01(\t\x12\n\n\x02ns\x18\x03 \x01(\t\x12\x0e\n\x06\x61\x63tion\x18\x04 \x01(\t\x12\x11\n\ttimestamp\x18\x05 \x01(\x03\"\xd6\x01\n\x17SessionMessagePartEvent\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x37\n\x04kind\x18\x02 \x01(\x0e\x32).talon.events.SessionMessagePartEventKind\x12,\n\x04part\x18\x03 \x01(\x0b\x32\x1e.talon.data.SessionMessagePart\x12\x11\n\ttimestamp\x18\x04 \x01(\x03\x12\r\n\x05\x61gent\x18\x05 \x01(\t\x12\n\n\x02ns\x18\x06 \x01(\t\x12\x12\n\nmessage_id\x18\x07 \x01(\t\"\xe1\x01\n\x0c\x43hannelEvent\x12\n\n\x02ns\x18\x01 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x02 \x01(\t\x12,\n\x04kind\x18\x03 \x01(\x0e\x32\x1e.talon.events.ChannelEventKind\x12+\n\x07message\x18\x04 \x01(\x0b\x32\x1a.talon.data.ChannelMessage\x12\x12\n\nsession_id\x18\x05 \x01(\t\x12\r\n\x05\x61gent\x18\x06 \x01(\t\x12\x14\n\x0csubscription\x18\x07 \x01(\t\x12\r\n\x05\x65rror\x18\x08 \x01(\t\x12\x11\n\ttimestamp\x18\t \x01(\x03\"\x93\x01\n\x15WorkflowDispatchEvent\x12\n\n\x02ns\x18\x01 \x01(\t\x12\x10\n\x08workflow\x18\x02 \x01(\t\x12\x0e\n\x06run_id\x18\x03 \x01(\t\x12\x0e\n\x06reason\x18\x04 \x01(\t\x12\x0f\n\x07step_id\x18\x05 \x01(\t\x12\x18\n\x10\x63hild_session_id\x18\x06 \x01(\t\x12\x11\n\ttimestamp\x18\x07 \x01(\x03\"\xed\x01\n\x14ResourceChangedEvent\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x15\n\rresource_kind\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\x0b\n\x03uid\x18\x04 \x01(\t\x12\x18\n\x10resource_version\x18\x05 \x01(\t\x12\x12\n\ngeneration\x18\x06 \x01(\x04\x12\x35\n\x0b\x63hange_type\x18\x07 \x01(\x0e\x32 .talon.events.ResourceChangeType\x12\x18\n\x10\x63hanged_sections\x18\x08 \x03(\t\x12\x11\n\ttimestamp\x18\t \x01(\x03*\xb0\x01\n\x0cSystemAction\x12\x1d\n\x19SYSTEM_ACTION_UNSPECIFIED\x10\x00\x12\x18\n\x14SYSTEM_ACTION_CREATE\x10\x01\x12\x18\n\x14SYSTEM_ACTION_UPDATE\x10\x02\x12\x18\n\x14SYSTEM_ACTION_DELETE\x10\x03\x12\x19\n\x15SYSTEM_ACTION_SUSPEND\x10\x04\x12\x18\n\x14SYSTEM_ACTION_RESUME\x10\x05*t\n\x10MessageDirection\x12!\n\x1dMESSAGE_DIRECTION_UNSPECIFIED\x10\x00\x12\x1d\n\x19MESSAGE_DIRECTION_INBOUND\x10\x01\x12\x1e\n\x1aMESSAGE_DIRECTION_OUTBOUND\x10\x02*\xce\x01\n\x1bSessionMessagePartEventKind\x12/\n+SESSION_MESSAGE_PART_EVENT_KIND_UNSPECIFIED\x10\x00\x12)\n%SESSION_MESSAGE_PART_EVENT_KIND_DELTA\x10\x01\x12(\n$SESSION_MESSAGE_PART_EVENT_KIND_DONE\x10\x02\x12)\n%SESSION_MESSAGE_PART_EVENT_KIND_ERROR\x10\x03*\xcb\x01\n\x10\x43hannelEventKind\x12\"\n\x1e\x43HANNEL_EVENT_KIND_UNSPECIFIED\x10\x00\x12&\n\"CHANNEL_EVENT_KIND_MESSAGE_CREATED\x10\x01\x12%\n!CHANNEL_EVENT_KIND_SESSION_ROUTED\x10\x02\x12&\n\"CHANNEL_EVENT_KIND_PUBLISH_SKIPPED\x10\x03\x12\x1c\n\x18\x43HANNEL_EVENT_KIND_ERROR\x10\x04*\xa0\x01\n\x12ResourceChangeType\x12$\n RESOURCE_CHANGE_TYPE_UNSPECIFIED\x10\x00\x12 \n\x1cRESOURCE_CHANGE_TYPE_CREATED\x10\x01\x12 \n\x1cRESOURCE_CHANGE_TYPE_UPDATED\x10\x02\x12 \n\x1cRESOURCE_CHANGE_TYPE_DELETED\x10\x03\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.events_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_SYSTEMACTION']._serialized_start=1309
-  _globals['_SYSTEMACTION']._serialized_end=1485
-  _globals['_MESSAGEDIRECTION']._serialized_start=1487
-  _globals['_MESSAGEDIRECTION']._serialized_end=1603
-  _globals['_SESSIONMESSAGEPARTEVENTKIND']._serialized_start=1606
-  _globals['_SESSIONMESSAGEPARTEVENTKIND']._serialized_end=1812
-  _globals['_CHANNELEVENTKIND']._serialized_start=1815
-  _globals['_CHANNELEVENTKIND']._serialized_end=2018
-  _globals['_RESOURCECHANGETYPE']._serialized_start=2021
-  _globals['_RESOURCECHANGETYPE']._serialized_end=2181
+  _globals['_SYSTEMACTION']._serialized_start=1332
+  _globals['_SYSTEMACTION']._serialized_end=1508
+  _globals['_MESSAGEDIRECTION']._serialized_start=1510
+  _globals['_MESSAGEDIRECTION']._serialized_end=1626
+  _globals['_SESSIONMESSAGEPARTEVENTKIND']._serialized_start=1629
+  _globals['_SESSIONMESSAGEPARTEVENTKIND']._serialized_end=1835
+  _globals['_CHANNELEVENTKIND']._serialized_start=1838
+  _globals['_CHANNELEVENTKIND']._serialized_end=2041
+  _globals['_RESOURCECHANGETYPE']._serialized_start=2044
+  _globals['_RESOURCECHANGETYPE']._serialized_end=2204
   _globals['_LIFECYCLEEVENT']._serialized_start=60
   _globals['_LIFECYCLEEVENT']._serialized_end=188
   _globals['_SESSIONMESSAGEEVENT']._serialized_start=191
-  _globals['_SESSIONMESSAGEEVENT']._serialized_end=366
-  _globals['_SESSIONCONTROLEVENT']._serialized_start=368
-  _globals['_SESSIONCONTROLEVENT']._serialized_end=471
-  _globals['_SESSIONMESSAGEPARTEVENT']._serialized_start=474
-  _globals['_SESSIONMESSAGEPARTEVENT']._serialized_end=688
-  _globals['_CHANNELEVENT']._serialized_start=691
-  _globals['_CHANNELEVENT']._serialized_end=916
-  _globals['_WORKFLOWDISPATCHEVENT']._serialized_start=919
-  _globals['_WORKFLOWDISPATCHEVENT']._serialized_end=1066
-  _globals['_RESOURCECHANGEDEVENT']._serialized_start=1069
-  _globals['_RESOURCECHANGEDEVENT']._serialized_end=1306
+  _globals['_SESSIONMESSAGEEVENT']._serialized_end=389
+  _globals['_SESSIONCONTROLEVENT']._serialized_start=391
+  _globals['_SESSIONCONTROLEVENT']._serialized_end=494
+  _globals['_SESSIONMESSAGEPARTEVENT']._serialized_start=497
+  _globals['_SESSIONMESSAGEPARTEVENT']._serialized_end=711
+  _globals['_CHANNELEVENT']._serialized_start=714
+  _globals['_CHANNELEVENT']._serialized_end=939
+  _globals['_WORKFLOWDISPATCHEVENT']._serialized_start=942
+  _globals['_WORKFLOWDISPATCHEVENT']._serialized_end=1089
+  _globals['_RESOURCECHANGEDEVENT']._serialized_start=1092
+  _globals['_RESOURCECHANGEDEVENT']._serialized_end=1329
 # @@protoc_insertion_point(module_scope)

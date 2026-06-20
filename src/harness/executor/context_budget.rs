@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::runtime::LoopMessage;
-use crate::harness::llm::ChatContentPart;
+use crate::harness::llm::{chat_content_part, text_part, ChatContentPart};
 use serde_json::{json, Map, Value};
 
 const INLINE_IMAGE_CONTEXT_WEIGHT: usize = 4_000;
@@ -371,15 +371,15 @@ fn text_parts(text: String) -> Vec<ChatContentPart> {
     if text.is_empty() {
         Vec::new()
     } else {
-        vec![ChatContentPart::Text { text }]
+        vec![text_part(text)]
     }
 }
 
 fn truncate_text_parts(parts: &[ChatContentPart], max_chars: usize) -> Vec<ChatContentPart> {
     let total_text_len = parts
         .iter()
-        .filter_map(|part| match part {
-            ChatContentPart::Text { text } => Some(text.len()),
+        .filter_map(|part| match part.content.as_ref() {
+            Some(chat_content_part::Content::Text(text)) => Some(text.len()),
             _ => None,
         })
         .sum::<usize>();
@@ -390,18 +390,18 @@ fn truncate_text_parts(parts: &[ChatContentPart], max_chars: usize) -> Vec<ChatC
     let mut remaining = max_chars;
     let mut truncated = Vec::with_capacity(parts.len());
     for part in parts {
-        match part {
-            ChatContentPart::Text { text } => {
+        match part.content.as_ref() {
+            Some(chat_content_part::Content::Text(text)) => {
                 if remaining == 0 {
                     continue;
                 }
                 let next = truncate_middle(text, remaining);
                 remaining = remaining.saturating_sub(next.len());
                 if !next.is_empty() {
-                    truncated.push(ChatContentPart::Text { text: next });
+                    truncated.push(text_part(next));
                 }
             }
-            other => truncated.push(other.clone()),
+            _ => truncated.push(part.clone()),
         }
     }
     truncated
@@ -415,18 +415,19 @@ fn fit_content_parts_to_weight(
     let mut fitted = Vec::with_capacity(parts.len());
 
     for part in parts {
-        match part {
-            ChatContentPart::Text { text } => {
+        match part.content.as_ref() {
+            Some(chat_content_part::Content::Text(text)) => {
                 if remaining == 0 {
                     continue;
                 }
                 let next = truncate_middle(text, remaining);
                 remaining = remaining.saturating_sub(next.len());
                 if !next.is_empty() {
-                    fitted.push(ChatContentPart::Text { text: next });
+                    fitted.push(text_part(next));
                 }
             }
-            ChatContentPart::ImageUrl { .. } | ChatContentPart::ImageData { .. } => {
+            Some(chat_content_part::Content::ImageUrl(_))
+            | Some(chat_content_part::Content::ImageData(_)) => {
                 let weight = content_part_weight(part);
                 if weight <= remaining {
                     fitted.push(part.clone());
@@ -434,22 +435,21 @@ fn fit_content_parts_to_weight(
                     continue;
                 }
 
-                let marker = match part {
-                    ChatContentPart::ImageUrl { .. } => {
+                let marker = match part.content.as_ref() {
+                    Some(chat_content_part::Content::ImageUrl(_)) => {
                         "[Image URL omitted to stay within Talon context budget.]"
                     }
-                    ChatContentPart::ImageData { .. } => {
+                    Some(chat_content_part::Content::ImageData(_)) => {
                         "[Image omitted to stay within Talon context budget.]"
                     }
-                    ChatContentPart::Text { .. } => unreachable!(),
+                    _ => unreachable!(),
                 };
                 if marker.len() <= remaining {
-                    fitted.push(ChatContentPart::Text {
-                        text: marker.to_string(),
-                    });
+                    fitted.push(text_part(marker.to_string()));
                     remaining = remaining.saturating_sub(marker.len());
                 }
             }
+            None => {}
         }
     }
 
@@ -457,18 +457,26 @@ fn fit_content_parts_to_weight(
 }
 
 fn content_part_weight(part: &ChatContentPart) -> usize {
-    match part {
-        ChatContentPart::Text { text } => text.len(),
-        ChatContentPart::ImageUrl { url, detail } => {
-            url.len() + detail.as_ref().map(|detail| detail.len()).unwrap_or(0)
+    match part.content.as_ref() {
+        Some(chat_content_part::Content::Text(text)) => text.len(),
+        Some(chat_content_part::Content::ImageUrl(image)) => {
+            image.url.len()
+                + image
+                    .detail
+                    .as_ref()
+                    .map(|detail| detail.len())
+                    .unwrap_or(0)
         }
-        ChatContentPart::ImageData {
-            media_type, detail, ..
-        } => {
+        Some(chat_content_part::Content::ImageData(image)) => {
             INLINE_IMAGE_CONTEXT_WEIGHT
-                + media_type.len()
-                + detail.as_ref().map(|detail| detail.len()).unwrap_or(0)
+                + image.media_type.len()
+                + image
+                    .detail
+                    .as_ref()
+                    .map(|detail| detail.len())
+                    .unwrap_or(0)
         }
+        None => 0,
     }
 }
 
@@ -644,7 +652,7 @@ mod tests {
         tool_result_preview_with_budget, ContextBudget,
     };
     use crate::harness::executor::LoopMessage;
-    use crate::harness::llm::{ChatContentPart, ToolCall};
+    use crate::harness::llm::{chat_content_part, image_data_part, text_part, ToolCall};
     use serde::Deserialize;
 
     fn budget() -> ContextBudget {
@@ -739,14 +747,8 @@ mod tests {
     fn compact_history_preserves_multimodal_parts_when_message_is_kept() {
         let mut user = message("user", "");
         user.content_parts = vec![
-            ChatContentPart::Text {
-                text: "describe this".to_string(),
-            },
-            ChatContentPart::ImageData {
-                media_type: "image/png".to_string(),
-                data_base64: "x".repeat(200_000),
-                detail: None,
-            },
+            text_part("describe this"),
+            image_data_part("image/png", "x".repeat(200_000), None::<String>),
         ];
         let history = vec![message("system", "sys"), user];
 
@@ -762,7 +764,11 @@ mod tests {
         assert!(compacted.iter().any(|message| {
             message.role == "user"
                 && message.content_parts.iter().any(|part| {
-                    matches!(part, ChatContentPart::ImageData { media_type, .. } if media_type == "image/png")
+                    matches!(
+                        part.content.as_ref(),
+                        Some(chat_content_part::Content::ImageData(image))
+                            if image.media_type == "image/png"
+                    )
                 })
         }));
     }
@@ -771,14 +777,8 @@ mod tests {
     fn compact_history_force_fit_bounds_multimodal_message_weight() {
         let mut user = message("user", "");
         user.content_parts = vec![
-            ChatContentPart::Text {
-                text: "please inspect this image carefully".to_string(),
-            },
-            ChatContentPart::ImageData {
-                media_type: "image/png".to_string(),
-                data_base64: "x".repeat(200_000),
-                detail: None,
-            },
+            text_part("please inspect this image carefully"),
+            image_data_part("image/png", "x".repeat(200_000), None::<String>),
         ];
         let tiny_budget = ContextBudget {
             total_chars: 80,
@@ -796,7 +796,12 @@ mod tests {
         assert!(compacted
             .iter()
             .flat_map(|message| &message.content_parts)
-            .all(|part| !matches!(part, ChatContentPart::ImageData { .. })));
+            .all(|part| {
+                !matches!(
+                    part.content.as_ref(),
+                    Some(chat_content_part::Content::ImageData(_))
+                )
+            }));
     }
 
     #[test]

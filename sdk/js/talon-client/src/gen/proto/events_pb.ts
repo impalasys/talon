@@ -279,6 +279,11 @@ export class SessionMessageEvent extends Message<SessionMessageEvent> {
    */
   ns = "";
 
+  /**
+   * @generated from field: string submission_id = 8;
+   */
+  submissionId = "";
+
   constructor(data?: PartialMessage<SessionMessageEvent>) {
     super();
     proto3.util.initPartial(data, this);
@@ -294,6 +299,7 @@ export class SessionMessageEvent extends Message<SessionMessageEvent> {
     { no: 5, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "message", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 7, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "submission_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionMessageEvent {

@@ -373,6 +373,7 @@ type SessionMessageEvent struct {
 	Agent         string                 `protobuf:"bytes,5,opt,name=agent,proto3" json:"agent,omitempty"`
 	Message       string                 `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty"`
 	Ns            string                 `protobuf:"bytes,7,opt,name=ns,proto3" json:"ns,omitempty"`
+	SubmissionId  string                 `protobuf:"bytes,8,opt,name=submission_id,json=submissionId,proto3" json:"submission_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -452,6 +453,13 @@ func (x *SessionMessageEvent) GetMessage() string {
 func (x *SessionMessageEvent) GetNs() string {
 	if x != nil {
 		return x.Ns
+	}
+	return ""
+}
+
+func (x *SessionMessageEvent) GetSubmissionId() string {
+	if x != nil {
+		return x.SubmissionId
 	}
 	return ""
 }
@@ -942,7 +950,7 @@ const file_proto_events_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x0e\n" +
 	"\x02ns\x18\x03 \x01(\tR\x02ns\x122\n" +
 	"\x06action\x18\x04 \x01(\x0e2\x1a.talon.events.SystemActionR\x06action\x12\x1c\n" +
-	"\ttimestamp\x18\x05 \x01(\x03R\ttimestamp\"\xef\x01\n" +
+	"\ttimestamp\x18\x05 \x01(\x03R\ttimestamp\"\x94\x02\n" +
 	"\x13SessionMessageEvent\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1d\n" +
@@ -952,7 +960,8 @@ const file_proto_events_proto_rawDesc = "" +
 	"\ttimestamp\x18\x04 \x01(\x03R\ttimestamp\x12\x14\n" +
 	"\x05agent\x18\x05 \x01(\tR\x05agent\x12\x18\n" +
 	"\amessage\x18\x06 \x01(\tR\amessage\x12\x0e\n" +
-	"\x02ns\x18\a \x01(\tR\x02ns\"\x90\x01\n" +
+	"\x02ns\x18\a \x01(\tR\x02ns\x12#\n" +
+	"\rsubmission_id\x18\b \x01(\tR\fsubmissionId\"\x90\x01\n" +
 	"\x13SessionControlEvent\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +

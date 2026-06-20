@@ -10,10 +10,11 @@ use tokio::sync::Mutex as AsyncMutex;
 
 use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
 use crate::control::{keys::ResourceKey, topics, KeyValueStore, MessagePublisher};
-use crate::gateway::rpc::data_proto;
+use crate::gateway::rpc::data_proto::{self, SessionSubmissionStatus};
 use crate::harness::executor::context_budget::tool_result_preview;
 use crate::harness::executor::{AgentEvent, ExecutionSink};
-use crate::harness::llm::ChatUsage;
+use crate::harness::llm::{ChatResponse, ChatUsage};
+use crate::harness::sessions::{self, SessionSubmission};
 use tracing::Instrument;
 
 #[derive(Debug, Clone)]
@@ -30,30 +31,57 @@ pub struct SessionRunSummary {
     pub usage_events: u64,
 }
 
-/// Production sink: accumulates tokens, throttle-flushes partial text to KV,
-/// and publishes `SessionMessagePartEvent`s to PubSub for real-time UI streaming.
+/// Production execution sink for one claimed session submission.
+///
+/// This sink keeps backend recovery and UI projection separate. The recovery
+/// journal only records completed, hydratable boundaries: full LLM responses,
+/// tool results, and commit. During streaming, the deterministic assistant
+/// `SessionMessage` is periodically overwritten as an in-progress UI
+/// projection; recovery may roll that projection back to the latest journaled
+/// boundary after a worker crash.
 pub struct PubSubSessionSink {
+    // Shared IO handles and session identity.
     pub kv: Arc<dyn KeyValueStore>,
     pub pubsub: Arc<dyn MessagePublisher>,
     pub ns: String,
     pub session_id: String,
     pub agent_id: String,
+
+    // The assistant message that will be committed once generation reaches a
+    // terminal boundary.
     pub reply_msg_id: String,
     pub reply_msg_key: ResourceKey,
+
+    // Durable work identity. Journal writes are fenced by `attempt_id` so a
+    // worker whose lease expired cannot keep appending state after reclaim.
+    pub submission_id: String,
+    pub attempt_id: String,
+
+    // Live UI event routing and batching.
     pub status_topic: String,
     token_publish_interval: Duration,
     started_at: Instant,
-    accumulated: Mutex<String>,
     pending_token_event_buffer: Mutex<String>,
     pending_reasoning_event_buffer: Mutex<String>,
+    last_token_publish: Mutex<Instant>,
+    last_reasoning_publish: Mutex<Instant>,
+
+    // Canonical assistant message assembly. `durable_parts` holds non-streaming
+    // parts and text segments already closed by a tool/reasoning boundary.
+    // `accumulated` is the full streamed assistant text seen so far.
+    accumulated: Mutex<String>,
     durable_parts: Mutex<Vec<data_proto::SessionMessagePart>>,
     durable_text_bytes: Mutex<usize>,
     next_part_index: Mutex<u64>,
-    last_flush: Mutex<Instant>,
-    pending_partial_flushes: Mutex<Vec<tokio::task::JoinHandle<()>>>,
-    persist_lock: Arc<AsyncMutex<()>>,
-    last_token_publish: Mutex<Instant>,
-    last_reasoning_publish: Mutex<Instant>,
+
+    // Mutable projection state. Projection writes are UI-only and fenced by the
+    // current submission attempt; journal entries remain the backend authority.
+    last_flush: Mutex<Instant>, // Last time the UI projection was considered for persistence.
+    active_text_part_id: Mutex<Option<String>>, // Stable id for the currently streaming text part.
+    latest_journal_entry_id: Mutex<Option<String>>, // Latest durable boundary reflected in projection labels.
+    persist_lock: Arc<AsyncMutex<()>>, // Serializes projection writes with final message commit.
+
+    // Run summary counters for logs/telemetry.
     input_token_chunks: Mutex<u64>,
     input_token_chars: Mutex<usize>,
     published_token_batches: Mutex<u64>,
@@ -74,8 +102,10 @@ impl PubSubSessionSink {
         agent_id: impl Into<String>,
         reply_msg_id: impl Into<String>,
         reply_msg_key: ResourceKey,
+        submission_id: impl Into<String>,
+        attempt_id: impl Into<String>,
     ) -> Self {
-        Self::new_with_token_publish_interval(
+        Self::new_inner(
             kv,
             pubsub,
             ns,
@@ -83,10 +113,13 @@ impl PubSubSessionSink {
             agent_id,
             reply_msg_id,
             reply_msg_key,
+            submission_id,
+            attempt_id,
             token_publish_interval(),
         )
     }
 
+    #[cfg(test)]
     fn new_with_token_publish_interval(
         kv: Arc<dyn KeyValueStore>,
         pubsub: Arc<dyn MessagePublisher>,
@@ -95,6 +128,34 @@ impl PubSubSessionSink {
         agent_id: impl Into<String>,
         reply_msg_id: impl Into<String>,
         reply_msg_key: ResourceKey,
+        submission_id: impl Into<String>,
+        attempt_id: impl Into<String>,
+        token_publish_interval: Duration,
+    ) -> Self {
+        Self::new_inner(
+            kv,
+            pubsub,
+            ns,
+            session_id,
+            agent_id,
+            reply_msg_id,
+            reply_msg_key,
+            submission_id,
+            attempt_id,
+            token_publish_interval,
+        )
+    }
+
+    fn new_inner(
+        kv: Arc<dyn KeyValueStore>,
+        pubsub: Arc<dyn MessagePublisher>,
+        ns: impl Into<String>,
+        session_id: impl Into<String>,
+        agent_id: impl Into<String>,
+        reply_msg_id: impl Into<String>,
+        reply_msg_key: ResourceKey,
+        submission_id: impl Into<String>,
+        attempt_id: impl Into<String>,
         token_publish_interval: Duration,
     ) -> Self {
         let session_id = session_id.into();
@@ -107,6 +168,8 @@ impl PubSubSessionSink {
             agent_id: agent_id.into(),
             reply_msg_id: reply_msg_id.into(),
             reply_msg_key,
+            submission_id: submission_id.into(),
+            attempt_id: attempt_id.into(),
             status_topic,
             token_publish_interval,
             started_at: Instant::now(),
@@ -117,7 +180,8 @@ impl PubSubSessionSink {
             durable_text_bytes: Mutex::new(0),
             next_part_index: Mutex::new(0),
             last_flush: Mutex::new(Instant::now()),
-            pending_partial_flushes: Mutex::new(Vec::new()),
+            active_text_part_id: Mutex::new(None),
+            latest_journal_entry_id: Mutex::new(None),
             persist_lock: Arc::new(AsyncMutex::new(())),
             last_token_publish: Mutex::new(Instant::now()),
             last_reasoning_publish: Mutex::new(Instant::now()),
@@ -139,8 +203,22 @@ impl PubSubSessionSink {
         format!("{:06}", *next)
     }
 
+    // Record a canonical part for the final assistant SessionMessage.
     fn record_part(
         &self,
+        part_type: data_proto::SessionMessagePartType,
+        name: String,
+        content: String,
+        payload_json: String,
+    ) {
+        self.record_part_with_id(self.next_part_id(), part_type, name, content, payload_json);
+    }
+
+    // Used when provisional stream chunks have already reserved the logical
+    // final SessionMessagePart id for a text segment.
+    fn record_part_with_id(
+        &self,
+        id: String,
         part_type: data_proto::SessionMessagePartType,
         name: String,
         content: String,
@@ -150,7 +228,7 @@ impl PubSubSessionSink {
             .lock()
             .unwrap()
             .push(data_proto::SessionMessagePart {
-                id: self.next_part_id(),
+                id,
                 part_type: part_type as i32,
                 content,
                 name,
@@ -158,6 +236,46 @@ impl PubSubSessionSink {
                 created_at: chrono::Utc::now().timestamp_micros(),
                 object: None,
             });
+    }
+
+    pub(crate) fn seed_recovered_text_part(&self, content: &str) {
+        if content.is_empty() {
+            return;
+        }
+        self.record_part(
+            data_proto::SessionMessagePartType::Text,
+            String::new(),
+            content.to_string(),
+            String::new(),
+        );
+    }
+
+    pub(crate) fn seed_recovered_tool_call_part(&self, id: &str, name: &str, input: &Value) {
+        self.record_part(
+            data_proto::SessionMessagePartType::ToolCall,
+            name.to_string(),
+            "Tool call".to_string(),
+            serde_json::to_string(&serde_json::json!({
+                "tool_call_id": id,
+                "input": input,
+            }))
+            .unwrap_or_else(|_| "{}".to_string()),
+        );
+    }
+
+    pub(crate) fn seed_recovered_tool_result_part(&self, id: &str, name: &str, result: &str) {
+        let preview = tool_result_preview(result);
+        self.record_part(
+            data_proto::SessionMessagePartType::ToolResult,
+            name.to_string(),
+            preview.clone(),
+            serde_json::to_string(&serde_json::json!({
+                "tool_call_id": id,
+                "output_preview": preview,
+                "output": result,
+            }))
+            .unwrap_or_else(|_| "{}".to_string()),
+        );
     }
 
     fn final_message_parts(&self, reply: &str) -> Vec<data_proto::SessionMessagePart> {
@@ -179,7 +297,7 @@ impl PubSubSessionSink {
         };
         if !text.is_empty() {
             parts.push(data_proto::SessionMessagePart {
-                id: self.next_part_id(),
+                id: self.take_or_next_text_part_id(),
                 part_type: data_proto::SessionMessagePartType::Text as i32,
                 content: text,
                 name: String::new(),
@@ -191,29 +309,37 @@ impl PubSubSessionSink {
         parts
     }
 
-    fn partial_message_parts(&self, current_text: &str) -> Vec<data_proto::SessionMessagePart> {
-        let mut parts = self.durable_parts.lock().unwrap().clone();
-        let text = self.text_since_last_durable_part(current_text);
-        if !text.is_empty() {
-            parts.push(data_proto::SessionMessagePart {
-                id: "000000".to_string(),
-                part_type: data_proto::SessionMessagePartType::Text as i32,
-                content: text,
-                name: String::new(),
-                payload_json: String::new(),
-                created_at: chrono::Utc::now().timestamp_micros(),
-                object: None,
-            });
+    // Reserve the logical final text part id before persisting an in-progress
+    // projection. All projections for the same text segment share this id.
+    fn ensure_active_text_part_id(&self) -> String {
+        let mut active = self.active_text_part_id.lock().unwrap();
+        if let Some(id) = active.as_ref() {
+            return id.clone();
         }
-        parts
+        let id = self.next_part_id();
+        *active = Some(id.clone());
+        id
     }
 
+    // Close the active text segment and return the id that provisional chunks
+    // used for it. If no chunks were persisted, allocate the final id here.
+    fn take_or_next_text_part_id(&self) -> String {
+        self.active_text_part_id
+            .lock()
+            .unwrap()
+            .take()
+            .unwrap_or_else(|| self.next_part_id())
+    }
+
+    // Return only the text not already closed into a durable final-message part.
     fn text_since_last_durable_part(&self, current_text: &str) -> String {
         let durable_bytes = *self.durable_text_bytes.lock().unwrap();
         let start = durable_bytes.min(current_text.len());
         current_text[start..].to_string()
     }
 
+    // Tool calls close the current assistant text segment before tool-call parts
+    // are appended, preserving final SessionMessagePart ordering.
     fn record_accumulated_text_part(&self) {
         let pending_text = {
             let accumulated = self.accumulated.lock().unwrap();
@@ -224,7 +350,8 @@ impl PubSubSessionSink {
             pending_text
         };
         if !pending_text.is_empty() {
-            self.record_part(
+            self.record_part_with_id(
+                self.take_or_next_text_part_id(),
                 data_proto::SessionMessagePartType::Text,
                 String::new(),
                 pending_text,
@@ -376,7 +503,7 @@ impl PubSubSessionSink {
             message_id: self.reply_msg_id.clone(),
         };
         let payload = event.encode_to_vec();
-        let _ = async { self.pubsub.publish(&self.status_topic, &payload).await }
+        if let Err(err) = async { self.pubsub.publish(&self.status_topic, &payload).await }
             .instrument(tracing::info_span!(
                 "PubSubSessionSink.publish_event",
                 namespace = %self.ns,
@@ -386,10 +513,101 @@ impl PubSubSessionSink {
                 part_type = ?part_type,
                 payload_bytes = payload.len(),
             ))
-            .await;
+            .await
+        {
+            tracing::warn!(
+                error = %err,
+                topic = %self.status_topic,
+                "Failed to publish session stream event"
+            );
+        }
     }
 
-    fn maybe_flush_kv(&self, current_text: String) {
+    fn projection_labels(&self, state: &str) -> std::collections::HashMap<String, String> {
+        let mut labels = std::collections::HashMap::new();
+        labels.insert(
+            "talon.session.submission_id".to_string(),
+            self.submission_id.clone(),
+        );
+        labels.insert(
+            "talon.session.attempt_id".to_string(),
+            self.attempt_id.clone(),
+        );
+        labels.insert(
+            "talon.session.projection_state".to_string(),
+            state.to_string(),
+        );
+        if let Some(entry_id) = self.latest_journal_entry_id.lock().unwrap().clone() {
+            labels.insert(
+                "talon.session.latest_journal_entry_id".to_string(),
+                entry_id,
+            );
+        }
+        labels
+    }
+
+    fn projection_message_parts(&self, reply: &str) -> Vec<data_proto::SessionMessagePart> {
+        let mut parts = self.durable_parts.lock().unwrap().clone();
+        let accumulated = self.accumulated.lock().unwrap().clone();
+        let effective_reply = if reply.is_empty() {
+            accumulated.as_str()
+        } else {
+            reply
+        };
+        let text = if accumulated.is_empty() {
+            effective_reply.to_string()
+        } else if effective_reply.starts_with(accumulated.as_str()) {
+            self.text_since_last_durable_part(effective_reply)
+        } else {
+            effective_reply.to_string()
+        };
+        if !text.is_empty() {
+            parts.push(data_proto::SessionMessagePart {
+                id: self.ensure_active_text_part_id(),
+                part_type: data_proto::SessionMessagePartType::Text as i32,
+                content: text,
+                name: String::new(),
+                payload_json: String::new(),
+                created_at: chrono::Utc::now().timestamp_micros(),
+                object: None,
+            });
+        }
+        parts
+    }
+
+    fn projection_message(&self, state: &str, reply: &str) -> data_proto::SessionMessage {
+        data_proto::SessionMessage {
+            id: self.reply_msg_id.clone(),
+            role: data_proto::MessageRole::RoleAssistant as i32,
+            created_at: chrono::Utc::now().timestamp_micros(),
+            labels: self.projection_labels(state),
+            parts: self.projection_message_parts(reply),
+        }
+    }
+
+    async fn submission_attempt_is_current(
+        kv: &dyn KeyValueStore,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        submission_id: &str,
+        attempt_id: &str,
+    ) -> bool {
+        let key = crate::control::keys::session_submission(ns, agent, session_id, submission_id);
+        match crate::control::ProtoKeyValueStoreExt::get_msg::<SessionSubmission>(kv, &key).await {
+            Ok(Some(submission)) => {
+                submission.attempt_id == attempt_id
+                    && !sessions::submission_is_terminal(&submission)
+            }
+            Ok(None) => false,
+            Err(err) => {
+                tracing::debug!(error = %err, "Failed to verify session projection attempt");
+                false
+            }
+        }
+    }
+
+    async fn maybe_flush_kv(&self, _current_text: String) {
         let should_flush = {
             let mut last = self.last_flush.lock().unwrap();
             if last.elapsed().as_millis() > 1000 {
@@ -400,64 +618,48 @@ impl PubSubSessionSink {
             }
         };
         if should_flush {
-            let kv = self.kv.clone();
-            let reply_msg_key = self.reply_msg_key.clone();
-            let persist_lock = self.persist_lock.clone();
-            let partial = data_proto::SessionMessage {
-                id: self.reply_msg_id.clone(),
-                role: data_proto::MessageRole::RoleAssistant as i32,
-                created_at: chrono::Utc::now().timestamp_micros(),
-                labels: std::collections::HashMap::new(),
-                parts: self.partial_message_parts(&current_text),
-            };
+            let msg = self.projection_message("in_progress", "");
             let span = tracing::info_span!(
-                "PubSubSessionSink.persist_partial_message",
+                "PubSubSessionSink.persist_projection_message",
                 namespace = %self.ns,
                 agent = %self.agent_id,
                 session = %self.session_id,
             );
-            let handle = tokio::spawn(
-                async move {
-                    let Ok(_guard) = persist_lock.try_lock() else {
-                        return;
-                    };
-                    if let Err(e) = crate::control::ProtoKeyValueStoreExt::set_msg(
-                        kv.as_ref(),
-                        &reply_msg_key,
-                        &partial,
-                    )
-                    .await
-                    {
-                        tracing::error!("Failed to persist partial message: {}", e);
-                    }
+            async {
+                let _guard = self.persist_lock.lock().await;
+                if !Self::submission_attempt_is_current(
+                    self.kv.as_ref(),
+                    &self.ns,
+                    &self.agent_id,
+                    &self.session_id,
+                    &self.submission_id,
+                    &self.attempt_id,
+                )
+                .await
+                {
+                    return;
                 }
-                .instrument(span),
-            );
-            let mut pending = self.pending_partial_flushes.lock().unwrap();
-            pending.retain(|handle| !handle.is_finished());
-            pending.push(handle);
-        }
-    }
-
-    async fn wait_for_partial_flushes(&self) {
-        let handles = {
-            let mut pending = self.pending_partial_flushes.lock().unwrap();
-            std::mem::take(&mut *pending)
-        };
-        for handle in handles {
-            if let Err(err) = handle.await {
-                tracing::debug!(error = %err, "Partial message persistence task did not complete");
+                if let Err(e) = crate::control::ProtoKeyValueStoreExt::set_msg(
+                    self.kv.as_ref(),
+                    &self.reply_msg_key,
+                    &msg,
+                )
+                .await
+                {
+                    tracing::error!("Failed to persist session projection: {}", e);
+                }
             }
+            .instrument(span)
+            .await;
         }
     }
 
     async fn persist_durable_message(&self, span_name: &'static str) {
-        self.wait_for_partial_flushes().await;
         let msg = data_proto::SessionMessage {
             id: self.reply_msg_id.clone(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
-            labels: std::collections::HashMap::new(),
+            labels: self.projection_labels("complete_uncommitted"),
             parts: self.durable_parts.lock().unwrap().clone(),
         };
         let result = async {
@@ -483,6 +685,31 @@ impl PubSubSessionSink {
                 "Failed to persist durable message: {}",
                 e
             );
+        }
+    }
+
+    async fn mark_terminal(&self, status: i32) -> bool {
+        match sessions::mark_terminal(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &self.submission_id,
+            &self.attempt_id,
+            status,
+            &self.reply_msg_id,
+            chrono::Utc::now().timestamp_micros(),
+        )
+        .await
+        {
+            Ok(entry) => {
+                *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
+                true
+            }
+            Err(err) => {
+                tracing::error!(error = %err, status, "Failed to mark session submission terminal");
+                false
+            }
         }
     }
 
@@ -514,6 +741,28 @@ impl PubSubSessionSink {
 
 #[async_trait]
 impl ExecutionSink for PubSubSessionSink {
+    async fn on_llm_response(&self, response: &ChatResponse) {
+        match sessions::append_llm_response(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &self.submission_id,
+            &self.attempt_id,
+            response,
+            chrono::Utc::now().timestamp_micros(),
+        )
+        .await
+        {
+            Ok(entry) => {
+                *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
+            }
+            Err(err) => {
+                tracing::error!(error = %err, "Failed to append LLM response journal entry")
+            }
+        }
+    }
+
     async fn on_token(&self, token: &str) {
         *self.input_token_chunks.lock().unwrap() += 1;
         *self.input_token_chars.lock().unwrap() += token.len();
@@ -526,7 +775,7 @@ impl ExecutionSink for PubSubSessionSink {
             .lock()
             .unwrap()
             .push_str(token);
-        self.maybe_flush_kv(current_text);
+        self.maybe_flush_kv(current_text).await;
         if self.should_flush_token_event() {
             self.flush_token_event_buffer().await;
         }
@@ -565,6 +814,30 @@ impl ExecutionSink for PubSubSessionSink {
             input: input.clone(),
         })
         .await;
+    }
+
+    async fn on_tool_result_recorded(&self, id: &str, name: &str, result: &str) {
+        match sessions::append_tool_result(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &self.submission_id,
+            &self.attempt_id,
+            id,
+            name,
+            result,
+            chrono::Utc::now().timestamp_micros(),
+        )
+        .await
+        {
+            Ok(entry) => {
+                *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
+            }
+            Err(err) => {
+                tracing::error!(error = %err, "Failed to append tool-result journal entry");
+            }
+        }
     }
 
     async fn on_tool_result(&self, id: &str, name: &str, result: &str) {
@@ -653,7 +926,6 @@ impl ExecutionSink for PubSubSessionSink {
     async fn on_done(&self, reply: &str) {
         self.flush_token_event_buffer().await;
         self.flush_reasoning_part_and_event().await;
-        self.wait_for_partial_flushes().await;
         // Final KV write (complete message)
         let reply = if reply.is_empty() {
             self.accumulated.lock().unwrap().clone()
@@ -665,7 +937,7 @@ impl ExecutionSink for PubSubSessionSink {
             id: self.reply_msg_id.clone(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
-            labels: std::collections::HashMap::new(),
+            labels: self.projection_labels("complete_uncommitted"),
             parts: self.final_message_parts(&reply),
         };
         let result = async {
@@ -684,17 +956,42 @@ impl ExecutionSink for PubSubSessionSink {
             session = %self.session_id,
         ))
         .await;
-        if let Err(e) = result {
-            tracing::error!("Failed to persist final message: {}", e);
+        match result {
+            Ok(()) => {
+                if self
+                    .mark_terminal(SessionSubmissionStatus::Committed as i32)
+                    .await
+                {
+                    let committed_msg = data_proto::SessionMessage {
+                        labels: self.projection_labels("committed"),
+                        ..msg
+                    };
+                    let _guard = self.persist_lock.lock().await;
+                    if let Err(err) = crate::control::ProtoKeyValueStoreExt::set_msg(
+                        self.kv.as_ref(),
+                        &self.reply_msg_key,
+                        &committed_msg,
+                    )
+                    .await
+                    {
+                        tracing::error!(error = %err, "Failed to persist committed projection");
+                    }
+                }
+                self.publish_event(AgentEvent::Done(reply_for_event)).await;
+            }
+            Err(e) => {
+                tracing::error!("Failed to persist final message: {}", e);
+                self.publish_event(AgentEvent::Error(
+                    "Error: failed to persist final assistant message".to_string(),
+                ))
+                .await;
+            }
         }
-
-        self.publish_event(AgentEvent::Done(reply_for_event)).await;
     }
 
     async fn on_error(&self, err: &str) {
         self.flush_token_event_buffer().await;
         self.flush_reasoning_part_and_event().await;
-        self.wait_for_partial_flushes().await;
 
         self.record_accumulated_text_part();
         self.record_part(
@@ -707,7 +1004,7 @@ impl ExecutionSink for PubSubSessionSink {
             id: self.reply_msg_id.clone(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
-            labels: std::collections::HashMap::new(),
+            labels: self.projection_labels("failed"),
             parts: self.durable_parts.lock().unwrap().clone(),
         };
         let result = async {
@@ -726,11 +1023,20 @@ impl ExecutionSink for PubSubSessionSink {
             session = %self.session_id,
         ))
         .await;
-        if let Err(e) = result {
-            tracing::error!("Failed to persist error message: {}", e);
+        match result {
+            Ok(()) => {
+                self.mark_terminal(SessionSubmissionStatus::Failed as i32)
+                    .await;
+                self.publish_event(AgentEvent::Error(err.to_string())).await;
+            }
+            Err(e) => {
+                tracing::error!("Failed to persist error message: {}", e);
+                self.publish_event(AgentEvent::Error(
+                    "Error: failed to persist session error message".to_string(),
+                ))
+                .await;
+            }
         }
-
-        self.publish_event(AgentEvent::Error(err.to_string())).await;
     }
 }
 
@@ -751,6 +1057,7 @@ mod tests {
     use crate::control::{KeyValueStore, MessagePublisher};
     use crate::gateway::rpc::data_proto;
     use crate::harness::executor::ExecutionSink;
+    use crate::harness::sessions;
     use async_trait::async_trait;
     use prost::Message;
     use serde_json::json;
@@ -769,8 +1076,15 @@ mod tests {
 
     #[async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, _k: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(None)
+        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self
+                .entries
+                .lock()
+                .await
+                .iter()
+                .rev()
+                .find(|(entry_key, _)| entry_key == &key.to_string())
+                .map(|(_, value)| value.clone()))
         }
         async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
             self.entries
@@ -842,6 +1156,8 @@ mod tests {
             "infra",
             "reply-1",
             reply_key(),
+            "submission-1",
+            "attempt-1",
             Duration::from_millis(5),
         );
 
@@ -875,6 +1191,8 @@ mod tests {
             "infra",
             "reply-1",
             reply_key(),
+            "submission-1",
+            "attempt-1",
             Duration::from_secs(10),
         );
 
@@ -912,6 +1230,8 @@ mod tests {
             "infra",
             "reply-1",
             reply_key(),
+            "submission-1",
+            "attempt-1",
             Duration::from_secs(10),
         );
 
@@ -937,6 +1257,7 @@ mod tests {
         let reply = entries
             .iter()
             .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
+            .rev()
             .find(|message| message.id == "reply-1")
             .expect("reply message should be persisted");
         let reply_part_contents = reply
@@ -964,6 +1285,8 @@ mod tests {
             "infra",
             "reply-1",
             reply_key(),
+            "submission-1",
+            "attempt-1",
             Duration::from_millis(5),
         );
 
@@ -1007,6 +1330,8 @@ mod tests {
             "infra",
             "reply-1",
             reply_key(),
+            "submission-1",
+            "attempt-1",
             Duration::from_secs(10),
         );
         let raw_output = format!(
@@ -1033,9 +1358,20 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn partial_flush_preserves_durable_parts() {
+    async fn partial_flush_writes_in_progress_session_message_projection() {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        crate::control::ProtoKeyValueStoreExt::set_msg(
+            kv.as_ref(),
+            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &submission,
+        )
+        .await
+        .unwrap();
         let sink = PubSubSessionSink::new_with_token_publish_interval(
             kv.clone(),
             Arc::new(MockPubSub {
@@ -1046,34 +1382,187 @@ mod tests {
             "infra",
             "reply-1",
             reply_key(),
+            "submission-1",
+            "attempt-1",
             Duration::from_secs(10),
         );
 
-        sink.on_tool_call("tool-1", "search", &json!({"q": "talon"}))
-            .await;
         *sink.last_flush.lock().unwrap() = Instant::now() - Duration::from_secs(2);
         sink.on_token("partial").await;
-        sink.wait_for_partial_flushes().await;
+        *sink.last_flush.lock().unwrap() = Instant::now() - Duration::from_secs(2);
+        sink.on_token(" response").await;
 
         let entries = kv.entries.lock().await.clone();
-        let partial = entries
+        let persisted_messages = entries
             .iter()
             .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
+            .collect::<Vec<_>>();
+        let projection = persisted_messages
+            .iter()
+            .rev()
             .find(|message| message.id == "reply-1")
-            .expect("partial reply message should be persisted");
-        let part_types = partial
+            .expect("projection message should be persisted");
+        assert_eq!(
+            projection
+                .labels
+                .get("talon.session.projection_state")
+                .map(String::as_str),
+            Some("in_progress")
+        );
+        let projection_text = projection
             .parts
             .iter()
-            .map(|part| part.part_type)
-            .collect::<Vec<_>>();
+            .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .map(|part| part.content.as_str())
+            .collect::<String>();
+        assert_eq!(projection_text, "partial response");
+
+        sink.on_done("partial response").await;
+        let entries = kv.entries.lock().await.clone();
+        let reply = entries
+            .iter()
+            .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
+            .rev()
+            .find(|message| message.id == "reply-1")
+            .expect("reply message should be persisted");
+        let final_text_part = reply
+            .parts
+            .iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .expect("final text part should exist");
+        assert_eq!(final_text_part.content, "partial response");
+    }
+
+    #[tokio::test]
+    async fn journal_boundaries_record_stable_llm_responses_and_tool_results() {
+        use crate::control::ProtoKeyValueStoreExt;
+        use crate::harness::llm::{ChatResponse, ToolCall};
+
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(crate::test_support::MockKvStore::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        sessions::create_submission_if_absent(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            &submission,
+        )
+        .await
+        .unwrap();
+        let sink = PubSubSessionSink::new(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+        );
+
+        let tool_calls = vec![
+            ToolCall {
+                id: "call-a".to_string(),
+                name: "search".to_string(),
+                arguments: "{\"q\":\"a\"}".to_string(),
+            },
+            ToolCall {
+                id: "call-b".to_string(),
+                name: "search".to_string(),
+                arguments: "{\"q\":\"b\"}".to_string(),
+            },
+        ];
+        sink.on_llm_response(&ChatResponse {
+            content: "first".to_string(),
+            tool_calls: tool_calls.clone(),
+            usage: None,
+        })
+        .await;
+        sink.on_tool_result_recorded("call-a", "search", "result-a")
+            .await;
+        sink.on_llm_response(&ChatResponse {
+            content: "final".to_string(),
+            tool_calls: Vec::new(),
+            usage: None,
+        })
+        .await;
+        sink.on_done("final").await;
+
+        let entry_keys = kv
+            .list_keys(&keys::session_journal_entry_prefix(
+                "conic",
+                "infra",
+                "session-1",
+                "submission-1",
+            ))
+            .await
+            .unwrap();
+        let mut entries = Vec::new();
+        for key in entry_keys {
+            entries.push(
+                kv.get_msg::<sessions::SessionJournalEntry>(&key)
+                    .await
+                    .unwrap()
+                    .unwrap(),
+            );
+        }
+        let phases = entries.iter().map(|entry| entry.phase).collect::<Vec<_>>();
         assert_eq!(
-            part_types,
+            phases,
             vec![
-                data_proto::SessionMessagePartType::ToolCall as i32,
-                data_proto::SessionMessagePartType::Text as i32
+                data_proto::SessionExecutionPhase::LlmResponse as i32,
+                data_proto::SessionExecutionPhase::ToolResult as i32,
+                data_proto::SessionExecutionPhase::LlmResponse as i32,
+                data_proto::SessionExecutionPhase::Committed as i32,
             ]
         );
-        assert_eq!(partial.parts.last().unwrap().content, "partial");
+        let Some(data_proto::session_journal_entry_payload::Payload::LlmResponse(response)) =
+            entries[0]
+                .payload
+                .as_ref()
+                .and_then(|payload| payload.payload.as_ref())
+        else {
+            panic!("expected LLM response journal payload");
+        };
+        assert!(response
+            .response
+            .as_ref()
+            .expect("response")
+            .tool_calls
+            .iter()
+            .any(|tool| tool.id == "call-b"));
+        let Some(data_proto::session_journal_entry_payload::Payload::ToolResult(result)) = entries
+            [1]
+        .payload
+        .as_ref()
+        .and_then(|payload| payload.payload.as_ref()) else {
+            panic!("expected tool-result journal payload");
+        };
+        assert_eq!(result.output, "result-a");
+
+        let stored_submission = kv
+            .get_msg::<sessions::SessionSubmission>(&keys::session_submission(
+                "conic",
+                "infra",
+                "session-1",
+                "submission-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            stored_submission.current_journal_entry_id.as_deref(),
+            Some(entries[3].journal_entry_id.as_str())
+        );
+        assert_eq!(
+            stored_submission.current_phase,
+            data_proto::SessionExecutionPhase::Committed as i32
+        );
     }
 
     #[tokio::test]
@@ -1090,6 +1579,8 @@ mod tests {
             "infra",
             "reply-1",
             reply_key(),
+            "submission-1",
+            "attempt-1",
             Duration::from_secs(10),
         );
 
@@ -1159,6 +1650,8 @@ mod tests {
             "infra",
             "reply-1",
             reply_key(),
+            "submission-1",
+            "attempt-1",
             Duration::from_millis(1),
         );
 

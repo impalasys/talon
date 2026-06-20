@@ -103,7 +103,8 @@ impl ToolRegistry {
             .map(|t| crate::harness::llm::provider::Tool {
                 name: t.name.clone(),
                 description: t.description.clone(),
-                input_schema: t.input_schema.clone(),
+                input_schema_json: serde_json::to_string(&t.input_schema)
+                    .unwrap_or_else(|_| "{}".to_string()),
             })
             .collect()
     }
@@ -161,7 +162,10 @@ mod tests {
         let tool = &tools[0];
         assert_eq!(tool.name, "test_tool");
         assert_eq!(tool.description, "desc");
-        assert_eq!(tool.input_schema, schema);
+        assert_eq!(
+            serde_json::from_str::<Value>(&tool.input_schema_json).unwrap(),
+            schema
+        );
     }
 
     #[test]
@@ -230,12 +234,14 @@ mod tests {
         assert!(provider_tools
             .iter()
             .any(|tool| tool.name == "builtin" && tool.description == "builtin-desc"));
-        assert!(provider_tools.iter().any(|tool| tool.name == "mcp_tool"
-            && tool.input_schema["properties"]["q"]["type"] == "string"));
-        assert!(provider_tools
-            .iter()
-            .any(|tool| tool.name == "skill_tool"
-                && tool.input_schema["required"] == json!(["input"])));
+        assert!(provider_tools.iter().any(|tool| {
+            let schema: Value = serde_json::from_str(&tool.input_schema_json).unwrap();
+            tool.name == "mcp_tool" && schema["properties"]["q"]["type"] == "string"
+        }));
+        assert!(provider_tools.iter().any(|tool| {
+            let schema: Value = serde_json::from_str(&tool.input_schema_json).unwrap();
+            tool.name == "skill_tool" && schema["required"] == json!(["input"])
+        }));
     }
 
     #[test]

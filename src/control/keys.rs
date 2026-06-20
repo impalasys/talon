@@ -317,6 +317,64 @@ pub fn session_message_prefix(namespace: &str, agent: &str, session_id: &str) ->
     )
 }
 
+pub fn session_submission(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    submission_id: &str,
+) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        "SessionSubmission",
+        submission_id,
+    )
+}
+
+pub fn session_submission_prefix(namespace: &str, agent: &str, session_id: &str) -> ResourceList {
+    direct_child_prefix(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        Some("SessionSubmission"),
+    )
+}
+
+pub fn session_journal_entry(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    submission_id: &str,
+    journal_entry_id: &str,
+) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[
+            ("Agent", agent),
+            ("Session", session_id),
+            ("SessionSubmission", submission_id),
+        ],
+        "SessionJournalEntry",
+        journal_entry_id,
+    )
+}
+
+pub fn session_journal_entry_prefix(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    submission_id: &str,
+) -> ResourceList {
+    direct_child_prefix(
+        namespace,
+        &[
+            ("Agent", agent),
+            ("Session", session_id),
+            ("SessionSubmission", submission_id),
+        ],
+        Some("SessionJournalEntry"),
+    )
+}
+
 pub fn session_permission_decision(
     namespace: &str,
     agent: &str,
@@ -509,6 +567,22 @@ mod tests {
             "@Namespace/Impala:Talon/Agent/hello-agent/Session/session-id/@/SessionMessage/message-id"
         );
         assert_eq!(
+            session_submission("Impala:Talon", "hello-agent", "session-id", "submission-id")
+                .canonical(),
+            "@Namespace/Impala:Talon/Agent/hello-agent/Session/session-id/@/SessionSubmission/submission-id"
+        );
+        assert_eq!(
+            session_journal_entry(
+                "Impala:Talon",
+                "hello-agent",
+                "session-id",
+                "submission-id",
+                "000001"
+            )
+            .canonical(),
+            "@Namespace/Impala:Talon/Agent/hello-agent/Session/session-id/SessionSubmission/submission-id/@/SessionJournalEntry/000001"
+        );
+        assert_eq!(
             channel("Impala:Talon", "incident-123").canonical(),
             "@Namespace/Impala:Talon/@/Channel/incident-123"
         );
@@ -533,6 +607,16 @@ mod tests {
                 .as_parent()
                 .parent_path,
             "Agent/hello-agent/Session/session-id"
+        );
+        assert_eq!(
+            session_submission_prefix("Impala:Talon", "hello-agent", "session-id")
+                .canonical_prefix(),
+            "@Namespace/Impala:Talon/Agent/hello-agent/Session/session-id/@/SessionSubmission/"
+        );
+        assert_eq!(
+            session_journal_entry_prefix("Impala:Talon", "hello-agent", "session-id", "submission-id")
+                .canonical_prefix(),
+            "@Namespace/Impala:Talon/Agent/hello-agent/Session/session-id/SessionSubmission/submission-id/@/SessionJournalEntry/"
         );
     }
 

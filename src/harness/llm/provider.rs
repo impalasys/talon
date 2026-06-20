@@ -1,54 +1,59 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::gateway::rpc::manifests;
 use crate::harness::memory::Embedding;
 use anyhow::Result;
 use async_trait::async_trait;
 use futures::Stream;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::pin::Pin;
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum ChatContentPart {
-    Text {
-        text: String,
-    },
-    ImageUrl {
-        url: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        detail: Option<String>,
-    },
-    ImageData {
-        media_type: String,
-        data_base64: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        detail: Option<String>,
-    },
+pub use crate::gateway::rpc::harness_proto::{
+    chat_content_part, chat_stream_event, ChatContentPart, ChatImageData, ChatImageUrl,
+    ChatMessage, ChatRequest, ChatResponse, ChatStreamEvent, ChatUsage, Tool, ToolCall,
+    ToolCallDelta,
+};
+
+pub fn text_part(text: impl Into<String>) -> ChatContentPart {
+    ChatContentPart {
+        content: Some(chat_content_part::Content::Text(text.into())),
+    }
+}
+
+pub fn image_url_part(
+    url: impl Into<String>,
+    detail: Option<impl Into<String>>,
+) -> ChatContentPart {
+    ChatContentPart {
+        content: Some(chat_content_part::Content::ImageUrl(ChatImageUrl {
+            url: url.into(),
+            detail: detail.map(Into::into),
+        })),
+    }
+}
+
+pub fn image_data_part(
+    media_type: impl Into<String>,
+    data_base64: impl Into<String>,
+    detail: Option<impl Into<String>>,
+) -> ChatContentPart {
+    ChatContentPart {
+        content: Some(chat_content_part::Content::ImageData(ChatImageData {
+            media_type: media_type.into(),
+            data_base64: data_base64.into(),
+            detail: detail.map(Into::into),
+        })),
+    }
 }
 
 pub fn content_parts_text(parts: &[ChatContentPart]) -> String {
     parts
         .iter()
-        .filter_map(|part| match part {
-            ChatContentPart::Text { text } => Some(text.as_str()),
+        .filter_map(|part| match part.content.as_ref()? {
+            chat_content_part::Content::Text(text) => Some(text.as_str()),
             _ => None,
         })
         .collect::<Vec<_>>()
         .join("")
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct ChatMessage {
-    pub role: String,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub content_parts: Vec<ChatContentPart>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_calls: Option<Vec<ToolCall>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_call_id: Option<String>,
 }
 
 impl ChatMessage {
@@ -59,9 +64,9 @@ impl ChatMessage {
             content_parts: if content.is_empty() {
                 Vec::new()
             } else {
-                vec![ChatContentPart::Text { text: content }]
+                vec![text_part(content)]
             },
-            tool_calls: None,
+            tool_calls: Vec::new(),
             tool_call_id: None,
         }
     }
@@ -71,65 +76,38 @@ impl ChatMessage {
     }
 
     pub fn is_empty_content(&self) -> bool {
-        self.content_parts.iter().all(|part| match part {
-            ChatContentPart::Text { text } => text.is_empty(),
-            _ => false,
-        })
+        self.content_parts
+            .iter()
+            .all(|part| match part.content.as_ref() {
+                Some(chat_content_part::Content::Text(text)) => text.is_empty(),
+                None => true,
+                _ => false,
+            })
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct ChatResponse {
-    pub content: String,
-    pub tool_calls: Vec<ToolCall>,
-    pub usage: Option<ChatUsage>,
+pub fn text_delta_event(text: impl Into<String>) -> ChatStreamEvent {
+    ChatStreamEvent {
+        event: Some(chat_stream_event::Event::TextDelta(text.into())),
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct ToolCall {
-    pub id: String,
-    pub name: String,
-    pub arguments: String,
+pub fn reasoning_delta_event(reasoning: impl Into<String>) -> ChatStreamEvent {
+    ChatStreamEvent {
+        event: Some(chat_stream_event::Event::ReasoningDelta(reasoning.into())),
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct ToolCallDelta {
-    pub index: usize,
-    pub id: Option<String>,
-    pub name: Option<String>,
-    pub arguments: Option<String>,
+pub fn tool_call_delta_event(delta: ToolCallDelta) -> ChatStreamEvent {
+    ChatStreamEvent {
+        event: Some(chat_stream_event::Event::ToolCallDelta(delta)),
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct ChatRequest {
-    pub messages: Vec<ChatMessage>,
-    pub tools: Vec<Tool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thinking: Option<manifests::ThinkingConfig>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
-pub struct ChatUsage {
-    pub input_tokens: u64,
-    pub output_tokens: u64,
-    pub reasoning_tokens: u64,
-    pub total_tokens: u64,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-#[serde(tag = "type", content = "data")]
-pub enum ChatStreamEvent {
-    TextDelta(String),
-    ReasoningDelta(String),
-    ToolCallDelta(ToolCallDelta),
-    Usage(ChatUsage),
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct Tool {
-    pub name: String,
-    pub description: String,
-    pub input_schema: Value,
+pub fn usage_event(usage: ChatUsage) -> ChatStreamEvent {
+    ChatStreamEvent {
+        event: Some(chat_stream_event::Event::Usage(usage)),
+    }
 }
 
 pub type ChatStream = Pin<Box<dyn Stream<Item = Result<ChatStreamEvent>> + Send>>;

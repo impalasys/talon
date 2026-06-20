@@ -31,6 +31,8 @@ pub struct SessionMessageEvent {
     pub message: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "8")]
+    pub submission_id: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionControlEvent {
