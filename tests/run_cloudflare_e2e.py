@@ -77,27 +77,65 @@ def check_cors_preflight():
 
 def wait_for_agent_resource(namespace, agent):
     deadline = time.time() + 120
-    path = (
+    list_path = (
         f"/v1/ns/{urllib.parse.quote(namespace, safe='')}/resources"
         f"?kind={urllib.parse.quote('Agent', safe='')}"
+    )
+    get_path = (
+        f"/v1/ns/{urllib.parse.quote(namespace, safe='')}/resources/"
+        f"{urllib.parse.quote('Agent', safe='')}/{urllib.parse.quote(agent, safe='')}"
     )
     last_error = None
     while time.time() < deadline:
         try:
-            status, _, body = request("GET", path)
+            status, _, body = request("GET", get_path)
+            if status == 200:
+                resource = json.loads(body).get("resource") or {}
+                metadata = resource.get("metadata") or {}
+                if metadata.get("name") == agent:
+                    return
+                last_error = f"Agent GET returned unexpected resource metadata {metadata!r}"
+            else:
+                last_error = f"Agent GET HTTP {status}: {body}"
+
+            status, _, body = request("GET", list_path)
             if status == 200:
                 resources = json.loads(body).get("resources", [])
                 for resource in resources:
                     metadata = resource.get("metadata") or {}
                     if metadata.get("name") == agent:
-                        return
-                last_error = f"Agent {agent!r} not found in {len(resources)} resource(s)"
+                        last_error = (
+                            f"Agent {agent!r} is visible in resource list but not exact GET: "
+                            f"{last_error}"
+                        )
+                        break
+                else:
+                    last_error = f"Agent {agent!r} not found in {len(resources)} resource(s)"
             else:
-                last_error = f"HTTP {status}: {body}"
+                last_error = f"Agent list HTTP {status}: {body}; {last_error}"
         except (OSError, urllib.error.URLError, ValueError) as err:
             last_error = str(err)
         time.sleep(2)
     raise RuntimeError(f"Timed out waiting for Agent {namespace}/{agent}: {last_error}")
+
+
+def describe_agent_visibility(namespace, agent):
+    list_path = (
+        f"/v1/ns/{urllib.parse.quote(namespace, safe='')}/resources"
+        f"?kind={urllib.parse.quote('Agent', safe='')}"
+    )
+    get_path = (
+        f"/v1/ns/{urllib.parse.quote(namespace, safe='')}/resources/"
+        f"{urllib.parse.quote('Agent', safe='')}/{urllib.parse.quote(agent, safe='')}"
+    )
+    details = []
+    for label, path in (("exact", get_path), ("list", list_path)):
+        try:
+            status, _, body = request("GET", path)
+            details.append(f"{label}=HTTP {status} {body[:500]}")
+        except Exception as err:
+            details.append(f"{label}=error {err}")
+    return "; ".join(details)
 
 
 def main():
@@ -124,7 +162,11 @@ def main():
         timeout=180,
     )
     wait_for_agent_resource(namespace, agent)
-    session_id = e2e.session_create(cli, namespace, agent)
+    try:
+        session_id = e2e.session_create(cli, namespace, agent)
+    except Exception as err:
+        visibility = describe_agent_visibility(namespace, agent)
+        raise RuntimeError(f"{err}; agent visibility after session-create failure: {visibility}") from err
     e2e.session_send(
         cli,
         namespace,
