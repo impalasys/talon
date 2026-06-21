@@ -1,0 +1,72 @@
+# Docker Compose runtime config.
+#
+# Keep this shape aligned with talon.yaml. Values that differ here should be
+# Docker-specific runtime values, such as container env var names or mounted
+# volume paths.
+
+providers:
+  # Provider secrets are read from the compose service environment, usually
+  # populated from .env by docker-compose.yaml.
+  openai:
+    type: openai
+    model: gpt-5.4-nano
+    apiKey:
+      source: env
+      key: OPENAI_API_KEY
+  novita:
+    type: openai_compatible
+    name: novita
+    baseUrl: "https://api.novita.ai/v3/openai"
+    model: google/gemma-4-31b-it
+    apiKey:
+      source: env
+      key: NOVITA_API_KEY
+
+server:
+  host: "0.0.0.0"
+  port: 18789
+
+storage:
+  # The compose stack uses one local Postgres instance for both control-plane
+  # metadata and session/data storage.
+  control:
+    driver: postgres
+    url:
+      source: env
+      key: TALON_CONTROL_DATABASE_URL
+  data:
+    driver: postgres
+    url:
+      source: env
+      key: TALON_DATA_DATABASE_URL
+  objects:
+    # This path is mounted as the talon-objects Docker volume.
+    driver: local
+    path: /data/talon/objects
+
+pubsub:
+  # The compose stack points this at the local Pub/Sub emulator through
+  # PUBSUB_EMULATOR_HOST in docker-compose.yaml.
+  driver: gcp_pubsub
+  projectId:
+    source: env
+    key: GCP_PROJECT_ID
+
+trust:
+  oidc:
+    - name: google-admins
+      issuer: https://accounts.google.com
+      audiences:
+        # Google Desktop OAuth client ID used by talon-cli auth login.
+        - ${TALON_GOOGLE_CLIENT_ID}
+        # Google Web OAuth client ID used by Sightline Google SSO.
+        - ${TALON_GOOGLE_WEB_CLIENT_ID}
+      allowedDomains:
+        # Verified Google account email domains allowed to exchange OIDC tokens.
+        - impala.systems
+      clockSkewSeconds: 60
+      grants:
+        # Compose is a local/admin stack, so trusted identities get global admin
+        # access. Narrow this with namespace/agent/session/channel selectors in
+        # shared or hosted deployments.
+        - kind: readwrite

@@ -43,6 +43,7 @@ pub struct SerdeConfig {
     pub pubsub: Option<MessageBrokerConfigWrapper>,
     #[serde(default)]
     pub controllers: HashMap<String, ControllerConfigWrapper>,
+    pub trust: Option<TrustConfigWrapper>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -176,6 +177,57 @@ pub enum SchedulerCallbackAuthConfigWrapper {
     },
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct TrustConfigWrapper {
+    #[serde(default)]
+    pub oidc: Vec<OidcTrustEntryConfigWrapper>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct OidcTrustEntryConfigWrapper {
+    pub name: String,
+    pub issuer: String,
+    #[serde(default)]
+    pub audience: Option<String>,
+    #[serde(default)]
+    pub audiences: Vec<String>,
+    #[serde(default, rename = "allowedDomains")]
+    pub allowed_domains: Vec<String>,
+    #[serde(default, rename = "allowedEmails")]
+    pub allowed_emails: Vec<String>,
+    #[serde(default, rename = "jwksUrl")]
+    pub jwks_url: Option<String>,
+    #[serde(default, rename = "clockSkewSeconds")]
+    pub clock_skew_seconds: Option<u32>,
+    #[serde(default)]
+    pub grants: Vec<OidcTrustGrantConfigWrapper>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum OidcTrustGrantConfigWrapper {
+    Read {
+        #[serde(default)]
+        namespace: String,
+        #[serde(default)]
+        agent: String,
+        #[serde(default)]
+        session: String,
+        #[serde(default)]
+        channel: String,
+    },
+    Readwrite {
+        #[serde(default)]
+        namespace: String,
+        #[serde(default)]
+        agent: String,
+        #[serde(default)]
+        session: String,
+        #[serde(default)]
+        channel: String,
+    },
+}
+
 impl From<SerdeConfig> for Config {
     fn from(s: SerdeConfig) -> Self {
         let mut provider_inputs = s.providers;
@@ -286,6 +338,7 @@ impl From<SerdeConfig> for Config {
                     )
                 })
                 .collect(),
+            trust: s.trust.map(Into::into),
         }
     }
 }
@@ -383,6 +436,138 @@ fn resolve_config_relative_paths(path: &Path, config: &mut SerdeConfig) {
     }
 
     resolve_config_relative_string_path(path, &mut config.workspace_dir);
+}
+
+pub(crate) fn expand_env_placeholders(input: &str) -> String {
+    let mut output = String::with_capacity(input.len());
+    let mut rest = input;
+
+    while let Some(start) = rest.find("${") {
+        output.push_str(&rest[..start]);
+        let after_start = &rest[start + 2..];
+        let Some(end) = after_start.find('}') else {
+            output.push_str(&rest[start..]);
+            return output;
+        };
+        let name = &after_start[..end];
+        if !name.is_empty()
+            && name
+                .chars()
+                .all(|ch| ch == '_' || ch.is_ascii_alphanumeric())
+        {
+            match env::var(name) {
+                Ok(value) => output.push_str(&value),
+                Err(_) => {
+                    output.push_str("${");
+                    output.push_str(name);
+                    output.push('}');
+                }
+            }
+        } else {
+            output.push_str("${");
+            output.push_str(name);
+            output.push('}');
+        }
+        rest = &after_start[end + 1..];
+    }
+
+    output.push_str(rest);
+    output
+}
+
+fn validate_trust_config(config: &SerdeConfig) -> Result<()> {
+    let Some(trust) = &config.trust else {
+        return Ok(());
+    };
+
+    for entry in &trust.oidc {
+        if entry.name.trim().is_empty() {
+            return Err(anyhow!("trust.oidc entry name cannot be empty"));
+        }
+        if entry.issuer.trim().is_empty() {
+            return Err(anyhow!(
+                "trust.oidc entry '{}' issuer cannot be empty",
+                entry.name
+            ));
+        }
+        if entry
+            .audience
+            .as_deref()
+            .unwrap_or_default()
+            .trim()
+            .is_empty()
+            && entry
+                .audiences
+                .iter()
+                .all(|audience| audience.trim().is_empty())
+        {
+            return Err(anyhow!(
+                "trust.oidc entry '{}' must declare at least one audience",
+                entry.name
+            ));
+        }
+        if entry.grants.is_empty() {
+            return Err(anyhow!(
+                "trust.oidc entry '{}' must declare at least one grant",
+                entry.name
+            ));
+        }
+
+        for grant in &entry.grants {
+            validate_oidc_trust_grant(&entry.name, grant)?;
+        }
+    }
+
+    Ok(())
+}
+
+fn validate_oidc_trust_grant(entry_name: &str, grant: &OidcTrustGrantConfigWrapper) -> Result<()> {
+    let (namespace, agent, session, channel) = match grant {
+        OidcTrustGrantConfigWrapper::Read {
+            namespace,
+            agent,
+            session,
+            channel,
+        }
+        | OidcTrustGrantConfigWrapper::Readwrite {
+            namespace,
+            agent,
+            session,
+            channel,
+        } => (
+            namespace.trim(),
+            agent.trim(),
+            session.trim(),
+            channel.trim(),
+        ),
+    };
+
+    if !agent.is_empty() && namespace.is_empty() {
+        return Err(anyhow!(
+            "trust.oidc entry '{}' grant with agent selector must include namespace",
+            entry_name
+        ));
+    }
+    if !session.is_empty() && (namespace.is_empty() || agent.is_empty()) {
+        return Err(anyhow!(
+            "trust.oidc entry '{}' grant with session selector must include namespace and agent",
+            entry_name
+        ));
+    }
+    if !channel.is_empty() && namespace.is_empty() {
+        return Err(anyhow!(
+            "trust.oidc entry '{}' grant with channel selector must include namespace",
+            entry_name
+        ));
+    }
+    if !channel.is_empty() && (!agent.is_empty() || !session.is_empty()) {
+        return Err(anyhow!(
+            "trust.oidc entry '{}' grant cannot combine channel with agent or session selectors",
+            entry_name
+        ));
+    }
+
+    Ok(())
 }
 
 impl From<SchedulerConfigWrapper> for proto::SchedulerConfig {
@@ -483,6 +668,66 @@ impl From<SchedulerCallbackAuthConfigWrapper> for proto::SchedulerCallbackAuthCo
     }
 }
 
+impl From<TrustConfigWrapper> for proto::TrustConfig {
+    fn from(s: TrustConfigWrapper) -> Self {
+        Self {
+            oidc: s.oidc.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<OidcTrustEntryConfigWrapper> for proto::OidcTrustEntry {
+    fn from(mut s: OidcTrustEntryConfigWrapper) -> Self {
+        if let Some(audience) = s.audience.take() {
+            if !audience.trim().is_empty() {
+                s.audiences.insert(0, audience);
+            }
+        }
+
+        Self {
+            name: s.name,
+            issuer: s.issuer,
+            audiences: s.audiences,
+            allowed_domains: s.allowed_domains,
+            allowed_emails: s.allowed_emails,
+            jwks_url: s.jwks_url.unwrap_or_default(),
+            clock_skew_seconds: s.clock_skew_seconds.unwrap_or_default(),
+            grants: s.grants.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<OidcTrustGrantConfigWrapper> for proto::OidcTrustGrant {
+    fn from(s: OidcTrustGrantConfigWrapper) -> Self {
+        match s {
+            OidcTrustGrantConfigWrapper::Read {
+                namespace,
+                agent,
+                session,
+                channel,
+            } => Self {
+                kind: proto::oidc_trust_grant::Kind::Read as i32,
+                namespace,
+                agent,
+                session,
+                channel,
+            },
+            OidcTrustGrantConfigWrapper::Readwrite {
+                namespace,
+                agent,
+                session,
+                channel,
+            } => Self {
+                kind: proto::oidc_trust_grant::Kind::Readwrite as i32,
+                namespace,
+                agent,
+                session,
+                channel,
+            },
+        }
+    }
+}
+
 impl From<SerdeSecret> for Secret {
     fn from(s: SerdeSecret) -> Self {
         match s {
@@ -518,7 +763,7 @@ pub trait ConfigExt {
 impl ConfigExt for Config {
     fn from_file<P: AsRef<Path>>(path: P) -> Result<Config> {
         let path = path.as_ref();
-        let content = std::fs::read_to_string(path)?;
+        let content = expand_env_placeholders(&std::fs::read_to_string(path)?);
         let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("toml");
 
         let mut serde_config: SerdeConfig = match extension {
@@ -528,13 +773,16 @@ impl ConfigExt for Config {
             _ => return Err(anyhow!("Unsupported config format: {}", extension)),
         };
         resolve_config_relative_paths(path, &mut serde_config);
+        validate_trust_config(&serde_config)?;
         Ok(serde_config.into())
     }
 
     fn load_default() -> Result<Config> {
         if let Ok(inline_yaml) = env::var("TALON_CONFIG_INLINE_YAML") {
             if !inline_yaml.trim().is_empty() {
+                let inline_yaml = expand_env_placeholders(&inline_yaml);
                 let serde_config: SerdeConfig = serde_yaml::from_str(&inline_yaml)?;
+                validate_trust_config(&serde_config)?;
                 return Ok(serde_config.into());
             }
         }

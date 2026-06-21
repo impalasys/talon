@@ -29,7 +29,7 @@ From the repository root:
 cp .env.example .env
 ```
 
-Then edit `.env` and set your OpenAI provider key. The checked-in local stack includes the `openai` provider in `talon.compose.yaml`, so the quickstart examples below use that configuration:
+Then edit `.env` and set your OpenAI provider key. The checked-in local stack includes the `openai` provider in `talon.docker-compose.yaml`, so the quickstart examples below use that configuration:
 
 ```bash
 OPENAI_API_KEY=your-real-api-key

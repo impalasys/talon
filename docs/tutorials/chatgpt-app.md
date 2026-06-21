@@ -133,7 +133,7 @@ This is the fastest way to debug whether the browser app and the control plane a
 - the manifest files are valid `talon-cli apply` inputs
 - the knowledge sync command is real
 - the browser chat route is the real gateway UI surface
-- the manifests point at a real OpenAI provider already wired through `talon.compose.yaml`
+- the manifests point at a real OpenAI provider already wired through `talon.docker-compose.yaml`
 
 ## What is intentionally not included
 

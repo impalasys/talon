@@ -4,6 +4,7 @@
 use anyhow::Result;
 use std::sync::Arc;
 use talon::control::build_control_plane;
+use talon::control::config::proto::TrustConfig;
 use talon::control::config::{Config, ConfigExt};
 use talon::control::ControlPlane;
 use talon::gateway::auth::AuthConfig;
@@ -41,9 +42,14 @@ where
     )
 }
 
-fn build_gateway(auth_config: AuthConfig, cp: ControlPlane) -> Gateway {
-    Gateway::new(
+fn build_gateway(
+    auth_config: AuthConfig,
+    trust_config: Option<TrustConfig>,
+    cp: ControlPlane,
+) -> Gateway {
+    Gateway::new_with_trust(
         Some(auth_config),
+        trust_config,
         cp.kv,
         cp.pubsub,
         cp.scheduler,
@@ -76,6 +82,7 @@ fn spawn_gateway_tasks(
 
 async fn run_gateway_with<FGetAuth, FGetAddr, FShutdown>(
     cp: ControlPlane,
+    trust_config: Option<TrustConfig>,
     auth_get: FGetAuth,
     addr_get: FGetAddr,
     shutdown: FShutdown,
@@ -86,7 +93,7 @@ where
     FShutdown: std::future::Future,
 {
     let auth_config = select_auth_config(auth_get);
-    let gateway = build_gateway(auth_config, cp);
+    let gateway = build_gateway(auth_config, trust_config, cp);
     let (rpc_addr, ui_addr) = gateway_addresses(addr_get);
     let shutdown_token = CancellationToken::new();
     let (rpc_task, ui_task) =
@@ -110,8 +117,9 @@ where
     FShutdown: std::future::Future,
 {
     let config = load_config()?;
+    let trust_config = config.trust.clone();
     let cp = build_cp(&config).await?;
-    run_gateway_with(cp, auth_get, addr_get, shutdown).await
+    run_gateway_with(cp, trust_config, auth_get, addr_get, shutdown).await
 }
 
 async fn wait_for_server_tasks<F>(
@@ -287,7 +295,7 @@ mod tests {
     #[test]
     fn build_gateway_preserves_auth_and_dependencies() {
         let auth = AuthConfig::tokens(vec!["gateway-token".to_string()]);
-        let gateway = build_gateway(auth, ControlPlane::noop());
+        let gateway = build_gateway(auth, None, ControlPlane::noop());
         assert_eq!(
             gateway.auth_config.as_ref().map(|cfg| cfg.mode.clone()),
             Some(AuthMode::Token)
@@ -478,7 +486,7 @@ mod tests {
 
     #[tokio::test]
     async fn spawn_gateway_tasks_binds_valid_listeners() {
-        let gateway = build_gateway(AuthConfig::open(), ControlPlane::noop());
+        let gateway = build_gateway(AuthConfig::open(), None, ControlPlane::noop());
         let rpc_listener = tokio::net::TcpListener::bind("127.0.0.1:0")
             .await
             .expect("rpc probe should bind");
@@ -510,6 +518,7 @@ mod tests {
     async fn run_gateway_with_surfaces_startup_errors() {
         let err = run_gateway_with(
             ControlPlane::noop(),
+            None,
             |name| match name {
                 "GATEWAY_TOKEN" => Some("token".to_string()),
                 _ => None,
@@ -548,6 +557,7 @@ mod tests {
         let (tx, rx) = oneshot::channel::<()>();
         let task = tokio::spawn(run_gateway_with(
             ControlPlane::noop(),
+            None,
             |_| None,
             move |name| match name {
                 "GRPC_ADDR" => Some(rpc_addr.to_string()),

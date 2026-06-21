@@ -103,7 +103,7 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::ListWorkflowRunsRequest>,
     ) -> Result<tonic::Response<proto::ListWorkflowRunsResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
+        crate::require_auth!(read, self, req, &req.get_ref().ns);
         let req = req.into_inner();
         let page_size = validated_workflow_runs_page_size(req.page_size)?;
         let prefix = keys::workflow_run_prefix(&req.ns, &req.workflow);
@@ -179,7 +179,7 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::ResumeWorkflowRunRequest>,
     ) -> Result<tonic::Response<proto::WorkflowRunResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
+        crate::require_auth!(read, self, req, &req.get_ref().ns);
         let req = req.into_inner();
         let run = workflows::resume_run(
             &self.gateway.control_plane(),
@@ -202,7 +202,7 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::CancelWorkflowRunRequest>,
     ) -> Result<tonic::Response<proto::WorkflowRunResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
+        crate::require_auth!(read, self, req, &req.get_ref().ns);
         let req = req.into_inner();
         let run = workflows::cancel_run(
             &self.gateway.control_plane(),

@@ -396,9 +396,10 @@ impl GrpcGatewayHandler {
         req: tonic::Request<proto::GetChannelMessageRequest>,
     ) -> Result<tonic::Response<proto::ChannelMessageResponse>, tonic::Status> {
         if let Some(auth_config) = &self.gateway.auth_config {
-            crate::gateway::auth::check_channel_auth(
+            crate::gateway::auth::check_channel_auth_for_operation(
                 req.metadata(),
                 auth_config,
+                crate::gateway::auth::AuthzOperation::Read,
                 &req.get_ref().ns,
                 &req.get_ref().channel,
             )?;
@@ -426,9 +427,10 @@ impl GrpcGatewayHandler {
         req: tonic::Request<proto::ListChannelMessagesRequest>,
     ) -> Result<tonic::Response<proto::ListChannelMessagesResponse>, tonic::Status> {
         if let Some(auth_config) = &self.gateway.auth_config {
-            crate::gateway::auth::check_channel_auth(
+            crate::gateway::auth::check_channel_auth_for_operation(
                 req.metadata(),
                 auth_config,
+                crate::gateway::auth::AuthzOperation::Read,
                 &req.get_ref().ns,
                 &req.get_ref().channel,
             )?;
@@ -498,9 +500,10 @@ impl GrpcGatewayHandler {
         req: tonic::Request<proto::StreamChannelEventsRequest>,
     ) -> Result<tonic::Response<super::ChannelEventStream>, tonic::Status> {
         if let Some(auth_config) = &self.gateway.auth_config {
-            crate::gateway::auth::check_channel_auth(
+            crate::gateway::auth::check_channel_auth_for_operation(
                 req.metadata(),
                 auth_config,
+                crate::gateway::auth::AuthzOperation::Read,
                 &req.get_ref().ns,
                 &req.get_ref().channel,
             )?;

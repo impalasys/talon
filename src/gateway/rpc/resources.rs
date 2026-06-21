@@ -28,7 +28,7 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::GetResourceRequest>,
     ) -> std::result::Result<tonic::Response<proto::ResourceResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
+        crate::require_auth!(read, self, req, &req.get_ref().ns);
         let req = req.into_inner();
         let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
         let resource = store
@@ -45,7 +45,7 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::ListResourcesRequest>,
     ) -> std::result::Result<tonic::Response<proto::ListResourcesResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
+        crate::require_auth!(read, self, req, &req.get_ref().ns);
         let req = req.into_inner();
         let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
         let resources = store

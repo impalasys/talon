@@ -10,6 +10,36 @@ message TalonConfig {
   string workspace_dir = 5;
   ControlPlaneConfig control_plane = 6;
   map<string, ControllerConfig> controllers = 7;
+  TrustConfig trust = 8;
+}
+
+message TrustConfig {
+  repeated OidcTrustEntry oidc = 1;
+}
+
+message OidcTrustEntry {
+  string name = 1;
+  string issuer = 2;
+  repeated string audiences = 3;
+  repeated string allowed_domains = 4;
+  repeated string allowed_emails = 5;
+  string jwks_url = 6;
+  uint32 clock_skew_seconds = 7;
+  repeated OidcTrustGrant grants = 8;
+}
+
+message OidcTrustGrant {
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    READ = 1;
+    READWRITE = 2;
+  }
+
+  Kind kind = 1;
+  string namespace = 2;
+  string agent = 3;
+  string session = 4;
+  string channel = 5;
 }
 
 message ControllerConfig {

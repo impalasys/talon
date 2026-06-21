@@ -6,7 +6,8 @@ services:
     command: ["talon-server"]
     environment:
       - RUST_LOG=${RUST_LOG:-info}
-      - POSTGRES_URL=postgres://talon:password@postgres:5432/talon
+      - TALON_CONTROL_DATABASE_URL=postgres://talon:password@postgres:5432/talon
+      - TALON_DATA_DATABASE_URL=postgres://talon:password@postgres:5432/talon
       - GCP_PROJECT_ID=talon-local
       - PUBSUB_EMULATOR_HOST=pubsub:8085
       - TALON_SCHEDULER_DRIVER=local_postgres
@@ -16,13 +17,16 @@ services:
       - OPENAI_API_KEY
       - NOVITA_API_KEY
       - ANTHROPIC_API_KEY
+      - TALON_GOOGLE_CLIENT_ID
+      - TALON_GOOGLE_WEB_CLIENT_ID
+      - TALON_GOOGLE_WEB_CLIENT_SECRET
       - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET:-local-dev-talon-jwt}
       - GATEWAY_UI_ADDR=0.0.0.0:50052
-      - TALON_CONFIG_PATH=/data/talon/talon.compose.yaml
+      - TALON_CONFIG_PATH=/data/talon/talon.docker-compose.yaml
     env_file:
       - .env
     volumes:
-      - ./talon.compose.yaml:/data/talon/talon.compose.yaml:ro
+      - ./talon.docker-compose.yaml:/data/talon/talon.docker-compose.yaml:ro
       - talon-objects:/data/talon/objects
     ports:
       - "50051:50051"
@@ -45,7 +49,8 @@ services:
     command: ["talon-worker"]
     environment:
       - RUST_LOG=${RUST_LOG:-info}
-      - POSTGRES_URL=postgres://talon:password@postgres:5432/talon
+      - TALON_CONTROL_DATABASE_URL=postgres://talon:password@postgres:5432/talon
+      - TALON_DATA_DATABASE_URL=postgres://talon:password@postgres:5432/talon
       - GCP_PROJECT_ID=talon-local
       - PUBSUB_EMULATOR_HOST=pubsub:8085
       - TALON_SCHEDULER_DRIVER=local_postgres
@@ -55,12 +60,14 @@ services:
       - OPENAI_API_KEY
       - NOVITA_API_KEY
       - ANTHROPIC_API_KEY
+      - TALON_GOOGLE_CLIENT_ID
+      - TALON_GOOGLE_WEB_CLIENT_ID
       - PULL_MODE=1
-      - TALON_CONFIG_PATH=/data/talon/talon.compose.yaml
+      - TALON_CONFIG_PATH=/data/talon/talon.docker-compose.yaml
     env_file:
       - .env
     volumes:
-      - ./talon.compose.yaml:/data/talon/talon.compose.yaml:ro
+      - ./talon.docker-compose.yaml:/data/talon/talon.docker-compose.yaml:ro
       - talon-objects:/data/talon/objects
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:

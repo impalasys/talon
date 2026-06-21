@@ -3,7 +3,9 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::control::config::{normalize_path, proto, Config, ConfigExt, Secret, SecretExt};
+    use crate::control::config::{
+        expand_env_placeholders, normalize_path, proto, Config, ConfigExt, Secret, SecretExt,
+    };
     use prost::Message;
     use std::env;
     use std::io::Write;
@@ -56,6 +58,242 @@ server:
                     _ => panic!("Expected Plain secret"),
                 }
             }
+        }
+    }
+
+    #[test]
+    fn test_config_from_yaml_parses_oidc_trust_grants() {
+        let file = NamedTempFile::new().expect("Failed to create temp file");
+        let path = file.path().with_extension("yaml");
+        let mut file = std::fs::File::create(&path).expect("Failed to create yaml file");
+
+        writeln!(
+            file,
+            r#"
+trust:
+  oidc:
+    - name: google-admins
+      issuer: https://accounts.google.com
+      audiences:
+        - web-client-id.apps.googleusercontent.com
+        - cli-client-id.apps.googleusercontent.com
+      allowedDomains:
+        - impala.systems
+      allowedEmails:
+        - alice@impala.systems
+      jwksUrl: https://www.googleapis.com/oauth2/v3/certs
+      clockSkewSeconds: 60
+      grants:
+        - kind: readwrite
+        - kind: read
+          namespace: Support
+        - kind: readwrite
+          namespace: Support
+          agent: retention-reviewer
+        - kind: read
+          namespace: Support
+          agent: retention-reviewer
+          session: session-123
+        - kind: readwrite
+          namespace: Support
+          channel: incident-room
+"#
+        )
+        .unwrap();
+
+        let config = Config::from_file(&path).unwrap();
+        let trust = config.trust.as_ref().unwrap();
+        assert_eq!(trust.oidc.len(), 1);
+        let entry = &trust.oidc[0];
+        assert_eq!(entry.name, "google-admins");
+        assert_eq!(entry.issuer, "https://accounts.google.com");
+        assert_eq!(
+            entry.audiences,
+            vec![
+                "web-client-id.apps.googleusercontent.com".to_string(),
+                "cli-client-id.apps.googleusercontent.com".to_string()
+            ]
+        );
+        assert_eq!(entry.allowed_domains, vec!["impala.systems".to_string()]);
+        assert_eq!(
+            entry.allowed_emails,
+            vec!["alice@impala.systems".to_string()]
+        );
+        assert_eq!(entry.clock_skew_seconds, 60);
+        assert_eq!(entry.grants.len(), 5);
+        assert_eq!(
+            entry.grants[0].kind,
+            proto::oidc_trust_grant::Kind::Readwrite as i32
+        );
+        assert_eq!(entry.grants[0].namespace, "");
+        assert_eq!(
+            entry.grants[3].kind,
+            proto::oidc_trust_grant::Kind::Read as i32
+        );
+        assert_eq!(entry.grants[3].namespace, "Support");
+        assert_eq!(entry.grants[3].agent, "retention-reviewer");
+        assert_eq!(entry.grants[3].session, "session-123");
+        assert_eq!(entry.grants[4].channel, "incident-room");
+    }
+
+    #[test]
+    fn test_checked_in_compose_config_parses_current_shape() {
+        let _guard = crate::test_support::env_lock();
+        unsafe {
+            env::set_var(
+                "TALON_GOOGLE_CLIENT_ID",
+                "test-desktop-client.apps.googleusercontent.com",
+            );
+            env::set_var(
+                "TALON_GOOGLE_WEB_CLIENT_ID",
+                "test-web-client.apps.googleusercontent.com",
+            );
+        }
+        let path =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("talon.docker-compose.yaml");
+        let config = Config::from_file(&path).unwrap();
+
+        assert!(config.providers.contains_key("openai"));
+        let openai = config.providers.get("openai").unwrap();
+        assert!(matches!(
+            &openai.config,
+            Some(proto::llm_provider_config::Config::Openai(_))
+        ));
+
+        let control_plane = config.control_plane.as_ref().unwrap();
+        assert_eq!(control_plane.database.as_ref().unwrap().driver, "postgres");
+        let url = control_plane
+            .database
+            .as_ref()
+            .unwrap()
+            .url
+            .as_ref()
+            .unwrap();
+        let Some(proto::secret::Source::Ref(url_ref)) = &url.source else {
+            panic!("expected control database URL to be an env ref");
+        };
+        assert_eq!(url_ref.key, "TALON_CONTROL_DATABASE_URL");
+        assert_eq!(
+            control_plane.message_broker.as_ref().unwrap().driver,
+            "gcp_pubsub"
+        );
+        assert!(matches!(
+            &control_plane.object_store.as_ref().unwrap().backend,
+            Some(proto::object_store_config::Backend::Local(_))
+        ));
+
+        let trust = config.trust.as_ref().unwrap();
+        assert_eq!(trust.oidc[0].name, "google-admins");
+        assert_eq!(
+            trust.oidc[0].audiences,
+            vec![
+                "test-desktop-client.apps.googleusercontent.com".to_string(),
+                "test-web-client.apps.googleusercontent.com".to_string()
+            ]
+        );
+        assert_eq!(
+            trust.oidc[0].grants[0].kind,
+            proto::oidc_trust_grant::Kind::Readwrite as i32
+        );
+
+        unsafe {
+            env::remove_var("TALON_GOOGLE_CLIENT_ID");
+            env::remove_var("TALON_GOOGLE_WEB_CLIENT_ID");
+        }
+    }
+
+    #[test]
+    fn test_env_placeholder_expansion() {
+        let _guard = crate::test_support::env_lock();
+        unsafe {
+            env::set_var("TALON_TEST_PLACEHOLDER", "expanded");
+            env::remove_var("TALON_MISSING_PLACEHOLDER");
+        }
+
+        assert_eq!(
+            expand_env_placeholders(
+                "before ${TALON_TEST_PLACEHOLDER} ${TALON_MISSING_PLACEHOLDER} ${bad-name"
+            ),
+            "before expanded ${TALON_MISSING_PLACEHOLDER} ${bad-name"
+        );
+
+        unsafe {
+            env::remove_var("TALON_TEST_PLACEHOLDER");
+        }
+    }
+
+    #[test]
+    fn test_config_rejects_invalid_oidc_trust_grants() {
+        let dir = tempdir().unwrap();
+        let cases = [
+            (
+                "agent_without_namespace.yaml",
+                r#"
+trust:
+  oidc:
+    - name: bad
+      issuer: https://accounts.google.com
+      audiences: [client]
+      grants:
+        - kind: read
+          agent: retention-reviewer
+"#,
+                "agent selector must include namespace",
+            ),
+            (
+                "session_without_agent.yaml",
+                r#"
+trust:
+  oidc:
+    - name: bad
+      issuer: https://accounts.google.com
+      audiences: [client]
+      grants:
+        - kind: readwrite
+          namespace: Support
+          session: session-123
+"#,
+                "session selector must include namespace and agent",
+            ),
+            (
+                "channel_with_agent.yaml",
+                r#"
+trust:
+  oidc:
+    - name: bad
+      issuer: https://accounts.google.com
+      audiences: [client]
+      grants:
+        - kind: read
+          namespace: Support
+          agent: retention-reviewer
+          channel: incident-room
+"#,
+                "cannot combine channel with agent or session selectors",
+            ),
+            (
+                "unknown_kind.yaml",
+                r#"
+trust:
+  oidc:
+    - name: bad
+      issuer: https://accounts.google.com
+      audiences: [client]
+      grants:
+        - kind: admin
+"#,
+                "unknown variant",
+            ),
+        ];
+
+        for (filename, yaml, expected) in cases {
+            let path = dir.path().join(filename);
+            std::fs::write(&path, yaml).unwrap();
+            let err = Config::from_file(&path).unwrap_err().to_string();
+            assert!(
+                err.contains(expected),
+                "expected '{expected}' in error for {filename}, got: {err}"
+            );
         }
     }
 
@@ -563,6 +801,7 @@ control_plane:
             storage: None,
             pubsub: None,
             controllers: std::collections::HashMap::new(),
+            trust: None,
         };
 
         let config: Config = serde.into();

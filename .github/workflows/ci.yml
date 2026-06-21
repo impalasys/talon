@@ -388,6 +388,7 @@ jobs:
             artifact_name: darwin-arm64
             sdk_platform: darwin-arm64
     runs-on: ${{ matrix.os }}
+    environment: desktop
     steps:
       - uses: actions/checkout@v4
 
@@ -408,7 +409,13 @@ jobs:
         run: brew install protobuf
 
       - name: Build release binaries
-        run: cargo build --locked --release --bins
+        run: cargo build --locked --release --bin talon-server --bin talon-worker --bin talon-node
+
+      - name: Build release CLI
+        env:
+          TALON_GOOGLE_CLIENT_ID: ${{ secrets.TALON_GOOGLE_CLIENT_ID }}
+          TALON_GOOGLE_CLIENT_SECRET: ${{ secrets.TALON_GOOGLE_CLIENT_SECRET }}
+        run: cargo build --locked --release --bin talon-cli
 
       - name: Generate gateway descriptor
         if: runner.os == 'Linux'

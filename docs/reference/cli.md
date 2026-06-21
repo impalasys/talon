@@ -17,14 +17,22 @@ sidebar_position: 2
 
 ### `auth`
 
-Mint JWTs for clients when the gateway is running with `GATEWAY_JWT_SECRET`.
+Authenticate to the gateway or mint JWTs for clients when the gateway is
+running with `GATEWAY_JWT_SECRET`.
 
+- `auth login`: sign in through Google OIDC and store a Talon access token
+- `auth logout`: remove stored CLI auth
+- `auth whoami`: show stored CLI auth
 - `auth root-token`: unrestricted root token
 - `auth agent-token --namespace <ns> --agent <agent>`: namespace and agent scoped token
 - `auth session-token --namespace <ns> --agent <agent> --session <session-id>`: namespace, agent, and session scoped token
 - `auth channel-token --namespace <ns> --channel <channel>`: namespace and channel scoped token
 
 All token commands accept `--subject` and `--ttl-seconds`.
+
+`auth login` accepts `--google-client-id` and `--google-client-secret`, with
+environment fallbacks `TALON_GOOGLE_CLIENT_ID` and
+`TALON_GOOGLE_CLIENT_SECRET`.
 
 ### `knowledge`
 

@@ -82,16 +82,60 @@ pub use crate::control::events;
 
 #[macro_export]
 macro_rules! require_auth {
+    (read, $handler:expr, $req:expr, $ns:expr) => {
+        if let Some(auth_config) = &$handler.gateway.auth_config {
+            crate::gateway::auth::check_auth_for_operation(
+                $req.metadata(),
+                auth_config,
+                crate::gateway::auth::AuthzOperation::Read,
+                $ns,
+                None,
+                None,
+            )?;
+        }
+    };
+    (read, $handler:expr, $req:expr, $ns:expr, $agent:expr) => {
+        if let Some(auth_config) = &$handler.gateway.auth_config {
+            crate::gateway::auth::check_auth_for_operation(
+                $req.metadata(),
+                auth_config,
+                crate::gateway::auth::AuthzOperation::Read,
+                $ns,
+                Some($agent),
+                None,
+            )?;
+        }
+    };
+    (read, $handler:expr, $req:expr, $ns:expr, $agent:expr, $session:expr) => {
+        if let Some(auth_config) = &$handler.gateway.auth_config {
+            crate::gateway::auth::check_auth_for_operation(
+                $req.metadata(),
+                auth_config,
+                crate::gateway::auth::AuthzOperation::Read,
+                $ns,
+                Some($agent),
+                Some($session),
+            )?;
+        }
+    };
     ($handler:expr, $req:expr, $ns:expr) => {
         if let Some(auth_config) = &$handler.gateway.auth_config {
-            crate::gateway::auth::check_auth($req.metadata(), auth_config, $ns, None, None)?;
+            crate::gateway::auth::check_auth_for_operation(
+                $req.metadata(),
+                auth_config,
+                crate::gateway::auth::AuthzOperation::ReadWrite,
+                $ns,
+                None,
+                None,
+            )?;
         }
     };
     ($handler:expr, $req:expr, $ns:expr, $agent:expr) => {
         if let Some(auth_config) = &$handler.gateway.auth_config {
-            crate::gateway::auth::check_auth(
+            crate::gateway::auth::check_auth_for_operation(
                 $req.metadata(),
                 auth_config,
+                crate::gateway::auth::AuthzOperation::ReadWrite,
                 $ns,
                 Some($agent),
                 None,
@@ -100,9 +144,10 @@ macro_rules! require_auth {
     };
     ($handler:expr, $req:expr, $ns:expr, $agent:expr, $session:expr) => {
         if let Some(auth_config) = &$handler.gateway.auth_config {
-            crate::gateway::auth::check_auth(
+            crate::gateway::auth::check_auth_for_operation(
                 $req.metadata(),
                 auth_config,
+                crate::gateway::auth::AuthzOperation::ReadWrite,
                 $ns,
                 Some($agent),
                 Some($session),
