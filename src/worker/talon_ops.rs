@@ -1882,9 +1882,9 @@ mod tests {
 
     #[test]
     fn talon_ops_access_checks_prefix_scope() {
-        let access = access(&["conic", "conic:wks:"]);
-        assert!(access.allows_namespace("conic"));
-        assert!(access.allows_namespace("conic:wks:13"));
+        let access = access(&["Conic", "Conic:Customers:"]);
+        assert!(access.allows_namespace("Conic"));
+        assert!(access.allows_namespace("Conic:Customers:13"));
         assert!(!access.allows_namespace("default"));
     }
 
@@ -1905,7 +1905,7 @@ mod tests {
     #[test]
     fn parse_talon_ops_policy_from_target_rejects_unknown_params() {
         let error = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&wat=1",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&wat=1",
         )
         .expect_err("unknown params should fail");
 
@@ -1917,13 +1917,13 @@ mod tests {
     #[test]
     fn parse_talon_ops_policy_from_target_reads_known_params() {
         let policy = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&allowed_prefix=conic%3Awks%3A&session_messages=1&channel_messages=1&max_limit=25&max_lookback_s=60",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&allowed_prefix=Conic%3ACustomers%3A&session_messages=1&channel_messages=1&max_limit=25&max_lookback_s=60",
         )
         .expect("policy should parse");
 
         assert_eq!(
             policy.allowed_namespace_prefixes,
-            vec!["conic".to_string(), "conic:wks:".to_string()]
+            vec!["Conic".to_string(), "Conic:Customers:".to_string()]
         );
         assert!(policy.allow_session_messages);
         assert!(policy.allow_channel_messages);
@@ -1934,19 +1934,19 @@ mod tests {
     #[test]
     fn parse_talon_ops_policy_from_target_rejects_invalid_values_and_duplicates() {
         let duplicate = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&session_messages=1&session_messages=0",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&session_messages=1&session_messages=0",
         )
         .expect_err("duplicate singleton params should fail");
         assert!(duplicate.to_string().contains("may only be specified once"));
 
         let invalid_bool = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&session_messages=yes",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&session_messages=yes",
         )
         .expect_err("invalid boolean should fail");
         assert!(invalid_bool.to_string().contains("must be 0 or 1"));
 
         let invalid_int = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&max_limit=-1",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&max_limit=-1",
         )
         .expect_err("negative integers should fail");
         assert!(invalid_int.to_string().contains("must be non-negative"));
@@ -1963,11 +1963,11 @@ mod tests {
     #[test]
     fn parse_talon_ops_policy_from_target_uses_defaults_when_optionals_absent() {
         let policy = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic",
         )
         .expect("policy should parse");
 
-        assert_eq!(policy.allowed_namespace_prefixes, vec!["conic".to_string()]);
+        assert_eq!(policy.allowed_namespace_prefixes, vec!["Conic".to_string()]);
         assert!(!policy.allow_session_messages);
         assert!(!policy.allow_channel_messages);
         assert_eq!(policy.max_list_limit, DEFAULT_MAX_LIST_LIMIT);
@@ -2190,8 +2190,8 @@ mod tests {
 
     #[test]
     fn require_namespace_access_rejects_out_of_scope_namespace() {
-        let access = access(&["conic", "conic:wks:"]);
-        require_namespace_access(&access, "conic:wks:1").expect("namespace should be allowed");
+        let access = access(&["Conic", "Conic:Customers:"]);
+        require_namespace_access(&access, "Conic:Customers:1").expect("namespace should be allowed");
         let error = require_namespace_access(&access, "default")
             .expect_err("out of scope namespace should fail");
         assert!(format!("{error:?}").contains("outside binding scope"));
@@ -2255,16 +2255,17 @@ mod tests {
         let kv = MockKvStore::default();
         kv.set_msg(
             &keys::mcp_server("talon-ops"),
-            &manifests::McpServer {                metadata: Some(manifests::ObjectMeta {
+            &manifests::McpServer {
+                metadata: Some(manifests::ObjectMeta {
                     name: "talon-ops".to_string(),
                     namespace: String::new(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
-                ..Default::default()
+                    ..Default::default()
                 }),
                 spec: Some(manifests::McpServerSpec {
                     transport: "streamable_http".to_string(),
-                    target: "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&session_messages=1".to_string(),
+                    target: "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&session_messages=1".to_string(),
                     args: Vec::new(),
                     headers: HashMap::new(),
                     disabled: false,
@@ -2275,11 +2276,11 @@ mod tests {
         .await
         .expect("talon-ops server should persist");
         kv.set_msg(
-            &keys::mcp_server_binding("conic", "talon-ops"),
+            &keys::mcp_server_binding("Conic", "talon-ops"),
             &manifests::McpServerBinding {
                 metadata: Some(manifests::ObjectMeta {
                     name: "talon-ops".to_string(),
-                    namespace: "conic".to_string(),
+                    namespace: "Conic".to_string(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
                     ..Default::default()
@@ -2301,14 +2302,14 @@ mod tests {
         let policy = load_talon_ops_policy(&kv)
             .await
             .expect("policy should load");
-        assert_eq!(policy.allowed_namespace_prefixes, vec!["conic".to_string()]);
+        assert_eq!(policy.allowed_namespace_prefixes, vec!["Conic".to_string()]);
         assert!(policy.allow_session_messages);
         assert!(!policy.allow_channel_messages);
 
-        let access = load_talon_ops_binding(&kv, "conic", "talon-ops", Some("ctl"))
+        let access = load_talon_ops_binding(&kv, "Conic", "talon-ops", Some("ctl"))
             .await
             .expect("binding should load");
-        assert_eq!(access.namespace, "conic");
+        assert_eq!(access.namespace, "Conic");
         assert_eq!(access.binding_name, "talon-ops");
         assert_eq!(access.agent_name.as_deref(), Some("ctl"));
     }
@@ -2328,7 +2329,7 @@ mod tests {
                 }),
                 spec: Some(manifests::McpServerSpec {
                     transport: "streamable_http".to_string(),
-                    target: "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic"
+                    target: "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic"
                         .to_string(),
                     args: Vec::new(),
                     headers: HashMap::new(),
