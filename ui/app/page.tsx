@@ -41,6 +41,19 @@ import { resourceToManifestDocument, yamlSafeValue } from '../lib/resourceManife
 const isStaticExport = process.env.NEXT_PUBLIC_TALON_STATIC_EXPORT === '1';
 const SYSTEM_NAMESPACE = 'Sys';
 
+declare global {
+  interface Window {
+    google?: {
+      accounts?: {
+        id?: {
+          initialize(options: { client_id: string; callback: (response: { credential?: string }) => void }): void;
+          prompt(): void;
+        };
+      };
+    };
+  }
+}
+
 const RESOURCE_KIND_BY_SELECTION: Partial<Record<Selection['type'], string>> = {
   agent: 'Agent',
   channel: 'Channel',
@@ -936,6 +949,9 @@ function DebuggerPageContent() {
   const [gatewayUrl, setGatewayUrl] = useState('');
   const [gatewayHttpUrl, setGatewayHttpUrl] = useState('');
   const [authToken, setAuthToken] = useState('');
+  const [googleSsoEnabled, setGoogleSsoEnabled] = useState(false);
+  const [googleWebClientId, setGoogleWebClientId] = useState<string | null>(null);
+  const [googleSsoError, setGoogleSsoError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isHoveringConnection, setIsHoveringConnection] = useState(false);
   const [selectedNamespace, setSelectedNamespace] = useState<Selection | null>(null);
@@ -1001,6 +1017,93 @@ function DebuggerPageContent() {
   }, [storageHydrated, searchParams, gatewayUrl]);
 
   const effectiveGatewayHttpUrl = gatewayHttpUrl.trim() || gatewayUrl.trim();
+
+  useEffect(() => {
+    if (!storageHydrated || !effectiveGatewayHttpUrl.trim()) return;
+    let cancelled = false;
+    const loadAuthConfig = async () => {
+      try {
+        const response = await fetch(`${effectiveGatewayHttpUrl.replace(/\/+$/, '')}/v1/oidc/sso`);
+        if (!response.ok) throw new Error(`status ${response.status}`);
+        const config = await response.json();
+        if (!cancelled) {
+          setGoogleSsoEnabled(Boolean(config.google_sso_enabled && config.google_web_client_id));
+          setGoogleWebClientId(config.google_web_client_id || null);
+          setGoogleSsoError(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setGoogleSsoEnabled(false);
+          setGoogleWebClientId(null);
+        }
+      }
+    };
+    loadAuthConfig();
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveGatewayHttpUrl, storageHydrated]);
+
+  const handleGoogleSignIn = useCallback(async () => {
+    if (!googleWebClientId) return;
+    setGoogleSsoError(null);
+
+    const loadGoogleScript = () =>
+      new Promise<void>((resolve, reject) => {
+        if (window.google?.accounts?.id) {
+          resolve();
+          return;
+        }
+        const existing = document.querySelector<HTMLScriptElement>('script[src="https://accounts.google.com/gsi/client"]');
+        if (existing) {
+          if (window.google?.accounts?.id) {
+            resolve();
+            return;
+          }
+          existing.addEventListener('load', () => resolve(), { once: true });
+          existing.addEventListener('error', () => reject(new Error('Google sign-in script failed to load')), { once: true });
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Google sign-in script failed to load'));
+        document.head.appendChild(script);
+      });
+
+    try {
+      await loadGoogleScript();
+      window.google?.accounts?.id?.initialize({
+        client_id: googleWebClientId,
+        callback: async (response) => {
+          try {
+            if (!response.credential) throw new Error('Google did not return an ID token');
+            const exchange = await fetch(`${effectiveGatewayHttpUrl.replace(/\/+$/, '')}/v1/oidc/exchange`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ idToken: response.credential, clientType: 'sightline' }),
+            });
+            const payload = await exchange.json();
+            if (!exchange.ok) throw new Error(payload?.error || 'Google sign-in failed');
+            setAuthToken(payload.access_token);
+            localStorage.setItem('talon_auth_token', payload.access_token);
+            if (gatewayUrl.trim()) {
+              localStorage.setItem('talon_gateway_url', gatewayUrl.trim());
+              updateGatewayClient(gatewayUrl.trim());
+              setIsConnected(true);
+            }
+          } catch (err: any) {
+            setGoogleSsoError(err?.message || 'Google sign-in failed');
+          }
+        },
+      });
+      window.google?.accounts?.id?.prompt();
+    } catch (err: any) {
+      setGoogleSsoError(err?.message || 'Google sign-in failed');
+    }
+  }, [effectiveGatewayHttpUrl, gatewayUrl, googleWebClientId]);
 
   useEffect(() => {
     if (!storageHydrated) return;
@@ -1283,6 +1386,21 @@ function DebuggerPageContent() {
                       placeholder="Enter bearer token"
                     />
                   </div>
+                  {googleSsoEnabled ? (
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={handleGoogleSignIn}
+                        className="w-full bg-white/[0.05] text-foreground py-2.5 rounded-xl text-[13px] font-medium hover:bg-white/[0.08] border border-border/70 transition-all flex items-center justify-center gap-2"
+                      >
+                        <ShieldCheck className="w-4 h-4 stroke-[2]" />
+                        Sign in with Google
+                      </button>
+                      {googleSsoError ? (
+                        <p className="text-[12px] text-red-400">{googleSsoError}</p>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <button 
                     type="submit"
                     disabled={!gatewayUrl.trim()}

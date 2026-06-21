@@ -869,6 +869,7 @@ mod tests {
         });
         Arc::new(Gateway {
             auth_config: None,
+            trust_config: None,
             kv,
             pubsub: pubsub.clone(),
             scheduler: Arc::new(NoopSchedulerBackend),

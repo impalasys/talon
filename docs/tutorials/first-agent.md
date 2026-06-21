@@ -29,7 +29,7 @@ Create a local `.env` file:
 cp .env.example .env
 ```
 
-Then set a real provider key. This tutorial uses the `openai` provider already defined in `talon.compose.yaml`:
+Then set a real provider key. This tutorial uses the `openai` provider already defined in `talon.docker-compose.yaml`:
 
 ```bash
 OPENAI_API_KEY=your-real-api-key

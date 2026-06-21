@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::{
-    object_store::ObjectStore, scheduler::SchedulerBackend, ControlPlane, KeyValueStore,
-    MessagePublisher,
+    config::proto::TrustConfig, object_store::ObjectStore, scheduler::SchedulerBackend,
+    ControlPlane, KeyValueStore, MessagePublisher,
 };
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::session_streams::SessionStreamHub;
@@ -15,6 +15,7 @@ use tower_http::cors::{Any, CorsLayer};
 #[derive(Clone)]
 pub struct Gateway {
     pub auth_config: Option<AuthConfig>,
+    pub trust_config: Option<TrustConfig>,
     pub kv: Arc<dyn KeyValueStore + Send + Sync>,
     pub pubsub: Arc<dyn MessagePublisher + Send + Sync>,
     pub scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
@@ -30,9 +31,21 @@ impl Gateway {
         scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
         objects: Arc<dyn ObjectStore + Send + Sync>,
     ) -> Self {
+        Self::new_with_trust(auth_config, None, kv, pubsub, scheduler, objects)
+    }
+
+    pub fn new_with_trust(
+        auth_config: Option<AuthConfig>,
+        trust_config: Option<TrustConfig>,
+        kv: Arc<dyn KeyValueStore + Send + Sync>,
+        pubsub: Arc<dyn MessagePublisher + Send + Sync>,
+        scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
+        objects: Arc<dyn ObjectStore + Send + Sync>,
+    ) -> Self {
         let session_streams = Arc::new(SessionStreamHub::new(pubsub.clone()));
         Self {
             auth_config,
+            trust_config,
             kv,
             pubsub,
             scheduler,
@@ -44,6 +57,7 @@ impl Gateway {
     pub(crate) fn clone_internal(&self) -> Self {
         Self {
             auth_config: self.auth_config.clone(),
+            trust_config: self.trust_config.clone(),
             kv: self.kv.clone(),
             pubsub: self.pubsub.clone(),
             scheduler: self.scheduler.clone(),
@@ -64,6 +78,7 @@ impl Gateway {
     pub fn http_ui_router(&self) -> Router {
         Router::new()
             .merge(crate::gateway::rest::a2a::router())
+            .merge(crate::gateway::rest::oidc::router())
             .route(
                 "/v1/ui/ns/:ns/agents/:agent/sessions/:session_id",
                 post(crate::gateway::ui::post_chat)
@@ -375,6 +390,7 @@ mod tests {
             agent: agent.map(ToString::to_string),
             session: session.map(ToString::to_string),
             channel: None,
+            grants: Vec::new(),
         };
         encode(
             &Header::default(),

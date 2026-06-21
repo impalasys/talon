@@ -15,6 +15,36 @@ This page summarizes the major configuration messages exposed by Talon's runtime
 | `workspace_dir` | `string` | - |
 | `control_plane` | `ControlPlaneConfig` | - |
 | `controllers` | `map<string, ControllerConfig>` | - |
+| `trust` | `TrustConfig` | - |
+
+## `TrustConfig`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `oidc` | `repeated OidcTrustEntry` | - |
+
+## `OidcTrustEntry`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | `string` | - |
+| `issuer` | `string` | - |
+| `audiences` | `repeated string` | - |
+| `allowed_domains` | `repeated string` | - |
+| `allowed_emails` | `repeated string` | - |
+| `jwks_url` | `string` | - |
+| `clock_skew_seconds` | `uint32` | - |
+| `grants` | `repeated OidcTrustGrant` | - |
+
+## `OidcTrustGrant`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `kind` | `Kind` | `READ` or `READWRITE` |
+| `namespace` | `string` | optional selector |
+| `agent` | `string` | optional selector |
+| `session` | `string` | optional selector |
+| `channel` | `string` | optional selector |
 
 ## `ControllerConfig`
 

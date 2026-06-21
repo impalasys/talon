@@ -92,7 +92,7 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::GetKnowledgeRequest>,
     ) -> std::result::Result<tonic::Response<proto::KnowledgeResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns, &req.get_ref().agent);
+        crate::require_auth!(read, self, req, &req.get_ref().ns, &req.get_ref().agent);
         let req = req.into_inner();
 
         let modules = if let Some(path) = req.path.filter(|p| !p.is_empty()) {
@@ -125,7 +125,7 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::SearchKnowledgeRequest>,
     ) -> std::result::Result<tonic::Response<proto::SearchKnowledgeResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns, &req.get_ref().agent);
+        crate::require_auth!(read, self, req, &req.get_ref().ns, &req.get_ref().agent);
         let req = req.into_inner();
         let modules = list_namespace_knowledge(
             self.gateway.kv.clone(),
@@ -246,6 +246,7 @@ mod tests {
         GrpcGatewayHandler {
             gateway: Arc::new(Gateway {
                 auth_config: None,
+                trust_config: None,
                 kv,
                 pubsub: pubsub.clone(),
                 scheduler: Arc::new(crate::control::scheduler::NoopSchedulerBackend),

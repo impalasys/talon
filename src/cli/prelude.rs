@@ -15,6 +15,7 @@ mod commands;
 use commands::Cli;
 
 pub(super) use auth::{
-    connect_gateway, mint_agent_jwt, mint_channel_jwt, mint_root_jwt, mint_session_jwt,
-    resolve_gateway_jwt_secret, resolve_gateway_password,
+    clear_stored_gateway_auth, connect_gateway, describe_stored_auth, exchange_oidc_id_token,
+    login_with_google_loopback, mint_agent_jwt, mint_channel_jwt, mint_root_jwt, mint_session_jwt,
+    resolve_gateway_jwt_secret, resolve_gateway_password, save_stored_gateway_auth,
 };

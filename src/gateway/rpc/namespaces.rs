@@ -188,7 +188,7 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::GetNamespaceRequest>,
     ) -> std::result::Result<tonic::Response<proto::NamespaceResponse>, tonic::Status> {
-        crate::require_auth!(self, req, ns::TALON_SYSTEM);
+        crate::require_auth!(read, self, req, ns::TALON_SYSTEM);
         let req = req.into_inner();
 
         let name = req.name;
@@ -449,6 +449,7 @@ mod tests {
         let pubsub = Arc::new(MockPubSub);
         let gateway = Arc::new(Gateway {
             auth_config: None,
+            trust_config: None,
             kv: Arc::new(MockKvStore::new()),
             pubsub: pubsub.clone(),
             scheduler: Arc::new(NoopSchedulerBackend),

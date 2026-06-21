@@ -378,6 +378,7 @@ impl GrpcGatewayHandler {
         req: tonic::Request<proto::GetSessionRequest>,
     ) -> std::result::Result<tonic::Response<proto::SessionResponse>, tonic::Status> {
         crate::require_auth!(
+            read,
             self,
             req,
             &req.get_ref().ns,
@@ -557,6 +558,7 @@ impl GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::ListSessionMessagesResponse>, tonic::Status>
     {
         crate::require_auth!(
+            read,
             self,
             req,
             &req.get_ref().ns,
@@ -685,7 +687,7 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::ListSessionsRequest>,
     ) -> std::result::Result<tonic::Response<proto::ListSessionsResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns, &req.get_ref().agent);
+        crate::require_auth!(read, self, req, &req.get_ref().ns, &req.get_ref().agent);
         let req = req.into_inner();
 
         let session_prefix = keys::session_prefix(&req.ns, &req.agent);
@@ -1122,6 +1124,7 @@ impl GrpcGatewayHandler {
         req: tonic::Request<proto::StreamSessionPartsRequest>,
     ) -> std::result::Result<tonic::Response<<GrpcGatewayHandler as proto::gateway_service_server::GatewayService>::StreamSessionPartsStream>, tonic::Status>{
         crate::require_auth!(
+            read,
             self,
             req,
             &req.get_ref().ns,
@@ -1186,9 +1189,10 @@ impl GrpcGatewayHandler {
 
         if let Some(auth_config) = &self.gateway.auth_config {
             for target in &targets {
-                crate::gateway::auth::check_auth(
+                crate::gateway::auth::check_auth_for_operation(
                     req.metadata(),
                     auth_config,
+                    crate::gateway::auth::AuthzOperation::Read,
                     &target.ns,
                     Some(&target.agent),
                     Some(&target.session_id),

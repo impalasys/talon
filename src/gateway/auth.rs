@@ -18,6 +18,12 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tonic::{metadata::MetadataMap, Status};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AuthzOperation {
+    Read,
+    ReadWrite,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum AuthMode {
     Open,
@@ -85,6 +91,21 @@ pub struct Claims {
     pub session: Option<String>,
     #[serde(rename = "talon:channel")]
     pub channel: Option<String>,
+    #[serde(rename = "talon:grants", default)]
+    pub grants: Vec<TalonGrantClaim>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub struct TalonGrantClaim {
+    pub kind: String,
+    #[serde(default)]
+    pub namespace: Option<String>,
+    #[serde(default)]
+    pub agent: Option<String>,
+    #[serde(default)]
+    pub session: Option<String>,
+    #[serde(default)]
+    pub channel: Option<String>,
 }
 
 pub fn verify_jwt(token: &str, secret: &str) -> Result<Claims, Status> {
@@ -145,13 +166,49 @@ pub fn check_auth(
     agent: Option<&str>,
     session: Option<&str>,
 ) -> Result<(), Status> {
+    check_auth_for_operation(
+        metadata,
+        auth_config,
+        AuthzOperation::ReadWrite,
+        ns,
+        agent,
+        session,
+    )
+}
+
+pub fn check_auth_for_operation(
+    metadata: &MetadataMap,
+    auth_config: &AuthConfig,
+    operation: AuthzOperation,
+    ns: &str,
+    agent: Option<&str>,
+    session: Option<&str>,
+) -> Result<(), Status> {
     let auth_header = metadata.get("authorization").and_then(|v| v.to_str().ok());
-    check_auth_header(auth_header, auth_config, ns, agent, session)
+    check_auth_header_for_operation(auth_header, auth_config, operation, ns, agent, session)
 }
 
 pub fn check_auth_header(
     auth_header: Option<&str>,
     auth_config: &AuthConfig,
+    ns: &str,
+    agent: Option<&str>,
+    session: Option<&str>,
+) -> Result<(), Status> {
+    check_auth_header_for_operation(
+        auth_header,
+        auth_config,
+        AuthzOperation::ReadWrite,
+        ns,
+        agent,
+        session,
+    )
+}
+
+pub fn check_auth_header_for_operation(
+    auth_header: Option<&str>,
+    auth_config: &AuthConfig,
+    operation: AuthzOperation,
     ns: &str,
     agent: Option<&str>,
     session: Option<&str>,
@@ -186,7 +243,7 @@ pub fn check_auth_header(
                 .ok_or_else(|| Status::internal("JWT secret not configured"))?;
             let claims = verify_jwt(token, secret)?;
 
-            check_claim_scope(&claims, ns, agent, session, None)
+            check_claim_scope(&claims, operation, ns, agent, session, None)
         }
         AuthMode::Password => {
             let auth_header = auth_header
@@ -211,6 +268,22 @@ pub fn check_channel_auth(
     ns: &str,
     channel: &str,
 ) -> Result<(), Status> {
+    check_channel_auth_for_operation(
+        metadata,
+        auth_config,
+        AuthzOperation::ReadWrite,
+        ns,
+        channel,
+    )
+}
+
+pub fn check_channel_auth_for_operation(
+    metadata: &MetadataMap,
+    auth_config: &AuthConfig,
+    operation: AuthzOperation,
+    ns: &str,
+    channel: &str,
+) -> Result<(), Status> {
     match auth_config.mode {
         AuthMode::Jwt => {
             let auth_header = metadata
@@ -229,19 +302,39 @@ pub fn check_channel_auth(
                 .as_ref()
                 .ok_or_else(|| Status::internal("JWT secret not configured"))?;
             let claims = verify_jwt(token, secret)?;
-            check_claim_scope(&claims, ns, None, None, Some(channel))
+            check_claim_scope(&claims, operation, ns, None, None, Some(channel))
         }
-        _ => check_auth(metadata, auth_config, ns, None, None),
+        _ => check_auth_for_operation(metadata, auth_config, operation, ns, None, None),
     }
 }
 
 fn check_claim_scope(
     claims: &Claims,
+    operation: AuthzOperation,
     ns: &str,
     agent: Option<&str>,
     session: Option<&str>,
     channel: Option<&str>,
 ) -> Result<(), Status> {
+    if claims.grants.is_empty() && claims.sub.starts_with("oidc:") {
+        return Err(Status::permission_denied(
+            "OIDC token does not include any Talon grants",
+        ));
+    }
+
+    if !claims.grants.is_empty() {
+        if claims
+            .grants
+            .iter()
+            .any(|grant| grant_allows(grant, operation, ns, agent, session, channel))
+        {
+            return Ok(());
+        }
+        return Err(Status::permission_denied(
+            "Token grants do not allow this operation",
+        ));
+    }
+
     if let Some(allowed_ns) = &claims.ns {
         if allowed_ns != ns {
             return Err(Status::permission_denied(format!(
@@ -302,6 +395,43 @@ fn check_claim_scope(
     }
 
     Ok(())
+}
+
+fn grant_allows(
+    grant: &TalonGrantClaim,
+    operation: AuthzOperation,
+    ns: &str,
+    agent: Option<&str>,
+    session: Option<&str>,
+    channel: Option<&str>,
+) -> bool {
+    let kind = grant.kind.trim();
+    match (kind, operation) {
+        ("read", AuthzOperation::Read) | ("readwrite", _) => {}
+        _ => return false,
+    }
+
+    if !selector_matches(grant.namespace.as_deref(), Some(ns)) {
+        return false;
+    }
+    if !selector_matches(grant.agent.as_deref(), agent) {
+        return false;
+    }
+    if !selector_matches(grant.session.as_deref(), session) {
+        return false;
+    }
+    if !selector_matches(grant.channel.as_deref(), channel) {
+        return false;
+    }
+
+    true
+}
+
+fn selector_matches(allowed: Option<&str>, target: Option<&str>) -> bool {
+    let Some(allowed) = allowed.map(str::trim).filter(|value| !value.is_empty()) else {
+        return true;
+    };
+    matches!(target, Some(target) if allowed == target)
 }
 
 /// gRPC Interceptor that extracts and verifies JWTs, attaching claims to the request.
@@ -495,6 +625,7 @@ mod tests {
             agent: agent.map(|s| s.to_string()),
             session: session.map(|s| s.to_string()),
             channel: None,
+            grants: Vec::new(),
         };
         encode(
             &Header::default(),
@@ -601,6 +732,7 @@ mod tests {
             agent: None,
             session: None,
             channel: channel.map(|s| s.to_string()),
+            grants: Vec::new(),
         };
         encode(
             &Header::default(),
@@ -608,6 +740,134 @@ mod tests {
             &EncodingKey::from_secret(secret.as_ref()),
         )
         .unwrap()
+    }
+
+    fn create_grant_token(secret: &str, grants: Vec<TalonGrantClaim>) -> String {
+        crate::control::security::install_jwt_crypto_provider();
+        let claims = Claims {
+            sub: "oidc:user123".to_string(),
+            aud: "talon".to_string(),
+            exp: 10000000000,
+            ns: None,
+            agent: None,
+            session: None,
+            channel: None,
+            grants,
+        };
+        encode(
+            &Header::default(),
+            &claims,
+            &EncodingKey::from_secret(secret.as_ref()),
+        )
+        .unwrap()
+    }
+
+    fn auth_metadata(token: &str) -> MetadataMap {
+        let mut metadata = MetadataMap::new();
+        metadata.insert(
+            "authorization",
+            format!("Bearer {}", token).parse().unwrap(),
+        );
+        metadata
+    }
+
+    #[test]
+    fn test_grant_read_allows_reads_but_denies_writes() {
+        let secret = "test-secret";
+        let token = create_grant_token(
+            secret,
+            vec![TalonGrantClaim {
+                kind: "read".to_string(),
+                namespace: Some("ops".to_string()),
+                agent: None,
+                session: None,
+                channel: None,
+            }],
+        );
+        let config = AuthConfig::jwt(secret.to_string());
+        let metadata = auth_metadata(&token);
+
+        assert!(check_auth_for_operation(
+            &metadata,
+            &config,
+            AuthzOperation::Read,
+            "ops",
+            Some("triage"),
+            None
+        )
+        .is_ok());
+        assert!(check_auth_for_operation(
+            &metadata,
+            &config,
+            AuthzOperation::ReadWrite,
+            "ops",
+            Some("triage"),
+            None
+        )
+        .is_err());
+        assert!(check_auth_for_operation(
+            &metadata,
+            &config,
+            AuthzOperation::Read,
+            "other",
+            Some("triage"),
+            None
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn test_oidc_token_without_grants_is_denied() {
+        let secret = "test-secret";
+        let token = create_grant_token(secret, Vec::new());
+        let config = AuthConfig::jwt(secret.to_string());
+        let metadata = auth_metadata(&token);
+
+        assert!(check_auth_for_operation(
+            &metadata,
+            &config,
+            AuthzOperation::Read,
+            "ops",
+            None,
+            None
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn test_grant_readwrite_matches_session_scope() {
+        let secret = "test-secret";
+        let token = create_grant_token(
+            secret,
+            vec![TalonGrantClaim {
+                kind: "readwrite".to_string(),
+                namespace: Some("ops".to_string()),
+                agent: Some("triage".to_string()),
+                session: Some("session-1".to_string()),
+                channel: None,
+            }],
+        );
+        let config = AuthConfig::jwt(secret.to_string());
+        let metadata = auth_metadata(&token);
+
+        assert!(check_auth_for_operation(
+            &metadata,
+            &config,
+            AuthzOperation::ReadWrite,
+            "ops",
+            Some("triage"),
+            Some("session-1")
+        )
+        .is_ok());
+        assert!(check_auth_for_operation(
+            &metadata,
+            &config,
+            AuthzOperation::ReadWrite,
+            "ops",
+            Some("triage"),
+            Some("session-2")
+        )
+        .is_err());
     }
 
     #[test]

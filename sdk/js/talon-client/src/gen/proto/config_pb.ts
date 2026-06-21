@@ -45,6 +45,11 @@ export class TalonConfig extends Message<TalonConfig> {
    */
   controllers: { [key: string]: ControllerConfig } = {};
 
+  /**
+   * @generated from field: talon.config.TrustConfig trust = 8;
+   */
+  trust?: TrustConfig;
+
   constructor(data?: PartialMessage<TalonConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -60,6 +65,7 @@ export class TalonConfig extends Message<TalonConfig> {
     { no: 5, name: "workspace_dir", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "control_plane", kind: "message", T: ControlPlaneConfig },
     { no: 7, name: "controllers", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ControllerConfig} },
+    { no: 8, name: "trust", kind: "message", T: TrustConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TalonConfig {
@@ -78,6 +84,209 @@ export class TalonConfig extends Message<TalonConfig> {
     return proto3.util.equals(TalonConfig, a, b);
   }
 }
+
+/**
+ * @generated from message talon.config.TrustConfig
+ */
+export class TrustConfig extends Message<TrustConfig> {
+  /**
+   * @generated from field: repeated talon.config.OidcTrustEntry oidc = 1;
+   */
+  oidc: OidcTrustEntry[] = [];
+
+  constructor(data?: PartialMessage<TrustConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.TrustConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "oidc", kind: "message", T: OidcTrustEntry, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TrustConfig {
+    return new TrustConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TrustConfig {
+    return new TrustConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TrustConfig {
+    return new TrustConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TrustConfig | PlainMessage<TrustConfig> | undefined, b: TrustConfig | PlainMessage<TrustConfig> | undefined): boolean {
+    return proto3.util.equals(TrustConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.config.OidcTrustEntry
+ */
+export class OidcTrustEntry extends Message<OidcTrustEntry> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string issuer = 2;
+   */
+  issuer = "";
+
+  /**
+   * @generated from field: repeated string audiences = 3;
+   */
+  audiences: string[] = [];
+
+  /**
+   * @generated from field: repeated string allowed_domains = 4;
+   */
+  allowedDomains: string[] = [];
+
+  /**
+   * @generated from field: repeated string allowed_emails = 5;
+   */
+  allowedEmails: string[] = [];
+
+  /**
+   * @generated from field: string jwks_url = 6;
+   */
+  jwksUrl = "";
+
+  /**
+   * @generated from field: uint32 clock_skew_seconds = 7;
+   */
+  clockSkewSeconds = 0;
+
+  /**
+   * @generated from field: repeated talon.config.OidcTrustGrant grants = 8;
+   */
+  grants: OidcTrustGrant[] = [];
+
+  constructor(data?: PartialMessage<OidcTrustEntry>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.OidcTrustEntry";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "issuer", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "audiences", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 4, name: "allowed_domains", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 5, name: "allowed_emails", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 6, name: "jwks_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "clock_skew_seconds", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 8, name: "grants", kind: "message", T: OidcTrustGrant, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): OidcTrustEntry {
+    return new OidcTrustEntry().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): OidcTrustEntry {
+    return new OidcTrustEntry().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): OidcTrustEntry {
+    return new OidcTrustEntry().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: OidcTrustEntry | PlainMessage<OidcTrustEntry> | undefined, b: OidcTrustEntry | PlainMessage<OidcTrustEntry> | undefined): boolean {
+    return proto3.util.equals(OidcTrustEntry, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.config.OidcTrustGrant
+ */
+export class OidcTrustGrant extends Message<OidcTrustGrant> {
+  /**
+   * @generated from field: talon.config.OidcTrustGrant.Kind kind = 1;
+   */
+  kind = OidcTrustGrant_Kind.KIND_UNSPECIFIED;
+
+  /**
+   * @generated from field: string namespace = 2;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string agent = 3;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string session = 4;
+   */
+  session = "";
+
+  /**
+   * @generated from field: string channel = 5;
+   */
+  channel = "";
+
+  constructor(data?: PartialMessage<OidcTrustGrant>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.OidcTrustGrant";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "kind", kind: "enum", T: proto3.getEnumType(OidcTrustGrant_Kind) },
+    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "session", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): OidcTrustGrant {
+    return new OidcTrustGrant().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): OidcTrustGrant {
+    return new OidcTrustGrant().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): OidcTrustGrant {
+    return new OidcTrustGrant().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: OidcTrustGrant | PlainMessage<OidcTrustGrant> | undefined, b: OidcTrustGrant | PlainMessage<OidcTrustGrant> | undefined): boolean {
+    return proto3.util.equals(OidcTrustGrant, a, b);
+  }
+}
+
+/**
+ * @generated from enum talon.config.OidcTrustGrant.Kind
+ */
+export enum OidcTrustGrant_Kind {
+  /**
+   * @generated from enum value: KIND_UNSPECIFIED = 0;
+   */
+  KIND_UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: READ = 1;
+   */
+  READ = 1,
+
+  /**
+   * @generated from enum value: READWRITE = 2;
+   */
+  READWRITE = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(OidcTrustGrant_Kind)
+proto3.util.setEnumType(OidcTrustGrant_Kind, "talon.config.OidcTrustGrant.Kind", [
+  { no: 0, name: "KIND_UNSPECIFIED" },
+  { no: 1, name: "READ" },
+  { no: 2, name: "READWRITE" },
+]);
 
 /**
  * @generated from message talon.config.ControllerConfig

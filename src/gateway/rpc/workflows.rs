@@ -103,7 +103,7 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::ListWorkflowRunsRequest>,
     ) -> Result<tonic::Response<proto::ListWorkflowRunsResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
+        crate::require_auth!(read, self, req, &req.get_ref().ns);
         let req = req.into_inner();
         let page_size = validated_workflow_runs_page_size(req.page_size)?;
         let prefix = keys::workflow_run_prefix(&req.ns, &req.workflow);

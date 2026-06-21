@@ -82,7 +82,7 @@ Create a local env file:
 cp .env.example .env
 ```
 
-Set the OpenAI provider key. The checked-in local stack includes the `openai` provider in `talon.compose.yaml`, so the shortest path is:
+Set the OpenAI provider key. The checked-in local stack includes the `openai` provider in `talon.docker-compose.yaml`, so the shortest path is:
 
 ```bash
 OPENAI_API_KEY=your-real-api-key
@@ -158,7 +158,7 @@ See [`docs/wiki/local-single-host-development.md`](./docs/wiki/local-single-host
 
 ## Configuration
 
-Talon reads config from `TALON_CONFIG_PATH` or the default config loader. The checked-in [`talon.yaml`](./talon.yaml) and [`talon.compose.yaml`](./talon.compose.yaml) show the current supported shape:
+Talon reads config from `TALON_CONFIG_PATH` or the default config loader. The checked-in [`talon.yaml`](./talon.yaml) and [`talon.docker-compose.yaml`](./talon.docker-compose.yaml) show the current supported shape:
 
 - provider definitions under `providers`
 - control-plane database driver and connection
