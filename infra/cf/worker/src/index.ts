@@ -422,7 +422,16 @@ export default {
       if (externalContainersEnabled(env)) {
         return fetcherForOrigin(env.TALON_CF_DEV_WORKER_URL ?? "http://worker:8081");
       }
-      return workerContainer(env, message.id);
+      const container = workerContainer(env, message.id);
+      return {
+        fetch(input: RequestInfo | URL, init?: RequestInit) {
+          return fetchStartedContainer(
+            container,
+            new Request(input, init),
+            workerContainerStartProfile(env),
+          );
+        },
+      };
     });
   },
 };
