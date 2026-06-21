@@ -33,6 +33,12 @@ func TestGeneratedTalonV1TypesAreAvailable(t *testing.T) {
 func TestClientsetExposesGeneratedServiceClients(t *testing.T) {
 	var clientset talonclient.Clientset
 	var _ talonv1.NamespaceServiceClient = clientset.Namespaces()
+	var _ talonv1.ResourceServiceClient = clientset.Resources()
+	var _ talonv1.SessionServiceClient = clientset.Sessions()
+	var _ talonv1.ChannelServiceClient = clientset.Channels()
+	var _ talonv1.WorkflowServiceClient = clientset.Workflows()
+	var _ talonv1.KnowledgeServiceClient = clientset.Knowledge()
+	var _ talonv1.AuthServiceClient = clientset.Auth()
 }
 
 func TestConnectNativeRejectsPlaintextAuthorization(t *testing.T) {

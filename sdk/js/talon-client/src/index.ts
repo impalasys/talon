@@ -1,10 +1,9 @@
 import {
-  createPromiseClient,
   type Interceptor,
-  type PromiseClient,
   type Transport,
 } from "@connectrpc/connect";
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
+import { createTalonClientset, type TalonClient } from "./clientset.js";
 
 export * as config from "./gen/proto/config_pb.js";
 export * as data from "./gen/proto/data/data_pb.js";
@@ -25,26 +24,7 @@ export * as workers from "./gen/proto/resources/workers_pb.js";
 export * as workflows from "./gen/proto/resources/workflows_pb.js";
 export * as v1 from "./gen/proto/talon/v1/api_pb.js";
 export * as v1Connect from "./gen/proto/talon/v1/api_connect.js";
-
-import {
-  AuthService,
-  ChannelService,
-  KnowledgeService,
-  NamespaceService,
-  ResourceService,
-  SessionService,
-  WorkflowService,
-} from "./gen/proto/talon/v1/api_connect.js";
-
-export type TalonClient = {
-  namespaces: PromiseClient<typeof NamespaceService>;
-  resources: PromiseClient<typeof ResourceService>;
-  sessions: PromiseClient<typeof SessionService>;
-  channels: PromiseClient<typeof ChannelService>;
-  workflows: PromiseClient<typeof WorkflowService>;
-  knowledge: PromiseClient<typeof KnowledgeService>;
-  auth: PromiseClient<typeof AuthService>;
-};
+export type { TalonClient } from "./clientset.js";
 
 export type TalonClientOptions = {
   baseUrl: string;
@@ -91,13 +71,5 @@ export function createTalonTransport(options: TalonClientOptions): Transport {
 export function createTalonClient(options: string | TalonClientOptions): TalonClient {
   const resolved = typeof options === "string" ? { baseUrl: options } : options;
   const transport = createTalonTransport(resolved);
-  return {
-    namespaces: createPromiseClient(NamespaceService, transport),
-    resources: createPromiseClient(ResourceService, transport),
-    sessions: createPromiseClient(SessionService, transport),
-    channels: createPromiseClient(ChannelService, transport),
-    workflows: createPromiseClient(WorkflowService, transport),
-    knowledge: createPromiseClient(KnowledgeService, transport),
-    auth: createPromiseClient(AuthService, transport),
-  };
+  return createTalonClientset(transport);
 }

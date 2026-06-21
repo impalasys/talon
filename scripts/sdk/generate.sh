@@ -214,6 +214,8 @@ for path in root.rglob("*_pb2*.py"):
     text = text.replace("import proto.talon.", "import talon_client.proto.talon.")
     path.write_text(text)
 PY
+python3 scripts/sdk/generate_clientsets.py
+gofmt -w sdk/go/talon-client/clientset_gen.go
 
 run_with_retries() {
   local attempts="${SDK_CARGO_RETRY_ATTEMPTS:-4}"

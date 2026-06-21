@@ -12,7 +12,11 @@ describe("@impalasys/talon-client", () => {
   it("creates a gRPC-Web Talon clientset", () => {
     const client = createTalonClient("http://localhost:50051");
     assert.equal(typeof client.namespaces.list, "function");
+    assert.equal(typeof client.resources.list, "function");
     assert.equal(typeof client.sessions.submitTurn, "function");
+    assert.equal(typeof client.channels.streamEvents, "function");
+    assert.equal(typeof client.workflows.createRun, "function");
+    assert.equal(typeof client.knowledge.search, "function");
     assert.equal(typeof client.auth.exchangeOidcToken, "function");
   });
 

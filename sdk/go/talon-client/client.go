@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	talonv1 "github.com/impalasys/talon/sdk/go/talon-client/talon/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -37,17 +36,6 @@ type GatewayClientOptions struct {
 }
 
 type GatewayClientOption func(*GatewayClientOptions)
-
-type Clientset struct {
-	namespaces talonv1.NamespaceServiceClient
-	resources  talonv1.ResourceServiceClient
-	sessions   talonv1.SessionServiceClient
-	channels   talonv1.ChannelServiceClient
-	workflows  talonv1.WorkflowServiceClient
-	knowledge  talonv1.KnowledgeServiceClient
-	auth       talonv1.AuthServiceClient
-	close      func() error
-}
 
 func Connect(ctx context.Context, endpoint string, options ...GatewayClientOption) (*Clientset, error) {
 	return ConnectWithOptions(ctx, endpoint, options...)
@@ -120,34 +108,6 @@ func WithDialOptions(dialOptions ...grpc.DialOption) GatewayClientOption {
 	}
 }
 
-func (c *Clientset) Namespaces() talonv1.NamespaceServiceClient {
-	return c.namespaces
-}
-
-func (c *Clientset) Resources() talonv1.ResourceServiceClient {
-	return c.resources
-}
-
-func (c *Clientset) Sessions() talonv1.SessionServiceClient {
-	return c.sessions
-}
-
-func (c *Clientset) Channels() talonv1.ChannelServiceClient {
-	return c.channels
-}
-
-func (c *Clientset) Workflows() talonv1.WorkflowServiceClient {
-	return c.workflows
-}
-
-func (c *Clientset) Knowledge() talonv1.KnowledgeServiceClient {
-	return c.knowledge
-}
-
-func (c *Clientset) Auth() talonv1.AuthServiceClient {
-	return c.auth
-}
-
 func (c *Clientset) Close() error {
 	if c == nil || c.close == nil {
 		return nil
@@ -205,19 +165,6 @@ func connectGRPCWeb(opts GatewayClientOptions) (*Clientset, error) {
 		return nil, err
 	}
 	return newClientset(conn, conn.Close), nil
-}
-
-func newClientset(conn grpc.ClientConnInterface, close func() error) *Clientset {
-	return &Clientset{
-		namespaces: talonv1.NewNamespaceServiceClient(conn),
-		resources:  talonv1.NewResourceServiceClient(conn),
-		sessions:   talonv1.NewSessionServiceClient(conn),
-		channels:   talonv1.NewChannelServiceClient(conn),
-		workflows:  talonv1.NewWorkflowServiceClient(conn),
-		knowledge:  talonv1.NewKnowledgeServiceClient(conn),
-		auth:       talonv1.NewAuthServiceClient(conn),
-		close:      close,
-	}
 }
 
 func nativeTarget(endpoint string) (target string, secure bool) {
