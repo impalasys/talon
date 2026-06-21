@@ -5,7 +5,7 @@
 ## Install
 
 ```bash
-pnpm add @impalasys/talon-chat
+pnpm add @impalasys/talon-chat @impalasys/talon-client
 ```
 
 `react` and `react-dom` are required peer dependencies.
@@ -13,28 +13,32 @@ pnpm add @impalasys/talon-chat
 ## Usage
 
 ```tsx
+import { createTalonClient } from "@impalasys/talon-client";
 import { TalonSession } from "@impalasys/talon-chat";
+
+const gatewayClient = createTalonClient({
+  baseUrl: "http://localhost:50051",
+  authToken: "secret-token",
+});
 
 export function App() {
   return (
     <TalonSession
       namespace="support"
       agent="docs"
-      gatewayUrl="http://localhost:18789"
-      authToken="secret-token"
+      gatewayClient={gatewayClient}
     />
   );
 }
 ```
 
-You can also inject a gateway client for session CRUD:
+Keep session state in your app when you want to control which transcript is shown:
 
 ```tsx
 <TalonSession
   namespace="support"
   agent="docs"
-  gatewayUrl="http://localhost:18789"
-  gatewayClient={client}
+  gatewayClient={gatewayClient}
   sessionId={sessionId}
   onSessionChange={(nextSessionId) => setSessionId(nextSessionId)}
 />
@@ -53,7 +57,7 @@ then sends only text plus object references.
 <TalonSession
   namespace="support"
   agent="docs"
-  gatewayUrl="http://localhost:18789"
+  gatewayClient={gatewayClient}
   onImageUpload={async ({ file, namespace, agent, sessionId, signal }) => {
     const form = new FormData();
     form.set("file", file);
@@ -87,7 +91,7 @@ Both `TalonSession` and `TalonChannel` can intercept slash commands before they 
 <TalonSession
   namespace="support"
   agent="docs"
-  gatewayUrl="http://localhost:18789"
+  gatewayClient={gatewayClient}
   enabledBuiltInCommands={["clear"]}
 />
 ```
@@ -100,7 +104,7 @@ You can also provide custom commands:
 <TalonChannel
   namespace="support"
   channel="incident-room"
-  gatewayUrl="http://localhost:18789"
+  gatewayClient={gatewayClient}
   commands={[
     {
       name: "ack",
@@ -114,13 +118,18 @@ You can also provide custom commands:
 Channels can be rendered with the same package:
 
 ```tsx
+import { createTalonClient } from "@impalasys/talon-client";
 import { TalonChannel } from "@impalasys/talon-chat";
+
+const gatewayClient = createTalonClient({
+  baseUrl: "http://localhost:50051",
+  authToken: `Bearer ${channelJwt}`,
+});
 
 <TalonChannel
   namespace="support"
   channel="incident-room"
-  gatewayUrl="http://localhost:18789"
-  authToken={`Bearer ${channelJwt}`}
+  gatewayClient={gatewayClient}
   disableUserInput
   renderMessageActions={(message) => {
     const agent = message.sourceAgent || message.source_agent;

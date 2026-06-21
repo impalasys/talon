@@ -46,9 +46,9 @@ docker compose up --build -d
 This starts the local compose stack and exposes:
 
 - Sightline UI: `http://localhost:3000`
-- Envoy edge: `http://localhost:18789`
+- direct gateway: `http://localhost:50051`
 - native gRPC gateway: `http://localhost:50051`
-- gateway UI HTTP surface: `http://localhost:50052`
+- gRPC-Web gateway: `http://localhost:50051`
 
 It also starts:
 
@@ -75,7 +75,7 @@ EOF
 Apply it:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f /tmp/quickstart-namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f /tmp/quickstart-namespace.yaml
 ```
 
 ## 5. Create an agent directly
@@ -106,44 +106,32 @@ EOF
 Apply it:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f /tmp/quickstart-agent.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f /tmp/quickstart-agent.yaml
 ```
 
 Verify it exists:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 get agent hello-agent --namespace quickstart
+cargo run --bin talon-cli -- --gateway http://localhost:50051 get agent hello-agent --namespace quickstart
 ```
 
-## 6. Create a session
+## 6. Send a streamed prompt
 
-Create a session through the gateway REST surface:
+Create a session and stream the response through the typed gateway API:
 
 ```bash
-curl -sS http://localhost:18789/v1/ns/quickstart/agents/hello-agent/sessions \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"ns":"quickstart","agent":"hello-agent"}'
+cargo run --bin talon-cli -- --gateway http://localhost:50051 session prompt \
+  --namespace quickstart \
+  --agent hello-agent \
+  --stream \
+  "Explain what Talon is in two bullets."
 ```
 
-The response includes a `sessionId`.
+The CLI uses gRPC on the gateway port. Browser clients use the same gateway port with gRPC-Web.
 
-## 7. Chat with the agent over `curl`
+## 7. Open Sightline and inspect the run
 
-Replace `<session-id>` with the value from the previous step:
-
-```bash
-curl -sS http://localhost:18789/v1/ui/ns/quickstart/agents/hello-agent/sessions/<session-id> \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"messages":[{"content":"Explain what Talon is in two bullets."}]}'
-```
-
-This uses the same browser-oriented UI session surface that Sightline and `@impalasys/talon-chat` use.
-
-## 8. Open Sightline and inspect the run
-
-Open `http://localhost:3000` and connect to `http://localhost:18789`.
+Open `http://localhost:3000` and connect to `http://localhost:50051`.
 
 In Sightline:
 
@@ -163,7 +151,7 @@ In Sightline, you can inspect:
 - knowledge resources, which provide durable context files available to agents in a namespace
 - MCP servers and bindings, which expose approved external tools to selected agents
 
-## 9. Read the contracts
+## 8. Read the contracts
 
 - [How Talon Works](../concepts/how-talon-works.md)
 - [Runtime Topology](../concepts/runtime-topology.md)

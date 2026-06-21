@@ -26,7 +26,7 @@ PROTO_SRCS=(
   proto/data/session_submission.proto
   proto/data/session_journal_entry.proto
   proto/events.proto
-  proto/gateway.proto
+  proto/talon/v1/api.proto
 )
 
 case "$(uname -s)-$(uname -m)" in
@@ -88,7 +88,7 @@ GO_OPTS=(
   "--go_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/session_journal_entry.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
-  "--go_opt=Mproto/gateway.proto=${GO_MODULE}/talon/gateway"
+  "--go_opt=Mproto/talon/v1/api.proto=${GO_MODULE}/talon/v1"
   "--go-grpc_opt=Mproto/config.proto=${GO_MODULE}/talon/config"
   "--go-grpc_opt=Mproto/resources/common.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/agents.proto=${GO_MODULE}/talon/resources"
@@ -110,7 +110,7 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/session_journal_entry.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
-  "--go-grpc_opt=Mproto/gateway.proto=${GO_MODULE}/talon/gateway"
+  "--go-grpc_opt=Mproto/talon/v1/api.proto=${GO_MODULE}/talon/v1"
 )
 
 mkdir -p sdk/go/talon-client sdk/java/talon-client/src/main/java sdk/js/talon-client/src/gen sdk/python/talon-client/src/talon_client
@@ -140,52 +140,8 @@ fi
   --java_out=sdk/java/talon-client/src/main/java \
   "--grpc-java_out=sdk/java/talon-client/src/main/java" \
   "--plugin=protoc-gen-grpc-java=${JAVA_GRPC_PLUGIN}" \
-  "${PROTO_SRCS[@]}" \
-  google/api/http.proto \
-  google/api/annotations.proto
+  "${PROTO_SRCS[@]}"
 find sdk/java/talon-client/src/main/java -name '*.java' -exec perl -pi -e 's/[ \t]+$//' {} +
-
-python3 - <<'PY'
-from pathlib import Path
-
-path = Path("sdk/java/talon-client/src/main/java/talon/gateway/Gateway.java")
-text = path.read_text()
-
-
-def strip_region(source: str, start_marker: str, end_marker: str) -> str:
-    try:
-        start = source.index(start_marker)
-        end = source.index(end_marker, start)
-    except ValueError:
-        return source
-    region = source[start:end]
-    stripped = "\n".join(line.rstrip() for line in region.splitlines())
-    if region.endswith("\n"):
-        stripped += "\n"
-    return source[:start] + stripped + source[end:]
-
-
-text = strip_region(
-    text,
-    "  public static final class ClearSessionRequest",
-    "  public interface CreateChannelRequestOrBuilder",
-)
-text = strip_region(
-    text,
-    "  private static final com.google.protobuf.Descriptors.Descriptor\n"
-    "    internal_static_talon_gateway_ClearSessionRequest_descriptor;",
-    "  private static final com.google.protobuf.Descriptors.Descriptor\n"
-    "    internal_static_talon_gateway_CreateChannelRequest_descriptor;",
-)
-path.write_text(text)
-
-for java_path in Path("sdk/java/talon-client/src/main/java/talon").rglob("*.java"):
-    source = java_path.read_text()
-    stripped = "\n".join(line.rstrip() for line in source.splitlines())
-    if source.endswith("\n"):
-        stripped += "\n"
-    java_path.write_text(stripped)
-PY
 
 python3 - <<'PY'
 from pathlib import Path
@@ -217,9 +173,7 @@ PATH="$NPM_BIN:$PATH" "$PROTOC" -I. -Ithird_party/googleapis \
   --es_opt=target=ts,import_extension=.js \
   --connect-es_out=sdk/js/talon-client/src/gen \
   --connect-es_opt=target=ts,import_extension=.js \
-  "${PROTO_SRCS[@]}" \
-  google/api/http.proto \
-  google/api/annotations.proto
+  "${PROTO_SRCS[@]}"
 python3 - <<'PY'
 from pathlib import Path
 
@@ -240,9 +194,7 @@ PYTHONPATH="$PY_TOOLS${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON_CODEGEN" -m grpc_tool
   --experimental_allow_proto3_optional \
   --python_out=sdk/python/talon-client/src/talon_client \
   --grpc_python_out=sdk/python/talon-client/src/talon_client \
-  "${PROTO_SRCS[@]}" \
-  google/api/http.proto \
-  google/api/annotations.proto
+  "${PROTO_SRCS[@]}"
 
 find sdk/python/talon-client/src/talon_client -type d -exec sh -c 'touch "$0/__init__.py"' {} \;
 python3 - <<'PY'
@@ -254,11 +206,12 @@ for path in root.rglob("*_pb2*.py"):
     text = text.replace("from proto import ", "from talon_client.proto import ")
     text = text.replace("from proto.data import ", "from talon_client.proto.data import ")
     text = text.replace("from proto.resources import ", "from talon_client.proto.resources import ")
-    text = text.replace("import proto.gateway_pb2 as ", "import talon_client.proto.gateway_pb2 as ")
+    text = text.replace("from proto.talon import ", "from talon_client.proto.talon import ")
+    text = text.replace("from proto.talon.v1 import ", "from talon_client.proto.talon.v1 import ")
     text = text.replace("import proto.events_pb2 as ", "import talon_client.proto.events_pb2 as ")
     text = text.replace("import proto.data.data_pb2 as ", "import talon_client.proto.data.data_pb2 as ")
     text = text.replace("import proto.resources.", "import talon_client.proto.resources.")
-    text = text.replace("from google.api import ", "from talon_client.google.api import ")
+    text = text.replace("import proto.talon.", "import talon_client.proto.talon.")
     path.write_text(text)
 PY
 

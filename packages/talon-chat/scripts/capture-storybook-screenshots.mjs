@@ -12,7 +12,7 @@ const stories = [
   {
     id: "talon-chat-talonsession--existing-session",
     name: "talon-session-existing",
-    waitForText: "Worked for 11s",
+    waitForText: "Mia owns rollback validation",
   },
   {
     id: "talon-chat-talonsession--streaming-response",
@@ -22,7 +22,7 @@ const stories = [
   {
     id: "talon-chat-talonsession--disabled",
     name: "talon-session-disabled",
-    waitForText: "Launch update",
+    waitForText: "Mia owns rollback validation",
   },
   {
     id: "talon-chat-talonchannel--open-channel",

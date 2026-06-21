@@ -20,11 +20,14 @@ pub mod generated {
         pub mod events {
             include!("generated/talon.events.rs");
         }
-        pub mod gateway {
-            include!("generated/talon.gateway.rs");
+        pub mod v1 {
+            include!("generated/talon.v1.rs");
         }
     }
 }
 
-pub use client::{GatewayClientOptions, GatewayTransport, TalonGatewayClient};
+pub use client::{
+    GatewayClientOptions, GatewayTransport, GrpcWebTalonClient, NativeTalonClient, TalonClient,
+    TalonClientset,
+};
 pub use generated::talon::*;

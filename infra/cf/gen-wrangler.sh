@@ -41,7 +41,7 @@ export TALON_CF_DEV_MAIN="${TALON_CF_DEV_MAIN:-../worker/src/index.ts}"
 export TALON_CF_PROD_MAIN="${TALON_CF_PROD_MAIN:-src/index.ts}"
 
 export TALON_CF_DEV_EXTERNAL_CONTAINERS="${TALON_CF_DEV_EXTERNAL_CONTAINERS:-true}"
-export TALON_CF_DEV_GATEWAY_URL="${TALON_CF_DEV_GATEWAY_URL:-http://gateway:50052}"
+export TALON_CF_DEV_GATEWAY_URL="${TALON_CF_DEV_GATEWAY_URL:-http://gateway:50051}"
 export TALON_CF_DEV_GATEWAY_GRPC_URL="${TALON_CF_DEV_GATEWAY_GRPC_URL:-http://gateway:50051}"
 export TALON_CF_DEV_WORKER_URL="${TALON_CF_DEV_WORKER_URL:-http://worker:8081}"
 
@@ -105,7 +105,7 @@ def durable_object_bindings(include_container_classes: bool) -> list[dict]:
 def durable_object_classes(include_container_classes: bool) -> list[str]:
     classes = ["ScheduleShard", "SessionStreamShard"]
     if include_container_classes:
-        classes = ["GatewayContainer", "WorkerContainer", "EnvoyContainer", *classes]
+        classes = ["GatewayContainer", "WorkerContainer", *classes]
     return classes
 
 def base_config(

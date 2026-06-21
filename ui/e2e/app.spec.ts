@@ -13,7 +13,7 @@ test.describe('Talon UI', () => {
     await expect(gatewayInput).toBeVisible();
     
     // Use the backend port
-    const API_PORT = process.env.API_PORT || '18789';
+    const API_PORT = process.env.API_PORT || '50051';
     await gatewayInput.fill(`http://127.0.0.1:${API_PORT}`);
     await connectButton.click();
 

@@ -36,7 +36,7 @@ docker-compose up --build -d
 
 echo "---------------------------------------------------"
 echo "Talon is spinning up!"
-echo "Engine Gateway: http://localhost:18789"
+echo "Engine Gateway: http://localhost:50051"
 echo "Debugger Web UI: http://localhost:3000"
 echo "---------------------------------------------------"
 echo "To view logs: docker-compose logs -f"

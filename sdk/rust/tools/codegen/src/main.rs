@@ -47,7 +47,7 @@ fn main() {
                 root.join("proto/data/session_submission.proto"),
                 root.join("proto/data/session_journal_entry.proto"),
                 root.join("proto/events.proto"),
-                root.join("proto/gateway.proto"),
+                root.join("proto/talon/v1/api.proto"),
             ],
             &[root.clone(), root.join("third_party/googleapis")],
         )

@@ -10,7 +10,7 @@ use std::fs;
 use super::{Cli, RunOutcome};
 use crate::cli::connect_gateway;
 use talon_client::data as data_proto;
-use talon_client::gateway::{
+use talon_client::v1::{
     CancelWorkflowRunRequest, CreateWorkflowRunRequest, GetWorkflowRunRequest,
     ListWorkflowRunsRequest, ResumeWorkflowRunRequest, StreamWorkflowEventsRequest,
 };

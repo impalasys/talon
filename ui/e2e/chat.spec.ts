@@ -4,22 +4,27 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createClient } from "@connectrpc/connect";
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
-import { GatewayService } from "../proto/proto/gateway_pb";
+import { NamespaceService, ResourceService, SessionService } from "../proto/proto/talon/v1/api_pb";
 
 async function createTestSession() {
-  const API_PORT = process.env.API_PORT || '18789';
+  const API_PORT = process.env.API_PORT || '50051';
   const gatewayUrl = `http://127.0.0.1:${API_PORT}`;
   const runId = `${Date.now()}-${randomUUID().slice(0, 8)}`;
   const testNs = `e2e-ns-${runId}`;
   const testAgent = `e2e-agent-${runId}`;
 
-  const client = createClient(GatewayService, createGrpcWebTransport({ baseUrl: gatewayUrl }));
+  const transport = createGrpcWebTransport({ baseUrl: gatewayUrl });
+  const client = {
+    namespaces: createClient(NamespaceService, transport),
+    resources: createClient(ResourceService, transport),
+    sessions: createClient(SessionService, transport),
+  };
 
   await expect(async () => {
-    await client.createNamespace({ name: testNs, recursive: true });
+    await client.namespaces.create({ name: testNs, recursive: true });
   }).toPass({ timeout: 60000 });
 
-  await client.createResource({
+  await client.resources.create({
     ns: testNs,
     manifest: {
       apiVersion: "talon.impalasys.com/v1",
@@ -45,7 +50,7 @@ async function createTestSession() {
     },
   });
 
-  const sessionRes = await client.createSession({
+  const sessionRes = await client.sessions.create({
     ns: testNs,
     agent: testAgent
   });
@@ -92,7 +97,7 @@ async function waitForSessionText(
   expectedText: string,
 ) {
   await expect(async () => {
-    const history = await client.listSessionMessages({
+    const history = await client.sessions.listMessages({
       ...target,
       pageSize: 50,
     });
@@ -244,7 +249,7 @@ test.describe('Chat Streaming', () => {
     await expect(page.getByText('square root of 144', { exact: true })).toHaveCount(0, { timeout: 10000 });
     await expect(page.getByText('The square root of 144 is 12.', { exact: true })).toHaveCount(0);
     await expect(async () => {
-      const history = await client.listSessionMessages({
+      const history = await client.sessions.listMessages({
         ...target,
         pageSize: 50,
       });
@@ -254,7 +259,7 @@ test.describe('Chat Streaming', () => {
 
   test('should render and replay thinking blocks from the mock llm', async ({ page }) => {
     const { client, sessionId, testNs, testAgent } = await provisionSession(page);
-    await client.sendMessage({
+    await client.sessions.sendMessage({
       ns: testNs,
       agent: testAgent,
       sessionId,
@@ -263,7 +268,7 @@ test.describe('Chat Streaming', () => {
     });
 
     await expect(async () => {
-      const history = await client.listSessionMessages({
+      const history = await client.sessions.listMessages({
         ns: testNs,
         agent: testAgent,
         sessionId,
@@ -330,7 +335,7 @@ test.describe('Copilot history pagination', () => {
 
     for (let index = 1; index <= 5; index += 1) {
       const prompt = `pagination seed ${index}`;
-      await client.sendMessage({
+      await client.sessions.sendMessage({
         ...target,
         message: prompt,
         labels: {},
@@ -351,10 +356,10 @@ test.describe('Copilot history pagination', () => {
     const getSessionRequests: string[] = [];
     page.on('request', request => {
       const url = request.url();
-      if (url.includes('/talon.gateway.GatewayService/ListSessionMessages')) {
+      if (url.includes('/talon.v1.SessionService/ListMessages')) {
         listSessionMessagesRequests.push(url);
       }
-      if (url.includes('/talon.gateway.GatewayService/GetSession')) {
+      if (url.includes('/talon.v1.SessionService/Get')) {
         getSessionRequests.push(url);
       }
     });

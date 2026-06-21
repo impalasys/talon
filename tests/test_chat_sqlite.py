@@ -12,8 +12,7 @@ import uuid
 # Important: Add generated protos to path so "proto.xxx" resolves locally and not to proto_plus
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
 
-from proto.gateway_pb2_grpc import GatewayServiceStub
-from proto.gateway_pb2 import (
+from proto.talon.v1.api_pb2 import (
     CreateNamespaceRequest,
     CreateResourceRequest,
     CreateSessionRequest,
@@ -22,6 +21,7 @@ from proto.gateway_pb2 import (
     SendMessageRequest,
     StreamSessionPartsRequest,
 )
+from talon_v1_test_client import TalonV1TestClient
 from proto.resources.agents_pb2 import AgentSpec, Model
 from proto.resources.common_pb2 import ResourceMeta
 from proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
@@ -70,7 +70,7 @@ def create_agent_resource(stub, ns, name, spec):
 
 
 def test_single_turn_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_server):
-    stub = GatewayServiceStub(gateway_channel_sqlite)
+    stub = TalonV1TestClient(gateway_channel_sqlite)
 
     ensure_namespace(stub, "talon-sqlite-test")
 
@@ -136,7 +136,7 @@ def test_single_turn_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_s
 
 
 def test_streaming_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_server):
-    stub = GatewayServiceStub(gateway_channel_sqlite)
+    stub = TalonV1TestClient(gateway_channel_sqlite)
 
     ensure_namespace(stub, "talon-sqlite-stream-test")
 

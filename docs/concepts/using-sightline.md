@@ -21,7 +21,7 @@ Sightline is not a separate control plane. It is a UI over Talon’s real runtim
 In local development:
 
 - the UI runs on `http://localhost:3000`
-- it talks through the Envoy edge on `http://localhost:18789`
+- it talks through the direct gateway on `http://localhost:50051`
 - the gateway serves a browser-oriented session API behind that path
 
 ## Why it matters

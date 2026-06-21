@@ -12,7 +12,7 @@
     "TALON_WORKER_CONTAINER_COUNT": "1",
     "TALON_SCHEDULER_AUTH_TOKEN": "cloudflare-local-scheduler-token",
     "TALON_CF_DEV_EXTERNAL_CONTAINERS": "true",
-    "TALON_CF_DEV_GATEWAY_URL": "http://gateway:50052",
+    "TALON_CF_DEV_GATEWAY_URL": "http://gateway:50051",
     "TALON_CF_DEV_GATEWAY_GRPC_URL": "http://gateway:50051",
     "TALON_CF_DEV_WORKER_URL": "http://worker:8081",
     "MOCK_LLM_API_KEY": "local-cloudflare-e2e"

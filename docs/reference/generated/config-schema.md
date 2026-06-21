@@ -21,7 +21,7 @@ This page summarizes the major configuration messages exposed by Talon's runtime
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `oidc` | `repeated OidcTrustEntry` | - |
+| `oidc` | `OidcTrustEntry` | repeated |
 
 ## `OidcTrustEntry`
 
@@ -29,22 +29,22 @@ This page summarizes the major configuration messages exposed by Talon's runtime
 | --- | --- | --- |
 | `name` | `string` | - |
 | `issuer` | `string` | - |
-| `audiences` | `repeated string` | - |
-| `allowed_domains` | `repeated string` | - |
-| `allowed_emails` | `repeated string` | - |
+| `audiences` | `string` | repeated |
+| `allowed_domains` | `string` | repeated |
+| `allowed_emails` | `string` | repeated |
 | `jwks_url` | `string` | - |
 | `clock_skew_seconds` | `uint32` | - |
-| `grants` | `repeated OidcTrustGrant` | - |
+| `grants` | `OidcTrustGrant` | repeated |
 
 ## `OidcTrustGrant`
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `kind` | `Kind` | `READ` or `READWRITE` |
-| `namespace` | `string` | optional selector |
-| `agent` | `string` | optional selector |
-| `session` | `string` | optional selector |
-| `channel` | `string` | optional selector |
+| `kind` | `Kind` | - |
+| `namespace` | `string` | - |
+| `agent` | `string` | - |
+| `session` | `string` | - |
+| `channel` | `string` | - |
 
 ## `ControllerConfig`
 

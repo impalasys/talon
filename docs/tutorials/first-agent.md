@@ -41,7 +41,7 @@ From the repository root:
 docker compose up --build -d
 ```
 
-Wait for the stack to come up, then open `http://localhost:3000` and connect Sightline to `http://localhost:18789`.
+Wait for the stack to come up, then open `http://localhost:3000` and connect Sightline to `http://localhost:50051`.
 
 ## 1. Create a tutorial namespace
 
@@ -57,7 +57,7 @@ metadata:
 Apply it:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f first-agent-namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f first-agent-namespace.yaml
 ```
 
 Create `first-agent-agent.yaml`:
@@ -84,42 +84,29 @@ spec:
 Apply it:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f first-agent-agent.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f first-agent-agent.yaml
 ```
 
 Verify the agent exists:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 get agent hello-agent --namespace first-agent
+cargo run --bin talon-cli -- --gateway http://localhost:50051 get agent hello-agent --namespace first-agent
 ```
 
-## 2. Create a session
-
-Create a session through the gateway REST surface:
+## 2. Send a message
 
 ```bash
-curl -sS http://localhost:18789/v1/ns/first-agent/agents/hello-agent/sessions \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"ns":"first-agent","agent":"hello-agent","labels":{"source":"tutorial"}}'
+cargo run --bin talon-cli -- --gateway http://localhost:50051 session prompt \
+  --namespace first-agent \
+  --agent hello-agent \
+  --label source=tutorial \
+  --stream \
+  "Explain what Talon is in two bullets."
 ```
 
-The response includes a `sessionId`. Save it for the next step.
+This creates a durable session, sends the prompt, and streams `SessionService.StreamParts` events from the gateway.
 
-## 3. Send a message
-
-Replace `<session-id>` with the value from the previous step:
-
-```bash
-curl -sS http://localhost:18789/v1/ui/ns/first-agent/agents/hello-agent/sessions/<session-id> \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"messages":[{"content":"Explain what Talon is in two bullets."}]}'
-```
-
-The UI surface returns a streamed response format used by Sightline and `@impalasys/talon-chat`.
-
-## 4. Inspect the result in Sightline
+## 3. Inspect the result in Sightline
 
 In Sightline:
 
@@ -133,19 +120,20 @@ Look for:
 - the assistant reply
 - any streamed reasoning or tool steps
 
-## 5. Understand the control-plane surfaces
+## 4. Understand the gateway surface
 
-You just used two different Talon APIs:
+You just used the typed Talon gateway:
 
-- `POST /v1/ns/.../sessions` to create the durable session resource
-- `POST /v1/ui/ns/.../sessions/<id>` to drive the browser-style chat flow
+- native gRPC for the CLI
+- gRPC-Web for browser clients such as Sightline and `@impalasys/talon-chat`
+- named `talon.v1` services such as `SessionService`, `ResourceService`, and `NamespaceService`
 
-That split is intentional. CRUD happens on the control-plane API. Browser chat happens on the UI session API.
+There is no separate JSON-transcoded gateway route in the local stack.
 
 ## Troubleshooting
 
 - If `apply` fails, check that your manifest uses `metadata.namespace` for `Agent` resources.
-- If the UI request fails, confirm you are calling the `v1/ui` route, not the CRUD `message` route.
+- If the session request fails, confirm the gateway is listening on `http://localhost:50051`.
 - If Sightline connects but shows nothing, refresh after creating the namespace and session.
 
 ## Read next

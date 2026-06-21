@@ -1,5 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { TalonChannel, TalonCopilot } from '@impalasys/talon-chat';
+import {
+  TalonChannel as RawTalonChannel,
+  TalonCopilot as RawTalonCopilot,
+} from '@impalasys/talon-chat';
 
 function makeJsonResponse(payload: any, ok = true) {
   return {
@@ -73,6 +76,194 @@ function makeControllableStreamResponse() {
       }
     },
   };
+}
+
+async function* streamResponseToSessionEvents(response: any) {
+  const reader = response.body?.getReader?.();
+  if (!reader) return;
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let messageId = '';
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    while (true) {
+      const newlineIndex = buffer.indexOf('\n');
+      if (newlineIndex < 0) break;
+      const line = buffer.slice(0, newlineIndex);
+      buffer = buffer.slice(newlineIndex + 1);
+      if (!line) continue;
+      const separatorIndex = line.indexOf(':');
+      if (separatorIndex < 0) continue;
+      const code = line.slice(0, separatorIndex);
+      const payload = JSON.parse(line.slice(separatorIndex + 1));
+      if (code === 'f' && typeof payload?.messageId === 'string') {
+        messageId = payload.messageId;
+      } else if (code === '0') {
+        yield {
+          kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DELTA',
+          messageId,
+          part: {
+            partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+            content: String(payload),
+          },
+        };
+      } else if (code === 'g') {
+        yield {
+          kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DELTA',
+          messageId,
+          part: {
+            partType: 'SESSION_MESSAGE_PART_TYPE_REASONING',
+            content: String(payload),
+          },
+        };
+      } else if (code === '9') {
+        yield {
+          kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DELTA',
+          messageId,
+          part: {
+            partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+            id: payload?.toolCallId,
+            name: payload?.toolName,
+            payloadJson: JSON.stringify({ input: payload?.args, tool_call_id: payload?.toolCallId }),
+          },
+        };
+      } else if (code === 'a') {
+        yield {
+          kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DELTA',
+          messageId,
+          part: {
+            partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+            id: payload?.toolCallId,
+            payloadJson: JSON.stringify({ output: payload?.result, tool_call_id: payload?.toolCallId }),
+          },
+        };
+      } else if (code === 'h') {
+        yield {
+          kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DELTA',
+          messageId,
+          part: {
+            partType: 'SESSION_MESSAGE_PART_TYPE_USAGE',
+            payloadJson: JSON.stringify(payload),
+          },
+        };
+      } else if (code === '3') {
+        yield {
+          kind: 'SESSION_MESSAGE_PART_EVENT_KIND_ERROR',
+          messageId,
+          part: { partType: 'SESSION_MESSAGE_PART_TYPE_ERROR', content: String(payload) },
+        };
+      }
+    }
+  }
+}
+
+function makeGatewayClient(raw: any = {}, gatewayUrl = 'http://localhost:18789', authToken?: string | null) {
+  if (raw?.sessions || raw?.channels) return raw;
+  const fetcher = global.fetch as jest.Mock;
+  const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+  const sessions = {
+    create: raw.createSession ?? jest.fn(async (request: any) => {
+      const response = await fetcher(`${gatewayUrl}/v1/ns/${request.ns}/agents/${request.agent}/sessions`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(request),
+      });
+      return response.json();
+    }),
+    clear: raw.clearSession ?? jest.fn(async (request: any) => {
+      const response = await fetcher(`${gatewayUrl}/v1/ns/${request.ns}/agents/${request.agent}/sessions/${request.sessionId}:clear`, {
+        method: 'POST',
+      });
+      return response.json();
+    }),
+    listMessages: raw.listSessionMessages ?? raw.getSession ?? jest.fn(async (request: any) => {
+      const before = request.beforeMessageId ? `&before_message_id=${encodeURIComponent(request.beforeMessageId)}` : '';
+      const response = await fetcher(`${gatewayUrl}/v1/ns/${request.ns}/agents/${request.agent}/sessions/${request.sessionId}/messages?page_size=${request.pageSize}${before}`, { headers });
+      return response.json();
+    }),
+    get: raw.getSession ?? jest.fn(async (request: any) => {
+      const response = await fetcher(`${gatewayUrl}/v1/ns/${request.ns}/agents/${request.agent}/sessions/${request.sessionId}`, expect.anything());
+      return response.json();
+    }),
+    submitTurn: raw.submitTurn ?? jest.fn(async function* (request: any, options?: any) {
+      const bodyParts = (request.message?.parts ?? []).map((part: any) => {
+        const partType = part?.partType ?? part?.part_type;
+        if (partType === 7 || partType === 'SESSION_MESSAGE_PART_TYPE_IMAGE') {
+          return {
+            type: 'image',
+            payloadJson: part.payloadJson ?? part.payload_json ?? '',
+            object: part.object ?? part.objectRef ?? part.object_ref,
+          };
+        }
+        return { type: 'text', text: part?.content ?? '' };
+      });
+      const response = await fetcher(`${gatewayUrl}/v1/ui/ns/${request.ns}/agents/${request.agent}/sessions/${request.sessionId}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          messages: [{ role: 'user', parts: bodyParts }],
+        }),
+        signal: options?.signal,
+      });
+      yield* streamResponseToSessionEvents(response);
+    }),
+    streamParts: raw.streamParts ?? jest.fn(async function* (request: any, options?: any) {
+      const response = await fetcher(`${gatewayUrl}/v1/ui/ns/${request.ns}/agents/${request.agent}/sessions/${request.sessionId}`, {
+        signal: options?.signal,
+      });
+      yield* streamResponseToSessionEvents(response);
+    }),
+    stopGeneration: raw.stopGeneration ?? jest.fn(async () => ({ success: true })),
+  };
+  const channels = {
+    listMessages: raw.listChannelMessages ?? jest.fn(async (request: any) => {
+      const before = request.beforeMessageId ? `&before_message_id=${encodeURIComponent(request.beforeMessageId)}` : '';
+      const response = await fetcher(`${gatewayUrl}/v1/ns/${request.ns}/channels/${request.channel}/messages?page_size=${request.pageSize ?? request.limit ?? 100}${before}`, { headers });
+      return response.json();
+    }),
+    postMessage: raw.postChannelMessage ?? jest.fn(async (request: any) => {
+      const body: any = {
+        ns: request.ns,
+        channel: request.channel,
+        authorKind: request.authorKind,
+        author: request.author,
+        content: request.content,
+      };
+      if (request.subscriptionNames?.length) body.subscriptionNames = request.subscriptionNames;
+      if (request.labels && Object.keys(request.labels).length > 0) body.labels = request.labels;
+      const response = await fetcher(`${gatewayUrl}/v1/ns/${request.ns}/channels/${request.channel}/messages`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        throw new Error(`Post HTTP ${response.status}`);
+      }
+      return response.json();
+    }),
+  };
+  return { sessions, channels };
+}
+
+function TalonCopilot(props: any) {
+  return (
+    <RawTalonCopilot
+      {...props}
+      gatewayClient={makeGatewayClient(props.gatewayClient, props.gatewayUrl, props.authToken)}
+    />
+  );
+}
+
+function TalonChannel(props: any) {
+  return (
+    <RawTalonChannel
+      {...props}
+      gatewayClient={makeGatewayClient(props.gatewayClient, props.gatewayUrl, props.authToken)}
+    />
+  );
 }
 
 describe('TalonCopilot', () => {

@@ -35,8 +35,7 @@ Requests enter through the Cloudflare Worker in `worker/src/index.ts`.
 HTTP request
   -> Cloudflare Worker
     -> GatewayContainer / talon-server
-      -> 50051 for GatewayService gRPC-Web requests
-      -> 50052 for HTTP UI/A2A requests
+      -> 50051 for Talon gRPC and gRPC-Web requests
 
 Cloudflare Queue batch
   -> Worker queue() handler
@@ -258,7 +257,7 @@ docker compose -f infra/cf/dev/docker-compose.yaml up --build --abort-on-contain
 Local development uses `wrangler dev` inside the `cloudflare-dev` service for
 local D1/R2/Queue resources and Durable Object alarms. By default,
 `dev/wrangler.jsonc` sets `TALON_CF_DEV_EXTERNAL_CONTAINERS=true`, so the Talon
-gateway, worker, and Envoy run as ordinary private Compose services instead of
+gateway and worker run as ordinary private Compose services instead of
 Wrangler-managed local Containers. This avoids Wrangler's current local
 Containers path forcing `linux/amd64`, which is brittle on Apple Silicon.
 
@@ -319,13 +318,12 @@ simplest manual deploy path:
 
 ```text
 ghcr.io/impalasys/talon-runtime:latest
-ghcr.io/impalasys/talon-envoy:latest
 ```
 
 For repeatable production deploys, set `TALON_CF_PROD_IMAGE_TAG`,
-`TALON_CF_PROD_RUNTIME_IMAGE`, or `TALON_CF_PROD_ENVOY_IMAGE`, then run
-`infra/cf/gen-wrangler.sh`. Prefer immutable `sha-*` tags or image digests for
-promotions, set `TALON_SCHEDULER_AUTH_TOKEN` with `wrangler secret put`, and
+or `TALON_CF_PROD_RUNTIME_IMAGE`, then run `infra/cf/gen-wrangler.sh`.
+Prefer immutable `sha-*` tags or image digests for promotions, set
+`TALON_SCHEDULER_AUTH_TOKEN` with `wrangler secret put`, and
 ensure the D1 database ID matches the Terraform-created D1 database.
 
 Dry-run a deploy without publishing:
@@ -343,7 +341,6 @@ The current Worker code starts one logical instance each:
 ```text
 GatewayContainer
 WorkerContainer
-EnvoyContainer
 ```
 
 Cloudflare Containers are backed by Durable Objects. Production does not require a 1:1 mapping between gateway and worker containers, but scaling is manual today: the Worker must address multiple container IDs.
@@ -353,7 +350,6 @@ The Worker supports these count variables:
 ```text
 TALON_GATEWAY_CONTAINER_COUNT=1
 TALON_WORKER_CONTAINER_COUNT=1
-TALON_ENVOY_CONTAINER_COUNT=1
 ```
 
 When the count is `1`, the Worker uses the stable instance name `default`. When a count is greater than `1`, it routes to bounded instance names such as:
@@ -361,10 +357,9 @@ When the count is `1`, the Worker uses the stable instance name `default`. When 
 ```text
 gateway-0, gateway-1
 worker-0, worker-1
-envoy-0, envoy-1
 ```
 
-HTTP gateway and Envoy requests are spread across their configured pools. Queue and alarm delivery use stable hashing to select a worker instance.
+HTTP gateway requests are spread across their configured pool. Queue and alarm delivery use stable hashing to select a worker instance.
 
 Future scaling work should make gateway and worker counts independent, for example:
 
@@ -407,7 +402,6 @@ The generated configs should not be hand-edited for values owned by the script. 
 ```bash
 TALON_CF_D1_DATABASE_ID="<real-d1-id>" \
 TALON_CF_PROD_RUNTIME_IMAGE="ghcr.io/impalasys/talon-runtime:sha-<commit>" \
-TALON_CF_PROD_ENVOY_IMAGE="ghcr.io/impalasys/talon-envoy:sha-<commit>" \
 TALON_CF_GATEWAY_CONTAINER_COUNT=2 \
 TALON_CF_WORKER_CONTAINER_COUNT=8 \
 infra/cf/gen-wrangler.sh

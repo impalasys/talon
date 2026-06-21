@@ -35,7 +35,7 @@ from proto.data.session_journal_entry_pb2 import (
 from proto.events_pb2 import (
     SessionMessagePartEvent,
 )
-from proto.gateway_pb2 import (
+from proto.talon.v1.api_pb2 import (
     CreateNamespaceRequest,
     CreateResourceRequest,
     CreateSessionRequest,
@@ -43,7 +43,7 @@ from proto.gateway_pb2 import (
     SendMessageRequest,
     StreamSessionPartsRequest,
 )
-from proto.gateway_pb2_grpc import GatewayServiceStub
+from talon_v1_test_client import TalonV1TestClient
 from proto.resources.agents_pb2 import AgentSpec, Model
 from proto.resources.common_pb2 import CommonResourceStatus, ResourceMeta
 from proto.resources.mcp_pb2 import McpServer, McpServerSpec
@@ -200,7 +200,6 @@ class DurableSessionStack:
     def start(cls) -> DurableSessionStack:
         print("\nStarting isolated SQLite + local_socket durability stack...")
         test_grpc_port = unused_tcp_port()
-        test_ui_port = unused_tcp_port()
         worker_port = unused_tcp_port()
 
         env = os.environ.copy()
@@ -208,7 +207,6 @@ class DurableSessionStack:
         env["RUST_LOG"] = "info"
         env["NOVITA_API_KEY"] = "test-dummy-key"
         env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
-        env["GATEWAY_UI_ADDR"] = f"127.0.0.1:{test_ui_port}"
         env["PORT"] = str(worker_port)
         env["TALON_SESSION_PROCESSING_TIMEOUT_SECONDS"] = "1"
 
@@ -229,7 +227,7 @@ providers:
       key: NOVITA_API_KEY
 server:
   host: "127.0.0.1"
-  port: {test_ui_port}
+  port: {test_grpc_port}
 control_plane:
   database:
     driver: sqlite
@@ -402,7 +400,7 @@ class SessionStreamBuffer:
 
     def _run(self) -> None:
         assert self._channel is not None
-        stub = GatewayServiceStub(self._channel)
+        stub = TalonV1TestClient(self._channel)
         request = StreamSessionPartsRequest(
             session_id=self.session_id,
             agent=self.agent,
@@ -475,7 +473,7 @@ def wait_for_mock_mcp_tool_blocked(
 
 
 def create_agent(
-    stub: GatewayServiceStub,
+    stub: TalonV1TestClient,
     namespace: str,
     agent: str,
     *,
@@ -683,7 +681,7 @@ class SessionSnooper:
         self,
         *,
         stack: DurableSessionStack,
-        stub: GatewayServiceStub,
+        stub: TalonV1TestClient,
         namespace: str,
         agent: str,
         session_id: str,
@@ -844,7 +842,7 @@ def test_provider_started_worker_kill_restart_redelivery_is_non_polluting(
     mock_llm_server: Any,
 ) -> None:
     infra: DurableSessionStack = talon_infrastructure_sqlite
-    stub = GatewayServiceStub(gateway_channel_sqlite)
+    stub = TalonV1TestClient(gateway_channel_sqlite)
     namespace = f"durable-stress-{uuid.uuid4().hex[:8]}"
     agent = "stress-agent"
     create_agent(stub, namespace, agent)
@@ -944,7 +942,7 @@ def test_tool_call_recorded_worker_kill_restart_recovers_from_journal(
     mock_llm_server: Any,
 ) -> None:
     infra: DurableSessionStack = talon_infrastructure_sqlite
-    stub = GatewayServiceStub(gateway_channel_sqlite)
+    stub = TalonV1TestClient(gateway_channel_sqlite)
     namespace = f"durable-tool-recovery-{uuid.uuid4().hex[:8]}"
     agent = "stress-agent"
     infra.kv.seed_blocking_mcp_server()
@@ -1055,7 +1053,7 @@ def test_tool_result_recorded_worker_kill_restart_does_not_duplicate_message_par
     mock_llm_server: Any,
 ) -> None:
     infra: DurableSessionStack = talon_infrastructure_sqlite
-    stub = GatewayServiceStub(gateway_channel_sqlite)
+    stub = TalonV1TestClient(gateway_channel_sqlite)
     namespace = f"durable-tool-result-recovery-{uuid.uuid4().hex[:8]}"
     agent = "stress-agent"
     infra.kv.seed_blocking_mcp_server()

@@ -3,7 +3,7 @@ title: Build a ChatGPT-Style App
 sidebar_position: 3
 ---
 
-This tutorial uses the repository’s example assets plus the browser session API to build a real product-docs chat app.
+This tutorial uses the repository’s example assets plus Talon’s gRPC-Web client path to build a real product-docs chat app.
 
 ## What you are building
 
@@ -12,7 +12,7 @@ You will create:
 - a dedicated `chatgpt-app` namespace
 - a `support-docs-agent` agent backed by a real provider from `.env`
 - namespace knowledge loaded from markdown files
-- a browser client that talks to Talon’s UI session API
+- a browser client that talks to Talon’s `talon.v1` gRPC-Web API
 
 The point is to use Talon as the chat backend, not just as a prompt store.
 
@@ -43,16 +43,16 @@ From the repository root:
 docker compose up --build -d
 ```
 
-Open Sightline at `http://localhost:3000` and connect it to `http://localhost:18789`.
+Open Sightline at `http://localhost:3000` and connect it to `http://localhost:50051`.
 
 ## 2. Apply the app resources
 
 Apply the example manifests one by one:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/chatgpt-app/namespace.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/chatgpt-app/support-docs-template.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/chatgpt-app/support-docs-agent.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/chatgpt-app/namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/chatgpt-app/support-docs-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/chatgpt-app/support-docs-agent.yaml
 ```
 
 ## 3. Load the product docs as knowledge
@@ -60,7 +60,7 @@ cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests
 Sync the tutorial knowledge into the namespace:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 knowledge sync \
+cargo run --bin talon-cli -- --gateway http://localhost:50051 knowledge sync \
   --namespace chatgpt-app \
   --dir manifests/examples/chatgpt-app/knowledge
 ```
@@ -68,52 +68,45 @@ cargo run --bin talon-cli -- --gateway http://localhost:18789 knowledge sync \
 Verify one document loaded:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 knowledge get \
+cargo run --bin talon-cli -- --gateway http://localhost:50051 knowledge get \
   --namespace chatgpt-app \
   --path product-docs.md
 ```
 
-## 4. Create a session
+## 4. Try the agent from the CLI
 
 ```bash
-curl -sS http://localhost:18789/v1/ns/chatgpt-app/agents/support-docs-agent/sessions \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"ns":"chatgpt-app","agent":"support-docs-agent"}'
+cargo run --bin talon-cli -- --gateway http://localhost:50051 session prompt \
+  --namespace chatgpt-app \
+  --agent support-docs-agent \
+  --stream \
+  "Summarize the product docs in three bullets."
 ```
 
-Copy the returned `sessionId`.
+This creates a durable session and streams the assistant reply over gRPC.
 
-## 5. Send a browser-style chat request
-
-Replace `<session-id>`:
-
-```bash
-curl -sS http://localhost:18789/v1/ui/ns/chatgpt-app/agents/support-docs-agent/sessions/<session-id> \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"messages":[{"content":"Summarize the product docs in three bullets."}]}'
-```
-
-This is the same route a frontend would call.
-
-## 6. Wire a React client
+## 5. Wire a React client
 
 The fastest frontend path is the shared copilot component:
 
 ```tsx
 import { TalonCopilot } from "@impalasys/talon-chat";
+import { createTalonClient } from "@impalasys/talon-client";
+
+const talon = createTalonClient({ baseUrl: "http://localhost:50051" });
 
 export function SupportApp() {
   return (
     <TalonCopilot
       namespace="chatgpt-app"
       agent="support-docs-agent"
-      gatewayUrl="http://localhost:18789"
+      gatewayClient={talon}
     />
   );
 }
 ```
+
+`TalonCopilot` expects a Talon clientset-compatible gateway and uses `SessionService.SubmitTurn`, `StreamParts`, and `ListMessages` under the hood.
 
 See `packages/talon-chat/README.md` for the minimal integration shape.
 
@@ -132,7 +125,7 @@ This is the fastest way to debug whether the browser app and the control plane a
 
 - the manifest files are valid `talon-cli apply` inputs
 - the knowledge sync command is real
-- the browser chat route is the real gateway UI surface
+- the browser chat path uses the real gRPC-Web gateway
 - the manifests point at a real OpenAI provider already wired through `talon.docker-compose.yaml`
 
 ## What is intentionally not included

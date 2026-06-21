@@ -6,10 +6,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/impalasys/talon/sdk/go/talon-client/talon/gateway"
+	talonclient "github.com/impalasys/talon/sdk/go/talon-client"
+	talonv1 "github.com/impalasys/talon/sdk/go/talon-client/talon/v1"
 	talonserver "github.com/impalasys/talon/sdk/go/talon-server"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -26,21 +25,19 @@ func main() {
 		}
 	}()
 
-	conn, err := grpc.NewClient(server.GrpcEndpoint(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	client, err := talonclient.Connect(ctx, server.GrpcEndpoint())
 	if err != nil {
 		log.Fatalf("connect to Talon gateway: %v", err)
 	}
-	defer conn.Close()
+	defer client.Close()
 
-	client := gateway.NewGatewayServiceClient(conn)
-	if _, err := client.CreateNamespace(ctx, &gateway.CreateNamespaceRequest{Name: "example-app"}); err != nil {
+	if _, err := client.Namespaces().Create(ctx, &talonv1.CreateNamespaceRequest{Name: "example-app"}); err != nil {
 		log.Fatalf("create namespace: %v", err)
 	}
 
-	resp, err := client.ListNamespaces(ctx, &gateway.ListNamespacesRequest{})
+	resp, err := client.Namespaces().List(ctx, &talonv1.ListNamespacesRequest{})
 	if err != nil {
 		log.Fatalf("list namespaces: %v", err)
 	}
 	fmt.Printf("Talon is running at %s with %d namespace(s)\n", server.GrpcEndpoint(), len(resp.GetNamespaces()))
 }
-

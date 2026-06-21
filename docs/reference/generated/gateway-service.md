@@ -1,234 +1,202 @@
 ---
-title: Gateway Service
+title: Talon v1 Services
 sidebar_position: 2
 ---
 
-The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contract for both gRPC and the REST-transcoded HTTP surface exposed through the gateway and Envoy.
+The Talon gateway API is defined in `proto/talon/v1/api.proto`. It is the canonical first-class gRPC and gRPC-Web contract exposed directly by the gateway.
 
 ## Surface summary
 
-- Service: `talon.gateway.GatewayService`
-- Transport modes: gRPC, gRPC-web, REST via `google.api.http` annotations, and the browser-oriented `/v1/ui/... ` stream path documented separately in the hand-written guides
-- Total RPC methods: **32**
+- Package: `talon.v1`
+- Services: `NamespaceService`, `ResourceService`, `SessionService`, `ChannelService`, `WorkflowService`, `KnowledgeService`, `AuthService`
+- Transport modes: native gRPC and gRPC-Web on the gateway port
+- Total RPC methods: **35**
 
-## Knowledge
+## NamespaceService
 
-### `GetKnowledge`
+### `Create`
 
-Agent knowledge data-plane queries
+- Request: `CreateNamespaceRequest`
+- Response: `NamespaceResponse`
 
-- Request: `GetKnowledgeRequest`
-- Response: `KnowledgeResponse`
-- REST mapping: `GET /v1/ns/{ns}/agents/{agent}/knowledge`
+### `Get`
 
-### `SearchKnowledge`
+- Request: `GetNamespaceRequest`
+- Response: `NamespaceResponse`
 
-- Request: `SearchKnowledgeRequest`
-- Response: `SearchKnowledgeResponse`
-- REST mapping: `POST /v1/ns/{ns}/agents/{agent}/knowledge/search`
-- REST body: `*`
+### `Delete`
 
-## Sessions
+- Request: `DeleteNamespaceRequest`
+- Response: `NamespaceResponse`
 
-### `CreateSession`
+### `List`
+
+- Request: `ListNamespacesRequest`
+- Response: `ListNamespacesResponse`
+
+## ResourceService
+
+### `Create`
+
+- Request: `CreateResourceRequest`
+- Response: `ResourceResponse`
+
+### `Get`
+
+- Request: `GetResourceRequest`
+- Response: `ResourceResponse`
+
+### `List`
+
+- Request: `ListResourcesRequest`
+- Response: `ListResourcesResponse`
+
+### `Delete`
+
+- Request: `DeleteResourceRequest`
+- Response: `DeleteResourceResponse`
+
+## SessionService
+
+### `Create`
 
 - Request: `CreateSessionRequest`
 - Response: `SessionResponse`
-- REST mapping: `POST /v1/ns/{ns}/agents/{agent}/sessions`
-- REST body: `*`
 
-### `GetSession`
+### `Get`
 
 - Request: `GetSessionRequest`
 - Response: `SessionResponse`
-- REST mapping: `GET /v1/ns/{ns}/agents/{agent}/sessions/{session_id}`
 
-### `ListSessionMessages`
-
-- Request: `ListSessionMessagesRequest`
-- Response: `ListSessionMessagesResponse`
-- REST mapping: `GET /v1/ns/{ns}/agents/{agent}/sessions/{session_id}/messages`
-
-### `ListSessions`
+### `List`
 
 - Request: `ListSessionsRequest`
 - Response: `ListSessionsResponse`
-- REST mapping: `GET /v1/ns/{ns}/agents/{agent}/sessions`
 
-### `DeleteSession`
+### `ListMessages`
+
+- Request: `ListSessionMessagesRequest`
+- Response: `ListSessionMessagesResponse`
+
+### `Delete`
 
 - Request: `DeleteSessionRequest`
 - Response: `DeleteSessionResponse`
-- REST mapping: `DELETE /v1/ns/{ns}/agents/{agent}/sessions/{session_id}`
 
-### `ClearSession`
+### `Clear`
 
 - Request: `ClearSessionRequest`
 - Response: `ClearSessionResponse`
-- REST mapping: `POST /v1/ns/{ns}/agents/{agent}/sessions/{session_id}:clear`
-- REST body: `*`
 
 ### `SendMessage`
 
 - Request: `SendMessageRequest`
 - Response: `SendMessageResponse`
-- REST mapping: `POST /v1/ns/{ns}/agents/{agent}/sessions/{session_id}/message`
-- REST body: `*`
 
-### `AppendSessionMessage`
+### `AppendMessage`
 
 - Request: `AppendSessionMessageRequest`
 - Response: `AppendSessionMessageResponse`
-- REST mapping: `POST /v1/ns/{ns}/agents/{agent}/sessions/{session_id}/messages:append`
-- REST body: `*`
 
-### `AnswerSessionPermission`
+### `AnswerPermission`
 
 - Request: `AnswerSessionPermissionRequest`
 - Response: `AnswerSessionPermissionResponse`
-- REST mapping: `POST /v1/ns/{ns}/agents/{agent}/sessions/{session_id}/permissions/{request_id}:answer`
-- REST body: `*`
 
-### `StopSessionGeneration`
+### `StopGeneration`
 
 - Request: `StopSessionGenerationRequest`
 - Response: `StopSessionGenerationResponse`
-- REST mapping: `POST /v1/ns/{ns}/agents/{agent}/sessions/{session_id}:stop`
-- REST body: `*`
 
-### `StreamSessionParts`
+### `StreamParts`
 
 - Request: `StreamSessionPartsRequest`
 - Response: `talon.events.SessionMessagePartEvent` (server stream)
-- REST mapping: `GET /v1/ns/{ns}/agents/{agent}/sessions/{session_id}/stream`
 
-## Namespaces
-
-### `CreateNamespace`
-
-- Request: `CreateNamespaceRequest`
-- Response: `NamespaceResponse`
-- REST mapping: `POST /v1/namespaces/{name}`
-- REST body: `*`
-
-### `GetNamespace`
-
-- Request: `GetNamespaceRequest`
-- Response: `NamespaceResponse`
-- REST mapping: `GET /v1/namespaces/{name}`
-
-### `DeleteNamespace`
-
-- Request: `DeleteNamespaceRequest`
-- Response: `NamespaceResponse`
-- REST mapping: `DELETE /v1/namespaces/{name}`
-
-### `ListNamespaces`
-
-- Request: `ListNamespacesRequest`
-- Response: `ListNamespacesResponse`
-- REST mapping: `GET /v1/namespaces`
-
-## Other
-
-### `StreamSessionPartsBatch`
+### `StreamPartsBatch`
 
 - Request: `StreamSessionPartsBatchRequest`
 - Response: `talon.events.SessionMessagePartEvent` (server stream)
-- REST mapping: `POST /v1/session-streams:batch`
-- REST body: `*`
 
-### `PostChannelMessage`
+### `SubmitTurn`
 
-Channel data-plane actions
+- Request: `SubmitSessionTurnRequest`
+- Response: `talon.events.SessionMessagePartEvent` (server stream)
+
+## ChannelService
+
+### `PostMessage`
 
 - Request: `PostChannelMessageRequest`
 - Response: `PostChannelMessageResponse`
-- REST mapping: `POST /v1/ns/{ns}/channels/{channel}/messages`
-- REST body: `*`
 
-### `GetChannelMessage`
+### `GetMessage`
 
 - Request: `GetChannelMessageRequest`
 - Response: `ChannelMessageResponse`
-- REST mapping: `GET /v1/ns/{ns}/channels/{channel}/messages/{message_id}`
 
-### `ListChannelMessages`
+### `ListMessages`
 
 - Request: `ListChannelMessagesRequest`
 - Response: `ListChannelMessagesResponse`
-- REST mapping: `GET /v1/ns/{ns}/channels/{channel}/messages`
 
-### `StreamChannelEvents`
+### `StreamEvents`
 
 - Request: `StreamChannelEventsRequest`
 - Response: `talon.events.ChannelEvent` (server stream)
-- REST mapping: `GET /v1/ns/{ns}/channels/{channel}/stream`
 
-### `CreateWorkflowRun`
+## WorkflowService
 
-Workflow data-plane actions
+### `CreateRun`
 
 - Request: `CreateWorkflowRunRequest`
 - Response: `WorkflowRunResponse`
-- REST mapping: `POST /v1/ns/{ns}/workflows/{workflow}/runs`
-- REST body: `*`
 
-### `GetWorkflowRun`
+### `GetRun`
 
 - Request: `GetWorkflowRunRequest`
 - Response: `WorkflowRunResponse`
-- REST mapping: `GET /v1/ns/{ns}/workflows/{workflow}/runs/{run_id}`
 
-### `ListWorkflowRuns`
+### `ListRuns`
 
 - Request: `ListWorkflowRunsRequest`
 - Response: `ListWorkflowRunsResponse`
-- REST mapping: `GET /v1/ns/{ns}/workflows/{workflow}/runs`
 
-### `ResumeWorkflowRun`
+### `ResumeRun`
 
 - Request: `ResumeWorkflowRunRequest`
 - Response: `WorkflowRunResponse`
-- REST mapping: `POST /v1/ns/{ns}/workflows/{workflow}/runs/{run_id}:resume`
-- REST body: `*`
 
-### `CancelWorkflowRun`
+### `CancelRun`
 
 - Request: `CancelWorkflowRunRequest`
 - Response: `WorkflowRunResponse`
-- REST mapping: `POST /v1/ns/{ns}/workflows/{workflow}/runs/{run_id}:cancel`
-- REST body: `*`
 
-### `StreamWorkflowEvents`
+### `StreamEvents`
 
 - Request: `StreamWorkflowEventsRequest`
 - Response: `talon.data.WorkflowRunEvent` (server stream)
-- REST mapping: `GET /v1/ns/{ns}/workflows/{workflow}/runs/{run_id}/stream`
 
-### `CreateResource`
+## KnowledgeService
 
-Generic resources
+### `Get`
 
-- Request: `CreateResourceRequest`
-- Response: `ResourceResponse`
-- REST mapping: `POST /v1/ns/{ns}/resources`
-- REST body: `*`
+- Request: `GetKnowledgeRequest`
+- Response: `KnowledgeResponse`
 
-### `GetResource`
+### `Search`
 
-- Request: `GetResourceRequest`
-- Response: `ResourceResponse`
-- REST mapping: `GET /v1/ns/{ns}/resources/{kind}/{name}`
+- Request: `SearchKnowledgeRequest`
+- Response: `SearchKnowledgeResponse`
 
-### `ListResources`
+## AuthService
 
-- Request: `ListResourcesRequest`
-- Response: `ListResourcesResponse`
-- REST mapping: `GET /v1/ns/{ns}/resources`
+### `GetSsoConfig`
 
-### `DeleteResource`
+- Request: `GetSsoConfigRequest`
+- Response: `GetSsoConfigResponse`
 
-- Request: `DeleteResourceRequest`
-- Response: `DeleteResourceResponse`
-- REST mapping: `DELETE /v1/ns/{ns}/resources/{kind}/{name}`
+### `ExchangeOidcToken`
+
+- Request: `ExchangeOidcTokenRequest`
+- Response: `ExchangeOidcTokenResponse`

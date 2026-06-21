@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/impalasys/talon/sdk/go/talon-client/talon/gateway"
+	talonv1 "github.com/impalasys/talon/sdk/go/talon-client/talon/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -38,20 +38,26 @@ type GatewayClientOptions struct {
 
 type GatewayClientOption func(*GatewayClientOptions)
 
-type TalonGatewayClient struct {
-	gateway.GatewayServiceClient
-	close func() error
+type Clientset struct {
+	namespaces talonv1.NamespaceServiceClient
+	resources  talonv1.ResourceServiceClient
+	sessions   talonv1.SessionServiceClient
+	channels   talonv1.ChannelServiceClient
+	workflows  talonv1.WorkflowServiceClient
+	knowledge  talonv1.KnowledgeServiceClient
+	auth       talonv1.AuthServiceClient
+	close      func() error
 }
 
-func Connect(ctx context.Context, endpoint string) (*TalonGatewayClient, error) {
-	return ConnectWithOptions(ctx, endpoint)
+func Connect(ctx context.Context, endpoint string, options ...GatewayClientOption) (*Clientset, error) {
+	return ConnectWithOptions(ctx, endpoint, options...)
 }
 
-func ConnectGRPCWeb(ctx context.Context, endpoint string) (*TalonGatewayClient, error) {
-	return ConnectWithOptions(ctx, endpoint, WithGRPCWeb())
+func ConnectGRPCWeb(ctx context.Context, endpoint string, options ...GatewayClientOption) (*Clientset, error) {
+	return ConnectWithOptions(ctx, endpoint, append(options, WithGRPCWeb())...)
 }
 
-func ConnectWithOptions(ctx context.Context, endpoint string, options ...GatewayClientOption) (*TalonGatewayClient, error) {
+func ConnectWithOptions(ctx context.Context, endpoint string, options ...GatewayClientOption) (*Clientset, error) {
 	opts := GatewayClientOptions{Endpoint: endpoint}
 	for _, option := range options {
 		if option != nil {
@@ -59,7 +65,7 @@ func ConnectWithOptions(ctx context.Context, endpoint string, options ...Gateway
 		}
 	}
 	if strings.TrimSpace(opts.Endpoint) == "" {
-		return nil, errors.New("talon gateway endpoint is required")
+		return nil, errors.New("talon endpoint is required")
 	}
 	opts = opts.withDefaults()
 	switch opts.Transport {
@@ -68,7 +74,7 @@ func ConnectWithOptions(ctx context.Context, endpoint string, options ...Gateway
 	case GatewayTransportGRPCWeb:
 		return connectGRPCWeb(opts)
 	default:
-		return nil, errors.New("unsupported talon gateway transport: " + string(opts.Transport))
+		return nil, errors.New("unsupported talon transport: " + string(opts.Transport))
 	}
 }
 
@@ -114,7 +120,35 @@ func WithDialOptions(dialOptions ...grpc.DialOption) GatewayClientOption {
 	}
 }
 
-func (c *TalonGatewayClient) Close() error {
+func (c *Clientset) Namespaces() talonv1.NamespaceServiceClient {
+	return c.namespaces
+}
+
+func (c *Clientset) Resources() talonv1.ResourceServiceClient {
+	return c.resources
+}
+
+func (c *Clientset) Sessions() talonv1.SessionServiceClient {
+	return c.sessions
+}
+
+func (c *Clientset) Channels() talonv1.ChannelServiceClient {
+	return c.channels
+}
+
+func (c *Clientset) Workflows() talonv1.WorkflowServiceClient {
+	return c.workflows
+}
+
+func (c *Clientset) Knowledge() talonv1.KnowledgeServiceClient {
+	return c.knowledge
+}
+
+func (c *Clientset) Auth() talonv1.AuthServiceClient {
+	return c.auth
+}
+
+func (c *Clientset) Close() error {
 	if c == nil || c.close == nil {
 		return nil
 	}
@@ -134,7 +168,7 @@ func (opts GatewayClientOptions) withDefaults() GatewayClientOptions {
 	return opts
 }
 
-func connectNative(ctx context.Context, opts GatewayClientOptions) (*TalonGatewayClient, error) {
+func connectNative(ctx context.Context, opts GatewayClientOptions) (*Clientset, error) {
 	target, secure := nativeTarget(opts.Endpoint)
 	dialOptions := make([]grpc.DialOption, 0, len(opts.DialOptions)+3)
 	if secure {
@@ -162,21 +196,28 @@ func connectNative(ctx context.Context, opts GatewayClientOptions) (*TalonGatewa
 	if err != nil {
 		return nil, err
 	}
-	return &TalonGatewayClient{
-		GatewayServiceClient: gateway.NewGatewayServiceClient(conn),
-		close:                conn.Close,
-	}, nil
+	return newClientset(conn, conn.Close), nil
 }
 
-func connectGRPCWeb(opts GatewayClientOptions) (*TalonGatewayClient, error) {
+func connectGRPCWeb(opts GatewayClientOptions) (*Clientset, error) {
 	conn, err := newGRPCWebConn(opts)
 	if err != nil {
 		return nil, err
 	}
-	return &TalonGatewayClient{
-		GatewayServiceClient: gateway.NewGatewayServiceClient(conn),
-		close:                conn.Close,
-	}, nil
+	return newClientset(conn, conn.Close), nil
+}
+
+func newClientset(conn grpc.ClientConnInterface, close func() error) *Clientset {
+	return &Clientset{
+		namespaces: talonv1.NewNamespaceServiceClient(conn),
+		resources:  talonv1.NewResourceServiceClient(conn),
+		sessions:   talonv1.NewSessionServiceClient(conn),
+		channels:   talonv1.NewChannelServiceClient(conn),
+		workflows:  talonv1.NewWorkflowServiceClient(conn),
+		knowledge:  talonv1.NewKnowledgeServiceClient(conn),
+		auth:       talonv1.NewAuthServiceClient(conn),
+		close:      close,
+	}
 }
 
 func nativeTarget(endpoint string) (target string, secure bool) {

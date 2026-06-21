@@ -12,7 +12,7 @@ use crate::cli::{connect_gateway, to_internal_resource, to_sdk_resource_manifest
 use crate::control::resource_model;
 use crate::gateway::rpc::manifests::{Knowledge, KnowledgeSpec, ObjectMeta};
 use crate::gateway::rpc::resources_proto;
-use talon_client::gateway::{
+use talon_client::v1::{
     CreateResourceRequest, DeleteResourceRequest, GetResourceRequest, ListResourcesRequest,
 };
 

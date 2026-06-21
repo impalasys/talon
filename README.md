@@ -6,11 +6,11 @@ Talon gives you the infrastructure long-lived agents were missing: a gateway API
 
 ## What ships in this repo
 
-- `talon-server`: gateway process exposing the canonical gRPC API plus the browser-oriented UI HTTP surface
+- `talon-server`: gateway process exposing the canonical gRPC and gRPC-Web API
 - `talon-worker`: worker runtime that consumes dispatch events and executes agent turns
 - `talon-cli`: admin CLI for applying manifests, inspecting resources, and managing knowledge
 - `ui/`: Next.js operator UI
-- `proto/`: gateway, config, manifest, event, and model contracts
+- `proto/`: versioned API, config, manifest, event, and model contracts
 - `manifests/`: default resources plus end-to-end examples
 - `docs/`: concepts, tutorials, operations guides, and generated API reference
 
@@ -21,7 +21,7 @@ Talon is split into a few explicit roles:
 - Gateway: accepts API calls, persists session state, and publishes work
 - Worker: consumes work, resolves models and tools, executes turns, and emits step events
 - Control plane: persistence, broker, and scheduler backing services
-- Edge/UI: Envoy plus Sightline, the browser-native fleet view for operators
+- UI: Sightline, the browser-native fleet view for operators
 
 The important product behavior is durability. Threads survive crashes, deploys, and cold starts; schedules wake named agent workflows back up; and specs stay declarative as you iterate on prompts, tools, and policies.
 
@@ -36,7 +36,7 @@ ui/                   Next.js operator UI
 packages/talon-chat/ React client package for Talon-backed chat surfaces
 proto/                Protobuf service and schema definitions
 manifests/            Default and example namespace/agent resources
-dockerfiles/          Runtime, UI, and Envoy container builds
+dockerfiles/          Runtime and UI container builds
 docs/                 Product and operator documentation
 tests/                Python end-to-end tests
 ```
@@ -100,7 +100,6 @@ This starts:
 - worker
 - Postgres
 - Pub/Sub emulator
-- Envoy
 - Sightline UI
 - a local object store volume for multimodal session assets
 - a manifest bootstrap step that applies `manifests/default_agent.yaml`
@@ -108,18 +107,16 @@ This starts:
 Useful local endpoints:
 
 - UI: `http://localhost:3000`
-- Envoy edge: `http://localhost:18789`
-- native gRPC gateway: `http://localhost:50051`
-- gateway UI HTTP surface: `http://localhost:50052`
+- gateway gRPC and gRPC-Web: `http://localhost:50051`
 
 The convenience wrapper in [`run.sh`](./run.sh) does the same startup and also loads provider keys from the macOS keychain when present.
 
 ### Apply a namespace and agent
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/chatgpt-app/namespace.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/chatgpt-app/support-docs-template.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/chatgpt-app/support-docs-agent.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/chatgpt-app/namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/chatgpt-app/support-docs-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/chatgpt-app/support-docs-agent.yaml
 ```
 
 This is the core Talon loop in practice:
@@ -130,16 +127,17 @@ This is the core Talon loop in practice:
 - wake work on schedule
 - reuse knowledge across agents
 
-### Send a browser-style session request
+### Send a streamed session prompt
 
 ```bash
-curl -sS http://localhost:18789/v1/ns/chatgpt-app/agents/support-docs/sessions \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"ns":"chatgpt-app","agent":"support-docs"}'
+cargo run --bin talon-cli -- --gateway http://localhost:50051 session prompt \
+  --namespace chatgpt-app \
+  --agent support-docs \
+  --stream \
+  "Summarize the support docs in three bullets."
 ```
 
-Use the returned `sessionId` against `/v1/ui/...` to drive a session, or inspect it in the UI.
+Inspect the durable session and streamed reply in Sightline.
 
 ## Running without Docker
 
@@ -147,14 +145,14 @@ For single-host development, Talon can run with:
 
 - SQLite for control-plane storage
 - `local_socket` for broker transport
-- host-native Envoy for the browser edge
+- direct gRPC/gRPC-Web gateway access on `50051`
 
 See [`docs/wiki/local-single-host-development.md`](./docs/wiki/local-single-host-development.md) for the full workflow. The short version is:
 
 1. build `talon-server`, `talon-worker`, and `talon-cli`
 2. point `TALON_CONFIG_PATH` at a config using `sqlite` and `local_socket`
 3. run the gateway and worker as local processes
-4. front them with Envoy for UI compatibility
+4. point Sightline and SDK clients at `http://localhost:50051`
 
 ## Configuration
 
@@ -172,7 +170,6 @@ Common environment variables used by the runtime:
 - `POSTGRES_URL`
 - `GCP_PROJECT_ID`
 - `GRPC_ADDR`
-- `GATEWAY_UI_ADDR`
 - `PORT`
 - `PULL_MODE`
 - `TALON_SCHEDULER_DRIVER`
@@ -194,8 +191,8 @@ Common environment variables used by the runtime:
 Examples:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 get agent support-docs --namespace chatgpt-app
-cargo run --bin talon-cli -- --gateway http://localhost:18789 knowledge sync --namespace chatgpt-app --manifest manifests/examples/chatgpt-app/support-docs-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 get agent support-docs --namespace chatgpt-app
+cargo run --bin talon-cli -- --gateway http://localhost:50051 knowledge sync --namespace chatgpt-app --manifest manifests/examples/chatgpt-app/support-docs-template.yaml
 ```
 
 ## Development
@@ -223,18 +220,11 @@ docker build -f dockerfiles/oss-runtime.Dockerfile .
 docker build -f dockerfiles/oss-ui.Dockerfile .
 ```
 
-To validate the Envoy image:
-
-```bash
-docker build -f dockerfiles/envoy.Dockerfile .
-```
-
 ## CI artifacts
 
-GitHub CI validates Cargo, runtime image, Envoy image, and UI builds. On pushes to `main`, CI publishes Docker images to GHCR:
+GitHub CI validates Cargo, runtime image, and UI builds. On pushes to `main`, CI publishes Docker images to GHCR:
 
 - `ghcr.io/impalasys/talon-runtime:latest`
-- `ghcr.io/impalasys/talon-envoy:latest`
 - `ghcr.io/impalasys/talon-ui:latest`
 
 Each image is also tagged as `sha-<commit>` for immutable references from downstream projects.

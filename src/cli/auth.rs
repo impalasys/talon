@@ -9,7 +9,8 @@ use sha2::{Digest, Sha256};
 use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::path::PathBuf;
-use talon_client::{GatewayClientOptions, GatewayTransport, TalonGatewayClient};
+use talon_client::v1::ExchangeOidcTokenRequest;
+use talon_client::{GatewayClientOptions, GatewayTransport, TalonClient};
 use url::Url;
 
 use crate::gateway::auth::Claims;
@@ -40,19 +41,6 @@ pub(crate) struct StoredGatewayAuth {
     pub subject: String,
     pub email: Option<String>,
     pub trust: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct OidcExchangeResponse {
-    #[serde(alias = "accessToken")]
-    access_token: String,
-    #[serde(alias = "tokenType")]
-    token_type: String,
-    #[serde(alias = "expiresIn")]
-    expires_in: u64,
-    subject: String,
-    email: Option<String>,
-    trust: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -99,14 +87,11 @@ pub(crate) fn mint_gateway_jwt(secret: &str) -> Result<String> {
 }
 
 pub(crate) fn gateway_http_base(cli: &Cli) -> String {
-    if let Ok(url) = std::env::var("TALON_GATEWAY_HTTP_URL") {
+    if let Ok(url) = std::env::var("TALON_GATEWAY_URL") {
         let trimmed = url.trim();
         if !trimmed.is_empty() {
             return trimmed.trim_end_matches('/').to_string();
         }
-    }
-    if cli.gateway.ends_with(":50051") {
-        return format!("{}:50052", cli.gateway.trim_end_matches(":50051"));
     }
     cli.gateway.trim_end_matches('/').to_string()
 }
@@ -188,32 +173,28 @@ pub(crate) async fn exchange_oidc_id_token(
     client_type: &str,
 ) -> Result<StoredGatewayAuth> {
     let base = gateway_http_base(cli);
-    let url = format!("{base}/v1/oidc/exchange");
-    let mut body = serde_json::json!({
-        "idToken": id_token,
-        "clientType": client_type,
-    });
-    if let Some(trust) = trust.filter(|value| !value.trim().is_empty()) {
-        body["trust"] = serde_json::Value::String(trust.to_string());
-    }
-
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(20))
-        .build()
-        .context("Failed to build OIDC exchange HTTP client")?;
-    let response = client
-        .post(&url)
-        .json(&body)
-        .send()
+    let mut client = TalonClient::connect_with_options(GatewayClientOptions {
+        endpoint: base.clone(),
+        transport: GatewayTransport::Grpc,
+        authorization: None,
+        connect_timeout: Some(std::time::Duration::from_secs(5)),
+        request_timeout: Some(std::time::Duration::from_secs(20)),
+    })
         .await
-        .with_context(|| format!("Failed to call OIDC exchange endpoint {}", url))?;
-    let status = response.status();
-    let text = response.text().await.context("Failed to read OIDC exchange response")?;
-    if !status.is_success() {
-        anyhow::bail!("OIDC exchange failed: status={} body={}", status, text.trim());
-    }
-    let exchanged: OidcExchangeResponse =
-        serde_json::from_str(&text).context("Failed to parse OIDC exchange response")?;
+        .map_err(|err| anyhow::anyhow!("{err}"))
+        .context("Failed to connect to Talon AuthService")?;
+    let exchanged = client
+        .exchange_oidc_token(ExchangeOidcTokenRequest {
+            id_token: id_token.to_string(),
+            trust: trust
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .map(str::to_string),
+            client_type: Some(client_type.to_string()),
+        })
+        .await
+        .context("OIDC exchange failed")?
+        .into_inner();
     let expires_at = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs()
@@ -566,7 +547,7 @@ fn grpc_web_enabled(cli: &Cli) -> bool {
             .unwrap_or(false)
 }
 
-pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonGatewayClient> {
+pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
     let mut options = GatewayClientOptions::new(cli.gateway.clone());
     options.transport = if grpc_web_enabled(cli) {
         GatewayTransport::GrpcWeb
@@ -574,7 +555,7 @@ pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonGatewayClient> {
         GatewayTransport::Grpc
     };
     options.authorization = resolve_authorization_header(cli)?;
-    TalonGatewayClient::connect_with_options(options)
+    TalonClient::connect_with_options(options)
         .await
         .map_err(|err| anyhow::anyhow!("Could not connect to gateway at {}: {}", cli.gateway, err))
 }

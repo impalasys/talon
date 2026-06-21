@@ -3,8 +3,8 @@ package systems.impala.talon.examples;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import systems.impala.talon.server.TalonServer;
-import talon.gateway.Gateway;
-import talon.gateway.GatewayServiceGrpc;
+import talon.v1.Api;
+import talon.v1.NamespaceServiceGrpc;
 
 public final class App {
     private App() {}
@@ -16,15 +16,15 @@ public final class App {
                 .usePlaintext()
                 .build();
             try {
-                GatewayServiceGrpc.GatewayServiceBlockingStub client =
-                    GatewayServiceGrpc.newBlockingStub(channel);
+                NamespaceServiceGrpc.NamespaceServiceBlockingStub namespaces =
+                    NamespaceServiceGrpc.newBlockingStub(channel);
 
-                client.createNamespace(Gateway.CreateNamespaceRequest.newBuilder()
+                namespaces.create(Api.CreateNamespaceRequest.newBuilder()
                     .setName("example-app")
                     .build());
 
-                Gateway.ListNamespacesResponse response = client.listNamespaces(
-                    Gateway.ListNamespacesRequest.newBuilder().build());
+                Api.ListNamespacesResponse response = namespaces.list(
+                    Api.ListNamespacesRequest.newBuilder().build());
                 System.out.printf(
                     "Talon is running at %s with %d namespace(s)%n",
                     server.grpcEndpoint(),
@@ -35,4 +35,3 @@ public final class App {
         }
     }
 }
-

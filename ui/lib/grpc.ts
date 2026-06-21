@@ -1,6 +1,14 @@
 import { createClient, type Interceptor } from "@connectrpc/connect";
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
-import { GatewayService } from "../proto/proto/gateway_pb";
+import {
+  AuthService,
+  ChannelService,
+  KnowledgeService,
+  NamespaceService,
+  ResourceService,
+  SessionService,
+  WorkflowService,
+} from "../proto/proto/talon/v1/api_pb";
 
 export function normalizeGatewayUrl(url: string) {
   return url.trim().replace(/\/+$/, "");
@@ -38,18 +46,29 @@ const authInterceptor: Interceptor = (next) => async (req) => {
   return await next(req);
 };
 
-const createTransport = (url: string) => createGrpcWebTransport({ 
+const createTransport = (url: string) => createGrpcWebTransport({
   baseUrl: normalizeGatewayUrl(url),
   interceptors: [authInterceptor]
 });
 
-let currentClient = createClient(
-  GatewayService, 
-  createTransport(process.env.NEXT_PUBLIC_GATEWAY_URL || "https://envoy.talon.orb.local")
-);
+const createClientset = (url: string) => {
+  const transport = createTransport(url);
+  return {
+    namespaces: createClient(NamespaceService, transport),
+    resources: createClient(ResourceService, transport),
+    sessions: createClient(SessionService, transport),
+    channels: createClient(ChannelService, transport),
+    workflows: createClient(WorkflowService, transport),
+    knowledge: createClient(KnowledgeService, transport),
+    auth: createClient(AuthService, transport),
+  };
+};
 
+let currentClient = createClientset(process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:50051");
+
+export const getTalonClient = () => currentClient;
 export const getGatewayClient = () => currentClient;
 
 export const updateGatewayClient = (url: string) => {
-  currentClient = createClient(GatewayService, createTransport(url));
+  currentClient = createClientset(url);
 };

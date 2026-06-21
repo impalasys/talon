@@ -253,3 +253,87 @@ export async function streamUiSubmission(options: {
 
   return { assistantText };
 }
+
+export async function streamSessionPartEvents(options: {
+  events: AsyncIterable<any>;
+  setMessages: React.Dispatch<React.SetStateAction<CopilotMessage[]>>;
+  setStreamEvents: React.Dispatch<React.SetStateAction<StreamEventItem[]>>;
+  setError?: React.Dispatch<React.SetStateAction<Error | null>>;
+  signal?: AbortSignal;
+}) {
+  const { events, setMessages, setStreamEvents, setError, signal } = options;
+  let assistantText = "";
+  let assistantMessageId: string | null = null;
+
+  const ensureLiveAssistant = (messageId?: string) => {
+    const nextMessageId = messageId || assistantMessageId || createLocalMessageId();
+    const previousMessageId = assistantMessageId;
+    const idChanged = Boolean(previousMessageId && previousMessageId !== nextMessageId);
+    const isNew = !previousMessageId;
+    assistantMessageId = nextMessageId;
+    if (idChanged || isNew) {
+      setMessages((prev) => {
+        const reconciled =
+          previousMessageId && previousMessageId !== nextMessageId
+            ? reconcileAssistantMessageId(prev, previousMessageId, nextMessageId)
+            : prev;
+        return ensureAssistantMessage(reconciled, nextMessageId);
+      });
+    }
+    return nextMessageId;
+  };
+
+  for await (const event of events) {
+    if (signal?.aborted) break;
+    const kind = event?.kind;
+    if (kind === 3 || kind === "SESSION_MESSAGE_PART_EVENT_KIND_ERROR") {
+      const error = new Error(event?.part?.content || "Session stream error");
+      throw error;
+    }
+    if (kind === 2 || kind === "SESSION_MESSAGE_PART_EVENT_KIND_DONE") {
+      break;
+    }
+
+    const part = event?.part;
+    if (!part) continue;
+    const partType = part.partType ?? part.part_type;
+    const content = String(part.content ?? "");
+    const payload = parsePayload(part.payloadJson ?? part.payload_json);
+    const messageId = ensureLiveAssistant(event?.messageId ?? event?.message_id);
+
+    if (partType === 1 || partType === "SESSION_MESSAGE_PART_TYPE_TEXT") {
+      assistantText += content;
+      setMessages((prev) => appendAssistantText(prev, messageId, content));
+    } else if (partType === 2 || partType === "SESSION_MESSAGE_PART_TYPE_REASONING") {
+      setStreamEvents((prev) => [...prev, { type: "reasoning", content }]);
+      setMessages((prev) => appendAssistantReasoning(prev, messageId, content));
+    } else if (partType === 3 || partType === "SESSION_MESSAGE_PART_TYPE_TOOL_CALL") {
+      const toolCallId = typeof payload?.tool_call_id === "string" ? payload.tool_call_id : part.id || `tool-${createLocalMessageId()}`;
+      const toolName = typeof part.name === "string" && part.name ? part.name : "tool";
+      setStreamEvents((prev) => [...prev, { type: "tool_call", content: toolName, name: toolName, payload }]);
+      setMessages((prev) => applyToolInvocationToMessages(prev, toolCallId, toolName, payload?.input, undefined, messageId));
+    } else if (partType === 4 || partType === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT") {
+      const toolCallId = typeof payload?.tool_call_id === "string" ? payload.tool_call_id : part.id || `tool-${createLocalMessageId()}`;
+      setStreamEvents((prev) => [...prev, { type: "tool_result", content: toolCallId, payload }]);
+      setMessages((prev) => applyToolInvocationToMessages(prev, toolCallId, "", undefined, payload?.output ?? content, messageId));
+    } else if (partType === 5 || partType === "SESSION_MESSAGE_PART_TYPE_USAGE") {
+      const usage = payload && typeof payload === "object" ? payload as UsageSummary : {};
+      setStreamEvents((prev) => [...prev, { type: "usage", content: formatUsageSummary(usage), payload: usage }]);
+      setMessages((prev) => applyUsageToMessages(prev, messageId, usage));
+    } else if (partType === 6 || partType === "SESSION_MESSAGE_PART_TYPE_ERROR") {
+      const error = new Error(content || "Session stream error");
+      throw error;
+    }
+  }
+
+  return { assistantText };
+}
+
+function parsePayload(value: unknown): any {
+  if (typeof value !== "string" || !value) return undefined;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return undefined;
+  }
+}

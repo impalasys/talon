@@ -20,9 +20,7 @@ SESSION_DISPATCH_TOPIC = "talon.session.dispatch"
 RESOURCE_LIFECYCLE_TOPIC = "talon.resource.lifecycle"
 WORKFLOW_DISPATCH_TOPIC = "talon.workflow.dispatch"
 REPO_ROOT = Path(__file__).resolve().parents[1]
-ENVOY_PORT = int(os.environ.get("API_PORT", "18789"))
 GATEWAY_GRPC_PORT = int(os.environ.get("GRPC_PORT", "50051"))
-GATEWAY_UI_PORT = int(os.environ.get("GATEWAY_UI_PORT", "50052"))
 MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
 
 def binary_candidates(name):
@@ -68,130 +66,8 @@ def wait_for_port(host, port, timeout_seconds=30):
             time.sleep(1)
     raise RuntimeError(f"Timed out waiting for {host}:{port}")
 
-def write_envoy_artifacts(temp_dir: Path):
-    descriptor_path = temp_dir / "talon_gateway_proto-descriptor-set.e2e.bin"
-    subprocess.run(
-        [
-            "protoc",
-            "-I.",
-            "-Iproto",
-            "-Ithird_party/googleapis",
-            "--include_imports",
-            "--include_source_info",
-            "--experimental_allow_proto3_optional",
-            f"--descriptor_set_out={descriptor_path}",
-            "proto/gateway.proto",
-        ],
-        check=True,
-        cwd=REPO_ROOT,
-    )
-
-    envoy_config_path = temp_dir / "envoy.e2e.yaml"
-    envoy_config_path.write_text(
-        f"""static_resources:
-  listeners:
-  - name: listener_0
-    address:
-      socket_address: {{ address: 0.0.0.0, port_value: 8081 }}
-    filter_chains:
-    - filters:
-      - name: envoy.filters.network.http_connection_manager
-        typed_config:
-          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-          stat_prefix: ingress_http
-          codec_type: AUTO
-          route_config:
-            name: local_route
-            virtual_hosts:
-            - name: local_service
-              domains: ["*"]
-              routes:
-              - match: {{ prefix: "/v1/ui/" }}
-                route:
-                  cluster: talon_ui_http_service
-                  timeout: 0s
-              - match: {{ prefix: "/" }}
-                route:
-                  cluster: talon_grpc_service
-                  timeout: 60s
-              cors:
-                allow_origin_string_match:
-                - safe_regex:
-                    google_re2: {{}}
-                    regex: ".*"
-                allow_methods: GET, PUT, DELETE, POST, OPTIONS
-                allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout,authorization
-                max_age: "1728000"
-                expose_headers: grpc-status,grpc-message
-          http_filters:
-          - name: envoy.filters.http.grpc_web
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
-          - name: envoy.filters.http.cors
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
-          - name: envoy.filters.http.grpc_json_transcoder
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_json_transcoder.v3.GrpcJsonTranscoder
-              proto_descriptor: "/etc/envoy/talon_gateway_proto-descriptor-set.proto.bin"
-              services: ["talon.gateway.GatewayService"]
-              max_response_body_size: 33554432
-              print_options:
-                add_whitespace: true
-                always_print_primitive_fields: true
-                always_print_enums_as_ints: false
-                preserve_proto_field_names: false
-          - name: envoy.filters.http.router
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
-  clusters:
-  - name: talon_grpc_service
-    connect_timeout: 0.25s
-    type: LOGICAL_DNS
-    typed_extension_protocol_options:
-      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
-        "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
-        explicit_http_config:
-          http2_protocol_options: {{}}
-    lb_policy: ROUND_ROBIN
-    load_assignment:
-      cluster_name: talon_grpc_service
-      endpoints:
-      - lb_endpoints:
-        - endpoint:
-            address:
-              socket_address:
-                address: host.docker.internal
-                port_value: {GATEWAY_GRPC_PORT}
-  - name: talon_ui_http_service
-    connect_timeout: 0.25s
-    type: LOGICAL_DNS
-    lb_policy: ROUND_ROBIN
-    load_assignment:
-      cluster_name: talon_ui_http_service
-      endpoints:
-      - lb_endpoints:
-        - endpoint:
-            address:
-              socket_address:
-                address: host.docker.internal
-                port_value: {GATEWAY_UI_PORT}
-"""
-    )
-    return descriptor_path, envoy_config_path
-
 def stop_container(container_name):
     subprocess.run(["docker", "rm", "-f", container_name], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-def stop_stale_envoy_containers():
-    result = subprocess.run(
-        ["docker", "ps", "-aq", "--filter", "name=talon-e2e-envoy-"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    for container_id in result.stdout.split():
-        stop_container(container_id)
 
 def cleanup_temp_dir(temp_dir: Path):
     if temp_dir.exists():
@@ -235,7 +111,6 @@ def main():
     temp_dir = Path(tempfile.mkdtemp(prefix="talon-e2e-"))
     
     env["GRPC_ADDR"] = f"0.0.0.0:{GATEWAY_GRPC_PORT}"
-    env["GATEWAY_UI_ADDR"] = f"0.0.0.0:{GATEWAY_UI_PORT}"
     
     try:
         for topic, subscription in [
@@ -269,7 +144,7 @@ providers:
       key: NOVITA_API_KEY
 server:
   host: "0.0.0.0"
-  port: {ENVOY_PORT}
+  port: {GATEWAY_GRPC_PORT}
 control_plane:
   database:
     driver: postgres
@@ -283,53 +158,23 @@ control_plane:
 
     server_bin = get_binary_path("talon_server")
     worker_bin = get_binary_path("talon_worker")
-    descriptor_path, envoy_config_path = write_envoy_artifacts(temp_dir)
-    envoy_container_name = f"talon-e2e-envoy-{os.getpid()}"
 
     print("Starting Talon server and worker...")
     server_proc = subprocess.Popen([server_bin], env=env, stdout=sys.stdout, stderr=sys.stderr)
 
     try:
         wait_for_port("127.0.0.1", GATEWAY_GRPC_PORT)
-        wait_for_port("127.0.0.1", GATEWAY_UI_PORT)
     except Exception:
         server_proc.terminate()
         postgres.stop()
         pubsub.stop()
         cleanup_temp_dir(temp_dir)
-        raise RuntimeError(f"Talon server failed to start on ports {GATEWAY_GRPC_PORT}/{GATEWAY_UI_PORT}")
+        raise RuntimeError(f"Talon server failed to start on port {GATEWAY_GRPC_PORT}")
 
     time.sleep(3)
     env_worker = env.copy()
     env_worker["PULL_MODE"] = "1"
     worker_proc = subprocess.Popen([worker_bin], env=env_worker, stdout=sys.stdout, stderr=sys.stderr)
-
-    stop_stale_envoy_containers()
-    stop_container(envoy_container_name)
-    subprocess.run(
-        [
-            "docker",
-            "run",
-            "--rm",
-            "--detach",
-            "--name",
-            envoy_container_name,
-            "--add-host",
-            "host.docker.internal:host-gateway",
-            "--publish",
-            f"{ENVOY_PORT}:8081",
-            "--volume",
-            f"{envoy_config_path}:/etc/envoy/envoy.yaml:ro",
-            "--volume",
-            f"{descriptor_path}:/etc/envoy/talon_gateway_proto-descriptor-set.proto.bin:ro",
-            "envoyproxy/envoy:v1.33-latest",
-            "-c",
-            "/etc/envoy/envoy.yaml",
-        ],
-        check=True,
-        cwd=REPO_ROOT,
-    )
-    wait_for_port("127.0.0.1", ENVOY_PORT)
 
     print("--- E2E STACK READY ---")
 
@@ -351,7 +196,6 @@ control_plane:
         print("Shutting down...")
         server_proc.terminate()
         worker_proc.terminate()
-        stop_container(envoy_container_name)
         ready_server.shutdown()
         ready_server.server_close()
         postgres.stop()
@@ -367,7 +211,6 @@ control_plane:
     finally:
         ready_server.shutdown()
         ready_server.server_close()
-        stop_container(envoy_container_name)
         postgres.stop()
         pubsub.stop()
         cleanup_temp_dir(temp_dir)

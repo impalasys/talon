@@ -31,10 +31,10 @@ You will create:
 ## 1. Apply the example manifests
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/internal-ops-copilot/namespace.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/internal-ops-copilot/ops-copilot-template.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/internal-ops-copilot/ops-copilot.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/internal-ops-copilot/ops-tools.binding.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/internal-ops-copilot/namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/internal-ops-copilot/ops-copilot-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/internal-ops-copilot/ops-copilot.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/internal-ops-copilot/ops-tools.binding.yaml
 ```
 
 This creates:
@@ -47,7 +47,7 @@ This creates:
 ## 2. Load the runbook
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 knowledge sync \
+cargo run --bin talon-cli -- --gateway http://localhost:50051 knowledge sync \
   --namespace internal-ops \
   --dir manifests/examples/internal-ops-copilot/knowledge
 ```
@@ -55,7 +55,7 @@ cargo run --bin talon-cli -- --gateway http://localhost:18789 knowledge sync \
 ## 3. Verify the MCP binding
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 get mcpserverbinding ops-tools --namespace internal-ops
+cargo run --bin talon-cli -- --gateway http://localhost:50051 get mcpserverbinding ops-tools --namespace internal-ops
 ```
 
 The binding should point at `talon-ops` and allow only:
@@ -71,22 +71,14 @@ The binding should point at `talon-ops` and allow only:
 
 ## 4. Start an operator session
 
-Create a session:
+Create a session and ask an ops question:
 
 ```bash
-curl -sS http://localhost:18789/v1/ns/internal-ops/agents/ops-copilot/sessions \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"ns":"internal-ops","agent":"ops-copilot"}'
-```
-
-Then ask an ops question:
-
-```bash
-curl -sS http://localhost:18789/v1/ui/ns/internal-ops/agents/ops-copilot/sessions/<session-id> \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"messages":[{"content":"List the schedules in this namespace and summarize anything unusual."}]}'
+cargo run --bin talon-cli -- --gateway http://localhost:50051 session prompt \
+  --namespace internal-ops \
+  --agent ops-copilot \
+  --stream \
+  "List the schedules in this namespace and summarize anything unusual."
 ```
 
 ## 5. Inspect tool use in Sightline

@@ -1,18 +1,12 @@
-import { createPromiseClient } from "@connectrpc/connect";
-import { createGrpcTransport } from "@connectrpc/connect-node";
-import { gateway, gatewayConnect } from "@impalasys/talon-client";
+import { createTalonClient, v1 } from "@impalasys/talon-client";
 import { start } from "@impalasys/talon-server";
 
 const server = await start();
 try {
-  const transport = createGrpcTransport({
-    baseUrl: `http://${server.grpcEndpoint}`,
-    httpVersion: "2",
-  });
-  const client = createPromiseClient(gatewayConnect.GatewayService, transport);
+  const client = createTalonClient({ baseUrl: `http://${server.grpcEndpoint}` });
 
-  await client.createNamespace(new gateway.CreateNamespaceRequest({ name: "example-app" }));
-  const response = await client.listNamespaces(new gateway.ListNamespacesRequest());
+  await client.namespaces.create(new v1.CreateNamespaceRequest({ name: "example-app" }));
+  const response = await client.namespaces.list(new v1.ListNamespacesRequest());
 
   console.log(`Talon is running at ${server.grpcEndpoint} with ${response.namespaces.length} namespace(s)`);
 } finally {

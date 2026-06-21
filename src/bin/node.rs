@@ -24,11 +24,8 @@ use tracing::Instrument;
 #[global_allocator]
 static GLOBAL_ALLOCATOR: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
-fn gateway_addresses() -> (String, String) {
-    (
-        std::env::var("GRPC_ADDR").unwrap_or_else(|_| "0.0.0.0:50051".to_string()),
-        std::env::var("GATEWAY_UI_ADDR").unwrap_or_else(|_| "0.0.0.0:50052".to_string()),
-    )
+fn gateway_addr() -> String {
+    std::env::var("GRPC_ADDR").unwrap_or_else(|_| "0.0.0.0:50051".to_string())
 }
 
 fn select_auth_config() -> AuthConfig {
@@ -167,56 +164,23 @@ async fn run() -> Result<()> {
         Arc::clone(&cp.scheduler),
         Arc::clone(&cp.objects),
     );
-    let (rpc_addr, ui_addr) = gateway_addresses();
-    let rpc_gateway = gateway.clone();
-    let ui_gateway = gateway;
+    let rpc_addr = gateway_addr();
     let mut rpc_task = tokio::spawn({
         let shutdown = shutdown.child_token();
         async move {
-            rpc_gateway
+            gateway
                 .start_rpc_server_with_shutdown(&rpc_addr, shutdown.cancelled_owned())
-                .await
-        }
-    });
-    let mut ui_task = tokio::spawn({
-        let shutdown = shutdown.child_token();
-        async move {
-            ui_gateway
-                .start_http_ui_server_with_shutdown(&ui_addr, shutdown.cancelled_owned())
                 .await
         }
     });
 
     enum Exit {
         Rpc(Result<()>),
-        Ui(Result<()>),
         Shutdown,
-    }
-
-    fn combine_task_results(
-        primary: Result<()>,
-        sibling: Result<()>,
-        sibling_name: &str,
-    ) -> Result<()> {
-        match (primary, sibling) {
-            (Ok(()), Ok(())) => Ok(()),
-            (Err(primary), Ok(())) => Err(primary),
-            (Ok(()), Err(sibling)) => Err(sibling),
-            (Err(primary), Err(sibling)) => Err(anyhow::anyhow!(
-                "{}; {} task also failed: {}",
-                primary,
-                sibling_name,
-                sibling
-            )),
-        }
     }
 
     let exit = tokio::select! {
         result = &mut rpc_task => Exit::Rpc(match result {
-            Ok(inner) => inner,
-            Err(err) => Err(err.into()),
-        }),
-        result = &mut ui_task => Exit::Ui(match result {
             Ok(inner) => inner,
             Err(err) => Err(err.into()),
         }),
@@ -228,19 +192,8 @@ async fn run() -> Result<()> {
 
     shutdown.cancel();
     let result = match exit {
-        Exit::Rpc(result) => {
-            let ui_result = join_with_grace(&mut ui_task).await;
-            combine_task_results(result, ui_result, "ui")
-        }
-        Exit::Ui(result) => {
-            let rpc_result = join_with_grace(&mut rpc_task).await;
-            combine_task_results(result, rpc_result, "rpc")
-        }
-        Exit::Shutdown => {
-            let rpc_result = join_with_grace(&mut rpc_task).await;
-            let ui_result = join_with_grace(&mut ui_task).await;
-            combine_task_results(rpc_result, ui_result, "ui")
-        }
+        Exit::Rpc(result) => result,
+        Exit::Shutdown => join_with_grace(&mut rpc_task).await,
     };
     for task in &mut subscription_tasks {
         let _ = join_with_grace(task).await;

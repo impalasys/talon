@@ -8,8 +8,8 @@ import {
 
 describe("normalizeGatewayUrl", () => {
   it("trims whitespace and trailing slashes", () => {
-    expect(normalizeGatewayUrl("  http://localhost:18789///  ")).toBe(
-      "http://localhost:18789",
+    expect(normalizeGatewayUrl("  http://localhost:50051///  ")).toBe(
+      "http://localhost:50051",
     );
   });
 
@@ -80,8 +80,9 @@ describe("gateway client lifecycle", () => {
   it("replaces the shared client when the gateway URL changes", () => {
     const initialClient = getGatewayClient();
 
-    updateGatewayClient("http://localhost:18789/");
+    updateGatewayClient("http://localhost:50051/");
 
     expect(getGatewayClient()).not.toBe(initialClient);
+    expect(getGatewayClient().sessions).toBeDefined();
   });
 });

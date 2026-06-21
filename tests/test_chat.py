@@ -11,8 +11,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "gene
 
 import conftest
 import mock_llm
-from proto.gateway_pb2_grpc import GatewayServiceStub
-from proto.gateway_pb2 import (
+from proto.talon.v1.api_pb2 import (
     CreateSessionRequest, 
     SendMessageRequest,
     GetSessionRequest,
@@ -29,6 +28,7 @@ from proto.gateway_pb2 import (
     ListWorkflowRunsRequest,
     StreamWorkflowEventsRequest,
 )
+from talon_v1_test_client import TalonV1TestClient
 from proto.resources.agents_pb2 import AgentSpec, Model
 from proto.resources.common_pb2 import ResourceMeta
 from proto.resources.knowledge_pb2 import KnowledgeSpec
@@ -70,7 +70,7 @@ def anyio_backend():
     return "asyncio"
 
 def test_single_turn_chat(gateway_channel, mock_llm_server):
-    stub = GatewayServiceStub(gateway_channel)
+    stub = TalonV1TestClient(gateway_channel)
     
     # 0. Create Namespace
     try:
@@ -155,7 +155,7 @@ def test_single_turn_chat(gateway_channel, mock_llm_server):
     assert "12" in message_text(agent_message)
 
 def test_streaming_chat(gateway_channel, mock_llm_server):
-    stub = GatewayServiceStub(gateway_channel)
+    stub = TalonV1TestClient(gateway_channel)
     
     try:
         stub.CreateNamespace(CreateNamespaceRequest(name="talon-stream-test", recursive=True))
@@ -239,7 +239,7 @@ def test_streaming_chat(gateway_channel, mock_llm_server):
     assert usage_payload["reasoning_tokens"] == 6
 
 def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
-    stub = GatewayServiceStub(gateway_channel)
+    stub = TalonV1TestClient(gateway_channel)
     run_id = uuid.uuid4().hex[:8]
     namespace = f"talon-knowledge-{run_id}"
     agent_name = f"knowledge-agent-{run_id}"
@@ -310,7 +310,7 @@ def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
     assert deleted.success is True
 
 def test_schedule_crud_round_trip(gateway_channel, mock_llm_server):
-    stub = GatewayServiceStub(gateway_channel)
+    stub = TalonV1TestClient(gateway_channel)
     run_id = uuid.uuid4().hex[:8]
     namespace = f"talon-schedule-{run_id}"
     agent_name = f"schedule-agent-{run_id}"
@@ -363,7 +363,7 @@ def test_schedule_crud_round_trip(gateway_channel, mock_llm_server):
     assert deleted.success is True
 
 def test_workflow_transform_run_completes_through_worker(gateway_channel, mock_llm_server):
-    stub = GatewayServiceStub(gateway_channel)
+    stub = TalonV1TestClient(gateway_channel)
     run_id = uuid.uuid4().hex[:8]
     namespace = f"talon-workflow-{run_id}"
     workflow_name = f"workflow-{run_id}"

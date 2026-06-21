@@ -175,8 +175,8 @@ fn main() -> std::io::Result<()> {
             "proto/data/data.proto",
             "proto/data/session_submission.proto",
             "proto/data/session_journal_entry.proto",
-            "proto/gateway.proto",
             "proto/events.proto",
+            "proto/talon/v1/api.proto",
         ],
         &[".", "third_party/googleapis/"],
     )?;

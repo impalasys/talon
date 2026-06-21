@@ -201,10 +201,8 @@ def talon_infrastructure():
         print(f"Warning: Failed to pre-provision pubsub: {e}")
     
     # Use an isolated port to guarantee we don't accidentally talk to a host docker-compose talon_server 
-    test_grpc_port = 50052
-    test_ui_port = 50053
+    test_grpc_port = 50061
     env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
-    env["GATEWAY_UI_ADDR"] = f"127.0.0.1:{test_ui_port}"
     env["NOVITA_API_KEY"] = "test-dummy-key"
     
     temp_dir = Path(tempfile.mkdtemp(prefix="talon-postgres-e2e-"))
@@ -222,7 +220,7 @@ providers:
       key: NOVITA_API_KEY
 server:
   host: "127.0.0.1"
-  port: {test_ui_port}
+  port: {test_grpc_port}
 control_plane:
   database:
     driver: postgres
@@ -296,7 +294,7 @@ def mock_llm_server():
 
 @pytest.fixture
 def test_grpc_port():
-    return 50052
+    return 50061
 
 @pytest.fixture
 def gateway_channel(talon_infrastructure, test_grpc_port):
@@ -310,7 +308,6 @@ def gateway_channel(talon_infrastructure, test_grpc_port):
 def talon_infrastructure_sqlite():
     print("\nStarting SQLite + local_socket Talon stack...")
     test_grpc_port = 50054
-    test_ui_port = 50055
     worker_port = 18082
 
     env = os.environ.copy()
@@ -318,7 +315,6 @@ def talon_infrastructure_sqlite():
     env["RUST_LOG"] = "info"
     env["NOVITA_API_KEY"] = "test-dummy-key"
     env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
-    env["GATEWAY_UI_ADDR"] = f"127.0.0.1:{test_ui_port}"
     env["PORT"] = str(worker_port)
     env["TALON_SESSION_PROCESSING_TIMEOUT_SECONDS"] = "1"
 
@@ -339,7 +335,7 @@ providers:
       key: NOVITA_API_KEY
 server:
   host: "127.0.0.1"
-  port: {test_ui_port}
+  port: {test_grpc_port}
 control_plane:
   database:
     driver: sqlite
@@ -359,7 +355,6 @@ control_plane:
 
     state = {
         "grpc_port": test_grpc_port,
-        "ui_port": test_ui_port,
         "worker_port": worker_port,
         "config_path": str(config_path),
         "data_dir": str(data_dir),

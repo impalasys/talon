@@ -1,19 +1,24 @@
 import { test, expect } from '@playwright/test';
 import { createClient } from "@connectrpc/connect";
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
-import { GatewayService } from "../proto/proto/gateway_pb";
+import { NamespaceService, ResourceService, SessionService } from "../proto/proto/talon/v1/api_pb";
 
 test.describe('Explorer navigation', () => {
   test('deep session URL auto-expands namespace path and agent', async ({ page }) => {
-    const API_PORT = process.env.API_PORT || '18789';
+    const API_PORT = process.env.API_PORT || '50051';
     const gatewayUrl = `http://127.0.0.1:${API_PORT}`;
-    const client = createClient(GatewayService, createGrpcWebTransport({ baseUrl: gatewayUrl }));
+    const transport = createGrpcWebTransport({ baseUrl: gatewayUrl });
+    const client = {
+      namespaces: createClient(NamespaceService, transport),
+      resources: createClient(ResourceService, transport),
+      sessions: createClient(SessionService, transport),
+    };
 
     await expect(async () => {
-      await client.createNamespace({ name: 'conic:wks:13', recursive: true });
+      await client.namespaces.create({ name: 'conic:wks:13', recursive: true });
     }).toPass({ timeout: 60000 });
 
-    await client.createResource({
+    await client.resources.create({
       ns: 'conic:wks:13',
       manifest: {
         apiVersion: "talon.impalasys.com/v1",
@@ -39,7 +44,7 @@ test.describe('Explorer navigation', () => {
       },
     });
 
-    const sessionRes = await client.createSession({
+    const sessionRes = await client.sessions.create({
       ns: 'conic:wks:13',
       agent: 'cmo',
     });

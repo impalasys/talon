@@ -1,6 +1,5 @@
-import React, { useEffect } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { TalonChannel, type TalonChannelProps } from "./TalonChannel";
+import { TalonChannel, type ChannelGatewayClientLike, type TalonChannelProps } from "./TalonChannel";
 
 const channelMessages = [
   {
@@ -30,48 +29,21 @@ const channelMessages = [
   },
 ];
 
-const originalFetch = globalThis.fetch;
-
-const mockedFetch: typeof fetch = async (_input, init) => {
-  if (init?.method === "POST") {
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-  return new Response(JSON.stringify({ messages: channelMessages, hasMore: false }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+const gatewayClient: ChannelGatewayClientLike = {
+  channels: {
+    listMessages: async () => ({ messages: channelMessages, hasMore: false }),
+    postMessage: async () => ({}),
+  },
 };
-
-function MockChannelGateway({ children }: { children: React.ReactNode }) {
-  globalThis.fetch = mockedFetch;
-
-  useEffect(() => {
-    return () => {
-      globalThis.fetch = originalFetch;
-    };
-  }, []);
-
-  return children;
-}
 
 const meta = {
   title: "Talon Chat/TalonChannel",
   component: TalonChannel,
-  decorators: [
-    (Story) => (
-      <MockChannelGateway>
-        <Story />
-      </MockChannelGateway>
-    ),
-  ],
   tags: ["autodocs"],
   args: {
     namespace: "support",
     channel: { name: "incident-room", status: "open" },
-    gatewayUrl: "http://localhost:18789",
+    gatewayClient,
     refreshIntervalMs: false,
     formatTimestamp: () => "Jun 5, 2026, 9:12 AM",
   },

@@ -9,8 +9,6 @@ import { createGrpcWebTransport } from "@connectrpc/connect-web";
 export * as config from "./gen/proto/config_pb.js";
 export * as data from "./gen/proto/data/data_pb.js";
 export * as events from "./gen/proto/events_pb.js";
-export * as gateway from "./gen/proto/gateway_pb.js";
-export * as gatewayConnect from "./gen/proto/gateway_connect.js";
 export * as agents from "./gen/proto/resources/agents_pb.js";
 export * as channels from "./gen/proto/resources/channels_pb.js";
 export * as common from "./gen/proto/resources/common_pb.js";
@@ -25,28 +23,81 @@ export * as sessions from "./gen/proto/resources/sessions_pb.js";
 export * as usage from "./gen/proto/resources/usage_pb.js";
 export * as workers from "./gen/proto/resources/workers_pb.js";
 export * as workflows from "./gen/proto/resources/workflows_pb.js";
+export * as v1 from "./gen/proto/talon/v1/api_pb.js";
+export * as v1Connect from "./gen/proto/talon/v1/api_connect.js";
 
-import { GatewayService } from "./gen/proto/gateway_connect.js";
+import {
+  AuthService,
+  ChannelService,
+  KnowledgeService,
+  NamespaceService,
+  ResourceService,
+  SessionService,
+  WorkflowService,
+} from "./gen/proto/talon/v1/api_connect.js";
 
-export type GatewayClient = PromiseClient<typeof GatewayService>;
+export type TalonClient = {
+  namespaces: PromiseClient<typeof NamespaceService>;
+  resources: PromiseClient<typeof ResourceService>;
+  sessions: PromiseClient<typeof SessionService>;
+  channels: PromiseClient<typeof ChannelService>;
+  workflows: PromiseClient<typeof WorkflowService>;
+  knowledge: PromiseClient<typeof KnowledgeService>;
+  auth: PromiseClient<typeof AuthService>;
+};
 
-export type GatewayClientOptions = {
+export type TalonClientOptions = {
   baseUrl: string;
+  authToken?: string | null;
   fetch?: typeof globalThis.fetch;
   interceptors?: Interceptor[];
   useBinaryFormat?: boolean;
 };
 
-export function createGatewayTransport(options: GatewayClientOptions): Transport {
+function hasAuthorizationScheme(value: string) {
+  return /^(Basic|Bearer)\s+/i.test(value);
+}
+
+export function buildAuthorizationHeader(authToken?: string | null) {
+  if (!authToken) return undefined;
+  const normalizedToken = authToken.trim();
+  if (!normalizedToken) return undefined;
+  return hasAuthorizationScheme(normalizedToken)
+    ? normalizedToken
+    : `Bearer ${normalizedToken}`;
+}
+
+export function createTalonTransport(options: TalonClientOptions): Transport {
+  if (!options || typeof options.baseUrl !== "string" || !options.baseUrl.trim()) {
+    throw new Error("TalonClient requires a baseUrl.");
+  }
+
+  const authInterceptor: Interceptor = (next) => async (req) => {
+    const authorization = buildAuthorizationHeader(options.authToken);
+    if (authorization) {
+      req.header.set("authorization", authorization);
+    }
+    return await next(req);
+  };
+
   return createGrpcWebTransport({
-    baseUrl: options.baseUrl,
+    baseUrl: options.baseUrl.trim().replace(/\/+$/, ""),
     fetch: options.fetch,
-    interceptors: options.interceptors,
+    interceptors: [authInterceptor, ...(options.interceptors ?? [])],
     useBinaryFormat: options.useBinaryFormat,
   });
 }
 
-export function createGatewayClient(options: string | GatewayClientOptions): GatewayClient {
+export function createTalonClient(options: string | TalonClientOptions): TalonClient {
   const resolved = typeof options === "string" ? { baseUrl: options } : options;
-  return createPromiseClient(GatewayService, createGatewayTransport(resolved));
+  const transport = createTalonTransport(resolved);
+  return {
+    namespaces: createPromiseClient(NamespaceService, transport),
+    resources: createPromiseClient(ResourceService, transport),
+    sessions: createPromiseClient(SessionService, transport),
+    channels: createPromiseClient(ChannelService, transport),
+    workflows: createPromiseClient(WorkflowService, transport),
+    knowledge: createPromiseClient(KnowledgeService, transport),
+    auth: createPromiseClient(AuthService, transport),
+  };
 }

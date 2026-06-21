@@ -21,7 +21,6 @@ services:
       - TALON_GOOGLE_WEB_CLIENT_ID
       - TALON_GOOGLE_WEB_CLIENT_SECRET
       - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET:-local-dev-talon-jwt}
-      - GATEWAY_UI_ADDR=0.0.0.0:50052
       - TALON_CONFIG_PATH=/data/talon/talon.docker-compose.yaml
     env_file:
       - .env
@@ -30,17 +29,17 @@ services:
       - talon-objects:/data/talon/objects
     ports:
       - "50051:50051"
-      - "50052:50052"
     depends_on:
       postgres:
         condition: service_healthy
       pubsub:
         condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "status=$$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -d '{}' http://localhost:50052/v1/ui/ns/health/agents/health/sessions/health); [ \"$$status\" = \"400\" ] || [ \"$$status\" = \"422\" ]"]
+      test: ["CMD-SHELL", "talon-cli --gateway http://localhost:50051 get namespaces >/dev/null"]
       interval: 5s
       timeout: 5s
       retries: 12
+      start_period: 10s
 
   worker:
     build:
@@ -100,8 +99,6 @@ services:
     depends_on:
       gateway:
         condition: service_healthy
-      envoy:
-        condition: service_started
     volumes:
       - ./manifests:/manifests:ro
     env_file:
@@ -112,10 +109,9 @@ services:
     command:
       - |
         set -eu
-        GRPC_WEB_GATEWAY=http://envoy:8081
         GRPC_GATEWAY=http://gateway:50051
-        talon-cli apply -f /manifests/default_agent.yaml
-        talon-cli --gateway "$$GRPC_WEB_GATEWAY" --grpc-web apply -f /manifests/examples/chatgpt-app/namespace.yaml
+        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/default_agent.yaml
+        talon-cli --gateway "$$GRPC_GATEWAY" --grpc-web apply -f /manifests/examples/chatgpt-app/namespace.yaml
         talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/chatgpt-app/support-docs-template.yaml
         talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/chatgpt-app/support-docs-agent.yaml
 
@@ -127,8 +123,6 @@ services:
     depends_on:
       gateway:
         condition: service_healthy
-      envoy:
-        condition: service_started
     volumes:
       - ./manifests:/manifests:ro
     env_file:
@@ -137,9 +131,8 @@ services:
     command:
       - |
         set -eu
-        GRPC_WEB_GATEWAY=http://envoy:8081
         GRPC_GATEWAY=http://gateway:50051
-        talon-cli --gateway "$$GRPC_WEB_GATEWAY" --grpc-web apply -f /manifests/examples/channel-collaboration/namespace.yaml
+        talon-cli --gateway "$$GRPC_GATEWAY" --grpc-web apply -f /manifests/examples/channel-collaboration/namespace.yaml
         talon-cli --gateway "$$GRPC_GATEWAY" get template channel-agent-template >/dev/null 2>&1 || talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/channel-agent-template.yaml
         talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/triage-agent.yaml
         talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/scribe-agent.yaml
@@ -150,19 +143,6 @@ services:
   pubsub:
     image: gcr.io/google.com/cloudsdktool/cloud-sdk:emulators
     command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8085
-
-  envoy:
-    build:
-      context: .
-      dockerfile: dockerfiles/envoy.Dockerfile
-    environment:
-      TALON_ENVOY_GATEWAY_GRPC_HOST: gateway
-      TALON_ENVOY_GATEWAY_HTTP_HOST: gateway
-    depends_on:
-      gateway:
-        condition: service_healthy
-    ports:
-      - "18789:8081"
 
   pgadmin:
     image: dpage/pgadmin4
@@ -184,18 +164,16 @@ services:
       context: .
       dockerfile: dockerfiles/oss-ui.Dockerfile
       args:
-        NEXT_PUBLIC_GATEWAY_URL: http://localhost:18789
+        NEXT_PUBLIC_GATEWAY_URL: http://localhost:50051
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_GATEWAY_URL=http://localhost:18789
+      - NEXT_PUBLIC_GATEWAY_URL=http://localhost:50051
       - TALON_OBJECT_STORE_PATH=/data/talon/objects
     volumes:
       - talon-objects:/data/talon/objects
     depends_on:
       gateway:
         condition: service_healthy
-      envoy:
-        condition: service_started
     ports:
       - "3000:3000"
 

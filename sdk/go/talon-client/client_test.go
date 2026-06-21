@@ -12,7 +12,7 @@ import (
 
 	talonclient "github.com/impalasys/talon/sdk/go/talon-client"
 	"github.com/impalasys/talon/sdk/go/talon-client/talon/events"
-	"github.com/impalasys/talon/sdk/go/talon-client/talon/gateway"
+	talonv1 "github.com/impalasys/talon/sdk/go/talon-client/talon/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -20,8 +20,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func TestGeneratedGatewayTypesAreAvailable(t *testing.T) {
-	req := &gateway.ListResourcesRequest{Ns: "default", Kind: proto.String("Agent")}
+func TestGeneratedTalonV1TypesAreAvailable(t *testing.T) {
+	req := &talonv1.ListResourcesRequest{Ns: "default", Kind: proto.String("Agent")}
 	if req.GetNs() != "default" {
 		t.Fatalf("unexpected namespace: %q", req.GetNs())
 	}
@@ -30,8 +30,9 @@ func TestGeneratedGatewayTypesAreAvailable(t *testing.T) {
 	}
 }
 
-func TestTalonGatewayClientUsesGeneratedGatewayInterface(t *testing.T) {
-	var _ gateway.GatewayServiceClient = (*talonclient.TalonGatewayClient)(nil)
+func TestClientsetExposesGeneratedServiceClients(t *testing.T) {
+	var clientset talonclient.Clientset
+	var _ talonv1.NamespaceServiceClient = clientset.Namespaces()
 }
 
 func TestConnectNativeRejectsPlaintextAuthorization(t *testing.T) {
@@ -70,7 +71,7 @@ func TestConnectGRPCWebUnaryUsesHTTP1GRPCWeb(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != gateway.GatewayService_ListNamespaces_FullMethodName {
+		if r.URL.Path != talonv1.NamespaceService_List_FullMethodName {
 			t.Fatalf("unexpected path: %s", r.URL.Path)
 		}
 		if got := r.Header.Get("content-type"); got != "application/grpc-web+proto" {
@@ -93,14 +94,14 @@ func TestConnectGRPCWebUnaryUsesHTTP1GRPCWeb(t *testing.T) {
 		if err != nil {
 			t.Fatalf("read request body: %v", err)
 		}
-		var request gateway.ListNamespacesRequest
+		var request talonv1.ListNamespacesRequest
 		decodeRequestFrame(t, body, &request)
 
 		w.Header().Set("content-type", "application/grpc-web+proto")
 		w.Header().Set("x-test-header", "header-value")
 		_, _ = w.Write(grpcWebBody(
-			&gateway.ListNamespacesResponse{
-				Namespaces: []*gateway.NamespaceResponse{{Name: "from-grpc-web"}},
+			&talonv1.ListNamespacesResponse{
+				Namespaces: []*talonv1.NamespaceResponse{{Name: "from-grpc-web"}},
 			},
 			"x-test-trailer: trailer-value",
 			"grpc-status: 0",
@@ -123,9 +124,9 @@ func TestConnectGRPCWebUnaryUsesHTTP1GRPCWeb(t *testing.T) {
 	var header metadata.MD
 	var trailer metadata.MD
 	var finished error
-	resp, err := client.ListNamespaces(
+	resp, err := client.Namespaces().List(
 		ctx,
-		&gateway.ListNamespacesRequest{},
+		&talonv1.ListNamespacesRequest{},
 		grpc.Header(&header),
 		grpc.Trailer(&trailer),
 		grpc.OnFinish(func(err error) {
@@ -165,7 +166,7 @@ func TestConnectGRPCWebUnaryMapsTrailerStatus(t *testing.T) {
 	}
 	defer client.Close()
 
-	_, err = client.ListNamespaces(context.Background(), &gateway.ListNamespacesRequest{})
+	_, err = client.Namespaces().List(context.Background(), &talonv1.ListNamespacesRequest{})
 	if status.Code(err) != codes.PermissionDenied {
 		t.Fatalf("expected permission denied, got %v (%v)", status.Code(err), err)
 	}
@@ -177,7 +178,7 @@ func TestConnectGRPCWebUnaryMapsTrailerStatus(t *testing.T) {
 func TestConnectGRPCWebUnaryRequiresFinalStatus(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("content-type", "application/grpc-web+proto")
-		message, err := proto.Marshal(&gateway.ListNamespacesResponse{})
+		message, err := proto.Marshal(&talonv1.ListNamespacesResponse{})
 		if err != nil {
 			t.Fatalf("marshal response: %v", err)
 		}
@@ -191,7 +192,7 @@ func TestConnectGRPCWebUnaryRequiresFinalStatus(t *testing.T) {
 	}
 	defer client.Close()
 
-	_, err = client.ListNamespaces(context.Background(), &gateway.ListNamespacesRequest{})
+	_, err = client.Namespaces().List(context.Background(), &talonv1.ListNamespacesRequest{})
 	if status.Code(err) != codes.Unavailable {
 		t.Fatalf("expected unavailable for missing grpc-status, got %v (%v)", status.Code(err), err)
 	}
@@ -213,7 +214,7 @@ func TestConnectGRPCWebUnaryRejectsTruncatedFrame(t *testing.T) {
 	}
 	defer client.Close()
 
-	_, err = client.ListNamespaces(context.Background(), &gateway.ListNamespacesRequest{})
+	_, err = client.Namespaces().List(context.Background(), &talonv1.ListNamespacesRequest{})
 	if status.Code(err) != codes.Unavailable {
 		t.Fatalf("expected unavailable for truncated frame, got %v (%v)", status.Code(err), err)
 	}
@@ -236,7 +237,7 @@ func TestConnectGRPCWebUnaryRejectsOversizedMessageFrame(t *testing.T) {
 	}
 	defer client.Close()
 
-	_, err = client.ListNamespaces(context.Background(), &gateway.ListNamespacesRequest{}, grpc.MaxCallRecvMsgSize(4))
+	_, err = client.Namespaces().List(context.Background(), &talonv1.ListNamespacesRequest{}, grpc.MaxCallRecvMsgSize(4))
 	if status.Code(err) != codes.ResourceExhausted {
 		t.Fatalf("expected resource exhausted for oversized frame, got %v (%v)", status.Code(err), err)
 	}
@@ -244,14 +245,14 @@ func TestConnectGRPCWebUnaryRejectsOversizedMessageFrame(t *testing.T) {
 
 func TestConnectGRPCWebServerStreamingUsesGeneratedClient(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != gateway.GatewayService_StreamChannelEvents_FullMethodName {
+		if r.URL.Path != talonv1.ChannelService_StreamEvents_FullMethodName {
 			t.Fatalf("unexpected path: %s", r.URL.Path)
 		}
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			t.Fatalf("read request body: %v", err)
 		}
-		var request gateway.StreamChannelEventsRequest
+		var request talonv1.StreamChannelEventsRequest
 		decodeRequestFrame(t, body, &request)
 		if request.GetNs() != "default" || request.GetChannel() != "chat" {
 			t.Fatalf("unexpected stream request: %+v", request)
@@ -280,7 +281,7 @@ func TestConnectGRPCWebServerStreamingUsesGeneratedClient(t *testing.T) {
 	}
 	defer client.Close()
 
-	stream, err := client.StreamChannelEvents(context.Background(), &gateway.StreamChannelEventsRequest{
+	stream, err := client.Channels().StreamEvents(context.Background(), &talonv1.StreamChannelEventsRequest{
 		Ns:      "default",
 		Channel: "chat",
 	})
@@ -327,7 +328,7 @@ func TestConnectGRPCWebServerStreamingRequiresFinalStatus(t *testing.T) {
 	}
 	defer client.Close()
 
-	stream, err := client.StreamChannelEvents(context.Background(), &gateway.StreamChannelEventsRequest{
+	stream, err := client.Channels().StreamEvents(context.Background(), &talonv1.StreamChannelEventsRequest{
 		Ns:      "default",
 		Channel: "chat",
 	})

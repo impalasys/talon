@@ -24,7 +24,7 @@ providers:
 
 server:
   host: "0.0.0.0"
-  port: 18789
+  port: 50051
 
 storage:
   # The compose stack uses one local Postgres instance for both control-plane

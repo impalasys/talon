@@ -72,6 +72,6 @@ ENV RUST_LOG=info
 
 WORKDIR /data/talon
 
-EXPOSE 50051 50052 8081
+EXPOSE 50051 8081
 
 CMD ["talon-server"]

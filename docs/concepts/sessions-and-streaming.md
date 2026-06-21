@@ -31,14 +31,14 @@ Under the hood, the gateway persists intent and the worker performs execution.
 
 Talon supports multiple consumption patterns:
 
-- native gRPC streaming via `StreamSessionSteps`
-- REST-transcoded control-plane endpoints for non-streaming operations
-- browser-native UI session routes for Sightline and AI SDK-style clients
+- native gRPC streaming via `SessionService.StreamParts`
+- browser gRPC-Web streaming via `SessionService.SubmitTurn`
+- session history reads via `SessionService.ListMessages`
 
 The important distinction is:
 
 - gRPC is the system-of-record contract
-- the browser-oriented UI surface is the ergonomic integration path for frontend clients
+- gRPC-Web is the same contract adapted for frontend clients
 
 ## Tool visibility
 
@@ -54,7 +54,7 @@ This is what makes Sightline useful as an operator/debugging surface rather than
 
 It helps to separate two views of the same interaction:
 
-- **persisted session state** is what you can fetch later with `GetSession`
+- **persisted session state** is what you can fetch later with `SessionService.Get`
 - **stream state** is what you observe live while execution is still in progress
 
 Talon gives you both because durable auditability and live UX are different needs.
