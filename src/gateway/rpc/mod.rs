@@ -6,8 +6,8 @@ use std::sync::Arc;
 
 use std::pin::Pin;
 
-pub mod channels;
 pub mod auth;
+pub mod channels;
 pub mod knowledge;
 pub mod namespaces;
 pub mod resources;

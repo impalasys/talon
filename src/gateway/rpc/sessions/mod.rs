@@ -1127,7 +1127,7 @@ impl GrpcGatewayHandler {
             <GrpcGatewayHandler as proto::session_service_server::SessionService>::StreamPartsStream,
         >,
         tonic::Status,
-    > {
+    >{
         crate::require_auth!(
             read,
             self,
@@ -1255,9 +1255,9 @@ impl GrpcGatewayHandler {
                 tonic::Status::internal(format!("Failed to subscribe to session stream: {}", e))
             })?;
 
-        let mut message = req.message.ok_or_else(|| {
-            tonic::Status::invalid_argument("message is required")
-        })?;
+        let mut message = req
+            .message
+            .ok_or_else(|| tonic::Status::invalid_argument("message is required"))?;
         message.labels.extend(req.labels);
         let message = normalize_appended_session_message(message);
         let now = chrono::Utc::now();

@@ -8,7 +8,17 @@ use crate::control::{
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::session_streams::SessionStreamHub;
 use anyhow::Result;
+use axum::{
+    body::Body,
+    http::{Request, Response, StatusCode},
+    response::IntoResponse,
+    routing::RouterIntoService,
+    Router,
+};
+use std::convert::Infallible;
 use std::sync::Arc;
+use tonic::body::BoxBody;
+use tower::{Service, ServiceExt};
 use tower_http::cors::{Any, CorsLayer};
 
 #[derive(Clone)]
@@ -84,12 +94,13 @@ impl Gateway {
         F: std::future::Future<Output = ()> + Send + 'static,
     {
         use tonic::transport::Server;
-        let addr = addr.parse()?;
-        println!("gRPC Gateway listening on: {}", addr);
+        let addr: std::net::SocketAddr = addr.parse()?;
+        println!("Talon gateway listening on: {}", addr);
 
         let handler = crate::gateway::rpc::GrpcGatewayHandler {
             gateway: Arc::new(self.clone_internal()),
         };
+        let http_gateway = handler.gateway.clone();
 
         let auth_config = self.auth_config.clone().unwrap_or_else(AuthConfig::open);
         let interceptor = crate::gateway::auth::TalonAuthInterceptor {
@@ -136,9 +147,8 @@ impl Gateway {
             crate::gateway::rpc::proto::auth_service_server::AuthServiceServer::new(handler),
         );
 
-        Server::builder()
+        let grpc_service = Server::builder()
             .accept_http1(true)
-            .layer(permissive_cors_layer())
             .add_service(namespace_service)
             .add_service(resource_service)
             .add_service(session_service)
@@ -146,12 +156,55 @@ impl Gateway {
             .add_service(workflow_service)
             .add_service(knowledge_service)
             .add_service(auth_service)
-            .serve_with_shutdown(addr, shutdown)
+            .into_service::<BoxBody>();
+
+        let app = crate::gateway::rest::a2a::router()
+            .with_state(http_gateway)
+            .fallback_service(grpc_fallback_service(grpc_service))
+            .layer(permissive_cors_layer());
+
+        let listener = tokio::net::TcpListener::bind(addr).await?;
+        axum::serve(listener, app)
+            .with_graceful_shutdown(shutdown)
             .await
-            .map_err(|e| anyhow::anyhow!("Tonic server failed: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Gateway server failed: {}", e))?;
 
         Ok(())
     }
+}
+
+fn grpc_fallback_service<S>(grpc_service: S) -> RouterIntoService<Body, ()>
+where
+    S: Service<Request<BoxBody>, Response = Response<BoxBody>> + Clone + Send + 'static,
+    S::Future: Send + 'static,
+    S::Error: std::fmt::Display + Send + Sync + 'static,
+{
+    Router::new()
+        .fallback_service(tower::service_fn(move |request: Request<Body>| {
+            let mut grpc_service = grpc_service.clone();
+            async move {
+                let request = request.map(tonic::body::boxed);
+                let response = match grpc_service.ready().await {
+                    Ok(ready_service) => ready_service.call(request).await,
+                    Err(err) => {
+                        tracing::error!(%err, "gRPC gateway service was not ready");
+                        return Ok::<_, Infallible>(internal_server_error());
+                    }
+                };
+                match response {
+                    Ok(response) => Ok(response.into_response()),
+                    Err(err) => {
+                        tracing::error!(%err, "gRPC gateway service failed");
+                        Ok(internal_server_error())
+                    }
+                }
+            }
+        }))
+        .into_service()
+}
+
+fn internal_server_error() -> axum::response::Response {
+    StatusCode::INTERNAL_SERVER_ERROR.into_response()
 }
 
 fn permissive_cors_layer() -> CorsLayer {

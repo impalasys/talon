@@ -2191,7 +2191,8 @@ mod tests {
     #[test]
     fn require_namespace_access_rejects_out_of_scope_namespace() {
         let access = access(&["Conic", "Conic:Customers:"]);
-        require_namespace_access(&access, "Conic:Customers:1").expect("namespace should be allowed");
+        require_namespace_access(&access, "Conic:Customers:1")
+            .expect("namespace should be allowed");
         let error = require_namespace_access(&access, "default")
             .expect_err("out of scope namespace should fail");
         assert!(format!("{error:?}").contains("outside binding scope"));
