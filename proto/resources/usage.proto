@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message UsageSelector {
+  string agent = 1;
+  string provider = 2;
+  string model = 3;
+}
+
+message UsageLimit {
+  UsageSelector selector = 1;
+  string metric = 2;
+  uint64 max = 3;
+  string window = 4;
+}
+
+message UsagePolicySpec {
+  string namespace_scope = 1;
+  repeated UsageLimit hard = 2;
+}
+
+message UsageLimitStatus {
+  UsageSelector selector = 1;
+  string metric = 2;
+  uint64 max = 3;
+  string window = 4;
+  int64 window_start = 5;
+  int64 reset_at = 6;
+  uint64 used = 7;
+  uint64 remaining = 8;
+  bool exceeded = 9;
+}
+
+message UsagePolicyStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  repeated UsageLimitStatus hard = 4;
+}
+
+message UsagePolicy {
+  ResourceMeta metadata = 1;
+  UsagePolicySpec spec = 2;
+  UsagePolicyStatus status = 3;
+}

@@ -729,6 +729,61 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `spec` | `SkillSpec` | - |
 | `status` | `CommonResourceStatus` | - |
 
+## `UsageSelector`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `agent` | `string` | - |
+| `provider` | `string` | - |
+| `model` | `string` | - |
+
+## `UsageLimit`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `selector` | `UsageSelector` | - |
+| `metric` | `string` | - |
+| `max` | `uint64` | - |
+| `window` | `string` | - |
+
+## `UsagePolicySpec`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `namespace_scope` | `string` | - |
+| `hard` | `UsageLimit` | repeated |
+
+## `UsageLimitStatus`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `selector` | `UsageSelector` | - |
+| `metric` | `string` | - |
+| `max` | `uint64` | - |
+| `window` | `string` | - |
+| `window_start` | `int64` | - |
+| `reset_at` | `int64` | - |
+| `used` | `uint64` | - |
+| `remaining` | `uint64` | - |
+| `exceeded` | `bool` | - |
+
+## `UsagePolicyStatus`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `observed_generation` | `uint64` | - |
+| `phase` | `string` | - |
+| `conditions` | `ResourceCondition` | repeated |
+| `hard` | `UsageLimitStatus` | repeated |
+
+## `UsagePolicy`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `UsagePolicySpec` | - |
+| `status` | `UsagePolicyStatus` | - |
+
 ## `WorkerEndpoint`
 
 | Field | Type | Notes |
@@ -811,6 +866,7 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `sandbox_policy` | `SandboxPolicySpec` | oneof (kind) |
 | `sandbox` | `SandboxSpec` | oneof (kind) |
 | `worker` | `WorkerSpec` | oneof (kind) |
+| `usage_policy` | `UsagePolicySpec` | oneof (kind) |
 | `raw` | `RawResourceSpec` | oneof (kind) |
 
 ## `ResourceStatus`
@@ -835,4 +891,5 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `sandbox_policy` | `CommonResourceStatus` | oneof (kind) |
 | `sandbox` | `SandboxStatus` | oneof (kind) |
 | `worker` | `WorkerStatus` | oneof (kind) |
+| `usage_policy` | `UsagePolicyStatus` | oneof (kind) |
 | `raw` | `RawResourceStatus` | oneof (kind) |

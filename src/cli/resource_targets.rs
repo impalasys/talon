@@ -103,6 +103,12 @@ pub(super) fn resource_lookup_target(
             let ns = namespace.cloned().context("Sandbox requires --namespace")?;
             Ok((ns, "Sandbox".to_string(), name.to_string()))
         }
+        "usagepolicy" | "usagepolicies" | "usage-policy" | "usage-policies" => {
+            let ns = namespace
+                .cloned()
+                .context("UsagePolicy requires --namespace")?;
+            Ok((ns, "UsagePolicy".to_string(), name.to_string()))
+        }
         other => anyhow::bail!("Unsupported resource kind '{}'", other),
     }
 }

@@ -225,13 +225,16 @@ impl ResourceStore {
             .kv
             .list_entries(&keys::ResourceParent::root(namespace).list(kind))
             .await?;
-        let mut resources = Vec::with_capacity(entries.len());
+        let mut status_fetches = Vec::with_capacity(entries.len());
         for (key, value) in entries {
-            if let Ok(resource) = decode_stored_resource(&key.kind, value.as_slice()) {
-                resources.push(resource);
+            if let Ok(mut resource) = decode_stored_resource(&key.kind, value.as_slice()) {
+                status_fetches.push(async move {
+                    self.populate_computed_status(&key, &mut resource).await?;
+                    Ok::<_, anyhow::Error>(resource)
+                });
             }
         }
-        Ok(resources)
+        futures::future::try_join_all(status_fetches).await
     }
 
     pub async fn delete(&self, namespace: &str, kind: &str, name: &str) -> Result<bool> {
@@ -317,7 +320,8 @@ impl ResourceStore {
         &self,
         key: &keys::ResourceKey,
     ) -> Result<Option<resources_proto::Resource>> {
-        self.kv
+        let mut resource = self
+            .kv
             .get(key)
             .await?
             .map(|bytes| {
@@ -328,7 +332,35 @@ impl ResourceStore {
                     )
                 })
             })
-            .transpose()
+            .transpose()?;
+        if let Some(resource) = resource.as_mut() {
+            self.populate_computed_status(key, resource).await?;
+        }
+        Ok(resource)
+    }
+
+    async fn populate_computed_status(
+        &self,
+        key: &keys::ResourceKey,
+        resource: &mut resources_proto::Resource,
+    ) -> Result<()> {
+        if key.kind == "UsagePolicy" {
+            if let Err(err) = crate::control::usage::populate_usage_policy_status(
+                self.kv.as_ref(),
+                resource,
+                chrono::Utc::now().timestamp(),
+            )
+            .await
+            {
+                tracing::error!(
+                    error = %err,
+                    namespace = %key.namespace,
+                    name = %key.name,
+                    "failed to populate UsagePolicy status"
+                );
+            }
+        }
+        Ok(())
     }
 }
 
@@ -476,6 +508,12 @@ fn decode_stored_resource(kind: &str, bytes: &[u8]) -> Result<resources_proto::R
             resources_proto::resource_spec::Kind::Worker,
             resources_proto::resource_status::Kind::Worker,
         ),
+        "UsagePolicy" => decode_typed_resource::<resources_proto::UsagePolicy, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::UsagePolicy,
+            resources_proto::resource_status::Kind::UsagePolicy,
+        ),
         _ => resources_proto::Resource::decode(bytes).map_err(Into::into),
     }
 }
@@ -606,6 +644,11 @@ impl_stored_typed_resource!(
     resources_proto::Worker,
     resources_proto::WorkerSpec,
     resources_proto::WorkerStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::UsagePolicy,
+    resources_proto::UsagePolicySpec,
+    resources_proto::UsagePolicyStatus
 );
 fn decode_typed_resource<W, S, T, SpecArm, StatusArm>(
     kind: &str,
@@ -945,6 +988,23 @@ fn encode_stored_resource(resource: &resources_proto::Resource) -> Result<Vec<u8
                 _ => None,
             },
         ),
+        "UsagePolicy" => encode_typed_resource::<
+            resources_proto::UsagePolicy,
+            resources_proto::UsagePolicySpec,
+            resources_proto::UsagePolicyStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::UsagePolicy(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::UsagePolicy(status) => Some(status),
+                _ => None,
+            },
+        ),
         _ => Ok(resource.encode_to_vec()),
     }
 }
@@ -1041,6 +1101,10 @@ fn validate_resource_kind(resource: &resources_proto::Resource) -> Result<()> {
         Kind::SandboxPolicy(_) => "SandboxPolicy",
         Kind::Sandbox(_) => "Sandbox",
         Kind::Worker(_) => "Worker",
+        Kind::UsagePolicy(spec) => {
+            crate::control::usage::validate_usage_policy_spec(spec)?;
+            "UsagePolicy"
+        }
         Kind::Raw(_) => return Ok(()),
     };
     if resource.kind != expected {
@@ -1080,6 +1144,7 @@ fn default_status_for_resource(
         Some(SpecKind::SandboxPolicy(_)) => StatusKind::SandboxPolicy(Default::default()),
         Some(SpecKind::Sandbox(_)) => StatusKind::Sandbox(Default::default()),
         Some(SpecKind::Worker(_)) => StatusKind::Worker(Default::default()),
+        Some(SpecKind::UsagePolicy(_)) => StatusKind::UsagePolicy(Default::default()),
         Some(SpecKind::Raw(_)) | None => StatusKind::Raw(resources_proto::RawResourceStatus {
             json: "{}".to_string(),
         }),

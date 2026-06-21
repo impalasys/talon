@@ -18,6 +18,7 @@ import { SkillSpec } from "./skills_pb.js";
 import { DeploymentReplicaSpec, DeploymentReplicaStatus, DeploymentSpec, DeploymentStatus, TemplateSpec } from "./deployments_pb.js";
 import { SandboxClassSpec, SandboxPolicySpec, SandboxSpec, SandboxStatus } from "./sandboxes_pb.js";
 import { WorkerSpec, WorkerStatus } from "./workers_pb.js";
+import { UsagePolicySpec, UsagePolicyStatus } from "./usage_pb.js";
 
 /**
  * @generated from message talon.resources.Resource
@@ -326,6 +327,12 @@ export class ResourceSpec extends Message<ResourceSpec> {
     case: "worker";
   } | {
     /**
+     * @generated from field: talon.resources.UsagePolicySpec usage_policy = 60;
+     */
+    value: UsagePolicySpec;
+    case: "usagePolicy";
+  } | {
+    /**
      * @generated from field: talon.resources.RawResourceSpec raw = 1000;
      */
     value: RawResourceSpec;
@@ -358,6 +365,7 @@ export class ResourceSpec extends Message<ResourceSpec> {
     { no: 41, name: "sandbox_policy", kind: "message", T: SandboxPolicySpec, oneof: "kind" },
     { no: 42, name: "sandbox", kind: "message", T: SandboxSpec, oneof: "kind" },
     { no: 50, name: "worker", kind: "message", T: WorkerSpec, oneof: "kind" },
+    { no: 60, name: "usage_policy", kind: "message", T: UsagePolicySpec, oneof: "kind" },
     { no: 1000, name: "raw", kind: "message", T: RawResourceSpec, oneof: "kind" },
   ]);
 
@@ -495,6 +503,12 @@ export class ResourceStatus extends Message<ResourceStatus> {
     case: "worker";
   } | {
     /**
+     * @generated from field: talon.resources.UsagePolicyStatus usage_policy = 60;
+     */
+    value: UsagePolicyStatus;
+    case: "usagePolicy";
+  } | {
+    /**
      * @generated from field: talon.resources.RawResourceStatus raw = 1000;
      */
     value: RawResourceStatus;
@@ -527,6 +541,7 @@ export class ResourceStatus extends Message<ResourceStatus> {
     { no: 41, name: "sandbox_policy", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 42, name: "sandbox", kind: "message", T: SandboxStatus, oneof: "kind" },
     { no: 50, name: "worker", kind: "message", T: WorkerStatus, oneof: "kind" },
+    { no: 60, name: "usage_policy", kind: "message", T: UsagePolicyStatus, oneof: "kind" },
     { no: 1000, name: "raw", kind: "message", T: RawResourceStatus, oneof: "kind" },
   ]);
 

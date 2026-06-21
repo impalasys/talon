@@ -275,6 +275,7 @@ type ResourceSpec struct {
 	//	*ResourceSpec_SandboxPolicy
 	//	*ResourceSpec_Sandbox
 	//	*ResourceSpec_Worker
+	//	*ResourceSpec_UsagePolicy
 	//	*ResourceSpec_Raw
 	Kind          isResourceSpec_Kind `protobuf_oneof:"kind"`
 	unknownFields protoimpl.UnknownFields
@@ -480,6 +481,15 @@ func (x *ResourceSpec) GetWorker() *WorkerSpec {
 	return nil
 }
 
+func (x *ResourceSpec) GetUsagePolicy() *UsagePolicySpec {
+	if x != nil {
+		if x, ok := x.Kind.(*ResourceSpec_UsagePolicy); ok {
+			return x.UsagePolicy
+		}
+	}
+	return nil
+}
+
 func (x *ResourceSpec) GetRaw() *RawResourceSpec {
 	if x != nil {
 		if x, ok := x.Kind.(*ResourceSpec_Raw); ok {
@@ -565,6 +575,10 @@ type ResourceSpec_Worker struct {
 	Worker *WorkerSpec `protobuf:"bytes,50,opt,name=worker,proto3,oneof"`
 }
 
+type ResourceSpec_UsagePolicy struct {
+	UsagePolicy *UsagePolicySpec `protobuf:"bytes,60,opt,name=usage_policy,json=usagePolicy,proto3,oneof"`
+}
+
 type ResourceSpec_Raw struct {
 	Raw *RawResourceSpec `protobuf:"bytes,1000,opt,name=raw,proto3,oneof"`
 }
@@ -605,6 +619,8 @@ func (*ResourceSpec_Sandbox) isResourceSpec_Kind() {}
 
 func (*ResourceSpec_Worker) isResourceSpec_Kind() {}
 
+func (*ResourceSpec_UsagePolicy) isResourceSpec_Kind() {}
+
 func (*ResourceSpec_Raw) isResourceSpec_Kind() {}
 
 type ResourceStatus struct {
@@ -629,6 +645,7 @@ type ResourceStatus struct {
 	//	*ResourceStatus_SandboxPolicy
 	//	*ResourceStatus_Sandbox
 	//	*ResourceStatus_Worker
+	//	*ResourceStatus_UsagePolicy
 	//	*ResourceStatus_Raw
 	Kind          isResourceStatus_Kind `protobuf_oneof:"kind"`
 	unknownFields protoimpl.UnknownFields
@@ -834,6 +851,15 @@ func (x *ResourceStatus) GetWorker() *WorkerStatus {
 	return nil
 }
 
+func (x *ResourceStatus) GetUsagePolicy() *UsagePolicyStatus {
+	if x != nil {
+		if x, ok := x.Kind.(*ResourceStatus_UsagePolicy); ok {
+			return x.UsagePolicy
+		}
+	}
+	return nil
+}
+
 func (x *ResourceStatus) GetRaw() *RawResourceStatus {
 	if x != nil {
 		if x, ok := x.Kind.(*ResourceStatus_Raw); ok {
@@ -919,6 +945,10 @@ type ResourceStatus_Worker struct {
 	Worker *WorkerStatus `protobuf:"bytes,50,opt,name=worker,proto3,oneof"`
 }
 
+type ResourceStatus_UsagePolicy struct {
+	UsagePolicy *UsagePolicyStatus `protobuf:"bytes,60,opt,name=usage_policy,json=usagePolicy,proto3,oneof"`
+}
+
 type ResourceStatus_Raw struct {
 	Raw *RawResourceStatus `protobuf:"bytes,1000,opt,name=raw,proto3,oneof"`
 }
@@ -959,13 +989,15 @@ func (*ResourceStatus_Sandbox) isResourceStatus_Kind() {}
 
 func (*ResourceStatus_Worker) isResourceStatus_Kind() {}
 
+func (*ResourceStatus_UsagePolicy) isResourceStatus_Kind() {}
+
 func (*ResourceStatus_Raw) isResourceStatus_Kind() {}
 
 var File_proto_resources_resource_proto protoreflect.FileDescriptor
 
 const file_proto_resources_resource_proto_rawDesc = "" +
 	"\n" +
-	"\x1eproto/resources/resource.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/agents.proto\x1a\x1eproto/resources/channels.proto\x1a\x1cproto/resources/common.proto\x1a!proto/resources/deployments.proto\x1a\x1fproto/resources/knowledge.proto\x1a\x19proto/resources/mcp.proto\x1a proto/resources/namespaces.proto\x1a\x1fproto/resources/sandboxes.proto\x1a\x1fproto/resources/schedules.proto\x1a\x1eproto/resources/sessions.proto\x1a\x1cproto/resources/skills.proto\x1a\x1dproto/resources/workers.proto\x1a\x1fproto/resources/workflows.proto\"\xe6\x01\n" +
+	"\x1eproto/resources/resource.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/agents.proto\x1a\x1eproto/resources/channels.proto\x1a\x1cproto/resources/common.proto\x1a!proto/resources/deployments.proto\x1a\x1fproto/resources/knowledge.proto\x1a\x19proto/resources/mcp.proto\x1a proto/resources/namespaces.proto\x1a\x1fproto/resources/sandboxes.proto\x1a\x1fproto/resources/schedules.proto\x1a\x1eproto/resources/sessions.proto\x1a\x1cproto/resources/skills.proto\x1a\x1bproto/resources/usage.proto\x1a\x1dproto/resources/workers.proto\x1a\x1fproto/resources/workflows.proto\"\xe6\x01\n" +
 	"\bResource\x12\x1f\n" +
 	"\vapi_version\x18\x01 \x01(\tR\n" +
 	"apiVersion\x12\x12\n" +
@@ -982,7 +1014,8 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\x0fRawResourceSpec\x12\x12\n" +
 	"\x04json\x18\x01 \x01(\tR\x04json\"'\n" +
 	"\x11RawResourceStatus\x12\x12\n" +
-	"\x04json\x18\x01 \x01(\tR\x04json\"\xfb\t\n" +
+	"\x04json\x18\x01 \x01(\tR\x04json\"\xc2\n" +
+	"\n" +
 	"\fResourceSpec\x122\n" +
 	"\x05agent\x18\x01 \x01(\v2\x1a.talon.resources.AgentSpecH\x00R\x05agent\x12;\n" +
 	"\bworkflow\x18\x02 \x01(\v2\x1d.talon.resources.WorkflowSpecH\x00R\bworkflow\x12;\n" +
@@ -1005,10 +1038,10 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\rsandbox_class\x18( \x01(\v2!.talon.resources.SandboxClassSpecH\x00R\fsandboxClass\x12K\n" +
 	"\x0esandbox_policy\x18) \x01(\v2\".talon.resources.SandboxPolicySpecH\x00R\rsandboxPolicy\x128\n" +
 	"\asandbox\x18* \x01(\v2\x1c.talon.resources.SandboxSpecH\x00R\asandbox\x125\n" +
-	"\x06worker\x182 \x01(\v2\x1b.talon.resources.WorkerSpecH\x00R\x06worker\x125\n" +
+	"\x06worker\x182 \x01(\v2\x1b.talon.resources.WorkerSpecH\x00R\x06worker\x12E\n" +
+	"\fusage_policy\x18< \x01(\v2 .talon.resources.UsagePolicySpecH\x00R\vusagePolicy\x125\n" +
 	"\x03raw\x18\xe8\a \x01(\v2 .talon.resources.RawResourceSpecH\x00R\x03rawB\x06\n" +
-	"\x04kind\"\xb8\n" +
-	"\n" +
+	"\x04kind\"\x81\v\n" +
 	"\x0eResourceStatus\x124\n" +
 	"\x05agent\x18\x01 \x01(\v2\x1c.talon.resources.AgentStatusH\x00R\x05agent\x12=\n" +
 	"\bworkflow\x18\x02 \x01(\v2\x1f.talon.resources.WorkflowStatusH\x00R\bworkflow\x12=\n" +
@@ -1031,7 +1064,8 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\rsandbox_class\x18( \x01(\v2%.talon.resources.CommonResourceStatusH\x00R\fsandboxClass\x12N\n" +
 	"\x0esandbox_policy\x18) \x01(\v2%.talon.resources.CommonResourceStatusH\x00R\rsandboxPolicy\x12:\n" +
 	"\asandbox\x18* \x01(\v2\x1e.talon.resources.SandboxStatusH\x00R\asandbox\x127\n" +
-	"\x06worker\x182 \x01(\v2\x1d.talon.resources.WorkerStatusH\x00R\x06worker\x127\n" +
+	"\x06worker\x182 \x01(\v2\x1d.talon.resources.WorkerStatusH\x00R\x06worker\x12G\n" +
+	"\fusage_policy\x18< \x01(\v2\".talon.resources.UsagePolicyStatusH\x00R\vusagePolicy\x127\n" +
 	"\x03raw\x18\xe8\a \x01(\v2\".talon.resources.RawResourceStatusH\x00R\x03rawB\x06\n" +
 	"\x04kindb\x06proto3"
 
@@ -1074,17 +1108,19 @@ var file_proto_resources_resource_proto_goTypes = []any{
 	(*SandboxPolicySpec)(nil),       // 22: talon.resources.SandboxPolicySpec
 	(*SandboxSpec)(nil),             // 23: talon.resources.SandboxSpec
 	(*WorkerSpec)(nil),              // 24: talon.resources.WorkerSpec
-	(*AgentStatus)(nil),             // 25: talon.resources.AgentStatus
-	(*WorkflowStatus)(nil),          // 26: talon.resources.WorkflowStatus
-	(*ScheduleStatus)(nil),          // 27: talon.resources.ScheduleStatus
-	(*ChannelStatus)(nil),           // 28: talon.resources.ChannelStatus
-	(*CommonResourceStatus)(nil),    // 29: talon.resources.CommonResourceStatus
-	(*NamespaceStatus)(nil),         // 30: talon.resources.NamespaceStatus
-	(*SessionStatus)(nil),           // 31: talon.resources.SessionStatus
-	(*DeploymentStatus)(nil),        // 32: talon.resources.DeploymentStatus
-	(*DeploymentReplicaStatus)(nil), // 33: talon.resources.DeploymentReplicaStatus
-	(*SandboxStatus)(nil),           // 34: talon.resources.SandboxStatus
-	(*WorkerStatus)(nil),            // 35: talon.resources.WorkerStatus
+	(*UsagePolicySpec)(nil),         // 25: talon.resources.UsagePolicySpec
+	(*AgentStatus)(nil),             // 26: talon.resources.AgentStatus
+	(*WorkflowStatus)(nil),          // 27: talon.resources.WorkflowStatus
+	(*ScheduleStatus)(nil),          // 28: talon.resources.ScheduleStatus
+	(*ChannelStatus)(nil),           // 29: talon.resources.ChannelStatus
+	(*CommonResourceStatus)(nil),    // 30: talon.resources.CommonResourceStatus
+	(*NamespaceStatus)(nil),         // 31: talon.resources.NamespaceStatus
+	(*SessionStatus)(nil),           // 32: talon.resources.SessionStatus
+	(*DeploymentStatus)(nil),        // 33: talon.resources.DeploymentStatus
+	(*DeploymentReplicaStatus)(nil), // 34: talon.resources.DeploymentReplicaStatus
+	(*SandboxStatus)(nil),           // 35: talon.resources.SandboxStatus
+	(*WorkerStatus)(nil),            // 36: talon.resources.WorkerStatus
+	(*UsagePolicyStatus)(nil),       // 37: talon.resources.UsagePolicyStatus
 }
 var file_proto_resources_resource_proto_depIdxs = []int32{
 	6,  // 0: talon.resources.Resource.metadata:type_name -> talon.resources.ResourceMeta
@@ -1110,31 +1146,33 @@ var file_proto_resources_resource_proto_depIdxs = []int32{
 	22, // 20: talon.resources.ResourceSpec.sandbox_policy:type_name -> talon.resources.SandboxPolicySpec
 	23, // 21: talon.resources.ResourceSpec.sandbox:type_name -> talon.resources.SandboxSpec
 	24, // 22: talon.resources.ResourceSpec.worker:type_name -> talon.resources.WorkerSpec
-	2,  // 23: talon.resources.ResourceSpec.raw:type_name -> talon.resources.RawResourceSpec
-	25, // 24: talon.resources.ResourceStatus.agent:type_name -> talon.resources.AgentStatus
-	26, // 25: talon.resources.ResourceStatus.workflow:type_name -> talon.resources.WorkflowStatus
-	27, // 26: talon.resources.ResourceStatus.schedule:type_name -> talon.resources.ScheduleStatus
-	28, // 27: talon.resources.ResourceStatus.channel:type_name -> talon.resources.ChannelStatus
-	29, // 28: talon.resources.ResourceStatus.channel_subscription:type_name -> talon.resources.CommonResourceStatus
-	29, // 29: talon.resources.ResourceStatus.mcp_server:type_name -> talon.resources.CommonResourceStatus
-	29, // 30: talon.resources.ResourceStatus.mcp_server_binding:type_name -> talon.resources.CommonResourceStatus
-	29, // 31: talon.resources.ResourceStatus.knowledge:type_name -> talon.resources.CommonResourceStatus
-	30, // 32: talon.resources.ResourceStatus.namespace:type_name -> talon.resources.NamespaceStatus
-	31, // 33: talon.resources.ResourceStatus.session:type_name -> talon.resources.SessionStatus
-	29, // 34: talon.resources.ResourceStatus.skill:type_name -> talon.resources.CommonResourceStatus
-	29, // 35: talon.resources.ResourceStatus.template:type_name -> talon.resources.CommonResourceStatus
-	32, // 36: talon.resources.ResourceStatus.deployment:type_name -> talon.resources.DeploymentStatus
-	33, // 37: talon.resources.ResourceStatus.deployment_replica:type_name -> talon.resources.DeploymentReplicaStatus
-	29, // 38: talon.resources.ResourceStatus.sandbox_class:type_name -> talon.resources.CommonResourceStatus
-	29, // 39: talon.resources.ResourceStatus.sandbox_policy:type_name -> talon.resources.CommonResourceStatus
-	34, // 40: talon.resources.ResourceStatus.sandbox:type_name -> talon.resources.SandboxStatus
-	35, // 41: talon.resources.ResourceStatus.worker:type_name -> talon.resources.WorkerStatus
-	3,  // 42: talon.resources.ResourceStatus.raw:type_name -> talon.resources.RawResourceStatus
-	43, // [43:43] is the sub-list for method output_type
-	43, // [43:43] is the sub-list for method input_type
-	43, // [43:43] is the sub-list for extension type_name
-	43, // [43:43] is the sub-list for extension extendee
-	0,  // [0:43] is the sub-list for field type_name
+	25, // 23: talon.resources.ResourceSpec.usage_policy:type_name -> talon.resources.UsagePolicySpec
+	2,  // 24: talon.resources.ResourceSpec.raw:type_name -> talon.resources.RawResourceSpec
+	26, // 25: talon.resources.ResourceStatus.agent:type_name -> talon.resources.AgentStatus
+	27, // 26: talon.resources.ResourceStatus.workflow:type_name -> talon.resources.WorkflowStatus
+	28, // 27: talon.resources.ResourceStatus.schedule:type_name -> talon.resources.ScheduleStatus
+	29, // 28: talon.resources.ResourceStatus.channel:type_name -> talon.resources.ChannelStatus
+	30, // 29: talon.resources.ResourceStatus.channel_subscription:type_name -> talon.resources.CommonResourceStatus
+	30, // 30: talon.resources.ResourceStatus.mcp_server:type_name -> talon.resources.CommonResourceStatus
+	30, // 31: talon.resources.ResourceStatus.mcp_server_binding:type_name -> talon.resources.CommonResourceStatus
+	30, // 32: talon.resources.ResourceStatus.knowledge:type_name -> talon.resources.CommonResourceStatus
+	31, // 33: talon.resources.ResourceStatus.namespace:type_name -> talon.resources.NamespaceStatus
+	32, // 34: talon.resources.ResourceStatus.session:type_name -> talon.resources.SessionStatus
+	30, // 35: talon.resources.ResourceStatus.skill:type_name -> talon.resources.CommonResourceStatus
+	30, // 36: talon.resources.ResourceStatus.template:type_name -> talon.resources.CommonResourceStatus
+	33, // 37: talon.resources.ResourceStatus.deployment:type_name -> talon.resources.DeploymentStatus
+	34, // 38: talon.resources.ResourceStatus.deployment_replica:type_name -> talon.resources.DeploymentReplicaStatus
+	30, // 39: talon.resources.ResourceStatus.sandbox_class:type_name -> talon.resources.CommonResourceStatus
+	30, // 40: talon.resources.ResourceStatus.sandbox_policy:type_name -> talon.resources.CommonResourceStatus
+	35, // 41: talon.resources.ResourceStatus.sandbox:type_name -> talon.resources.SandboxStatus
+	36, // 42: talon.resources.ResourceStatus.worker:type_name -> talon.resources.WorkerStatus
+	37, // 43: talon.resources.ResourceStatus.usage_policy:type_name -> talon.resources.UsagePolicyStatus
+	3,  // 44: talon.resources.ResourceStatus.raw:type_name -> talon.resources.RawResourceStatus
+	45, // [45:45] is the sub-list for method output_type
+	45, // [45:45] is the sub-list for method input_type
+	45, // [45:45] is the sub-list for extension type_name
+	45, // [45:45] is the sub-list for extension extendee
+	0,  // [0:45] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_resource_proto_init() }
@@ -1153,6 +1191,7 @@ func file_proto_resources_resource_proto_init() {
 	file_proto_resources_schedules_proto_init()
 	file_proto_resources_sessions_proto_init()
 	file_proto_resources_skills_proto_init()
+	file_proto_resources_usage_proto_init()
 	file_proto_resources_workers_proto_init()
 	file_proto_resources_workflows_proto_init()
 	file_proto_resources_resource_proto_msgTypes[4].OneofWrappers = []any{
@@ -1174,6 +1213,7 @@ func file_proto_resources_resource_proto_init() {
 		(*ResourceSpec_SandboxPolicy)(nil),
 		(*ResourceSpec_Sandbox)(nil),
 		(*ResourceSpec_Worker)(nil),
+		(*ResourceSpec_UsagePolicy)(nil),
 		(*ResourceSpec_Raw)(nil),
 	}
 	file_proto_resources_resource_proto_msgTypes[5].OneofWrappers = []any{
@@ -1195,6 +1235,7 @@ func file_proto_resources_resource_proto_init() {
 		(*ResourceStatus_SandboxPolicy)(nil),
 		(*ResourceStatus_Sandbox)(nil),
 		(*ResourceStatus_Worker)(nil),
+		(*ResourceStatus_UsagePolicy)(nil),
 		(*ResourceStatus_Raw)(nil),
 	}
 	type x struct{}

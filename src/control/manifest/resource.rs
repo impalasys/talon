@@ -295,6 +295,9 @@ pub fn resource_spec_status_from_json(
         "Sandbox" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Sandbox(sandbox_spec_from_value(spec_value)?)),
         },
+        "UsagePolicy" => resources_proto::ResourceSpec {
+            kind: Some(SpecKind::UsagePolicy(serde_json::from_value(spec_value)?)),
+        },
         "Skill" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Skill(skill_spec_from_value(spec_value)?)),
         },
@@ -349,6 +352,9 @@ pub fn resource_spec_status_from_json(
         },
         "Skill" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Skill(common_status_from_value(status_value)?)),
+        },
+        "UsagePolicy" => resources_proto::ResourceStatus {
+            kind: Some(StatusKind::UsagePolicy(serde_json::from_value(status_value)?)),
         },
         "Worker" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Worker(worker_status_from_value(status_value)?)),
@@ -405,6 +411,7 @@ fn resource_spec_status_to_yaml_values(
             "classRef": spec.class_ref.as_ref().map(resource_ref_json),
             "runtimeTemplate": sandbox_runtime_template_to_json_value(spec.runtime_template.as_ref()),
         }))?,
+        Some(SpecKind::UsagePolicy(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::Skill(spec)) => serde_json::to_string(&serde_json::json!({
             "description": spec.description,
             "instructions": spec.instructions,
@@ -532,6 +539,7 @@ fn resource_spec_status_to_yaml_values(
             serde_json::to_string(&common_status_to_json(status))?
         }
         Some(StatusKind::Worker(status)) => serde_json::to_string(&worker_status_to_json(status))?,
+        Some(StatusKind::UsagePolicy(status)) => serde_json::to_string(status)?,
         Some(StatusKind::Raw(raw)) => raw.json.clone(),
         _ => "{}".to_string(),
     };

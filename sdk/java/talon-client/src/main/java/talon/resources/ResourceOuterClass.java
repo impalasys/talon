@@ -3673,6 +3673,21 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Workers.WorkerSpecOrBuilder getWorkerOrBuilder();
 
     /**
+     * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+     * @return Whether the usagePolicy field is set.
+     */
+    boolean hasUsagePolicy();
+    /**
+     * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+     * @return The usagePolicy.
+     */
+    talon.resources.Usage.UsagePolicySpec getUsagePolicy();
+    /**
+     * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+     */
+    talon.resources.Usage.UsagePolicySpecOrBuilder getUsagePolicyOrBuilder();
+
+    /**
      * <code>.talon.resources.RawResourceSpec raw = 1000;</code>
      * @return Whether the raw field is set.
      */
@@ -3755,6 +3770,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       SANDBOX_POLICY(41),
       SANDBOX(42),
       WORKER(50),
+      USAGE_POLICY(60),
       RAW(1000),
       KIND_NOT_SET(0);
       private final int value;
@@ -3791,6 +3807,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           case 41: return SANDBOX_POLICY;
           case 42: return SANDBOX;
           case 50: return WORKER;
+          case 60: return USAGE_POLICY;
           case 1000: return RAW;
           case 0: return KIND_NOT_SET;
           default: return null;
@@ -4365,6 +4382,37 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       return talon.resources.Workers.WorkerSpec.getDefaultInstance();
     }
 
+    public static final int USAGE_POLICY_FIELD_NUMBER = 60;
+    /**
+     * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+     * @return Whether the usagePolicy field is set.
+     */
+    @java.lang.Override
+    public boolean hasUsagePolicy() {
+      return kindCase_ == 60;
+    }
+    /**
+     * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+     * @return The usagePolicy.
+     */
+    @java.lang.Override
+    public talon.resources.Usage.UsagePolicySpec getUsagePolicy() {
+      if (kindCase_ == 60) {
+         return (talon.resources.Usage.UsagePolicySpec) kind_;
+      }
+      return talon.resources.Usage.UsagePolicySpec.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Usage.UsagePolicySpecOrBuilder getUsagePolicyOrBuilder() {
+      if (kindCase_ == 60) {
+         return (talon.resources.Usage.UsagePolicySpec) kind_;
+      }
+      return talon.resources.Usage.UsagePolicySpec.getDefaultInstance();
+    }
+
     public static final int RAW_FIELD_NUMBER = 1000;
     /**
      * <code>.talon.resources.RawResourceSpec raw = 1000;</code>
@@ -4464,6 +4512,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 50) {
         output.writeMessage(50, (talon.resources.Workers.WorkerSpec) kind_);
       }
+      if (kindCase_ == 60) {
+        output.writeMessage(60, (talon.resources.Usage.UsagePolicySpec) kind_);
+      }
       if (kindCase_ == 1000) {
         output.writeMessage(1000, (talon.resources.ResourceOuterClass.RawResourceSpec) kind_);
       }
@@ -4547,6 +4598,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 50) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(50, (talon.resources.Workers.WorkerSpec) kind_);
+      }
+      if (kindCase_ == 60) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(60, (talon.resources.Usage.UsagePolicySpec) kind_);
       }
       if (kindCase_ == 1000) {
         size += com.google.protobuf.CodedOutputStream
@@ -4641,6 +4696,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           if (!getWorker()
               .equals(other.getWorker())) return false;
           break;
+        case 60:
+          if (!getUsagePolicy()
+              .equals(other.getUsagePolicy())) return false;
+          break;
         case 1000:
           if (!getRaw()
               .equals(other.getRaw())) return false;
@@ -4731,6 +4790,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 50:
           hash = (37 * hash) + WORKER_FIELD_NUMBER;
           hash = (53 * hash) + getWorker().hashCode();
+          break;
+        case 60:
+          hash = (37 * hash) + USAGE_POLICY_FIELD_NUMBER;
+          hash = (53 * hash) + getUsagePolicy().hashCode();
           break;
         case 1000:
           hash = (37 * hash) + RAW_FIELD_NUMBER;
@@ -4924,6 +4987,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (workerBuilder_ != null) {
           workerBuilder_.clear();
         }
+        if (usagePolicyBuilder_ != null) {
+          usagePolicyBuilder_.clear();
+        }
         if (rawBuilder_ != null) {
           rawBuilder_.clear();
         }
@@ -5040,6 +5106,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             workerBuilder_ != null) {
           result.kind_ = workerBuilder_.build();
         }
+        if (kindCase_ == 60 &&
+            usagePolicyBuilder_ != null) {
+          result.kind_ = usagePolicyBuilder_.build();
+        }
         if (kindCase_ == 1000 &&
             rawBuilder_ != null) {
           result.kind_ = rawBuilder_.build();
@@ -5129,6 +5199,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           }
           case WORKER: {
             mergeWorker(other.getWorker());
+            break;
+          }
+          case USAGE_POLICY: {
+            mergeUsagePolicy(other.getUsagePolicy());
             break;
           }
           case RAW: {
@@ -5291,6 +5365,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 50;
                 break;
               } // case 402
+              case 482: {
+                input.readMessage(
+                    internalGetUsagePolicyFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                kindCase_ = 60;
+                break;
+              } // case 482
               case 8002: {
                 input.readMessage(
                     internalGetRawFieldBuilder().getBuilder(),
@@ -7887,6 +7968,148 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       }
 
       private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Usage.UsagePolicySpec, talon.resources.Usage.UsagePolicySpec.Builder, talon.resources.Usage.UsagePolicySpecOrBuilder> usagePolicyBuilder_;
+      /**
+       * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+       * @return Whether the usagePolicy field is set.
+       */
+      @java.lang.Override
+      public boolean hasUsagePolicy() {
+        return kindCase_ == 60;
+      }
+      /**
+       * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+       * @return The usagePolicy.
+       */
+      @java.lang.Override
+      public talon.resources.Usage.UsagePolicySpec getUsagePolicy() {
+        if (usagePolicyBuilder_ == null) {
+          if (kindCase_ == 60) {
+            return (talon.resources.Usage.UsagePolicySpec) kind_;
+          }
+          return talon.resources.Usage.UsagePolicySpec.getDefaultInstance();
+        } else {
+          if (kindCase_ == 60) {
+            return usagePolicyBuilder_.getMessage();
+          }
+          return talon.resources.Usage.UsagePolicySpec.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+       */
+      public Builder setUsagePolicy(talon.resources.Usage.UsagePolicySpec value) {
+        if (usagePolicyBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          kind_ = value;
+          onChanged();
+        } else {
+          usagePolicyBuilder_.setMessage(value);
+        }
+        kindCase_ = 60;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+       */
+      public Builder setUsagePolicy(
+          talon.resources.Usage.UsagePolicySpec.Builder builderForValue) {
+        if (usagePolicyBuilder_ == null) {
+          kind_ = builderForValue.build();
+          onChanged();
+        } else {
+          usagePolicyBuilder_.setMessage(builderForValue.build());
+        }
+        kindCase_ = 60;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+       */
+      public Builder mergeUsagePolicy(talon.resources.Usage.UsagePolicySpec value) {
+        if (usagePolicyBuilder_ == null) {
+          if (kindCase_ == 60 &&
+              kind_ != talon.resources.Usage.UsagePolicySpec.getDefaultInstance()) {
+            kind_ = talon.resources.Usage.UsagePolicySpec.newBuilder((talon.resources.Usage.UsagePolicySpec) kind_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            kind_ = value;
+          }
+          onChanged();
+        } else {
+          if (kindCase_ == 60) {
+            usagePolicyBuilder_.mergeFrom(value);
+          } else {
+            usagePolicyBuilder_.setMessage(value);
+          }
+        }
+        kindCase_ = 60;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+       */
+      public Builder clearUsagePolicy() {
+        if (usagePolicyBuilder_ == null) {
+          if (kindCase_ == 60) {
+            kindCase_ = 0;
+            kind_ = null;
+            onChanged();
+          }
+        } else {
+          if (kindCase_ == 60) {
+            kindCase_ = 0;
+            kind_ = null;
+          }
+          usagePolicyBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+       */
+      public talon.resources.Usage.UsagePolicySpec.Builder getUsagePolicyBuilder() {
+        return internalGetUsagePolicyFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+       */
+      @java.lang.Override
+      public talon.resources.Usage.UsagePolicySpecOrBuilder getUsagePolicyOrBuilder() {
+        if ((kindCase_ == 60) && (usagePolicyBuilder_ != null)) {
+          return usagePolicyBuilder_.getMessageOrBuilder();
+        } else {
+          if (kindCase_ == 60) {
+            return (talon.resources.Usage.UsagePolicySpec) kind_;
+          }
+          return talon.resources.Usage.UsagePolicySpec.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.UsagePolicySpec usage_policy = 60;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Usage.UsagePolicySpec, talon.resources.Usage.UsagePolicySpec.Builder, talon.resources.Usage.UsagePolicySpecOrBuilder>
+          internalGetUsagePolicyFieldBuilder() {
+        if (usagePolicyBuilder_ == null) {
+          if (!(kindCase_ == 60)) {
+            kind_ = talon.resources.Usage.UsagePolicySpec.getDefaultInstance();
+          }
+          usagePolicyBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Usage.UsagePolicySpec, talon.resources.Usage.UsagePolicySpec.Builder, talon.resources.Usage.UsagePolicySpecOrBuilder>(
+                  (talon.resources.Usage.UsagePolicySpec) kind_,
+                  getParentForChildren(),
+                  isClean());
+          kind_ = null;
+        }
+        kindCase_ = 60;
+        onChanged();
+        return usagePolicyBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
           talon.resources.ResourceOuterClass.RawResourceSpec, talon.resources.ResourceOuterClass.RawResourceSpec.Builder, talon.resources.ResourceOuterClass.RawResourceSpecOrBuilder> rawBuilder_;
       /**
        * <code>.talon.resources.RawResourceSpec raw = 1000;</code>
@@ -8354,6 +8577,21 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Workers.WorkerStatusOrBuilder getWorkerOrBuilder();
 
     /**
+     * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+     * @return Whether the usagePolicy field is set.
+     */
+    boolean hasUsagePolicy();
+    /**
+     * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+     * @return The usagePolicy.
+     */
+    talon.resources.Usage.UsagePolicyStatus getUsagePolicy();
+    /**
+     * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+     */
+    talon.resources.Usage.UsagePolicyStatusOrBuilder getUsagePolicyOrBuilder();
+
+    /**
      * <code>.talon.resources.RawResourceStatus raw = 1000;</code>
      * @return Whether the raw field is set.
      */
@@ -8436,6 +8674,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       SANDBOX_POLICY(41),
       SANDBOX(42),
       WORKER(50),
+      USAGE_POLICY(60),
       RAW(1000),
       KIND_NOT_SET(0);
       private final int value;
@@ -8472,6 +8711,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           case 41: return SANDBOX_POLICY;
           case 42: return SANDBOX;
           case 50: return WORKER;
+          case 60: return USAGE_POLICY;
           case 1000: return RAW;
           case 0: return KIND_NOT_SET;
           default: return null;
@@ -9046,6 +9286,37 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       return talon.resources.Workers.WorkerStatus.getDefaultInstance();
     }
 
+    public static final int USAGE_POLICY_FIELD_NUMBER = 60;
+    /**
+     * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+     * @return Whether the usagePolicy field is set.
+     */
+    @java.lang.Override
+    public boolean hasUsagePolicy() {
+      return kindCase_ == 60;
+    }
+    /**
+     * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+     * @return The usagePolicy.
+     */
+    @java.lang.Override
+    public talon.resources.Usage.UsagePolicyStatus getUsagePolicy() {
+      if (kindCase_ == 60) {
+         return (talon.resources.Usage.UsagePolicyStatus) kind_;
+      }
+      return talon.resources.Usage.UsagePolicyStatus.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Usage.UsagePolicyStatusOrBuilder getUsagePolicyOrBuilder() {
+      if (kindCase_ == 60) {
+         return (talon.resources.Usage.UsagePolicyStatus) kind_;
+      }
+      return talon.resources.Usage.UsagePolicyStatus.getDefaultInstance();
+    }
+
     public static final int RAW_FIELD_NUMBER = 1000;
     /**
      * <code>.talon.resources.RawResourceStatus raw = 1000;</code>
@@ -9145,6 +9416,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 50) {
         output.writeMessage(50, (talon.resources.Workers.WorkerStatus) kind_);
       }
+      if (kindCase_ == 60) {
+        output.writeMessage(60, (talon.resources.Usage.UsagePolicyStatus) kind_);
+      }
       if (kindCase_ == 1000) {
         output.writeMessage(1000, (talon.resources.ResourceOuterClass.RawResourceStatus) kind_);
       }
@@ -9228,6 +9502,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 50) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(50, (talon.resources.Workers.WorkerStatus) kind_);
+      }
+      if (kindCase_ == 60) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(60, (talon.resources.Usage.UsagePolicyStatus) kind_);
       }
       if (kindCase_ == 1000) {
         size += com.google.protobuf.CodedOutputStream
@@ -9322,6 +9600,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           if (!getWorker()
               .equals(other.getWorker())) return false;
           break;
+        case 60:
+          if (!getUsagePolicy()
+              .equals(other.getUsagePolicy())) return false;
+          break;
         case 1000:
           if (!getRaw()
               .equals(other.getRaw())) return false;
@@ -9412,6 +9694,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 50:
           hash = (37 * hash) + WORKER_FIELD_NUMBER;
           hash = (53 * hash) + getWorker().hashCode();
+          break;
+        case 60:
+          hash = (37 * hash) + USAGE_POLICY_FIELD_NUMBER;
+          hash = (53 * hash) + getUsagePolicy().hashCode();
           break;
         case 1000:
           hash = (37 * hash) + RAW_FIELD_NUMBER;
@@ -9605,6 +9891,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (workerBuilder_ != null) {
           workerBuilder_.clear();
         }
+        if (usagePolicyBuilder_ != null) {
+          usagePolicyBuilder_.clear();
+        }
         if (rawBuilder_ != null) {
           rawBuilder_.clear();
         }
@@ -9721,6 +10010,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             workerBuilder_ != null) {
           result.kind_ = workerBuilder_.build();
         }
+        if (kindCase_ == 60 &&
+            usagePolicyBuilder_ != null) {
+          result.kind_ = usagePolicyBuilder_.build();
+        }
         if (kindCase_ == 1000 &&
             rawBuilder_ != null) {
           result.kind_ = rawBuilder_.build();
@@ -9810,6 +10103,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           }
           case WORKER: {
             mergeWorker(other.getWorker());
+            break;
+          }
+          case USAGE_POLICY: {
+            mergeUsagePolicy(other.getUsagePolicy());
             break;
           }
           case RAW: {
@@ -9972,6 +10269,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 50;
                 break;
               } // case 402
+              case 482: {
+                input.readMessage(
+                    internalGetUsagePolicyFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                kindCase_ = 60;
+                break;
+              } // case 482
               case 8002: {
                 input.readMessage(
                     internalGetRawFieldBuilder().getBuilder(),
@@ -12568,6 +12872,148 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       }
 
       private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Usage.UsagePolicyStatus, talon.resources.Usage.UsagePolicyStatus.Builder, talon.resources.Usage.UsagePolicyStatusOrBuilder> usagePolicyBuilder_;
+      /**
+       * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+       * @return Whether the usagePolicy field is set.
+       */
+      @java.lang.Override
+      public boolean hasUsagePolicy() {
+        return kindCase_ == 60;
+      }
+      /**
+       * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+       * @return The usagePolicy.
+       */
+      @java.lang.Override
+      public talon.resources.Usage.UsagePolicyStatus getUsagePolicy() {
+        if (usagePolicyBuilder_ == null) {
+          if (kindCase_ == 60) {
+            return (talon.resources.Usage.UsagePolicyStatus) kind_;
+          }
+          return talon.resources.Usage.UsagePolicyStatus.getDefaultInstance();
+        } else {
+          if (kindCase_ == 60) {
+            return usagePolicyBuilder_.getMessage();
+          }
+          return talon.resources.Usage.UsagePolicyStatus.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+       */
+      public Builder setUsagePolicy(talon.resources.Usage.UsagePolicyStatus value) {
+        if (usagePolicyBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          kind_ = value;
+          onChanged();
+        } else {
+          usagePolicyBuilder_.setMessage(value);
+        }
+        kindCase_ = 60;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+       */
+      public Builder setUsagePolicy(
+          talon.resources.Usage.UsagePolicyStatus.Builder builderForValue) {
+        if (usagePolicyBuilder_ == null) {
+          kind_ = builderForValue.build();
+          onChanged();
+        } else {
+          usagePolicyBuilder_.setMessage(builderForValue.build());
+        }
+        kindCase_ = 60;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+       */
+      public Builder mergeUsagePolicy(talon.resources.Usage.UsagePolicyStatus value) {
+        if (usagePolicyBuilder_ == null) {
+          if (kindCase_ == 60 &&
+              kind_ != talon.resources.Usage.UsagePolicyStatus.getDefaultInstance()) {
+            kind_ = talon.resources.Usage.UsagePolicyStatus.newBuilder((talon.resources.Usage.UsagePolicyStatus) kind_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            kind_ = value;
+          }
+          onChanged();
+        } else {
+          if (kindCase_ == 60) {
+            usagePolicyBuilder_.mergeFrom(value);
+          } else {
+            usagePolicyBuilder_.setMessage(value);
+          }
+        }
+        kindCase_ = 60;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+       */
+      public Builder clearUsagePolicy() {
+        if (usagePolicyBuilder_ == null) {
+          if (kindCase_ == 60) {
+            kindCase_ = 0;
+            kind_ = null;
+            onChanged();
+          }
+        } else {
+          if (kindCase_ == 60) {
+            kindCase_ = 0;
+            kind_ = null;
+          }
+          usagePolicyBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+       */
+      public talon.resources.Usage.UsagePolicyStatus.Builder getUsagePolicyBuilder() {
+        return internalGetUsagePolicyFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+       */
+      @java.lang.Override
+      public talon.resources.Usage.UsagePolicyStatusOrBuilder getUsagePolicyOrBuilder() {
+        if ((kindCase_ == 60) && (usagePolicyBuilder_ != null)) {
+          return usagePolicyBuilder_.getMessageOrBuilder();
+        } else {
+          if (kindCase_ == 60) {
+            return (talon.resources.Usage.UsagePolicyStatus) kind_;
+          }
+          return talon.resources.Usage.UsagePolicyStatus.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.UsagePolicyStatus usage_policy = 60;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Usage.UsagePolicyStatus, talon.resources.Usage.UsagePolicyStatus.Builder, talon.resources.Usage.UsagePolicyStatusOrBuilder>
+          internalGetUsagePolicyFieldBuilder() {
+        if (usagePolicyBuilder_ == null) {
+          if (!(kindCase_ == 60)) {
+            kind_ = talon.resources.Usage.UsagePolicyStatus.getDefaultInstance();
+          }
+          usagePolicyBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Usage.UsagePolicyStatus, talon.resources.Usage.UsagePolicyStatus.Builder, talon.resources.Usage.UsagePolicyStatusOrBuilder>(
+                  (talon.resources.Usage.UsagePolicyStatus) kind_,
+                  getParentForChildren(),
+                  isClean());
+          kind_ = null;
+        }
+        kindCase_ = 60;
+        onChanged();
+        return usagePolicyBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
           talon.resources.ResourceOuterClass.RawResourceStatus, talon.resources.ResourceOuterClass.RawResourceStatus.Builder, talon.resources.ResourceOuterClass.RawResourceStatusOrBuilder> rawBuilder_;
       /**
        * <code>.talon.resources.RawResourceStatus raw = 1000;</code>
@@ -12808,74 +13254,78 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       "oto/resources/namespaces.proto\032\037proto/re" +
       "sources/sandboxes.proto\032\037proto/resources" +
       "/schedules.proto\032\036proto/resources/sessio" +
-      "ns.proto\032\034proto/resources/skills.proto\032\035" +
-      "proto/resources/workers.proto\032\037proto/res" +
-      "ources/workflows.proto\"\274\001\n\010Resource\022\023\n\013a" +
-      "pi_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022/\n\010metada" +
-      "ta\030\003 \001(\0132\035.talon.resources.ResourceMeta\022" +
-      "+\n\004spec\030\004 \001(\0132\035.talon.resources.Resource" +
-      "Spec\022/\n\006status\030\005 \001(\0132\037.talon.resources.R" +
-      "esourceStatus\"\223\001\n\020ResourceManifest\022\023\n\013ap" +
-      "i_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022/\n\010metadat" +
-      "a\030\003 \001(\0132\035.talon.resources.ResourceMeta\022+" +
-      "\n\004spec\030\004 \001(\0132\035.talon.resources.ResourceS" +
-      "pec\"\037\n\017RawResourceSpec\022\014\n\004json\030\001 \001(\t\"!\n\021" +
-      "RawResourceStatus\022\014\n\004json\030\001 \001(\t\"\243\010\n\014Reso" +
-      "urceSpec\022+\n\005agent\030\001 \001(\0132\032.talon.resource" +
-      "s.AgentSpecH\000\0221\n\010workflow\030\002 \001(\0132\035.talon." +
-      "resources.WorkflowSpecH\000\0221\n\010schedule\030\003 \001" +
-      "(\0132\035.talon.resources.ScheduleSpecH\000\022/\n\007c" +
-      "hannel\030\004 \001(\0132\034.talon.resources.ChannelSp" +
-      "ecH\000\022H\n\024channel_subscription\030\005 \001(\0132(.tal" +
-      "on.resources.ChannelSubscriptionSpecH\000\0224" +
-      "\n\nmcp_server\030\006 \001(\0132\036.talon.resources.Mcp" +
-      "ServerSpecH\000\022C\n\022mcp_server_binding\030\007 \001(\013" +
-      "2%.talon.resources.McpServerBindingSpecH" +
-      "\000\0223\n\tknowledge\030\010 \001(\0132\036.talon.resources.K" +
-      "nowledgeSpecH\000\0223\n\tnamespace\030\t \001(\0132\036.talo" +
-      "n.resources.NamespaceSpecH\000\022/\n\007session\030\n" +
-      " \001(\0132\034.talon.resources.SessionSpecH\000\022+\n\005" +
-      "skill\030\013 \001(\0132\032.talon.resources.SkillSpecH" +
-      "\000\0221\n\010template\030\024 \001(\0132\035.talon.resources.Te" +
-      "mplateSpecH\000\0225\n\ndeployment\030\025 \001(\0132\037.talon" +
-      ".resources.DeploymentSpecH\000\022D\n\022deploymen" +
-      "t_replica\030\026 \001(\0132&.talon.resources.Deploy" +
-      "mentReplicaSpecH\000\022:\n\rsandbox_class\030( \001(\013" +
-      "2!.talon.resources.SandboxClassSpecH\000\022<\n" +
-      "\016sandbox_policy\030) \001(\0132\".talon.resources." +
-      "SandboxPolicySpecH\000\022/\n\007sandbox\030* \001(\0132\034.t" +
-      "alon.resources.SandboxSpecH\000\022-\n\006worker\0302" +
-      " \001(\0132\033.talon.resources.WorkerSpecH\000\0220\n\003r" +
-      "aw\030\350\007 \001(\0132 .talon.resources.RawResourceS" +
-      "pecH\000B\006\n\004kind\"\340\010\n\016ResourceStatus\022-\n\005agen" +
-      "t\030\001 \001(\0132\034.talon.resources.AgentStatusH\000\022" +
-      "3\n\010workflow\030\002 \001(\0132\037.talon.resources.Work" +
-      "flowStatusH\000\0223\n\010schedule\030\003 \001(\0132\037.talon.r" +
-      "esources.ScheduleStatusH\000\0221\n\007channel\030\004 \001" +
-      "(\0132\036.talon.resources.ChannelStatusH\000\022E\n\024" +
-      "channel_subscription\030\005 \001(\0132%.talon.resou" +
-      "rces.CommonResourceStatusH\000\022;\n\nmcp_serve" +
-      "r\030\006 \001(\0132%.talon.resources.CommonResource" +
-      "StatusH\000\022C\n\022mcp_server_binding\030\007 \001(\0132%.t" +
-      "alon.resources.CommonResourceStatusH\000\022:\n" +
-      "\tknowledge\030\010 \001(\0132%.talon.resources.Commo" +
-      "nResourceStatusH\000\0225\n\tnamespace\030\t \001(\0132 .t" +
-      "alon.resources.NamespaceStatusH\000\0221\n\007sess" +
-      "ion\030\n \001(\0132\036.talon.resources.SessionStatu" +
-      "sH\000\0226\n\005skill\030\013 \001(\0132%.talon.resources.Com" +
-      "monResourceStatusH\000\0229\n\010template\030\024 \001(\0132%." +
-      "talon.resources.CommonResourceStatusH\000\0227" +
-      "\n\ndeployment\030\025 \001(\0132!.talon.resources.Dep" +
-      "loymentStatusH\000\022F\n\022deployment_replica\030\026 " +
-      "\001(\0132(.talon.resources.DeploymentReplicaS" +
-      "tatusH\000\022>\n\rsandbox_class\030( \001(\0132%.talon.r" +
-      "esources.CommonResourceStatusH\000\022?\n\016sandb" +
-      "ox_policy\030) \001(\0132%.talon.resources.Common" +
-      "ResourceStatusH\000\0221\n\007sandbox\030* \001(\0132\036.talo" +
-      "n.resources.SandboxStatusH\000\022/\n\006worker\0302 " +
-      "\001(\0132\035.talon.resources.WorkerStatusH\000\0222\n\003" +
-      "raw\030\350\007 \001(\0132\".talon.resources.RawResource" +
-      "StatusH\000B\006\n\004kindb\006proto3"
+      "ns.proto\032\034proto/resources/skills.proto\032\033" +
+      "proto/resources/usage.proto\032\035proto/resou" +
+      "rces/workers.proto\032\037proto/resources/work" +
+      "flows.proto\"\274\001\n\010Resource\022\023\n\013api_version\030" +
+      "\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022/\n\010metadata\030\003 \001(\0132\035." +
+      "talon.resources.ResourceMeta\022+\n\004spec\030\004 \001" +
+      "(\0132\035.talon.resources.ResourceSpec\022/\n\006sta" +
+      "tus\030\005 \001(\0132\037.talon.resources.ResourceStat" +
+      "us\"\223\001\n\020ResourceManifest\022\023\n\013api_version\030\001" +
+      " \001(\t\022\014\n\004kind\030\002 \001(\t\022/\n\010metadata\030\003 \001(\0132\035.t" +
+      "alon.resources.ResourceMeta\022+\n\004spec\030\004 \001(" +
+      "\0132\035.talon.resources.ResourceSpec\"\037\n\017RawR" +
+      "esourceSpec\022\014\n\004json\030\001 \001(\t\"!\n\021RawResource" +
+      "Status\022\014\n\004json\030\001 \001(\t\"\335\010\n\014ResourceSpec\022+\n" +
+      "\005agent\030\001 \001(\0132\032.talon.resources.AgentSpec" +
+      "H\000\0221\n\010workflow\030\002 \001(\0132\035.talon.resources.W" +
+      "orkflowSpecH\000\0221\n\010schedule\030\003 \001(\0132\035.talon." +
+      "resources.ScheduleSpecH\000\022/\n\007channel\030\004 \001(" +
+      "\0132\034.talon.resources.ChannelSpecH\000\022H\n\024cha" +
+      "nnel_subscription\030\005 \001(\0132(.talon.resource" +
+      "s.ChannelSubscriptionSpecH\000\0224\n\nmcp_serve" +
+      "r\030\006 \001(\0132\036.talon.resources.McpServerSpecH" +
+      "\000\022C\n\022mcp_server_binding\030\007 \001(\0132%.talon.re" +
+      "sources.McpServerBindingSpecH\000\0223\n\tknowle" +
+      "dge\030\010 \001(\0132\036.talon.resources.KnowledgeSpe" +
+      "cH\000\0223\n\tnamespace\030\t \001(\0132\036.talon.resources" +
+      ".NamespaceSpecH\000\022/\n\007session\030\n \001(\0132\034.talo" +
+      "n.resources.SessionSpecH\000\022+\n\005skill\030\013 \001(\013" +
+      "2\032.talon.resources.SkillSpecH\000\0221\n\010templa" +
+      "te\030\024 \001(\0132\035.talon.resources.TemplateSpecH" +
+      "\000\0225\n\ndeployment\030\025 \001(\0132\037.talon.resources." +
+      "DeploymentSpecH\000\022D\n\022deployment_replica\030\026" +
+      " \001(\0132&.talon.resources.DeploymentReplica" +
+      "SpecH\000\022:\n\rsandbox_class\030( \001(\0132!.talon.re" +
+      "sources.SandboxClassSpecH\000\022<\n\016sandbox_po" +
+      "licy\030) \001(\0132\".talon.resources.SandboxPoli" +
+      "cySpecH\000\022/\n\007sandbox\030* \001(\0132\034.talon.resour" +
+      "ces.SandboxSpecH\000\022-\n\006worker\0302 \001(\0132\033.talo" +
+      "n.resources.WorkerSpecH\000\0228\n\014usage_policy" +
+      "\030< \001(\0132 .talon.resources.UsagePolicySpec" +
+      "H\000\0220\n\003raw\030\350\007 \001(\0132 .talon.resources.RawRe" +
+      "sourceSpecH\000B\006\n\004kind\"\234\t\n\016ResourceStatus\022" +
+      "-\n\005agent\030\001 \001(\0132\034.talon.resources.AgentSt" +
+      "atusH\000\0223\n\010workflow\030\002 \001(\0132\037.talon.resourc" +
+      "es.WorkflowStatusH\000\0223\n\010schedule\030\003 \001(\0132\037." +
+      "talon.resources.ScheduleStatusH\000\0221\n\007chan" +
+      "nel\030\004 \001(\0132\036.talon.resources.ChannelStatu" +
+      "sH\000\022E\n\024channel_subscription\030\005 \001(\0132%.talo" +
+      "n.resources.CommonResourceStatusH\000\022;\n\nmc" +
+      "p_server\030\006 \001(\0132%.talon.resources.CommonR" +
+      "esourceStatusH\000\022C\n\022mcp_server_binding\030\007 " +
+      "\001(\0132%.talon.resources.CommonResourceStat" +
+      "usH\000\022:\n\tknowledge\030\010 \001(\0132%.talon.resource" +
+      "s.CommonResourceStatusH\000\0225\n\tnamespace\030\t " +
+      "\001(\0132 .talon.resources.NamespaceStatusH\000\022" +
+      "1\n\007session\030\n \001(\0132\036.talon.resources.Sessi" +
+      "onStatusH\000\0226\n\005skill\030\013 \001(\0132%.talon.resour" +
+      "ces.CommonResourceStatusH\000\0229\n\010template\030\024" +
+      " \001(\0132%.talon.resources.CommonResourceSta" +
+      "tusH\000\0227\n\ndeployment\030\025 \001(\0132!.talon.resour" +
+      "ces.DeploymentStatusH\000\022F\n\022deployment_rep" +
+      "lica\030\026 \001(\0132(.talon.resources.DeploymentR" +
+      "eplicaStatusH\000\022>\n\rsandbox_class\030( \001(\0132%." +
+      "talon.resources.CommonResourceStatusH\000\022?" +
+      "\n\016sandbox_policy\030) \001(\0132%.talon.resources" +
+      ".CommonResourceStatusH\000\0221\n\007sandbox\030* \001(\013" +
+      "2\036.talon.resources.SandboxStatusH\000\022/\n\006wo" +
+      "rker\0302 \001(\0132\035.talon.resources.WorkerStatu" +
+      "sH\000\022:\n\014usage_policy\030< \001(\0132\".talon.resour" +
+      "ces.UsagePolicyStatusH\000\0222\n\003raw\030\350\007 \001(\0132\"." +
+      "talon.resources.RawResourceStatusH\000B\006\n\004k" +
+      "indb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -12891,6 +13341,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           talon.resources.Schedules.getDescriptor(),
           talon.resources.Sessions.getDescriptor(),
           talon.resources.Skills.getDescriptor(),
+          talon.resources.Usage.getDescriptor(),
           talon.resources.Workers.getDescriptor(),
           talon.resources.Workflows.getDescriptor(),
         });
@@ -12923,13 +13374,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     internal_static_talon_resources_ResourceSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ResourceSpec_descriptor,
-        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "McpServerBinding", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "Raw", "Kind", });
+        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "McpServerBinding", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "Raw", "Kind", });
     internal_static_talon_resources_ResourceStatus_descriptor =
       getDescriptor().getMessageType(5);
     internal_static_talon_resources_ResourceStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ResourceStatus_descriptor,
-        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "McpServerBinding", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "Raw", "Kind", });
+        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "McpServerBinding", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "Raw", "Kind", });
     descriptor.resolveAllFeaturesImmutable();
     talon.resources.Agents.getDescriptor();
     talon.resources.Channels.getDescriptor();
@@ -12942,6 +13393,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Schedules.getDescriptor();
     talon.resources.Sessions.getDescriptor();
     talon.resources.Skills.getDescriptor();
+    talon.resources.Usage.getDescriptor();
     talon.resources.Workers.getDescriptor();
     talon.resources.Workflows.getDescriptor();
   }

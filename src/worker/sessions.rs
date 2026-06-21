@@ -845,6 +845,7 @@ mod tests {
     use serde_json::Value;
     use std::collections::HashMap;
     use std::pin::Pin;
+    use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Arc;
     use std::sync::Mutex;
     use tokio::net::TcpListener;
@@ -925,6 +926,69 @@ mod tests {
             )
             .await
             .unwrap();
+    }
+
+    async fn put_usage_policy(
+        kv: Arc<MockKvStore>,
+        namespace: &str,
+        name: &str,
+        hard: Vec<resources_proto::UsageLimit>,
+    ) {
+        let store = crate::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
+        store
+            .upsert(
+                namespace,
+                resources_proto::Resource {
+                    api_version: "talon.impalasys.com/v1".to_string(),
+                    kind: "UsagePolicy".to_string(),
+                    metadata: Some(resources_proto::ResourceMeta {
+                        name: name.to_string(),
+                        namespace: namespace.to_string(),
+                        ..Default::default()
+                    }),
+                    spec: Some(resources_proto::ResourceSpec {
+                        kind: Some(resources_proto::resource_spec::Kind::UsagePolicy(
+                            resources_proto::UsagePolicySpec {
+                                namespace_scope: "self".to_string(),
+                                hard,
+                            },
+                        )),
+                    }),
+                    status: None,
+                },
+            )
+            .await
+            .unwrap();
+    }
+
+    async fn usage_policy_status(
+        kv: Arc<MockKvStore>,
+        namespace: &str,
+        name: &str,
+    ) -> resources_proto::UsagePolicyStatus {
+        let store = crate::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
+        let resource = store
+            .get(namespace, "UsagePolicy", name)
+            .await
+            .unwrap()
+            .expect("UsagePolicy should exist");
+        match resource.status.unwrap().kind.unwrap() {
+            resources_proto::resource_status::Kind::UsagePolicy(status) => status,
+            _ => panic!("expected UsagePolicy status"),
+        }
+    }
+
+    fn usage_limit(metric: &str, max: u64) -> resources_proto::UsageLimit {
+        resources_proto::UsageLimit {
+            selector: Some(resources_proto::UsageSelector {
+                agent: "assistant".to_string(),
+                provider: "novita".to_string(),
+                model: "test-model".to_string(),
+            }),
+            metric: metric.to_string(),
+            max,
+            window: "1h".to_string(),
+        }
     }
 
     #[derive(Default)]
@@ -1705,6 +1769,132 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(after_duplicate_keys.len(), before_duplicate_keys.len());
+
+        unsafe {
+            std::env::remove_var("NOVITA_BASE_URL");
+        }
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn handle_session_message_charges_llm_usage_policy_and_redelivery_is_idempotent() {
+        let _guard = crate::test_support::async_env_mutex().lock().await;
+        let call_count = Arc::new(AtomicUsize::new(0));
+        let route_call_count = call_count.clone();
+        let app = Router::new().route(
+            "/chat/completions",
+            post(move || {
+                let route_call_count = route_call_count.clone();
+                async move {
+                    route_call_count.fetch_add(1, Ordering::SeqCst);
+                    concat!(
+                        "data: {\"choices\":[{\"delta\":{\"content\":\"assistant reply\"}}]}\n\n",
+                        "data: {\"choices\":[{\"delta\":{}}],\"usage\":{\"prompt_tokens\":7,\"completion_tokens\":5,\"completion_tokens_details\":{\"reasoning_tokens\":2},\"total_tokens\":12}}\n\n",
+                        "data: [DONE]\n\n"
+                    )
+                }
+            }),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        unsafe {
+            std::env::set_var("NOVITA_BASE_URL", format!("http://{addr}"));
+        }
+
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv(kv.clone());
+        let spec = manifests::AgentSpec {
+            features: Vec::new(),
+            model_policy: None,
+            system_prompt: "assist".to_string(),
+            mcp_server_refs: Vec::new(),
+            capabilities: HashMap::new(),
+            a2a: None,
+            runtime: None,
+        };
+
+        put_agent_resource(kv.clone(), "conic:test", "assistant", spec).await;
+        put_usage_policy(
+            kv.clone(),
+            "conic:test",
+            "llm-token-limit",
+            vec![
+                usage_limit(crate::control::usage::METRIC_LLM_INPUT_TOKENS, 100),
+                usage_limit(crate::control::usage::METRIC_LLM_OUTPUT_TOKENS, 100),
+                usage_limit(crate::control::usage::METRIC_LLM_REASONING_TOKENS, 100),
+                usage_limit(crate::control::usage::METRIC_LLM_TOTAL_TOKENS, 10),
+            ],
+        )
+        .await;
+        kv.set_msg(
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "assistant".to_string(),
+                ns: "conic:test".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 0,
+                last_active: 123,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let event = SessionMessageEvent {
+            ns: "conic:test".to_string(),
+            agent: "assistant".to_string(),
+            session_id: "session-1".to_string(),
+            message_id: "user-1".to_string(),
+            submission_id: "submission-1".to_string(),
+            direction: MessageDirection::Inbound as i32,
+            message: "hello".to_string(),
+            timestamp: 123,
+        };
+        handler.handle_session_message(event.clone()).await.unwrap();
+        assert_eq!(call_count.load(Ordering::SeqCst), 1);
+
+        let status = usage_policy_status(kv.clone(), "conic:test", "llm-token-limit").await;
+        let used_for = |metric: &str| {
+            status
+                .hard
+                .iter()
+                .find(|limit| limit.metric == metric)
+                .map(|limit| (limit.used, limit.remaining, limit.exceeded))
+                .expect("metric should be present")
+        };
+        assert_eq!(
+            used_for(crate::control::usage::METRIC_LLM_INPUT_TOKENS),
+            (7, 93, false)
+        );
+        assert_eq!(
+            used_for(crate::control::usage::METRIC_LLM_OUTPUT_TOKENS),
+            (5, 95, false)
+        );
+        assert_eq!(
+            used_for(crate::control::usage::METRIC_LLM_REASONING_TOKENS),
+            (2, 98, false)
+        );
+        assert_eq!(
+            used_for(crate::control::usage::METRIC_LLM_TOTAL_TOKENS),
+            (12, 0, true)
+        );
+
+        handler.handle_session_message(event).await.unwrap();
+        assert_eq!(call_count.load(Ordering::SeqCst), 1);
+        let status = usage_policy_status(kv.clone(), "conic:test", "llm-token-limit").await;
+        assert_eq!(
+            status
+                .hard
+                .iter()
+                .find(|limit| limit.metric == crate::control::usage::METRIC_LLM_TOTAL_TOKENS)
+                .map(|limit| limit.used),
+            Some(12)
+        );
 
         unsafe {
             std::env::remove_var("NOVITA_BASE_URL");

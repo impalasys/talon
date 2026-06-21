@@ -297,6 +297,27 @@ impl GrpcGatewayHandler {
             )));
         }
 
+        let usage_subject = crate::control::usage::UsageSubject {
+            namespace: req.ns.clone(),
+            agent: req.agent.clone(),
+            provider: String::new(),
+            model: String::new(),
+        };
+        crate::control::usage::check_namespace_usage(
+            self.gateway.kv.as_ref(),
+            &usage_subject,
+            &[crate::control::usage::METRIC_AGENT_SESSIONS],
+            chrono::Utc::now().timestamp(),
+        )
+        .await
+        .map_err(|e| {
+            if crate::control::usage::is_quota_exceeded_error(&e) {
+                tonic::Status::resource_exhausted(e.to_string())
+            } else {
+                tonic::Status::internal(format!("Failed to check namespace usage: {}", e))
+            }
+        })?;
+
         // Use ULID (UUID v7 gives time-sorted guarantees like ULID)
         let session_id = uuid::Uuid::now_v7().to_string();
 
@@ -318,6 +339,17 @@ impl GrpcGatewayHandler {
             .set_msg(&session_db_key, &session)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to save session state: {}", e)))?;
+        crate::control::usage::charge_namespace_usage(
+            self.gateway.kv.as_ref(),
+            &usage_subject,
+            &[crate::control::usage::UsageCharge {
+                metric: crate::control::usage::METRIC_AGENT_SESSIONS,
+                delta: 1,
+            }],
+            chrono::Utc::now().timestamp(),
+        )
+        .await
+        .map_err(|e| tonic::Status::internal(format!("Failed to charge session usage: {}", e)))?;
 
         let event = events::LifecycleEvent {
             resource_type: "Session".to_string(),
@@ -1189,6 +1221,7 @@ mod tests {
     use super::*;
     use crate::control::scheduler::NoopSchedulerBackend;
     use crate::control::ProtoKeyValueStoreExt;
+    use crate::gateway::rpc::resources_proto;
     use crate::gateway::Gateway;
     use crate::test_support::{MockKvStore, RecordingPubSub};
     use std::sync::Arc;
@@ -1202,6 +1235,83 @@ mod tests {
                 Arc::new(NoopSchedulerBackend),
                 crate::control::object_store::default_object_store(),
             )),
+        }
+    }
+
+    async fn put_agent(kv: Arc<MockKvStore>, pubsub: Arc<RecordingPubSub>, ns: &str, name: &str) {
+        let store = crate::control::resources::ResourceStore::new(kv, pubsub);
+        store
+            .upsert(
+                ns,
+                resources_proto::Resource {
+                    api_version: "talon.impalasys.com/v1".to_string(),
+                    kind: "Agent".to_string(),
+                    metadata: Some(resources_proto::ResourceMeta {
+                        name: name.to_string(),
+                        namespace: ns.to_string(),
+                        ..Default::default()
+                    }),
+                    spec: Some(resources_proto::ResourceSpec {
+                        kind: Some(resources_proto::resource_spec::Kind::Agent(
+                            resources_proto::AgentSpec::default(),
+                        )),
+                    }),
+                    status: None,
+                },
+            )
+            .await
+            .unwrap();
+    }
+
+    async fn put_usage_policy(
+        kv: Arc<MockKvStore>,
+        pubsub: Arc<RecordingPubSub>,
+        ns: &str,
+        name: &str,
+        limit: resources_proto::UsageLimit,
+    ) {
+        let store = crate::control::resources::ResourceStore::new(kv, pubsub);
+        store
+            .upsert(
+                ns,
+                resources_proto::Resource {
+                    api_version: "talon.impalasys.com/v1".to_string(),
+                    kind: "UsagePolicy".to_string(),
+                    metadata: Some(resources_proto::ResourceMeta {
+                        name: name.to_string(),
+                        namespace: ns.to_string(),
+                        ..Default::default()
+                    }),
+                    spec: Some(resources_proto::ResourceSpec {
+                        kind: Some(resources_proto::resource_spec::Kind::UsagePolicy(
+                            resources_proto::UsagePolicySpec {
+                                namespace_scope: "self".to_string(),
+                                hard: vec![limit],
+                            },
+                        )),
+                    }),
+                    status: None,
+                },
+            )
+            .await
+            .unwrap();
+    }
+
+    async fn usage_policy_status(
+        kv: Arc<MockKvStore>,
+        pubsub: Arc<RecordingPubSub>,
+        ns: &str,
+        name: &str,
+    ) -> resources_proto::UsagePolicyStatus {
+        let store = crate::control::resources::ResourceStore::new(kv, pubsub);
+        let resource = store
+            .get(ns, "UsagePolicy", name)
+            .await
+            .unwrap()
+            .expect("UsagePolicy should exist");
+        match resource.status.unwrap().kind.unwrap() {
+            resources_proto::resource_status::Kind::UsagePolicy(status) => status,
+            _ => panic!("expected UsagePolicy status"),
         }
     }
 
@@ -1310,5 +1420,76 @@ mod tests {
             .await
             .unwrap_err();
         assert_eq!(duplicate.code(), tonic::Code::AlreadyExists);
+    }
+
+    #[tokio::test]
+    async fn create_session_enforces_agent_scoped_usage_policy() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub.clone());
+        let ns = "conic:test";
+
+        put_agent(kv.clone(), pubsub.clone(), ns, "assistant").await;
+        put_agent(kv.clone(), pubsub.clone(), ns, "other").await;
+        put_usage_policy(
+            kv.clone(),
+            pubsub.clone(),
+            ns,
+            "assistant-session-limit",
+            resources_proto::UsageLimit {
+                selector: Some(resources_proto::UsageSelector {
+                    agent: "assistant".to_string(),
+                    provider: String::new(),
+                    model: String::new(),
+                }),
+                metric: crate::control::usage::METRIC_AGENT_SESSIONS.to_string(),
+                max: 1,
+                window: "1h".to_string(),
+            },
+        )
+        .await;
+
+        handler
+            .handle_create_session(tonic::Request::new(proto::CreateSessionRequest {
+                ns: ns.to_string(),
+                agent: "assistant".to_string(),
+                labels: Default::default(),
+            }))
+            .await
+            .unwrap();
+
+        let status =
+            usage_policy_status(kv.clone(), pubsub.clone(), ns, "assistant-session-limit").await;
+        assert_eq!(status.hard.len(), 1);
+        assert_eq!(
+            status.hard[0].metric,
+            crate::control::usage::METRIC_AGENT_SESSIONS
+        );
+        assert_eq!(status.hard[0].used, 1);
+        assert_eq!(status.hard[0].remaining, 0);
+        assert!(status.hard[0].exceeded);
+
+        let rejected = handler
+            .handle_create_session(tonic::Request::new(proto::CreateSessionRequest {
+                ns: ns.to_string(),
+                agent: "assistant".to_string(),
+                labels: Default::default(),
+            }))
+            .await
+            .expect_err("second assistant session should be over quota");
+        assert_eq!(rejected.code(), tonic::Code::ResourceExhausted);
+
+        handler
+            .handle_create_session(tonic::Request::new(proto::CreateSessionRequest {
+                ns: ns.to_string(),
+                agent: "other".to_string(),
+                labels: Default::default(),
+            }))
+            .await
+            .expect("agent selector should not block another agent");
+
+        let status =
+            usage_policy_status(kv.clone(), pubsub.clone(), ns, "assistant-session-limit").await;
+        assert_eq!(status.hard[0].used, 1);
     }
 }

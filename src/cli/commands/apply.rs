@@ -96,6 +96,7 @@ fn is_generic_resource_kind(kind: &str) -> bool {
             | "SandboxClass"
             | "SandboxPolicy"
             | "Sandbox"
+            | "UsagePolicy"
     )
 }
 
