@@ -39,7 +39,7 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `status` | `string` | - |
 | `reason` | `string` | - |
 | `message` | `string` | - |
-| `last_transition_time` | `int64` | - |
+| `last_transition_time` | `int64` | Unix timestamp in microseconds. |
 | `observed_generation` | `uint64` | - |
 
 ## `CommonResourceStatus`
@@ -68,10 +68,9 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `name` | `string` | - |
-| `ns` | `string` | - |
+| `metadata` | `ResourceMeta` | - |
 | `spec` | `AgentSpec` | - |
-| `labels` | `map<string, string>` | - |
+| `status` | `AgentStatus` | - |
 
 ## `AgentSpec`
 
@@ -109,10 +108,10 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `command` | `string` | - |
 | `args` | `string` | repeated |
 | `cwd` | `string` | - |
-| `sandbox_policy_ref` | `string` | - |
+| `sandbox_policy_ref` | `string` | SandboxPolicy name resolved in the agent namespace, then namespace ancestry. |
 | `persist_session` | `bool` | - |
 | `env` | `map<string, string>` | - |
-| `permission_policy` | `map<string, string>` | - |
+| `permission_policy` | `map<string, string>` | Keys: default, filesystemRead, filesystemWrite, terminal. Values: allow, ask, deny. |
 
 ## `Feature`
 
@@ -235,10 +234,9 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `api_version` | `string` | - |
-| `kind` | `string` | - |
 | `metadata` | `ResourceMeta` | - |
 | `spec` | `McpServerSpec` | - |
+| `status` | `CommonResourceStatus` | - |
 
 ## `McpServerSpec`
 
@@ -254,10 +252,9 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `api_version` | `string` | - |
-| `kind` | `string` | - |
 | `metadata` | `ResourceMeta` | - |
 | `spec` | `McpServerBindingSpec` | - |
+| `status` | `CommonResourceStatus` | - |
 
 ## `McpServerBindingSpec`
 
@@ -283,10 +280,9 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `api_version` | `string` | - |
-| `kind` | `string` | - |
 | `metadata` | `ResourceMeta` | - |
 | `spec` | `KnowledgeSpec` | - |
+| `status` | `CommonResourceStatus` | - |
 
 ## `KnowledgeSpec`
 
@@ -299,11 +295,9 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `name` | `string` | - |
-| `parent` | `string` | - |
-| `is_deleted` | `bool` | - |
-| `deleted_at` | `int64` | - |
-| `labels` | `map<string, string>` | - |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `NamespaceSpec` | - |
+| `status` | `NamespaceStatus` | - |
 
 ## `NamespaceSpec`
 
@@ -325,14 +319,9 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `name` | `string` | - |
-| `ns` | `string` | - |
-| `title` | `string` | - |
-| `status` | `string` | - |
-| `created_at` | `int64` | - |
-| `updated_at` | `int64` | - |
-| `metadata` | `map<string, string>` | - |
-| `labels` | `map<string, string>` | - |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `ChannelSpec` | - |
+| `status` | `ChannelStatus` | - |
 
 ## `ChannelSpec`
 
@@ -348,6 +337,8 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `observed_generation` | `uint64` | - |
 | `phase` | `string` | - |
 | `conditions` | `ResourceCondition` | repeated |
+| `created_at` | `int64` | - |
+| `updated_at` | `int64` | - |
 
 ## `ChannelContextPolicy`
 
@@ -360,16 +351,9 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `name` | `string` | - |
-| `ns` | `string` | - |
-| `channel` | `string` | - |
-| `agent` | `string` | - |
-| `enabled` | `bool` | - |
-| `trigger` | `string` | - |
-| `context_policy` | `ChannelContextPolicy` | - |
-| `metadata` | `map<string, string>` | - |
-| `labels` | `map<string, string>` | - |
-| `reply_mode` | `string` | - |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `ChannelSubscriptionSpec` | - |
+| `status` | `CommonResourceStatus` | - |
 
 ## `ChannelSubscriptionSpec`
 
@@ -381,6 +365,7 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `trigger` | `string` | - |
 | `context_policy` | `ChannelContextPolicy` | - |
 | `reply_mode` | `string` | - |
+| `metadata` | `map<string, string>` | - |
 
 ## `ScheduleTarget`
 
@@ -409,6 +394,9 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
+| `observed_generation` | `uint64` | - |
+| `phase` | `string` | - |
+| `conditions` | `ResourceCondition` | repeated |
 | `revision` | `uint64` | - |
 | `next_run_at` | `int64` | optional |
 | `backend_handle` | `string` | optional |
@@ -433,11 +421,9 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `name` | `string` | - |
-| `ns` | `string` | - |
+| `metadata` | `ResourceMeta` | - |
 | `spec` | `ScheduleSpec` | - |
 | `status` | `ScheduleStatus` | - |
-| `labels` | `map<string, string>` | - |
 
 ## `WorkflowStepOutputPolicy`
 
@@ -490,10 +476,9 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `name` | `string` | - |
-| `ns` | `string` | - |
+| `metadata` | `ResourceMeta` | - |
 | `spec` | `WorkflowSpec` | - |
-| `labels` | `map<string, string>` | - |
+| `status` | `WorkflowStatus` | - |
 
 ## `WorkflowStatus`
 
@@ -509,7 +494,15 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | --- | --- | --- |
 | `kind` | `string` | - |
 | `metadata` | `ResourceMeta` | - |
-| `spec_json` | `string` | - |
+| `spec_json` | `string` | Internal canonical JSON for the templated spec. User-facing YAML uses `spec: {...}` and the manifest parser normalizes it into this field. |
+
+## `Template`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `TemplateSpec` | - |
+| `status` | `CommonResourceStatus` | - |
 
 ## `DeploymentPlacement`
 
@@ -524,12 +517,28 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `placement` | `DeploymentPlacement` | - |
 | `templates` | `string` | repeated |
 
+## `Deployment`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `DeploymentSpec` | - |
+| `status` | `DeploymentStatus` | - |
+
 ## `DeploymentReplicaSpec`
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `deployment_ref` | `ResourceRef` | - |
 | `target_namespace` | `string` | - |
+
+## `DeploymentReplica`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `DeploymentReplicaSpec` | - |
+| `status` | `DeploymentReplicaStatus` | - |
 
 ## `DeploymentStatus`
 
@@ -544,33 +553,44 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
+| `observed_generation` | `uint64` | - |
+| `phase` | `string` | - |
+| `conditions` | `ResourceCondition` | repeated |
 | `rendered_resources` | `string` | repeated |
 | `rendered_hashes` | `map<string, string>` | - |
 | `conflicts` | `string` | repeated |
 | `last_rendered_json` | `map<string, string>` | - |
 | `owned_json_pointers` | `string` | repeated |
-| `phase` | `string` | - |
 
 ## `SandboxClassSpec`
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `provider` | `string` | - |
-| `provider_config_json` | `string` | - |
-| `credentials_json` | `string` | - |
+| `provider_config_json` | `string` | Internal canonical JSON for provider-specific settings. User-facing YAML uses `providerConfig: {...}` and the manifest parser normalizes it here. |
+| `credentials_json` | `string` | Internal canonical JSON for provider credentials. User-facing YAML uses `credentials: {...}` and the manifest parser normalizes it here. |
+
+## `SandboxClass`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `SandboxClassSpec` | - |
+| `status` | `CommonResourceStatus` | - |
 
 ## `SandboxWorkspaceSpec`
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `mode` | `string` | - |
-| `mount_path` | `string` | - |
+| `mount_path` | `string` | Absolute workspace path inside the sandbox. The manifest parser rejects root/system mount points such as /, /etc, /usr, /proc, and /sys. |
 
 ## `SandboxSetupSpec`
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `packages` | `string` | repeated |
+| `commands` | `string` | repeated |
 
 ## `SandboxNetworkSpec`
 
@@ -610,6 +630,14 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `template` | `SandboxRuntimeTemplateSpec` | - |
 | `max_concurrent` | `uint32` | - |
 
+## `SandboxPolicy`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `SandboxPolicySpec` | - |
+| `status` | `CommonResourceStatus` | - |
+
 ## `SandboxLease`
 
 | Field | Type | Notes |
@@ -618,9 +646,9 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `owner_agent` | `string` | - |
 | `owner_session_id` | `string` | - |
 | `token` | `string` | - |
-| `acquired_at` | `int64` | - |
-| `expires_at` | `int64` | - |
-| `heartbeat_at` | `int64` | - |
+| `acquired_at` | `int64` | Unix timestamp in microseconds. |
+| `expires_at` | `int64` | Unix timestamp in microseconds. |
+| `heartbeat_at` | `int64` | Unix timestamp in microseconds. |
 
 ## `SandboxProcessStatus`
 
@@ -647,9 +675,17 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `policy_ref` | `string` | - |
+| `policy_ref` | `string` | SandboxPolicy name resolved in the sandbox namespace. |
 | `class_ref` | `ResourceRef` | - |
-| `runtime_template_json` | `string` | - |
+| `runtime_template` | `SandboxRuntimeTemplateSpec` | - |
+
+## `Sandbox`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `SandboxSpec` | - |
+| `status` | `SandboxStatus` | - |
 
 ## `SessionSpec`
 
@@ -657,6 +693,14 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | --- | --- | --- |
 | `agent` | `string` | - |
 | `labels` | `map<string, string>` | - |
+
+## `Session`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `SessionSpec` | - |
+| `status` | `SessionStatus` | - |
 
 ## `SessionStatus`
 
@@ -668,28 +712,51 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `created_at` | `int64` | - |
 | `last_active` | `int64` | - |
 | `acp_session_id` | `string` | - |
-| `sandbox_ref` | `string` | - |
+| `sandbox_ref` | `string` | Sandbox resource name in the same namespace as this Session. |
 
-## `PermissionRequestSpec`
+## `SkillSpec`
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `agent` | `string` | - |
-| `session_id` | `string` | - |
-| `action` | `string` | - |
-| `prompt` | `string` | - |
-| `payload_json` | `string` | - |
+| `description` | `string` | - |
+| `instructions` | `string` | - |
 
-## `PermissionRequestStatus`
+## `Skill`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `SkillSpec` | - |
+| `status` | `CommonResourceStatus` | - |
+
+## `WorkerEndpoint`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `url` | `string` | - |
+| `protocol` | `string` | - |
+| `audience` | `string` | - |
+
+## `WorkerStatus`
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `observed_generation` | `uint64` | - |
 | `phase` | `string` | - |
 | `conditions` | `ResourceCondition` | repeated |
-| `decision` | `string` | - |
-| `decided_by` | `string` | - |
-| `decided_at` | `int64` | - |
+| `started_at` | `int64` | Unix timestamp in microseconds. |
+| `heartbeat_at` | `int64` | Unix timestamp in microseconds. |
+| `expires_at` | `int64` | Unix timestamp in microseconds. |
+| `version` | `string` | - |
+| `endpoints` | `WorkerEndpoint` | repeated |
+
+## `Worker`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `WorkerSpec` | - |
+| `status` | `WorkerStatus` | - |
 
 ## `Resource`
 
@@ -700,6 +767,15 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `metadata` | `ResourceMeta` | - |
 | `spec` | `ResourceSpec` | - |
 | `status` | `ResourceStatus` | - |
+
+## `ResourceManifest`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `api_version` | `string` | - |
+| `kind` | `string` | - |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `ResourceSpec` | - |
 
 ## `RawResourceSpec`
 
@@ -727,13 +803,14 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `knowledge` | `KnowledgeSpec` | oneof (kind) |
 | `namespace` | `NamespaceSpec` | oneof (kind) |
 | `session` | `SessionSpec` | oneof (kind) |
+| `skill` | `SkillSpec` | oneof (kind) |
 | `template` | `TemplateSpec` | oneof (kind) |
 | `deployment` | `DeploymentSpec` | oneof (kind) |
 | `deployment_replica` | `DeploymentReplicaSpec` | oneof (kind) |
 | `sandbox_class` | `SandboxClassSpec` | oneof (kind) |
 | `sandbox_policy` | `SandboxPolicySpec` | oneof (kind) |
 | `sandbox` | `SandboxSpec` | oneof (kind) |
-| `permission_request` | `PermissionRequestSpec` | oneof (kind) |
+| `worker` | `WorkerSpec` | oneof (kind) |
 | `raw` | `RawResourceSpec` | oneof (kind) |
 
 ## `ResourceStatus`
@@ -750,11 +827,12 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `knowledge` | `CommonResourceStatus` | oneof (kind) |
 | `namespace` | `NamespaceStatus` | oneof (kind) |
 | `session` | `SessionStatus` | oneof (kind) |
+| `skill` | `CommonResourceStatus` | oneof (kind) |
 | `template` | `CommonResourceStatus` | oneof (kind) |
 | `deployment` | `DeploymentStatus` | oneof (kind) |
 | `deployment_replica` | `DeploymentReplicaStatus` | oneof (kind) |
 | `sandbox_class` | `CommonResourceStatus` | oneof (kind) |
 | `sandbox_policy` | `CommonResourceStatus` | oneof (kind) |
 | `sandbox` | `SandboxStatus` | oneof (kind) |
-| `permission_request` | `PermissionRequestStatus` | oneof (kind) |
+| `worker` | `WorkerStatus` | oneof (kind) |
 | `raw` | `RawResourceStatus` | oneof (kind) |

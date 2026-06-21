@@ -23,6 +23,8 @@ const resourceProtos = [
   "resources/deployments.proto",
   "resources/sandboxes.proto",
   "resources/sessions.proto",
+  "resources/skills.proto",
+  "resources/workers.proto",
   "resources/resource.proto",
 ].map((file) => path.resolve(protoRoot, file));
 

@@ -470,6 +470,12 @@ fn decode_stored_resource(kind: &str, bytes: &[u8]) -> Result<resources_proto::R
             resources_proto::resource_spec::Kind::Sandbox,
             resources_proto::resource_status::Kind::Sandbox,
         ),
+        "Worker" => decode_typed_resource::<resources_proto::Worker, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::Worker,
+            resources_proto::resource_status::Kind::Worker,
+        ),
         _ => resources_proto::Resource::decode(bytes).map_err(Into::into),
     }
 }
@@ -595,6 +601,11 @@ impl_stored_typed_resource!(
     resources_proto::Sandbox,
     resources_proto::SandboxSpec,
     resources_proto::SandboxStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::Worker,
+    resources_proto::WorkerSpec,
+    resources_proto::WorkerStatus
 );
 fn decode_typed_resource<W, S, T, SpecArm, StatusArm>(
     kind: &str,
@@ -917,6 +928,23 @@ fn encode_stored_resource(resource: &resources_proto::Resource) -> Result<Vec<u8
                 _ => None,
             },
         ),
+        "Worker" => encode_typed_resource::<
+            resources_proto::Worker,
+            resources_proto::WorkerSpec,
+            resources_proto::WorkerStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Worker(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Worker(status) => Some(status),
+                _ => None,
+            },
+        ),
         _ => Ok(resource.encode_to_vec()),
     }
 }
@@ -1012,6 +1040,7 @@ fn validate_resource_kind(resource: &resources_proto::Resource) -> Result<()> {
         Kind::SandboxClass(_) => "SandboxClass",
         Kind::SandboxPolicy(_) => "SandboxPolicy",
         Kind::Sandbox(_) => "Sandbox",
+        Kind::Worker(_) => "Worker",
         Kind::Raw(_) => return Ok(()),
     };
     if resource.kind != expected {
@@ -1050,6 +1079,7 @@ fn default_status_for_resource(
         Some(SpecKind::SandboxClass(_)) => StatusKind::SandboxClass(Default::default()),
         Some(SpecKind::SandboxPolicy(_)) => StatusKind::SandboxPolicy(Default::default()),
         Some(SpecKind::Sandbox(_)) => StatusKind::Sandbox(Default::default()),
+        Some(SpecKind::Worker(_)) => StatusKind::Worker(Default::default()),
         Some(SpecKind::Raw(_)) | None => StatusKind::Raw(resources_proto::RawResourceStatus {
             json: "{}".to_string(),
         }),

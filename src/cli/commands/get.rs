@@ -5,15 +5,13 @@ use anyhow::{Context, Result};
 use serde_json::json;
 
 use super::Cli;
-use crate::cli::{
-    connect_gateway, resource_lookup_target, to_internal_resource,
-};
+use crate::cli::{connect_gateway, resource_lookup_target, to_internal_resource};
 use crate::gateway::rpc::resources_proto;
 use talon_client::gateway::{GetResourceRequest, ListNamespacesRequest, ListResourcesRequest};
 
 #[derive(clap::Args)]
 pub(crate) struct GetCommand {
-    /// Type of resource to get: agent, template, mcp-server, knowledge, schedule, channel, channel-subscription
+    /// Type of resource to get: agent, template, mcp-server, worker, knowledge, schedule, channel, channel-subscription
     #[arg(value_name = "KIND")]
     pub(crate) kind: String,
     /// Name of the resource. Omit to list resources of this kind.
@@ -103,6 +101,10 @@ fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<Resour
         "mcpserver" | "mcpservers" | "mcp" => Ok(ResourceListTarget::Resources {
             ns: system_ns(),
             kind: Some("McpServer".to_string()),
+        }),
+        "worker" | "workers" => Ok(ResourceListTarget::Resources {
+            ns: system_ns(),
+            kind: Some("Worker".to_string()),
         }),
         "mcpserverbinding" | "mcpbindings" | "mcpbinding" => Ok(ResourceListTarget::Resources {
             ns: ns_or_default(),
@@ -395,6 +397,7 @@ fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String>
         | StatusKind::Template(status)
         | StatusKind::SandboxClass(status)
         | StatusKind::SandboxPolicy(status) => Some(status.phase.clone()),
+        StatusKind::Worker(status) => Some(status.phase.clone()),
         StatusKind::Namespace(status) => Some(status.phase.clone()),
         StatusKind::Session(status) => Some(status.phase.clone()),
         StatusKind::Deployment(status) => Some(status.phase.clone()),

@@ -38,6 +38,11 @@ pub(super) fn resource_lookup_target(
             "McpServer".to_string(),
             name.to_string(),
         )),
+        "worker" | "workers" => Ok((
+            crate::control::ns::TALON_SYSTEM.to_string(),
+            "Worker".to_string(),
+            name.to_string(),
+        )),
         "mcpserverbinding" | "mcpbindings" | "mcpbinding" => {
             let ns = namespace
                 .cloned()

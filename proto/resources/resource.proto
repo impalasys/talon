@@ -13,6 +13,7 @@ import "proto/resources/sandboxes.proto";
 import "proto/resources/schedules.proto";
 import "proto/resources/sessions.proto";
 import "proto/resources/skills.proto";
+import "proto/resources/workers.proto";
 import "proto/resources/workflows.proto";
 
 message Resource {
@@ -57,6 +58,7 @@ message ResourceSpec {
     SandboxClassSpec sandbox_class = 40;
     SandboxPolicySpec sandbox_policy = 41;
     SandboxSpec sandbox = 42;
+    WorkerSpec worker = 50;
     RawResourceSpec raw = 1000;
   }
 }
@@ -80,6 +82,7 @@ message ResourceStatus {
     CommonResourceStatus sandbox_class = 40;
     CommonResourceStatus sandbox_policy = 41;
     SandboxStatus sandbox = 42;
+    WorkerStatus worker = 50;
     RawResourceStatus raw = 1000;
   }
 }

@@ -379,4 +379,13 @@ mod tests {
         assert!(err.to_string().contains("does not exist"));
     }
 
+    #[test]
+    fn worker_manifest_is_not_user_authorable() {
+        let err = build_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: Worker\nmetadata:\n  name: worker-a\n",
+        )
+        .expect_err("Worker manifests should not be accepted by apply");
+
+        assert!(err.to_string().contains("Unsupported manifest kind"));
+    }
 }

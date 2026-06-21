@@ -12,6 +12,7 @@ use std::sync::Arc;
 
 pub mod controllers;
 pub mod mcp_registry;
+pub mod registration;
 pub mod runtime;
 pub mod scheduler_auth;
 pub mod sessions;
