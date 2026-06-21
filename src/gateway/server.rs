@@ -8,7 +8,10 @@ use crate::control::{
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::session_streams::SessionStreamHub;
 use anyhow::Result;
-use axum::{routing::post, Router};
+use axum::{
+    routing::{get, post},
+    Router,
+};
 use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
 
@@ -79,6 +82,20 @@ impl Gateway {
         Router::new()
             .merge(crate::gateway::rest::a2a::router())
             .merge(crate::gateway::rest::oidc::router())
+            .route(
+                "/v1/ns/:ns/agents/:agent/sessions",
+                get(crate::gateway::ui::list_sessions).post(crate::gateway::ui::create_session),
+            )
+            .route(
+                "/v1/ns/:ns/agents/:agent/sessions/:session_id",
+                get(crate::gateway::ui::get_session)
+                    .post(crate::gateway::ui::clear_session)
+                    .delete(crate::gateway::ui::delete_session),
+            )
+            .route(
+                "/v1/ns/:ns/agents/:agent/sessions/:session_id/messages",
+                get(crate::gateway::ui::list_session_messages),
+            )
             .route(
                 "/v1/ui/ns/:ns/agents/:agent/sessions/:session_id",
                 post(crate::gateway::ui::post_chat)
@@ -461,6 +478,45 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(put.status(), StatusCode::METHOD_NOT_ALLOWED);
+    }
+
+    #[tokio::test]
+    async fn http_ui_router_serves_session_rest_routes() {
+        let router = gateway().http_ui_router();
+
+        let list = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/v1/ns/Conic%3ACustomers%3A1/agents/cmo/sessions")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(list.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(list.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(value["sessionIds"], serde_json::json!([]));
+        assert_eq!(value["sessions"], serde_json::json!([]));
+
+        let protected_router =
+            gateway_with_auth(AuthConfig::tokens(vec!["secret-token".to_string()]))
+                .http_ui_router();
+        let unauthorized = protected_router
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/v1/ns/Conic%3ACustomers%3A1/agents/cmo/sessions")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(unauthorized.status(), StatusCode::UNAUTHORIZED);
     }
 
     #[tokio::test]

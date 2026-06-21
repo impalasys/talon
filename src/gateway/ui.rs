@@ -5,7 +5,7 @@ use crate::control::events::SessionMessagePartEventKind;
 use crate::control::scheduling;
 use crate::gateway::rpc::{data_proto, proto, GrpcGatewayHandler};
 use crate::gateway::Gateway;
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use axum::http::{header, HeaderMap, HeaderName, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
@@ -26,6 +26,26 @@ pub struct SessionPath {
     ns: String,
     agent: String,
     session_id: String,
+}
+
+#[derive(Deserialize)]
+pub struct AgentPath {
+    ns: String,
+    agent: String,
+}
+
+#[derive(Deserialize)]
+pub struct GetSessionQuery {
+    #[serde(default)]
+    message_limit: i32,
+}
+
+#[derive(Deserialize)]
+pub struct ListSessionMessagesQuery {
+    #[serde(default)]
+    page_size: i32,
+    #[serde(default, alias = "beforeMessageId")]
+    before_message_id: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -108,6 +128,84 @@ fn map_status(status: tonic::Status) -> Response {
         _ => StatusCode::INTERNAL_SERVER_ERROR,
     };
     response_with_status(code, status.message())
+}
+
+fn map_json_value_response<T>(
+    response: std::result::Result<tonic::Response<T>, tonic::Status>,
+    to_json: impl FnOnce(T) -> Value,
+) -> Response {
+    match response {
+        Ok(response) => Json(to_json(response.into_inner())).into_response(),
+        Err(status) => map_status(status),
+    }
+}
+
+fn session_response_json(response: proto::SessionResponse) -> Value {
+    json!({
+        "sessionId": response.session_id,
+        "agent": response.agent,
+        "state": response.state,
+        "messages": response.messages,
+        "labels": response.labels,
+    })
+}
+
+fn list_sessions_response_json(response: proto::ListSessionsResponse) -> Value {
+    let sessions = response
+        .sessions
+        .into_iter()
+        .map(|session| {
+            json!({
+                "sessionId": session.session_id,
+                "updatedAt": session.updated_at,
+                "labels": session.labels,
+            })
+        })
+        .collect::<Vec<_>>();
+
+    json!({
+        "sessionIds": response.session_ids,
+        "sessions": sessions,
+    })
+}
+
+fn list_session_messages_response_json(response: proto::ListSessionMessagesResponse) -> Value {
+    let items = response
+        .items
+        .into_iter()
+        .map(|item| json!({ "message": item.message }))
+        .collect::<Vec<_>>();
+    let mut value = json!({
+        "sessionId": response.session_id,
+        "agent": response.agent,
+        "state": response.state,
+        "items": items,
+        "hasMore": response.has_more,
+    });
+    if let Some(next_before_message_id) = response.next_before_message_id {
+        value["nextBeforeMessageId"] = json!(next_before_message_id);
+    }
+    value
+}
+
+fn delete_session_response_json(response: proto::DeleteSessionResponse) -> Value {
+    json!({ "success": response.success })
+}
+
+fn clear_session_response_json(response: proto::ClearSessionResponse) -> Value {
+    json!({ "success": response.success })
+}
+
+fn strip_session_suffix(session_id: String, suffix: &str) -> Result<String, Response> {
+    session_id
+        .strip_suffix(suffix)
+        .map(str::to_string)
+        .ok_or_else(|| {
+            response_with_status(
+                StatusCode::NOT_FOUND,
+                format!("Unsupported session action; expected {suffix}"),
+            )
+        })
 }
 
 fn ui_message_has_dispatchable_part(message: &UiMessage) -> bool {
@@ -559,6 +657,162 @@ pub async fn post_chat(
         axum::body::Body::from_stream(stream),
     )
         .into_response()
+}
+
+pub async fn create_session(
+    State(gateway): State<Arc<Gateway>>,
+    Path(path): Path<AgentPath>,
+    headers: HeaderMap,
+) -> Response {
+    let request = match tonic_request(
+        &headers,
+        proto::CreateSessionRequest {
+            ns: path.ns,
+            agent: path.agent,
+            labels: HashMap::new(),
+        },
+    ) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+
+    map_json_value_response(
+        gateway_handler(&gateway)
+            .handle_create_session(request)
+            .await,
+        session_response_json,
+    )
+}
+
+pub async fn list_sessions(
+    State(gateway): State<Arc<Gateway>>,
+    Path(path): Path<AgentPath>,
+    headers: HeaderMap,
+) -> Response {
+    let request = match tonic_request(
+        &headers,
+        proto::ListSessionsRequest {
+            ns: path.ns,
+            agent: path.agent,
+        },
+    ) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+
+    map_json_value_response(
+        gateway_handler(&gateway)
+            .handle_list_sessions(request)
+            .await,
+        list_sessions_response_json,
+    )
+}
+
+pub async fn get_session(
+    State(gateway): State<Arc<Gateway>>,
+    Path(path): Path<SessionPath>,
+    Query(query): Query<GetSessionQuery>,
+    headers: HeaderMap,
+) -> Response {
+    let request = match tonic_request(
+        &headers,
+        proto::GetSessionRequest {
+            ns: path.ns,
+            agent: path.agent,
+            session_id: path.session_id,
+            message_limit: query.message_limit,
+        },
+    ) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+
+    map_json_value_response(
+        gateway_handler(&gateway).handle_get_session(request).await,
+        session_response_json,
+    )
+}
+
+pub async fn list_session_messages(
+    State(gateway): State<Arc<Gateway>>,
+    Path(path): Path<SessionPath>,
+    Query(query): Query<ListSessionMessagesQuery>,
+    headers: HeaderMap,
+) -> Response {
+    let request = match tonic_request(
+        &headers,
+        proto::ListSessionMessagesRequest {
+            ns: path.ns,
+            agent: path.agent,
+            session_id: path.session_id,
+            page_size: query.page_size,
+            before_message_id: query.before_message_id,
+        },
+    ) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+
+    map_json_value_response(
+        gateway_handler(&gateway)
+            .handle_list_session_messages(request)
+            .await,
+        list_session_messages_response_json,
+    )
+}
+
+pub async fn delete_session(
+    State(gateway): State<Arc<Gateway>>,
+    Path(path): Path<SessionPath>,
+    headers: HeaderMap,
+) -> Response {
+    let request = match tonic_request(
+        &headers,
+        proto::DeleteSessionRequest {
+            ns: path.ns,
+            agent: path.agent,
+            session_id: path.session_id,
+        },
+    ) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+
+    map_json_value_response(
+        gateway_handler(&gateway)
+            .handle_delete_session(request)
+            .await,
+        delete_session_response_json,
+    )
+}
+
+pub async fn clear_session(
+    State(gateway): State<Arc<Gateway>>,
+    Path(path): Path<SessionPath>,
+    headers: HeaderMap,
+) -> Response {
+    let session_id = match strip_session_suffix(path.session_id, ":clear") {
+        Ok(session_id) => session_id,
+        Err(response) => return response,
+    };
+    let request = match tonic_request(
+        &headers,
+        proto::ClearSessionRequest {
+            ns: path.ns,
+            agent: path.agent,
+            session_id,
+        },
+    ) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+
+    map_json_value_response(
+        gateway_handler(&gateway)
+            .handle_clear_session(request)
+            .await,
+        clear_session_response_json,
+    )
 }
 
 pub async fn get_chat(
