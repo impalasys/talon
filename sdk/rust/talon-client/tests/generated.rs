@@ -1,8 +1,8 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use talon_client::{data::SessionJournalEntryPayloadLlmResponse, harness::ChatResponse};
 use talon_client::v1::ListResourcesRequest;
+use talon_client::{data::SessionJournalEntryPayloadLlmResponse, harness::ChatResponse};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[test]
@@ -25,6 +25,18 @@ fn generated_data_types_can_reference_harness_types() {
         }),
     };
     assert_eq!(payload.response.unwrap().content, "ok");
+}
+
+#[test]
+fn generated_clientset_exposes_all_talon_v1_services_and_streaming_methods() {
+    let _ = talon_client::TalonClient::get_namespace;
+    let _ = talon_client::TalonClient::append_session_message;
+    let _ = talon_client::TalonClient::stream_session_parts_batch;
+    let _ = talon_client::TalonClient::submit_session_turn;
+    let _ = talon_client::TalonClient::post_channel_message;
+    let _ = talon_client::TalonClient::stream_channel_events;
+    let _ = talon_client::TalonClient::stream_workflow_events;
+    let _ = talon_client::TalonClient::exchange_oidc_token;
 }
 
 fn grpc_web_response_body(message: &impl prost::Message) -> Vec<u8> {
