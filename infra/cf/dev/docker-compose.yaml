@@ -76,17 +76,6 @@ services:
       mock-llm:
         condition: service_healthy
 
-  envoy:
-    build:
-      context: ../../..
-      dockerfile: dockerfiles/envoy.Dockerfile
-    environment:
-      TALON_ENVOY_GATEWAY_GRPC_HOST: gateway.internal
-      TALON_ENVOY_GATEWAY_HTTP_HOST: gateway.internal
-    depends_on:
-      gateway:
-        condition: service_started
-
   mock-llm:
     image: python:3.12-slim
     working_dir: /repo/tests
@@ -130,8 +119,6 @@ services:
       gateway:
         condition: service_started
       worker:
-        condition: service_started
-      envoy:
         condition: service_started
 
 volumes:

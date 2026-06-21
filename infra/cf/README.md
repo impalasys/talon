@@ -26,9 +26,6 @@ infra/cf/
 ```
 
 The generic Talon runtime image is still built from `dockerfiles/oss-runtime.Dockerfile`. That image contains both `talon-server` and `talon-worker`. Cloudflare-specific Talon config is passed through `TALON_CONFIG_INLINE_YAML` rather than baked into the image filesystem.
-Envoy uses the shared `dockerfiles/envoy.Dockerfile` image. The image renders
-its config at startup from `dockerfiles/envoy.yaml.template`; Cloudflare sets
-the gateway upstream host to `gateway.internal` through container env vars.
 
 ## Architecture
 
@@ -37,9 +34,9 @@ Requests enter through the Cloudflare Worker in `worker/src/index.ts`.
 ```text
 HTTP request
   -> Cloudflare Worker
-    -> EnvoyContainer for /v1/*
-      -> GatewayContainer / talon-server
-    -> GatewayContainer directly for non-/v1 requests
+    -> GatewayContainer / talon-server
+      -> 50051 for GatewayService gRPC-Web requests
+      -> 50052 for HTTP UI/A2A requests
 
 Cloudflare Queue batch
   -> Worker queue() handler
@@ -222,7 +219,7 @@ Successful delivery deletes the wakeup. Failed delivery is retried per wakeup wi
 Start the Cloudflare dev stack:
 
 ```bash
-docker compose -f infra/cf/dev/docker-compose.yaml up --build -d cloudflare-dev gateway worker envoy mock-llm
+docker compose -f infra/cf/dev/docker-compose.yaml up --build -d cloudflare-dev gateway worker mock-llm
 ```
 
 The local gateway URL is:
@@ -231,7 +228,7 @@ The local gateway URL is:
 http://localhost:8787
 ```
 
-`gateway`, `worker`, `envoy`, and `mock-llm` are private to the Compose network.
+`gateway`, `worker`, and `mock-llm` are private to the Compose network.
 Only the Worker endpoint is published on the host. The Rust services reach the
 Cloudflare binding bridge through internal aliases such as
 `http://talon-d1.internal:8787`, and the mock LLM is available internally at

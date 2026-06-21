@@ -22,13 +22,6 @@ services:
       cache_to:
         - type=gha,mode=max,scope=talon-cf-runtime
 
-  envoy:
-    build:
-      cache_from:
-        - type=gha,scope=talon-cf-envoy-v2
-      cache_to:
-        - type=gha,mode=max,scope=talon-cf-envoy-v2
-
   e2e-tests:
     build:
       cache_from:

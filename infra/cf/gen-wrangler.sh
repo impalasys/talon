@@ -21,7 +21,6 @@ export TALON_CF_DEV_SCHEDULER_AUTH_TOKEN="${TALON_CF_DEV_SCHEDULER_AUTH_TOKEN:-c
 
 export TALON_CF_GATEWAY_CONTAINER_COUNT="${TALON_CF_GATEWAY_CONTAINER_COUNT:-1}"
 export TALON_CF_WORKER_CONTAINER_COUNT="${TALON_CF_WORKER_CONTAINER_COUNT:-1}"
-export TALON_CF_ENVOY_CONTAINER_COUNT="${TALON_CF_ENVOY_CONTAINER_COUNT:-1}"
 
 export TALON_CF_D1_BINDING="${TALON_CF_D1_BINDING:-TALON_D1}"
 export TALON_CF_D1_DATABASE_NAME="${TALON_CF_D1_DATABASE_NAME:-talon-control-plane}"
@@ -43,17 +42,14 @@ export TALON_CF_PROD_MAIN="${TALON_CF_PROD_MAIN:-src/index.ts}"
 
 export TALON_CF_DEV_EXTERNAL_CONTAINERS="${TALON_CF_DEV_EXTERNAL_CONTAINERS:-true}"
 export TALON_CF_DEV_GATEWAY_URL="${TALON_CF_DEV_GATEWAY_URL:-http://gateway:50052}"
+export TALON_CF_DEV_GATEWAY_GRPC_URL="${TALON_CF_DEV_GATEWAY_GRPC_URL:-http://gateway:50051}"
 export TALON_CF_DEV_WORKER_URL="${TALON_CF_DEV_WORKER_URL:-http://worker:8081}"
-export TALON_CF_DEV_ENVOY_URL="${TALON_CF_DEV_ENVOY_URL:-http://envoy:8081}"
 
 export TALON_CF_DEV_RUNTIME_IMAGE="${TALON_CF_DEV_RUNTIME_IMAGE:-../../../dockerfiles/oss-runtime.Dockerfile}"
 export TALON_CF_DEV_RUNTIME_BUILD_CONTEXT="${TALON_CF_DEV_RUNTIME_BUILD_CONTEXT:-../../../}"
-export TALON_CF_DEV_ENVOY_IMAGE="${TALON_CF_DEV_ENVOY_IMAGE:-../../../dockerfiles/envoy.Dockerfile}"
-export TALON_CF_DEV_ENVOY_BUILD_CONTEXT="${TALON_CF_DEV_ENVOY_BUILD_CONTEXT:-../../../}"
 
 export TALON_CF_PROD_IMAGE_TAG="${TALON_CF_PROD_IMAGE_TAG:-latest}"
 export TALON_CF_PROD_RUNTIME_IMAGE="${TALON_CF_PROD_RUNTIME_IMAGE:-ghcr.io/impalasys/talon-runtime:${TALON_CF_PROD_IMAGE_TAG}}"
-export TALON_CF_PROD_ENVOY_IMAGE="${TALON_CF_PROD_ENVOY_IMAGE:-ghcr.io/impalasys/talon-envoy:${TALON_CF_PROD_IMAGE_TAG}}"
 
 for config_path in "${TALON_CF_DEV_CONFIG_YAML}" "${TALON_CF_PROD_CONFIG_YAML}"; do
   if [[ ! -f "${config_path}" ]]; then
@@ -102,7 +98,6 @@ def durable_object_bindings(include_container_classes: bool) -> list[dict]:
         bindings = [
             {"name": "GATEWAY_CONTAINER", "class_name": "GatewayContainer"},
             {"name": "WORKER_CONTAINER", "class_name": "WorkerContainer"},
-            {"name": "ENVOY_CONTAINER", "class_name": "EnvoyContainer"},
             *bindings,
         ]
     return bindings
@@ -123,7 +118,6 @@ def base_config(
         "TALON_CONFIG_INLINE_YAML": config_yaml,
         "TALON_GATEWAY_CONTAINER_COUNT": env("TALON_CF_GATEWAY_CONTAINER_COUNT"),
         "TALON_WORKER_CONTAINER_COUNT": env("TALON_CF_WORKER_CONTAINER_COUNT"),
-        "TALON_ENVOY_CONTAINER_COUNT": env("TALON_CF_ENVOY_CONTAINER_COUNT"),
     }
     if scheduler_auth_token:
         vars["TALON_SCHEDULER_AUTH_TOKEN"] = scheduler_auth_token
@@ -196,8 +190,8 @@ dev = base_config(
 )
 dev["vars"]["TALON_CF_DEV_EXTERNAL_CONTAINERS"] = str(dev_external_containers).lower()
 dev["vars"]["TALON_CF_DEV_GATEWAY_URL"] = env("TALON_CF_DEV_GATEWAY_URL")
+dev["vars"]["TALON_CF_DEV_GATEWAY_GRPC_URL"] = env("TALON_CF_DEV_GATEWAY_GRPC_URL")
 dev["vars"]["TALON_CF_DEV_WORKER_URL"] = env("TALON_CF_DEV_WORKER_URL")
-dev["vars"]["TALON_CF_DEV_ENVOY_URL"] = env("TALON_CF_DEV_ENVOY_URL")
 for key in config_env_keys(dev_config_yaml):
     dev["vars"].setdefault(key, os.environ.get(key, "local-cloudflare-e2e"))
 if not dev_external_containers:
@@ -214,12 +208,6 @@ if not dev_external_containers:
             "image": env("TALON_CF_DEV_RUNTIME_IMAGE"),
             "image_build_context": env("TALON_CF_DEV_RUNTIME_BUILD_CONTEXT"),
         },
-        {
-            "class_name": "EnvoyContainer",
-            "max_instances": 1,
-            "image": env("TALON_CF_DEV_ENVOY_IMAGE"),
-            "image_build_context": env("TALON_CF_DEV_ENVOY_BUILD_CONTEXT"),
-        },
     ]
 
 prod = base_config(env("TALON_CF_PROD_MAIN"), prod_config_yaml, None, True)
@@ -233,11 +221,6 @@ prod["containers"] = [
         "class_name": "WorkerContainer",
         "max_instances": 1,
         "image": env("TALON_CF_PROD_RUNTIME_IMAGE"),
-    },
-    {
-        "class_name": "EnvoyContainer",
-        "max_instances": 1,
-        "image": env("TALON_CF_PROD_ENVOY_IMAGE"),
     },
 ]
 

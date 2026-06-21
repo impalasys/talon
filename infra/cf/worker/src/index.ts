@@ -24,23 +24,20 @@ type WorkerContainerNamespace = DurableObjectNamespace<Container<Env>>;
 type Env = Omit<TalonCfBindingsEnv, "WORKER_CONTAINER"> & {
   GATEWAY_CONTAINER: WorkerContainerNamespace;
   WORKER_CONTAINER: WorkerContainerNamespace;
-  ENVOY_CONTAINER: WorkerContainerNamespace;
   TALON_GATEWAY_CONTAINER_COUNT?: string;
   TALON_WORKER_CONTAINER_COUNT?: string;
-  TALON_ENVOY_CONTAINER_COUNT?: string;
   TALON_CONFIG_INLINE_YAML?: string;
   TALON_SCHEDULER_AUTH_TOKEN?: string;
   TALON_CF_DEV_EXTERNAL_CONTAINERS?: string;
   TALON_CF_DEV_GATEWAY_URL?: string;
+  TALON_CF_DEV_GATEWAY_GRPC_URL?: string;
   TALON_CF_DEV_WORKER_URL?: string;
-  TALON_CF_DEV_ENVOY_URL?: string;
 };
 
 const RESERVED_CONTAINER_ENV = new Set([
   "TALON_CONFIG_INLINE_YAML",
   "TALON_GATEWAY_CONTAINER_COUNT",
   "TALON_WORKER_CONTAINER_COUNT",
-  "TALON_ENVOY_CONTAINER_COUNT",
 ]);
 
 function forwardedWorkerEnv(env: Env): Record<string, string> {
@@ -74,11 +71,9 @@ type ContainerStartAndWaitOptions = {
 
 const GATEWAY_CONTAINER_PORTS = [50051, 50052];
 const WORKER_CONTAINER_PORTS = [8081];
-const ENVOY_CONTAINER_PORTS = [8081];
 
 const GATEWAY_CONTAINER_ENTRYPOINT = ["/usr/local/bin/talon-server"];
 const WORKER_CONTAINER_ENTRYPOINT = ["/usr/local/bin/talon-worker"];
-const ENVOY_CONTAINER_ENTRYPOINT = ["/usr/local/bin/talon-envoy-entrypoint"];
 
 function gatewayContainerStartProfile(env: Env): ContainerStartProfile {
   return {
@@ -115,18 +110,6 @@ function workerContainerStartProfile(env: Env): ContainerStartProfile {
   };
 }
 
-const ENVOY_CONTAINER_START_PROFILE = {
-  ports: ENVOY_CONTAINER_PORTS,
-  startOptions: {
-    entrypoint: ENVOY_CONTAINER_ENTRYPOINT,
-    enableInternet: false,
-    envVars: {
-      TALON_ENVOY_GATEWAY_GRPC_HOST: "gateway.internal",
-      TALON_ENVOY_GATEWAY_HTTP_HOST: "gateway.internal",
-    },
-  },
-} satisfies ContainerStartProfile;
-
 const GATEWAY_CONTAINER_DEFAULT_START_OPTIONS = {
   entrypoint: GATEWAY_CONTAINER_ENTRYPOINT,
   enableInternet: true,
@@ -134,10 +117,6 @@ const GATEWAY_CONTAINER_DEFAULT_START_OPTIONS = {
 const WORKER_CONTAINER_DEFAULT_START_OPTIONS = {
   entrypoint: WORKER_CONTAINER_ENTRYPOINT,
   enableInternet: true,
-} satisfies ContainerStartConfigOptions;
-const ENVOY_CONTAINER_DEFAULT_START_OPTIONS = {
-  entrypoint: ENVOY_CONTAINER_ENTRYPOINT,
-  enableInternet: false,
 } satisfies ContainerStartConfigOptions;
 
 function startAndWaitOptions(profile: ContainerStartProfile): ContainerStartAndWaitOptions {
@@ -182,10 +161,6 @@ function gatewayContainer(env: Env, key?: string) {
 
 function workerContainer(env: Env, key?: string) {
   return containerFor(env.WORKER_CONTAINER, "worker", configuredCount(env.TALON_WORKER_CONTAINER_COUNT), key);
-}
-
-function envoyContainer(env: Env, key?: string) {
-  return containerFor(env.ENVOY_CONTAINER, "envoy", configuredCount(env.TALON_ENVOY_CONTAINER_COUNT), key);
 }
 
 function externalContainersEnabled(env: Env): boolean {
@@ -254,6 +229,26 @@ async function serviceReady(origin: string, path: string, init?: RequestInit): P
   } catch {
     return false;
   }
+}
+
+function gatewayGrpcRequest(request: Request): boolean {
+  const url = new URL(request.url);
+  if (url.pathname.startsWith("/talon.gateway.GatewayService/")) return true;
+  const contentType = request.headers.get("content-type")?.toLowerCase() ?? "";
+  return contentType.startsWith("application/grpc") || contentType.startsWith("application/grpc-web");
+}
+
+function gatewayPort(request: Request): number {
+  return gatewayGrpcRequest(request) ? 50051 : 50052;
+}
+
+async function fetchGateway(env: Env, request: Request): Promise<Response> {
+  const gateway = gatewayContainer(env, new URL(request.url).pathname);
+  return fetchStartedContainer(
+    gateway,
+    switchPort(request, gatewayPort(request)),
+    gatewayContainerStartProfile(env),
+  );
 }
 
 const CORS_ALLOW_METHODS = "GET,PUT,DELETE,POST,OPTIONS";
@@ -325,19 +320,13 @@ export class WorkerContainer extends Container<Env> {
 }
 
 export class EnvoyContainer extends Container<Env> {
-  defaultPort = 8081;
-  requiredPorts = ENVOY_CONTAINER_PORTS;
-  enableInternet = ENVOY_CONTAINER_DEFAULT_START_OPTIONS.enableInternet;
-  entrypoint = ENVOY_CONTAINER_DEFAULT_START_OPTIONS.entrypoint;
-  envVars = ENVOY_CONTAINER_START_PROFILE.startOptions.envVars;
-  usingInterception = true;
+  // Kept only so existing Durable Object migration history remains valid.
 }
 
 // Assign after class declarations so @cloudflare/containers' inherited static
 // setter registers these handlers for ContainerProxy.
 GatewayContainer.outboundByHost = outboundByHost;
 WorkerContainer.outboundByHost = outboundByHost;
-EnvoyContainer.outboundByHost = outboundByHost;
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -356,17 +345,15 @@ export default {
       if (externalContainersEnabled(env)) {
         const gatewayUrl = env.TALON_CF_DEV_GATEWAY_URL ?? "http://gateway:50052";
         const workerUrl = env.TALON_CF_DEV_WORKER_URL ?? "http://worker:8081";
-        const envoyUrl = env.TALON_CF_DEV_ENVOY_URL ?? "http://envoy:8081";
-        const [gatewayReady, workerReady, envoyReady] = await Promise.all([
+        const [gatewayReady, workerReady] = await Promise.all([
           serviceReady(gatewayUrl, "/"),
           serviceReady(workerUrl, "/cloudflare/queues/dispatch", {
             method: "POST",
             headers: TEXT_JSON,
             body: "{}",
           }),
-          serviceReady(envoyUrl, "/v1/namespaces"),
         ]);
-        const ok = gatewayReady && workerReady && envoyReady;
+        const ok = gatewayReady && workerReady;
         return withCors(
           json({
             ok,
@@ -374,13 +361,12 @@ export default {
             services: {
               gateway: gatewayReady,
               worker: workerReady,
-              envoy: envoyReady,
             },
           }, { status: ok ? 200 : 503 }),
           request,
         );
       }
-      const [gateway, worker, envoy] = await Promise.all([
+      const [gateway, worker] = await Promise.all([
         containerReady(
           "gateway",
           gatewayContainer(env),
@@ -397,14 +383,8 @@ export default {
           }),
           workerContainerStartProfile(env),
         ),
-        containerReady(
-          "envoy",
-          envoyContainer(env),
-          new Request("https://talon-health.internal/v1/namespaces"),
-          ENVOY_CONTAINER_START_PROFILE,
-        ),
       ]);
-      const ok = gateway.ready && worker.ready && envoy.ready;
+      const ok = gateway.ready && worker.ready;
       return withCors(
         json({
           ok,
@@ -421,12 +401,6 @@ export default {
               status: worker.status,
               error: worker.error,
             },
-            envoy: {
-              count: configuredCount(env.TALON_ENVOY_CONTAINER_COUNT),
-              ready: envoy.ready,
-              status: envoy.status,
-              error: envoy.error,
-            },
           },
         }, { status: ok ? 200 : 503 }),
         request,
@@ -434,14 +408,13 @@ export default {
     }
 
     if (externalContainersEnabled(env)) {
-      return withCors(
-        await fetch(requestToOrigin(request, env.TALON_CF_DEV_ENVOY_URL ?? "http://envoy:8081")),
-        request,
-      );
+      const origin = gatewayGrpcRequest(request)
+        ? env.TALON_CF_DEV_GATEWAY_GRPC_URL ?? "http://gateway:50051"
+        : env.TALON_CF_DEV_GATEWAY_URL ?? "http://gateway:50052";
+      return withCors(await fetch(requestToOrigin(request, origin)), request);
     }
 
-    const envoy = envoyContainer(env);
-    return withCors(await fetchStartedContainer(envoy, request, ENVOY_CONTAINER_START_PROFILE), request);
+    return withCors(await fetchGateway(env, request), request);
   },
 
   async queue(batch: MessageBatch, env: Env): Promise<void> {

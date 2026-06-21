@@ -9,8 +9,7 @@
   "vars": {
     "TALON_CONFIG_INLINE_YAML": "providers:\n  openai:\n    type: openai_compatible\n    name: openai\n    base_url: \"https://api.openai.com/v1\"\n    model: gpt-4o-mini\n    api_key:\n      source: env\n      key: OPENAI_API_KEY\ndefault_provider: openai\ncontrol_plane:\n  database:\n    driver: d1\n  message_broker:\n    driver: cf_queues\n  object_store:\n    driver: r2\n",
     "TALON_GATEWAY_CONTAINER_COUNT": "1",
-    "TALON_WORKER_CONTAINER_COUNT": "1",
-    "TALON_ENVOY_CONTAINER_COUNT": "1"
+    "TALON_WORKER_CONTAINER_COUNT": "1"
   },
   "d1_databases": [
     {
@@ -66,10 +65,6 @@
         "class_name": "WorkerContainer"
       },
       {
-        "name": "ENVOY_CONTAINER",
-        "class_name": "EnvoyContainer"
-      },
-      {
         "name": "SCHEDULE_SHARD",
         "class_name": "ScheduleShard"
       },
@@ -101,11 +96,6 @@
       "class_name": "WorkerContainer",
       "max_instances": 1,
       "image": "ghcr.io/impalasys/talon-runtime:latest"
-    },
-    {
-      "class_name": "EnvoyContainer",
-      "max_instances": 1,
-      "image": "ghcr.io/impalasys/talon-envoy:latest"
     }
   ]
 }

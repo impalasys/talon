@@ -54,7 +54,6 @@ impl Gateway {
     pub fn http_ui_router(&self) -> Router {
         Router::new()
             .merge(crate::gateway::rest::a2a::router())
-            .merge(crate::gateway::rest::resources::router())
             .route(
                 "/v1/ui/ns/:ns/agents/:agent/sessions/:session_id",
                 post(crate::gateway::ui::post_chat)
