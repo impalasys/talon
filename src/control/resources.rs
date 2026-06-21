@@ -56,7 +56,23 @@ impl ResourceStore {
         normalize_resource(namespace, &mut resource)?;
         let key = resource_key(&resource);
         validate_resource_kind(&resource)?;
-        let existing = self.get_by_key(&key).await?;
+        let existing = match self.kv.get(&key).await? {
+            Some(bytes) => match decode_stored_resource(&key.kind, bytes.as_slice()) {
+                Ok(resource) => Some(resource),
+                Err(err) => {
+                    tracing::warn!(
+                        error = %err,
+                        kind = %key.kind,
+                        namespace = %key.namespace,
+                        parent_path = %key.parent_path,
+                        name = %key.name,
+                        "overwriting undecodable stored resource during upsert"
+                    );
+                    None
+                }
+            },
+            None => None,
+        };
         let change_type = if existing.is_some() {
             events::ResourceChangeType::Updated
         } else {
@@ -1476,5 +1492,79 @@ mod tests {
             }
             other => panic!("expected Agent spec, got {other:?}"),
         }
+    }
+
+    #[tokio::test]
+    async fn manifest_upsert_overwrites_undecodable_typed_resource_payload() {
+        let kv = Arc::new(MockKvStore::new());
+        let store = ResourceStore::new(kv.clone(), Arc::new(RecordingPubSub::default()));
+        let legacy = resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Deployment".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "conic-cmo".to_string(),
+                namespace: "Conic:Customers".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::Deployment(
+                    resources_proto::DeploymentSpec {
+                        templates: vec!["old-template".to_string()],
+                        ..Default::default()
+                    },
+                )),
+            }),
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resources_proto::resource_status::Kind::Deployment(
+                    Default::default(),
+                )),
+            }),
+        };
+        let key = crate::control::keys::ResourceKey::new(
+            "Conic:Customers",
+            &[],
+            "Deployment",
+            "conic-cmo",
+        );
+        kv.set(&key, &legacy.encode_to_vec()).await.unwrap();
+
+        let updated = store
+            .upsert_manifest(
+                "Conic:Customers",
+                resources_proto::ResourceManifest {
+                    api_version: "talon.impalasys.com/v1".to_string(),
+                    kind: "Deployment".to_string(),
+                    metadata: Some(resources_proto::ResourceMeta {
+                        name: "conic-cmo".to_string(),
+                        namespace: "Conic:Customers".to_string(),
+                        ..Default::default()
+                    }),
+                    spec: Some(resources_proto::ResourceSpec {
+                        kind: Some(resources_proto::resource_spec::Kind::Deployment(
+                            resources_proto::DeploymentSpec {
+                                templates: vec!["conic-cmo".to_string()],
+                                ..Default::default()
+                            },
+                        )),
+                    }),
+                },
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(updated.metadata.as_ref().unwrap().generation, 1);
+        match updated.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
+            Some(resources_proto::resource_spec::Kind::Deployment(spec)) => {
+                assert_eq!(spec.templates, vec!["conic-cmo"]);
+            }
+            other => panic!("expected Deployment spec, got {other:?}"),
+        }
+        let stored = kv.get(&key).await.unwrap().expect("stored Deployment");
+        let stored_deployment =
+            resources_proto::Deployment::decode(stored.as_slice()).expect("typed Deployment");
+        assert_eq!(
+            stored_deployment.spec.as_ref().unwrap().templates,
+            vec!["conic-cmo"]
+        );
     }
 }
