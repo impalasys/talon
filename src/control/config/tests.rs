@@ -185,8 +185,9 @@ trust:
             "TALON_GOOGLE_WEB_CLIENT_ID",
             "test-web-client.apps.googleusercontent.com",
         );
-        let path =
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("talon.docker-compose.yaml");
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("talon.docker-compose.yaml");
+        std::fs::write(&path, include_str!("../../../talon.docker-compose.yaml")).unwrap();
         let config = Config::from_file(&path).unwrap();
 
         assert!(config.providers.contains_key("openai"));
