@@ -1,6 +1,8 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+mod client;
+
 pub mod generated {
     pub mod talon {
         pub mod config {
@@ -24,4 +26,5 @@ pub mod generated {
     }
 }
 
+pub use client::{GatewayClientOptions, GatewayTransport, TalonGatewayClient};
 pub use generated::talon::*;

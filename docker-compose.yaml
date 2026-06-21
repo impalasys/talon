@@ -105,10 +105,10 @@ services:
     command:
       - |
         set -eu
-        REST_GATEWAY=http://envoy:8081
+        GRPC_WEB_GATEWAY=http://envoy:8081
         GRPC_GATEWAY=http://gateway:50051
         talon-cli apply -f /manifests/default_agent.yaml
-        talon-cli --gateway "$$REST_GATEWAY" --rest apply -f /manifests/examples/chatgpt-app/namespace.yaml
+        talon-cli --gateway "$$GRPC_WEB_GATEWAY" --grpc-web apply -f /manifests/examples/chatgpt-app/namespace.yaml
         talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/chatgpt-app/support-docs-template.yaml
         talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/chatgpt-app/support-docs-agent.yaml
 
@@ -130,9 +130,9 @@ services:
     command:
       - |
         set -eu
-        REST_GATEWAY=http://envoy:8081
+        GRPC_WEB_GATEWAY=http://envoy:8081
         GRPC_GATEWAY=http://gateway:50051
-        talon-cli --gateway "$$REST_GATEWAY" --rest apply -f /manifests/examples/channel-collaboration/namespace.yaml
+        talon-cli --gateway "$$GRPC_WEB_GATEWAY" --grpc-web apply -f /manifests/examples/channel-collaboration/namespace.yaml
         talon-cli --gateway "$$GRPC_GATEWAY" get template channel-agent-template >/dev/null 2>&1 || talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/channel-agent-template.yaml
         talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/triage-agent.yaml
         talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/scribe-agent.yaml

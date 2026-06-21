@@ -3,6 +3,7 @@
 
 use talon_client::gateway::ListResourcesRequest;
 use talon_client::{data::SessionJournalEntryPayloadLlmResponse, harness::ChatResponse};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[test]
 fn generated_gateway_types_are_available() {
@@ -24,4 +25,82 @@ fn generated_data_types_can_reference_harness_types() {
         }),
     };
     assert_eq!(payload.response.unwrap().content, "ok");
+}
+
+fn grpc_web_response_body(message: &impl prost::Message) -> Vec<u8> {
+    let mut message_bytes = Vec::new();
+    message.encode(&mut message_bytes).expect("encode message");
+
+    let trailers = b"grpc-status: 0\r\n";
+    let mut body = Vec::new();
+    body.push(0);
+    body.extend_from_slice(&(message_bytes.len() as u32).to_be_bytes());
+    body.extend_from_slice(&message_bytes);
+    body.push(0x80);
+    body.extend_from_slice(&(trailers.len() as u32).to_be_bytes());
+    body.extend_from_slice(trailers);
+    body
+}
+
+#[tokio::test]
+async fn grpc_web_gateway_client_uses_http1_grpc_web_requests() {
+    let response_body = grpc_web_response_body(&talon_client::gateway::ListNamespacesResponse {
+        namespaces: vec![talon_client::gateway::NamespaceResponse {
+            name: "from-grpc-web".to_string(),
+            parent: None,
+            is_deleted: false,
+            deleted_at: 0,
+            labels: std::collections::HashMap::new(),
+        }],
+    });
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("bind listener");
+    let addr = listener.local_addr().expect("listener addr");
+
+    let server = tokio::spawn(async move {
+        let (mut stream, _) = listener.accept().await.expect("accept request");
+        let mut request = Vec::new();
+        let mut buffer = [0; 1024];
+        loop {
+            let bytes_read = stream.read(&mut buffer).await.expect("read request");
+            if bytes_read == 0 {
+                break;
+            }
+            request.extend_from_slice(&buffer[..bytes_read]);
+            if request.windows(4).any(|window| window == b"\r\n\r\n") {
+                break;
+            }
+        }
+        let request = String::from_utf8_lossy(&request);
+        assert!(request.starts_with("POST /talon.gateway.GatewayService/ListNamespaces "));
+        assert!(request.contains("content-type: application/grpc-web"));
+        assert!(request.contains("x-grpc-web: 1"));
+
+        let headers = format!(
+            "HTTP/1.1 200 OK\r\ncontent-type: application/grpc-web+proto\r\ncontent-length: {}\r\n\r\n",
+            response_body.len()
+        );
+        stream
+            .write_all(headers.as_bytes())
+            .await
+            .expect("write response headers");
+        stream
+            .write_all(&response_body)
+            .await
+            .expect("write response body");
+    });
+
+    let gateway = format!("http://{addr}");
+    let mut client = talon_client::TalonGatewayClient::connect_grpc_web(gateway)
+        .await
+        .expect("connect gRPC-Web client");
+    let response = client
+        .list_namespaces(talon_client::gateway::ListNamespacesRequest { parent: None })
+        .await
+        .expect("list namespaces")
+        .into_inner();
+
+    assert_eq!(response.namespaces[0].name, "from-grpc-web");
+    server.await.expect("server task");
 }

@@ -57,7 +57,7 @@ metadata:
 Apply it:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f first-agent-namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f first-agent-namespace.yaml
 ```
 
 Create `first-agent-agent.yaml`:
@@ -84,13 +84,13 @@ spec:
 Apply it:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f first-agent-agent.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f first-agent-agent.yaml
 ```
 
 Verify the agent exists:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest get agent hello-agent --namespace first-agent
+cargo run --bin talon-cli -- --gateway http://localhost:18789 get agent hello-agent --namespace first-agent
 ```
 
 ## 2. Create a session

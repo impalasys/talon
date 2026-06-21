@@ -300,7 +300,7 @@ Do not connect the UI to `51051`.
 Create the namespace:
 
 ```bash
-./target/debug/talon-cli --rest \
+./target/debug/talon-cli \
   --gateway http://127.0.0.1:18789 \
   apply --file "$ROOT/manifests/pretzel.namespace.yaml"
 ```

@@ -9,7 +9,7 @@ class TalonCli:
         binary,
         gateway,
         *,
-        rest=False,
+        grpc_web=False,
         token=None,
         jwt_secret=None,
         password=None,
@@ -18,7 +18,7 @@ class TalonCli:
     ):
         self.binary = str(binary)
         self.gateway = gateway
-        self.rest = rest
+        self.grpc_web = grpc_web
         self.token = token
         self.jwt_secret = jwt_secret
         self.password = password
@@ -27,8 +27,8 @@ class TalonCli:
 
     def base_args(self):
         args = [self.binary, "--gateway", self.gateway]
-        if self.rest:
-            args.append("--rest")
+        if self.grpc_web:
+            args.append("--grpc-web")
         if self.token:
             args.extend(["--token", self.token])
         if self.jwt_secret:
@@ -71,4 +71,3 @@ class TalonCli:
                 f"stdout:\n{result.stdout}\n"
                 f"stderr:\n{result.stderr}"
             ) from err
-
