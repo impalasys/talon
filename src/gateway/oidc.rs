@@ -33,7 +33,6 @@ pub struct OidcExchangeRequest {
 }
 
 #[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct OidcExchangeResponse {
     pub access_token: String,
     pub token_type: &'static str,
@@ -45,7 +44,6 @@ pub struct OidcExchangeResponse {
 }
 
 #[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct AuthConfigResponse {
     pub google_sso_enabled: bool,
     pub google_web_client_id: Option<String>,
@@ -79,12 +77,9 @@ pub async fn get_auth_config() -> Response {
     let client_id = std::env::var("TALON_GOOGLE_WEB_CLIENT_ID")
         .ok()
         .filter(|value| !value.trim().is_empty());
-    let client_secret_present = std::env::var("TALON_GOOGLE_WEB_CLIENT_SECRET")
-        .ok()
-        .is_some_and(|value| !value.trim().is_empty());
 
     Json(AuthConfigResponse {
-        google_sso_enabled: client_id.is_some() && client_secret_present,
+        google_sso_enabled: client_id.is_some(),
         google_web_client_id: client_id,
     })
     .into_response()
@@ -144,10 +139,21 @@ async fn verify_against_trust(
         }
         match verify_with_entry(entry, id_token).await {
             Ok(claims) => {
+                let grants = entry
+                    .grants
+                    .iter()
+                    .map(grant_claim_from_config)
+                    .collect::<Vec<_>>();
+                if grants.is_empty() {
+                    return Err((
+                        StatusCode::UNAUTHORIZED,
+                        format!("trust '{}' has no grants", entry.name),
+                    ));
+                }
                 return Ok(VerifiedOidcIdentity {
                     trust_name: entry.name.clone(),
                     claims,
-                    grants: entry.grants.iter().map(grant_claim_from_config).collect(),
+                    grants,
                 });
             }
             Err(err) => last_error = err,
@@ -196,7 +202,8 @@ async fn verify_with_entry(
         .map_err(|err| format!("invalid OIDC token: {err}"))?
         .claims;
 
-    if claims.email.is_some() && claims.email_verified == Some(false) {
+    let uses_email_policy = !entry.allowed_emails.is_empty() || !entry.allowed_domains.is_empty();
+    if uses_email_policy && claims.email_verified != Some(true) {
         return Err("OIDC email is not verified".to_string());
     }
     if !email_allowed(entry, &claims) {
@@ -229,7 +236,14 @@ async fn fetch_jwks(entry: &proto::OidcTrustEntry) -> Result<JwkSet, String> {
         )
     };
 
-    reqwest::get(&url)
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .map_err(|err| format!("failed to build OIDC JWKS client: {err}"))?;
+
+    client
+        .get(&url)
+        .send()
         .await
         .map_err(|err| format!("failed to fetch OIDC JWKS: {err}"))?
         .error_for_status()

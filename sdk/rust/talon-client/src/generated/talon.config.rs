@@ -24,6 +24,87 @@ pub struct TalonConfig {
         ::prost::alloc::string::String,
         ControllerConfig,
     >,
+    #[prost(message, optional, tag = "8")]
+    pub trust: ::core::option::Option<TrustConfig>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TrustConfig {
+    #[prost(message, repeated, tag = "1")]
+    pub oidc: ::prost::alloc::vec::Vec<OidcTrustEntry>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OidcTrustEntry {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub issuer: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "3")]
+    pub audiences: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "4")]
+    pub allowed_domains: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "5")]
+    pub allowed_emails: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag = "6")]
+    pub jwks_url: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "7")]
+    pub clock_skew_seconds: u32,
+    #[prost(message, repeated, tag = "8")]
+    pub grants: ::prost::alloc::vec::Vec<OidcTrustGrant>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OidcTrustGrant {
+    #[prost(enumeration = "oidc_trust_grant::Kind", tag = "1")]
+    pub kind: i32,
+    #[prost(string, tag = "2")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub session: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub channel: ::prost::alloc::string::String,
+}
+/// Nested message and enum types in `OidcTrustGrant`.
+pub mod oidc_trust_grant {
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Kind {
+        Unspecified = 0,
+        Read = 1,
+        Readwrite = 2,
+    }
+    impl Kind {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "KIND_UNSPECIFIED",
+                Self::Read => "READ",
+                Self::Readwrite => "READWRITE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "KIND_UNSPECIFIED" => Some(Self::Unspecified),
+                "READ" => Some(Self::Read),
+                "READWRITE" => Some(Self::Readwrite),
+                _ => None,
+            }
+        }
+    }
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ControllerConfig {

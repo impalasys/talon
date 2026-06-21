@@ -12,6 +12,44 @@ mod tests {
     use tempfile::tempdir;
     use tempfile::NamedTempFile;
 
+    struct EnvVarGuard {
+        key: &'static str,
+        previous: Option<std::ffi::OsString>,
+    }
+
+    impl EnvVarGuard {
+        fn set(key: &'static str, value: &str) -> Self {
+            let previous = env::var_os(key);
+            // Tests serialize environment access through env_lock/async_env_mutex.
+            unsafe {
+                env::set_var(key, value);
+            }
+            Self { key, previous }
+        }
+
+        fn remove(key: &'static str) -> Self {
+            let previous = env::var_os(key);
+            // Tests serialize environment access through env_lock/async_env_mutex.
+            unsafe {
+                env::remove_var(key);
+            }
+            Self { key, previous }
+        }
+    }
+
+    impl Drop for EnvVarGuard {
+        fn drop(&mut self) {
+            // Tests serialize environment access through env_lock/async_env_mutex.
+            unsafe {
+                if let Some(previous) = &self.previous {
+                    env::set_var(self.key, previous);
+                } else {
+                    env::remove_var(self.key);
+                }
+            }
+        }
+    }
+
     #[test]
     fn test_config_from_yaml() {
         let file = NamedTempFile::new().expect("Failed to create temp file");
@@ -139,16 +177,14 @@ trust:
     #[test]
     fn test_checked_in_compose_config_parses_current_shape() {
         let _guard = crate::test_support::env_lock();
-        unsafe {
-            env::set_var(
-                "TALON_GOOGLE_CLIENT_ID",
-                "test-desktop-client.apps.googleusercontent.com",
-            );
-            env::set_var(
-                "TALON_GOOGLE_WEB_CLIENT_ID",
-                "test-web-client.apps.googleusercontent.com",
-            );
-        }
+        let _desktop_client = EnvVarGuard::set(
+            "TALON_GOOGLE_CLIENT_ID",
+            "test-desktop-client.apps.googleusercontent.com",
+        );
+        let _web_client = EnvVarGuard::set(
+            "TALON_GOOGLE_WEB_CLIENT_ID",
+            "test-web-client.apps.googleusercontent.com",
+        );
         let path =
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("talon.docker-compose.yaml");
         let config = Config::from_file(&path).unwrap();
@@ -195,20 +231,13 @@ trust:
             trust.oidc[0].grants[0].kind,
             proto::oidc_trust_grant::Kind::Readwrite as i32
         );
-
-        unsafe {
-            env::remove_var("TALON_GOOGLE_CLIENT_ID");
-            env::remove_var("TALON_GOOGLE_WEB_CLIENT_ID");
-        }
     }
 
     #[test]
     fn test_env_placeholder_expansion() {
         let _guard = crate::test_support::env_lock();
-        unsafe {
-            env::set_var("TALON_TEST_PLACEHOLDER", "expanded");
-            env::remove_var("TALON_MISSING_PLACEHOLDER");
-        }
+        let _placeholder = EnvVarGuard::set("TALON_TEST_PLACEHOLDER", "expanded");
+        let _missing = EnvVarGuard::remove("TALON_MISSING_PLACEHOLDER");
 
         assert_eq!(
             expand_env_placeholders(
@@ -216,10 +245,6 @@ trust:
             ),
             "before expanded ${TALON_MISSING_PLACEHOLDER} ${bad-name"
         );
-
-        unsafe {
-            env::remove_var("TALON_TEST_PLACEHOLDER");
-        }
     }
 
     #[test]

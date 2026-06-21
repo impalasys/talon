@@ -44,11 +44,11 @@ pub(crate) struct StoredGatewayAuth {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct OidcExchangeResponse {
-    #[serde(rename = "accessToken")]
+    #[serde(alias = "accessToken")]
     access_token: String,
-    #[serde(rename = "tokenType")]
+    #[serde(alias = "tokenType")]
     token_type: String,
-    #[serde(rename = "expiresIn")]
+    #[serde(alias = "expiresIn")]
     expires_in: u64,
     subject: String,
     email: Option<String>,
@@ -133,6 +133,12 @@ pub(crate) fn load_stored_gateway_auth(cli: &Cli) -> Result<Option<StoredGateway
     if auth.gateway != gateway_http_base(cli) {
         return Ok(None);
     }
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)?
+        .as_secs();
+    if auth.expires_at <= now.saturating_add(30) {
+        return Ok(None);
+    }
     Ok(Some(auth))
 }
 
@@ -145,7 +151,7 @@ pub(crate) fn save_stored_gateway_auth(auth: &StoredGatewayAuth) -> Result<()> {
     let content = serde_json::to_vec_pretty(auth)?;
     #[cfg(unix)]
     {
-        use std::os::unix::fs::OpenOptionsExt;
+        use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
         let mut file = std::fs::OpenOptions::new()
             .create(true)
             .truncate(true)
@@ -153,6 +159,8 @@ pub(crate) fn save_stored_gateway_auth(auth: &StoredGatewayAuth) -> Result<()> {
             .mode(0o600)
             .open(&path)
             .with_context(|| format!("Failed to write auth file {}", path.display()))?;
+        file.set_permissions(std::fs::Permissions::from_mode(0o600))
+            .with_context(|| format!("Failed to set auth file permissions {}", path.display()))?;
         file.write_all(&content)?;
     }
     #[cfg(not(unix))]
@@ -189,7 +197,11 @@ pub(crate) async fn exchange_oidc_id_token(
         body["trust"] = serde_json::Value::String(trust.to_string());
     }
 
-    let response = reqwest::Client::new()
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(20))
+        .build()
+        .context("Failed to build OIDC exchange HTTP client")?;
+    let response = client
         .post(&url)
         .json(&body)
         .send()
@@ -265,8 +277,12 @@ pub(crate) async fn login_with_google_loopback(
         .append_pair("access_type", "offline")
         .append_pair("prompt", "select_account");
 
-    open_browser(auth_url.as_str())?;
-    println!("Opened browser for Google login. If it did not open, visit:\n{}", auth_url);
+    println!("Visit this URL to log in:\n{}", auth_url);
+    if let Err(err) = open_browser(auth_url.as_str()) {
+        eprintln!("Could not open browser automatically: {err}");
+    } else {
+        println!("Opened browser for Google login.");
+    }
 
     let code = wait_for_loopback_code(listener, &state)?;
     let id_token = exchange_google_code_for_id_token(
@@ -335,7 +351,11 @@ async fn exchange_google_code_for_id_token(
     code: &str,
 ) -> Result<String> {
     let form = google_token_request_form(client_id, client_secret, redirect_uri, verifier, code);
-    let response = reqwest::Client::new()
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(20))
+        .build()
+        .context("Failed to build Google token HTTP client")?;
+    let response = client
         .post("https://oauth2.googleapis.com/token")
         .form(&form)
         .send()

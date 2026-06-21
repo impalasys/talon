@@ -212,7 +212,7 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::DeleteNamespaceRequest>,
     ) -> std::result::Result<tonic::Response<proto::NamespaceResponse>, tonic::Status> {
-        crate::require_auth!(read, self, req, ns::TALON_SYSTEM);
+        crate::require_auth!(self, req, ns::TALON_SYSTEM);
         let req = req.into_inner();
 
         let name = req.name;

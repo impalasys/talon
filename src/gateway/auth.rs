@@ -316,6 +316,12 @@ fn check_claim_scope(
     session: Option<&str>,
     channel: Option<&str>,
 ) -> Result<(), Status> {
+    if claims.grants.is_empty() && claims.sub.starts_with("oidc:") {
+        return Err(Status::permission_denied(
+            "OIDC token does not include any Talon grants",
+        ));
+    }
+
     if !claims.grants.is_empty() {
         if claims
             .grants
@@ -805,6 +811,24 @@ mod tests {
             AuthzOperation::Read,
             "other",
             Some("triage"),
+            None
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn test_oidc_token_without_grants_is_denied() {
+        let secret = "test-secret";
+        let token = create_grant_token(secret, Vec::new());
+        let config = AuthConfig::jwt(secret.to_string());
+        let metadata = auth_metadata(&token);
+
+        assert!(check_auth_for_operation(
+            &metadata,
+            &config,
+            AuthzOperation::Read,
+            "ops",
+            None,
             None
         )
         .is_err());

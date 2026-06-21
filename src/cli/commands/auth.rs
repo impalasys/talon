@@ -27,10 +27,12 @@ enum AuthCommands {
         /// OIDC trust entry name to require during exchange.
         #[arg(long)]
         trust: Option<String>,
-        /// Google Desktop OAuth client id. Defaults to TALON_GOOGLE_CLIENT_ID or the built-in Talon CLI client id.
+        /// Google Desktop OAuth client id. Defaults to TALON_GOOGLE_CLIENT_ID, TALON_GOOGLE_CLI_CLIENT_ID,
+        /// or the built-in Talon CLI client id.
         #[arg(long)]
         google_client_id: Option<String>,
-        /// Google Desktop OAuth client secret. Defaults to TALON_GOOGLE_CLIENT_SECRET.
+        /// Google Desktop OAuth client secret. Defaults to TALON_GOOGLE_CLIENT_SECRET or
+        /// TALON_GOOGLE_CLI_CLIENT_SECRET.
         #[arg(long)]
         google_client_secret: Option<String>,
     },

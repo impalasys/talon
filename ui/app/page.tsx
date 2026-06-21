@@ -1027,8 +1027,8 @@ function DebuggerPageContent() {
         if (!response.ok) throw new Error(`status ${response.status}`);
         const config = await response.json();
         if (!cancelled) {
-          setGoogleSsoEnabled(Boolean(config.googleSsoEnabled && config.googleWebClientId));
-          setGoogleWebClientId(config.googleWebClientId || null);
+          setGoogleSsoEnabled(Boolean(config.google_sso_enabled && config.google_web_client_id));
+          setGoogleWebClientId(config.google_web_client_id || null);
           setGoogleSsoError(null);
         }
       } catch {
@@ -1056,6 +1056,10 @@ function DebuggerPageContent() {
         }
         const existing = document.querySelector<HTMLScriptElement>('script[src="https://accounts.google.com/gsi/client"]');
         if (existing) {
+          if (window.google?.accounts?.id) {
+            resolve();
+            return;
+          }
           existing.addEventListener('load', () => resolve(), { once: true });
           existing.addEventListener('error', () => reject(new Error('Google sign-in script failed to load')), { once: true });
           return;
@@ -1083,8 +1087,8 @@ function DebuggerPageContent() {
             });
             const payload = await exchange.json();
             if (!exchange.ok) throw new Error(payload?.error || 'Google sign-in failed');
-            setAuthToken(payload.accessToken);
-            localStorage.setItem('talon_auth_token', payload.accessToken);
+            setAuthToken(payload.access_token);
+            localStorage.setItem('talon_auth_token', payload.access_token);
             if (gatewayUrl.trim()) {
               localStorage.setItem('talon_gateway_url', gatewayUrl.trim());
               updateGatewayClient(gatewayUrl.trim());

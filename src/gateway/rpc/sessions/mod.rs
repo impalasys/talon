@@ -785,7 +785,6 @@ impl GrpcGatewayHandler {
         req: tonic::Request<proto::ClearSessionRequest>,
     ) -> std::result::Result<tonic::Response<proto::ClearSessionResponse>, tonic::Status> {
         crate::require_auth!(
-            read,
             self,
             req,
             &req.get_ref().ns,
