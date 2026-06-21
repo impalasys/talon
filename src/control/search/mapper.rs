@@ -301,6 +301,8 @@ fn status_phase(resource: &resources_proto::Resource) -> String {
         resources_proto::resource_status::Kind::SandboxClass(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::SandboxPolicy(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::Sandbox(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Worker(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::UsagePolicy(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::Raw(_) => String::new(),
     }
 }

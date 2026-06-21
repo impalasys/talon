@@ -171,6 +171,7 @@ mod tests {
             pubsub: Arc::new(EmptyPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
             objects: object_store::default_object_store(),
+            documents: crate::control::search::memory_document_store(),
         }
     }
 
