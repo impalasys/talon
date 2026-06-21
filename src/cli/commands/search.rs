@@ -6,9 +6,7 @@ use clap::{Args, Subcommand};
 
 use super::{Cli, RunOutcome};
 use crate::cli::connect_gateway;
-use crate::gateway::rpc::proto::{
-    SearchKnowledgeRequest, SearchMode, SearchRequest, SearchSort,
-};
+use talon_client::gateway::{SearchKnowledgeRequest, SearchMode, SearchRequest, SearchResult, SearchSort};
 
 #[derive(Args)]
 pub(crate) struct SearchCommand {
@@ -59,9 +57,6 @@ enum SearchCommands {
 }
 
 pub(super) async fn run(cli: &Cli, command: &SearchCommand) -> Result<RunOutcome> {
-    if cli.rest {
-        anyhow::bail!("talon-cli search currently requires gRPC; REST search is not implemented");
-    }
     let mut client = connect_gateway(cli).await?;
     match &command.command {
         SearchCommands::Workspace {
@@ -147,7 +142,7 @@ pub(super) async fn run(cli: &Cli, command: &SearchCommand) -> Result<RunOutcome
     Ok(RunOutcome { exit_code: None })
 }
 
-fn print_results(results: Vec<crate::gateway::rpc::proto::SearchResult>) {
+fn print_results(results: Vec<SearchResult>) {
     for result in results {
         let Some(document) = result.document else {
             continue;
