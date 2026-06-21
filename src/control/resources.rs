@@ -225,13 +225,16 @@ impl ResourceStore {
             .kv
             .list_entries(&keys::ResourceParent::root(namespace).list(kind))
             .await?;
-        let mut resources = Vec::with_capacity(entries.len());
+        let mut status_fetches = Vec::with_capacity(entries.len());
         for (key, value) in entries {
-            if let Ok(resource) = decode_stored_resource(&key.kind, value.as_slice()) {
-                resources.push(resource);
+            if let Ok(mut resource) = decode_stored_resource(&key.kind, value.as_slice()) {
+                status_fetches.push(async move {
+                    self.populate_computed_status(&key, &mut resource).await?;
+                    Ok::<_, anyhow::Error>(resource)
+                });
             }
         }
-        Ok(resources)
+        futures::future::try_join_all(status_fetches).await
     }
 
     pub async fn delete(&self, namespace: &str, kind: &str, name: &str) -> Result<bool> {

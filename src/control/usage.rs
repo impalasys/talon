@@ -256,10 +256,13 @@ async fn matched_limits(
     now_seconds: i64,
 ) -> Result<Vec<MatchedLimit>> {
     let mut matches = Vec::new();
-    for namespace in ancestor_namespaces(&subject.namespace) {
-        let entries = kv
-            .list_entries(&keys::ResourceParent::root(&namespace).list(Some("UsagePolicy")))
-            .await?;
+    let ancestor_fetches = ancestor_namespaces(&subject.namespace)
+        .into_iter()
+        .map(|namespace| {
+            let list_key = keys::ResourceParent::root(&namespace).list(Some("UsagePolicy"));
+            async move { kv.list_entries(&list_key).await }
+        });
+    for entries in futures::future::try_join_all(ancestor_fetches).await? {
         for (key, value) in entries {
             let policy =
                 resources_proto::UsagePolicy::decode(value.as_slice()).with_context(|| {
@@ -372,10 +375,10 @@ fn is_llm_metric(metric: &str) -> bool {
 
 fn parse_window(value: &str) -> Result<Window> {
     let value = value.trim();
-    if value.len() < 2 {
+    let Some(unit) = value.chars().next_back() else {
         bail!("UsagePolicy window must be a duration like 1m, 5h, or 7d");
-    }
-    let (number, unit) = value.split_at(value.len() - 1);
+    };
+    let number = &value[..value.len() - unit.len_utf8()];
     if number.is_empty() || !number.bytes().all(|byte| byte.is_ascii_digit()) {
         bail!("UsagePolicy window must use an integer duration like 1m, 5h, or 7d");
     }
@@ -384,11 +387,11 @@ fn parse_window(value: &str) -> Result<Window> {
         bail!("UsagePolicy window must be greater than zero");
     }
     let multiplier = match unit {
-        "s" => 1,
-        "m" => 60,
-        "h" => 60 * 60,
-        "d" => 24 * 60 * 60,
-        "w" => 7 * 24 * 60 * 60,
+        's' => 1,
+        'm' => 60,
+        'h' => 60 * 60,
+        'd' => 24 * 60 * 60,
+        'w' => 7 * 24 * 60 * 60,
         _ => bail!("UsagePolicy window unit must be one of s, m, h, d, or w"),
     };
     Ok(Window {
@@ -474,7 +477,7 @@ mod tests {
         assert_eq!(parse_window("7d").unwrap().seconds, 604_800);
         assert_eq!(parse_window("4w").unwrap().seconds, 2_419_200);
 
-        for value in ["", "0s", "1.5h", "1h30m", "5", "5mo"] {
+        for value in ["", "0s", "1.5h", "1h30m", "5", "5mo", "1秒"] {
             assert!(parse_window(value).is_err(), "{value} should be invalid");
         }
     }
