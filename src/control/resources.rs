@@ -320,7 +320,8 @@ impl ResourceStore {
         &self,
         key: &keys::ResourceKey,
     ) -> Result<Option<resources_proto::Resource>> {
-        self.kv
+        let mut resource = self
+            .kv
             .get(key)
             .await?
             .map(|bytes| {
@@ -331,7 +332,35 @@ impl ResourceStore {
                     )
                 })
             })
-            .transpose()
+            .transpose()?;
+        if let Some(resource) = resource.as_mut() {
+            self.populate_computed_status(key, resource).await?;
+        }
+        Ok(resource)
+    }
+
+    async fn populate_computed_status(
+        &self,
+        key: &keys::ResourceKey,
+        resource: &mut resources_proto::Resource,
+    ) -> Result<()> {
+        if key.kind == "UsagePolicy" {
+            if let Err(err) = crate::control::usage::populate_usage_policy_status(
+                self.kv.as_ref(),
+                resource,
+                chrono::Utc::now().timestamp(),
+            )
+            .await
+            {
+                tracing::error!(
+                    error = %err,
+                    namespace = %key.namespace,
+                    name = %key.name,
+                    "failed to populate UsagePolicy status"
+                );
+            }
+        }
+        Ok(())
     }
 }
 
@@ -1075,7 +1104,7 @@ fn validate_resource_kind(resource: &resources_proto::Resource) -> Result<()> {
         Kind::UsagePolicy(spec) => {
             crate::control::usage::validate_usage_policy_spec(spec)?;
             "UsagePolicy"
-        },
+        }
         Kind::Raw(_) => return Ok(()),
     };
     if resource.kind != expected {

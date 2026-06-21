@@ -5,6 +5,8 @@ use crate::control::{keys, KeyValueStore};
 use crate::gateway::rpc::{harness_proto, resources_proto};
 use anyhow::{anyhow, bail, Context, Result};
 use prost::Message;
+use std::error::Error;
+use std::fmt;
 use std::time::Duration;
 
 const MAX_CAS_RETRIES: usize = 16;
@@ -45,6 +47,30 @@ struct Window {
     seconds: u64,
 }
 
+#[derive(Debug, Clone)]
+pub struct UsageQuotaExceeded {
+    pub metric: String,
+    pub namespace: String,
+    pub used: u64,
+    pub max: u64,
+}
+
+impl fmt::Display for UsageQuotaExceeded {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "usage quota exceeded for metric '{}' in namespace '{}': used {} of {}",
+            self.metric, self.namespace, self.used, self.max
+        )
+    }
+}
+
+impl Error for UsageQuotaExceeded {}
+
+pub fn is_quota_exceeded_error(err: &anyhow::Error) -> bool {
+    err.downcast_ref::<UsageQuotaExceeded>().is_some()
+}
+
 pub fn llm_usage_charges(usage: Option<&harness_proto::ChatUsage>) -> Vec<UsageCharge> {
     let mut charges = vec![UsageCharge {
         metric: METRIC_LLM_REQUESTS,
@@ -78,13 +104,13 @@ pub async fn check_namespace_usage(
         );
         let used = read_counter(kv, &key).await?;
         if used >= limit.limit.max {
-            bail!(
-                "usage quota exceeded for metric '{}' in namespace '{}': used {} of {}",
-                limit.limit.metric,
-                subject.namespace,
+            return Err(UsageQuotaExceeded {
+                metric: limit.limit.metric,
+                namespace: subject.namespace.clone(),
                 used,
-                limit.limit.max
-            );
+                max: limit.limit.max,
+            }
+            .into());
         }
     }
     Ok(())
@@ -264,20 +290,33 @@ async fn matched_limits(
         });
     for entries in futures::future::try_join_all(ancestor_fetches).await? {
         for (key, value) in entries {
-            let policy =
-                resources_proto::UsagePolicy::decode(value.as_slice()).with_context(|| {
-                    format!(
-                        "failed to decode UsagePolicy {}/{} while evaluating usage",
-                        key.namespace, key.name
-                    )
-                })?;
+            let policy = match resources_proto::UsagePolicy::decode(value.as_slice()) {
+                Ok(policy) => policy,
+                Err(err) => {
+                    tracing::error!(
+                        error = %err,
+                        namespace = %key.namespace,
+                        name = %key.name,
+                        "failed to decode UsagePolicy while evaluating usage"
+                    );
+                    continue;
+                }
+            };
             let Some(meta) = policy.metadata.as_ref() else {
                 continue;
             };
             let Some(spec) = policy.spec.as_ref() else {
                 continue;
             };
-            validate_usage_policy_spec(spec)?;
+            if let Err(err) = validate_usage_policy_spec(spec) {
+                tracing::error!(
+                    error = %err,
+                    namespace = %key.namespace,
+                    name = %key.name,
+                    "invalid UsagePolicy spec while evaluating usage"
+                );
+                continue;
+            }
             if !policy_applies(
                 &meta.namespace,
                 spec.namespace_scope.as_str(),
@@ -382,7 +421,9 @@ fn parse_window(value: &str) -> Result<Window> {
     if number.is_empty() || !number.bytes().all(|byte| byte.is_ascii_digit()) {
         bail!("UsagePolicy window must use an integer duration like 1m, 5h, or 7d");
     }
-    let amount: u64 = number.parse()?;
+    let amount: u64 = number
+        .parse()
+        .map_err(|_| anyhow!("UsagePolicy window duration is invalid or too large"))?;
     if amount == 0 {
         bail!("UsagePolicy window must be greater than zero");
     }
@@ -607,6 +648,104 @@ mod tests {
         };
         assert_eq!(status.hard[0].used, 12);
         assert!(status.hard[0].exceeded);
+    }
+
+    #[tokio::test]
+    async fn quota_exhaustion_uses_typed_error() {
+        let kv = MockKvStore::new();
+        let policy = resources_proto::UsagePolicy {
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "policy".to_string(),
+                namespace: "acme".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::UsagePolicySpec {
+                namespace_scope: "self".to_string(),
+                hard: vec![limit(METRIC_LLM_REQUESTS, "1m")],
+            }),
+            status: None,
+        };
+        kv.set_msg(
+            &keys::ResourceKey::new("acme", &[], "UsagePolicy", "policy"),
+            &policy,
+        )
+        .await
+        .unwrap();
+        let subject = UsageSubject {
+            namespace: "acme".to_string(),
+            agent: "agent".to_string(),
+            provider: "openai".to_string(),
+            model: "gpt-5".to_string(),
+        };
+        charge_namespace_usage(
+            &kv,
+            &subject,
+            &[UsageCharge {
+                metric: METRIC_LLM_REQUESTS,
+                delta: 10,
+            }],
+            65,
+        )
+        .await
+        .unwrap();
+
+        let err = check_namespace_usage(&kv, &subject, &[METRIC_LLM_REQUESTS], 65)
+            .await
+            .unwrap_err();
+        assert!(is_quota_exceeded_error(&err));
+    }
+
+    #[tokio::test]
+    async fn skips_malformed_usage_policy_records_when_matching() {
+        let kv = MockKvStore::new();
+        kv.set(
+            &keys::ResourceKey::new("acme", &[], "UsagePolicy", "malformed"),
+            b"not protobuf",
+        )
+        .await
+        .unwrap();
+        let policy = resources_proto::UsagePolicy {
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "policy".to_string(),
+                namespace: "acme".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::UsagePolicySpec {
+                namespace_scope: "self".to_string(),
+                hard: vec![limit(METRIC_LLM_REQUESTS, "1m")],
+            }),
+            status: None,
+        };
+        kv.set_msg(
+            &keys::ResourceKey::new("acme", &[], "UsagePolicy", "policy"),
+            &policy,
+        )
+        .await
+        .unwrap();
+        let subject = UsageSubject {
+            namespace: "acme".to_string(),
+            agent: "agent".to_string(),
+            provider: "openai".to_string(),
+            model: "gpt-5".to_string(),
+        };
+
+        charge_namespace_usage(
+            &kv,
+            &subject,
+            &[UsageCharge {
+                metric: METRIC_LLM_REQUESTS,
+                delta: 1,
+            }],
+            65,
+        )
+        .await
+        .unwrap();
+
+        let matched = matched_limits(&kv, &subject, &[METRIC_LLM_REQUESTS], 65)
+            .await
+            .unwrap();
+        assert_eq!(matched.len(), 1);
+        assert_eq!(matched[0].policy_name, "policy");
     }
 
     #[test]

@@ -310,7 +310,13 @@ impl GrpcGatewayHandler {
             chrono::Utc::now().timestamp(),
         )
         .await
-        .map_err(|e| tonic::Status::resource_exhausted(e.to_string()))?;
+        .map_err(|e| {
+            if crate::control::usage::is_quota_exceeded_error(&e) {
+                tonic::Status::resource_exhausted(e.to_string())
+            } else {
+                tonic::Status::internal(format!("Failed to check namespace usage: {}", e))
+            }
+        })?;
 
         // Use ULID (UUID v7 gives time-sorted guarantees like ULID)
         let session_id = uuid::Uuid::now_v7().to_string();
