@@ -5,7 +5,8 @@ use axum::{
     extract::State,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
+    routing::{get, post},
+    Json, Router,
 };
 use jsonwebtoken::{
     decode, decode_header, jwk::JwkSet, Algorithm, DecodingKey, EncodingKey, Header, Validation,
@@ -73,7 +74,13 @@ struct VerifiedOidcIdentity {
     grants: Vec<TalonGrantClaim>,
 }
 
-pub async fn get_auth_config() -> Response {
+pub(crate) fn router() -> Router<Arc<Gateway>> {
+    Router::new()
+        .route("/v1/oidc/sso", get(get_sso_config))
+        .route("/v1/oidc/exchange", post(exchange_oidc_token))
+}
+
+async fn get_sso_config() -> Response {
     let client_id = std::env::var("TALON_GOOGLE_WEB_CLIENT_ID")
         .ok()
         .filter(|value| !value.trim().is_empty());
@@ -85,7 +92,7 @@ pub async fn get_auth_config() -> Response {
     .into_response()
 }
 
-pub async fn exchange_oidc_token(
+async fn exchange_oidc_token(
     State(gateway): State<Arc<Gateway>>,
     Json(request): Json<OidcExchangeRequest>,
 ) -> Response {

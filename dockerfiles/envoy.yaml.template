@@ -27,7 +27,7 @@ static_resources:
                 route:
                   cluster: talon_ui_http_service
                   timeout: 0s
-              - match: { prefix: "/v1/auth/" }
+              - match: { prefix: "/v1/oidc/" }
                 route:
                   cluster: talon_ui_http_service
                   timeout: 60s

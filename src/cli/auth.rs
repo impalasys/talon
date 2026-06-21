@@ -188,7 +188,7 @@ pub(crate) async fn exchange_oidc_id_token(
     client_type: &str,
 ) -> Result<StoredGatewayAuth> {
     let base = gateway_http_base(cli);
-    let url = format!("{base}/v1/auth/oidc/exchange");
+    let url = format!("{base}/v1/oidc/exchange");
     let mut body = serde_json::json!({
         "idToken": id_token,
         "clientType": client_type,

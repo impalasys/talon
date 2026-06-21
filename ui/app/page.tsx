@@ -1023,7 +1023,7 @@ function DebuggerPageContent() {
     let cancelled = false;
     const loadAuthConfig = async () => {
       try {
-        const response = await fetch(`${effectiveGatewayHttpUrl.replace(/\/+$/, '')}/v1/auth/config`);
+        const response = await fetch(`${effectiveGatewayHttpUrl.replace(/\/+$/, '')}/v1/oidc/sso`);
         if (!response.ok) throw new Error(`status ${response.status}`);
         const config = await response.json();
         if (!cancelled) {
@@ -1080,7 +1080,7 @@ function DebuggerPageContent() {
         callback: async (response) => {
           try {
             if (!response.credential) throw new Error('Google did not return an ID token');
-            const exchange = await fetch(`${effectiveGatewayHttpUrl.replace(/\/+$/, '')}/v1/auth/oidc/exchange`, {
+            const exchange = await fetch(`${effectiveGatewayHttpUrl.replace(/\/+$/, '')}/v1/oidc/exchange`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ idToken: response.credential, clientType: 'sightline' }),

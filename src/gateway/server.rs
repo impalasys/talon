@@ -8,10 +8,7 @@ use crate::control::{
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::session_streams::SessionStreamHub;
 use anyhow::Result;
-use axum::{
-    routing::{get, post},
-    Router,
-};
+use axum::{routing::post, Router};
 use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
 
@@ -81,14 +78,7 @@ impl Gateway {
     pub fn http_ui_router(&self) -> Router {
         Router::new()
             .merge(crate::gateway::rest::a2a::router())
-            .route(
-                "/v1/auth/config",
-                get(crate::gateway::oidc::get_auth_config),
-            )
-            .route(
-                "/v1/auth/oidc/exchange",
-                post(crate::gateway::oidc::exchange_oidc_token),
-            )
+            .merge(crate::gateway::rest::oidc::router())
             .route(
                 "/v1/ui/ns/:ns/agents/:agent/sessions/:session_id",
                 post(crate::gateway::ui::post_chat)
