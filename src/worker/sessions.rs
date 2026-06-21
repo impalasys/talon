@@ -828,7 +828,6 @@ mod tests {
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent},
         keys::{ResourceKey, ResourceList},
-        scheduler::NoopSchedulerBackend,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{data_proto, manifests, resources_proto};
@@ -1000,12 +999,7 @@ mod tests {
 
     fn handler_with_config(kv: Arc<MockKvStore>, config: Config) -> WorkerEventHandler {
         WorkerEventHandler {
-            cp: Arc::new(ControlPlane {
-                kv,
-                pubsub: Arc::new(MockPubSub),
-                scheduler: Arc::new(NoopSchedulerBackend),
-                objects: crate::control::object_store::default_object_store(),
-            }),
+            cp: Arc::new(ControlPlane::builder(kv, Arc::new(MockPubSub)).build()),
             config: Arc::new(config),
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),

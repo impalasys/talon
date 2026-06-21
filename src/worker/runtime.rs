@@ -488,7 +488,6 @@ mod tests {
     use crate::control::{
         keys::{ResourceKey, ResourceList},
         object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore},
-        scheduler::NoopSchedulerBackend,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{data_proto, manifests, protobuf_value, resources_proto};
@@ -618,15 +617,6 @@ mod tests {
             )]),
             default_provider: "novita".to_string(),
             ..Config::default()
-        }
-    }
-
-    fn control_plane(kv: Arc<MockKvStore>) -> ControlPlane {
-        ControlPlane {
-            kv,
-            pubsub: Arc::new(MockPubSub),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: crate::control::object_store::default_object_store(),
         }
     }
 
@@ -882,7 +872,7 @@ mod tests {
     #[tokio::test]
     async fn agent_runtime_build_errors_for_missing_agent_or_spec() {
         let kv = Arc::new(MockKvStore::default());
-        let cp = control_plane(kv.clone());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         let config = runtime_config();
         let registry = crate::worker::mcp_registry::McpRegistry::new();
 
@@ -918,7 +908,7 @@ mod tests {
     #[tokio::test]
     async fn channel_reply_mode_none_withholds_channel_reply_tools() {
         let kv = Arc::new(MockKvStore::default());
-        let cp = control_plane(kv.clone());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         let config = runtime_config();
         let registry = crate::worker::mcp_registry::McpRegistry::new();
         let spec = manifests::AgentSpec {
@@ -1010,7 +1000,7 @@ mod tests {
     #[tokio::test]
     async fn agent_runtime_build_assembles_history_and_skips_bad_entries() {
         let kv = Arc::new(MockKvStore::default());
-        let cp = control_plane(kv.clone());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         let config = runtime_config();
         let registry = crate::worker::mcp_registry::McpRegistry::new();
         let spec = manifests::AgentSpec {
@@ -1118,7 +1108,7 @@ mod tests {
     #[tokio::test]
     async fn agent_runtime_build_rehydrates_image_parts_from_object_store() {
         let kv = Arc::new(MockKvStore::default());
-        let cp = control_plane(kv.clone());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         let config = runtime_config();
         let registry = crate::worker::mcp_registry::McpRegistry::new();
         let spec = manifests::AgentSpec {

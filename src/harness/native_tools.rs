@@ -572,12 +572,9 @@ mod tests {
     }
 
     fn control_plane(kv: Arc<MockKvStore>, scheduler: Arc<MockScheduler>) -> ControlPlane {
-        ControlPlane {
-            kv,
-            pubsub: Arc::new(EmptyPubSub),
-            scheduler,
-            objects: crate::control::object_store::default_object_store(),
-        }
+        ControlPlane::builder(kv, Arc::new(EmptyPubSub))
+            .scheduler(scheduler)
+            .build()
     }
 
     async fn seed_agent(kv: &MockKvStore, ns: &str, name: &str) {

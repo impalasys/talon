@@ -226,23 +226,12 @@ mod tests {
     use futures::StreamExt;
     use std::sync::Arc;
     use talon::control::config::Config;
-    use talon::control::{
-        keys, scheduler::NoopSchedulerBackend, ControlPlane, KeyValueStore, MessagePublisher,
-    };
+    use talon::control::{keys, ControlPlane, KeyValueStore, MessagePublisher};
     use talon::gateway::auth::AuthConfig;
     use talon::gateway::auth::AuthMode;
     use talon::test_support::{EmptyPubSub, MockKvStore};
     use tokio::sync::oneshot;
     use tokio_util::sync::CancellationToken;
-
-    fn test_control_plane() -> ControlPlane {
-        ControlPlane {
-            kv: Arc::new(MockKvStore::default()),
-            pubsub: Arc::new(EmptyPubSub),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: talon::control::object_store::default_object_store(),
-        }
-    }
 
     #[test]
     fn select_auth_config_prefers_jwt_then_token_then_password() {
@@ -298,7 +287,7 @@ mod tests {
     #[test]
     fn build_gateway_preserves_auth_and_dependencies() {
         let auth = AuthConfig::tokens(vec!["gateway-token".to_string()]);
-        let gateway = build_gateway(auth, test_control_plane());
+        let gateway = build_gateway(auth, ControlPlane::noop());
         assert_eq!(
             gateway.auth_config.as_ref().map(|cfg| cfg.mode.clone()),
             Some(AuthMode::Token)
@@ -489,7 +478,7 @@ mod tests {
 
     #[tokio::test]
     async fn spawn_gateway_tasks_binds_valid_listeners() {
-        let gateway = build_gateway(AuthConfig::open(), test_control_plane());
+        let gateway = build_gateway(AuthConfig::open(), ControlPlane::noop());
         let rpc_listener = tokio::net::TcpListener::bind("127.0.0.1:0")
             .await
             .expect("rpc probe should bind");
@@ -520,7 +509,7 @@ mod tests {
     #[tokio::test]
     async fn run_gateway_with_surfaces_startup_errors() {
         let err = run_gateway_with(
-            test_control_plane(),
+            ControlPlane::noop(),
             |name| match name {
                 "GATEWAY_TOKEN" => Some("token".to_string()),
                 _ => None,
@@ -558,7 +547,7 @@ mod tests {
 
         let (tx, rx) = oneshot::channel::<()>();
         let task = tokio::spawn(run_gateway_with(
-            test_control_plane(),
+            ControlPlane::noop(),
             |_| None,
             move |name| match name {
                 "GRPC_ADDR" => Some(rpc_addr.to_string()),
@@ -581,7 +570,7 @@ mod tests {
     async fn run_server_main_with_surfaces_config_and_control_plane_errors() {
         let config_err = run_server_main_with(
             || anyhow::bail!("config failed"),
-            |_| async { Ok(test_control_plane()) },
+            |_| async { Ok(ControlPlane::noop()) },
             |_| None,
             |_| None,
             futures::future::pending::<()>(),
@@ -619,7 +608,7 @@ mod tests {
         let (tx, rx) = oneshot::channel::<()>();
         let task = tokio::spawn(run_server_main_with(
             || Ok(Arc::new(Config::default())),
-            |_| async { Ok(test_control_plane()) },
+            |_| async { Ok(ControlPlane::noop()) },
             |_| None,
             move |name| match name {
                 "GRPC_ADDR" => Some(rpc_addr.to_string()),

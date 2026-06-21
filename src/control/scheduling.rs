@@ -1271,12 +1271,7 @@ mod tests {
     async fn send_message_uses_atomic_session_lock() {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(MockPubSub::default());
-        let cp = ControlPlane {
-            kv: kv.clone(),
-            pubsub: pubsub.clone(),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: crate::control::object_store::default_object_store(),
-        };
+        let cp = ControlPlane::builder(kv.clone(), pubsub.clone()).build();
 
         let session = data_proto::Session {
             id: "session-1".to_string(),
@@ -1548,12 +1543,7 @@ mod tests {
     async fn create_and_dispatch_schedule_cover_session_paths() {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(MockPubSub::default());
-        let cp = ControlPlane {
-            kv: kv.clone(),
-            pubsub: pubsub.clone(),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: crate::control::object_store::default_object_store(),
-        };
+        let cp = ControlPlane::builder(kv.clone(), pubsub.clone()).build();
 
         let agent = crate::control::resource_model::agent(
             "conic:test",
@@ -1604,12 +1594,7 @@ mod tests {
     async fn dispatch_schedule_can_start_workflow_run() {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(MockPubSub::default());
-        let cp = ControlPlane {
-            kv: kv.clone(),
-            pubsub: pubsub.clone(),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: crate::control::object_store::default_object_store(),
-        };
+        let cp = ControlPlane::builder(kv.clone(), pubsub.clone()).build();
         let workflow = crate::control::resource_model::workflow(
             "conic:test",
             "retention-review",

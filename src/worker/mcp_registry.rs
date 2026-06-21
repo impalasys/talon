@@ -162,7 +162,6 @@ mod tests {
     use super::{filter_allowed_tools, McpRegistry};
     use crate::control::{
         keys::{ResourceKey, ResourceList},
-        scheduler::NoopSchedulerBackend,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::manifests;
@@ -238,15 +237,6 @@ mod tests {
             name: name.to_string(),
             description: String::new(),
             input_schema: json!({"type": "object"}),
-        }
-    }
-
-    fn control_plane(kv: Arc<MockKvStore>) -> ControlPlane {
-        ControlPlane {
-            kv,
-            pubsub: Arc::new(MockPubSub),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: crate::control::object_store::default_object_store(),
         }
     }
 
@@ -360,7 +350,7 @@ mod tests {
     #[tokio::test]
     async fn resolve_server_errors_for_missing_binding_spec_or_server() {
         let kv = Arc::new(MockKvStore::default());
-        let cp = control_plane(kv.clone());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         let registry = McpRegistry::new();
 
         kv.set_msg(
@@ -399,7 +389,7 @@ mod tests {
     #[tokio::test]
     async fn resolve_server_merges_binding_and_returns_disabled_error_before_connecting() {
         let kv = Arc::new(MockKvStore::default());
-        let cp = control_plane(kv.clone());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         let registry = McpRegistry::new();
 
         kv.set_msg(

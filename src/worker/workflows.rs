@@ -2198,9 +2198,7 @@ mod tests {
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent, WorkflowDispatchEvent},
-        scheduler::{
-            NoopSchedulerBackend, ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend,
-        },
+        scheduler::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend},
         ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::manifests;
@@ -2270,12 +2268,7 @@ mod tests {
 
     fn workflow_handler(kv: Arc<MockKvStore>, pubsub: Arc<RecordingPubSub>) -> WorkerEventHandler {
         WorkerEventHandler {
-            cp: Arc::new(ControlPlane {
-                kv,
-                pubsub,
-                scheduler: Arc::new(NoopSchedulerBackend),
-                objects: crate::control::object_store::default_object_store(),
-            }),
+            cp: Arc::new(ControlPlane::builder(kv, pubsub).build()),
             config: Arc::new(Config {
                 providers: HashMap::from([(
                     "novita".to_string(),
@@ -2430,12 +2423,7 @@ mod tests {
     #[tokio::test]
     async fn advance_run_completes_transform_dag_and_maps_output() {
         let kv = Arc::new(MockKvStore::new());
-        let cp = ControlPlane {
-            kv: kv.clone(),
-            pubsub: Arc::new(RecordingPubSub::default()),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: crate::control::object_store::default_object_store(),
-        };
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(RecordingPubSub::default())).build();
         let workflow = workflow_fixture(
             "default",
             "copy",
@@ -2497,12 +2485,7 @@ mod tests {
     #[tokio::test]
     async fn tool_step_executes_knowledge_search_and_json_policy_failure_fails_run() {
         let kv = Arc::new(MockKvStore::new());
-        let cp = ControlPlane {
-            kv: kv.clone(),
-            pubsub: Arc::new(RecordingPubSub::default()),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: crate::control::object_store::default_object_store(),
-        };
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(RecordingPubSub::default())).build();
         let book = KvKnowledgeBook::new(kv.clone());
         book.write("default", "goals.md", "ship workflow support")
             .await
@@ -2683,12 +2666,7 @@ mod tests {
     #[tokio::test]
     async fn run_uses_spec_snapshot_even_if_workflow_is_modified() {
         let kv = Arc::new(MockKvStore::new());
-        let cp = ControlPlane {
-            kv: kv.clone(),
-            pubsub: Arc::new(RecordingPubSub::default()),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: crate::control::object_store::default_object_store(),
-        };
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(RecordingPubSub::default())).build();
         let mut workflow = workflow_fixture(
             "default",
             "snapshot",
@@ -2740,12 +2718,7 @@ mod tests {
     #[tokio::test]
     async fn concurrency_limit_blocks_additional_ready_agent_steps() {
         let kv = Arc::new(MockKvStore::new());
-        let cp = ControlPlane {
-            kv: kv.clone(),
-            pubsub: Arc::new(RecordingPubSub::default()),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: crate::control::object_store::default_object_store(),
-        };
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(RecordingPubSub::default())).build();
         for agent in ["a", "b"] {
             kv.set_msg(
                 &keys::agent("default", agent),
@@ -2823,12 +2796,9 @@ mod tests {
         let kv = Arc::new(MockKvStore::new());
         let pubsub = Arc::new(RecordingPubSub::default());
         let scheduler = Arc::new(RecordingScheduler::default());
-        let cp = ControlPlane {
-            kv: kv.clone(),
-            pubsub: pubsub.clone(),
-            scheduler: scheduler.clone(),
-            objects: crate::control::object_store::default_object_store(),
-        };
+        let cp = ControlPlane::builder(kv.clone(), pubsub.clone())
+            .scheduler(scheduler.clone())
+            .build();
         let workflow = workflow_fixture(
             "default",
             "timer",
@@ -2901,12 +2871,9 @@ mod tests {
     async fn failed_step_with_retry_schedules_durable_wakeup() {
         let kv = Arc::new(MockKvStore::new());
         let scheduler = Arc::new(RecordingScheduler::default());
-        let cp = ControlPlane {
-            kv: kv.clone(),
-            pubsub: Arc::new(RecordingPubSub::default()),
-            scheduler: scheduler.clone(),
-            objects: crate::control::object_store::default_object_store(),
-        };
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(RecordingPubSub::default()))
+            .scheduler(scheduler.clone())
+            .build();
         let workflow = workflow_fixture(
             "default",
             "retrying",

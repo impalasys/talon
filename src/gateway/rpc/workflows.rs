@@ -386,21 +386,6 @@ fn is_terminal_workflow_event(event_type: &str) -> bool {
     matches!(event_type, "run_completed" | "run_failed" | "run_cancelled")
 }
 
-trait GatewayControlPlaneExt {
-    fn control_plane(&self) -> crate::control::ControlPlane;
-}
-
-impl GatewayControlPlaneExt for crate::gateway::server::Gateway {
-    fn control_plane(&self) -> crate::control::ControlPlane {
-        crate::control::ControlPlane {
-            kv: self.kv.clone(),
-            pubsub: self.pubsub.clone(),
-            scheduler: self.scheduler.clone(),
-            objects: self.objects.clone(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

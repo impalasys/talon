@@ -648,15 +648,6 @@ mod tests {
         ))
     }
 
-    fn test_control_plane(kv: Arc<MockKvStore>, pubsub: Arc<RecordingPubSub>) -> ControlPlane {
-        ControlPlane {
-            kv,
-            pubsub,
-            scheduler: Arc::new(crate::control::scheduler::NoopSchedulerBackend),
-            objects: crate::control::object_store::default_object_store(),
-        }
-    }
-
     async fn add_namespace(cp: &ControlPlane, namespace: resources_proto::Namespace) {
         let name = namespace.name().to_string();
         let parent = namespace.parent().to_string();
@@ -912,7 +903,7 @@ mod tests {
         let pubsub = Arc::new(RecordingPubSub::default());
         let store = ResourceStore::new(kv.clone(), pubsub.clone());
         let controller = DeploymentController::new(store.clone());
-        let cp = test_control_plane(kv, pubsub);
+        let cp = ControlPlane::builder(kv, pubsub).build();
         add_namespace(&cp, labeled_target_namespace("prod")).await;
 
         let deployment = deployment_with_templates(&["coding-agent", "legacy-agent"]);
@@ -979,7 +970,7 @@ mod tests {
         let pubsub = Arc::new(RecordingPubSub::default());
         let store = ResourceStore::new(kv.clone(), pubsub.clone());
         let controller = DeploymentController::new(store.clone());
-        let cp = test_control_plane(kv, pubsub);
+        let cp = ControlPlane::builder(kv, pubsub).build();
         add_namespace(&cp, labeled_target_namespace("prod")).await;
 
         let deployment = deployment_with_templates(&["coding-agent"]);
