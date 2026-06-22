@@ -5,15 +5,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "build:cloudflare": "node scripts/build-cloudflare.mjs",
+    "dev": "pnpm --filter @impalasys/talon-client build && next dev",
+    "build": "pnpm --filter @impalasys/talon-client build && next build",
+    "build:cloudflare": "pnpm --filter @impalasys/talon-client build && node scripts/build-cloudflare.mjs",
     "deploy:cloudflare": "pnpm build:cloudflare && wrangler pages deploy out --project-name talon-sightline",
     "start": "next start",
     "lint": "next lint",
     "test": "pnpm test:unit",
-    "test:unit": "jest --coverage",
-    "test:e2e": "playwright test"
+    "test:unit": "pnpm --filter @impalasys/talon-client build && jest --coverage",
+    "test:e2e": "pnpm --filter @impalasys/talon-client build && playwright test"
   },
   "keywords": [],
   "author": "",
@@ -21,10 +21,9 @@
   "packageManager": "pnpm@10.17.1",
   "dependencies": {
     "@impalasys/talon-chat": "workspace:*",
+    "@impalasys/talon-client": "workspace:0.1.17",
     "@ai-sdk/openai": "3.0.51",
     "@ai-sdk/react": "1.2.12",
-    "@connectrpc/connect": "^2.1.1",
-    "@connectrpc/connect-web": "^2.1.1",
     "@tailgrids/icons": "^2.0.0",
     "@tailwindcss/postcss": "^4.1.13",
     "ai": "^5.0.52",

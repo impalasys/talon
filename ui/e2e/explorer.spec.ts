@@ -1,20 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { createClient } from "@connectrpc/connect";
-import { createGrpcWebTransport } from "@connectrpc/connect-web";
-import { NamespaceService } from "../proto/proto/talon/v1/namespaces_pb";
-import { ResourceService } from "../proto/proto/talon/v1/resources_pb";
-import { SessionService } from "../proto/proto/talon/v1/sessions_pb";
+import { createTalonClient } from "@impalasys/talon-client";
 
 test.describe('Explorer navigation', () => {
   test('deep session URL auto-expands namespace path and agent', async ({ page }) => {
     const API_PORT = process.env.API_PORT || '50051';
     const gatewayUrl = `http://127.0.0.1:${API_PORT}`;
-    const transport = createGrpcWebTransport({ baseUrl: gatewayUrl });
-    const client = {
-      namespaces: createClient(NamespaceService, transport),
-      resources: createClient(ResourceService, transport),
-      sessions: createClient(SessionService, transport),
-    };
+    const client = createTalonClient(gatewayUrl);
 
     await expect(async () => {
       await client.namespaces.create({ name: 'conic:wks:13', recursive: true });

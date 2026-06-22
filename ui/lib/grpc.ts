@@ -1,29 +1,19 @@
-import { createClient, type Interceptor } from "@connectrpc/connect";
-import { createGrpcWebTransport } from "@connectrpc/connect-web";
-import { AuthService } from "../proto/proto/talon/v1/auth_pb";
-import { ChannelService } from "../proto/proto/talon/v1/channels_pb";
-import { KnowledgeService } from "../proto/proto/talon/v1/knowledge_pb";
-import { NamespaceService } from "../proto/proto/talon/v1/namespaces_pb";
-import { ResourceService } from "../proto/proto/talon/v1/resources_pb";
-import { SessionService } from "../proto/proto/talon/v1/sessions_pb";
-import { WorkflowService } from "../proto/proto/talon/v1/workflows_pb";
+import {
+  buildAuthorizationHeader,
+  createTalonClient,
+  type Interceptor,
+  type TalonClient,
+} from "@impalasys/talon-client";
 
 export function normalizeGatewayUrl(url: string) {
   return url.trim().replace(/\/+$/, "");
 }
 
-function hasAuthorizationScheme(value: string) {
-  return /^(Basic|Bearer)\s+/i.test(value);
-}
-
 export function buildGatewayHeaders(authToken?: string | null) {
-  if (!authToken) return undefined;
-  const normalizedToken = authToken.trim();
-  if (!normalizedToken) return undefined;
+  const authorization = buildAuthorizationHeader(authToken);
+  if (!authorization) return undefined;
   return {
-    Authorization: hasAuthorizationScheme(normalizedToken)
-      ? normalizedToken
-      : `Bearer ${normalizedToken}`,
+    Authorization: authorization,
   };
 }
 
@@ -44,23 +34,10 @@ const authInterceptor: Interceptor = (next) => async (req) => {
   return await next(req);
 };
 
-const createTransport = (url: string) => createGrpcWebTransport({
+const createClientset = (url: string): TalonClient => createTalonClient({
   baseUrl: normalizeGatewayUrl(url),
-  interceptors: [authInterceptor]
+  interceptors: [authInterceptor],
 });
-
-const createClientset = (url: string) => {
-  const transport = createTransport(url);
-  return {
-    namespaces: createClient(NamespaceService, transport),
-    resources: createClient(ResourceService, transport),
-    sessions: createClient(SessionService, transport),
-    channels: createClient(ChannelService, transport),
-    workflows: createClient(WorkflowService, transport),
-    knowledge: createClient(KnowledgeService, transport),
-    auth: createClient(AuthService, transport),
-  };
-};
 
 let currentClient = createClientset(process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:50051");
 

@@ -3,39 +3,73 @@ import {
   type Transport,
 } from "@connectrpc/connect";
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
+import * as config from "./gen/proto/config_pb.js";
+import * as data from "./gen/proto/data/data_pb.js";
+import * as events from "./gen/proto/events_pb.js";
+import * as agents from "./gen/proto/resources/agents_pb.js";
+import * as channels from "./gen/proto/resources/channels_pb.js";
+import * as common from "./gen/proto/resources/common_pb.js";
+import * as deployments from "./gen/proto/resources/deployments_pb.js";
+import * as knowledge from "./gen/proto/resources/knowledge_pb.js";
+import * as mcp from "./gen/proto/resources/mcp_pb.js";
+import * as namespaces from "./gen/proto/resources/namespaces_pb.js";
+import * as resources from "./gen/proto/resources/resource_pb.js";
+import * as sandboxes from "./gen/proto/resources/sandboxes_pb.js";
+import * as schedules from "./gen/proto/resources/schedules_pb.js";
+import * as sessions from "./gen/proto/resources/sessions_pb.js";
+import * as usage from "./gen/proto/resources/usage_pb.js";
+import * as workers from "./gen/proto/resources/workers_pb.js";
+import * as workflows from "./gen/proto/resources/workflows_pb.js";
+import * as v1Auth from "./gen/proto/talon/v1/auth_pb.js";
+import * as v1AuthConnect from "./gen/proto/talon/v1/auth_connect.js";
+import * as v1Channels from "./gen/proto/talon/v1/channels_pb.js";
+import * as v1ChannelsConnect from "./gen/proto/talon/v1/channels_connect.js";
+import * as v1Knowledge from "./gen/proto/talon/v1/knowledge_pb.js";
+import * as v1KnowledgeConnect from "./gen/proto/talon/v1/knowledge_connect.js";
+import * as v1Namespaces from "./gen/proto/talon/v1/namespaces_pb.js";
+import * as v1NamespacesConnect from "./gen/proto/talon/v1/namespaces_connect.js";
+import * as v1Resources from "./gen/proto/talon/v1/resources_pb.js";
+import * as v1ResourcesConnect from "./gen/proto/talon/v1/resources_connect.js";
+import * as v1Sessions from "./gen/proto/talon/v1/sessions_pb.js";
+import * as v1SessionsConnect from "./gen/proto/talon/v1/sessions_connect.js";
+import * as v1Workflows from "./gen/proto/talon/v1/workflows_pb.js";
+import * as v1WorkflowsConnect from "./gen/proto/talon/v1/workflows_connect.js";
 import { createTalonClientset, type TalonClient } from "./clientset.js";
 
-export * as config from "./gen/proto/config_pb.js";
-export * as data from "./gen/proto/data/data_pb.js";
-export * as events from "./gen/proto/events_pb.js";
-export * as agents from "./gen/proto/resources/agents_pb.js";
-export * as channels from "./gen/proto/resources/channels_pb.js";
-export * as common from "./gen/proto/resources/common_pb.js";
-export * as deployments from "./gen/proto/resources/deployments_pb.js";
-export * as knowledge from "./gen/proto/resources/knowledge_pb.js";
-export * as mcp from "./gen/proto/resources/mcp_pb.js";
-export * as namespaces from "./gen/proto/resources/namespaces_pb.js";
-export * as resources from "./gen/proto/resources/resource_pb.js";
-export * as sandboxes from "./gen/proto/resources/sandboxes_pb.js";
-export * as schedules from "./gen/proto/resources/schedules_pb.js";
-export * as sessions from "./gen/proto/resources/sessions_pb.js";
-export * as usage from "./gen/proto/resources/usage_pb.js";
-export * as workers from "./gen/proto/resources/workers_pb.js";
-export * as workflows from "./gen/proto/resources/workflows_pb.js";
-export * as v1Auth from "./gen/proto/talon/v1/auth_pb.js";
-export * as v1AuthConnect from "./gen/proto/talon/v1/auth_connect.js";
-export * as v1Channels from "./gen/proto/talon/v1/channels_pb.js";
-export * as v1ChannelsConnect from "./gen/proto/talon/v1/channels_connect.js";
-export * as v1Knowledge from "./gen/proto/talon/v1/knowledge_pb.js";
-export * as v1KnowledgeConnect from "./gen/proto/talon/v1/knowledge_connect.js";
-export * as v1Namespaces from "./gen/proto/talon/v1/namespaces_pb.js";
-export * as v1NamespacesConnect from "./gen/proto/talon/v1/namespaces_connect.js";
-export * as v1Resources from "./gen/proto/talon/v1/resources_pb.js";
-export * as v1ResourcesConnect from "./gen/proto/talon/v1/resources_connect.js";
-export * as v1Sessions from "./gen/proto/talon/v1/sessions_pb.js";
-export * as v1SessionsConnect from "./gen/proto/talon/v1/sessions_connect.js";
-export * as v1Workflows from "./gen/proto/talon/v1/workflows_pb.js";
-export * as v1WorkflowsConnect from "./gen/proto/talon/v1/workflows_connect.js";
+export {
+  config,
+  data,
+  events,
+  agents,
+  channels,
+  common,
+  deployments,
+  knowledge,
+  mcp,
+  namespaces,
+  resources,
+  sandboxes,
+  schedules,
+  sessions,
+  usage,
+  workers,
+  workflows,
+  v1Auth,
+  v1AuthConnect,
+  v1Channels,
+  v1ChannelsConnect,
+  v1Knowledge,
+  v1KnowledgeConnect,
+  v1Namespaces,
+  v1NamespacesConnect,
+  v1Resources,
+  v1ResourcesConnect,
+  v1Sessions,
+  v1SessionsConnect,
+  v1Workflows,
+  v1WorkflowsConnect,
+};
+export type { Interceptor, Transport } from "@connectrpc/connect";
 export type { TalonClient } from "./clientset.js";
 
 export type TalonClientOptions = {

@@ -12,6 +12,8 @@ COPY pnpm-workspace.yaml /repo/pnpm-workspace.yaml
 COPY pnpm-lock.yaml /repo/pnpm-lock.yaml
 COPY ui/package.json ./
 COPY packages/talon-chat/package.json /repo/packages/talon-chat/package.json
+COPY sdk/js/tsconfig.base.json /repo/sdk/js/tsconfig.base.json
+COPY sdk/js/talon-client/package.json /repo/sdk/js/talon-client/package.json
 RUN --mount=type=cache,target=/pnpm/store \
     pnpm install --frozen-lockfile --config.node-linker=hoisted
 
@@ -28,6 +30,8 @@ COPY ui/utils ./utils
 COPY packages/talon-chat/src /repo/packages/talon-chat/src
 COPY packages/talon-chat/README.md /repo/packages/talon-chat/README.md
 COPY packages/talon-chat/tsup.config.ts /repo/packages/talon-chat/tsup.config.ts
+COPY sdk/js/talon-client/src /repo/sdk/js/talon-client/src
+COPY sdk/js/talon-client/tsconfig.json /repo/sdk/js/talon-client/tsconfig.json
 COPY ui/global.d.ts ./global.d.ts
 COPY ui/next-env.d.ts ./next-env.d.ts
 COPY ui/next.config.mjs ./next.config.mjs

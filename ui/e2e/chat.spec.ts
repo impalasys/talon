@@ -2,11 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { createClient } from "@connectrpc/connect";
-import { createGrpcWebTransport } from "@connectrpc/connect-web";
-import { NamespaceService } from "../proto/proto/talon/v1/namespaces_pb";
-import { ResourceService } from "../proto/proto/talon/v1/resources_pb";
-import { SessionService } from "../proto/proto/talon/v1/sessions_pb";
+import { createTalonClient } from "@impalasys/talon-client";
 
 async function createTestSession() {
   const API_PORT = process.env.API_PORT || '50051';
@@ -15,12 +11,7 @@ async function createTestSession() {
   const testNs = `e2e-ns-${runId}`;
   const testAgent = `e2e-agent-${runId}`;
 
-  const transport = createGrpcWebTransport({ baseUrl: gatewayUrl });
-  const client = {
-    namespaces: createClient(NamespaceService, transport),
-    resources: createClient(ResourceService, transport),
-    sessions: createClient(SessionService, transport),
-  };
+  const client = createTalonClient(gatewayUrl);
 
   await expect(async () => {
     await client.namespaces.create({ name: testNs, recursive: true });
