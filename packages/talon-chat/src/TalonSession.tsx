@@ -26,23 +26,20 @@ import { streamSessionPartEvents, type StreamEventItem } from "./lib/uiStream";
 
 const useSafeLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-export type SessionServiceClientLike = Pick<
-  {
-    create(request: { ns: string; agent: string; labels?: Record<string, string> }): Promise<{ sessionId: string }>;
-    clear(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
-    listMessages(request: {
-      ns: string;
-      agent: string;
-      sessionId: string;
-      pageSize: number;
-      beforeMessageId?: string;
-    }): Promise<any>;
-    submitTurn(request: any, options?: { signal?: AbortSignal }): AsyncIterable<any>;
-    streamParts(request: { ns: string; agent: string; sessionId: string }, options?: { signal?: AbortSignal }): AsyncIterable<any>;
-    stopGeneration(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
-  },
-  "create" | "clear" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
->;
+export type SessionServiceClientLike = {
+  create(request: { ns: string; agent: string; labels?: Record<string, string> }): Promise<{ sessionId: string }>;
+  clear(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
+  listMessages(request: {
+    ns: string;
+    agent: string;
+    sessionId: string;
+    pageSize: number;
+    beforeMessageId?: string;
+  }): Promise<any>;
+  submitTurn(request: any, options?: { signal?: AbortSignal }): AsyncIterable<any>;
+  streamParts(request: { ns: string; agent: string; sessionId: string }, options?: { signal?: AbortSignal }): AsyncIterable<any>;
+  stopGeneration(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
+};
 
 export type GatewayClientLike = {
   sessions: SessionServiceClientLike;
@@ -1109,11 +1106,10 @@ export function TalonSession({
     if (session) {
       try {
         const sessions = gatewayClient?.sessions;
-        if (sessions?.clear) {
-          await sessions.clear(session);
-        } else {
+        if (!sessions?.clear) {
           throw new Error("TalonSession requires a Talon clientset with sessions.clear().");
         }
+        await sessions.clear(session);
       } catch (err) {
         setError(err instanceof Error ? err : new Error(String(err)));
       }

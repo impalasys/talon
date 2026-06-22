@@ -55,27 +55,24 @@ export type TalonChannelCommandTarget = {
 export type TalonChannelCommand = TalonChatCommand<TalonChannelCommandTarget, ChannelMessage>;
 
 export type ChannelGatewayClientLike = {
-  channels: Pick<
-    {
-      listMessages(request: {
-        ns: string;
-        channel: string;
-        limit?: number;
-        pageSize?: number;
-        beforeMessageId?: string;
-      }): Promise<any>;
-      postMessage(request: {
-        ns: string;
-        channel: string;
-        authorKind: string;
-        author: string;
-        content: string;
-        subscriptionNames?: string[];
-        labels?: Record<string, string>;
-      }): Promise<any>;
-    },
-    "listMessages" | "postMessage"
-  >;
+  channels: {
+    listMessages(request: {
+      ns: string;
+      channel: string;
+      limit?: number;
+      pageSize?: number;
+      beforeMessageId?: string;
+    }): Promise<any>;
+    postMessage(request: {
+      ns: string;
+      channel: string;
+      authorKind: string;
+      author: string;
+      content: string;
+      subscriptionNames?: string[];
+      labels?: Record<string, string>;
+    }): Promise<any>;
+  };
 };
 
 export type TalonChannelProps = {

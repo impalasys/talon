@@ -281,9 +281,10 @@ def generate_python_init() -> None:
 
 def parse_python_export_names(path: Path) -> list[str]:
     source = strip_proto_comments(path.read_text(encoding="utf-8"))
+    brace_source = strip_proto_string_literals(source)
     names: list[str] = []
     for match in re.finditer(r"^\s*(message|enum)\s+(\w+)\s*(?:\{|$)", source, re.MULTILINE):
-        if proto_brace_depth(source, match.start()) != 0:
+        if proto_brace_depth(brace_source, match.start()) != 0:
             continue
         names.append(match.group(2))
         if match.group(1) == "enum":
@@ -304,6 +305,28 @@ def proto_brace_depth(source: str, end: int) -> int:
 def strip_proto_comments(source: str) -> str:
     source = re.sub(r"/\*.*?\*/", "", source, flags=re.DOTALL)
     return re.sub(r"//.*", "", source)
+
+
+def strip_proto_string_literals(source: str) -> str:
+    result: list[str] = []
+    quote: str | None = None
+    escaped = False
+    for char in source:
+        if quote:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = None
+            result.append("\n" if char == "\n" else " ")
+            continue
+        if char in {'"', "'"}:
+            quote = char
+            result.append(" ")
+        else:
+            result.append(char)
+    return "".join(result)
 
 
 def parse_enum_values(source: str, start: int) -> list[str]:
