@@ -1,43 +1,38 @@
 import pytest
 import time
-import sys
-import os
 import grpc
 import json
 import httpx
 
-# Important: Add generated protos to path so "proto.xxx" resolves locally and not to proto_plus
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
-
 import conftest
 import mock_llm
-from proto.talon.v1.knowledge_pb2 import GetKnowledgeRequest, SearchKnowledgeRequest
-from proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest
-from proto.talon.v1.resources_pb2 import (
+from talon_client.proto.talon.v1.knowledge_pb2 import GetKnowledgeRequest, SearchKnowledgeRequest
+from talon_client.proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest
+from talon_client.proto.talon.v1.resources_pb2 import (
     CreateResourceRequest,
     DeleteResourceRequest,
     GetResourceRequest,
     ListResourcesRequest,
 )
-from proto.talon.v1.sessions_pb2 import (
+from talon_client.proto.talon.v1.sessions_pb2 import (
     CreateSessionRequest,
     GetSessionRequest,
     SendMessageRequest,
     StreamSessionPartsRequest,
 )
-from proto.talon.v1.workflows_pb2 import (
+from talon_client.proto.talon.v1.workflows_pb2 import (
     CreateWorkflowRunRequest,
     GetWorkflowRunRequest,
     ListWorkflowRunsRequest,
     StreamWorkflowEventsRequest,
 )
-from talon_v1_test_client import TalonV1TestClient
-from proto.resources.agents_pb2 import AgentSpec, Model
-from proto.resources.common_pb2 import ResourceMeta
-from proto.resources.knowledge_pb2 import KnowledgeSpec
-from proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
-from proto.resources.schedules_pb2 import ScheduleSpec, ScheduleTarget
-from proto.resources.workflows_pb2 import WorkflowSpec, WorkflowStep
+from talon_client import TalonClient
+from talon_client.proto.resources.agents_pb2 import AgentSpec, Model
+from talon_client.proto.resources.common_pb2 import ResourceMeta
+from talon_client.proto.resources.knowledge_pb2 import KnowledgeSpec
+from talon_client.proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
+from talon_client.proto.resources.schedules_pb2 import ScheduleSpec, ScheduleTarget
+from talon_client.proto.resources.workflows_pb2 import WorkflowSpec, WorkflowStep
 import threading
 import uuid
 
@@ -49,7 +44,7 @@ def message_text(message):
     return "".join(part.content for part in message.parts if part.part_type == PART_TYPE_TEXT)
 
 def create_resource(stub, ns, kind, name, spec):
-    return stub.CreateResource(CreateResourceRequest(
+    return stub.resources.Create(CreateResourceRequest(
         ns=ns,
         manifest=ResourceManifest(
             api_version="talon.impalasys.com/v1",
@@ -73,11 +68,11 @@ def anyio_backend():
     return "asyncio"
 
 def test_single_turn_chat(gateway_channel, mock_llm_server):
-    stub = TalonV1TestClient(gateway_channel)
+    stub = TalonClient(gateway_channel)
     
     # 0. Create Namespace
     try:
-        stub.CreateNamespace(CreateNamespaceRequest(
+        stub.namespaces.Create(CreateNamespaceRequest(
             name="talon-test",
             recursive=True
         ))
@@ -107,7 +102,7 @@ def test_single_turn_chat(gateway_channel, mock_llm_server):
     assert agent.metadata.name == "test-llm-agent"
     
     # 2. Create Session
-    session = stub.CreateSession(CreateSessionRequest(
+    session = stub.sessions.Create(CreateSessionRequest(
         agent="test-llm-agent",
         ns="talon-test"
     ))
@@ -117,7 +112,7 @@ def test_single_turn_chat(gateway_channel, mock_llm_server):
     # Wait for agent creation event to propagate? No, should be instant enough.
     
     # 3. Send Message
-    stub.SendMessage(SendMessageRequest(
+    stub.sessions.SendMessage(SendMessageRequest(
         agent="test-llm-agent",
         session_id=session_id,
         ns="talon-test",
@@ -134,7 +129,7 @@ def test_single_turn_chat(gateway_channel, mock_llm_server):
     print(f"\nPolling for message results in session {session_id}...")
     for i in range(max_retries):
         time.sleep(delay)
-        res = stub.GetSession(GetSessionRequest(
+        res = stub.sessions.Get(GetSessionRequest(
             agent="test-llm-agent",
             session_id=session_id,
             ns="talon-test"
@@ -158,10 +153,10 @@ def test_single_turn_chat(gateway_channel, mock_llm_server):
     assert "12" in message_text(agent_message)
 
 def test_streaming_chat(gateway_channel, mock_llm_server):
-    stub = TalonV1TestClient(gateway_channel)
+    stub = TalonClient(gateway_channel)
     
     try:
-        stub.CreateNamespace(CreateNamespaceRequest(name="talon-stream-test", recursive=True))
+        stub.namespaces.Create(CreateNamespaceRequest(name="talon-stream-test", recursive=True))
     except grpc.RpcError as e:
         if e.code() != grpc.StatusCode.ALREADY_EXISTS:
             raise
@@ -180,7 +175,7 @@ def test_streaming_chat(gateway_channel, mock_llm_server):
     
     create_agent_resource(stub, "talon-stream-test", "stream-agent", agent_spec)
     
-    session = stub.CreateSession(CreateSessionRequest(
+    session = stub.sessions.Create(CreateSessionRequest(
         agent="stream-agent",
         ns="talon-stream-test"
     ))
@@ -189,7 +184,7 @@ def test_streaming_chat(gateway_channel, mock_llm_server):
     def send_msg():
         # Delay to ensure the subscriber is fully connected to the emulator
         time.sleep(2.0)
-        stub.SendMessage(SendMessageRequest(
+        stub.sessions.SendMessage(SendMessageRequest(
             agent="stream-agent",
             session_id=session_id,
             ns="talon-stream-test",
@@ -211,7 +206,7 @@ def test_streaming_chat(gateway_channel, mock_llm_server):
         saw_reasoning = False
         saw_token = False
         saw_usage = False
-        for idx, event in enumerate(stub.StreamSessionParts(stream_req)):
+        for idx, event in enumerate(stub.sessions.StreamParts(stream_req)):
             events.append(event)
             if event.part.part_type == PART_TYPE_REASONING:
                 saw_reasoning = True
@@ -242,12 +237,12 @@ def test_streaming_chat(gateway_channel, mock_llm_server):
     assert usage_payload["reasoning_tokens"] == 6
 
 def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
-    stub = TalonV1TestClient(gateway_channel)
+    stub = TalonClient(gateway_channel)
     run_id = uuid.uuid4().hex[:8]
     namespace = f"talon-knowledge-{run_id}"
     agent_name = f"knowledge-agent-{run_id}"
 
-    stub.CreateNamespace(CreateNamespaceRequest(name=namespace, recursive=True))
+    stub.namespaces.Create(CreateNamespaceRequest(name=namespace, recursive=True))
 
     agent_spec = AgentSpec(
         model_policy={
@@ -276,7 +271,7 @@ def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
     )
     assert created.metadata.name == "guide"
 
-    fetched = stub.GetResource(GetResourceRequest(
+    fetched = stub.resources.Get(GetResourceRequest(
         ns=namespace,
         kind="Knowledge",
         name="guide",
@@ -284,11 +279,11 @@ def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
     assert fetched.resource.spec.knowledge.path == "guide.md"
     assert "runtime facts" in fetched.resource.spec.knowledge.content
 
-    listed = stub.ListResources(ListResourcesRequest(ns=namespace, kind="Knowledge"))
+    listed = stub.resources.List(ListResourcesRequest(ns=namespace, kind="Knowledge"))
     assert len(listed.resources) == 1
     assert listed.resources[0].metadata.name == "guide"
 
-    modules = stub.GetKnowledge(GetKnowledgeRequest(
+    modules = stub.knowledge.Get(GetKnowledgeRequest(
         ns=namespace,
         agent=agent_name,
         path="guide.md",
@@ -297,7 +292,7 @@ def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
     assert modules.modules[0].path == "guide.md"
     assert "guide documents" in modules.modules[0].content
 
-    search = stub.SearchKnowledge(SearchKnowledgeRequest(
+    search = stub.knowledge.Search(SearchKnowledgeRequest(
         ns=namespace,
         agent=agent_name,
         query="runtime facts",
@@ -305,7 +300,7 @@ def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
     assert len(search.results) >= 1
     assert search.results[0].path == "guide.md"
 
-    deleted = stub.DeleteResource(DeleteResourceRequest(
+    deleted = stub.resources.Delete(DeleteResourceRequest(
         ns=namespace,
         kind="Knowledge",
         name="guide",
@@ -313,13 +308,13 @@ def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
     assert deleted.success is True
 
 def test_schedule_crud_round_trip(gateway_channel, mock_llm_server):
-    stub = TalonV1TestClient(gateway_channel)
+    stub = TalonClient(gateway_channel)
     run_id = uuid.uuid4().hex[:8]
     namespace = f"talon-schedule-{run_id}"
     agent_name = f"schedule-agent-{run_id}"
     schedule_name = f"schedule-{run_id}"
 
-    stub.CreateNamespace(CreateNamespaceRequest(name=namespace, recursive=True))
+    stub.namespaces.Create(CreateNamespaceRequest(name=namespace, recursive=True))
 
     agent_spec = AgentSpec(
         model_policy={
@@ -354,24 +349,24 @@ def test_schedule_crud_round_trip(gateway_channel, mock_llm_server):
     assert created.metadata.namespace == namespace
     assert created.status.schedule.backend_armed is False
 
-    fetched = stub.GetResource(GetResourceRequest(ns=namespace, kind="Schedule", name=schedule_name))
+    fetched = stub.resources.Get(GetResourceRequest(ns=namespace, kind="Schedule", name=schedule_name))
     assert fetched.resource.metadata.name == schedule_name
     assert fetched.resource.spec.schedule.target.agent == agent_name
 
-    listed = stub.ListResources(ListResourcesRequest(ns=namespace, kind="Schedule"))
+    listed = stub.resources.List(ListResourcesRequest(ns=namespace, kind="Schedule"))
     assert len(listed.resources) == 1
     assert listed.resources[0].metadata.name == schedule_name
 
-    deleted = stub.DeleteResource(DeleteResourceRequest(ns=namespace, kind="Schedule", name=schedule_name))
+    deleted = stub.resources.Delete(DeleteResourceRequest(ns=namespace, kind="Schedule", name=schedule_name))
     assert deleted.success is True
 
 def test_workflow_transform_run_completes_through_worker(gateway_channel, mock_llm_server):
-    stub = TalonV1TestClient(gateway_channel)
+    stub = TalonClient(gateway_channel)
     run_id = uuid.uuid4().hex[:8]
     namespace = f"talon-workflow-{run_id}"
     workflow_name = f"workflow-{run_id}"
 
-    stub.CreateNamespace(CreateNamespaceRequest(name=namespace, recursive=True))
+    stub.namespaces.Create(CreateNamespaceRequest(name=namespace, recursive=True))
 
     created = create_resource(
         stub,
@@ -413,7 +408,7 @@ def test_workflow_transform_run_completes_through_worker(gateway_channel, mock_l
     )
     assert created.metadata.name == workflow_name
 
-    run = stub.CreateWorkflowRun(CreateWorkflowRunRequest(
+    run = stub.workflows.CreateRun(CreateWorkflowRunRequest(
         ns=namespace,
         workflow=workflow_name,
         input_json=json.dumps({"account": "acme"}),
@@ -425,7 +420,7 @@ def test_workflow_transform_run_completes_through_worker(gateway_channel, mock_l
     completed = None
     for _ in range(30):
         time.sleep(1)
-        response = stub.GetWorkflowRun(GetWorkflowRunRequest(
+        response = stub.workflows.GetRun(GetWorkflowRunRequest(
             ns=namespace,
             workflow=workflow_name,
             run_id=run.id,
@@ -444,7 +439,7 @@ def test_workflow_transform_run_completes_through_worker(gateway_channel, mock_l
     assert completed.steps[0].step_id == "summarize"
     assert completed.steps[0].status == "COMPLETED"
 
-    listed = stub.ListWorkflowRuns(ListWorkflowRunsRequest(
+    listed = stub.workflows.ListRuns(ListWorkflowRunsRequest(
         ns=namespace,
         workflow=workflow_name,
         page_size=10,
@@ -452,7 +447,7 @@ def test_workflow_transform_run_completes_through_worker(gateway_channel, mock_l
     assert [item.id for item in listed.runs] == [run.id]
     assert listed.has_more is False
 
-    events = list(stub.StreamWorkflowEvents(StreamWorkflowEventsRequest(
+    events = list(stub.workflows.StreamEvents(StreamWorkflowEventsRequest(
         ns=namespace,
         workflow=workflow_name,
         run_id=run.id,

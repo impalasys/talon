@@ -6,7 +6,6 @@ import shutil
 import socket
 import sqlite3
 import subprocess
-import sys
 import threading
 import time
 import tempfile
@@ -18,36 +17,34 @@ import grpc
 import pytest
 import requests
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
-
-from proto.data.data_pb2 import SessionMessage
-from proto.data.session_submission_pb2 import (
+from talon_client.proto.data.data_pb2 import SessionMessage
+from talon_client.proto.data.session_submission_pb2 import (
     SESSION_SUBMISSION_STATUS_CLAIMED,
     SESSION_SUBMISSION_STATUS_COMMITTED,
     SessionSubmission,
 )
-from proto.data.session_journal_entry_pb2 import (
+from talon_client.proto.data.session_journal_entry_pb2 import (
     SESSION_EXECUTION_PHASE_COMMITTED,
     SESSION_EXECUTION_PHASE_LLM_RESPONSE,
     SESSION_EXECUTION_PHASE_TOOL_RESULT,
     SessionJournalEntry,
 )
-from proto.events_pb2 import (
+from talon_client.proto.events_pb2 import (
     SessionMessagePartEvent,
 )
-from proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest
-from proto.talon.v1.resources_pb2 import CreateResourceRequest
-from proto.talon.v1.sessions_pb2 import (
+from talon_client.proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest
+from talon_client.proto.talon.v1.resources_pb2 import CreateResourceRequest
+from talon_client.proto.talon.v1.sessions_pb2 import (
     CreateSessionRequest,
     GetSessionRequest,
     SendMessageRequest,
     StreamSessionPartsRequest,
 )
-from talon_v1_test_client import TalonV1TestClient
-from proto.resources.agents_pb2 import AgentSpec, Model
-from proto.resources.common_pb2 import CommonResourceStatus, ResourceMeta
-from proto.resources.mcp_pb2 import McpServer, McpServerSpec
-from proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
+from talon_client import TalonClient
+from talon_client.proto.resources.agents_pb2 import AgentSpec, Model
+from talon_client.proto.resources.common_pb2 import CommonResourceStatus, ResourceMeta
+from talon_client.proto.resources.mcp_pb2 import McpServer, McpServerSpec
+from talon_client.proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
 
 import conftest
 
@@ -400,14 +397,14 @@ class SessionStreamBuffer:
 
     def _run(self) -> None:
         assert self._channel is not None
-        stub = TalonV1TestClient(self._channel)
+        stub = TalonClient(self._channel)
         request = StreamSessionPartsRequest(
             session_id=self.session_id,
             agent=self.agent,
             ns=self.namespace,
         )
         try:
-            stream = stub.StreamSessionParts(request, timeout=120)
+            stream = stub.sessions.StreamParts(request, timeout=120)
             stream.initial_metadata()
             self._ready.set()
             for event in stream:
@@ -473,14 +470,14 @@ def wait_for_mock_mcp_tool_blocked(
 
 
 def create_agent(
-    stub: TalonV1TestClient,
+    stub: TalonClient,
     namespace: str,
     agent: str,
     *,
     mcp_server_refs: list[str] | None = None,
 ) -> None:
-    stub.CreateNamespace(CreateNamespaceRequest(name=namespace, recursive=True))
-    stub.CreateResource(
+    stub.namespaces.Create(CreateNamespaceRequest(name=namespace, recursive=True))
+    stub.resources.Create(
         CreateResourceRequest(
             ns=namespace,
             manifest=ResourceManifest(
@@ -681,7 +678,7 @@ class SessionSnooper:
         self,
         *,
         stack: DurableSessionStack,
-        stub: TalonV1TestClient,
+        stub: TalonClient,
         namespace: str,
         agent: str,
         session_id: str,
@@ -757,7 +754,7 @@ class SessionSnooper:
     def wait_for_completed_session(self, label: str) -> Any:
         def completed_session() -> Any | None:
             try:
-                session = self.stub.GetSession(
+                session = self.stub.sessions.Get(
                     GetSessionRequest(
                         agent=self.agent, session_id=self.session_id, ns=self.namespace
                     )
@@ -842,11 +839,11 @@ def test_provider_started_worker_kill_restart_redelivery_is_non_polluting(
     mock_llm_server: Any,
 ) -> None:
     infra: DurableSessionStack = talon_infrastructure_sqlite
-    stub = TalonV1TestClient(gateway_channel_sqlite)
+    stub = TalonClient(gateway_channel_sqlite)
     namespace = f"durable-stress-{uuid.uuid4().hex[:8]}"
     agent = "stress-agent"
     create_agent(stub, namespace, agent)
-    session_id = stub.CreateSession(CreateSessionRequest(agent=agent, ns=namespace)).session_id
+    session_id = stub.sessions.Create(CreateSessionRequest(agent=agent, ns=namespace)).session_id
     snooper = SessionSnooper(
         stack=infra, stub=stub, namespace=namespace, agent=agent, session_id=session_id
     )
@@ -855,7 +852,7 @@ def test_provider_started_worker_kill_restart_redelivery_is_non_polluting(
     mock_control("POST", "/__control/block_stream_after_chunks", {"chunks": 15})
 
     long_message = " ".join(f"token{i}" for i in range(40))
-    stub.SendMessage(
+    stub.sessions.SendMessage(
         SendMessageRequest(
             agent=agent,
             session_id=session_id,
@@ -942,12 +939,12 @@ def test_tool_call_recorded_worker_kill_restart_recovers_from_journal(
     mock_llm_server: Any,
 ) -> None:
     infra: DurableSessionStack = talon_infrastructure_sqlite
-    stub = TalonV1TestClient(gateway_channel_sqlite)
+    stub = TalonClient(gateway_channel_sqlite)
     namespace = f"durable-tool-recovery-{uuid.uuid4().hex[:8]}"
     agent = "stress-agent"
     infra.kv.seed_blocking_mcp_server()
     create_agent(stub, namespace, agent, mcp_server_refs=[BLOCKING_MCP_SERVER])
-    session_id = stub.CreateSession(CreateSessionRequest(agent=agent, ns=namespace)).session_id
+    session_id = stub.sessions.Create(CreateSessionRequest(agent=agent, ns=namespace)).session_id
     snooper = SessionSnooper(
         stack=infra, stub=stub, namespace=namespace, agent=agent, session_id=session_id
     )
@@ -956,7 +953,7 @@ def test_tool_call_recorded_worker_kill_restart_recovers_from_journal(
     mock_control("POST", "/__control/block_mcp_tool")
 
     message = "Please run a blocking lookup docs.example.com and summarize what you found."
-    stub.SendMessage(
+    stub.sessions.SendMessage(
         SendMessageRequest(
             agent=agent,
             session_id=session_id,
@@ -1053,12 +1050,12 @@ def test_tool_result_recorded_worker_kill_restart_does_not_duplicate_message_par
     mock_llm_server: Any,
 ) -> None:
     infra: DurableSessionStack = talon_infrastructure_sqlite
-    stub = TalonV1TestClient(gateway_channel_sqlite)
+    stub = TalonClient(gateway_channel_sqlite)
     namespace = f"durable-tool-result-recovery-{uuid.uuid4().hex[:8]}"
     agent = "stress-agent"
     infra.kv.seed_blocking_mcp_server()
     create_agent(stub, namespace, agent, mcp_server_refs=[BLOCKING_MCP_SERVER])
-    session_id = stub.CreateSession(CreateSessionRequest(agent=agent, ns=namespace)).session_id
+    session_id = stub.sessions.Create(CreateSessionRequest(agent=agent, ns=namespace)).session_id
     snooper = SessionSnooper(
         stack=infra, stub=stub, namespace=namespace, agent=agent, session_id=session_id
     )
@@ -1075,7 +1072,7 @@ def test_tool_result_recorded_worker_kill_restart_does_not_duplicate_message_par
     )
     with stream:
         message = "Please run a blocking lookup docs.example.com and summarize what you found."
-        stub.SendMessage(
+        stub.sessions.SendMessage(
             SendMessageRequest(
                 agent=agent,
                 session_id=session_id,

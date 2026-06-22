@@ -16,7 +16,11 @@ except ModuleNotFoundError:
     except ModuleNotFoundError:
         runfiles = None
 
-# Important: Add generated protos to path
+REPO_ROOT = Path(__file__).resolve().parents[1]
+PYTHON_SDK_SRC = REPO_ROOT / "sdk" / "python" / "talon-client" / "src"
+
+# Important: Add local test helpers and generated client packages to the import path.
+sys.path.insert(0, str(PYTHON_SDK_SRC))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
@@ -28,8 +32,6 @@ SESSION_DISPATCH_TOPIC = "talon.session.dispatch"
 RESOURCE_LIFECYCLE_TOPIC = "talon.resource.lifecycle"
 WORKFLOW_DISPATCH_TOPIC = "talon.workflow.dispatch"
 MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
-REPO_ROOT = Path(__file__).resolve().parents[1]
-
 def load_repo_dotenv_values():
     dotenv_path = REPO_ROOT / ".env"
     values = {}
