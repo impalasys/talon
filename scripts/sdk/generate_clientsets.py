@@ -88,7 +88,7 @@ def main() -> None:
 def parse_services(paths: list[Path]) -> list[Service]:
     services: list[Service] = []
     for path in paths:
-        source = path.read_text()
+        source = path.read_text(encoding="utf-8")
         for match in re.finditer(r"^service\s+(\w+Service)\s+\{", source, re.MULTILINE):
             name = match.group(1)
             domain = name.removesuffix("Service")
@@ -280,7 +280,7 @@ def generate_python_init() -> None:
 
 
 def parse_python_export_names(path: Path) -> list[str]:
-    source = strip_proto_comments(path.read_text())
+    source = strip_proto_comments(path.read_text(encoding="utf-8"))
     names: list[str] = []
     for match in re.finditer(r"^(message|enum)\s+(\w+)\s*(?:\{|$)", source, re.MULTILINE):
         names.append(match.group(2))
@@ -428,7 +428,7 @@ def to_pascal_case(value: str) -> str:
 
 def write(path: Path, source: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(source.rstrip() + "\n")
+    path.write_text(source.rstrip() + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

@@ -37,6 +37,7 @@
     "chromatic": "chromatic --config-file chromatic.config.json",
     "clean": "rm -rf dist",
     "prepack": "pnpm run build",
+    "prebuild-storybook": "pnpm --dir ../../sdk/js/talon-client build",
     "screenshots": "node scripts/capture-storybook-screenshots.mjs",
     "storybook": "storybook dev -p 6006"
   },

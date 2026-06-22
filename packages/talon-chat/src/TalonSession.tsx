@@ -1107,15 +1107,19 @@ export function TalonSession({
   const clearSession = useCallback(async () => {
     const session = currentSessionRef.current;
     if (session) {
-      const sessions = gatewayClient?.sessions;
-      if (sessions?.clear) {
-        await sessions.clear(session);
-      } else {
-        throw new Error("TalonSession requires a Talon clientset with sessions.clear().");
+      try {
+        const sessions = gatewayClient?.sessions;
+        if (sessions?.clear) {
+          await sessions.clear(session);
+        } else {
+          throw new Error("TalonSession requires a Talon clientset with sessions.clear().");
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
       }
     }
     clearLocalSession();
-  }, [clearLocalSession, gatewayClient]);
+  }, [clearLocalSession, gatewayClient, setError]);
 
   const resolvedCommands = useMemo<Array<TalonSessionCommand>>(() => {
     const builtInCommands: TalonSessionCommand[] = [];
@@ -1401,13 +1405,17 @@ export function TalonSession({
     setIsLoading(false);
     setLoadingStartedAt(null);
 
-    const session = currentSessionRef.current;
-    const sessions = gatewayClient?.sessions;
-    if (!sessions?.stopGeneration) {
-      throw new Error("TalonSession requires a Talon clientset with sessions.stopGeneration().");
+    try {
+      const session = currentSessionRef.current;
+      const sessions = gatewayClient?.sessions;
+      if (!sessions?.stopGeneration) {
+        throw new Error("TalonSession requires a Talon clientset with sessions.stopGeneration().");
+      }
+      await sessions.stopGeneration(session);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
     }
-    await sessions.stopGeneration(session);
-  }, [gatewayClient, isLoading]);
+  }, [gatewayClient, isLoading, setError]);
 
   const handleTranscriptScroll = useCallback(() => {
     updateTranscriptScrollThumb();
