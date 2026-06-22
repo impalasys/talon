@@ -12,29 +12,29 @@ public final class KnowledgeServiceGrpc {
   public static final java.lang.String SERVICE_NAME = "talon.v1.KnowledgeService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.GetKnowledgeRequest,
-      talon.v1.Api.KnowledgeResponse> getGetMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Knowledge.GetKnowledgeRequest,
+      talon.v1.Knowledge.KnowledgeResponse> getGetMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Get",
-      requestType = talon.v1.Api.GetKnowledgeRequest.class,
-      responseType = talon.v1.Api.KnowledgeResponse.class,
+      requestType = talon.v1.Knowledge.GetKnowledgeRequest.class,
+      responseType = talon.v1.Knowledge.KnowledgeResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.GetKnowledgeRequest,
-      talon.v1.Api.KnowledgeResponse> getGetMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.GetKnowledgeRequest, talon.v1.Api.KnowledgeResponse> getGetMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Knowledge.GetKnowledgeRequest,
+      talon.v1.Knowledge.KnowledgeResponse> getGetMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Knowledge.GetKnowledgeRequest, talon.v1.Knowledge.KnowledgeResponse> getGetMethod;
     if ((getGetMethod = KnowledgeServiceGrpc.getGetMethod) == null) {
       synchronized (KnowledgeServiceGrpc.class) {
         if ((getGetMethod = KnowledgeServiceGrpc.getGetMethod) == null) {
           KnowledgeServiceGrpc.getGetMethod = getGetMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.GetKnowledgeRequest, talon.v1.Api.KnowledgeResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Knowledge.GetKnowledgeRequest, talon.v1.Knowledge.KnowledgeResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Get"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.GetKnowledgeRequest.getDefaultInstance()))
+                  talon.v1.Knowledge.GetKnowledgeRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.KnowledgeResponse.getDefaultInstance()))
+                  talon.v1.Knowledge.KnowledgeResponse.getDefaultInstance()))
               .setSchemaDescriptor(new KnowledgeServiceMethodDescriptorSupplier("Get"))
               .build();
         }
@@ -43,29 +43,29 @@ public final class KnowledgeServiceGrpc {
     return getGetMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.SearchKnowledgeRequest,
-      talon.v1.Api.SearchKnowledgeResponse> getSearchMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Knowledge.SearchKnowledgeRequest,
+      talon.v1.Knowledge.SearchKnowledgeResponse> getSearchMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Search",
-      requestType = talon.v1.Api.SearchKnowledgeRequest.class,
-      responseType = talon.v1.Api.SearchKnowledgeResponse.class,
+      requestType = talon.v1.Knowledge.SearchKnowledgeRequest.class,
+      responseType = talon.v1.Knowledge.SearchKnowledgeResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.SearchKnowledgeRequest,
-      talon.v1.Api.SearchKnowledgeResponse> getSearchMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.SearchKnowledgeRequest, talon.v1.Api.SearchKnowledgeResponse> getSearchMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Knowledge.SearchKnowledgeRequest,
+      talon.v1.Knowledge.SearchKnowledgeResponse> getSearchMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Knowledge.SearchKnowledgeRequest, talon.v1.Knowledge.SearchKnowledgeResponse> getSearchMethod;
     if ((getSearchMethod = KnowledgeServiceGrpc.getSearchMethod) == null) {
       synchronized (KnowledgeServiceGrpc.class) {
         if ((getSearchMethod = KnowledgeServiceGrpc.getSearchMethod) == null) {
           KnowledgeServiceGrpc.getSearchMethod = getSearchMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.SearchKnowledgeRequest, talon.v1.Api.SearchKnowledgeResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Knowledge.SearchKnowledgeRequest, talon.v1.Knowledge.SearchKnowledgeResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Search"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.SearchKnowledgeRequest.getDefaultInstance()))
+                  talon.v1.Knowledge.SearchKnowledgeRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.SearchKnowledgeResponse.getDefaultInstance()))
+                  talon.v1.Knowledge.SearchKnowledgeResponse.getDefaultInstance()))
               .setSchemaDescriptor(new KnowledgeServiceMethodDescriptorSupplier("Search"))
               .build();
         }
@@ -139,15 +139,15 @@ public final class KnowledgeServiceGrpc {
 
     /**
      */
-    default void get(talon.v1.Api.GetKnowledgeRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.KnowledgeResponse> responseObserver) {
+    default void get(talon.v1.Knowledge.GetKnowledgeRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Knowledge.KnowledgeResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetMethod(), responseObserver);
     }
 
     /**
      */
-    default void search(talon.v1.Api.SearchKnowledgeRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.SearchKnowledgeResponse> responseObserver) {
+    default void search(talon.v1.Knowledge.SearchKnowledgeRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Knowledge.SearchKnowledgeResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getSearchMethod(), responseObserver);
     }
   }
@@ -181,16 +181,16 @@ public final class KnowledgeServiceGrpc {
 
     /**
      */
-    public void get(talon.v1.Api.GetKnowledgeRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.KnowledgeResponse> responseObserver) {
+    public void get(talon.v1.Knowledge.GetKnowledgeRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Knowledge.KnowledgeResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getGetMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void search(talon.v1.Api.SearchKnowledgeRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.SearchKnowledgeResponse> responseObserver) {
+    public void search(talon.v1.Knowledge.SearchKnowledgeRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Knowledge.SearchKnowledgeResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getSearchMethod(), getCallOptions()), request, responseObserver);
     }
@@ -214,14 +214,14 @@ public final class KnowledgeServiceGrpc {
 
     /**
      */
-    public talon.v1.Api.KnowledgeResponse get(talon.v1.Api.GetKnowledgeRequest request) throws io.grpc.StatusException {
+    public talon.v1.Knowledge.KnowledgeResponse get(talon.v1.Knowledge.GetKnowledgeRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getGetMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.SearchKnowledgeResponse search(talon.v1.Api.SearchKnowledgeRequest request) throws io.grpc.StatusException {
+    public talon.v1.Knowledge.SearchKnowledgeResponse search(talon.v1.Knowledge.SearchKnowledgeRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getSearchMethod(), getCallOptions(), request);
     }
@@ -245,14 +245,14 @@ public final class KnowledgeServiceGrpc {
 
     /**
      */
-    public talon.v1.Api.KnowledgeResponse get(talon.v1.Api.GetKnowledgeRequest request) {
+    public talon.v1.Knowledge.KnowledgeResponse get(talon.v1.Knowledge.GetKnowledgeRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getGetMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.SearchKnowledgeResponse search(talon.v1.Api.SearchKnowledgeRequest request) {
+    public talon.v1.Knowledge.SearchKnowledgeResponse search(talon.v1.Knowledge.SearchKnowledgeRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getSearchMethod(), getCallOptions(), request);
     }
@@ -276,16 +276,16 @@ public final class KnowledgeServiceGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.KnowledgeResponse> get(
-        talon.v1.Api.GetKnowledgeRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Knowledge.KnowledgeResponse> get(
+        talon.v1.Knowledge.GetKnowledgeRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getGetMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.SearchKnowledgeResponse> search(
-        talon.v1.Api.SearchKnowledgeRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Knowledge.SearchKnowledgeResponse> search(
+        talon.v1.Knowledge.SearchKnowledgeRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getSearchMethod(), getCallOptions()), request);
     }
@@ -312,12 +312,12 @@ public final class KnowledgeServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_GET:
-          serviceImpl.get((talon.v1.Api.GetKnowledgeRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.KnowledgeResponse>) responseObserver);
+          serviceImpl.get((talon.v1.Knowledge.GetKnowledgeRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Knowledge.KnowledgeResponse>) responseObserver);
           break;
         case METHODID_SEARCH:
-          serviceImpl.search((talon.v1.Api.SearchKnowledgeRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.SearchKnowledgeResponse>) responseObserver);
+          serviceImpl.search((talon.v1.Knowledge.SearchKnowledgeRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Knowledge.SearchKnowledgeResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -341,15 +341,15 @@ public final class KnowledgeServiceGrpc {
           getGetMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.GetKnowledgeRequest,
-              talon.v1.Api.KnowledgeResponse>(
+              talon.v1.Knowledge.GetKnowledgeRequest,
+              talon.v1.Knowledge.KnowledgeResponse>(
                 service, METHODID_GET)))
         .addMethod(
           getSearchMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.SearchKnowledgeRequest,
-              talon.v1.Api.SearchKnowledgeResponse>(
+              talon.v1.Knowledge.SearchKnowledgeRequest,
+              talon.v1.Knowledge.SearchKnowledgeResponse>(
                 service, METHODID_SEARCH)))
         .build();
   }
@@ -360,7 +360,7 @@ public final class KnowledgeServiceGrpc {
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
-      return talon.v1.Api.getDescriptor();
+      return talon.v1.Knowledge.getDescriptor();
     }
 
     @java.lang.Override

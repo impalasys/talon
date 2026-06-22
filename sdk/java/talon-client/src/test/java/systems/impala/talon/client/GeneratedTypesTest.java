@@ -4,8 +4,8 @@ import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.MethodDescriptor;
 import org.junit.jupiter.api.Test;
-import talon.v1.Api;
 import talon.v1.NamespaceServiceGrpc;
+import talon.v1.Resources;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 final class GeneratedTypesTest {
     @Test
     void generatedV1TypesAreAvailable() {
-        Api.ListResourcesRequest request = Api.ListResourcesRequest.newBuilder()
+        Resources.ListResourcesRequest request = Resources.ListResourcesRequest.newBuilder()
             .setNs("default")
             .setKind("Agent")
             .build();

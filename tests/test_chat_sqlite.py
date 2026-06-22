@@ -12,12 +12,11 @@ import uuid
 # Important: Add generated protos to path so "proto.xxx" resolves locally and not to proto_plus
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
 
-from proto.talon.v1.api_pb2 import (
-    CreateNamespaceRequest,
-    CreateResourceRequest,
+from proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest
+from proto.talon.v1.resources_pb2 import CreateResourceRequest, ListResourcesRequest
+from proto.talon.v1.sessions_pb2 import (
     CreateSessionRequest,
     GetSessionRequest,
-    ListResourcesRequest,
     SendMessageRequest,
     StreamSessionPartsRequest,
 )

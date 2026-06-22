@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package talon.v1;
+
+import "proto/data/data.proto";
+
+service KnowledgeService {
+  rpc Get(GetKnowledgeRequest) returns (KnowledgeResponse);
+  rpc Search(SearchKnowledgeRequest) returns (SearchKnowledgeResponse);
+}
+
+message GetKnowledgeRequest {
+  string agent = 1;
+  string ns = 2;
+  optional string path = 3;
+}
+
+message KnowledgeResponse {
+  repeated talon.data.Knowledge modules = 1;
+}
+
+message SearchKnowledgeRequest {
+  string agent = 1;
+  string ns = 2;
+  string query = 3;
+}
+
+message SearchKnowledgeResponse {
+  repeated talon.data.KnowledgeSearchResult results = 1;
+}

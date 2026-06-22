@@ -4,6 +4,16 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
+V1_PROTO_SRCS=(
+  proto/talon/v1/auth.proto
+  proto/talon/v1/channels.proto
+  proto/talon/v1/knowledge.proto
+  proto/talon/v1/namespaces.proto
+  proto/talon/v1/resources.proto
+  proto/talon/v1/sessions.proto
+  proto/talon/v1/workflows.proto
+)
+
 PROTO_SRCS=(
   proto/config.proto
   proto/resources/common.proto
@@ -26,7 +36,7 @@ PROTO_SRCS=(
   proto/data/session_submission.proto
   proto/data/session_journal_entry.proto
   proto/events.proto
-  proto/talon/v1/api.proto
+  "${V1_PROTO_SRCS[@]}"
 )
 
 case "$(uname -s)-$(uname -m)" in
@@ -88,7 +98,13 @@ GO_OPTS=(
   "--go_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/session_journal_entry.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
-  "--go_opt=Mproto/talon/v1/api.proto=${GO_MODULE}/talon/v1"
+  "--go_opt=Mproto/talon/v1/auth.proto=${GO_MODULE}/talon/v1"
+  "--go_opt=Mproto/talon/v1/channels.proto=${GO_MODULE}/talon/v1"
+  "--go_opt=Mproto/talon/v1/knowledge.proto=${GO_MODULE}/talon/v1"
+  "--go_opt=Mproto/talon/v1/namespaces.proto=${GO_MODULE}/talon/v1"
+  "--go_opt=Mproto/talon/v1/resources.proto=${GO_MODULE}/talon/v1"
+  "--go_opt=Mproto/talon/v1/sessions.proto=${GO_MODULE}/talon/v1"
+  "--go_opt=Mproto/talon/v1/workflows.proto=${GO_MODULE}/talon/v1"
   "--go-grpc_opt=Mproto/config.proto=${GO_MODULE}/talon/config"
   "--go-grpc_opt=Mproto/resources/common.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/agents.proto=${GO_MODULE}/talon/resources"
@@ -110,7 +126,13 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/session_journal_entry.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
-  "--go-grpc_opt=Mproto/talon/v1/api.proto=${GO_MODULE}/talon/v1"
+  "--go-grpc_opt=Mproto/talon/v1/auth.proto=${GO_MODULE}/talon/v1"
+  "--go-grpc_opt=Mproto/talon/v1/channels.proto=${GO_MODULE}/talon/v1"
+  "--go-grpc_opt=Mproto/talon/v1/knowledge.proto=${GO_MODULE}/talon/v1"
+  "--go-grpc_opt=Mproto/talon/v1/namespaces.proto=${GO_MODULE}/talon/v1"
+  "--go-grpc_opt=Mproto/talon/v1/resources.proto=${GO_MODULE}/talon/v1"
+  "--go-grpc_opt=Mproto/talon/v1/sessions.proto=${GO_MODULE}/talon/v1"
+  "--go-grpc_opt=Mproto/talon/v1/workflows.proto=${GO_MODULE}/talon/v1"
 )
 
 mkdir -p sdk/go/talon-client sdk/java/talon-client/src/main/java sdk/js/talon-client/src/gen sdk/python/talon-client/src/talon_client

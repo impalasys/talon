@@ -31,7 +31,31 @@ fn main() {
         .expect("repo root")
         .to_path_buf();
     let out_dir = root.join("sdk/rust/talon-client/src/generated");
-    let v1_proto = root.join("proto/talon/v1/api.proto");
+    let v1_protos = talon_v1_protos(&root);
+    let mut protos = vec![
+        root.join("proto/config.proto"),
+        root.join("proto/resources/common.proto"),
+        root.join("proto/resources/agents.proto"),
+        root.join("proto/resources/mcp.proto"),
+        root.join("proto/resources/knowledge.proto"),
+        root.join("proto/resources/namespaces.proto"),
+        root.join("proto/resources/channels.proto"),
+        root.join("proto/resources/schedules.proto"),
+        root.join("proto/resources/workflows.proto"),
+        root.join("proto/resources/deployments.proto"),
+        root.join("proto/resources/sandboxes.proto"),
+        root.join("proto/resources/sessions.proto"),
+        root.join("proto/resources/skills.proto"),
+        root.join("proto/resources/usage.proto"),
+        root.join("proto/resources/workers.proto"),
+        root.join("proto/resources/resource.proto"),
+        root.join("proto/harness/llm.proto"),
+        root.join("proto/data/data.proto"),
+        root.join("proto/data/session_submission.proto"),
+        root.join("proto/data/session_journal_entry.proto"),
+        root.join("proto/events.proto"),
+    ];
+    protos.extend(v1_protos.iter().cloned());
     std::fs::create_dir_all(&out_dir).expect("create generated dir");
     for entry in std::fs::read_dir(&out_dir).expect("read generated dir") {
         let entry = entry.expect("generated entry");
@@ -45,35 +69,12 @@ fn main() {
         .out_dir(&out_dir)
         .protoc_arg("--experimental_allow_proto3_optional")
         .compile_protos(
-            &[
-                root.join("proto/config.proto"),
-                root.join("proto/resources/common.proto"),
-                root.join("proto/resources/agents.proto"),
-                root.join("proto/resources/mcp.proto"),
-                root.join("proto/resources/knowledge.proto"),
-                root.join("proto/resources/namespaces.proto"),
-                root.join("proto/resources/channels.proto"),
-                root.join("proto/resources/schedules.proto"),
-                root.join("proto/resources/workflows.proto"),
-                root.join("proto/resources/deployments.proto"),
-                root.join("proto/resources/sandboxes.proto"),
-                root.join("proto/resources/sessions.proto"),
-                root.join("proto/resources/skills.proto"),
-                root.join("proto/resources/usage.proto"),
-                root.join("proto/resources/workers.proto"),
-                root.join("proto/resources/resource.proto"),
-                root.join("proto/harness/llm.proto"),
-                root.join("proto/data/data.proto"),
-                root.join("proto/data/session_submission.proto"),
-                root.join("proto/data/session_journal_entry.proto"),
-                root.join("proto/events.proto"),
-                v1_proto.clone(),
-            ],
+            &protos,
             &[root.clone(), root.join("third_party/googleapis")],
         )
         .expect("generate rust SDK");
 
-    let services = parse_talon_v1_services(&v1_proto);
+    let services = parse_talon_v1_services(&v1_protos);
     std::fs::write(out_dir.join("clientset.rs"), generate_clientset(&services))
         .expect("write generated clientset");
 
@@ -90,61 +91,78 @@ fn main() {
     }
 }
 
-fn parse_talon_v1_services(path: &std::path::Path) -> Vec<Service> {
-    let source = std::fs::read_to_string(path).expect("read talon v1 proto");
+fn talon_v1_protos(root: &std::path::Path) -> Vec<PathBuf> {
+    [
+        "namespaces.proto",
+        "resources.proto",
+        "sessions.proto",
+        "channels.proto",
+        "workflows.proto",
+        "knowledge.proto",
+        "auth.proto",
+    ]
+    .into_iter()
+    .map(|file| root.join("proto/talon/v1").join(file))
+    .collect()
+}
+
+fn parse_talon_v1_services(paths: &[PathBuf]) -> Vec<Service> {
     let mut services = Vec::new();
     let mut current: Option<Service> = None;
 
-    for raw_line in source.lines() {
-        let line = raw_line.trim();
-        if let Some(name) = line
-            .strip_prefix("service ")
-            .and_then(|rest| rest.split_whitespace().next())
-        {
-            let service_domain = name.strip_suffix("Service").unwrap_or(name);
-            current = Some(Service {
-                name: name.to_string(),
-                field_name: service_field_name(service_domain),
-                client_mod: format!("{}_client", to_snake_case(name)),
-                client_name: format!("{name}Client"),
-                methods: Vec::new(),
-            });
-            continue;
-        }
-
-        if line == "}" {
-            if let Some(service) = current.take() {
-                services.push(service);
+    for path in paths {
+        let source = std::fs::read_to_string(path).expect("read talon v1 proto");
+        for raw_line in source.lines() {
+            let line = raw_line.trim();
+            if let Some(name) = line
+                .strip_prefix("service ")
+                .and_then(|rest| rest.split_whitespace().next())
+            {
+                let service_domain = name.strip_suffix("Service").unwrap_or(name);
+                current = Some(Service {
+                    name: name.to_string(),
+                    field_name: service_field_name(service_domain),
+                    client_mod: format!("{}_client", to_snake_case(name)),
+                    client_name: format!("{name}Client"),
+                    methods: Vec::new(),
+                });
+                continue;
             }
-            continue;
-        }
 
-        let Some(service) = current.as_mut() else {
-            continue;
-        };
-        let Some(signature) = line.strip_prefix("rpc ") else {
-            continue;
-        };
-        let Some((rpc_name, rest)) = signature.split_once('(') else {
-            continue;
-        };
-        let Some((request, rest)) = rest.split_once(") returns (") else {
-            continue;
-        };
-        let Some(response) = rest.strip_suffix(");") else {
-            continue;
-        };
-        let (server_streaming, response) = response
-            .strip_prefix("stream ")
-            .map(|response| (true, response))
-            .unwrap_or((false, response));
-        service.methods.push(Method {
-            rpc_name: rpc_name.trim().to_string(),
-            method_name: delegate_method_name(&service.name, rpc_name.trim()),
-            request: rust_type_path(request.trim()),
-            response: rust_type_path(response.trim()),
-            server_streaming,
-        });
+            if line == "}" {
+                if let Some(service) = current.take() {
+                    services.push(service);
+                }
+                continue;
+            }
+
+            let Some(service) = current.as_mut() else {
+                continue;
+            };
+            let Some(signature) = line.strip_prefix("rpc ") else {
+                continue;
+            };
+            let Some((rpc_name, rest)) = signature.split_once('(') else {
+                continue;
+            };
+            let Some((request, rest)) = rest.split_once(") returns (") else {
+                continue;
+            };
+            let Some(response) = rest.strip_suffix(");") else {
+                continue;
+            };
+            let (server_streaming, response) = response
+                .strip_prefix("stream ")
+                .map(|response| (true, response))
+                .unwrap_or((false, response));
+            service.methods.push(Method {
+                rpc_name: rpc_name.trim().to_string(),
+                method_name: delegate_method_name(&service.name, rpc_name.trim()),
+                request: rust_type_path(request.trim()),
+                response: rust_type_path(response.trim()),
+                server_streaming,
+            });
+        }
     }
 
     services

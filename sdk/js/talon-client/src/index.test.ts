@@ -1,10 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { createTalonClient, v1 } from "./index.js";
+import { createTalonClient, v1Resources } from "./index.js";
 
 describe("@impalasys/talon-client", () => {
   it("exports generated talon.v1 types", () => {
-    const request = new v1.ListResourcesRequest({ ns: "default", kind: "Agent" });
+    const request = new v1Resources.ListResourcesRequest({ ns: "default", kind: "Agent" });
     assert.equal(request.ns, "default");
     assert.equal(request.kind, "Agent");
   });

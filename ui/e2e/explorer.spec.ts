@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { createClient } from "@connectrpc/connect";
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
-import { NamespaceService, ResourceService, SessionService } from "../proto/proto/talon/v1/api_pb";
+import { NamespaceService } from "../proto/proto/talon/v1/namespaces_pb";
+import { ResourceService } from "../proto/proto/talon/v1/resources_pb";
+import { SessionService } from "../proto/proto/talon/v1/sessions_pb";
 
 test.describe('Explorer navigation', () => {
   test('deep session URL auto-expands namespace path and agent', async ({ page }) => {

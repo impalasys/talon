@@ -1,14 +1,12 @@
 import { createClient, type Interceptor } from "@connectrpc/connect";
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
-import {
-  AuthService,
-  ChannelService,
-  KnowledgeService,
-  NamespaceService,
-  ResourceService,
-  SessionService,
-  WorkflowService,
-} from "../proto/proto/talon/v1/api_pb";
+import { AuthService } from "../proto/proto/talon/v1/auth_pb";
+import { ChannelService } from "../proto/proto/talon/v1/channels_pb";
+import { KnowledgeService } from "../proto/proto/talon/v1/knowledge_pb";
+import { NamespaceService } from "../proto/proto/talon/v1/namespaces_pb";
+import { ResourceService } from "../proto/proto/talon/v1/resources_pb";
+import { SessionService } from "../proto/proto/talon/v1/sessions_pb";
+import { WorkflowService } from "../proto/proto/talon/v1/workflows_pb";
 
 export function normalizeGatewayUrl(url: string) {
   return url.trim().replace(/\/+$/, "");

@@ -1,11 +1,9 @@
-from proto.talon.v1.api_pb2_grpc import (
-    ChannelServiceStub,
-    KnowledgeServiceStub,
-    NamespaceServiceStub,
-    ResourceServiceStub,
-    SessionServiceStub,
-    WorkflowServiceStub,
-)
+from proto.talon.v1.channels_pb2_grpc import ChannelServiceStub
+from proto.talon.v1.knowledge_pb2_grpc import KnowledgeServiceStub
+from proto.talon.v1.namespaces_pb2_grpc import NamespaceServiceStub
+from proto.talon.v1.resources_pb2_grpc import ResourceServiceStub
+from proto.talon.v1.sessions_pb2_grpc import SessionServiceStub
+from proto.talon.v1.workflows_pb2_grpc import WorkflowServiceStub
 
 
 class TalonV1TestClient:

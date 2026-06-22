@@ -12,29 +12,29 @@ public final class NamespaceServiceGrpc {
   public static final java.lang.String SERVICE_NAME = "talon.v1.NamespaceService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.CreateNamespaceRequest,
-      talon.v1.Api.NamespaceResponse> getCreateMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Namespaces.CreateNamespaceRequest,
+      talon.v1.Namespaces.NamespaceResponse> getCreateMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Create",
-      requestType = talon.v1.Api.CreateNamespaceRequest.class,
-      responseType = talon.v1.Api.NamespaceResponse.class,
+      requestType = talon.v1.Namespaces.CreateNamespaceRequest.class,
+      responseType = talon.v1.Namespaces.NamespaceResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.CreateNamespaceRequest,
-      talon.v1.Api.NamespaceResponse> getCreateMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.CreateNamespaceRequest, talon.v1.Api.NamespaceResponse> getCreateMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Namespaces.CreateNamespaceRequest,
+      talon.v1.Namespaces.NamespaceResponse> getCreateMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Namespaces.CreateNamespaceRequest, talon.v1.Namespaces.NamespaceResponse> getCreateMethod;
     if ((getCreateMethod = NamespaceServiceGrpc.getCreateMethod) == null) {
       synchronized (NamespaceServiceGrpc.class) {
         if ((getCreateMethod = NamespaceServiceGrpc.getCreateMethod) == null) {
           NamespaceServiceGrpc.getCreateMethod = getCreateMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.CreateNamespaceRequest, talon.v1.Api.NamespaceResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Namespaces.CreateNamespaceRequest, talon.v1.Namespaces.NamespaceResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Create"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.CreateNamespaceRequest.getDefaultInstance()))
+                  talon.v1.Namespaces.CreateNamespaceRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.NamespaceResponse.getDefaultInstance()))
+                  talon.v1.Namespaces.NamespaceResponse.getDefaultInstance()))
               .setSchemaDescriptor(new NamespaceServiceMethodDescriptorSupplier("Create"))
               .build();
         }
@@ -43,29 +43,29 @@ public final class NamespaceServiceGrpc {
     return getCreateMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.GetNamespaceRequest,
-      talon.v1.Api.NamespaceResponse> getGetMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Namespaces.GetNamespaceRequest,
+      talon.v1.Namespaces.NamespaceResponse> getGetMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Get",
-      requestType = talon.v1.Api.GetNamespaceRequest.class,
-      responseType = talon.v1.Api.NamespaceResponse.class,
+      requestType = talon.v1.Namespaces.GetNamespaceRequest.class,
+      responseType = talon.v1.Namespaces.NamespaceResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.GetNamespaceRequest,
-      talon.v1.Api.NamespaceResponse> getGetMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.GetNamespaceRequest, talon.v1.Api.NamespaceResponse> getGetMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Namespaces.GetNamespaceRequest,
+      talon.v1.Namespaces.NamespaceResponse> getGetMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Namespaces.GetNamespaceRequest, talon.v1.Namespaces.NamespaceResponse> getGetMethod;
     if ((getGetMethod = NamespaceServiceGrpc.getGetMethod) == null) {
       synchronized (NamespaceServiceGrpc.class) {
         if ((getGetMethod = NamespaceServiceGrpc.getGetMethod) == null) {
           NamespaceServiceGrpc.getGetMethod = getGetMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.GetNamespaceRequest, talon.v1.Api.NamespaceResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Namespaces.GetNamespaceRequest, talon.v1.Namespaces.NamespaceResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Get"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.GetNamespaceRequest.getDefaultInstance()))
+                  talon.v1.Namespaces.GetNamespaceRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.NamespaceResponse.getDefaultInstance()))
+                  talon.v1.Namespaces.NamespaceResponse.getDefaultInstance()))
               .setSchemaDescriptor(new NamespaceServiceMethodDescriptorSupplier("Get"))
               .build();
         }
@@ -74,29 +74,29 @@ public final class NamespaceServiceGrpc {
     return getGetMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.DeleteNamespaceRequest,
-      talon.v1.Api.NamespaceResponse> getDeleteMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Namespaces.DeleteNamespaceRequest,
+      talon.v1.Namespaces.NamespaceResponse> getDeleteMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Delete",
-      requestType = talon.v1.Api.DeleteNamespaceRequest.class,
-      responseType = talon.v1.Api.NamespaceResponse.class,
+      requestType = talon.v1.Namespaces.DeleteNamespaceRequest.class,
+      responseType = talon.v1.Namespaces.NamespaceResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.DeleteNamespaceRequest,
-      talon.v1.Api.NamespaceResponse> getDeleteMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.DeleteNamespaceRequest, talon.v1.Api.NamespaceResponse> getDeleteMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Namespaces.DeleteNamespaceRequest,
+      talon.v1.Namespaces.NamespaceResponse> getDeleteMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Namespaces.DeleteNamespaceRequest, talon.v1.Namespaces.NamespaceResponse> getDeleteMethod;
     if ((getDeleteMethod = NamespaceServiceGrpc.getDeleteMethod) == null) {
       synchronized (NamespaceServiceGrpc.class) {
         if ((getDeleteMethod = NamespaceServiceGrpc.getDeleteMethod) == null) {
           NamespaceServiceGrpc.getDeleteMethod = getDeleteMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.DeleteNamespaceRequest, talon.v1.Api.NamespaceResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Namespaces.DeleteNamespaceRequest, talon.v1.Namespaces.NamespaceResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Delete"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.DeleteNamespaceRequest.getDefaultInstance()))
+                  talon.v1.Namespaces.DeleteNamespaceRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.NamespaceResponse.getDefaultInstance()))
+                  talon.v1.Namespaces.NamespaceResponse.getDefaultInstance()))
               .setSchemaDescriptor(new NamespaceServiceMethodDescriptorSupplier("Delete"))
               .build();
         }
@@ -105,29 +105,29 @@ public final class NamespaceServiceGrpc {
     return getDeleteMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.ListNamespacesRequest,
-      talon.v1.Api.ListNamespacesResponse> getListMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Namespaces.ListNamespacesRequest,
+      talon.v1.Namespaces.ListNamespacesResponse> getListMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "List",
-      requestType = talon.v1.Api.ListNamespacesRequest.class,
-      responseType = talon.v1.Api.ListNamespacesResponse.class,
+      requestType = talon.v1.Namespaces.ListNamespacesRequest.class,
+      responseType = talon.v1.Namespaces.ListNamespacesResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.ListNamespacesRequest,
-      talon.v1.Api.ListNamespacesResponse> getListMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.ListNamespacesRequest, talon.v1.Api.ListNamespacesResponse> getListMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Namespaces.ListNamespacesRequest,
+      talon.v1.Namespaces.ListNamespacesResponse> getListMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Namespaces.ListNamespacesRequest, talon.v1.Namespaces.ListNamespacesResponse> getListMethod;
     if ((getListMethod = NamespaceServiceGrpc.getListMethod) == null) {
       synchronized (NamespaceServiceGrpc.class) {
         if ((getListMethod = NamespaceServiceGrpc.getListMethod) == null) {
           NamespaceServiceGrpc.getListMethod = getListMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.ListNamespacesRequest, talon.v1.Api.ListNamespacesResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Namespaces.ListNamespacesRequest, talon.v1.Namespaces.ListNamespacesResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "List"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ListNamespacesRequest.getDefaultInstance()))
+                  talon.v1.Namespaces.ListNamespacesRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ListNamespacesResponse.getDefaultInstance()))
+                  talon.v1.Namespaces.ListNamespacesResponse.getDefaultInstance()))
               .setSchemaDescriptor(new NamespaceServiceMethodDescriptorSupplier("List"))
               .build();
         }
@@ -201,29 +201,29 @@ public final class NamespaceServiceGrpc {
 
     /**
      */
-    default void create(talon.v1.Api.CreateNamespaceRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.NamespaceResponse> responseObserver) {
+    default void create(talon.v1.Namespaces.CreateNamespaceRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Namespaces.NamespaceResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateMethod(), responseObserver);
     }
 
     /**
      */
-    default void get(talon.v1.Api.GetNamespaceRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.NamespaceResponse> responseObserver) {
+    default void get(talon.v1.Namespaces.GetNamespaceRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Namespaces.NamespaceResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetMethod(), responseObserver);
     }
 
     /**
      */
-    default void delete(talon.v1.Api.DeleteNamespaceRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.NamespaceResponse> responseObserver) {
+    default void delete(talon.v1.Namespaces.DeleteNamespaceRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Namespaces.NamespaceResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteMethod(), responseObserver);
     }
 
     /**
      */
-    default void list(talon.v1.Api.ListNamespacesRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ListNamespacesResponse> responseObserver) {
+    default void list(talon.v1.Namespaces.ListNamespacesRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Namespaces.ListNamespacesResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListMethod(), responseObserver);
     }
   }
@@ -257,32 +257,32 @@ public final class NamespaceServiceGrpc {
 
     /**
      */
-    public void create(talon.v1.Api.CreateNamespaceRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.NamespaceResponse> responseObserver) {
+    public void create(talon.v1.Namespaces.CreateNamespaceRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Namespaces.NamespaceResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getCreateMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void get(talon.v1.Api.GetNamespaceRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.NamespaceResponse> responseObserver) {
+    public void get(talon.v1.Namespaces.GetNamespaceRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Namespaces.NamespaceResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getGetMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void delete(talon.v1.Api.DeleteNamespaceRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.NamespaceResponse> responseObserver) {
+    public void delete(talon.v1.Namespaces.DeleteNamespaceRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Namespaces.NamespaceResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getDeleteMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void list(talon.v1.Api.ListNamespacesRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ListNamespacesResponse> responseObserver) {
+    public void list(talon.v1.Namespaces.ListNamespacesRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Namespaces.ListNamespacesResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getListMethod(), getCallOptions()), request, responseObserver);
     }
@@ -306,28 +306,28 @@ public final class NamespaceServiceGrpc {
 
     /**
      */
-    public talon.v1.Api.NamespaceResponse create(talon.v1.Api.CreateNamespaceRequest request) throws io.grpc.StatusException {
+    public talon.v1.Namespaces.NamespaceResponse create(talon.v1.Namespaces.CreateNamespaceRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getCreateMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.NamespaceResponse get(talon.v1.Api.GetNamespaceRequest request) throws io.grpc.StatusException {
+    public talon.v1.Namespaces.NamespaceResponse get(talon.v1.Namespaces.GetNamespaceRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getGetMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.NamespaceResponse delete(talon.v1.Api.DeleteNamespaceRequest request) throws io.grpc.StatusException {
+    public talon.v1.Namespaces.NamespaceResponse delete(talon.v1.Namespaces.DeleteNamespaceRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getDeleteMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ListNamespacesResponse list(talon.v1.Api.ListNamespacesRequest request) throws io.grpc.StatusException {
+    public talon.v1.Namespaces.ListNamespacesResponse list(talon.v1.Namespaces.ListNamespacesRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getListMethod(), getCallOptions(), request);
     }
@@ -351,28 +351,28 @@ public final class NamespaceServiceGrpc {
 
     /**
      */
-    public talon.v1.Api.NamespaceResponse create(talon.v1.Api.CreateNamespaceRequest request) {
+    public talon.v1.Namespaces.NamespaceResponse create(talon.v1.Namespaces.CreateNamespaceRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getCreateMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.NamespaceResponse get(talon.v1.Api.GetNamespaceRequest request) {
+    public talon.v1.Namespaces.NamespaceResponse get(talon.v1.Namespaces.GetNamespaceRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getGetMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.NamespaceResponse delete(talon.v1.Api.DeleteNamespaceRequest request) {
+    public talon.v1.Namespaces.NamespaceResponse delete(talon.v1.Namespaces.DeleteNamespaceRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getDeleteMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ListNamespacesResponse list(talon.v1.Api.ListNamespacesRequest request) {
+    public talon.v1.Namespaces.ListNamespacesResponse list(talon.v1.Namespaces.ListNamespacesRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getListMethod(), getCallOptions(), request);
     }
@@ -396,32 +396,32 @@ public final class NamespaceServiceGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.NamespaceResponse> create(
-        talon.v1.Api.CreateNamespaceRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Namespaces.NamespaceResponse> create(
+        talon.v1.Namespaces.CreateNamespaceRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getCreateMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.NamespaceResponse> get(
-        talon.v1.Api.GetNamespaceRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Namespaces.NamespaceResponse> get(
+        talon.v1.Namespaces.GetNamespaceRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getGetMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.NamespaceResponse> delete(
-        talon.v1.Api.DeleteNamespaceRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Namespaces.NamespaceResponse> delete(
+        talon.v1.Namespaces.DeleteNamespaceRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getDeleteMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.ListNamespacesResponse> list(
-        talon.v1.Api.ListNamespacesRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Namespaces.ListNamespacesResponse> list(
+        talon.v1.Namespaces.ListNamespacesRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getListMethod(), getCallOptions()), request);
     }
@@ -450,20 +450,20 @@ public final class NamespaceServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_CREATE:
-          serviceImpl.create((talon.v1.Api.CreateNamespaceRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.NamespaceResponse>) responseObserver);
+          serviceImpl.create((talon.v1.Namespaces.CreateNamespaceRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Namespaces.NamespaceResponse>) responseObserver);
           break;
         case METHODID_GET:
-          serviceImpl.get((talon.v1.Api.GetNamespaceRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.NamespaceResponse>) responseObserver);
+          serviceImpl.get((talon.v1.Namespaces.GetNamespaceRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Namespaces.NamespaceResponse>) responseObserver);
           break;
         case METHODID_DELETE:
-          serviceImpl.delete((talon.v1.Api.DeleteNamespaceRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.NamespaceResponse>) responseObserver);
+          serviceImpl.delete((talon.v1.Namespaces.DeleteNamespaceRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Namespaces.NamespaceResponse>) responseObserver);
           break;
         case METHODID_LIST:
-          serviceImpl.list((talon.v1.Api.ListNamespacesRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.ListNamespacesResponse>) responseObserver);
+          serviceImpl.list((talon.v1.Namespaces.ListNamespacesRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Namespaces.ListNamespacesResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -487,29 +487,29 @@ public final class NamespaceServiceGrpc {
           getCreateMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.CreateNamespaceRequest,
-              talon.v1.Api.NamespaceResponse>(
+              talon.v1.Namespaces.CreateNamespaceRequest,
+              talon.v1.Namespaces.NamespaceResponse>(
                 service, METHODID_CREATE)))
         .addMethod(
           getGetMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.GetNamespaceRequest,
-              talon.v1.Api.NamespaceResponse>(
+              talon.v1.Namespaces.GetNamespaceRequest,
+              talon.v1.Namespaces.NamespaceResponse>(
                 service, METHODID_GET)))
         .addMethod(
           getDeleteMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.DeleteNamespaceRequest,
-              talon.v1.Api.NamespaceResponse>(
+              talon.v1.Namespaces.DeleteNamespaceRequest,
+              talon.v1.Namespaces.NamespaceResponse>(
                 service, METHODID_DELETE)))
         .addMethod(
           getListMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.ListNamespacesRequest,
-              talon.v1.Api.ListNamespacesResponse>(
+              talon.v1.Namespaces.ListNamespacesRequest,
+              talon.v1.Namespaces.ListNamespacesResponse>(
                 service, METHODID_LIST)))
         .build();
   }
@@ -520,7 +520,7 @@ public final class NamespaceServiceGrpc {
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
-      return talon.v1.Api.getDescriptor();
+      return talon.v1.Namespaces.getDescriptor();
     }
 
     @java.lang.Override

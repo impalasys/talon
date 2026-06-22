@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package talon.v1;
+
+import "proto/data/data.proto";
+import "proto/events.proto";
+
+service ChannelService {
+  rpc PostMessage(PostChannelMessageRequest) returns (PostChannelMessageResponse);
+  rpc GetMessage(GetChannelMessageRequest) returns (ChannelMessageResponse);
+  rpc ListMessages(ListChannelMessagesRequest) returns (ListChannelMessagesResponse);
+  rpc StreamEvents(StreamChannelEventsRequest) returns (stream talon.events.ChannelEvent);
+}
+
+message PostChannelMessageRequest {
+  string ns = 1;
+  string channel = 2;
+  string author_kind = 3;
+  string author = 4;
+  string content = 5;
+  repeated string subscription_names = 6;
+  map<string, string> labels = 7;
+}
+
+message RoutedChannelSession {
+  string subscription = 1;
+  string agent = 2;
+  string session_id = 3;
+  string error = 4;
+}
+
+message PostChannelMessageResponse {
+  talon.data.ChannelMessage message = 1;
+  repeated RoutedChannelSession routed_sessions = 2;
+}
+
+message GetChannelMessageRequest {
+  string ns = 1;
+  string channel = 2;
+  string message_id = 3;
+}
+
+message ChannelMessageResponse {
+  talon.data.ChannelMessage message = 1;
+}
+
+message ListChannelMessagesRequest {
+  string ns = 1;
+  string channel = 2;
+  int32 limit = 3;
+  int32 page_size = 4;
+  optional string before_message_id = 5;
+}
+
+message ListChannelMessagesResponse {
+  repeated talon.data.ChannelMessage messages = 1;
+  bool has_more = 2;
+  optional string next_before_message_id = 3;
+}
+
+message StreamChannelEventsRequest {
+  string ns = 1;
+  string channel = 2;
+}

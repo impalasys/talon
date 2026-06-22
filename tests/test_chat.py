@@ -11,18 +11,21 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "gene
 
 import conftest
 import mock_llm
-from proto.talon.v1.api_pb2 import (
-    CreateSessionRequest, 
-    SendMessageRequest,
-    GetSessionRequest,
-    CreateNamespaceRequest,
-    StreamSessionPartsRequest,
+from proto.talon.v1.knowledge_pb2 import GetKnowledgeRequest, SearchKnowledgeRequest
+from proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest
+from proto.talon.v1.resources_pb2 import (
     CreateResourceRequest,
+    DeleteResourceRequest,
     GetResourceRequest,
     ListResourcesRequest,
-    DeleteResourceRequest,
-    GetKnowledgeRequest,
-    SearchKnowledgeRequest,
+)
+from proto.talon.v1.sessions_pb2 import (
+    CreateSessionRequest,
+    GetSessionRequest,
+    SendMessageRequest,
+    StreamSessionPartsRequest,
+)
+from proto.talon.v1.workflows_pb2 import (
     CreateWorkflowRunRequest,
     GetWorkflowRunRequest,
     ListWorkflowRunsRequest,

@@ -9,7 +9,15 @@ const docsRoot = path.resolve(talonRoot, "docs");
 const generatedRoot = path.resolve(docsRoot, "reference", "generated");
 const protoRoot = path.resolve(talonRoot, "proto");
 
-const apiProto = path.resolve(protoRoot, "talon", "v1", "api.proto");
+const apiProtos = [
+  "auth.proto",
+  "channels.proto",
+  "knowledge.proto",
+  "namespaces.proto",
+  "resources.proto",
+  "sessions.proto",
+  "workflows.proto",
+].map((file) => path.resolve(protoRoot, "talon", "v1", file));
 const configProto = path.resolve(protoRoot, "config.proto");
 const resourceProtos = [
   "resources/common.proto",
@@ -46,7 +54,7 @@ sidebar_position: 1
 
 This section is generated from Talon's canonical source files in the monorepo:
 
-- \`talon/proto/talon/v1/api.proto\`
+- \`talon/proto/talon/v1/*.proto\`
 - \`talon/proto/config.proto\`
 - \`talon/proto/resources/*.proto\`
 - \`talon/proto/data/data.proto\`
@@ -72,7 +80,7 @@ await generateSchemaReference({
 });
 
 async function generateGatewayReference() {
-  const proto = await readFile(apiProto, "utf8");
+  const proto = (await Promise.all(apiProtos.map((file) => readFile(file, "utf8")))).join("\n");
   const serviceNames = [
     "NamespaceService",
     "ResourceService",
@@ -94,7 +102,7 @@ async function generateGatewayReference() {
     "sidebar_position: 2",
     "---",
     "",
-    "The Talon gateway API is defined in `proto/talon/v1/api.proto`. It is the canonical first-class gRPC and gRPC-Web contract exposed directly by the gateway.",
+    "The Talon gateway API is defined by the domain service files in `proto/talon/v1/*.proto`. They are the canonical first-class gRPC and gRPC-Web contract exposed directly by the gateway.",
     "",
     "## Surface summary",
     "",

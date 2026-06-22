@@ -12,29 +12,29 @@ public final class ChannelServiceGrpc {
   public static final java.lang.String SERVICE_NAME = "talon.v1.ChannelService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.PostChannelMessageRequest,
-      talon.v1.Api.PostChannelMessageResponse> getPostMessageMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Channels.PostChannelMessageRequest,
+      talon.v1.Channels.PostChannelMessageResponse> getPostMessageMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "PostMessage",
-      requestType = talon.v1.Api.PostChannelMessageRequest.class,
-      responseType = talon.v1.Api.PostChannelMessageResponse.class,
+      requestType = talon.v1.Channels.PostChannelMessageRequest.class,
+      responseType = talon.v1.Channels.PostChannelMessageResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.PostChannelMessageRequest,
-      talon.v1.Api.PostChannelMessageResponse> getPostMessageMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.PostChannelMessageRequest, talon.v1.Api.PostChannelMessageResponse> getPostMessageMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Channels.PostChannelMessageRequest,
+      talon.v1.Channels.PostChannelMessageResponse> getPostMessageMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Channels.PostChannelMessageRequest, talon.v1.Channels.PostChannelMessageResponse> getPostMessageMethod;
     if ((getPostMessageMethod = ChannelServiceGrpc.getPostMessageMethod) == null) {
       synchronized (ChannelServiceGrpc.class) {
         if ((getPostMessageMethod = ChannelServiceGrpc.getPostMessageMethod) == null) {
           ChannelServiceGrpc.getPostMessageMethod = getPostMessageMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.PostChannelMessageRequest, talon.v1.Api.PostChannelMessageResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Channels.PostChannelMessageRequest, talon.v1.Channels.PostChannelMessageResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "PostMessage"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.PostChannelMessageRequest.getDefaultInstance()))
+                  talon.v1.Channels.PostChannelMessageRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.PostChannelMessageResponse.getDefaultInstance()))
+                  talon.v1.Channels.PostChannelMessageResponse.getDefaultInstance()))
               .setSchemaDescriptor(new ChannelServiceMethodDescriptorSupplier("PostMessage"))
               .build();
         }
@@ -43,29 +43,29 @@ public final class ChannelServiceGrpc {
     return getPostMessageMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.GetChannelMessageRequest,
-      talon.v1.Api.ChannelMessageResponse> getGetMessageMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Channels.GetChannelMessageRequest,
+      talon.v1.Channels.ChannelMessageResponse> getGetMessageMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "GetMessage",
-      requestType = talon.v1.Api.GetChannelMessageRequest.class,
-      responseType = talon.v1.Api.ChannelMessageResponse.class,
+      requestType = talon.v1.Channels.GetChannelMessageRequest.class,
+      responseType = talon.v1.Channels.ChannelMessageResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.GetChannelMessageRequest,
-      talon.v1.Api.ChannelMessageResponse> getGetMessageMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.GetChannelMessageRequest, talon.v1.Api.ChannelMessageResponse> getGetMessageMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Channels.GetChannelMessageRequest,
+      talon.v1.Channels.ChannelMessageResponse> getGetMessageMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Channels.GetChannelMessageRequest, talon.v1.Channels.ChannelMessageResponse> getGetMessageMethod;
     if ((getGetMessageMethod = ChannelServiceGrpc.getGetMessageMethod) == null) {
       synchronized (ChannelServiceGrpc.class) {
         if ((getGetMessageMethod = ChannelServiceGrpc.getGetMessageMethod) == null) {
           ChannelServiceGrpc.getGetMessageMethod = getGetMessageMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.GetChannelMessageRequest, talon.v1.Api.ChannelMessageResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Channels.GetChannelMessageRequest, talon.v1.Channels.ChannelMessageResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetMessage"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.GetChannelMessageRequest.getDefaultInstance()))
+                  talon.v1.Channels.GetChannelMessageRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ChannelMessageResponse.getDefaultInstance()))
+                  talon.v1.Channels.ChannelMessageResponse.getDefaultInstance()))
               .setSchemaDescriptor(new ChannelServiceMethodDescriptorSupplier("GetMessage"))
               .build();
         }
@@ -74,29 +74,29 @@ public final class ChannelServiceGrpc {
     return getGetMessageMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.ListChannelMessagesRequest,
-      talon.v1.Api.ListChannelMessagesResponse> getListMessagesMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Channels.ListChannelMessagesRequest,
+      talon.v1.Channels.ListChannelMessagesResponse> getListMessagesMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "ListMessages",
-      requestType = talon.v1.Api.ListChannelMessagesRequest.class,
-      responseType = talon.v1.Api.ListChannelMessagesResponse.class,
+      requestType = talon.v1.Channels.ListChannelMessagesRequest.class,
+      responseType = talon.v1.Channels.ListChannelMessagesResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.ListChannelMessagesRequest,
-      talon.v1.Api.ListChannelMessagesResponse> getListMessagesMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.ListChannelMessagesRequest, talon.v1.Api.ListChannelMessagesResponse> getListMessagesMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Channels.ListChannelMessagesRequest,
+      talon.v1.Channels.ListChannelMessagesResponse> getListMessagesMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Channels.ListChannelMessagesRequest, talon.v1.Channels.ListChannelMessagesResponse> getListMessagesMethod;
     if ((getListMessagesMethod = ChannelServiceGrpc.getListMessagesMethod) == null) {
       synchronized (ChannelServiceGrpc.class) {
         if ((getListMessagesMethod = ChannelServiceGrpc.getListMessagesMethod) == null) {
           ChannelServiceGrpc.getListMessagesMethod = getListMessagesMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.ListChannelMessagesRequest, talon.v1.Api.ListChannelMessagesResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Channels.ListChannelMessagesRequest, talon.v1.Channels.ListChannelMessagesResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListMessages"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ListChannelMessagesRequest.getDefaultInstance()))
+                  talon.v1.Channels.ListChannelMessagesRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ListChannelMessagesResponse.getDefaultInstance()))
+                  talon.v1.Channels.ListChannelMessagesResponse.getDefaultInstance()))
               .setSchemaDescriptor(new ChannelServiceMethodDescriptorSupplier("ListMessages"))
               .build();
         }
@@ -105,27 +105,27 @@ public final class ChannelServiceGrpc {
     return getListMessagesMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.StreamChannelEventsRequest,
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Channels.StreamChannelEventsRequest,
       talon.events.Events.ChannelEvent> getStreamEventsMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "StreamEvents",
-      requestType = talon.v1.Api.StreamChannelEventsRequest.class,
+      requestType = talon.v1.Channels.StreamChannelEventsRequest.class,
       responseType = talon.events.Events.ChannelEvent.class,
       methodType = io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.StreamChannelEventsRequest,
+  public static io.grpc.MethodDescriptor<talon.v1.Channels.StreamChannelEventsRequest,
       talon.events.Events.ChannelEvent> getStreamEventsMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.StreamChannelEventsRequest, talon.events.Events.ChannelEvent> getStreamEventsMethod;
+    io.grpc.MethodDescriptor<talon.v1.Channels.StreamChannelEventsRequest, talon.events.Events.ChannelEvent> getStreamEventsMethod;
     if ((getStreamEventsMethod = ChannelServiceGrpc.getStreamEventsMethod) == null) {
       synchronized (ChannelServiceGrpc.class) {
         if ((getStreamEventsMethod = ChannelServiceGrpc.getStreamEventsMethod) == null) {
           ChannelServiceGrpc.getStreamEventsMethod = getStreamEventsMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.StreamChannelEventsRequest, talon.events.Events.ChannelEvent>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Channels.StreamChannelEventsRequest, talon.events.Events.ChannelEvent>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "StreamEvents"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.StreamChannelEventsRequest.getDefaultInstance()))
+                  talon.v1.Channels.StreamChannelEventsRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   talon.events.Events.ChannelEvent.getDefaultInstance()))
               .setSchemaDescriptor(new ChannelServiceMethodDescriptorSupplier("StreamEvents"))
@@ -201,28 +201,28 @@ public final class ChannelServiceGrpc {
 
     /**
      */
-    default void postMessage(talon.v1.Api.PostChannelMessageRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.PostChannelMessageResponse> responseObserver) {
+    default void postMessage(talon.v1.Channels.PostChannelMessageRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Channels.PostChannelMessageResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getPostMessageMethod(), responseObserver);
     }
 
     /**
      */
-    default void getMessage(talon.v1.Api.GetChannelMessageRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ChannelMessageResponse> responseObserver) {
+    default void getMessage(talon.v1.Channels.GetChannelMessageRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Channels.ChannelMessageResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetMessageMethod(), responseObserver);
     }
 
     /**
      */
-    default void listMessages(talon.v1.Api.ListChannelMessagesRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ListChannelMessagesResponse> responseObserver) {
+    default void listMessages(talon.v1.Channels.ListChannelMessagesRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Channels.ListChannelMessagesResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListMessagesMethod(), responseObserver);
     }
 
     /**
      */
-    default void streamEvents(talon.v1.Api.StreamChannelEventsRequest request,
+    default void streamEvents(talon.v1.Channels.StreamChannelEventsRequest request,
         io.grpc.stub.StreamObserver<talon.events.Events.ChannelEvent> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getStreamEventsMethod(), responseObserver);
     }
@@ -257,31 +257,31 @@ public final class ChannelServiceGrpc {
 
     /**
      */
-    public void postMessage(talon.v1.Api.PostChannelMessageRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.PostChannelMessageResponse> responseObserver) {
+    public void postMessage(talon.v1.Channels.PostChannelMessageRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Channels.PostChannelMessageResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getPostMessageMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void getMessage(talon.v1.Api.GetChannelMessageRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ChannelMessageResponse> responseObserver) {
+    public void getMessage(talon.v1.Channels.GetChannelMessageRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Channels.ChannelMessageResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getGetMessageMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void listMessages(talon.v1.Api.ListChannelMessagesRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ListChannelMessagesResponse> responseObserver) {
+    public void listMessages(talon.v1.Channels.ListChannelMessagesRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Channels.ListChannelMessagesResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getListMessagesMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void streamEvents(talon.v1.Api.StreamChannelEventsRequest request,
+    public void streamEvents(talon.v1.Channels.StreamChannelEventsRequest request,
         io.grpc.stub.StreamObserver<talon.events.Events.ChannelEvent> responseObserver) {
       io.grpc.stub.ClientCalls.asyncServerStreamingCall(
           getChannel().newCall(getStreamEventsMethod(), getCallOptions()), request, responseObserver);
@@ -306,21 +306,21 @@ public final class ChannelServiceGrpc {
 
     /**
      */
-    public talon.v1.Api.PostChannelMessageResponse postMessage(talon.v1.Api.PostChannelMessageRequest request) throws io.grpc.StatusException {
+    public talon.v1.Channels.PostChannelMessageResponse postMessage(talon.v1.Channels.PostChannelMessageRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getPostMessageMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ChannelMessageResponse getMessage(talon.v1.Api.GetChannelMessageRequest request) throws io.grpc.StatusException {
+    public talon.v1.Channels.ChannelMessageResponse getMessage(talon.v1.Channels.GetChannelMessageRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getGetMessageMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ListChannelMessagesResponse listMessages(talon.v1.Api.ListChannelMessagesRequest request) throws io.grpc.StatusException {
+    public talon.v1.Channels.ListChannelMessagesResponse listMessages(talon.v1.Channels.ListChannelMessagesRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getListMessagesMethod(), getCallOptions(), request);
     }
@@ -329,7 +329,7 @@ public final class ChannelServiceGrpc {
      */
     @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/10918")
     public io.grpc.stub.BlockingClientCall<?, talon.events.Events.ChannelEvent>
-        streamEvents(talon.v1.Api.StreamChannelEventsRequest request) {
+        streamEvents(talon.v1.Channels.StreamChannelEventsRequest request) {
       return io.grpc.stub.ClientCalls.blockingV2ServerStreamingCall(
           getChannel(), getStreamEventsMethod(), getCallOptions(), request);
     }
@@ -353,21 +353,21 @@ public final class ChannelServiceGrpc {
 
     /**
      */
-    public talon.v1.Api.PostChannelMessageResponse postMessage(talon.v1.Api.PostChannelMessageRequest request) {
+    public talon.v1.Channels.PostChannelMessageResponse postMessage(talon.v1.Channels.PostChannelMessageRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getPostMessageMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ChannelMessageResponse getMessage(talon.v1.Api.GetChannelMessageRequest request) {
+    public talon.v1.Channels.ChannelMessageResponse getMessage(talon.v1.Channels.GetChannelMessageRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getGetMessageMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ListChannelMessagesResponse listMessages(talon.v1.Api.ListChannelMessagesRequest request) {
+    public talon.v1.Channels.ListChannelMessagesResponse listMessages(talon.v1.Channels.ListChannelMessagesRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getListMessagesMethod(), getCallOptions(), request);
     }
@@ -375,7 +375,7 @@ public final class ChannelServiceGrpc {
     /**
      */
     public java.util.Iterator<talon.events.Events.ChannelEvent> streamEvents(
-        talon.v1.Api.StreamChannelEventsRequest request) {
+        talon.v1.Channels.StreamChannelEventsRequest request) {
       return io.grpc.stub.ClientCalls.blockingServerStreamingCall(
           getChannel(), getStreamEventsMethod(), getCallOptions(), request);
     }
@@ -399,24 +399,24 @@ public final class ChannelServiceGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.PostChannelMessageResponse> postMessage(
-        talon.v1.Api.PostChannelMessageRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Channels.PostChannelMessageResponse> postMessage(
+        talon.v1.Channels.PostChannelMessageRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getPostMessageMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.ChannelMessageResponse> getMessage(
-        talon.v1.Api.GetChannelMessageRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Channels.ChannelMessageResponse> getMessage(
+        talon.v1.Channels.GetChannelMessageRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getGetMessageMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.ListChannelMessagesResponse> listMessages(
-        talon.v1.Api.ListChannelMessagesRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Channels.ListChannelMessagesResponse> listMessages(
+        talon.v1.Channels.ListChannelMessagesRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getListMessagesMethod(), getCallOptions()), request);
     }
@@ -445,19 +445,19 @@ public final class ChannelServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_POST_MESSAGE:
-          serviceImpl.postMessage((talon.v1.Api.PostChannelMessageRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.PostChannelMessageResponse>) responseObserver);
+          serviceImpl.postMessage((talon.v1.Channels.PostChannelMessageRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Channels.PostChannelMessageResponse>) responseObserver);
           break;
         case METHODID_GET_MESSAGE:
-          serviceImpl.getMessage((talon.v1.Api.GetChannelMessageRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.ChannelMessageResponse>) responseObserver);
+          serviceImpl.getMessage((talon.v1.Channels.GetChannelMessageRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Channels.ChannelMessageResponse>) responseObserver);
           break;
         case METHODID_LIST_MESSAGES:
-          serviceImpl.listMessages((talon.v1.Api.ListChannelMessagesRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.ListChannelMessagesResponse>) responseObserver);
+          serviceImpl.listMessages((talon.v1.Channels.ListChannelMessagesRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Channels.ListChannelMessagesResponse>) responseObserver);
           break;
         case METHODID_STREAM_EVENTS:
-          serviceImpl.streamEvents((talon.v1.Api.StreamChannelEventsRequest) request,
+          serviceImpl.streamEvents((talon.v1.Channels.StreamChannelEventsRequest) request,
               (io.grpc.stub.StreamObserver<talon.events.Events.ChannelEvent>) responseObserver);
           break;
         default:
@@ -482,28 +482,28 @@ public final class ChannelServiceGrpc {
           getPostMessageMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.PostChannelMessageRequest,
-              talon.v1.Api.PostChannelMessageResponse>(
+              talon.v1.Channels.PostChannelMessageRequest,
+              talon.v1.Channels.PostChannelMessageResponse>(
                 service, METHODID_POST_MESSAGE)))
         .addMethod(
           getGetMessageMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.GetChannelMessageRequest,
-              talon.v1.Api.ChannelMessageResponse>(
+              talon.v1.Channels.GetChannelMessageRequest,
+              talon.v1.Channels.ChannelMessageResponse>(
                 service, METHODID_GET_MESSAGE)))
         .addMethod(
           getListMessagesMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.ListChannelMessagesRequest,
-              talon.v1.Api.ListChannelMessagesResponse>(
+              talon.v1.Channels.ListChannelMessagesRequest,
+              talon.v1.Channels.ListChannelMessagesResponse>(
                 service, METHODID_LIST_MESSAGES)))
         .addMethod(
           getStreamEventsMethod(),
           io.grpc.stub.ServerCalls.asyncServerStreamingCall(
             new MethodHandlers<
-              talon.v1.Api.StreamChannelEventsRequest,
+              talon.v1.Channels.StreamChannelEventsRequest,
               talon.events.Events.ChannelEvent>(
                 service, METHODID_STREAM_EVENTS)))
         .build();
@@ -515,7 +515,7 @@ public final class ChannelServiceGrpc {
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
-      return talon.v1.Api.getDescriptor();
+      return talon.v1.Channels.getDescriptor();
     }
 
     @java.lang.Override

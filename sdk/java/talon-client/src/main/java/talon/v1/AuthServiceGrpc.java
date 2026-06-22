@@ -12,29 +12,29 @@ public final class AuthServiceGrpc {
   public static final java.lang.String SERVICE_NAME = "talon.v1.AuthService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.GetSsoConfigRequest,
-      talon.v1.Api.GetSsoConfigResponse> getGetSsoConfigMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Auth.GetSsoConfigRequest,
+      talon.v1.Auth.GetSsoConfigResponse> getGetSsoConfigMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "GetSsoConfig",
-      requestType = talon.v1.Api.GetSsoConfigRequest.class,
-      responseType = talon.v1.Api.GetSsoConfigResponse.class,
+      requestType = talon.v1.Auth.GetSsoConfigRequest.class,
+      responseType = talon.v1.Auth.GetSsoConfigResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.GetSsoConfigRequest,
-      talon.v1.Api.GetSsoConfigResponse> getGetSsoConfigMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.GetSsoConfigRequest, talon.v1.Api.GetSsoConfigResponse> getGetSsoConfigMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Auth.GetSsoConfigRequest,
+      talon.v1.Auth.GetSsoConfigResponse> getGetSsoConfigMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Auth.GetSsoConfigRequest, talon.v1.Auth.GetSsoConfigResponse> getGetSsoConfigMethod;
     if ((getGetSsoConfigMethod = AuthServiceGrpc.getGetSsoConfigMethod) == null) {
       synchronized (AuthServiceGrpc.class) {
         if ((getGetSsoConfigMethod = AuthServiceGrpc.getGetSsoConfigMethod) == null) {
           AuthServiceGrpc.getGetSsoConfigMethod = getGetSsoConfigMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.GetSsoConfigRequest, talon.v1.Api.GetSsoConfigResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Auth.GetSsoConfigRequest, talon.v1.Auth.GetSsoConfigResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetSsoConfig"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.GetSsoConfigRequest.getDefaultInstance()))
+                  talon.v1.Auth.GetSsoConfigRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.GetSsoConfigResponse.getDefaultInstance()))
+                  talon.v1.Auth.GetSsoConfigResponse.getDefaultInstance()))
               .setSchemaDescriptor(new AuthServiceMethodDescriptorSupplier("GetSsoConfig"))
               .build();
         }
@@ -43,29 +43,29 @@ public final class AuthServiceGrpc {
     return getGetSsoConfigMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.ExchangeOidcTokenRequest,
-      talon.v1.Api.ExchangeOidcTokenResponse> getExchangeOidcTokenMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Auth.ExchangeOidcTokenRequest,
+      talon.v1.Auth.ExchangeOidcTokenResponse> getExchangeOidcTokenMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "ExchangeOidcToken",
-      requestType = talon.v1.Api.ExchangeOidcTokenRequest.class,
-      responseType = talon.v1.Api.ExchangeOidcTokenResponse.class,
+      requestType = talon.v1.Auth.ExchangeOidcTokenRequest.class,
+      responseType = talon.v1.Auth.ExchangeOidcTokenResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.ExchangeOidcTokenRequest,
-      talon.v1.Api.ExchangeOidcTokenResponse> getExchangeOidcTokenMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.ExchangeOidcTokenRequest, talon.v1.Api.ExchangeOidcTokenResponse> getExchangeOidcTokenMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Auth.ExchangeOidcTokenRequest,
+      talon.v1.Auth.ExchangeOidcTokenResponse> getExchangeOidcTokenMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Auth.ExchangeOidcTokenRequest, talon.v1.Auth.ExchangeOidcTokenResponse> getExchangeOidcTokenMethod;
     if ((getExchangeOidcTokenMethod = AuthServiceGrpc.getExchangeOidcTokenMethod) == null) {
       synchronized (AuthServiceGrpc.class) {
         if ((getExchangeOidcTokenMethod = AuthServiceGrpc.getExchangeOidcTokenMethod) == null) {
           AuthServiceGrpc.getExchangeOidcTokenMethod = getExchangeOidcTokenMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.ExchangeOidcTokenRequest, talon.v1.Api.ExchangeOidcTokenResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Auth.ExchangeOidcTokenRequest, talon.v1.Auth.ExchangeOidcTokenResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ExchangeOidcToken"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ExchangeOidcTokenRequest.getDefaultInstance()))
+                  talon.v1.Auth.ExchangeOidcTokenRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ExchangeOidcTokenResponse.getDefaultInstance()))
+                  talon.v1.Auth.ExchangeOidcTokenResponse.getDefaultInstance()))
               .setSchemaDescriptor(new AuthServiceMethodDescriptorSupplier("ExchangeOidcToken"))
               .build();
         }
@@ -139,15 +139,15 @@ public final class AuthServiceGrpc {
 
     /**
      */
-    default void getSsoConfig(talon.v1.Api.GetSsoConfigRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.GetSsoConfigResponse> responseObserver) {
+    default void getSsoConfig(talon.v1.Auth.GetSsoConfigRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.GetSsoConfigResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetSsoConfigMethod(), responseObserver);
     }
 
     /**
      */
-    default void exchangeOidcToken(talon.v1.Api.ExchangeOidcTokenRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ExchangeOidcTokenResponse> responseObserver) {
+    default void exchangeOidcToken(talon.v1.Auth.ExchangeOidcTokenRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.ExchangeOidcTokenResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getExchangeOidcTokenMethod(), responseObserver);
     }
   }
@@ -181,16 +181,16 @@ public final class AuthServiceGrpc {
 
     /**
      */
-    public void getSsoConfig(talon.v1.Api.GetSsoConfigRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.GetSsoConfigResponse> responseObserver) {
+    public void getSsoConfig(talon.v1.Auth.GetSsoConfigRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.GetSsoConfigResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getGetSsoConfigMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void exchangeOidcToken(talon.v1.Api.ExchangeOidcTokenRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ExchangeOidcTokenResponse> responseObserver) {
+    public void exchangeOidcToken(talon.v1.Auth.ExchangeOidcTokenRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.ExchangeOidcTokenResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getExchangeOidcTokenMethod(), getCallOptions()), request, responseObserver);
     }
@@ -214,14 +214,14 @@ public final class AuthServiceGrpc {
 
     /**
      */
-    public talon.v1.Api.GetSsoConfigResponse getSsoConfig(talon.v1.Api.GetSsoConfigRequest request) throws io.grpc.StatusException {
+    public talon.v1.Auth.GetSsoConfigResponse getSsoConfig(talon.v1.Auth.GetSsoConfigRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getGetSsoConfigMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ExchangeOidcTokenResponse exchangeOidcToken(talon.v1.Api.ExchangeOidcTokenRequest request) throws io.grpc.StatusException {
+    public talon.v1.Auth.ExchangeOidcTokenResponse exchangeOidcToken(talon.v1.Auth.ExchangeOidcTokenRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getExchangeOidcTokenMethod(), getCallOptions(), request);
     }
@@ -245,14 +245,14 @@ public final class AuthServiceGrpc {
 
     /**
      */
-    public talon.v1.Api.GetSsoConfigResponse getSsoConfig(talon.v1.Api.GetSsoConfigRequest request) {
+    public talon.v1.Auth.GetSsoConfigResponse getSsoConfig(talon.v1.Auth.GetSsoConfigRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getGetSsoConfigMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ExchangeOidcTokenResponse exchangeOidcToken(talon.v1.Api.ExchangeOidcTokenRequest request) {
+    public talon.v1.Auth.ExchangeOidcTokenResponse exchangeOidcToken(talon.v1.Auth.ExchangeOidcTokenRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getExchangeOidcTokenMethod(), getCallOptions(), request);
     }
@@ -276,16 +276,16 @@ public final class AuthServiceGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.GetSsoConfigResponse> getSsoConfig(
-        talon.v1.Api.GetSsoConfigRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Auth.GetSsoConfigResponse> getSsoConfig(
+        talon.v1.Auth.GetSsoConfigRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getGetSsoConfigMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.ExchangeOidcTokenResponse> exchangeOidcToken(
-        talon.v1.Api.ExchangeOidcTokenRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Auth.ExchangeOidcTokenResponse> exchangeOidcToken(
+        talon.v1.Auth.ExchangeOidcTokenRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getExchangeOidcTokenMethod(), getCallOptions()), request);
     }
@@ -312,12 +312,12 @@ public final class AuthServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_GET_SSO_CONFIG:
-          serviceImpl.getSsoConfig((talon.v1.Api.GetSsoConfigRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.GetSsoConfigResponse>) responseObserver);
+          serviceImpl.getSsoConfig((talon.v1.Auth.GetSsoConfigRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Auth.GetSsoConfigResponse>) responseObserver);
           break;
         case METHODID_EXCHANGE_OIDC_TOKEN:
-          serviceImpl.exchangeOidcToken((talon.v1.Api.ExchangeOidcTokenRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.ExchangeOidcTokenResponse>) responseObserver);
+          serviceImpl.exchangeOidcToken((talon.v1.Auth.ExchangeOidcTokenRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Auth.ExchangeOidcTokenResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -341,15 +341,15 @@ public final class AuthServiceGrpc {
           getGetSsoConfigMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.GetSsoConfigRequest,
-              talon.v1.Api.GetSsoConfigResponse>(
+              talon.v1.Auth.GetSsoConfigRequest,
+              talon.v1.Auth.GetSsoConfigResponse>(
                 service, METHODID_GET_SSO_CONFIG)))
         .addMethod(
           getExchangeOidcTokenMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.ExchangeOidcTokenRequest,
-              talon.v1.Api.ExchangeOidcTokenResponse>(
+              talon.v1.Auth.ExchangeOidcTokenRequest,
+              talon.v1.Auth.ExchangeOidcTokenResponse>(
                 service, METHODID_EXCHANGE_OIDC_TOKEN)))
         .build();
   }
@@ -360,7 +360,7 @@ public final class AuthServiceGrpc {
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
-      return talon.v1.Api.getDescriptor();
+      return talon.v1.Auth.getDescriptor();
     }
 
     @java.lang.Override

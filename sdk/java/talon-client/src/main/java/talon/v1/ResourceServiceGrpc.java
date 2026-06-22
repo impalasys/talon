@@ -12,29 +12,29 @@ public final class ResourceServiceGrpc {
   public static final java.lang.String SERVICE_NAME = "talon.v1.ResourceService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.CreateResourceRequest,
-      talon.v1.Api.ResourceResponse> getCreateMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Resources.CreateResourceRequest,
+      talon.v1.Resources.ResourceResponse> getCreateMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Create",
-      requestType = talon.v1.Api.CreateResourceRequest.class,
-      responseType = talon.v1.Api.ResourceResponse.class,
+      requestType = talon.v1.Resources.CreateResourceRequest.class,
+      responseType = talon.v1.Resources.ResourceResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.CreateResourceRequest,
-      talon.v1.Api.ResourceResponse> getCreateMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.CreateResourceRequest, talon.v1.Api.ResourceResponse> getCreateMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Resources.CreateResourceRequest,
+      talon.v1.Resources.ResourceResponse> getCreateMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Resources.CreateResourceRequest, talon.v1.Resources.ResourceResponse> getCreateMethod;
     if ((getCreateMethod = ResourceServiceGrpc.getCreateMethod) == null) {
       synchronized (ResourceServiceGrpc.class) {
         if ((getCreateMethod = ResourceServiceGrpc.getCreateMethod) == null) {
           ResourceServiceGrpc.getCreateMethod = getCreateMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.CreateResourceRequest, talon.v1.Api.ResourceResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Resources.CreateResourceRequest, talon.v1.Resources.ResourceResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Create"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.CreateResourceRequest.getDefaultInstance()))
+                  talon.v1.Resources.CreateResourceRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ResourceResponse.getDefaultInstance()))
+                  talon.v1.Resources.ResourceResponse.getDefaultInstance()))
               .setSchemaDescriptor(new ResourceServiceMethodDescriptorSupplier("Create"))
               .build();
         }
@@ -43,29 +43,29 @@ public final class ResourceServiceGrpc {
     return getCreateMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.GetResourceRequest,
-      talon.v1.Api.ResourceResponse> getGetMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Resources.GetResourceRequest,
+      talon.v1.Resources.ResourceResponse> getGetMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Get",
-      requestType = talon.v1.Api.GetResourceRequest.class,
-      responseType = talon.v1.Api.ResourceResponse.class,
+      requestType = talon.v1.Resources.GetResourceRequest.class,
+      responseType = talon.v1.Resources.ResourceResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.GetResourceRequest,
-      talon.v1.Api.ResourceResponse> getGetMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.GetResourceRequest, talon.v1.Api.ResourceResponse> getGetMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Resources.GetResourceRequest,
+      talon.v1.Resources.ResourceResponse> getGetMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Resources.GetResourceRequest, talon.v1.Resources.ResourceResponse> getGetMethod;
     if ((getGetMethod = ResourceServiceGrpc.getGetMethod) == null) {
       synchronized (ResourceServiceGrpc.class) {
         if ((getGetMethod = ResourceServiceGrpc.getGetMethod) == null) {
           ResourceServiceGrpc.getGetMethod = getGetMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.GetResourceRequest, talon.v1.Api.ResourceResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Resources.GetResourceRequest, talon.v1.Resources.ResourceResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Get"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.GetResourceRequest.getDefaultInstance()))
+                  talon.v1.Resources.GetResourceRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ResourceResponse.getDefaultInstance()))
+                  talon.v1.Resources.ResourceResponse.getDefaultInstance()))
               .setSchemaDescriptor(new ResourceServiceMethodDescriptorSupplier("Get"))
               .build();
         }
@@ -74,29 +74,29 @@ public final class ResourceServiceGrpc {
     return getGetMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.ListResourcesRequest,
-      talon.v1.Api.ListResourcesResponse> getListMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Resources.ListResourcesRequest,
+      talon.v1.Resources.ListResourcesResponse> getListMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "List",
-      requestType = talon.v1.Api.ListResourcesRequest.class,
-      responseType = talon.v1.Api.ListResourcesResponse.class,
+      requestType = talon.v1.Resources.ListResourcesRequest.class,
+      responseType = talon.v1.Resources.ListResourcesResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.ListResourcesRequest,
-      talon.v1.Api.ListResourcesResponse> getListMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.ListResourcesRequest, talon.v1.Api.ListResourcesResponse> getListMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Resources.ListResourcesRequest,
+      talon.v1.Resources.ListResourcesResponse> getListMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Resources.ListResourcesRequest, talon.v1.Resources.ListResourcesResponse> getListMethod;
     if ((getListMethod = ResourceServiceGrpc.getListMethod) == null) {
       synchronized (ResourceServiceGrpc.class) {
         if ((getListMethod = ResourceServiceGrpc.getListMethod) == null) {
           ResourceServiceGrpc.getListMethod = getListMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.ListResourcesRequest, talon.v1.Api.ListResourcesResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Resources.ListResourcesRequest, talon.v1.Resources.ListResourcesResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "List"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ListResourcesRequest.getDefaultInstance()))
+                  talon.v1.Resources.ListResourcesRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ListResourcesResponse.getDefaultInstance()))
+                  talon.v1.Resources.ListResourcesResponse.getDefaultInstance()))
               .setSchemaDescriptor(new ResourceServiceMethodDescriptorSupplier("List"))
               .build();
         }
@@ -105,29 +105,29 @@ public final class ResourceServiceGrpc {
     return getListMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.DeleteResourceRequest,
-      talon.v1.Api.DeleteResourceResponse> getDeleteMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Resources.DeleteResourceRequest,
+      talon.v1.Resources.DeleteResourceResponse> getDeleteMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Delete",
-      requestType = talon.v1.Api.DeleteResourceRequest.class,
-      responseType = talon.v1.Api.DeleteResourceResponse.class,
+      requestType = talon.v1.Resources.DeleteResourceRequest.class,
+      responseType = talon.v1.Resources.DeleteResourceResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.DeleteResourceRequest,
-      talon.v1.Api.DeleteResourceResponse> getDeleteMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.DeleteResourceRequest, talon.v1.Api.DeleteResourceResponse> getDeleteMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Resources.DeleteResourceRequest,
+      talon.v1.Resources.DeleteResourceResponse> getDeleteMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Resources.DeleteResourceRequest, talon.v1.Resources.DeleteResourceResponse> getDeleteMethod;
     if ((getDeleteMethod = ResourceServiceGrpc.getDeleteMethod) == null) {
       synchronized (ResourceServiceGrpc.class) {
         if ((getDeleteMethod = ResourceServiceGrpc.getDeleteMethod) == null) {
           ResourceServiceGrpc.getDeleteMethod = getDeleteMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.DeleteResourceRequest, talon.v1.Api.DeleteResourceResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Resources.DeleteResourceRequest, talon.v1.Resources.DeleteResourceResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Delete"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.DeleteResourceRequest.getDefaultInstance()))
+                  talon.v1.Resources.DeleteResourceRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.DeleteResourceResponse.getDefaultInstance()))
+                  talon.v1.Resources.DeleteResourceResponse.getDefaultInstance()))
               .setSchemaDescriptor(new ResourceServiceMethodDescriptorSupplier("Delete"))
               .build();
         }
@@ -201,29 +201,29 @@ public final class ResourceServiceGrpc {
 
     /**
      */
-    default void create(talon.v1.Api.CreateResourceRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ResourceResponse> responseObserver) {
+    default void create(talon.v1.Resources.CreateResourceRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Resources.ResourceResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateMethod(), responseObserver);
     }
 
     /**
      */
-    default void get(talon.v1.Api.GetResourceRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ResourceResponse> responseObserver) {
+    default void get(talon.v1.Resources.GetResourceRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Resources.ResourceResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetMethod(), responseObserver);
     }
 
     /**
      */
-    default void list(talon.v1.Api.ListResourcesRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ListResourcesResponse> responseObserver) {
+    default void list(talon.v1.Resources.ListResourcesRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Resources.ListResourcesResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListMethod(), responseObserver);
     }
 
     /**
      */
-    default void delete(talon.v1.Api.DeleteResourceRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.DeleteResourceResponse> responseObserver) {
+    default void delete(talon.v1.Resources.DeleteResourceRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Resources.DeleteResourceResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteMethod(), responseObserver);
     }
   }
@@ -257,32 +257,32 @@ public final class ResourceServiceGrpc {
 
     /**
      */
-    public void create(talon.v1.Api.CreateResourceRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ResourceResponse> responseObserver) {
+    public void create(talon.v1.Resources.CreateResourceRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Resources.ResourceResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getCreateMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void get(talon.v1.Api.GetResourceRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ResourceResponse> responseObserver) {
+    public void get(talon.v1.Resources.GetResourceRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Resources.ResourceResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getGetMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void list(talon.v1.Api.ListResourcesRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ListResourcesResponse> responseObserver) {
+    public void list(talon.v1.Resources.ListResourcesRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Resources.ListResourcesResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getListMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void delete(talon.v1.Api.DeleteResourceRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.DeleteResourceResponse> responseObserver) {
+    public void delete(talon.v1.Resources.DeleteResourceRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Resources.DeleteResourceResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getDeleteMethod(), getCallOptions()), request, responseObserver);
     }
@@ -306,28 +306,28 @@ public final class ResourceServiceGrpc {
 
     /**
      */
-    public talon.v1.Api.ResourceResponse create(talon.v1.Api.CreateResourceRequest request) throws io.grpc.StatusException {
+    public talon.v1.Resources.ResourceResponse create(talon.v1.Resources.CreateResourceRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getCreateMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ResourceResponse get(talon.v1.Api.GetResourceRequest request) throws io.grpc.StatusException {
+    public talon.v1.Resources.ResourceResponse get(talon.v1.Resources.GetResourceRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getGetMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ListResourcesResponse list(talon.v1.Api.ListResourcesRequest request) throws io.grpc.StatusException {
+    public talon.v1.Resources.ListResourcesResponse list(talon.v1.Resources.ListResourcesRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getListMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.DeleteResourceResponse delete(talon.v1.Api.DeleteResourceRequest request) throws io.grpc.StatusException {
+    public talon.v1.Resources.DeleteResourceResponse delete(talon.v1.Resources.DeleteResourceRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getDeleteMethod(), getCallOptions(), request);
     }
@@ -351,28 +351,28 @@ public final class ResourceServiceGrpc {
 
     /**
      */
-    public talon.v1.Api.ResourceResponse create(talon.v1.Api.CreateResourceRequest request) {
+    public talon.v1.Resources.ResourceResponse create(talon.v1.Resources.CreateResourceRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getCreateMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ResourceResponse get(talon.v1.Api.GetResourceRequest request) {
+    public talon.v1.Resources.ResourceResponse get(talon.v1.Resources.GetResourceRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getGetMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ListResourcesResponse list(talon.v1.Api.ListResourcesRequest request) {
+    public talon.v1.Resources.ListResourcesResponse list(talon.v1.Resources.ListResourcesRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getListMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.DeleteResourceResponse delete(talon.v1.Api.DeleteResourceRequest request) {
+    public talon.v1.Resources.DeleteResourceResponse delete(talon.v1.Resources.DeleteResourceRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getDeleteMethod(), getCallOptions(), request);
     }
@@ -396,32 +396,32 @@ public final class ResourceServiceGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.ResourceResponse> create(
-        talon.v1.Api.CreateResourceRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Resources.ResourceResponse> create(
+        talon.v1.Resources.CreateResourceRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getCreateMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.ResourceResponse> get(
-        talon.v1.Api.GetResourceRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Resources.ResourceResponse> get(
+        talon.v1.Resources.GetResourceRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getGetMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.ListResourcesResponse> list(
-        talon.v1.Api.ListResourcesRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Resources.ListResourcesResponse> list(
+        talon.v1.Resources.ListResourcesRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getListMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.DeleteResourceResponse> delete(
-        talon.v1.Api.DeleteResourceRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Resources.DeleteResourceResponse> delete(
+        talon.v1.Resources.DeleteResourceRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getDeleteMethod(), getCallOptions()), request);
     }
@@ -450,20 +450,20 @@ public final class ResourceServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_CREATE:
-          serviceImpl.create((talon.v1.Api.CreateResourceRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.ResourceResponse>) responseObserver);
+          serviceImpl.create((talon.v1.Resources.CreateResourceRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Resources.ResourceResponse>) responseObserver);
           break;
         case METHODID_GET:
-          serviceImpl.get((talon.v1.Api.GetResourceRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.ResourceResponse>) responseObserver);
+          serviceImpl.get((talon.v1.Resources.GetResourceRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Resources.ResourceResponse>) responseObserver);
           break;
         case METHODID_LIST:
-          serviceImpl.list((talon.v1.Api.ListResourcesRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.ListResourcesResponse>) responseObserver);
+          serviceImpl.list((talon.v1.Resources.ListResourcesRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Resources.ListResourcesResponse>) responseObserver);
           break;
         case METHODID_DELETE:
-          serviceImpl.delete((talon.v1.Api.DeleteResourceRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.DeleteResourceResponse>) responseObserver);
+          serviceImpl.delete((talon.v1.Resources.DeleteResourceRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Resources.DeleteResourceResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -487,29 +487,29 @@ public final class ResourceServiceGrpc {
           getCreateMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.CreateResourceRequest,
-              talon.v1.Api.ResourceResponse>(
+              talon.v1.Resources.CreateResourceRequest,
+              talon.v1.Resources.ResourceResponse>(
                 service, METHODID_CREATE)))
         .addMethod(
           getGetMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.GetResourceRequest,
-              talon.v1.Api.ResourceResponse>(
+              talon.v1.Resources.GetResourceRequest,
+              talon.v1.Resources.ResourceResponse>(
                 service, METHODID_GET)))
         .addMethod(
           getListMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.ListResourcesRequest,
-              talon.v1.Api.ListResourcesResponse>(
+              talon.v1.Resources.ListResourcesRequest,
+              talon.v1.Resources.ListResourcesResponse>(
                 service, METHODID_LIST)))
         .addMethod(
           getDeleteMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.DeleteResourceRequest,
-              talon.v1.Api.DeleteResourceResponse>(
+              talon.v1.Resources.DeleteResourceRequest,
+              talon.v1.Resources.DeleteResourceResponse>(
                 service, METHODID_DELETE)))
         .build();
   }
@@ -520,7 +520,7 @@ public final class ResourceServiceGrpc {
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
-      return talon.v1.Api.getDescriptor();
+      return talon.v1.Resources.getDescriptor();
     }
 
     @java.lang.Override

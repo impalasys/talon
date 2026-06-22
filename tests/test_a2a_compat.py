@@ -17,7 +17,7 @@ from a2a.client.client import ClientConfig
 from a2a.client.client_factory import ClientFactory
 from a2a.types import Message, Role, TextPart, TransportProtocol
 import conftest
-from proto.talon.v1 import api_pb2
+from proto.talon.v1 import namespaces_pb2
 
 
 def card_resolver(client: httpx.AsyncClient, agent_card_url: str) -> A2ACardResolver:
@@ -98,13 +98,13 @@ async def assert_grpc_web_list_namespaces(gateway_url: str):
                 "content-type": "application/grpc-web+proto",
                 "x-grpc-web": "1",
             },
-            content=grpc_web_frame(api_pb2.ListNamespacesRequest()),
+            content=grpc_web_frame(namespaces_pb2.ListNamespacesRequest()),
         )
     response.raise_for_status()
     assert response.headers["content-type"].startswith("application/grpc-web")
     list_response = parse_grpc_web_response(
         response.content,
-        api_pb2.ListNamespacesResponse,
+        namespaces_pb2.ListNamespacesResponse,
     )
     assert any(namespace.name == "default" for namespace in list_response.namespaces)
 

@@ -35,9 +35,9 @@ from proto.data.session_journal_entry_pb2 import (
 from proto.events_pb2 import (
     SessionMessagePartEvent,
 )
-from proto.talon.v1.api_pb2 import (
-    CreateNamespaceRequest,
-    CreateResourceRequest,
+from proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest
+from proto.talon.v1.resources_pb2 import CreateResourceRequest
+from proto.talon.v1.sessions_pb2 import (
     CreateSessionRequest,
     GetSessionRequest,
     SendMessageRequest,

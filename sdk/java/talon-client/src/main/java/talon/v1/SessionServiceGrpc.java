@@ -12,29 +12,29 @@ public final class SessionServiceGrpc {
   public static final java.lang.String SERVICE_NAME = "talon.v1.SessionService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.CreateSessionRequest,
-      talon.v1.Api.SessionResponse> getCreateMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.CreateSessionRequest,
+      talon.v1.Sessions.SessionResponse> getCreateMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Create",
-      requestType = talon.v1.Api.CreateSessionRequest.class,
-      responseType = talon.v1.Api.SessionResponse.class,
+      requestType = talon.v1.Sessions.CreateSessionRequest.class,
+      responseType = talon.v1.Sessions.SessionResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.CreateSessionRequest,
-      talon.v1.Api.SessionResponse> getCreateMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.CreateSessionRequest, talon.v1.Api.SessionResponse> getCreateMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.CreateSessionRequest,
+      talon.v1.Sessions.SessionResponse> getCreateMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.CreateSessionRequest, talon.v1.Sessions.SessionResponse> getCreateMethod;
     if ((getCreateMethod = SessionServiceGrpc.getCreateMethod) == null) {
       synchronized (SessionServiceGrpc.class) {
         if ((getCreateMethod = SessionServiceGrpc.getCreateMethod) == null) {
           SessionServiceGrpc.getCreateMethod = getCreateMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.CreateSessionRequest, talon.v1.Api.SessionResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.CreateSessionRequest, talon.v1.Sessions.SessionResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Create"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.CreateSessionRequest.getDefaultInstance()))
+                  talon.v1.Sessions.CreateSessionRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.SessionResponse.getDefaultInstance()))
+                  talon.v1.Sessions.SessionResponse.getDefaultInstance()))
               .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("Create"))
               .build();
         }
@@ -43,29 +43,29 @@ public final class SessionServiceGrpc {
     return getCreateMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.GetSessionRequest,
-      talon.v1.Api.SessionResponse> getGetMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.GetSessionRequest,
+      talon.v1.Sessions.SessionResponse> getGetMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Get",
-      requestType = talon.v1.Api.GetSessionRequest.class,
-      responseType = talon.v1.Api.SessionResponse.class,
+      requestType = talon.v1.Sessions.GetSessionRequest.class,
+      responseType = talon.v1.Sessions.SessionResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.GetSessionRequest,
-      talon.v1.Api.SessionResponse> getGetMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.GetSessionRequest, talon.v1.Api.SessionResponse> getGetMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.GetSessionRequest,
+      talon.v1.Sessions.SessionResponse> getGetMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.GetSessionRequest, talon.v1.Sessions.SessionResponse> getGetMethod;
     if ((getGetMethod = SessionServiceGrpc.getGetMethod) == null) {
       synchronized (SessionServiceGrpc.class) {
         if ((getGetMethod = SessionServiceGrpc.getGetMethod) == null) {
           SessionServiceGrpc.getGetMethod = getGetMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.GetSessionRequest, talon.v1.Api.SessionResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.GetSessionRequest, talon.v1.Sessions.SessionResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Get"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.GetSessionRequest.getDefaultInstance()))
+                  talon.v1.Sessions.GetSessionRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.SessionResponse.getDefaultInstance()))
+                  talon.v1.Sessions.SessionResponse.getDefaultInstance()))
               .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("Get"))
               .build();
         }
@@ -74,29 +74,29 @@ public final class SessionServiceGrpc {
     return getGetMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.ListSessionsRequest,
-      talon.v1.Api.ListSessionsResponse> getListMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.ListSessionsRequest,
+      talon.v1.Sessions.ListSessionsResponse> getListMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "List",
-      requestType = talon.v1.Api.ListSessionsRequest.class,
-      responseType = talon.v1.Api.ListSessionsResponse.class,
+      requestType = talon.v1.Sessions.ListSessionsRequest.class,
+      responseType = talon.v1.Sessions.ListSessionsResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.ListSessionsRequest,
-      talon.v1.Api.ListSessionsResponse> getListMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.ListSessionsRequest, talon.v1.Api.ListSessionsResponse> getListMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.ListSessionsRequest,
+      talon.v1.Sessions.ListSessionsResponse> getListMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.ListSessionsRequest, talon.v1.Sessions.ListSessionsResponse> getListMethod;
     if ((getListMethod = SessionServiceGrpc.getListMethod) == null) {
       synchronized (SessionServiceGrpc.class) {
         if ((getListMethod = SessionServiceGrpc.getListMethod) == null) {
           SessionServiceGrpc.getListMethod = getListMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.ListSessionsRequest, talon.v1.Api.ListSessionsResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.ListSessionsRequest, talon.v1.Sessions.ListSessionsResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "List"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ListSessionsRequest.getDefaultInstance()))
+                  talon.v1.Sessions.ListSessionsRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ListSessionsResponse.getDefaultInstance()))
+                  talon.v1.Sessions.ListSessionsResponse.getDefaultInstance()))
               .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("List"))
               .build();
         }
@@ -105,29 +105,29 @@ public final class SessionServiceGrpc {
     return getListMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.ListSessionMessagesRequest,
-      talon.v1.Api.ListSessionMessagesResponse> getListMessagesMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.ListSessionMessagesRequest,
+      talon.v1.Sessions.ListSessionMessagesResponse> getListMessagesMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "ListMessages",
-      requestType = talon.v1.Api.ListSessionMessagesRequest.class,
-      responseType = talon.v1.Api.ListSessionMessagesResponse.class,
+      requestType = talon.v1.Sessions.ListSessionMessagesRequest.class,
+      responseType = talon.v1.Sessions.ListSessionMessagesResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.ListSessionMessagesRequest,
-      talon.v1.Api.ListSessionMessagesResponse> getListMessagesMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.ListSessionMessagesRequest, talon.v1.Api.ListSessionMessagesResponse> getListMessagesMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.ListSessionMessagesRequest,
+      talon.v1.Sessions.ListSessionMessagesResponse> getListMessagesMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.ListSessionMessagesRequest, talon.v1.Sessions.ListSessionMessagesResponse> getListMessagesMethod;
     if ((getListMessagesMethod = SessionServiceGrpc.getListMessagesMethod) == null) {
       synchronized (SessionServiceGrpc.class) {
         if ((getListMessagesMethod = SessionServiceGrpc.getListMessagesMethod) == null) {
           SessionServiceGrpc.getListMessagesMethod = getListMessagesMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.ListSessionMessagesRequest, talon.v1.Api.ListSessionMessagesResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.ListSessionMessagesRequest, talon.v1.Sessions.ListSessionMessagesResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListMessages"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ListSessionMessagesRequest.getDefaultInstance()))
+                  talon.v1.Sessions.ListSessionMessagesRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ListSessionMessagesResponse.getDefaultInstance()))
+                  talon.v1.Sessions.ListSessionMessagesResponse.getDefaultInstance()))
               .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("ListMessages"))
               .build();
         }
@@ -136,29 +136,29 @@ public final class SessionServiceGrpc {
     return getListMessagesMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.DeleteSessionRequest,
-      talon.v1.Api.DeleteSessionResponse> getDeleteMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.DeleteSessionRequest,
+      talon.v1.Sessions.DeleteSessionResponse> getDeleteMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Delete",
-      requestType = talon.v1.Api.DeleteSessionRequest.class,
-      responseType = talon.v1.Api.DeleteSessionResponse.class,
+      requestType = talon.v1.Sessions.DeleteSessionRequest.class,
+      responseType = talon.v1.Sessions.DeleteSessionResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.DeleteSessionRequest,
-      talon.v1.Api.DeleteSessionResponse> getDeleteMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.DeleteSessionRequest, talon.v1.Api.DeleteSessionResponse> getDeleteMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.DeleteSessionRequest,
+      talon.v1.Sessions.DeleteSessionResponse> getDeleteMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.DeleteSessionRequest, talon.v1.Sessions.DeleteSessionResponse> getDeleteMethod;
     if ((getDeleteMethod = SessionServiceGrpc.getDeleteMethod) == null) {
       synchronized (SessionServiceGrpc.class) {
         if ((getDeleteMethod = SessionServiceGrpc.getDeleteMethod) == null) {
           SessionServiceGrpc.getDeleteMethod = getDeleteMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.DeleteSessionRequest, talon.v1.Api.DeleteSessionResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.DeleteSessionRequest, talon.v1.Sessions.DeleteSessionResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Delete"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.DeleteSessionRequest.getDefaultInstance()))
+                  talon.v1.Sessions.DeleteSessionRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.DeleteSessionResponse.getDefaultInstance()))
+                  talon.v1.Sessions.DeleteSessionResponse.getDefaultInstance()))
               .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("Delete"))
               .build();
         }
@@ -167,29 +167,29 @@ public final class SessionServiceGrpc {
     return getDeleteMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.ClearSessionRequest,
-      talon.v1.Api.ClearSessionResponse> getClearMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.ClearSessionRequest,
+      talon.v1.Sessions.ClearSessionResponse> getClearMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Clear",
-      requestType = talon.v1.Api.ClearSessionRequest.class,
-      responseType = talon.v1.Api.ClearSessionResponse.class,
+      requestType = talon.v1.Sessions.ClearSessionRequest.class,
+      responseType = talon.v1.Sessions.ClearSessionResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.ClearSessionRequest,
-      talon.v1.Api.ClearSessionResponse> getClearMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.ClearSessionRequest, talon.v1.Api.ClearSessionResponse> getClearMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.ClearSessionRequest,
+      talon.v1.Sessions.ClearSessionResponse> getClearMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.ClearSessionRequest, talon.v1.Sessions.ClearSessionResponse> getClearMethod;
     if ((getClearMethod = SessionServiceGrpc.getClearMethod) == null) {
       synchronized (SessionServiceGrpc.class) {
         if ((getClearMethod = SessionServiceGrpc.getClearMethod) == null) {
           SessionServiceGrpc.getClearMethod = getClearMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.ClearSessionRequest, talon.v1.Api.ClearSessionResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.ClearSessionRequest, talon.v1.Sessions.ClearSessionResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Clear"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ClearSessionRequest.getDefaultInstance()))
+                  talon.v1.Sessions.ClearSessionRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.ClearSessionResponse.getDefaultInstance()))
+                  talon.v1.Sessions.ClearSessionResponse.getDefaultInstance()))
               .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("Clear"))
               .build();
         }
@@ -198,29 +198,29 @@ public final class SessionServiceGrpc {
     return getClearMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.SendMessageRequest,
-      talon.v1.Api.SendMessageResponse> getSendMessageMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.SendMessageRequest,
+      talon.v1.Sessions.SendMessageResponse> getSendMessageMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "SendMessage",
-      requestType = talon.v1.Api.SendMessageRequest.class,
-      responseType = talon.v1.Api.SendMessageResponse.class,
+      requestType = talon.v1.Sessions.SendMessageRequest.class,
+      responseType = talon.v1.Sessions.SendMessageResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.SendMessageRequest,
-      talon.v1.Api.SendMessageResponse> getSendMessageMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.SendMessageRequest, talon.v1.Api.SendMessageResponse> getSendMessageMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.SendMessageRequest,
+      talon.v1.Sessions.SendMessageResponse> getSendMessageMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.SendMessageRequest, talon.v1.Sessions.SendMessageResponse> getSendMessageMethod;
     if ((getSendMessageMethod = SessionServiceGrpc.getSendMessageMethod) == null) {
       synchronized (SessionServiceGrpc.class) {
         if ((getSendMessageMethod = SessionServiceGrpc.getSendMessageMethod) == null) {
           SessionServiceGrpc.getSendMessageMethod = getSendMessageMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.SendMessageRequest, talon.v1.Api.SendMessageResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.SendMessageRequest, talon.v1.Sessions.SendMessageResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "SendMessage"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.SendMessageRequest.getDefaultInstance()))
+                  talon.v1.Sessions.SendMessageRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.SendMessageResponse.getDefaultInstance()))
+                  talon.v1.Sessions.SendMessageResponse.getDefaultInstance()))
               .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("SendMessage"))
               .build();
         }
@@ -229,29 +229,29 @@ public final class SessionServiceGrpc {
     return getSendMessageMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.AppendSessionMessageRequest,
-      talon.v1.Api.AppendSessionMessageResponse> getAppendMessageMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.AppendSessionMessageRequest,
+      talon.v1.Sessions.AppendSessionMessageResponse> getAppendMessageMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "AppendMessage",
-      requestType = talon.v1.Api.AppendSessionMessageRequest.class,
-      responseType = talon.v1.Api.AppendSessionMessageResponse.class,
+      requestType = talon.v1.Sessions.AppendSessionMessageRequest.class,
+      responseType = talon.v1.Sessions.AppendSessionMessageResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.AppendSessionMessageRequest,
-      talon.v1.Api.AppendSessionMessageResponse> getAppendMessageMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.AppendSessionMessageRequest, talon.v1.Api.AppendSessionMessageResponse> getAppendMessageMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.AppendSessionMessageRequest,
+      talon.v1.Sessions.AppendSessionMessageResponse> getAppendMessageMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.AppendSessionMessageRequest, talon.v1.Sessions.AppendSessionMessageResponse> getAppendMessageMethod;
     if ((getAppendMessageMethod = SessionServiceGrpc.getAppendMessageMethod) == null) {
       synchronized (SessionServiceGrpc.class) {
         if ((getAppendMessageMethod = SessionServiceGrpc.getAppendMessageMethod) == null) {
           SessionServiceGrpc.getAppendMessageMethod = getAppendMessageMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.AppendSessionMessageRequest, talon.v1.Api.AppendSessionMessageResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.AppendSessionMessageRequest, talon.v1.Sessions.AppendSessionMessageResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "AppendMessage"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.AppendSessionMessageRequest.getDefaultInstance()))
+                  talon.v1.Sessions.AppendSessionMessageRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.AppendSessionMessageResponse.getDefaultInstance()))
+                  talon.v1.Sessions.AppendSessionMessageResponse.getDefaultInstance()))
               .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("AppendMessage"))
               .build();
         }
@@ -260,29 +260,29 @@ public final class SessionServiceGrpc {
     return getAppendMessageMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.AnswerSessionPermissionRequest,
-      talon.v1.Api.AnswerSessionPermissionResponse> getAnswerPermissionMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.AnswerSessionPermissionRequest,
+      talon.v1.Sessions.AnswerSessionPermissionResponse> getAnswerPermissionMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "AnswerPermission",
-      requestType = talon.v1.Api.AnswerSessionPermissionRequest.class,
-      responseType = talon.v1.Api.AnswerSessionPermissionResponse.class,
+      requestType = talon.v1.Sessions.AnswerSessionPermissionRequest.class,
+      responseType = talon.v1.Sessions.AnswerSessionPermissionResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.AnswerSessionPermissionRequest,
-      talon.v1.Api.AnswerSessionPermissionResponse> getAnswerPermissionMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.AnswerSessionPermissionRequest, talon.v1.Api.AnswerSessionPermissionResponse> getAnswerPermissionMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.AnswerSessionPermissionRequest,
+      talon.v1.Sessions.AnswerSessionPermissionResponse> getAnswerPermissionMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.AnswerSessionPermissionRequest, talon.v1.Sessions.AnswerSessionPermissionResponse> getAnswerPermissionMethod;
     if ((getAnswerPermissionMethod = SessionServiceGrpc.getAnswerPermissionMethod) == null) {
       synchronized (SessionServiceGrpc.class) {
         if ((getAnswerPermissionMethod = SessionServiceGrpc.getAnswerPermissionMethod) == null) {
           SessionServiceGrpc.getAnswerPermissionMethod = getAnswerPermissionMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.AnswerSessionPermissionRequest, talon.v1.Api.AnswerSessionPermissionResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.AnswerSessionPermissionRequest, talon.v1.Sessions.AnswerSessionPermissionResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "AnswerPermission"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.AnswerSessionPermissionRequest.getDefaultInstance()))
+                  talon.v1.Sessions.AnswerSessionPermissionRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.AnswerSessionPermissionResponse.getDefaultInstance()))
+                  talon.v1.Sessions.AnswerSessionPermissionResponse.getDefaultInstance()))
               .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("AnswerPermission"))
               .build();
         }
@@ -291,29 +291,29 @@ public final class SessionServiceGrpc {
     return getAnswerPermissionMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.StopSessionGenerationRequest,
-      talon.v1.Api.StopSessionGenerationResponse> getStopGenerationMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.StopSessionGenerationRequest,
+      talon.v1.Sessions.StopSessionGenerationResponse> getStopGenerationMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "StopGeneration",
-      requestType = talon.v1.Api.StopSessionGenerationRequest.class,
-      responseType = talon.v1.Api.StopSessionGenerationResponse.class,
+      requestType = talon.v1.Sessions.StopSessionGenerationRequest.class,
+      responseType = talon.v1.Sessions.StopSessionGenerationResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.StopSessionGenerationRequest,
-      talon.v1.Api.StopSessionGenerationResponse> getStopGenerationMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.StopSessionGenerationRequest, talon.v1.Api.StopSessionGenerationResponse> getStopGenerationMethod;
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.StopSessionGenerationRequest,
+      talon.v1.Sessions.StopSessionGenerationResponse> getStopGenerationMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.StopSessionGenerationRequest, talon.v1.Sessions.StopSessionGenerationResponse> getStopGenerationMethod;
     if ((getStopGenerationMethod = SessionServiceGrpc.getStopGenerationMethod) == null) {
       synchronized (SessionServiceGrpc.class) {
         if ((getStopGenerationMethod = SessionServiceGrpc.getStopGenerationMethod) == null) {
           SessionServiceGrpc.getStopGenerationMethod = getStopGenerationMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.StopSessionGenerationRequest, talon.v1.Api.StopSessionGenerationResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.StopSessionGenerationRequest, talon.v1.Sessions.StopSessionGenerationResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "StopGeneration"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.StopSessionGenerationRequest.getDefaultInstance()))
+                  talon.v1.Sessions.StopSessionGenerationRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.StopSessionGenerationResponse.getDefaultInstance()))
+                  talon.v1.Sessions.StopSessionGenerationResponse.getDefaultInstance()))
               .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("StopGeneration"))
               .build();
         }
@@ -322,27 +322,27 @@ public final class SessionServiceGrpc {
     return getStopGenerationMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.StreamSessionPartsRequest,
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.StreamSessionPartsRequest,
       talon.events.Events.SessionMessagePartEvent> getStreamPartsMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "StreamParts",
-      requestType = talon.v1.Api.StreamSessionPartsRequest.class,
+      requestType = talon.v1.Sessions.StreamSessionPartsRequest.class,
       responseType = talon.events.Events.SessionMessagePartEvent.class,
       methodType = io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.StreamSessionPartsRequest,
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.StreamSessionPartsRequest,
       talon.events.Events.SessionMessagePartEvent> getStreamPartsMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.StreamSessionPartsRequest, talon.events.Events.SessionMessagePartEvent> getStreamPartsMethod;
+    io.grpc.MethodDescriptor<talon.v1.Sessions.StreamSessionPartsRequest, talon.events.Events.SessionMessagePartEvent> getStreamPartsMethod;
     if ((getStreamPartsMethod = SessionServiceGrpc.getStreamPartsMethod) == null) {
       synchronized (SessionServiceGrpc.class) {
         if ((getStreamPartsMethod = SessionServiceGrpc.getStreamPartsMethod) == null) {
           SessionServiceGrpc.getStreamPartsMethod = getStreamPartsMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.StreamSessionPartsRequest, talon.events.Events.SessionMessagePartEvent>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.StreamSessionPartsRequest, talon.events.Events.SessionMessagePartEvent>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "StreamParts"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.StreamSessionPartsRequest.getDefaultInstance()))
+                  talon.v1.Sessions.StreamSessionPartsRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   talon.events.Events.SessionMessagePartEvent.getDefaultInstance()))
               .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("StreamParts"))
@@ -353,27 +353,27 @@ public final class SessionServiceGrpc {
     return getStreamPartsMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.StreamSessionPartsBatchRequest,
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.StreamSessionPartsBatchRequest,
       talon.events.Events.SessionMessagePartEvent> getStreamPartsBatchMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "StreamPartsBatch",
-      requestType = talon.v1.Api.StreamSessionPartsBatchRequest.class,
+      requestType = talon.v1.Sessions.StreamSessionPartsBatchRequest.class,
       responseType = talon.events.Events.SessionMessagePartEvent.class,
       methodType = io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.StreamSessionPartsBatchRequest,
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.StreamSessionPartsBatchRequest,
       talon.events.Events.SessionMessagePartEvent> getStreamPartsBatchMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.StreamSessionPartsBatchRequest, talon.events.Events.SessionMessagePartEvent> getStreamPartsBatchMethod;
+    io.grpc.MethodDescriptor<talon.v1.Sessions.StreamSessionPartsBatchRequest, talon.events.Events.SessionMessagePartEvent> getStreamPartsBatchMethod;
     if ((getStreamPartsBatchMethod = SessionServiceGrpc.getStreamPartsBatchMethod) == null) {
       synchronized (SessionServiceGrpc.class) {
         if ((getStreamPartsBatchMethod = SessionServiceGrpc.getStreamPartsBatchMethod) == null) {
           SessionServiceGrpc.getStreamPartsBatchMethod = getStreamPartsBatchMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.StreamSessionPartsBatchRequest, talon.events.Events.SessionMessagePartEvent>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.StreamSessionPartsBatchRequest, talon.events.Events.SessionMessagePartEvent>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "StreamPartsBatch"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.StreamSessionPartsBatchRequest.getDefaultInstance()))
+                  talon.v1.Sessions.StreamSessionPartsBatchRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   talon.events.Events.SessionMessagePartEvent.getDefaultInstance()))
               .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("StreamPartsBatch"))
@@ -384,27 +384,27 @@ public final class SessionServiceGrpc {
     return getStreamPartsBatchMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Api.SubmitSessionTurnRequest,
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.SubmitSessionTurnRequest,
       talon.events.Events.SessionMessagePartEvent> getSubmitTurnMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "SubmitTurn",
-      requestType = talon.v1.Api.SubmitSessionTurnRequest.class,
+      requestType = talon.v1.Sessions.SubmitSessionTurnRequest.class,
       responseType = talon.events.Events.SessionMessagePartEvent.class,
       methodType = io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
-  public static io.grpc.MethodDescriptor<talon.v1.Api.SubmitSessionTurnRequest,
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.SubmitSessionTurnRequest,
       talon.events.Events.SessionMessagePartEvent> getSubmitTurnMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Api.SubmitSessionTurnRequest, talon.events.Events.SessionMessagePartEvent> getSubmitTurnMethod;
+    io.grpc.MethodDescriptor<talon.v1.Sessions.SubmitSessionTurnRequest, talon.events.Events.SessionMessagePartEvent> getSubmitTurnMethod;
     if ((getSubmitTurnMethod = SessionServiceGrpc.getSubmitTurnMethod) == null) {
       synchronized (SessionServiceGrpc.class) {
         if ((getSubmitTurnMethod = SessionServiceGrpc.getSubmitTurnMethod) == null) {
           SessionServiceGrpc.getSubmitTurnMethod = getSubmitTurnMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Api.SubmitSessionTurnRequest, talon.events.Events.SessionMessagePartEvent>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.SubmitSessionTurnRequest, talon.events.Events.SessionMessagePartEvent>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "SubmitTurn"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Api.SubmitSessionTurnRequest.getDefaultInstance()))
+                  talon.v1.Sessions.SubmitSessionTurnRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   talon.events.Events.SessionMessagePartEvent.getDefaultInstance()))
               .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("SubmitTurn"))
@@ -480,91 +480,91 @@ public final class SessionServiceGrpc {
 
     /**
      */
-    default void create(talon.v1.Api.CreateSessionRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.SessionResponse> responseObserver) {
+    default void create(talon.v1.Sessions.CreateSessionRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.SessionResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateMethod(), responseObserver);
     }
 
     /**
      */
-    default void get(talon.v1.Api.GetSessionRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.SessionResponse> responseObserver) {
+    default void get(talon.v1.Sessions.GetSessionRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.SessionResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetMethod(), responseObserver);
     }
 
     /**
      */
-    default void list(talon.v1.Api.ListSessionsRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ListSessionsResponse> responseObserver) {
+    default void list(talon.v1.Sessions.ListSessionsRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.ListSessionsResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListMethod(), responseObserver);
     }
 
     /**
      */
-    default void listMessages(talon.v1.Api.ListSessionMessagesRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ListSessionMessagesResponse> responseObserver) {
+    default void listMessages(talon.v1.Sessions.ListSessionMessagesRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.ListSessionMessagesResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListMessagesMethod(), responseObserver);
     }
 
     /**
      */
-    default void delete(talon.v1.Api.DeleteSessionRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.DeleteSessionResponse> responseObserver) {
+    default void delete(talon.v1.Sessions.DeleteSessionRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.DeleteSessionResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteMethod(), responseObserver);
     }
 
     /**
      */
-    default void clear(talon.v1.Api.ClearSessionRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ClearSessionResponse> responseObserver) {
+    default void clear(talon.v1.Sessions.ClearSessionRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.ClearSessionResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getClearMethod(), responseObserver);
     }
 
     /**
      */
-    default void sendMessage(talon.v1.Api.SendMessageRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.SendMessageResponse> responseObserver) {
+    default void sendMessage(talon.v1.Sessions.SendMessageRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.SendMessageResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getSendMessageMethod(), responseObserver);
     }
 
     /**
      */
-    default void appendMessage(talon.v1.Api.AppendSessionMessageRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.AppendSessionMessageResponse> responseObserver) {
+    default void appendMessage(talon.v1.Sessions.AppendSessionMessageRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.AppendSessionMessageResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getAppendMessageMethod(), responseObserver);
     }
 
     /**
      */
-    default void answerPermission(talon.v1.Api.AnswerSessionPermissionRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.AnswerSessionPermissionResponse> responseObserver) {
+    default void answerPermission(talon.v1.Sessions.AnswerSessionPermissionRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.AnswerSessionPermissionResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getAnswerPermissionMethod(), responseObserver);
     }
 
     /**
      */
-    default void stopGeneration(talon.v1.Api.StopSessionGenerationRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.StopSessionGenerationResponse> responseObserver) {
+    default void stopGeneration(talon.v1.Sessions.StopSessionGenerationRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.StopSessionGenerationResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getStopGenerationMethod(), responseObserver);
     }
 
     /**
      */
-    default void streamParts(talon.v1.Api.StreamSessionPartsRequest request,
+    default void streamParts(talon.v1.Sessions.StreamSessionPartsRequest request,
         io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getStreamPartsMethod(), responseObserver);
     }
 
     /**
      */
-    default void streamPartsBatch(talon.v1.Api.StreamSessionPartsBatchRequest request,
+    default void streamPartsBatch(talon.v1.Sessions.StreamSessionPartsBatchRequest request,
         io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getStreamPartsBatchMethod(), responseObserver);
     }
 
     /**
      */
-    default void submitTurn(talon.v1.Api.SubmitSessionTurnRequest request,
+    default void submitTurn(talon.v1.Sessions.SubmitSessionTurnRequest request,
         io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getSubmitTurnMethod(), responseObserver);
     }
@@ -599,87 +599,87 @@ public final class SessionServiceGrpc {
 
     /**
      */
-    public void create(talon.v1.Api.CreateSessionRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.SessionResponse> responseObserver) {
+    public void create(talon.v1.Sessions.CreateSessionRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.SessionResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getCreateMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void get(talon.v1.Api.GetSessionRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.SessionResponse> responseObserver) {
+    public void get(talon.v1.Sessions.GetSessionRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.SessionResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getGetMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void list(talon.v1.Api.ListSessionsRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ListSessionsResponse> responseObserver) {
+    public void list(talon.v1.Sessions.ListSessionsRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.ListSessionsResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getListMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void listMessages(talon.v1.Api.ListSessionMessagesRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ListSessionMessagesResponse> responseObserver) {
+    public void listMessages(talon.v1.Sessions.ListSessionMessagesRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.ListSessionMessagesResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getListMessagesMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void delete(talon.v1.Api.DeleteSessionRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.DeleteSessionResponse> responseObserver) {
+    public void delete(talon.v1.Sessions.DeleteSessionRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.DeleteSessionResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getDeleteMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void clear(talon.v1.Api.ClearSessionRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.ClearSessionResponse> responseObserver) {
+    public void clear(talon.v1.Sessions.ClearSessionRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.ClearSessionResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getClearMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void sendMessage(talon.v1.Api.SendMessageRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.SendMessageResponse> responseObserver) {
+    public void sendMessage(talon.v1.Sessions.SendMessageRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.SendMessageResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getSendMessageMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void appendMessage(talon.v1.Api.AppendSessionMessageRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.AppendSessionMessageResponse> responseObserver) {
+    public void appendMessage(talon.v1.Sessions.AppendSessionMessageRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.AppendSessionMessageResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getAppendMessageMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void answerPermission(talon.v1.Api.AnswerSessionPermissionRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.AnswerSessionPermissionResponse> responseObserver) {
+    public void answerPermission(talon.v1.Sessions.AnswerSessionPermissionRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.AnswerSessionPermissionResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getAnswerPermissionMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void stopGeneration(talon.v1.Api.StopSessionGenerationRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Api.StopSessionGenerationResponse> responseObserver) {
+    public void stopGeneration(talon.v1.Sessions.StopSessionGenerationRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.StopSessionGenerationResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getStopGenerationMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
      */
-    public void streamParts(talon.v1.Api.StreamSessionPartsRequest request,
+    public void streamParts(talon.v1.Sessions.StreamSessionPartsRequest request,
         io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent> responseObserver) {
       io.grpc.stub.ClientCalls.asyncServerStreamingCall(
           getChannel().newCall(getStreamPartsMethod(), getCallOptions()), request, responseObserver);
@@ -687,7 +687,7 @@ public final class SessionServiceGrpc {
 
     /**
      */
-    public void streamPartsBatch(talon.v1.Api.StreamSessionPartsBatchRequest request,
+    public void streamPartsBatch(talon.v1.Sessions.StreamSessionPartsBatchRequest request,
         io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent> responseObserver) {
       io.grpc.stub.ClientCalls.asyncServerStreamingCall(
           getChannel().newCall(getStreamPartsBatchMethod(), getCallOptions()), request, responseObserver);
@@ -695,7 +695,7 @@ public final class SessionServiceGrpc {
 
     /**
      */
-    public void submitTurn(talon.v1.Api.SubmitSessionTurnRequest request,
+    public void submitTurn(talon.v1.Sessions.SubmitSessionTurnRequest request,
         io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent> responseObserver) {
       io.grpc.stub.ClientCalls.asyncServerStreamingCall(
           getChannel().newCall(getSubmitTurnMethod(), getCallOptions()), request, responseObserver);
@@ -720,70 +720,70 @@ public final class SessionServiceGrpc {
 
     /**
      */
-    public talon.v1.Api.SessionResponse create(talon.v1.Api.CreateSessionRequest request) throws io.grpc.StatusException {
+    public talon.v1.Sessions.SessionResponse create(talon.v1.Sessions.CreateSessionRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getCreateMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.SessionResponse get(talon.v1.Api.GetSessionRequest request) throws io.grpc.StatusException {
+    public talon.v1.Sessions.SessionResponse get(talon.v1.Sessions.GetSessionRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getGetMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ListSessionsResponse list(talon.v1.Api.ListSessionsRequest request) throws io.grpc.StatusException {
+    public talon.v1.Sessions.ListSessionsResponse list(talon.v1.Sessions.ListSessionsRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getListMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ListSessionMessagesResponse listMessages(talon.v1.Api.ListSessionMessagesRequest request) throws io.grpc.StatusException {
+    public talon.v1.Sessions.ListSessionMessagesResponse listMessages(talon.v1.Sessions.ListSessionMessagesRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getListMessagesMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.DeleteSessionResponse delete(talon.v1.Api.DeleteSessionRequest request) throws io.grpc.StatusException {
+    public talon.v1.Sessions.DeleteSessionResponse delete(talon.v1.Sessions.DeleteSessionRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getDeleteMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ClearSessionResponse clear(talon.v1.Api.ClearSessionRequest request) throws io.grpc.StatusException {
+    public talon.v1.Sessions.ClearSessionResponse clear(talon.v1.Sessions.ClearSessionRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getClearMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.SendMessageResponse sendMessage(talon.v1.Api.SendMessageRequest request) throws io.grpc.StatusException {
+    public talon.v1.Sessions.SendMessageResponse sendMessage(talon.v1.Sessions.SendMessageRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getSendMessageMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.AppendSessionMessageResponse appendMessage(talon.v1.Api.AppendSessionMessageRequest request) throws io.grpc.StatusException {
+    public talon.v1.Sessions.AppendSessionMessageResponse appendMessage(talon.v1.Sessions.AppendSessionMessageRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getAppendMessageMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.AnswerSessionPermissionResponse answerPermission(talon.v1.Api.AnswerSessionPermissionRequest request) throws io.grpc.StatusException {
+    public talon.v1.Sessions.AnswerSessionPermissionResponse answerPermission(talon.v1.Sessions.AnswerSessionPermissionRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getAnswerPermissionMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.StopSessionGenerationResponse stopGeneration(talon.v1.Api.StopSessionGenerationRequest request) throws io.grpc.StatusException {
+    public talon.v1.Sessions.StopSessionGenerationResponse stopGeneration(talon.v1.Sessions.StopSessionGenerationRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getStopGenerationMethod(), getCallOptions(), request);
     }
@@ -792,7 +792,7 @@ public final class SessionServiceGrpc {
      */
     @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/10918")
     public io.grpc.stub.BlockingClientCall<?, talon.events.Events.SessionMessagePartEvent>
-        streamParts(talon.v1.Api.StreamSessionPartsRequest request) {
+        streamParts(talon.v1.Sessions.StreamSessionPartsRequest request) {
       return io.grpc.stub.ClientCalls.blockingV2ServerStreamingCall(
           getChannel(), getStreamPartsMethod(), getCallOptions(), request);
     }
@@ -801,7 +801,7 @@ public final class SessionServiceGrpc {
      */
     @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/10918")
     public io.grpc.stub.BlockingClientCall<?, talon.events.Events.SessionMessagePartEvent>
-        streamPartsBatch(talon.v1.Api.StreamSessionPartsBatchRequest request) {
+        streamPartsBatch(talon.v1.Sessions.StreamSessionPartsBatchRequest request) {
       return io.grpc.stub.ClientCalls.blockingV2ServerStreamingCall(
           getChannel(), getStreamPartsBatchMethod(), getCallOptions(), request);
     }
@@ -810,7 +810,7 @@ public final class SessionServiceGrpc {
      */
     @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/10918")
     public io.grpc.stub.BlockingClientCall<?, talon.events.Events.SessionMessagePartEvent>
-        submitTurn(talon.v1.Api.SubmitSessionTurnRequest request) {
+        submitTurn(talon.v1.Sessions.SubmitSessionTurnRequest request) {
       return io.grpc.stub.ClientCalls.blockingV2ServerStreamingCall(
           getChannel(), getSubmitTurnMethod(), getCallOptions(), request);
     }
@@ -834,70 +834,70 @@ public final class SessionServiceGrpc {
 
     /**
      */
-    public talon.v1.Api.SessionResponse create(talon.v1.Api.CreateSessionRequest request) {
+    public talon.v1.Sessions.SessionResponse create(talon.v1.Sessions.CreateSessionRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getCreateMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.SessionResponse get(talon.v1.Api.GetSessionRequest request) {
+    public talon.v1.Sessions.SessionResponse get(talon.v1.Sessions.GetSessionRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getGetMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ListSessionsResponse list(talon.v1.Api.ListSessionsRequest request) {
+    public talon.v1.Sessions.ListSessionsResponse list(talon.v1.Sessions.ListSessionsRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getListMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ListSessionMessagesResponse listMessages(talon.v1.Api.ListSessionMessagesRequest request) {
+    public talon.v1.Sessions.ListSessionMessagesResponse listMessages(talon.v1.Sessions.ListSessionMessagesRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getListMessagesMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.DeleteSessionResponse delete(talon.v1.Api.DeleteSessionRequest request) {
+    public talon.v1.Sessions.DeleteSessionResponse delete(talon.v1.Sessions.DeleteSessionRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getDeleteMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.ClearSessionResponse clear(talon.v1.Api.ClearSessionRequest request) {
+    public talon.v1.Sessions.ClearSessionResponse clear(talon.v1.Sessions.ClearSessionRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getClearMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.SendMessageResponse sendMessage(talon.v1.Api.SendMessageRequest request) {
+    public talon.v1.Sessions.SendMessageResponse sendMessage(talon.v1.Sessions.SendMessageRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getSendMessageMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.AppendSessionMessageResponse appendMessage(talon.v1.Api.AppendSessionMessageRequest request) {
+    public talon.v1.Sessions.AppendSessionMessageResponse appendMessage(talon.v1.Sessions.AppendSessionMessageRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getAppendMessageMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.AnswerSessionPermissionResponse answerPermission(talon.v1.Api.AnswerSessionPermissionRequest request) {
+    public talon.v1.Sessions.AnswerSessionPermissionResponse answerPermission(talon.v1.Sessions.AnswerSessionPermissionRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getAnswerPermissionMethod(), getCallOptions(), request);
     }
 
     /**
      */
-    public talon.v1.Api.StopSessionGenerationResponse stopGeneration(talon.v1.Api.StopSessionGenerationRequest request) {
+    public talon.v1.Sessions.StopSessionGenerationResponse stopGeneration(talon.v1.Sessions.StopSessionGenerationRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getStopGenerationMethod(), getCallOptions(), request);
     }
@@ -905,7 +905,7 @@ public final class SessionServiceGrpc {
     /**
      */
     public java.util.Iterator<talon.events.Events.SessionMessagePartEvent> streamParts(
-        talon.v1.Api.StreamSessionPartsRequest request) {
+        talon.v1.Sessions.StreamSessionPartsRequest request) {
       return io.grpc.stub.ClientCalls.blockingServerStreamingCall(
           getChannel(), getStreamPartsMethod(), getCallOptions(), request);
     }
@@ -913,7 +913,7 @@ public final class SessionServiceGrpc {
     /**
      */
     public java.util.Iterator<talon.events.Events.SessionMessagePartEvent> streamPartsBatch(
-        talon.v1.Api.StreamSessionPartsBatchRequest request) {
+        talon.v1.Sessions.StreamSessionPartsBatchRequest request) {
       return io.grpc.stub.ClientCalls.blockingServerStreamingCall(
           getChannel(), getStreamPartsBatchMethod(), getCallOptions(), request);
     }
@@ -921,7 +921,7 @@ public final class SessionServiceGrpc {
     /**
      */
     public java.util.Iterator<talon.events.Events.SessionMessagePartEvent> submitTurn(
-        talon.v1.Api.SubmitSessionTurnRequest request) {
+        talon.v1.Sessions.SubmitSessionTurnRequest request) {
       return io.grpc.stub.ClientCalls.blockingServerStreamingCall(
           getChannel(), getSubmitTurnMethod(), getCallOptions(), request);
     }
@@ -945,80 +945,80 @@ public final class SessionServiceGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.SessionResponse> create(
-        talon.v1.Api.CreateSessionRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.SessionResponse> create(
+        talon.v1.Sessions.CreateSessionRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getCreateMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.SessionResponse> get(
-        talon.v1.Api.GetSessionRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.SessionResponse> get(
+        talon.v1.Sessions.GetSessionRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getGetMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.ListSessionsResponse> list(
-        talon.v1.Api.ListSessionsRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.ListSessionsResponse> list(
+        talon.v1.Sessions.ListSessionsRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getListMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.ListSessionMessagesResponse> listMessages(
-        talon.v1.Api.ListSessionMessagesRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.ListSessionMessagesResponse> listMessages(
+        talon.v1.Sessions.ListSessionMessagesRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getListMessagesMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.DeleteSessionResponse> delete(
-        talon.v1.Api.DeleteSessionRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.DeleteSessionResponse> delete(
+        talon.v1.Sessions.DeleteSessionRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getDeleteMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.ClearSessionResponse> clear(
-        talon.v1.Api.ClearSessionRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.ClearSessionResponse> clear(
+        talon.v1.Sessions.ClearSessionRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getClearMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.SendMessageResponse> sendMessage(
-        talon.v1.Api.SendMessageRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.SendMessageResponse> sendMessage(
+        talon.v1.Sessions.SendMessageRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getSendMessageMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.AppendSessionMessageResponse> appendMessage(
-        talon.v1.Api.AppendSessionMessageRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.AppendSessionMessageResponse> appendMessage(
+        talon.v1.Sessions.AppendSessionMessageRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getAppendMessageMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.AnswerSessionPermissionResponse> answerPermission(
-        talon.v1.Api.AnswerSessionPermissionRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.AnswerSessionPermissionResponse> answerPermission(
+        talon.v1.Sessions.AnswerSessionPermissionRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getAnswerPermissionMethod(), getCallOptions()), request);
     }
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Api.StopSessionGenerationResponse> stopGeneration(
-        talon.v1.Api.StopSessionGenerationRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.StopSessionGenerationResponse> stopGeneration(
+        talon.v1.Sessions.StopSessionGenerationRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getStopGenerationMethod(), getCallOptions()), request);
     }
@@ -1056,55 +1056,55 @@ public final class SessionServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_CREATE:
-          serviceImpl.create((talon.v1.Api.CreateSessionRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.SessionResponse>) responseObserver);
+          serviceImpl.create((talon.v1.Sessions.CreateSessionRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.SessionResponse>) responseObserver);
           break;
         case METHODID_GET:
-          serviceImpl.get((talon.v1.Api.GetSessionRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.SessionResponse>) responseObserver);
+          serviceImpl.get((talon.v1.Sessions.GetSessionRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.SessionResponse>) responseObserver);
           break;
         case METHODID_LIST:
-          serviceImpl.list((talon.v1.Api.ListSessionsRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.ListSessionsResponse>) responseObserver);
+          serviceImpl.list((talon.v1.Sessions.ListSessionsRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.ListSessionsResponse>) responseObserver);
           break;
         case METHODID_LIST_MESSAGES:
-          serviceImpl.listMessages((talon.v1.Api.ListSessionMessagesRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.ListSessionMessagesResponse>) responseObserver);
+          serviceImpl.listMessages((talon.v1.Sessions.ListSessionMessagesRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.ListSessionMessagesResponse>) responseObserver);
           break;
         case METHODID_DELETE:
-          serviceImpl.delete((talon.v1.Api.DeleteSessionRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.DeleteSessionResponse>) responseObserver);
+          serviceImpl.delete((talon.v1.Sessions.DeleteSessionRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.DeleteSessionResponse>) responseObserver);
           break;
         case METHODID_CLEAR:
-          serviceImpl.clear((talon.v1.Api.ClearSessionRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.ClearSessionResponse>) responseObserver);
+          serviceImpl.clear((talon.v1.Sessions.ClearSessionRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.ClearSessionResponse>) responseObserver);
           break;
         case METHODID_SEND_MESSAGE:
-          serviceImpl.sendMessage((talon.v1.Api.SendMessageRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.SendMessageResponse>) responseObserver);
+          serviceImpl.sendMessage((talon.v1.Sessions.SendMessageRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.SendMessageResponse>) responseObserver);
           break;
         case METHODID_APPEND_MESSAGE:
-          serviceImpl.appendMessage((talon.v1.Api.AppendSessionMessageRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.AppendSessionMessageResponse>) responseObserver);
+          serviceImpl.appendMessage((talon.v1.Sessions.AppendSessionMessageRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.AppendSessionMessageResponse>) responseObserver);
           break;
         case METHODID_ANSWER_PERMISSION:
-          serviceImpl.answerPermission((talon.v1.Api.AnswerSessionPermissionRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.AnswerSessionPermissionResponse>) responseObserver);
+          serviceImpl.answerPermission((talon.v1.Sessions.AnswerSessionPermissionRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.AnswerSessionPermissionResponse>) responseObserver);
           break;
         case METHODID_STOP_GENERATION:
-          serviceImpl.stopGeneration((talon.v1.Api.StopSessionGenerationRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Api.StopSessionGenerationResponse>) responseObserver);
+          serviceImpl.stopGeneration((talon.v1.Sessions.StopSessionGenerationRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.StopSessionGenerationResponse>) responseObserver);
           break;
         case METHODID_STREAM_PARTS:
-          serviceImpl.streamParts((talon.v1.Api.StreamSessionPartsRequest) request,
+          serviceImpl.streamParts((talon.v1.Sessions.StreamSessionPartsRequest) request,
               (io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent>) responseObserver);
           break;
         case METHODID_STREAM_PARTS_BATCH:
-          serviceImpl.streamPartsBatch((talon.v1.Api.StreamSessionPartsBatchRequest) request,
+          serviceImpl.streamPartsBatch((talon.v1.Sessions.StreamSessionPartsBatchRequest) request,
               (io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent>) responseObserver);
           break;
         case METHODID_SUBMIT_TURN:
-          serviceImpl.submitTurn((talon.v1.Api.SubmitSessionTurnRequest) request,
+          serviceImpl.submitTurn((talon.v1.Sessions.SubmitSessionTurnRequest) request,
               (io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent>) responseObserver);
           break;
         default:
@@ -1129,91 +1129,91 @@ public final class SessionServiceGrpc {
           getCreateMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.CreateSessionRequest,
-              talon.v1.Api.SessionResponse>(
+              talon.v1.Sessions.CreateSessionRequest,
+              talon.v1.Sessions.SessionResponse>(
                 service, METHODID_CREATE)))
         .addMethod(
           getGetMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.GetSessionRequest,
-              talon.v1.Api.SessionResponse>(
+              talon.v1.Sessions.GetSessionRequest,
+              talon.v1.Sessions.SessionResponse>(
                 service, METHODID_GET)))
         .addMethod(
           getListMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.ListSessionsRequest,
-              talon.v1.Api.ListSessionsResponse>(
+              talon.v1.Sessions.ListSessionsRequest,
+              talon.v1.Sessions.ListSessionsResponse>(
                 service, METHODID_LIST)))
         .addMethod(
           getListMessagesMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.ListSessionMessagesRequest,
-              talon.v1.Api.ListSessionMessagesResponse>(
+              talon.v1.Sessions.ListSessionMessagesRequest,
+              talon.v1.Sessions.ListSessionMessagesResponse>(
                 service, METHODID_LIST_MESSAGES)))
         .addMethod(
           getDeleteMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.DeleteSessionRequest,
-              talon.v1.Api.DeleteSessionResponse>(
+              talon.v1.Sessions.DeleteSessionRequest,
+              talon.v1.Sessions.DeleteSessionResponse>(
                 service, METHODID_DELETE)))
         .addMethod(
           getClearMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.ClearSessionRequest,
-              talon.v1.Api.ClearSessionResponse>(
+              talon.v1.Sessions.ClearSessionRequest,
+              talon.v1.Sessions.ClearSessionResponse>(
                 service, METHODID_CLEAR)))
         .addMethod(
           getSendMessageMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.SendMessageRequest,
-              talon.v1.Api.SendMessageResponse>(
+              talon.v1.Sessions.SendMessageRequest,
+              talon.v1.Sessions.SendMessageResponse>(
                 service, METHODID_SEND_MESSAGE)))
         .addMethod(
           getAppendMessageMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.AppendSessionMessageRequest,
-              talon.v1.Api.AppendSessionMessageResponse>(
+              talon.v1.Sessions.AppendSessionMessageRequest,
+              talon.v1.Sessions.AppendSessionMessageResponse>(
                 service, METHODID_APPEND_MESSAGE)))
         .addMethod(
           getAnswerPermissionMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.AnswerSessionPermissionRequest,
-              talon.v1.Api.AnswerSessionPermissionResponse>(
+              talon.v1.Sessions.AnswerSessionPermissionRequest,
+              talon.v1.Sessions.AnswerSessionPermissionResponse>(
                 service, METHODID_ANSWER_PERMISSION)))
         .addMethod(
           getStopGenerationMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Api.StopSessionGenerationRequest,
-              talon.v1.Api.StopSessionGenerationResponse>(
+              talon.v1.Sessions.StopSessionGenerationRequest,
+              talon.v1.Sessions.StopSessionGenerationResponse>(
                 service, METHODID_STOP_GENERATION)))
         .addMethod(
           getStreamPartsMethod(),
           io.grpc.stub.ServerCalls.asyncServerStreamingCall(
             new MethodHandlers<
-              talon.v1.Api.StreamSessionPartsRequest,
+              talon.v1.Sessions.StreamSessionPartsRequest,
               talon.events.Events.SessionMessagePartEvent>(
                 service, METHODID_STREAM_PARTS)))
         .addMethod(
           getStreamPartsBatchMethod(),
           io.grpc.stub.ServerCalls.asyncServerStreamingCall(
             new MethodHandlers<
-              talon.v1.Api.StreamSessionPartsBatchRequest,
+              talon.v1.Sessions.StreamSessionPartsBatchRequest,
               talon.events.Events.SessionMessagePartEvent>(
                 service, METHODID_STREAM_PARTS_BATCH)))
         .addMethod(
           getSubmitTurnMethod(),
           io.grpc.stub.ServerCalls.asyncServerStreamingCall(
             new MethodHandlers<
-              talon.v1.Api.SubmitSessionTurnRequest,
+              talon.v1.Sessions.SubmitSessionTurnRequest,
               talon.events.Events.SessionMessagePartEvent>(
                 service, METHODID_SUBMIT_TURN)))
         .build();
@@ -1225,7 +1225,7 @@ public final class SessionServiceGrpc {
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
-      return talon.v1.Api.getDescriptor();
+      return talon.v1.Sessions.getDescriptor();
     }
 
     @java.lang.Override
