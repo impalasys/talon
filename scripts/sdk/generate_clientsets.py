@@ -108,6 +108,8 @@ def parse_services(paths: list[Path]) -> list[Service]:
 
 
 def generate_go(services: list[Service]) -> None:
+    field_width = max(len(service.field) for service in services + [Service("", "", "close", "", "")])
+    init_key_width = field_width + 1
     lines = [
         f"// {HEADER}",
         "",
@@ -121,8 +123,8 @@ def generate_go(services: list[Service]) -> None:
         "type Clientset struct {",
     ]
     for service in services:
-        lines.append(f"\t{service.field} talonv1.{service.name}Client")
-    lines.append("\tclose func() error")
+        lines.append(f"\t{service.field:<{field_width}} talonv1.{service.name}Client")
+    lines.append(f"\t{'close':<{field_width}} func() error")
     lines.extend(["}", ""])
     for service in services:
         lines.extend(
@@ -140,8 +142,9 @@ def generate_go(services: list[Service]) -> None:
         ]
     )
     for service in services:
-        lines.append(f"\t\t{service.field}: talonv1.New{service.name}Client(conn),")
-    lines.extend(["\t\tclose: close,", "\t}", "}", ""])
+        key = f"{service.field}:"
+        lines.append(f"\t\t{key:<{init_key_width}} talonv1.New{service.name}Client(conn),")
+    lines.extend([f"\t\t{'close:':<{init_key_width}} close,", "\t}", "}", ""])
     write(GO_OUT, "\n".join(lines))
 
 
@@ -277,13 +280,18 @@ def generate_python_init() -> None:
 
 
 def parse_python_export_names(path: Path) -> list[str]:
-    source = path.read_text()
+    source = strip_proto_comments(path.read_text())
     names: list[str] = []
     for match in re.finditer(r"^(message|enum)\s+(\w+)\s*(?:\{|$)", source, re.MULTILINE):
         names.append(match.group(2))
         if match.group(1) == "enum":
             names.extend(parse_enum_values(source, match.start()))
     return names
+
+
+def strip_proto_comments(source: str) -> str:
+    source = re.sub(r"/\*.*?\*/", "", source, flags=re.DOTALL)
+    return re.sub(r"//.*", "", source)
 
 
 def parse_enum_values(source: str, start: int) -> list[str]:
