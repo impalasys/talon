@@ -191,7 +191,7 @@ function parseServiceMethods(serviceBlock) {
       continue;
     }
 
-    const rpcMatch = line.match(/^rpc\s+(\w+)\(([\w.]+)\)\s+returns\s+\((stream\s+)?([\w.]+)\)\s*([;{])$/);
+    const rpcMatch = line.match(/^rpc\s+(\w+)\(([\w.]+)\)\s+returns\s+\((stream\s+)?([\w.]+)\)\s*([;{])\s*$/);
     if (!rpcMatch) {
       continue;
     }

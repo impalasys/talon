@@ -88,8 +88,8 @@ def main() -> None:
 def parse_services(paths: list[Path]) -> list[Service]:
     services: list[Service] = []
     for path in paths:
-        source = path.read_text(encoding="utf-8")
-        for match in re.finditer(r"^service\s+(\w+Service)\s+\{", source, re.MULTILINE):
+        source = strip_proto_comments(path.read_text(encoding="utf-8"))
+        for match in re.finditer(r"^\s*service\s+(\w+Service)\s+\{", source, re.MULTILINE):
             name = match.group(1)
             domain = name.removesuffix("Service")
             field = service_field_name(domain)
