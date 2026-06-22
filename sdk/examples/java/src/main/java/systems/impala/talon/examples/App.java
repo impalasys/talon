@@ -2,8 +2,8 @@ package systems.impala.talon.examples;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import systems.impala.talon.client.TalonClientset;
 import systems.impala.talon.server.TalonServer;
-import talon.v1.NamespaceServiceGrpc;
 import talon.v1.Namespaces;
 
 public final class App {
@@ -16,14 +16,13 @@ public final class App {
                 .usePlaintext()
                 .build();
             try {
-                NamespaceServiceGrpc.NamespaceServiceBlockingStub namespaces =
-                    NamespaceServiceGrpc.newBlockingStub(channel);
+                TalonClientset client = TalonClientset.create(channel);
 
-                namespaces.create(Namespaces.CreateNamespaceRequest.newBuilder()
+                client.namespaces().create(Namespaces.CreateNamespaceRequest.newBuilder()
                     .setName("example-app")
                     .build());
 
-                Namespaces.ListNamespacesResponse response = namespaces.list(
+                Namespaces.ListNamespacesResponse response = client.namespaces().list(
                     Namespaces.ListNamespacesRequest.newBuilder().build());
                 System.out.printf(
                     "Talon is running at %s with %d namespace(s)%n",
