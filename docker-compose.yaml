@@ -163,11 +163,8 @@ services:
     build:
       context: .
       dockerfile: dockerfiles/oss-ui.Dockerfile
-      args:
-        NEXT_PUBLIC_GATEWAY_URL: http://localhost:50051
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_GATEWAY_URL=http://localhost:50051
       - TALON_OBJECT_STORE_PATH=/data/talon/objects
     volumes:
       - talon-objects:/data/talon/objects

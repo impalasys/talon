@@ -1,6 +1,7 @@
 import {
   applyGatewayAuthorizationHeader,
   buildGatewayHeaders,
+  getDefaultGatewayUrl,
   getGatewayClient,
   normalizeGatewayUrl,
   updateGatewayClient,
@@ -17,6 +18,24 @@ describe("normalizeGatewayUrl", () => {
     expect(normalizeGatewayUrl("https://example.com/base/")).toBe(
       "https://example.com/base",
     );
+  });
+});
+
+describe("getDefaultGatewayUrl", () => {
+  const originalGatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL;
+
+  afterEach(() => {
+    if (originalGatewayUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_GATEWAY_URL;
+    } else {
+      process.env.NEXT_PUBLIC_GATEWAY_URL = originalGatewayUrl;
+    }
+  });
+
+  it("uses the configured gateway URL when present", () => {
+    process.env.NEXT_PUBLIC_GATEWAY_URL = "  https://gateway.example.com///  ";
+
+    expect(getDefaultGatewayUrl()).toBe("https://gateway.example.com");
   });
 });
 

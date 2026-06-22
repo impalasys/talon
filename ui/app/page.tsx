@@ -35,7 +35,13 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { TalonChannel, TalonCopilot, type TalonChatObjectRef, type TalonImageUploadContext } from '@impalasys/talon-chat';
 import { NamespaceExplorer, type Selection } from '../components/Namespaces/NamespaceExplorer';
-import { updateGatewayClient, getGatewayClient } from '../lib/grpc';
+import {
+  getDefaultGatewayUrl,
+  getGatewayClient,
+  isBlockedMixedContentGatewayUrl,
+  normalizeGatewayUrl,
+  updateGatewayClient,
+} from '../lib/grpc';
 import { resourceToManifestDocument, yamlSafeValue } from '../lib/resourceManifest';
 
 const isStaticExport = process.env.NEXT_PUBLIC_TALON_STATIC_EXPORT === '1';
@@ -945,6 +951,7 @@ function DebuggerPageContent() {
   const [googleSsoEnabled, setGoogleSsoEnabled] = useState(false);
   const [googleWebClientId, setGoogleWebClientId] = useState<string | null>(null);
   const [googleSsoError, setGoogleSsoError] = useState<string | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isHoveringConnection, setIsHoveringConnection] = useState(false);
   const [selectedNamespace, setSelectedNamespace] = useState<Selection | null>(null);
@@ -969,11 +976,14 @@ function DebuggerPageContent() {
 
   useEffect(() => {
     const savedUrl = localStorage.getItem('talon_gateway_url');
-    const defaultGatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:50051';
-    if (savedUrl) {
+    const defaultGatewayUrl = getDefaultGatewayUrl();
+    if (savedUrl && !isBlockedMixedContentGatewayUrl(savedUrl)) {
       setGatewayUrl(savedUrl);
     } else {
       setGatewayUrl(defaultGatewayUrl);
+      if (savedUrl && savedUrl !== defaultGatewayUrl) {
+        localStorage.setItem('talon_gateway_url', defaultGatewayUrl);
+      }
     }
     localStorage.removeItem('talon_gateway_http_url');
     const savedToken = localStorage.getItem('talon_auth_token');
@@ -994,7 +1004,13 @@ function DebuggerPageContent() {
 
     const wantsConnected = searchParams.get('connected') === 'true';
     if (wantsConnected && gatewayUrl.trim()) {
-      updateGatewayClient(gatewayUrl.trim());
+      if (isBlockedMixedContentGatewayUrl(gatewayUrl)) {
+        setConnectionError('Sightline is running over HTTPS, so the gateway URL must also use HTTPS or the same origin.');
+        setIsConnected(false);
+        return;
+      }
+      updateGatewayClient(normalizeGatewayUrl(gatewayUrl));
+      setConnectionError(null);
       setIsConnected(true);
       return;
     }
@@ -1008,10 +1024,16 @@ function DebuggerPageContent() {
 
   useEffect(() => {
     if (!storageHydrated || !effectiveGatewayHttpUrl.trim()) return;
+    if (isBlockedMixedContentGatewayUrl(effectiveGatewayHttpUrl)) {
+      setGoogleSsoEnabled(false);
+      setGoogleWebClientId(null);
+      return;
+    }
+
     let cancelled = false;
     const loadAuthConfig = async () => {
       try {
-        updateGatewayClient(effectiveGatewayHttpUrl);
+        updateGatewayClient(normalizeGatewayUrl(effectiveGatewayHttpUrl));
         const config = await getGatewayClient().auth.getSsoConfig({});
         if (!cancelled) {
           setGoogleSsoEnabled(Boolean(config.googleSsoEnabled && config.googleWebClientId));
@@ -1074,8 +1096,14 @@ function DebuggerPageContent() {
             setAuthToken(payload.accessToken);
             localStorage.setItem('talon_auth_token', payload.accessToken);
             if (gatewayUrl.trim()) {
-              localStorage.setItem('talon_gateway_url', gatewayUrl.trim());
-              updateGatewayClient(gatewayUrl.trim());
+              if (isBlockedMixedContentGatewayUrl(gatewayUrl)) {
+                setConnectionError('Sightline is running over HTTPS, so the gateway URL must also use HTTPS or the same origin.');
+                return;
+              }
+              const normalizedGatewayUrl = normalizeGatewayUrl(gatewayUrl);
+              localStorage.setItem('talon_gateway_url', normalizedGatewayUrl);
+              updateGatewayClient(normalizedGatewayUrl);
+              setConnectionError(null);
               setIsConnected(true);
             }
           } catch (err: any) {
@@ -1207,14 +1235,22 @@ function DebuggerPageContent() {
   const handleConnect = (e: React.FormEvent) => {
     e.preventDefault();
     if (gatewayUrl.trim()) {
-      localStorage.setItem('talon_gateway_url', gatewayUrl.trim());
+      if (isBlockedMixedContentGatewayUrl(gatewayUrl)) {
+        setConnectionError('Sightline is running over HTTPS, so the gateway URL must also use HTTPS or the same origin.');
+        setIsConnected(false);
+        return;
+      }
+      const normalizedGatewayUrl = normalizeGatewayUrl(gatewayUrl);
+      localStorage.setItem('talon_gateway_url', normalizedGatewayUrl);
       localStorage.removeItem('talon_gateway_http_url');
       if (authToken.trim()) {
         localStorage.setItem('talon_auth_token', authToken.trim());
       } else {
         localStorage.removeItem('talon_auth_token');
       }
-      updateGatewayClient(gatewayUrl.trim());
+      setGatewayUrl(normalizedGatewayUrl);
+      updateGatewayClient(normalizedGatewayUrl);
+      setConnectionError(null);
       setIsConnected(true);
     }
   };
@@ -1336,13 +1372,16 @@ function DebuggerPageContent() {
                 <form onSubmit={handleConnect} className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-[12px] font-medium text-foreground">Gateway URL</label>
-                    <input 
-                      type="url" 
+                    <input
+                      type="url"
                       required
                       value={gatewayUrl}
-                      onChange={(e) => setGatewayUrl(e.target.value)}
+                      onChange={(e) => {
+                        setGatewayUrl(e.target.value);
+                        setConnectionError(null);
+                      }}
                       className="w-full bg-white/[0.03] border border-border/70 text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring text-sm transition-shadow font-mono"
-                      placeholder="http://localhost:50051"
+                      placeholder={getDefaultGatewayUrl()}
                       autoFocus
                     />
                   </div>
@@ -1371,7 +1410,10 @@ function DebuggerPageContent() {
                       ) : null}
                     </div>
                   ) : null}
-                  <button 
+                  {connectionError ? (
+                    <p className="text-[12px] leading-5 text-red-400">{connectionError}</p>
+                  ) : null}
+                  <button
                     type="submit"
                     disabled={!gatewayUrl.trim()}
                     className="w-full bg-foreground text-background py-2.5 rounded-xl text-[13px] font-medium hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"

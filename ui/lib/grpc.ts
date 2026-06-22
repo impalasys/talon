@@ -9,6 +9,40 @@ export function normalizeGatewayUrl(url: string) {
   return url.trim().replace(/\/+$/, "");
 }
 
+export function getDefaultGatewayUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_GATEWAY_URL?.trim();
+  if (configuredUrl) {
+    return normalizeGatewayUrl(configuredUrl);
+  }
+
+  if (typeof window !== "undefined" && window.location.protocol === "https:") {
+    if (window.location.hostname.startsWith("ui.")) {
+      const gatewayUrl = new URL(window.location.href);
+      gatewayUrl.hostname = gatewayUrl.hostname.replace(/^ui\./, "gateway.");
+      gatewayUrl.port = "";
+      gatewayUrl.pathname = "";
+      gatewayUrl.search = "";
+      gatewayUrl.hash = "";
+      return gatewayUrl.origin;
+    }
+    return window.location.origin;
+  }
+
+  return "http://localhost:50051";
+}
+
+export function isBlockedMixedContentGatewayUrl(url: string) {
+  if (typeof window === "undefined" || window.location.protocol !== "https:") {
+    return false;
+  }
+
+  try {
+    return new URL(normalizeGatewayUrl(url), window.location.href).protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 export function buildGatewayHeaders(authToken?: string | null) {
   const authorization = buildAuthorizationHeader(authToken);
   if (!authorization) return undefined;
@@ -39,7 +73,7 @@ const createClientset = (url: string): TalonClient => createTalonClient({
   interceptors: [authInterceptor],
 });
 
-let currentClient = createClientset(process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:50051");
+let currentClient = createClientset(getDefaultGatewayUrl());
 
 export const getTalonClient = () => currentClient;
 export const getGatewayClient = () => currentClient;
