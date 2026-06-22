@@ -57,7 +57,6 @@ jobs:
   benchmark:
     name: 1 vCPU Benchmark
     runs-on: ubuntu-latest
-    continue-on-error: true
     timeout-minutes: 45
     env:
       BENCH_AGENTS: ${{ github.event_name == 'workflow_dispatch' && inputs.agents || '7000' }}
@@ -68,6 +67,8 @@ jobs:
       BENCH_OUTPUT_DIR: bench/results/ci-1vcpu
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -137,6 +138,17 @@ jobs:
             --rocksdb-max-background-jobs 2 \
             --image-tag "${BENCH_IMAGE_TAG}" \
             --output-dir "${BENCH_OUTPUT_DIR}/rocksdb" || status=1
+
+          missing_results=0
+          for backend in sqlite rocksdb; do
+            if ! find "${BENCH_OUTPUT_DIR}/${backend}" -maxdepth 1 -name 'talon-bench-*.json' -print -quit | grep -q .; then
+              echo "::error::1 vCPU benchmark did not produce a ${backend} result JSON."
+              missing_results=1
+            fi
+          done
+          if [ "${missing_results}" -ne 0 ]; then
+            exit 1
+          fi
 
           if [ "${status}" -ne 0 ]; then
             echo "::warning::1 vCPU benchmark missed its success threshold; results are advisory and posted as a PR comment."
@@ -251,5 +263,5 @@ jobs:
         with:
           name: talon-1vcpu-benchmark-${{ github.sha }}
           path: bench/results/ci-1vcpu/
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
