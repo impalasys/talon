@@ -3,36 +3,40 @@ import time
 import grpc
 import json
 import httpx
+import sys
 
 import conftest
 import mock_llm
-from talon_client.proto.talon.v1.knowledge_pb2 import GetKnowledgeRequest, SearchKnowledgeRequest
-from talon_client.proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest
-from talon_client.proto.talon.v1.resources_pb2 import (
+from talon_client import (
+    TalonClient,
     CreateResourceRequest,
+    CreateNamespaceRequest,
     DeleteResourceRequest,
     GetResourceRequest,
+    GetKnowledgeRequest,
+    SearchKnowledgeRequest,
     ListResourcesRequest,
-)
-from talon_client.proto.talon.v1.sessions_pb2 import (
     CreateSessionRequest,
     GetSessionRequest,
     SendMessageRequest,
     StreamSessionPartsRequest,
-)
-from talon_client.proto.talon.v1.workflows_pb2 import (
     CreateWorkflowRunRequest,
     GetWorkflowRunRequest,
     ListWorkflowRunsRequest,
     StreamWorkflowEventsRequest,
 )
-from talon_client import TalonClient
-from talon_client.proto.resources.agents_pb2 import AgentSpec, Model
-from talon_client.proto.resources.common_pb2 import ResourceMeta
-from talon_client.proto.resources.knowledge_pb2 import KnowledgeSpec
-from talon_client.proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
-from talon_client.proto.resources.schedules_pb2 import ScheduleSpec, ScheduleTarget
-from talon_client.proto.resources.workflows_pb2 import WorkflowSpec, WorkflowStep
+from talon_client.resources import (
+    AgentSpec,
+    KnowledgeSpec,
+    Model,
+    ResourceManifest,
+    ResourceMeta,
+    ResourceSpec,
+    ScheduleSpec,
+    ScheduleTarget,
+    WorkflowSpec,
+    WorkflowStep,
+)
 import threading
 import uuid
 

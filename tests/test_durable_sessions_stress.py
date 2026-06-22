@@ -6,45 +6,48 @@ import shutil
 import socket
 import sqlite3
 import subprocess
+import sys
 import threading
 import time
 import tempfile
 import uuid
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, Iterator, TypeVar
 
 import grpc
 import pytest
 import requests
 
-from talon_client.proto.data.data_pb2 import SessionMessage
-from talon_client.proto.data.session_submission_pb2 import (
-    SESSION_SUBMISSION_STATUS_CLAIMED,
-    SESSION_SUBMISSION_STATUS_COMMITTED,
-    SessionSubmission,
-)
-from talon_client.proto.data.session_journal_entry_pb2 import (
-    SESSION_EXECUTION_PHASE_COMMITTED,
-    SESSION_EXECUTION_PHASE_LLM_RESPONSE,
-    SESSION_EXECUTION_PHASE_TOOL_RESULT,
-    SessionJournalEntry,
-)
-from talon_client.proto.events_pb2 import (
-    SessionMessagePartEvent,
-)
-from talon_client.proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest
-from talon_client.proto.talon.v1.resources_pb2 import CreateResourceRequest
-from talon_client.proto.talon.v1.sessions_pb2 import (
+from talon_client import (
+    TalonClient,
+    CreateNamespaceRequest,
+    CreateResourceRequest,
     CreateSessionRequest,
     GetSessionRequest,
     SendMessageRequest,
     StreamSessionPartsRequest,
 )
-from talon_client import TalonClient
-from talon_client.proto.resources.agents_pb2 import AgentSpec, Model
-from talon_client.proto.resources.common_pb2 import CommonResourceStatus, ResourceMeta
-from talon_client.proto.resources.mcp_pb2 import McpServer, McpServerSpec
-from talon_client.proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
+from talon_client.data import (
+    SESSION_SUBMISSION_STATUS_CLAIMED,
+    SESSION_SUBMISSION_STATUS_COMMITTED,
+    SessionMessage,
+    SessionSubmission,
+    SESSION_EXECUTION_PHASE_COMMITTED,
+    SESSION_EXECUTION_PHASE_LLM_RESPONSE,
+    SESSION_EXECUTION_PHASE_TOOL_RESULT,
+    SessionJournalEntry,
+)
+from talon_client.events import SessionMessagePartEvent
+from talon_client.resources import (
+    AgentSpec,
+    CommonResourceStatus,
+    McpServer,
+    McpServerSpec,
+    Model,
+    ResourceManifest,
+    ResourceMeta,
+    ResourceSpec,
+)
 
 import conftest
 
@@ -426,7 +429,7 @@ class SessionStreamBuffer:
 
 
 @pytest.fixture
-def talon_infrastructure_sqlite() -> DurableSessionStack:
+def talon_infrastructure_sqlite() -> Iterator[DurableSessionStack]:
     """Isolate destructive worker-kill scenarios from one another."""
     stack = DurableSessionStack.start()
     try:
@@ -450,6 +453,7 @@ def mock_control(
 
 
 def wait_for_mock_blocked(*, attempts: int = 80, delay: float = 0.1) -> dict[str, Any]:
+    state: dict[str, Any] = {}
     for _ in range(attempts):
         state = mock_control("GET", "/__control/state")
         if state.get("blocked"):
@@ -461,6 +465,7 @@ def wait_for_mock_blocked(*, attempts: int = 80, delay: float = 0.1) -> dict[str
 def wait_for_mock_mcp_tool_blocked(
     *, attempts: int = 120, delay: float = 0.05
 ) -> dict[str, Any]:
+    state: dict[str, Any] = {}
     for _ in range(attempts):
         state = mock_control("GET", "/__control/state")
         if state.get("mcp_tool_blocked"):
@@ -508,7 +513,7 @@ def create_agent(
 
 
 def decode_proto_row(row: KvRow, message_type: type[T]) -> T:
-    message = message_type()
+    message: Any = message_type()
     message.ParseFromString(row["value"])
     return message
 
@@ -898,6 +903,7 @@ def test_provider_started_worker_kill_restart_redelivery_is_non_polluting(
     assert projection_state(assistants[0]) == "committed"
 
     final_submission = infra.kv.read_submission(namespace, agent, session_id, submission_id)
+    assert final_submission is not None
     final_entries = infra.kv.read_journal_entries(namespace, agent, session_id, submission_id)
     final_entry = next(
         entry
@@ -1009,6 +1015,7 @@ def test_tool_call_recorded_worker_kill_restart_recovers_from_journal(
     )
 
     final_submission = infra.kv.read_submission(namespace, agent, session_id, submission_id)
+    assert final_submission is not None
     final_entries = infra.kv.read_journal_entries(namespace, agent, session_id, submission_id)
     final_mock_state = mock_control("GET", "/__control/state")
 

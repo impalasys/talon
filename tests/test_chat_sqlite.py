@@ -1,5 +1,6 @@
 import grpc
 import json
+import os
 import pytest
 import shutil
 import subprocess
@@ -7,18 +8,17 @@ import threading
 import time
 import uuid
 
-from talon_client.proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest
-from talon_client.proto.talon.v1.resources_pb2 import CreateResourceRequest, ListResourcesRequest
-from talon_client.proto.talon.v1.sessions_pb2 import (
+from talon_client import (
+    TalonClient,
+    CreateNamespaceRequest,
+    CreateResourceRequest,
     CreateSessionRequest,
     GetSessionRequest,
+    ListResourcesRequest,
     SendMessageRequest,
     StreamSessionPartsRequest,
 )
-from talon_client import TalonClient
-from talon_client.proto.resources.agents_pb2 import AgentSpec, Model
-from talon_client.proto.resources.common_pb2 import ResourceMeta
-from talon_client.proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
+from talon_client.resources import AgentSpec, Model, ResourceManifest, ResourceMeta, ResourceSpec
 import conftest
 from e2e.cli_harness import TalonCli
 from e2e import scenarios as e2e

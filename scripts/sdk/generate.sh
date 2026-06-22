@@ -215,6 +215,7 @@ PY_TOOLS="$ROOT/.tools/python-codegen"
 PYTHONPATH="$PY_TOOLS${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON_CODEGEN" -m grpc_tools.protoc -I. -Ithird_party/googleapis \
   --experimental_allow_proto3_optional \
   --python_out=sdk/python/talon-client/src/talon_client \
+  --pyi_out=sdk/python/talon-client/src/talon_client \
   --grpc_python_out=sdk/python/talon-client/src/talon_client \
   "${PROTO_SRCS[@]}"
 
@@ -223,10 +224,15 @@ python3 - <<'PY'
 from pathlib import Path
 
 root = Path("sdk/python/talon-client/src/talon_client")
-for path in root.rglob("*_pb2*.py"):
+for path in [
+    *root.rglob("*_pb2.py"),
+    *root.rglob("*_pb2.pyi"),
+    *root.rglob("*_pb2_grpc.py"),
+]:
     text = path.read_text()
     text = text.replace("from proto import ", "from talon_client.proto import ")
     text = text.replace("from proto.data import ", "from talon_client.proto.data import ")
+    text = text.replace("from proto.harness import ", "from talon_client.proto.harness import ")
     text = text.replace("from proto.resources import ", "from talon_client.proto.resources import ")
     text = text.replace("from proto.talon import ", "from talon_client.proto.talon import ")
     text = text.replace("from proto.talon.v1 import ", "from talon_client.proto.talon.v1 import ")
