@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	talonclient "github.com/impalasys/talon/sdk/go/talon-client"
 	"github.com/impalasys/talon/sdk/go/talon-client/talon/events"
@@ -52,6 +53,32 @@ func TestConnectNativeRejectsPlaintextAuthorization(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "authorization requires a TLS native gRPC endpoint") {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestConnectGRPCWebDoesNotMutateCallerOptionBackingArray(t *testing.T) {
+	sentinel := talonclient.GatewayClientOption(func(opts *talonclient.GatewayClientOptions) {
+		opts.Authorization = "sentinel"
+	})
+	backing := make([]talonclient.GatewayClientOption, 2)
+	backing[0] = talonclient.WithRequestTimeout(time.Second)
+	backing[1] = sentinel
+	options := backing[:1]
+
+	client, err := talonclient.ConnectGRPCWeb(context.Background(), "http://127.0.0.1:1", options...)
+	if err != nil {
+		t.Fatalf("connect grpc-web: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := client.Close(); err != nil {
+			t.Fatalf("close client: %v", err)
+		}
+	})
+
+	var opts talonclient.GatewayClientOptions
+	backing[1](&opts)
+	if opts.Authorization != "sentinel" {
+		t.Fatalf("ConnectGRPCWeb mutated caller option backing array")
 	}
 }
 

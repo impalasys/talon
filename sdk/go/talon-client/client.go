@@ -42,7 +42,10 @@ func Connect(ctx context.Context, endpoint string, options ...GatewayClientOptio
 }
 
 func ConnectGRPCWeb(ctx context.Context, endpoint string, options ...GatewayClientOption) (*Clientset, error) {
-	return ConnectWithOptions(ctx, endpoint, append(options, WithGRPCWeb())...)
+	grpcWebOptions := make([]GatewayClientOption, 0, len(options)+1)
+	grpcWebOptions = append(grpcWebOptions, options...)
+	grpcWebOptions = append(grpcWebOptions, WithGRPCWeb())
+	return ConnectWithOptions(ctx, endpoint, grpcWebOptions...)
 }
 
 func ConnectWithOptions(ctx context.Context, endpoint string, options ...GatewayClientOption) (*Clientset, error) {
