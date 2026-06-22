@@ -22,8 +22,6 @@
   "dependencies": {
     "@impalasys/talon-chat": "workspace:*",
     "@impalasys/talon-client": "workspace:0.1.17",
-    "@ai-sdk/openai": "3.0.51",
-    "@ai-sdk/react": "1.2.12",
     "@tailgrids/icons": "^2.0.0",
     "@tailwindcss/postcss": "^4.1.13",
     "ai": "^5.0.52",
