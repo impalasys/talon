@@ -25,21 +25,23 @@ import { streamSessionPartEvents, type StreamEventItem } from "./lib/uiStream";
 
 const useSafeLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-export type SessionServiceClientLike = {
-  create(request: { ns: string; agent: string; labels?: Record<string, string> }): Promise<{ sessionId: string }>;
-  clear(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
-  listMessages(request: {
-    ns: string;
-    agent: string;
-    sessionId: string;
-    pageSize: number;
-    beforeMessageId?: string;
-  }): Promise<any>;
-  get(request: { ns: string; agent: string; sessionId: string; messageLimit?: number; stepLimit?: number }): Promise<any>;
-  submitTurn(request: any, options?: { signal?: AbortSignal }): AsyncIterable<any>;
-  streamParts(request: { ns: string; agent: string; sessionId: string }, options?: { signal?: AbortSignal }): AsyncIterable<any>;
-  stopGeneration(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
-};
+export type SessionServiceClientLike = Pick<
+  {
+    create(request: { ns: string; agent: string; labels?: Record<string, string> }): Promise<{ sessionId: string }>;
+    clear(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
+    listMessages(request: {
+      ns: string;
+      agent: string;
+      sessionId: string;
+      pageSize: number;
+      beforeMessageId?: string;
+    }): Promise<any>;
+    submitTurn(request: any, options?: { signal?: AbortSignal }): AsyncIterable<any>;
+    streamParts(request: { ns: string; agent: string; sessionId: string }, options?: { signal?: AbortSignal }): AsyncIterable<any>;
+    stopGeneration(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
+  },
+  "create" | "clear" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
+>;
 
 export type GatewayClientLike = {
   sessions: SessionServiceClientLike;
@@ -900,17 +902,9 @@ export function TalonSession({
         });
       }
 
-      if (sessions?.get) {
-        return sessions.get({
-          ...target,
-          messageLimit: resolvedHistoryPageSize,
-          stepLimit: historyStepLimit > 0 ? historyStepLimit : undefined,
-        });
-      }
-
       throw new Error("TalonSession requires a Talon clientset with sessions.listMessages().");
     },
-    [gatewayClient, historyStepLimit, resolvedHistoryPageSize],
+    [gatewayClient, resolvedHistoryPageSize],
   );
 
   const createSession = useCallback(

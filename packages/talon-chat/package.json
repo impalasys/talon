@@ -44,6 +44,7 @@
     "access": "public"
   },
   "peerDependencies": {
+    "@impalasys/talon-client": "^0.1.17",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -52,6 +53,7 @@
     "streamdown": "^2.5.0"
   },
   "devDependencies": {
+    "@impalasys/talon-client": "workspace:0.1.17",
     "@playwright/test": "^1.60.0",
     "@storybook/addon-docs": "^10.4.2",
     "@storybook/react-vite": "^10.4.2",

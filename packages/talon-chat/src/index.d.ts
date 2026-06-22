@@ -1,21 +1,11 @@
 import type React from "react";
+import type { TalonClient } from "@impalasys/talon-client";
 
 export type GatewayClientLike = {
-  sessions: {
-    create(request: { ns: string; agent: string; labels?: Record<string, string> }): Promise<{ sessionId: string }>;
-    clear(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
-    listMessages(request: {
-      ns: string;
-      agent: string;
-      sessionId: string;
-      pageSize: number;
-      beforeMessageId?: string;
-    }): Promise<any>;
-    get(request: { ns: string; agent: string; sessionId: string; messageLimit?: number; stepLimit?: number }): Promise<any>;
-    submitTurn(request: any, options?: { signal?: AbortSignal }): AsyncIterable<any>;
-    streamParts(request: { ns: string; agent: string; sessionId: string }, options?: { signal?: AbortSignal }): AsyncIterable<any>;
-    stopGeneration(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
-  };
+  sessions: Pick<
+    TalonClient["sessions"],
+    "create" | "clear" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
+  >;
 };
 
 export type ToolInvocationItem = {
@@ -171,24 +161,7 @@ export type TalonChannelCommandTarget = {
 export type TalonChannelCommand = TalonChatCommand<TalonChannelCommandTarget, ChannelMessage>;
 
 export type ChannelGatewayClientLike = {
-  channels: {
-    listMessages(request: {
-      ns: string;
-      channel: string;
-      limit?: number;
-      pageSize?: number;
-      beforeMessageId?: string;
-    }): Promise<any>;
-    postMessage(request: {
-      ns: string;
-      channel: string;
-      authorKind: string;
-      author: string;
-      content: string;
-      subscriptionNames?: string[];
-      labels?: Record<string, string>;
-    }): Promise<any>;
-  };
+  channels: Pick<TalonClient["channels"], "listMessages" | "postMessage">;
 };
 
 export type TalonChannelProps = {
