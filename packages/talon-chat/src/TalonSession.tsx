@@ -273,7 +273,7 @@ function serializableMessageParts(parts: unknown) {
 }
 
 function protoSessionPartsFromChatParts(parts: unknown) {
-  return serializableMessageParts(parts).map((part: any) => {
+  return (serializableMessageParts(parts) || []).map((part: any) => {
     if (part?.type === "image") {
       return {
         partType: data.SessionMessagePartType.IMAGE,
@@ -1350,18 +1350,20 @@ export function TalonSession({
         throw new Error("TalonSession requires a Talon clientset with sessions.submitTurn().");
       }
 
+      const turnStream = sessions.submitTurn({
+        ns: session.ns,
+        agent: session.agent,
+        sessionId: session.sessionId,
+        message: {
+          role: data.MessageRole.ROLE_USER,
+          parts: protoSessionPartsFromChatParts(userMessage.parts),
+        },
+        labels: {},
+      }, { signal: controller.signal });
+
       submitTurnStarted = true;
       const { assistantText } = await streamSessionPartEvents({
-        events: sessions.submitTurn({
-          ns: session.ns,
-          agent: session.agent,
-          sessionId: session.sessionId,
-          message: {
-            role: data.MessageRole.ROLE_USER,
-            parts: protoSessionPartsFromChatParts(userMessage.parts),
-          },
-          labels: {},
-        }, { signal: controller.signal }),
+        events: turnStream,
         setMessages,
         setStreamEvents,
         signal: controller.signal,
