@@ -345,6 +345,7 @@ def parse_enum_values(source: str, start: int) -> list[str]:
                 return [
                     match.group(1)
                     for match in re.finditer(r"^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=", body, re.MULTILINE)
+                    if match.group(1) != "option"
                 ]
     return []
 
