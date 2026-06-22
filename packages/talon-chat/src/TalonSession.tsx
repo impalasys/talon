@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { data } from "@impalasys/talon-client";
 import { Activity, ChevronRight, Wrench } from "lucide-react";
 import {
   formatUsageSummary,
@@ -124,7 +125,6 @@ const DEFAULT_HISTORY_PAGE_SIZE = 50;
 const DEFAULT_HISTORY_MESSAGE_LIMIT = 100;
 const DEFAULT_HISTORY_STEP_LIMIT = 1000;
 const HISTORY_SCROLL_LOAD_THRESHOLD_PX = 120;
-const SESSION_MESSAGE_PART_TYPE_IMAGE = 7;
 
 function border(color: string) {
   return `1px solid ${color}`;
@@ -279,13 +279,13 @@ function protoSessionPartsFromChatParts(parts: unknown) {
   return serializableMessageParts(parts).map((part: any) => {
     if (part?.type === "image") {
       return {
-        partType: SESSION_MESSAGE_PART_TYPE_IMAGE,
+        partType: data.SessionMessagePartType.IMAGE,
         payloadJson: part.payloadJson ?? part.payload_json ?? "",
         object: part.object,
       };
     }
     return {
-      partType: 1,
+      partType: data.SessionMessagePartType.TEXT,
       content: String(part?.text ?? part?.content ?? ""),
     };
   });
@@ -313,7 +313,7 @@ function messageImageParts(
   if (!Array.isArray(message.parts)) return [];
   return message.parts.flatMap((part: any, index) => {
     const type = part?.type ?? part?.partType ?? part?.part_type;
-    if (type !== "image" && type !== SESSION_MESSAGE_PART_TYPE_IMAGE && type !== "SESSION_MESSAGE_PART_TYPE_IMAGE") {
+    if (type !== "image" && type !== data.SessionMessagePartType.IMAGE && type !== "SESSION_MESSAGE_PART_TYPE_IMAGE") {
       return [];
     }
     const payload = parsePayloadJson(part.payloadJson ?? part.payload_json);
@@ -1020,7 +1020,6 @@ export function TalonSession({
           events: sessions.streamParts(target, { signal }),
           setMessages,
           setStreamEvents,
-          setError,
           signal,
         });
       } catch (err) {
@@ -1358,14 +1357,13 @@ export function TalonSession({
           agent: session.agent,
           sessionId: session.sessionId,
           message: {
-            role: 1,
+            role: data.MessageRole.ROLE_USER,
             parts: protoSessionPartsFromChatParts(userMessage.parts),
           },
           labels: {},
         }, { signal: controller.signal }),
         setMessages,
         setStreamEvents,
-        setError,
         signal: controller.signal,
       });
 
