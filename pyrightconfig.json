@@ -1,0 +1,13 @@
+{
+  "include": [
+    "tests",
+    "sdk/python"
+  ],
+  "extraPaths": [
+    "sdk/python/talon-client/src",
+    "sdk/python/talon-server/src",
+    "tests/generated",
+    "tests"
+  ],
+  "pythonVersion": "3.10"
+}
