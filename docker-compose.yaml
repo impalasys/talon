@@ -35,7 +35,7 @@ services:
       pubsub:
         condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "test -x /usr/local/bin/talon-cli && /usr/local/bin/talon-cli --gateway http://localhost:50051 get namespaces >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "command -v talon-cli >/dev/null 2>&1 && talon-cli --gateway http://localhost:50051 get namespaces >/dev/null 2>&1"]
       interval: 5s
       timeout: 5s
       retries: 12
