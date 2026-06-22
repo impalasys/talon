@@ -19,15 +19,7 @@ JAVA_OUT = (
     ROOT
     / "sdk/java/talon-client/src/main/java/systems/impala/talon/client/TalonClientset.java"
 )
-V1_PROTO_FILES = [
-    "namespaces.proto",
-    "resources.proto",
-    "sessions.proto",
-    "channels.proto",
-    "workflows.proto",
-    "knowledge.proto",
-    "auth.proto",
-]
+V1_PROTO_FILES = sorted(path.name for path in PROTO_DIR.glob("*.proto"))
 PY_EXPORT_GROUPS = {
     "config": [
         "proto/config.proto",

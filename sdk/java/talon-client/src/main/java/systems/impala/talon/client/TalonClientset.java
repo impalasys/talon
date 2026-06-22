@@ -3,16 +3,25 @@
 package systems.impala.talon.client;
 
 import io.grpc.Channel;
+import talon.v1.AuthServiceGrpc;
+import talon.v1.ChannelServiceGrpc;
+import talon.v1.KnowledgeServiceGrpc;
 import talon.v1.NamespaceServiceGrpc;
 import talon.v1.ResourceServiceGrpc;
 import talon.v1.SessionServiceGrpc;
-import talon.v1.ChannelServiceGrpc;
 import talon.v1.WorkflowServiceGrpc;
-import talon.v1.KnowledgeServiceGrpc;
-import talon.v1.AuthServiceGrpc;
 
 public final class TalonClientset {
     private final Channel channel;
+    private final AuthServiceGrpc.AuthServiceBlockingStub auth;
+    private final AuthServiceGrpc.AuthServiceStub authAsync;
+    private final AuthServiceGrpc.AuthServiceFutureStub authFuture;
+    private final ChannelServiceGrpc.ChannelServiceBlockingStub channels;
+    private final ChannelServiceGrpc.ChannelServiceStub channelsAsync;
+    private final ChannelServiceGrpc.ChannelServiceFutureStub channelsFuture;
+    private final KnowledgeServiceGrpc.KnowledgeServiceBlockingStub knowledge;
+    private final KnowledgeServiceGrpc.KnowledgeServiceStub knowledgeAsync;
+    private final KnowledgeServiceGrpc.KnowledgeServiceFutureStub knowledgeFuture;
     private final NamespaceServiceGrpc.NamespaceServiceBlockingStub namespaces;
     private final NamespaceServiceGrpc.NamespaceServiceStub namespacesAsync;
     private final NamespaceServiceGrpc.NamespaceServiceFutureStub namespacesFuture;
@@ -22,18 +31,9 @@ public final class TalonClientset {
     private final SessionServiceGrpc.SessionServiceBlockingStub sessions;
     private final SessionServiceGrpc.SessionServiceStub sessionsAsync;
     private final SessionServiceGrpc.SessionServiceFutureStub sessionsFuture;
-    private final ChannelServiceGrpc.ChannelServiceBlockingStub channels;
-    private final ChannelServiceGrpc.ChannelServiceStub channelsAsync;
-    private final ChannelServiceGrpc.ChannelServiceFutureStub channelsFuture;
     private final WorkflowServiceGrpc.WorkflowServiceBlockingStub workflows;
     private final WorkflowServiceGrpc.WorkflowServiceStub workflowsAsync;
     private final WorkflowServiceGrpc.WorkflowServiceFutureStub workflowsFuture;
-    private final KnowledgeServiceGrpc.KnowledgeServiceBlockingStub knowledge;
-    private final KnowledgeServiceGrpc.KnowledgeServiceStub knowledgeAsync;
-    private final KnowledgeServiceGrpc.KnowledgeServiceFutureStub knowledgeFuture;
-    private final AuthServiceGrpc.AuthServiceBlockingStub auth;
-    private final AuthServiceGrpc.AuthServiceStub authAsync;
-    private final AuthServiceGrpc.AuthServiceFutureStub authFuture;
 
     public static TalonClientset create(Channel channel) {
         return new TalonClientset(channel);
@@ -41,6 +41,15 @@ public final class TalonClientset {
 
     public TalonClientset(Channel channel) {
         this.channel = channel;
+        this.auth = AuthServiceGrpc.newBlockingStub(channel);
+        this.authAsync = AuthServiceGrpc.newStub(channel);
+        this.authFuture = AuthServiceGrpc.newFutureStub(channel);
+        this.channels = ChannelServiceGrpc.newBlockingStub(channel);
+        this.channelsAsync = ChannelServiceGrpc.newStub(channel);
+        this.channelsFuture = ChannelServiceGrpc.newFutureStub(channel);
+        this.knowledge = KnowledgeServiceGrpc.newBlockingStub(channel);
+        this.knowledgeAsync = KnowledgeServiceGrpc.newStub(channel);
+        this.knowledgeFuture = KnowledgeServiceGrpc.newFutureStub(channel);
         this.namespaces = NamespaceServiceGrpc.newBlockingStub(channel);
         this.namespacesAsync = NamespaceServiceGrpc.newStub(channel);
         this.namespacesFuture = NamespaceServiceGrpc.newFutureStub(channel);
@@ -50,22 +59,49 @@ public final class TalonClientset {
         this.sessions = SessionServiceGrpc.newBlockingStub(channel);
         this.sessionsAsync = SessionServiceGrpc.newStub(channel);
         this.sessionsFuture = SessionServiceGrpc.newFutureStub(channel);
-        this.channels = ChannelServiceGrpc.newBlockingStub(channel);
-        this.channelsAsync = ChannelServiceGrpc.newStub(channel);
-        this.channelsFuture = ChannelServiceGrpc.newFutureStub(channel);
         this.workflows = WorkflowServiceGrpc.newBlockingStub(channel);
         this.workflowsAsync = WorkflowServiceGrpc.newStub(channel);
         this.workflowsFuture = WorkflowServiceGrpc.newFutureStub(channel);
-        this.knowledge = KnowledgeServiceGrpc.newBlockingStub(channel);
-        this.knowledgeAsync = KnowledgeServiceGrpc.newStub(channel);
-        this.knowledgeFuture = KnowledgeServiceGrpc.newFutureStub(channel);
-        this.auth = AuthServiceGrpc.newBlockingStub(channel);
-        this.authAsync = AuthServiceGrpc.newStub(channel);
-        this.authFuture = AuthServiceGrpc.newFutureStub(channel);
     }
 
     public Channel channel() {
         return channel;
+    }
+
+    public AuthServiceGrpc.AuthServiceBlockingStub auth() {
+        return auth;
+    }
+
+    public AuthServiceGrpc.AuthServiceStub authAsync() {
+        return authAsync;
+    }
+
+    public AuthServiceGrpc.AuthServiceFutureStub authFuture() {
+        return authFuture;
+    }
+
+    public ChannelServiceGrpc.ChannelServiceBlockingStub channels() {
+        return channels;
+    }
+
+    public ChannelServiceGrpc.ChannelServiceStub channelsAsync() {
+        return channelsAsync;
+    }
+
+    public ChannelServiceGrpc.ChannelServiceFutureStub channelsFuture() {
+        return channelsFuture;
+    }
+
+    public KnowledgeServiceGrpc.KnowledgeServiceBlockingStub knowledge() {
+        return knowledge;
+    }
+
+    public KnowledgeServiceGrpc.KnowledgeServiceStub knowledgeAsync() {
+        return knowledgeAsync;
+    }
+
+    public KnowledgeServiceGrpc.KnowledgeServiceFutureStub knowledgeFuture() {
+        return knowledgeFuture;
     }
 
     public NamespaceServiceGrpc.NamespaceServiceBlockingStub namespaces() {
@@ -104,18 +140,6 @@ public final class TalonClientset {
         return sessionsFuture;
     }
 
-    public ChannelServiceGrpc.ChannelServiceBlockingStub channels() {
-        return channels;
-    }
-
-    public ChannelServiceGrpc.ChannelServiceStub channelsAsync() {
-        return channelsAsync;
-    }
-
-    public ChannelServiceGrpc.ChannelServiceFutureStub channelsFuture() {
-        return channelsFuture;
-    }
-
     public WorkflowServiceGrpc.WorkflowServiceBlockingStub workflows() {
         return workflows;
     }
@@ -126,30 +150,6 @@ public final class TalonClientset {
 
     public WorkflowServiceGrpc.WorkflowServiceFutureStub workflowsFuture() {
         return workflowsFuture;
-    }
-
-    public KnowledgeServiceGrpc.KnowledgeServiceBlockingStub knowledge() {
-        return knowledge;
-    }
-
-    public KnowledgeServiceGrpc.KnowledgeServiceStub knowledgeAsync() {
-        return knowledgeAsync;
-    }
-
-    public KnowledgeServiceGrpc.KnowledgeServiceFutureStub knowledgeFuture() {
-        return knowledgeFuture;
-    }
-
-    public AuthServiceGrpc.AuthServiceBlockingStub auth() {
-        return auth;
-    }
-
-    public AuthServiceGrpc.AuthServiceStub authAsync() {
-        return authAsync;
-    }
-
-    public AuthServiceGrpc.AuthServiceFutureStub authFuture() {
-        return authFuture;
     }
 
 }

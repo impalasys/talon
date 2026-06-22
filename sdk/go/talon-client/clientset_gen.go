@@ -8,14 +8,26 @@ import (
 )
 
 type Clientset struct {
+	auth       talonv1.AuthServiceClient
+	channels   talonv1.ChannelServiceClient
+	knowledge  talonv1.KnowledgeServiceClient
 	namespaces talonv1.NamespaceServiceClient
 	resources  talonv1.ResourceServiceClient
 	sessions   talonv1.SessionServiceClient
-	channels   talonv1.ChannelServiceClient
 	workflows  talonv1.WorkflowServiceClient
-	knowledge  talonv1.KnowledgeServiceClient
-	auth       talonv1.AuthServiceClient
 	close      func() error
+}
+
+func (c *Clientset) Auth() talonv1.AuthServiceClient {
+	return c.auth
+}
+
+func (c *Clientset) Channels() talonv1.ChannelServiceClient {
+	return c.channels
+}
+
+func (c *Clientset) Knowledge() talonv1.KnowledgeServiceClient {
+	return c.knowledge
 }
 
 func (c *Clientset) Namespaces() talonv1.NamespaceServiceClient {
@@ -30,31 +42,19 @@ func (c *Clientset) Sessions() talonv1.SessionServiceClient {
 	return c.sessions
 }
 
-func (c *Clientset) Channels() talonv1.ChannelServiceClient {
-	return c.channels
-}
-
 func (c *Clientset) Workflows() talonv1.WorkflowServiceClient {
 	return c.workflows
 }
 
-func (c *Clientset) Knowledge() talonv1.KnowledgeServiceClient {
-	return c.knowledge
-}
-
-func (c *Clientset) Auth() talonv1.AuthServiceClient {
-	return c.auth
-}
-
 func newClientset(conn grpc.ClientConnInterface, close func() error) *Clientset {
 	return &Clientset{
+		auth:       talonv1.NewAuthServiceClient(conn),
+		channels:   talonv1.NewChannelServiceClient(conn),
+		knowledge:  talonv1.NewKnowledgeServiceClient(conn),
 		namespaces: talonv1.NewNamespaceServiceClient(conn),
 		resources:  talonv1.NewResourceServiceClient(conn),
 		sessions:   talonv1.NewSessionServiceClient(conn),
-		channels:   talonv1.NewChannelServiceClient(conn),
 		workflows:  talonv1.NewWorkflowServiceClient(conn),
-		knowledge:  talonv1.NewKnowledgeServiceClient(conn),
-		auth:       talonv1.NewAuthServiceClient(conn),
 		close:      close,
 	}
 }

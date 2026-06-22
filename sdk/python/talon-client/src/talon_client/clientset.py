@@ -2,29 +2,29 @@
 
 import grpc
 
+from talon_client.proto.talon.v1 import auth_pb2_grpc
+from talon_client.proto.talon.v1 import channels_pb2_grpc
+from talon_client.proto.talon.v1 import knowledge_pb2_grpc
 from talon_client.proto.talon.v1 import namespaces_pb2_grpc
 from talon_client.proto.talon.v1 import resources_pb2_grpc
 from talon_client.proto.talon.v1 import sessions_pb2_grpc
-from talon_client.proto.talon.v1 import channels_pb2_grpc
 from talon_client.proto.talon.v1 import workflows_pb2_grpc
-from talon_client.proto.talon.v1 import knowledge_pb2_grpc
-from talon_client.proto.talon.v1 import auth_pb2_grpc
 
 
 class TalonClient:
+    auth: auth_pb2_grpc.AuthServiceStub
+    channels: channels_pb2_grpc.ChannelServiceStub
+    knowledge: knowledge_pb2_grpc.KnowledgeServiceStub
     namespaces: namespaces_pb2_grpc.NamespaceServiceStub
     resources: resources_pb2_grpc.ResourceServiceStub
     sessions: sessions_pb2_grpc.SessionServiceStub
-    channels: channels_pb2_grpc.ChannelServiceStub
     workflows: workflows_pb2_grpc.WorkflowServiceStub
-    knowledge: knowledge_pb2_grpc.KnowledgeServiceStub
-    auth: auth_pb2_grpc.AuthServiceStub
 
     def __init__(self, channel: grpc.Channel):
+        self.auth = auth_pb2_grpc.AuthServiceStub(channel)
+        self.channels = channels_pb2_grpc.ChannelServiceStub(channel)
+        self.knowledge = knowledge_pb2_grpc.KnowledgeServiceStub(channel)
         self.namespaces = namespaces_pb2_grpc.NamespaceServiceStub(channel)
         self.resources = resources_pb2_grpc.ResourceServiceStub(channel)
         self.sessions = sessions_pb2_grpc.SessionServiceStub(channel)
-        self.channels = channels_pb2_grpc.ChannelServiceStub(channel)
         self.workflows = workflows_pb2_grpc.WorkflowServiceStub(channel)
-        self.knowledge = knowledge_pb2_grpc.KnowledgeServiceStub(channel)
-        self.auth = auth_pb2_grpc.AuthServiceStub(channel)
