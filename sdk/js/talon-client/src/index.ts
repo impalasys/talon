@@ -30,6 +30,8 @@ import * as v1Namespaces from "./gen/proto/talon/v1/namespaces_pb.js";
 import * as v1NamespacesConnect from "./gen/proto/talon/v1/namespaces_connect.js";
 import * as v1Resources from "./gen/proto/talon/v1/resources_pb.js";
 import * as v1ResourcesConnect from "./gen/proto/talon/v1/resources_connect.js";
+import * as v1Search from "./gen/proto/talon/v1/search_pb.js";
+import * as v1SearchConnect from "./gen/proto/talon/v1/search_connect.js";
 import * as v1Sessions from "./gen/proto/talon/v1/sessions_pb.js";
 import * as v1SessionsConnect from "./gen/proto/talon/v1/sessions_connect.js";
 import * as v1Workflows from "./gen/proto/talon/v1/workflows_pb.js";
@@ -64,6 +66,8 @@ export {
   v1NamespacesConnect,
   v1Resources,
   v1ResourcesConnect,
+  v1Search,
+  v1SearchConnect,
   v1Sessions,
   v1SessionsConnect,
   v1Workflows,

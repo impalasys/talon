@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
+import { v1Search } from '@impalasys/talon-client';
 import { getGatewayClient } from '../../lib/grpc';
 import type { Selection } from '../Namespaces/NamespaceExplorer';
 import {
@@ -19,12 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../tailgrids/core/select';
-import {
-  SearchMode,
-  SearchSort,
-  type Document as SearchDocument,
-  type SearchResult,
-} from '../../proto/proto/talon/v1/search_pb';
+type SearchDocument = v1Search.Document;
+type SearchResult = v1Search.SearchResult;
 
 const RESOURCE_KIND_OPTIONS = [
   { label: 'All', value: '' },
@@ -185,8 +182,8 @@ export function WorkspaceCommandPalette({
           query: trimmedQuery,
           resourceKinds: resourceKind ? [resourceKind] : [],
           limit: 12,
-          mode: SearchMode.KEYWORD,
-          sort: SearchSort.RELEVANCE,
+          mode: v1Search.SearchMode.KEYWORD,
+          sort: v1Search.SearchSort.RELEVANCE,
         });
         if (active) {
           setResults(response.results);

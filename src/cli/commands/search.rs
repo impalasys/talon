@@ -6,7 +6,9 @@ use clap::{Args, Subcommand};
 
 use super::{Cli, RunOutcome};
 use crate::cli::connect_gateway;
-use talon_client::gateway::{SearchKnowledgeRequest, SearchMode, SearchRequest, SearchResult, SearchSort};
+use talon_client::v1::{
+    SearchKnowledgeRequest, SearchMode, SearchRequest, SearchResult, SearchSort,
+};
 
 #[derive(Args)]
 pub(crate) struct SearchCommand {
