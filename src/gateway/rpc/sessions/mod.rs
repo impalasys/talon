@@ -163,13 +163,16 @@ async fn count_active_subject_sessions(
         .rate_limit_key
         .as_deref()
         .filter(|key| !key.trim().is_empty());
-    let mut active = 0;
-    for key in session_keys {
-        let session = gateway
+    let session_fetches = session_keys.iter().map(|key| async move {
+        gateway
             .kv
             .get_msg::<data_proto::Session>(key)
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to fetch session: {}", e)))?;
+            .map_err(|e| tonic::Status::internal(format!("Failed to fetch session: {}", e)))
+    });
+    let sessions = futures::future::try_join_all(session_fetches).await?;
+    let mut active = 0;
+    for session in sessions {
         let Some(session) = session else {
             continue;
         };
@@ -480,15 +483,28 @@ impl GrpcGatewayHandler {
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to list sessions: {}", e)))?;
         let active_sessions = session_keys.len() as u64;
+        let now_seconds = chrono::Utc::now().timestamp();
         let active_subject_sessions =
-            count_active_subject_sessions(&self.gateway, &session_keys, &session_usage_subject)
-                .await?;
+            if crate::control::usage::agent_session_limits_need_identity_scope(
+                self.gateway.kv.as_ref(),
+                &session_usage_subject,
+                now_seconds,
+            )
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to check session usage scope: {}", e))
+            })? {
+                count_active_subject_sessions(&self.gateway, &session_keys, &session_usage_subject)
+                    .await?
+            } else {
+                0
+            };
         crate::control::usage::check_concurrent_agent_sessions(
             self.gateway.kv.as_ref(),
             &session_usage_subject,
             active_sessions,
             active_subject_sessions,
-            chrono::Utc::now().timestamp(),
+            now_seconds,
         )
         .await
         .map_err(|e| {

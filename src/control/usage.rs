@@ -8,7 +8,10 @@ use dashmap::DashMap;
 use prost::Message;
 use std::error::Error;
 use std::fmt;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{
+    atomic::{AtomicU64, Ordering},
+    OnceLock,
+};
 use std::time::{Duration, Instant};
 
 const MAX_CAS_RETRIES: usize = 16;
@@ -24,6 +27,7 @@ pub const METRIC_GATEWAY_REQUESTS: &str = "gateway.requests";
 
 const ANONYMOUS_GATEWAY_BURST: u64 = 2;
 const ANONYMOUS_GATEWAY_WINDOW: Duration = Duration::from_secs(1);
+const ANONYMOUS_GATEWAY_BURST_ENV: &str = "TALON_ANONYMOUS_GATEWAY_BURST";
 const RATE_LIMITER_PRUNE_INTERVAL_CHECKS: u64 = 1024;
 const RATE_LIMITER_IDLE_TTL: Duration = Duration::from_secs(10 * 60);
 
@@ -272,14 +276,13 @@ pub async fn admit_gateway_usage(
         .filter(|key| !key.trim().is_empty())
         .unwrap_or("anonymous:fallback");
     let now = Instant::now();
-    let anonymous_rule = TokenBucketRule {
-        max: ANONYMOUS_GATEWAY_BURST,
-        window: Window {
-            seconds: ANONYMOUS_GATEWAY_WINDOW.as_secs(),
-        },
-    };
+    let anonymous_rule = anonymous_gateway_rule();
     let anonymous_bucket_key = format!("{rate_limit_key}:strict-fallback");
-    let anonymous_checked = subject.rate_limit_key.is_none();
+    let anonymous_checked = subject
+        .rate_limit_key
+        .as_deref()
+        .map(|key| key.trim().is_empty())
+        .unwrap_or(true);
     if anonymous_checked {
         limiter.check(
             anonymous_bucket_key.clone(),
@@ -344,6 +347,34 @@ pub async fn admit_gateway_usage(
         charged.push((bucket_key, rule, key, charge.delta));
     }
     Ok(())
+}
+
+fn anonymous_gateway_rule() -> TokenBucketRule {
+    static RULE: OnceLock<TokenBucketRule> = OnceLock::new();
+
+    *RULE.get_or_init(|| TokenBucketRule {
+        max: std::env::var(ANONYMOUS_GATEWAY_BURST_ENV)
+            .ok()
+            .and_then(|value| value.parse::<u64>().ok())
+            .filter(|value| *value > 0)
+            .unwrap_or(ANONYMOUS_GATEWAY_BURST),
+        window: Window {
+            seconds: ANONYMOUS_GATEWAY_WINDOW.as_secs(),
+        },
+    })
+}
+
+pub async fn agent_session_limits_need_identity_scope(
+    kv: &(dyn KeyValueStore + Send + Sync),
+    subject: &UsageSubject,
+    now_seconds: i64,
+) -> Result<bool> {
+    for limit in matched_limits(kv, subject, &[METRIC_AGENT_SESSIONS], now_seconds).await? {
+        if subject_scope(&limit.limit)? == SubjectScope::Identity {
+            return Ok(true);
+        }
+    }
+    Ok(false)
 }
 
 async fn rollback_gateway_usage(
@@ -683,6 +714,9 @@ async fn decrement_counter_cas(
             None => 0,
         };
         let next = current.saturating_sub(delta);
+        if current_bytes.is_none() && next == 0 {
+            return Ok(0);
+        }
         let next_bytes = encode_counter(next);
         if kv
             .compare_and_swap(key, current_bytes.as_deref(), &next_bytes)
@@ -1189,6 +1223,15 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn decrement_missing_counter_does_not_create_zero_record() {
+        let kv = MockKvStore::new();
+        let key = counter_key("acme", "policy", "rule", None, 120);
+
+        assert_eq!(decrement_counter_cas(&kv, &key, 1).await.unwrap(), 0);
+        assert!(kv.get(&key).await.unwrap().is_none());
+    }
+
+    #[tokio::test]
     async fn charges_matching_policy_limit() {
         let kv = MockKvStore::new();
         let policy = resources_proto::UsagePolicy {
@@ -1511,6 +1554,33 @@ mod tests {
             .await
             .unwrap_err();
         assert!(is_quota_exceeded_error(&err));
+    }
+
+    #[tokio::test]
+    async fn blank_rate_limit_key_gets_strict_anonymous_fallback_bucket() {
+        let kv = MockKvStore::new();
+        let limiter = SubjectRateLimiter::default();
+        let subject = usage_subject(Some("   "));
+        let charge = [UsageCharge {
+            metric: METRIC_GATEWAY_REQUESTS,
+            delta: 1,
+        }];
+
+        admit_gateway_usage(&kv, &limiter, &subject, &charge, 65)
+            .await
+            .unwrap();
+        admit_gateway_usage(&kv, &limiter, &subject, &charge, 65)
+            .await
+            .unwrap();
+        let err = admit_gateway_usage(&kv, &limiter, &subject, &charge, 65)
+            .await
+            .unwrap_err();
+        assert!(matches!(
+            err.downcast_ref::<GatewayUsageAdmissionExceeded>(),
+            Some(exceeded)
+                if exceeded.metric == METRIC_GATEWAY_REQUESTS
+                    && exceeded.rate_limit_key == "anonymous:fallback:strict-fallback"
+        ));
     }
 
     #[tokio::test]
