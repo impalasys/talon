@@ -3,10 +3,12 @@
 
 use super::store::{sort_results, DocumentStore};
 use super::{
-    document_attributes, document_source, next_page_token, page_offset, query_terms, DeleteScope,
-    Document, SearchQuery, SearchResponse, SearchResult, SearchSort, ATTR_AGENT, ATTR_CHANNEL,
-    ATTR_MESSAGE_ID, ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
+    document_attributes, document_source, next_page_token, page_offset, query_terms, search_limit,
+    search_mode, search_namespaces, search_sort, DeleteScope, Document, SearchResponse,
+    SearchResult, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID, ATTR_PART_ID, ATTR_PART_TYPE,
+    ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
 };
+use crate::gateway::rpc::proto;
 use anyhow::Result;
 use sqlx::{
     sqlite::{
@@ -157,11 +159,9 @@ impl DocumentStore for SqliteDocumentStore {
         Ok(deleted)
     }
 
-    async fn search(&self, query: &SearchQuery) -> Result<SearchResponse> {
-        self.capabilities().require_mode(query.mode)?;
-        if query
-            .source
-            .namespaces()
+    async fn search(&self, query: &proto::SearchRequest) -> Result<SearchResponse> {
+        self.capabilities().require_mode(search_mode(query))?;
+        if search_namespaces(query)
             .iter()
             .all(|namespace| namespace.is_empty())
         {
@@ -184,11 +184,11 @@ impl DocumentStore for SqliteDocumentStore {
             builder.push_bind(fts_query);
         }
         push_query_filters(&mut builder, query);
-        match query.sort {
-            SearchSort::Recency => {
+        match search_sort(query) {
+            proto::SearchSort::Recency => {
                 builder.push(" ORDER BY d.updated_at DESC");
             }
-            SearchSort::Relevance => {
+            proto::SearchSort::Unspecified | proto::SearchSort::Relevance => {
                 if use_fts {
                     builder.push(" ORDER BY score DESC, d.updated_at DESC");
                 } else {
@@ -196,7 +196,7 @@ impl DocumentStore for SqliteDocumentStore {
                 }
             }
         }
-        let limit = query.limit.clamp(1, 100);
+        let limit = search_limit(query);
         let offset = page_offset(&query.page_token)?;
         builder.push(" LIMIT ");
         builder.push_bind((limit + 1) as i64);
@@ -214,7 +214,7 @@ impl DocumentStore for SqliteDocumentStore {
             })
             .collect::<Result<Vec<_>>>()?;
         if !use_fts {
-            sort_results(&mut results, query.sort);
+            sort_results(&mut results, search_sort(query));
         }
         let token = next_page_token(offset, limit, results.len());
         results.truncate(limit);
@@ -302,36 +302,38 @@ async fn init_schema(pool: &SqlitePool) -> Result<()> {
     Ok(())
 }
 
-fn push_query_filters<'a>(builder: &mut QueryBuilder<'a, Sqlite>, query: &'a SearchQuery) {
+fn push_query_filters<'a>(builder: &mut QueryBuilder<'a, Sqlite>, query: &'a proto::SearchRequest) {
     builder.push(" AND d.namespace IN (");
     let mut separated = builder.separated(", ");
-    for namespace in query.source.namespaces() {
+    for namespace in search_namespaces(query) {
         separated.push_bind(namespace);
     }
     separated.push_unseparated(")");
-    if !query.source.key.is_empty() {
-        builder
-            .push(" AND d.resource_key = ")
-            .push_bind(&query.source.key);
-    }
-    if !query.source.key_prefix.is_empty() {
-        builder
-            .push(" AND d.resource_key LIKE ")
-            .push_bind(like_prefix_pattern(&query.source.key_prefix))
-            .push(" ESCAPE '\\'");
-    }
-    if !query.source.parent_key.is_empty() {
-        builder
-            .push(" AND d.parent_key = ")
-            .push_bind(&query.source.parent_key);
-    }
-    if !query.source.kinds.is_empty() {
-        builder.push(" AND d.resource_kind IN (");
-        let mut separated = builder.separated(", ");
-        for kind in &query.source.kinds {
-            separated.push_bind(kind);
+    if let Some(source) = query.source.as_ref() {
+        if !source.key.is_empty() {
+            builder
+                .push(" AND d.resource_key = ")
+                .push_bind(&source.key);
         }
-        separated.push_unseparated(")");
+        if !source.key_prefix.is_empty() {
+            builder
+                .push(" AND d.resource_key LIKE ")
+                .push_bind(like_prefix_pattern(&source.key_prefix))
+                .push(" ESCAPE '\\'");
+        }
+        if !source.parent_key.is_empty() {
+            builder
+                .push(" AND d.parent_key = ")
+                .push_bind(&source.parent_key);
+        }
+        if !source.kinds.is_empty() {
+            builder.push(" AND d.resource_kind IN (");
+            let mut separated = builder.separated(", ");
+            for kind in &source.kinds {
+                separated.push_bind(kind);
+            }
+            separated.push_unseparated(")");
+        }
     }
     push_attribute_filter(builder, "agent", &query.attributes);
     push_attribute_filter(builder, "session_id", &query.attributes);
@@ -527,13 +529,13 @@ mod tests {
             .unwrap();
 
         let response = store
-            .search(&SearchQuery {
+            .search(&proto::SearchRequest {
                 query: "refund".to_string(),
-                source: crate::control::search::SearchSourceFilter {
+                source: Some(proto::SearchSourceFilter {
                     namespace: "acme".to_string(),
                     kinds: vec!["SessionMessage".to_string()],
                     ..Default::default()
-                },
+                }),
                 attributes: document_attributes([(ATTR_AGENT, "support".to_string())]),
                 labels: [
                     ("tier".to_string(), "gold".to_string()),
@@ -554,13 +556,13 @@ mod tests {
         );
 
         let prefix_response = store
-            .search(&SearchQuery {
+            .search(&proto::SearchRequest {
                 query: "ref".to_string(),
-                source: crate::control::search::SearchSourceFilter {
+                source: Some(proto::SearchSourceFilter {
                     namespace: "acme".to_string(),
                     kinds: vec!["SessionMessage".to_string()],
                     ..Default::default()
-                },
+                }),
                 limit: 10,
                 ..Default::default()
             })

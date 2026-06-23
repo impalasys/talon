@@ -184,6 +184,11 @@ export class SearchSourceFilter extends Message<SearchSourceFilter> {
    */
   parentKey = "";
 
+  /**
+   * @generated from field: repeated string namespaces = 6;
+   */
+  namespaces: string[] = [];
+
   constructor(data?: PartialMessage<SearchSourceFilter>) {
     super();
     proto3.util.initPartial(data, this);
@@ -197,6 +202,7 @@ export class SearchSourceFilter extends Message<SearchSourceFilter> {
     { no: 3, name: "key_prefix", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "kinds", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 5, name: "parent_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "namespaces", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SearchSourceFilter {

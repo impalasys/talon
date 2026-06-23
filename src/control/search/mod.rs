@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
 use crate::control::keys;
+use crate::gateway::rpc::proto;
 
 pub use d1::D1DocumentStore;
 pub use disabled::{disabled_document_store, DisabledDocumentStore};
@@ -163,67 +164,46 @@ pub fn document_attributes(
         .collect()
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(rename_all = "camelCase", default)]
-pub struct SearchQuery {
-    pub query: String,
-    pub source: SearchSourceFilter,
-    pub attributes: HashMap<String, String>,
-    pub labels: HashMap<String, String>,
-    pub start_time: Option<i64>,
-    pub end_time: Option<i64>,
-    pub limit: usize,
-    pub page_token: String,
-    pub sort: SearchSort,
-    pub mode: SearchMode,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(rename_all = "camelCase", default)]
-pub struct SearchSourceFilter {
-    pub namespace: String,
-    pub namespaces: Vec<String>,
-    pub key: String,
-    pub key_prefix: String,
-    pub kinds: Vec<String>,
-    pub parent_key: String,
-}
-
-impl SearchSourceFilter {
-    pub fn namespaces(&self) -> Vec<&str> {
-        if self.namespaces.is_empty() {
-            vec![self.namespace.as_str()]
-        } else {
-            self.namespaces.iter().map(String::as_str).collect()
-        }
+pub fn search_namespaces(query: &proto::SearchRequest) -> Vec<&str> {
+    let Some(source) = query.source.as_ref() else {
+        return Vec::new();
+    };
+    if source.namespaces.is_empty() {
+        vec![source.namespace.as_str()]
+    } else {
+        source.namespaces.iter().map(String::as_str).collect()
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum SearchMode {
-    #[default]
-    Keyword,
-    Semantic,
-    Hybrid,
-}
-
-impl SearchMode {
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            SearchMode::Keyword => "keyword",
-            SearchMode::Semantic => "semantic",
-            SearchMode::Hybrid => "hybrid",
-        }
+pub fn search_limit(query: &proto::SearchRequest) -> usize {
+    if query.limit <= 0 {
+        10
+    } else {
+        (query.limit as usize).min(100)
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum SearchSort {
-    #[default]
-    Relevance,
-    Recency,
+pub fn search_mode(query: &proto::SearchRequest) -> proto::SearchMode {
+    match proto::SearchMode::try_from(query.mode).unwrap_or(proto::SearchMode::Keyword) {
+        proto::SearchMode::Unspecified | proto::SearchMode::Keyword => proto::SearchMode::Keyword,
+        proto::SearchMode::Semantic => proto::SearchMode::Semantic,
+        proto::SearchMode::Hybrid => proto::SearchMode::Hybrid,
+    }
+}
+
+pub fn search_mode_name(mode: proto::SearchMode) -> &'static str {
+    match mode {
+        proto::SearchMode::Unspecified | proto::SearchMode::Keyword => "keyword",
+        proto::SearchMode::Semantic => "semantic",
+        proto::SearchMode::Hybrid => "hybrid",
+    }
+}
+
+pub fn search_sort(query: &proto::SearchRequest) -> proto::SearchSort {
+    match proto::SearchSort::try_from(query.sort).unwrap_or(proto::SearchSort::Relevance) {
+        proto::SearchSort::Recency => proto::SearchSort::Recency,
+        _ => proto::SearchSort::Relevance,
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -253,28 +233,26 @@ pub struct DeleteScope {
     pub max_source_generation: u64,
 }
 
-pub(crate) fn query_matches(query: &SearchQuery, document: &Document) -> bool {
-    if !query.source.key.is_empty() && query.source.key != document.resource_key() {
-        return false;
-    }
-    if !query.source.key_prefix.is_empty()
-        && !document
-            .resource_key()
-            .starts_with(&query.source.key_prefix)
-    {
-        return false;
-    }
-    if !query.source.parent_key.is_empty() && query.source.parent_key != document.parent_key() {
-        return false;
-    }
-    if !query.source.kinds.is_empty()
-        && !query
-            .source
-            .kinds
-            .iter()
-            .any(|kind| kind == document.resource_kind())
-    {
-        return false;
+pub(crate) fn query_matches(query: &proto::SearchRequest, document: &Document) -> bool {
+    if let Some(source) = query.source.as_ref() {
+        if !source.key.is_empty() && source.key != document.resource_key() {
+            return false;
+        }
+        if !source.key_prefix.is_empty() && !document.resource_key().starts_with(&source.key_prefix)
+        {
+            return false;
+        }
+        if !source.parent_key.is_empty() && source.parent_key != document.parent_key() {
+            return false;
+        }
+        if !source.kinds.is_empty()
+            && !source
+                .kinds
+                .iter()
+                .any(|kind| kind == document.resource_kind())
+        {
+            return false;
+        }
     }
     for (key, value) in &query.attributes {
         if document.attributes.get(key) != Some(value) {
@@ -444,19 +422,19 @@ mod tests {
     fn document_store_capabilities_advertise_supported_modes() {
         let keyword = DocumentStoreCapabilities::keyword_only();
         assert!(keyword.is_enabled());
-        assert!(keyword.supports(SearchMode::Keyword));
-        assert!(!keyword.supports(SearchMode::Semantic));
-        assert!(!keyword.supports(SearchMode::Hybrid));
-        assert!(keyword.require_mode(SearchMode::Keyword).is_ok());
+        assert!(keyword.supports(proto::SearchMode::Keyword));
+        assert!(!keyword.supports(proto::SearchMode::Semantic));
+        assert!(!keyword.supports(proto::SearchMode::Hybrid));
+        assert!(keyword.require_mode(proto::SearchMode::Keyword).is_ok());
         assert!(keyword
-            .require_mode(SearchMode::Semantic)
+            .require_mode(proto::SearchMode::Semantic)
             .unwrap_err()
             .to_string()
             .contains("semantic search is not enabled"));
 
         let disabled = DocumentStoreCapabilities::disabled();
         assert!(!disabled.is_enabled());
-        assert!(!disabled.supports(SearchMode::Keyword));
+        assert!(!disabled.supports(proto::SearchMode::Keyword));
     }
 
     #[tokio::test]
@@ -486,13 +464,13 @@ mod tests {
         backend.upsert_documents(&[document]).await.unwrap();
 
         let response = backend
-            .search(&SearchQuery {
+            .search(&proto::SearchRequest {
                 query: "refund".to_string(),
-                source: SearchSourceFilter {
+                source: Some(proto::SearchSourceFilter {
                     namespace: "acme".to_string(),
                     kinds: vec![KIND_SESSION_MESSAGE.to_string()],
                     ..Default::default()
-                },
+                }),
                 attributes: document_attributes([(ATTR_AGENT, "support".to_string())]),
                 limit: 10,
                 ..Default::default()
@@ -514,12 +492,12 @@ mod tests {
         assert_eq!(deleted, 1);
 
         let response = backend
-            .search(&SearchQuery {
+            .search(&proto::SearchRequest {
                 query: "refund".to_string(),
-                source: SearchSourceFilter {
+                source: Some(proto::SearchSourceFilter {
                     namespace: "acme".to_string(),
                     ..Default::default()
-                },
+                }),
                 limit: 10,
                 ..Default::default()
             })
@@ -553,14 +531,14 @@ mod tests {
         backend.upsert_documents(&documents).await.unwrap();
 
         let response = backend
-            .search(&SearchQuery {
+            .search(&proto::SearchRequest {
                 query: "policy".to_string(),
-                source: SearchSourceFilter {
+                source: Some(proto::SearchSourceFilter {
                     namespace: "acme".to_string(),
                     ..Default::default()
-                },
+                }),
                 limit: 2,
-                sort: SearchSort::Recency,
+                sort: proto::SearchSort::Recency as i32,
                 ..Default::default()
             })
             .await
@@ -610,13 +588,13 @@ mod tests {
     async fn memory_document_store_rejects_vector_modes_without_capability() {
         let backend = memory_document_store();
         let error = backend
-            .search(&SearchQuery {
+            .search(&proto::SearchRequest {
                 query: "refund".to_string(),
-                source: SearchSourceFilter {
+                source: Some(proto::SearchSourceFilter {
                     namespace: "acme".to_string(),
                     ..Default::default()
-                },
-                mode: SearchMode::Hybrid,
+                }),
+                mode: proto::SearchMode::Hybrid as i32,
                 ..Default::default()
             })
             .await

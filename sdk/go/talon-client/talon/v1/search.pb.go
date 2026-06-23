@@ -245,6 +245,7 @@ type SearchSourceFilter struct {
 	KeyPrefix     string                 `protobuf:"bytes,3,opt,name=key_prefix,json=keyPrefix,proto3" json:"key_prefix,omitempty"`
 	Kinds         []string               `protobuf:"bytes,4,rep,name=kinds,proto3" json:"kinds,omitempty"`
 	ParentKey     string                 `protobuf:"bytes,5,opt,name=parent_key,json=parentKey,proto3" json:"parent_key,omitempty"`
+	Namespaces    []string               `protobuf:"bytes,6,rep,name=namespaces,proto3" json:"namespaces,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -312,6 +313,13 @@ func (x *SearchSourceFilter) GetParentKey() string {
 		return x.ParentKey
 	}
 	return ""
+}
+
+func (x *SearchSourceFilter) GetNamespaces() []string {
+	if x != nil {
+		return x.Namespaces
+	}
+	return nil
 }
 
 type Document struct {
@@ -791,7 +799,7 @@ const file_proto_talon_v1_search_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\r\n" +
 	"\v_start_timeB\v\n" +
-	"\t_end_time\"\x98\x01\n" +
+	"\t_end_time\"\xb8\x01\n" +
 	"\x12SearchSourceFilter\x12\x1c\n" +
 	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x10\n" +
 	"\x03key\x18\x02 \x01(\tR\x03key\x12\x1d\n" +
@@ -799,7 +807,10 @@ const file_proto_talon_v1_search_proto_rawDesc = "" +
 	"key_prefix\x18\x03 \x01(\tR\tkeyPrefix\x12\x14\n" +
 	"\x05kinds\x18\x04 \x03(\tR\x05kinds\x12\x1d\n" +
 	"\n" +
-	"parent_key\x18\x05 \x01(\tR\tparentKey\"\xab\x05\n" +
+	"parent_key\x18\x05 \x01(\tR\tparentKey\x12\x1e\n" +
+	"\n" +
+	"namespaces\x18\x06 \x03(\tR\n" +
+	"namespaces\"\xab\x05\n" +
 	"\bDocument\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x120\n" +
 	"\x06source\x18\x02 \x01(\v2\x18.talon.v1.DocumentSourceR\x06source\x12#\n" +

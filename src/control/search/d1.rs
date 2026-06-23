@@ -3,10 +3,12 @@
 
 use super::store::{sort_results, DocumentStore};
 use super::{
-    document_attributes, document_source, next_page_token, page_offset, query_terms, DeleteScope,
-    Document, SearchQuery, SearchResponse, SearchResult, SearchSort, ATTR_AGENT, ATTR_CHANNEL,
-    ATTR_MESSAGE_ID, ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
+    document_attributes, document_source, next_page_token, page_offset, query_terms, search_limit,
+    search_mode, search_namespaces, search_sort, DeleteScope, Document, SearchResponse,
+    SearchResult, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID, ATTR_PART_ID, ATTR_PART_TYPE,
+    ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
 };
+use crate::gateway::rpc::proto;
 use anyhow::{anyhow, Result};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -291,11 +293,9 @@ impl DocumentStore for D1DocumentStore {
         Ok(deleted)
     }
 
-    async fn search(&self, query: &SearchQuery) -> Result<SearchResponse> {
-        self.capabilities().require_mode(query.mode)?;
-        if query
-            .source
-            .namespaces()
+    async fn search(&self, query: &proto::SearchRequest) -> Result<SearchResponse> {
+        self.capabilities().require_mode(search_mode(query))?;
+        if search_namespaces(query)
             .iter()
             .all(|namespace| namespace.is_empty())
         {
@@ -316,9 +316,9 @@ impl DocumentStore for D1DocumentStore {
             parts.params.push(D1Param::text(fts_query));
         }
         push_query_filters(&mut parts, query);
-        match query.sort {
-            SearchSort::Recency => parts.sql.push_str(" ORDER BY d.updated_at DESC"),
-            SearchSort::Relevance => {
+        match search_sort(query) {
+            proto::SearchSort::Recency => parts.sql.push_str(" ORDER BY d.updated_at DESC"),
+            proto::SearchSort::Unspecified | proto::SearchSort::Relevance => {
                 if use_fts {
                     parts
                         .sql
@@ -328,7 +328,7 @@ impl DocumentStore for D1DocumentStore {
                 }
             }
         }
-        let limit = query.limit.clamp(1, 100);
+        let limit = search_limit(query);
         let offset = page_offset(&query.page_token)?;
         parts.sql.push_str(" LIMIT ? OFFSET ?");
         parts.params.push(D1Param::integer((limit + 1) as i64));
@@ -346,7 +346,7 @@ impl DocumentStore for D1DocumentStore {
             })
             .collect::<Result<Vec<_>>>()?;
         if !use_fts {
-            sort_results(&mut results, query.sort);
+            sort_results(&mut results, search_sort(query));
         }
         let token = next_page_token(offset, limit, results.len());
         results.truncate(limit);
@@ -382,28 +382,30 @@ impl SqlParts {
     }
 }
 
-fn push_query_filters(parts: &mut SqlParts, query: &SearchQuery) {
+fn push_query_filters(parts: &mut SqlParts, query: &proto::SearchRequest) {
     parts.sql.push_str(" AND d.namespace IN (");
-    push_placeholders(parts, query.source.namespaces().into_iter());
+    push_placeholders(parts, search_namespaces(query).into_iter());
     parts.sql.push(')');
-    if !query.source.key.is_empty() {
-        parts.sql.push_str(" AND d.resource_key = ?");
-        parts.params.push(D1Param::text(&query.source.key));
-    }
-    if !query.source.key_prefix.is_empty() {
-        parts.sql.push_str(" AND d.resource_key LIKE ? ESCAPE '\\'");
-        parts
-            .params
-            .push(D1Param::text(like_prefix_pattern(&query.source.key_prefix)));
-    }
-    if !query.source.parent_key.is_empty() {
-        parts.sql.push_str(" AND d.parent_key = ?");
-        parts.params.push(D1Param::text(&query.source.parent_key));
-    }
-    if !query.source.kinds.is_empty() {
-        parts.sql.push_str(" AND d.resource_kind IN (");
-        push_placeholders(parts, query.source.kinds.iter().map(String::as_str));
-        parts.sql.push(')');
+    if let Some(source) = query.source.as_ref() {
+        if !source.key.is_empty() {
+            parts.sql.push_str(" AND d.resource_key = ?");
+            parts.params.push(D1Param::text(&source.key));
+        }
+        if !source.key_prefix.is_empty() {
+            parts.sql.push_str(" AND d.resource_key LIKE ? ESCAPE '\\'");
+            parts
+                .params
+                .push(D1Param::text(like_prefix_pattern(&source.key_prefix)));
+        }
+        if !source.parent_key.is_empty() {
+            parts.sql.push_str(" AND d.parent_key = ?");
+            parts.params.push(D1Param::text(&source.parent_key));
+        }
+        if !source.kinds.is_empty() {
+            parts.sql.push_str(" AND d.resource_kind IN (");
+            push_placeholders(parts, source.kinds.iter().map(String::as_str));
+            parts.sql.push(')');
+        }
     }
     push_attribute_filter(parts, "agent", &query.attributes);
     push_attribute_filter(parts, "session_id", &query.attributes);
@@ -695,12 +697,12 @@ mod tests {
         let mut parts = SqlParts::new("SELECT d.* FROM talon_documents d WHERE 1 = 1");
         push_query_filters(
             &mut parts,
-            &SearchQuery {
-                source: crate::control::search::SearchSourceFilter {
+            &proto::SearchRequest {
+                source: Some(proto::SearchSourceFilter {
                     namespaces: vec!["acme".to_string(), "acme/dev".to_string()],
                     kinds: vec!["Knowledge".to_string()],
                     ..Default::default()
-                },
+                }),
                 labels: [("talon.io/agent".to_string(), "support".to_string())]
                     .into_iter()
                     .collect(),

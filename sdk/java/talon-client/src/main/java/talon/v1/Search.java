@@ -2312,6 +2312,31 @@ java.lang.String defaultValue) {
      */
     com.google.protobuf.ByteString
         getParentKeyBytes();
+
+    /**
+     * <code>repeated string namespaces = 6;</code>
+     * @return A list containing the namespaces.
+     */
+    java.util.List<java.lang.String>
+        getNamespacesList();
+    /**
+     * <code>repeated string namespaces = 6;</code>
+     * @return The count of namespaces.
+     */
+    int getNamespacesCount();
+    /**
+     * <code>repeated string namespaces = 6;</code>
+     * @param index The index of the element to return.
+     * @return The namespaces at the given index.
+     */
+    java.lang.String getNamespaces(int index);
+    /**
+     * <code>repeated string namespaces = 6;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the namespaces at the given index.
+     */
+    com.google.protobuf.ByteString
+        getNamespacesBytes(int index);
   }
   /**
    * Protobuf type {@code talon.v1.SearchSourceFilter}
@@ -2341,6 +2366,8 @@ java.lang.String defaultValue) {
       kinds_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
       parentKey_ = "";
+      namespaces_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -2554,6 +2581,43 @@ java.lang.String defaultValue) {
       }
     }
 
+    public static final int NAMESPACES_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList namespaces_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string namespaces = 6;</code>
+     * @return A list containing the namespaces.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getNamespacesList() {
+      return namespaces_;
+    }
+    /**
+     * <code>repeated string namespaces = 6;</code>
+     * @return The count of namespaces.
+     */
+    public int getNamespacesCount() {
+      return namespaces_.size();
+    }
+    /**
+     * <code>repeated string namespaces = 6;</code>
+     * @param index The index of the element to return.
+     * @return The namespaces at the given index.
+     */
+    public java.lang.String getNamespaces(int index) {
+      return namespaces_.get(index);
+    }
+    /**
+     * <code>repeated string namespaces = 6;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the namespaces at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getNamespacesBytes(int index) {
+      return namespaces_.getByteString(index);
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -2582,6 +2646,9 @@ java.lang.String defaultValue) {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(parentKey_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 5, parentKey_);
+      }
+      for (int i = 0; i < namespaces_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, namespaces_.getRaw(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -2612,6 +2679,14 @@ java.lang.String defaultValue) {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(parentKey_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(5, parentKey_);
       }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < namespaces_.size(); i++) {
+          dataSize += computeStringSizeNoTag(namespaces_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getNamespacesList().size();
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -2637,6 +2712,8 @@ java.lang.String defaultValue) {
           .equals(other.getKindsList())) return false;
       if (!getParentKey()
           .equals(other.getParentKey())) return false;
+      if (!getNamespacesList()
+          .equals(other.getNamespacesList())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -2660,6 +2737,10 @@ java.lang.String defaultValue) {
       }
       hash = (37 * hash) + PARENT_KEY_FIELD_NUMBER;
       hash = (53 * hash) + getParentKey().hashCode();
+      if (getNamespacesCount() > 0) {
+        hash = (37 * hash) + NAMESPACES_FIELD_NUMBER;
+        hash = (53 * hash) + getNamespacesList().hashCode();
+      }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -2797,6 +2878,8 @@ java.lang.String defaultValue) {
         kinds_ =
             com.google.protobuf.LazyStringArrayList.emptyList();
         parentKey_ = "";
+        namespaces_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
         return this;
       }
 
@@ -2846,6 +2929,10 @@ java.lang.String defaultValue) {
         if (((from_bitField0_ & 0x00000010) != 0)) {
           result.parentKey_ = parentKey_;
         }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          namespaces_.makeImmutable();
+          result.namespaces_ = namespaces_;
+        }
       }
 
       @java.lang.Override
@@ -2888,6 +2975,16 @@ java.lang.String defaultValue) {
         if (!other.getParentKey().isEmpty()) {
           parentKey_ = other.parentKey_;
           bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (!other.namespaces_.isEmpty()) {
+          if (namespaces_.isEmpty()) {
+            namespaces_ = other.namespaces_;
+            bitField0_ |= 0x00000020;
+          } else {
+            ensureNamespacesIsMutable();
+            namespaces_.addAll(other.namespaces_);
+          }
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -2941,6 +3038,11 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000010;
                 break;
               } // case 42
+              case 50: {
+                ensureNamespacesIsMutable();
+                namespaces_.add(input.readStringRequireUtf8());
+                break;
+              } // case 50
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3353,6 +3455,117 @@ java.lang.String defaultValue) {
         checkByteStringIsUtf8(value);
         parentKey_ = value;
         bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList namespaces_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureNamespacesIsMutable() {
+        if (!namespaces_.isModifiable()) {
+          namespaces_ = new com.google.protobuf.LazyStringArrayList(namespaces_);
+        }
+        bitField0_ |= 0x00000020;
+      }
+      /**
+       * <code>repeated string namespaces = 6;</code>
+       * @return A list containing the namespaces.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getNamespacesList() {
+        namespaces_.makeImmutable();
+        return namespaces_;
+      }
+      /**
+       * <code>repeated string namespaces = 6;</code>
+       * @return The count of namespaces.
+       */
+      public int getNamespacesCount() {
+        return namespaces_.size();
+      }
+      /**
+       * <code>repeated string namespaces = 6;</code>
+       * @param index The index of the element to return.
+       * @return The namespaces at the given index.
+       */
+      public java.lang.String getNamespaces(int index) {
+        return namespaces_.get(index);
+      }
+      /**
+       * <code>repeated string namespaces = 6;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the namespaces at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getNamespacesBytes(int index) {
+        return namespaces_.getByteString(index);
+      }
+      /**
+       * <code>repeated string namespaces = 6;</code>
+       * @param index The index to set the value at.
+       * @param value The namespaces to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespaces(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureNamespacesIsMutable();
+        namespaces_.set(index, value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string namespaces = 6;</code>
+       * @param value The namespaces to add.
+       * @return This builder for chaining.
+       */
+      public Builder addNamespaces(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureNamespacesIsMutable();
+        namespaces_.add(value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string namespaces = 6;</code>
+       * @param values The namespaces to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllNamespaces(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureNamespacesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, namespaces_);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string namespaces = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNamespaces() {
+        namespaces_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000020);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string namespaces = 6;</code>
+       * @param value The bytes of the namespaces to add.
+       * @return This builder for chaining.
+       */
+      public Builder addNamespacesBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureNamespacesIsMutable();
+        namespaces_.add(value);
+        bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
@@ -10346,42 +10559,43 @@ java.lang.String defaultValue) {
       "\n \001(\0162\024.talon.v1.SearchSort\0321\n\017Attribute" +
       "sEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-" +
       "\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
-      "\t:\0028\001B\r\n\013_start_timeB\013\n\t_end_time\"k\n\022Sea" +
+      "\t:\0028\001B\r\n\013_start_timeB\013\n\t_end_time\"\177\n\022Sea" +
       "rchSourceFilter\022\021\n\tnamespace\030\001 \001(\t\022\013\n\003ke" +
       "y\030\002 \001(\t\022\022\n\nkey_prefix\030\003 \001(\t\022\r\n\005kinds\030\004 \003" +
-      "(\t\022\022\n\nparent_key\030\005 \001(\t\"\357\003\n\010Document\022\n\n\002i" +
-      "d\030\001 \001(\t\022(\n\006source\030\002 \001(\0132\030.talon.v1.Docum" +
-      "entSource\022\025\n\rdocument_kind\030\003 \001(\t\022\026\n\016subd" +
-      "ocument_id\030\004 \001(\t\0226\n\nattributes\030\005 \003(\0132\".t" +
-      "alon.v1.Document.AttributesEntry\022\r\n\005titl" +
-      "e\030\006 \001(\t\022\017\n\007snippet\030\007 \001(\t\022.\n\006labels\030\010 \003(\013" +
-      "2\036.talon.v1.Document.LabelsEntry\022\025\n\rmeta" +
-      "data_json\030\t \001(\t\022\026\n\016acl_scope_json\030\n \001(\t\022" +
-      "\022\n\ncreated_at\030\013 \001(\003\022\022\n\nupdated_at\030\014 \001(\003\022" +
-      "\022\n\nindexed_at\030\r \001(\003\022\022\n\ngeneration\030\016 \001(\004\022" +
-      "\025\n\rembedding_ref\030\017 \001(\t\0321\n\017AttributesEntr" +
-      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013Lab" +
-      "elsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001" +
-      "\"u\n\016DocumentSource\022\013\n\003key\030\001 \001(\t\022\021\n\tnames" +
-      "pace\030\002 \001(\t\022\014\n\004kind\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\023" +
-      "\n\013parent_kind\030\005 \001(\t\022\022\n\nparent_key\030\006 \001(\t\"" +
-      "C\n\014SearchResult\022$\n\010document\030\001 \001(\0132\022.talo" +
-      "n.v1.Document\022\r\n\005score\030\002 \001(\002\"R\n\016SearchRe" +
-      "sponse\022\'\n\007results\030\001 \003(\0132\026.talon.v1.Searc" +
-      "hResult\022\027\n\017next_page_token\030\002 \001(\t\"9\n\026GetS" +
-      "earchResultRequest\022\n\n\002ns\030\001 \001(\t\022\023\n\013docume" +
-      "nt_id\030\002 \001(\t\"P\n\027GetSearchResultResponse\022$" +
-      "\n\010document\030\001 \001(\0132\022.talon.v1.Document\022\017\n\007" +
-      "content\030\002 \001(\t*t\n\nSearchMode\022\033\n\027SEARCH_MO" +
-      "DE_UNSPECIFIED\020\000\022\027\n\023SEARCH_MODE_KEYWORD\020" +
-      "\001\022\030\n\024SEARCH_MODE_SEMANTIC\020\002\022\026\n\022SEARCH_MO" +
-      "DE_HYBRID\020\003*]\n\nSearchSort\022\033\n\027SEARCH_SORT" +
-      "_UNSPECIFIED\020\000\022\031\n\025SEARCH_SORT_RELEVANCE\020" +
-      "\001\022\027\n\023SEARCH_SORT_RECENCY\020\0022\236\001\n\rSearchSer" +
-      "vice\022;\n\006Search\022\027.talon.v1.SearchRequest\032" +
-      "\030.talon.v1.SearchResponse\022P\n\tGetResult\022 " +
-      ".talon.v1.GetSearchResultRequest\032!.talon" +
-      ".v1.GetSearchResultResponseb\006proto3"
+      "(\t\022\022\n\nparent_key\030\005 \001(\t\022\022\n\nnamespaces\030\006 \003" +
+      "(\t\"\357\003\n\010Document\022\n\n\002id\030\001 \001(\t\022(\n\006source\030\002 " +
+      "\001(\0132\030.talon.v1.DocumentSource\022\025\n\rdocumen" +
+      "t_kind\030\003 \001(\t\022\026\n\016subdocument_id\030\004 \001(\t\0226\n\n" +
+      "attributes\030\005 \003(\0132\".talon.v1.Document.Att" +
+      "ributesEntry\022\r\n\005title\030\006 \001(\t\022\017\n\007snippet\030\007" +
+      " \001(\t\022.\n\006labels\030\010 \003(\0132\036.talon.v1.Document" +
+      ".LabelsEntry\022\025\n\rmetadata_json\030\t \001(\t\022\026\n\016a" +
+      "cl_scope_json\030\n \001(\t\022\022\n\ncreated_at\030\013 \001(\003\022" +
+      "\022\n\nupdated_at\030\014 \001(\003\022\022\n\nindexed_at\030\r \001(\003\022" +
+      "\022\n\ngeneration\030\016 \001(\004\022\025\n\rembedding_ref\030\017 \001" +
+      "(\t\0321\n\017AttributesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va" +
+      "lue\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(" +
+      "\t\022\r\n\005value\030\002 \001(\t:\0028\001\"u\n\016DocumentSource\022\013" +
+      "\n\003key\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\014\n\004kind\030\003" +
+      " \001(\t\022\014\n\004name\030\004 \001(\t\022\023\n\013parent_kind\030\005 \001(\t\022" +
+      "\022\n\nparent_key\030\006 \001(\t\"C\n\014SearchResult\022$\n\010d" +
+      "ocument\030\001 \001(\0132\022.talon.v1.Document\022\r\n\005sco" +
+      "re\030\002 \001(\002\"R\n\016SearchResponse\022\'\n\007results\030\001 " +
+      "\003(\0132\026.talon.v1.SearchResult\022\027\n\017next_page" +
+      "_token\030\002 \001(\t\"9\n\026GetSearchResultRequest\022\n" +
+      "\n\002ns\030\001 \001(\t\022\023\n\013document_id\030\002 \001(\t\"P\n\027GetSe" +
+      "archResultResponse\022$\n\010document\030\001 \001(\0132\022.t" +
+      "alon.v1.Document\022\017\n\007content\030\002 \001(\t*t\n\nSea" +
+      "rchMode\022\033\n\027SEARCH_MODE_UNSPECIFIED\020\000\022\027\n\023" +
+      "SEARCH_MODE_KEYWORD\020\001\022\030\n\024SEARCH_MODE_SEM" +
+      "ANTIC\020\002\022\026\n\022SEARCH_MODE_HYBRID\020\003*]\n\nSearc" +
+      "hSort\022\033\n\027SEARCH_SORT_UNSPECIFIED\020\000\022\031\n\025SE" +
+      "ARCH_SORT_RELEVANCE\020\001\022\027\n\023SEARCH_SORT_REC" +
+      "ENCY\020\0022\236\001\n\rSearchService\022;\n\006Search\022\027.tal" +
+      "on.v1.SearchRequest\032\030.talon.v1.SearchRes" +
+      "ponse\022P\n\tGetResult\022 .talon.v1.GetSearchR" +
+      "esultRequest\032!.talon.v1.GetSearchResultR" +
+      "esponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -10410,7 +10624,7 @@ java.lang.String defaultValue) {
     internal_static_talon_v1_SearchSourceFilter_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SearchSourceFilter_descriptor,
-        new java.lang.String[] { "Namespace", "Key", "KeyPrefix", "Kinds", "ParentKey", });
+        new java.lang.String[] { "Namespace", "Key", "KeyPrefix", "Kinds", "ParentKey", "Namespaces", });
     internal_static_talon_v1_Document_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_v1_Document_fieldAccessorTable = new

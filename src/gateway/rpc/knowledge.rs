@@ -5,9 +5,7 @@ use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::control::keys;
 use crate::control::ns;
 use crate::control::resources::ResourceStore;
-use crate::control::search::{
-    SearchQuery, SearchSort, SearchSourceFilter, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE,
-};
+use crate::control::search::{DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
 use crate::gateway::rpc::resources_proto;
 use crate::harness::knowledge::KnowledgeEntry;
 use std::collections::HashMap;
@@ -138,17 +136,18 @@ impl GrpcGatewayHandler {
             Some(
                 self.gateway
                     .documents
-                    .search(&SearchQuery {
+                    .search(&proto::SearchRequest {
                         query: req.query.clone(),
-                        source: SearchSourceFilter {
+                        source: Some(proto::SearchSourceFilter {
                             namespaces: namespaces.clone(),
                             kinds: vec![KIND_KNOWLEDGE.to_string()],
                             ..Default::default()
-                        },
+                        }),
                         limit: super::search::limit(req.limit)
-                            .saturating_mul(namespaces.len().max(1)),
-                        mode,
-                        sort,
+                            .saturating_mul(namespaces.len().max(1))
+                            as i32,
+                        mode: mode as i32,
+                        sort: sort as i32,
                         ..Default::default()
                     })
                     .await
@@ -194,7 +193,7 @@ impl GrpcGatewayHandler {
                 .map(|(_, result)| result)
                 .collect::<Vec<_>>();
             match sort {
-                SearchSort::Recency => search_results.sort_by(|left, right| {
+                proto::SearchSort::Recency => search_results.sort_by(|left, right| {
                     right
                         .document
                         .updated_at
@@ -206,13 +205,14 @@ impl GrpcGatewayHandler {
                                 .unwrap_or(std::cmp::Ordering::Equal)
                         })
                 }),
-                SearchSort::Relevance => search_results.sort_by(|left, right| {
-                    right
-                        .score
-                        .partial_cmp(&left.score)
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                        .then_with(|| right.document.updated_at.cmp(&left.document.updated_at))
-                }),
+                proto::SearchSort::Unspecified | proto::SearchSort::Relevance => search_results
+                    .sort_by(|left, right| {
+                        right
+                            .score
+                            .partial_cmp(&left.score)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                            .then_with(|| right.document.updated_at.cmp(&left.document.updated_at))
+                    }),
             }
             search_results.truncate(super::search::limit(req.limit));
             if search_results.is_empty() {

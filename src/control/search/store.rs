@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::{
-    delete_matches, next_page_token, page_offset, query_matches, score_document, DeleteScope,
-    Document, SearchMode, SearchQuery, SearchResponse, SearchResult, SearchSort,
+    delete_matches, next_page_token, page_offset, query_matches, score_document, search_limit,
+    search_mode, search_mode_name, search_namespaces, search_sort, DeleteScope, Document,
+    SearchResponse, SearchResult,
 };
+use crate::gateway::rpc::proto;
 use anyhow::{anyhow, Result};
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -37,21 +39,21 @@ impl DocumentStoreCapabilities {
         self.keyword || self.vector || self.hybrid
     }
 
-    pub const fn supports(self, mode: SearchMode) -> bool {
+    pub const fn supports(self, mode: proto::SearchMode) -> bool {
         match mode {
-            SearchMode::Keyword => self.keyword,
-            SearchMode::Semantic => self.vector,
-            SearchMode::Hybrid => self.hybrid,
+            proto::SearchMode::Unspecified | proto::SearchMode::Keyword => self.keyword,
+            proto::SearchMode::Semantic => self.vector,
+            proto::SearchMode::Hybrid => self.hybrid,
         }
     }
 
-    pub fn require_mode(self, mode: SearchMode) -> Result<()> {
+    pub fn require_mode(self, mode: proto::SearchMode) -> Result<()> {
         if self.supports(mode) {
             Ok(())
         } else {
             Err(anyhow!(
                 "{} search is not enabled for this document store",
-                mode.as_str()
+                search_mode_name(mode)
             ))
         }
     }
@@ -67,7 +69,7 @@ impl Default for DocumentStoreCapabilities {
 pub trait DocumentStore: Send + Sync {
     async fn upsert_documents(&self, documents: &[Document]) -> Result<()>;
     async fn delete(&self, scope: &DeleteScope) -> Result<u64>;
-    async fn search(&self, query: &SearchQuery) -> Result<SearchResponse>;
+    async fn search(&self, query: &proto::SearchRequest) -> Result<SearchResponse>;
     async fn get_document(&self, namespace: &str, id: &str) -> Result<Option<Document>>;
 
     fn capabilities(&self) -> DocumentStoreCapabilities {
@@ -116,10 +118,10 @@ impl DocumentStore for MemoryDocumentStore {
         Ok(before.saturating_sub(stored.len()) as u64)
     }
 
-    async fn search(&self, query: &SearchQuery) -> Result<SearchResponse> {
-        self.capabilities().require_mode(query.mode)?;
+    async fn search(&self, query: &proto::SearchRequest) -> Result<SearchResponse> {
+        self.capabilities().require_mode(search_mode(query))?;
         let stored = self.documents.read().await;
-        let namespaces = query.source.namespaces();
+        let namespaces = search_namespaces(query);
         let mut matches = stored
             .iter()
             .filter(|document| {
@@ -135,8 +137,8 @@ impl DocumentStore for MemoryDocumentStore {
                 document,
             })
             .collect::<Vec<_>>();
-        sort_results(&mut matches, query.sort);
-        let limit = query.limit.clamp(1, 100);
+        sort_results(&mut matches, search_sort(query));
+        let limit = search_limit(query);
         let offset = page_offset(&query.page_token)?;
         let fetched = matches.len().saturating_sub(offset);
         let next_page_token = next_page_token(offset, limit, fetched);
@@ -158,16 +160,18 @@ impl DocumentStore for MemoryDocumentStore {
     }
 }
 
-pub(crate) fn sort_results(results: &mut [SearchResult], sort: SearchSort) {
+pub(crate) fn sort_results(results: &mut [SearchResult], sort: proto::SearchSort) {
     match sort {
-        SearchSort::Relevance => results.sort_by(|left, right| {
-            right
-                .score
-                .partial_cmp(&left.score)
-                .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| right.document.updated_at.cmp(&left.document.updated_at))
-        }),
-        SearchSort::Recency => {
+        proto::SearchSort::Unspecified | proto::SearchSort::Relevance => {
+            results.sort_by(|left, right| {
+                right
+                    .score
+                    .partial_cmp(&left.score)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| right.document.updated_at.cmp(&left.document.updated_at))
+            })
+        }
+        proto::SearchSort::Recency => {
             results.sort_by(|left, right| right.document.updated_at.cmp(&left.document.updated_at))
         }
     }

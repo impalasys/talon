@@ -1756,6 +1756,8 @@ pub struct SearchSourceFilter {
     pub kinds: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     #[prost(string, tag = "5")]
     pub parent_key: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "6")]
+    pub namespaces: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Document {

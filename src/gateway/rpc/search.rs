@@ -3,10 +3,7 @@
 
 use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
 use crate::control::ns;
-use crate::control::search::{
-    self, Document, SearchMode, SearchQuery, SearchSort, SearchSourceFilter, ATTR_AGENT,
-    ATTR_CHANNEL, ATTR_SESSION_ID,
-};
+use crate::control::search::{self, Document, ATTR_AGENT, ATTR_CHANNEL, ATTR_SESSION_ID};
 use crate::control::{keys, ProtoKeyValueStoreExt};
 use crate::gateway::auth::{self, AuthMode, Claims};
 
@@ -16,35 +13,20 @@ impl GrpcGatewayHandler {
         req: tonic::Request<proto::SearchRequest>,
     ) -> std::result::Result<tonic::Response<proto::SearchResponse>, tonic::Status> {
         let metadata = req.metadata().clone();
-        let req = req.into_inner();
-        let source = req.source.unwrap_or_default();
-        if source.namespace.trim().is_empty() {
+        let mut req = req.into_inner();
+        if search::search_namespaces(&req)
+            .iter()
+            .all(|namespace| namespace.trim().is_empty())
+        {
             return Err(tonic::Status::invalid_argument("namespace is required"));
         }
-        let mut query = SearchQuery {
-            query: req.query,
-            source: SearchSourceFilter {
-                namespace: source.namespace,
-                key: source.key,
-                key_prefix: source.key_prefix,
-                kinds: source.kinds,
-                parent_key: source.parent_key,
-                ..Default::default()
-            },
-            attributes: req.attributes,
-            labels: req.labels,
-            start_time: req.start_time,
-            end_time: req.end_time,
-            limit: limit(req.limit),
-            page_token: req.page_token,
-            mode: mode(req.mode)?,
-            sort: sort(req.sort),
-        };
-        authorize_search(self, &metadata, &mut query)?;
+        req.mode = mode(req.mode)? as i32;
+        req.sort = sort(req.sort) as i32;
+        authorize_search(self, &metadata, &mut req)?;
         let response = self
             .gateway
             .documents
-            .search(&query)
+            .search(&req)
             .await
             .map_err(search_error)?;
         Ok(tonic::Response::new(search_response_proto(response)))
@@ -79,18 +61,24 @@ impl GrpcGatewayHandler {
 fn authorize_search(
     handler: &GrpcGatewayHandler,
     metadata: &tonic::metadata::MetadataMap,
-    query: &mut SearchQuery,
+    query: &mut proto::SearchRequest,
 ) -> std::result::Result<(), tonic::Status> {
-    let namespace = query
-        .source
-        .namespaces()
-        .first()
-        .copied()
-        .unwrap_or_default()
-        .to_string();
-    let Some(claims) = authorize_search_namespace(handler, metadata, &namespace)? else {
+    let namespaces = search::search_namespaces(query);
+    let Some(first_namespace) = namespaces.first().copied() else {
         return Ok(());
     };
+    let Some(claims) = authorize_search_namespace(handler, metadata, first_namespace)? else {
+        return Ok(());
+    };
+    if let Some(claim_namespace) = claims.ns.as_ref().filter(|value| !value.is_empty()) {
+        for namespace in namespaces {
+            if !namespace.is_empty() && namespace != claim_namespace {
+                return Err(tonic::Status::permission_denied(format!(
+                    "Token scope restricted to namespace: {claim_namespace}"
+                )));
+            }
+        }
+    }
     apply_claim_scope(claims, query)
 }
 
@@ -121,7 +109,7 @@ fn authorize_search_namespace(
 
 fn apply_claim_scope(
     claims: Claims,
-    query: &mut SearchQuery,
+    query: &mut proto::SearchRequest,
 ) -> std::result::Result<(), tonic::Status> {
     if let Some(agent) = claims.agent.filter(|value| !value.is_empty()) {
         if let Some(current) = query
@@ -219,18 +207,20 @@ pub(crate) fn limit(value: i32) -> usize {
     }
 }
 
-pub(crate) fn mode(value: i32) -> Result<SearchMode, tonic::Status> {
+pub(crate) fn mode(value: i32) -> Result<proto::SearchMode, tonic::Status> {
     match proto::SearchMode::try_from(value).unwrap_or(proto::SearchMode::Keyword) {
-        proto::SearchMode::Unspecified | proto::SearchMode::Keyword => Ok(SearchMode::Keyword),
-        proto::SearchMode::Semantic => Ok(SearchMode::Semantic),
-        proto::SearchMode::Hybrid => Ok(SearchMode::Hybrid),
+        proto::SearchMode::Unspecified | proto::SearchMode::Keyword => {
+            Ok(proto::SearchMode::Keyword)
+        }
+        proto::SearchMode::Semantic => Ok(proto::SearchMode::Semantic),
+        proto::SearchMode::Hybrid => Ok(proto::SearchMode::Hybrid),
     }
 }
 
-pub(crate) fn sort(value: i32) -> SearchSort {
+pub(crate) fn sort(value: i32) -> proto::SearchSort {
     match proto::SearchSort::try_from(value).unwrap_or(proto::SearchSort::Relevance) {
-        proto::SearchSort::Recency => SearchSort::Recency,
-        _ => SearchSort::Relevance,
+        proto::SearchSort::Recency => proto::SearchSort::Recency,
+        _ => proto::SearchSort::Relevance,
     }
 }
 

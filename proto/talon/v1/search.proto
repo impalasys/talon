@@ -39,6 +39,7 @@ message SearchSourceFilter {
   string key_prefix = 3;
   repeated string kinds = 4;
   string parent_key = 5;
+  repeated string namespaces = 6;
 }
 
 message Document {

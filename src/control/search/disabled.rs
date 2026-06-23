@@ -1,8 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{DeleteScope, Document, DocumentStoreCapabilities, SearchQuery, SearchResponse};
+use super::{DeleteScope, Document, DocumentStoreCapabilities, SearchResponse};
 use crate::control::search::store::DocumentStore;
+use crate::gateway::rpc::proto;
 use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
@@ -23,7 +24,7 @@ impl DocumentStore for DisabledDocumentStore {
         Err(unavailable())
     }
 
-    async fn search(&self, _query: &SearchQuery) -> Result<SearchResponse> {
+    async fn search(&self, _query: &proto::SearchRequest) -> Result<SearchResponse> {
         Err(unavailable())
     }
 
