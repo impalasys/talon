@@ -15,6 +15,7 @@ use axum::{
 use base64::{engine::general_purpose, Engine as _};
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use tonic::{metadata::MetadataMap, Status};
 
@@ -83,6 +84,8 @@ pub struct Claims {
     pub sub: String,
     pub aud: String,
     pub exp: usize,
+    #[serde(rename = "talon:oidc_iss", default)]
+    pub oidc_issuer: Option<String>,
     #[serde(rename = "talon:ns")]
     pub ns: Option<String>,
     #[serde(rename = "talon:agent")]
@@ -93,6 +96,68 @@ pub struct Claims {
     pub channel: Option<String>,
     #[serde(rename = "talon:grants", default)]
     pub grants: Vec<TalonGrantClaim>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RequestRateLimitIdentity {
+    Oidc {
+        issuer: String,
+        subject: String,
+        rate_limit_key: String,
+    },
+    Anonymous,
+}
+
+impl RequestRateLimitIdentity {
+    pub fn rate_limit_key(&self) -> &str {
+        match self {
+            Self::Oidc { rate_limit_key, .. } => rate_limit_key,
+            Self::Anonymous => "anonymous:fallback",
+        }
+    }
+
+    pub fn is_anonymous(&self) -> bool {
+        matches!(self, Self::Anonymous)
+    }
+}
+
+pub fn rate_limit_identity_from_request<T>(
+    request: &tonic::Request<T>,
+) -> RequestRateLimitIdentity {
+    request
+        .extensions()
+        .get::<Claims>()
+        .and_then(rate_limit_identity_from_claims)
+        .unwrap_or(RequestRateLimitIdentity::Anonymous)
+}
+
+fn rate_limit_identity_from_claims(claims: &Claims) -> Option<RequestRateLimitIdentity> {
+    let issuer = claims
+        .oidc_issuer
+        .as_deref()
+        .map(str::trim)
+        .filter(|issuer| !issuer.is_empty())?;
+    let subject = claims
+        .sub
+        .strip_prefix("oidc:")
+        .unwrap_or(claims.sub.as_str())
+        .trim();
+    if subject.is_empty() {
+        return None;
+    }
+    Some(RequestRateLimitIdentity::Oidc {
+        issuer: issuer.to_string(),
+        subject: subject.to_string(),
+        rate_limit_key: oidc_rate_limit_key(issuer, subject),
+    })
+}
+
+pub fn oidc_rate_limit_key(issuer: &str, subject: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(issuer.trim().as_bytes());
+    hasher.update([0]);
+    hasher.update(subject.trim().as_bytes());
+    format!("oidc:{:x}", hasher.finalize())
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -621,6 +686,7 @@ mod tests {
             sub: "user123".to_string(),
             aud: "talon".to_string(),
             exp: 10000000000, // far future
+            oidc_issuer: None,
             ns: ns.map(|s| s.to_string()),
             agent: agent.map(|s| s.to_string()),
             session: session.map(|s| s.to_string()),
@@ -728,6 +794,7 @@ mod tests {
             sub: "channel-client".to_string(),
             aud: "talon".to_string(),
             exp: 10000000000,
+            oidc_issuer: None,
             ns: ns.map(|s| s.to_string()),
             agent: None,
             session: None,
@@ -748,6 +815,7 @@ mod tests {
             sub: "oidc:user123".to_string(),
             aud: "talon".to_string(),
             exp: 10000000000,
+            oidc_issuer: Some("https://accounts.google.com".to_string()),
             ns: None,
             agent: None,
             session: None,
@@ -769,6 +837,42 @@ mod tests {
             format!("Bearer {}", token).parse().unwrap(),
         );
         metadata
+    }
+
+    #[test]
+    fn rate_limit_identity_uses_oidc_issuer_and_subject_from_request_extensions() {
+        let mut request = tonic::Request::new(());
+        request.extensions_mut().insert(Claims {
+            sub: "oidc:user123".to_string(),
+            aud: "talon".to_string(),
+            exp: 10000000000,
+            oidc_issuer: Some("https://accounts.google.com".to_string()),
+            ns: None,
+            agent: None,
+            session: None,
+            channel: None,
+            grants: Vec::new(),
+        });
+
+        let identity = rate_limit_identity_from_request(&request);
+        assert_eq!(
+            identity.rate_limit_key(),
+            oidc_rate_limit_key("https://accounts.google.com", "user123")
+        );
+
+        let mut missing_issuer = tonic::Request::new(());
+        missing_issuer.extensions_mut().insert(Claims {
+            sub: "oidc:user123".to_string(),
+            aud: "talon".to_string(),
+            exp: 10000000000,
+            oidc_issuer: None,
+            ns: None,
+            agent: None,
+            session: None,
+            channel: None,
+            grants: Vec::new(),
+        });
+        assert!(rate_limit_identity_from_request(&missing_issuer).is_anonymous());
     }
 
     #[test]
@@ -978,6 +1082,40 @@ mod tests {
         assert_eq!(claims.ns.as_deref(), Some("ns"));
         assert_eq!(claims.agent.as_deref(), Some("agent"));
         assert_eq!(claims.session.as_deref(), Some("session"));
+
+        let oidc_claims = Claims {
+            sub: "oidc:user123".to_string(),
+            aud: "talon".to_string(),
+            exp: 10000000000,
+            oidc_issuer: Some("https://accounts.google.com".to_string()),
+            ns: None,
+            agent: None,
+            session: None,
+            channel: None,
+            grants: vec![TalonGrantClaim {
+                kind: "readwrite".to_string(),
+                namespace: Some("ns".to_string()),
+                agent: None,
+                session: None,
+                channel: None,
+            }],
+        };
+        let oidc_token = encode(
+            &Header::default(),
+            &oidc_claims,
+            &EncodingKey::from_secret(secret.as_ref()),
+        )
+        .unwrap();
+        let mut oidc_request = tonic::Request::new(());
+        oidc_request.metadata_mut().insert(
+            "authorization",
+            format!("Bearer {oidc_token}").parse().unwrap(),
+        );
+        let oidc_request = jwt_interceptor.call(oidc_request).unwrap();
+        assert_eq!(
+            rate_limit_identity_from_request(&oidc_request).rate_limit_key(),
+            oidc_rate_limit_key("https://accounts.google.com", "user123")
+        );
 
         let mut wrong_scheme = TalonAuthInterceptor {
             config: AuthConfig::password("pw".to_string()),

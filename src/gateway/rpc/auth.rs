@@ -16,7 +16,7 @@ const TALON_ACCESS_TOKEN_TTL_SECONDS: u64 = 900;
 #[derive(Debug, Deserialize, Clone)]
 struct OidcIdentityClaims {
     #[serde(rename = "iss")]
-    _iss: String,
+    iss: String,
     sub: String,
     #[serde(rename = "aud")]
     _aud: serde_json::Value,
@@ -281,6 +281,7 @@ fn mint_talon_access_token(
         sub: format!("oidc:{}", identity.claims.sub),
         aud: "talon".to_string(),
         exp: exp as usize,
+        oidc_issuer: Some(identity.claims.iss.clone()),
         ns: None,
         agent: None,
         session: None,

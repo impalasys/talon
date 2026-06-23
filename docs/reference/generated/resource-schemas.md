@@ -745,6 +745,7 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `metric` | `string` | - |
 | `max` | `uint64` | - |
 | `window` | `string` | - |
+| `subject_scope` | `string` | - |
 
 ## `UsagePolicySpec`
 
@@ -766,6 +767,7 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `used` | `uint64` | - |
 | `remaining` | `uint64` | - |
 | `exceeded` | `bool` | - |
+| `subject_scope` | `string` | - |
 
 ## `UsagePolicyStatus`
 

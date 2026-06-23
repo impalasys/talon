@@ -252,6 +252,7 @@ mod tests {
                 scheduler: Arc::new(crate::control::scheduler::NoopSchedulerBackend),
                 objects: crate::control::object_store::default_object_store(),
                 session_streams: Arc::new(SessionStreamHub::new(pubsub)),
+                usage_limiter: Arc::new(crate::control::usage::SubjectRateLimiter::default()),
             }),
         }
     }

@@ -547,6 +547,7 @@ pub async fn create_session_with_labels(
         agent: agent.to_string(),
         provider: String::new(),
         model: String::new(),
+        rate_limit_key: None,
     };
     crate::control::usage::check_namespace_usage(
         cp.kv.as_ref(),

@@ -968,6 +968,8 @@ pub struct UsageLimit {
     pub max: u64,
     #[prost(string, tag = "4")]
     pub window: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub subject_scope: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UsagePolicySpec {
@@ -996,6 +998,8 @@ pub struct UsageLimitStatus {
     pub remaining: u64,
     #[prost(bool, tag = "9")]
     pub exceeded: bool,
+    #[prost(string, tag = "10")]
+    pub subject_scope: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UsagePolicyStatus {
