@@ -999,10 +999,13 @@ type IndexEvent struct {
 	// this key to load the canonical source and derive the Document projection.
 	Key string `protobuf:"bytes,10,opt,name=key,proto3" json:"key,omitempty"`
 	// Reserved for future scoped invalidation. MVP publishers keep this false.
-	Prefix           bool   `protobuf:"varint,11,opt,name=prefix,proto3" json:"prefix,omitempty"`
-	SourceGeneration uint64 `protobuf:"varint,12,opt,name=source_generation,json=sourceGeneration,proto3" json:"source_generation,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	Prefix bool `protobuf:"varint,11,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	// Canonical source generation observed when the event was published. When
+	// set, the index controller uses this to skip stale events and avoid
+	// deleting newer document projections with older delete events.
+	Generation    uint64 `protobuf:"varint,12,opt,name=generation,proto3" json:"generation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *IndexEvent) Reset() {
@@ -1077,9 +1080,9 @@ func (x *IndexEvent) GetPrefix() bool {
 	return false
 }
 
-func (x *IndexEvent) GetSourceGeneration() uint64 {
+func (x *IndexEvent) GetGeneration() uint64 {
 	if x != nil {
-		return x.SourceGeneration
+		return x.Generation
 	}
 	return 0
 }
@@ -1154,7 +1157,7 @@ const file_proto_events_proto_rawDesc = "" +
 	"\vchange_type\x18\a \x01(\x0e2 .talon.events.ResourceChangeTypeR\n" +
 	"changeType\x12)\n" +
 	"\x10changed_sections\x18\b \x03(\tR\x0fchangedSections\x12\x1c\n" +
-	"\ttimestamp\x18\t \x01(\x03R\ttimestamp\"\xed\x01\n" +
+	"\ttimestamp\x18\t \x01(\x03R\ttimestamp\"\xe0\x01\n" +
 	"\n" +
 	"IndexEvent\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12:\n" +
@@ -1165,8 +1168,10 @@ const file_proto_events_proto_rawDesc = "" +
 	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\x12\x10\n" +
 	"\x03key\x18\n" +
 	" \x01(\tR\x03key\x12\x16\n" +
-	"\x06prefix\x18\v \x01(\bR\x06prefix\x12+\n" +
-	"\x11source_generation\x18\f \x01(\x04R\x10sourceGeneration*\xb0\x01\n" +
+	"\x06prefix\x18\v \x01(\bR\x06prefix\x12\x1e\n" +
+	"\n" +
+	"generation\x18\f \x01(\x04R\n" +
+	"generation*\xb0\x01\n" +
 	"\fSystemAction\x12\x1d\n" +
 	"\x19SYSTEM_ACTION_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14SYSTEM_ACTION_CREATE\x10\x01\x12\x18\n" +

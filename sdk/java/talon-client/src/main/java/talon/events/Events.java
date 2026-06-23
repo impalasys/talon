@@ -10251,10 +10251,16 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     boolean getPrefix();
 
     /**
-     * <code>uint64 source_generation = 12;</code>
-     * @return The sourceGeneration.
+     * <pre>
+     * Canonical source generation observed when the event was published. When
+     * set, the index controller uses this to skip stale events and avoid
+     * deleting newer document projections with older delete events.
+     * </pre>
+     *
+     * <code>uint64 generation = 12;</code>
+     * @return The generation.
      */
-    long getSourceGeneration();
+    long getGeneration();
   }
   /**
    * Protobuf type {@code talon.events.IndexEvent}
@@ -10444,15 +10450,21 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       return prefix_;
     }
 
-    public static final int SOURCE_GENERATION_FIELD_NUMBER = 12;
-    private long sourceGeneration_ = 0L;
+    public static final int GENERATION_FIELD_NUMBER = 12;
+    private long generation_ = 0L;
     /**
-     * <code>uint64 source_generation = 12;</code>
-     * @return The sourceGeneration.
+     * <pre>
+     * Canonical source generation observed when the event was published. When
+     * set, the index controller uses this to skip stale events and avoid
+     * deleting newer document projections with older delete events.
+     * </pre>
+     *
+     * <code>uint64 generation = 12;</code>
+     * @return The generation.
      */
     @java.lang.Override
-    public long getSourceGeneration() {
-      return sourceGeneration_;
+    public long getGeneration() {
+      return generation_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -10487,8 +10499,8 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (prefix_ != false) {
         output.writeBool(11, prefix_);
       }
-      if (sourceGeneration_ != 0L) {
-        output.writeUInt64(12, sourceGeneration_);
+      if (generation_ != 0L) {
+        output.writeUInt64(12, generation_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -10521,9 +10533,9 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(11, prefix_);
       }
-      if (sourceGeneration_ != 0L) {
+      if (generation_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(12, sourceGeneration_);
+          .computeUInt64Size(12, generation_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -10551,8 +10563,8 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           .equals(other.getKey())) return false;
       if (getPrefix()
           != other.getPrefix()) return false;
-      if (getSourceGeneration()
-          != other.getSourceGeneration()) return false;
+      if (getGeneration()
+          != other.getGeneration()) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -10579,9 +10591,9 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       hash = (37 * hash) + PREFIX_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getPrefix());
-      hash = (37 * hash) + SOURCE_GENERATION_FIELD_NUMBER;
+      hash = (37 * hash) + GENERATION_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getSourceGeneration());
+          getGeneration());
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -10719,7 +10731,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         updatedAt_ = 0L;
         key_ = "";
         prefix_ = false;
-        sourceGeneration_ = 0L;
+        generation_ = 0L;
         return this;
       }
 
@@ -10772,7 +10784,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           result.prefix_ = prefix_;
         }
         if (((from_bitField0_ & 0x00000040) != 0)) {
-          result.sourceGeneration_ = sourceGeneration_;
+          result.generation_ = generation_;
         }
       }
 
@@ -10810,8 +10822,8 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         if (other.getPrefix() != false) {
           setPrefix(other.getPrefix());
         }
-        if (other.getSourceGeneration() != 0L) {
-          setSourceGeneration(other.getSourceGeneration());
+        if (other.getGeneration() != 0L) {
+          setGeneration(other.getGeneration());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -10870,7 +10882,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
                 break;
               } // case 88
               case 96: {
-                sourceGeneration_ = input.readUInt64();
+                generation_ = input.readUInt64();
                 bitField0_ |= 0x00000040;
                 break;
               } // case 96
@@ -11220,34 +11232,52 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      private long sourceGeneration_ ;
+      private long generation_ ;
       /**
-       * <code>uint64 source_generation = 12;</code>
-       * @return The sourceGeneration.
+       * <pre>
+       * Canonical source generation observed when the event was published. When
+       * set, the index controller uses this to skip stale events and avoid
+       * deleting newer document projections with older delete events.
+       * </pre>
+       *
+       * <code>uint64 generation = 12;</code>
+       * @return The generation.
        */
       @java.lang.Override
-      public long getSourceGeneration() {
-        return sourceGeneration_;
+      public long getGeneration() {
+        return generation_;
       }
       /**
-       * <code>uint64 source_generation = 12;</code>
-       * @param value The sourceGeneration to set.
+       * <pre>
+       * Canonical source generation observed when the event was published. When
+       * set, the index controller uses this to skip stale events and avoid
+       * deleting newer document projections with older delete events.
+       * </pre>
+       *
+       * <code>uint64 generation = 12;</code>
+       * @param value The generation to set.
        * @return This builder for chaining.
        */
-      public Builder setSourceGeneration(long value) {
+      public Builder setGeneration(long value) {
 
-        sourceGeneration_ = value;
+        generation_ = value;
         bitField0_ |= 0x00000040;
         onChanged();
         return this;
       }
       /**
-       * <code>uint64 source_generation = 12;</code>
+       * <pre>
+       * Canonical source generation observed when the event was published. When
+       * set, the index controller uses this to skip stale events and avoid
+       * deleting newer document projections with older delete events.
+       * </pre>
+       *
+       * <code>uint64 generation = 12;</code>
        * @return This builder for chaining.
        */
-      public Builder clearSourceGeneration() {
+      public Builder clearGeneration() {
         bitField0_ = (bitField0_ & ~0x00000040);
-        sourceGeneration_ = 0L;
+        generation_ = 0L;
         onChanged();
         return this;
       }
@@ -11385,36 +11415,36 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       "ion\030\005 \001(\t\022\022\n\ngeneration\030\006 \001(\004\0225\n\013change_" +
       "type\030\007 \001(\0162 .talon.events.ResourceChange" +
       "Type\022\030\n\020changed_sections\030\010 \003(\t\022\021\n\ttimest" +
-      "amp\030\t \001(\003\"\251\001\n\nIndexEvent\022\n\n\002id\030\001 \001(\t\022/\n\t" +
+      "amp\030\t \001(\003\"\242\001\n\nIndexEvent\022\n\n\002id\030\001 \001(\t\022/\n\t" +
       "operation\030\002 \001(\0162\034.talon.events.IndexOper" +
       "ation\022\022\n\ncreated_at\030\003 \001(\003\022\022\n\nupdated_at\030" +
-      "\004 \001(\003\022\013\n\003key\030\n \001(\t\022\016\n\006prefix\030\013 \001(\010\022\031\n\021so" +
-      "urce_generation\030\014 \001(\004*\260\001\n\014SystemAction\022\035" +
-      "\n\031SYSTEM_ACTION_UNSPECIFIED\020\000\022\030\n\024SYSTEM_" +
-      "ACTION_CREATE\020\001\022\030\n\024SYSTEM_ACTION_UPDATE\020" +
-      "\002\022\030\n\024SYSTEM_ACTION_DELETE\020\003\022\031\n\025SYSTEM_AC" +
-      "TION_SUSPEND\020\004\022\030\n\024SYSTEM_ACTION_RESUME\020\005" +
-      "*t\n\020MessageDirection\022!\n\035MESSAGE_DIRECTIO" +
-      "N_UNSPECIFIED\020\000\022\035\n\031MESSAGE_DIRECTION_INB" +
-      "OUND\020\001\022\036\n\032MESSAGE_DIRECTION_OUTBOUND\020\002*\316" +
-      "\001\n\033SessionMessagePartEventKind\022/\n+SESSIO" +
-      "N_MESSAGE_PART_EVENT_KIND_UNSPECIFIED\020\000\022" +
-      ")\n%SESSION_MESSAGE_PART_EVENT_KIND_DELTA" +
-      "\020\001\022(\n$SESSION_MESSAGE_PART_EVENT_KIND_DO" +
-      "NE\020\002\022)\n%SESSION_MESSAGE_PART_EVENT_KIND_" +
-      "ERROR\020\003*\313\001\n\020ChannelEventKind\022\"\n\036CHANNEL_" +
-      "EVENT_KIND_UNSPECIFIED\020\000\022&\n\"CHANNEL_EVEN" +
-      "T_KIND_MESSAGE_CREATED\020\001\022%\n!CHANNEL_EVEN" +
-      "T_KIND_SESSION_ROUTED\020\002\022&\n\"CHANNEL_EVENT" +
-      "_KIND_PUBLISH_SKIPPED\020\003\022\034\n\030CHANNEL_EVENT" +
-      "_KIND_ERROR\020\004*\240\001\n\022ResourceChangeType\022$\n " +
-      "RESOURCE_CHANGE_TYPE_UNSPECIFIED\020\000\022 \n\034RE" +
-      "SOURCE_CHANGE_TYPE_CREATED\020\001\022 \n\034RESOURCE" +
-      "_CHANGE_TYPE_UPDATED\020\002\022 \n\034RESOURCE_CHANG" +
-      "E_TYPE_DELETED\020\003*i\n\016IndexOperation\022\037\n\033IN" +
-      "DEX_OPERATION_UNSPECIFIED\020\000\022\032\n\026INDEX_OPE" +
-      "RATION_UPSERT\020\001\022\032\n\026INDEX_OPERATION_DELET" +
-      "E\020\002b\006proto3"
+      "\004 \001(\003\022\013\n\003key\030\n \001(\t\022\016\n\006prefix\030\013 \001(\010\022\022\n\nge" +
+      "neration\030\014 \001(\004*\260\001\n\014SystemAction\022\035\n\031SYSTE" +
+      "M_ACTION_UNSPECIFIED\020\000\022\030\n\024SYSTEM_ACTION_" +
+      "CREATE\020\001\022\030\n\024SYSTEM_ACTION_UPDATE\020\002\022\030\n\024SY" +
+      "STEM_ACTION_DELETE\020\003\022\031\n\025SYSTEM_ACTION_SU" +
+      "SPEND\020\004\022\030\n\024SYSTEM_ACTION_RESUME\020\005*t\n\020Mes" +
+      "sageDirection\022!\n\035MESSAGE_DIRECTION_UNSPE" +
+      "CIFIED\020\000\022\035\n\031MESSAGE_DIRECTION_INBOUND\020\001\022" +
+      "\036\n\032MESSAGE_DIRECTION_OUTBOUND\020\002*\316\001\n\033Sess" +
+      "ionMessagePartEventKind\022/\n+SESSION_MESSA" +
+      "GE_PART_EVENT_KIND_UNSPECIFIED\020\000\022)\n%SESS" +
+      "ION_MESSAGE_PART_EVENT_KIND_DELTA\020\001\022(\n$S" +
+      "ESSION_MESSAGE_PART_EVENT_KIND_DONE\020\002\022)\n" +
+      "%SESSION_MESSAGE_PART_EVENT_KIND_ERROR\020\003" +
+      "*\313\001\n\020ChannelEventKind\022\"\n\036CHANNEL_EVENT_K" +
+      "IND_UNSPECIFIED\020\000\022&\n\"CHANNEL_EVENT_KIND_" +
+      "MESSAGE_CREATED\020\001\022%\n!CHANNEL_EVENT_KIND_" +
+      "SESSION_ROUTED\020\002\022&\n\"CHANNEL_EVENT_KIND_P" +
+      "UBLISH_SKIPPED\020\003\022\034\n\030CHANNEL_EVENT_KIND_E" +
+      "RROR\020\004*\240\001\n\022ResourceChangeType\022$\n RESOURC" +
+      "E_CHANGE_TYPE_UNSPECIFIED\020\000\022 \n\034RESOURCE_" +
+      "CHANGE_TYPE_CREATED\020\001\022 \n\034RESOURCE_CHANGE" +
+      "_TYPE_UPDATED\020\002\022 \n\034RESOURCE_CHANGE_TYPE_" +
+      "DELETED\020\003*i\n\016IndexOperation\022\037\n\033INDEX_OPE" +
+      "RATION_UNSPECIFIED\020\000\022\032\n\026INDEX_OPERATION_" +
+      "UPSERT\020\001\022\032\n\026INDEX_OPERATION_DELETE\020\002b\006pr" +
+      "oto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -11468,7 +11498,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     internal_static_talon_events_IndexEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_events_IndexEvent_descriptor,
-        new java.lang.String[] { "Id", "Operation", "CreatedAt", "UpdatedAt", "Key", "Prefix", "SourceGeneration", });
+        new java.lang.String[] { "Id", "Operation", "CreatedAt", "UpdatedAt", "Key", "Prefix", "Generation", });
     descriptor.resolveAllFeaturesImmutable();
     talon.data.Data.getDescriptor();
   }

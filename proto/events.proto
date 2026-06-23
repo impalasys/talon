@@ -129,5 +129,8 @@ message IndexEvent {
     string key = 10;
     // Reserved for future scoped invalidation. MVP publishers keep this false.
     bool prefix = 11;
-    uint64 source_generation = 12;
+    // Canonical source generation observed when the event was published. When
+    // set, the index controller uses this to skip stale events and avoid
+    // deleting newer document projections with older delete events.
+    uint64 generation = 12;
 }

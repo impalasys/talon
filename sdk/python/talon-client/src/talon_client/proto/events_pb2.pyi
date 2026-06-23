@@ -205,19 +205,19 @@ class ResourceChangedEvent(_message.Message):
     def __init__(self, namespace: _Optional[str] = ..., resource_kind: _Optional[str] = ..., name: _Optional[str] = ..., uid: _Optional[str] = ..., resource_version: _Optional[str] = ..., generation: _Optional[int] = ..., change_type: _Optional[_Union[ResourceChangeType, str]] = ..., changed_sections: _Optional[_Iterable[str]] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
 class IndexEvent(_message.Message):
-    __slots__ = ("id", "operation", "created_at", "updated_at", "key", "prefix", "source_generation")
+    __slots__ = ("id", "operation", "created_at", "updated_at", "key", "prefix", "generation")
     ID_FIELD_NUMBER: _ClassVar[int]
     OPERATION_FIELD_NUMBER: _ClassVar[int]
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
     UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
     KEY_FIELD_NUMBER: _ClassVar[int]
     PREFIX_FIELD_NUMBER: _ClassVar[int]
-    SOURCE_GENERATION_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_FIELD_NUMBER: _ClassVar[int]
     id: str
     operation: IndexOperation
     created_at: int
     updated_at: int
     key: str
     prefix: bool
-    source_generation: int
-    def __init__(self, id: _Optional[str] = ..., operation: _Optional[_Union[IndexOperation, str]] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., key: _Optional[str] = ..., prefix: bool = ..., source_generation: _Optional[int] = ...) -> None: ...
+    generation: int
+    def __init__(self, id: _Optional[str] = ..., operation: _Optional[_Union[IndexOperation, str]] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., key: _Optional[str] = ..., prefix: bool = ..., generation: _Optional[int] = ...) -> None: ...

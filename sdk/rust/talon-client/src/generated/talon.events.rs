@@ -140,8 +140,11 @@ pub struct IndexEvent {
     /// Reserved for future scoped invalidation. MVP publishers keep this false.
     #[prost(bool, tag = "11")]
     pub prefix: bool,
+    /// Canonical source generation observed when the event was published. When
+    /// set, the index controller uses this to skip stale events and avoid
+    /// deleting newer document projections with older delete events.
     #[prost(uint64, tag = "12")]
-    pub source_generation: u64,
+    pub generation: u64,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]

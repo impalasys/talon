@@ -346,7 +346,7 @@ impl ResourceStore {
         let event = events::IndexEvent {
             operation: operation as i32,
             key: key.canonical(),
-            source_generation: meta.generation,
+            generation: meta.generation,
             ..Default::default()
         };
         if let Err(error) =

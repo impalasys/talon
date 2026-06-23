@@ -762,9 +762,13 @@ export class IndexEvent extends Message<IndexEvent> {
   prefix = false;
 
   /**
-   * @generated from field: uint64 source_generation = 12;
+   * Canonical source generation observed when the event was published. When
+   * set, the index controller uses this to skip stale events and avoid
+   * deleting newer document projections with older delete events.
+   *
+   * @generated from field: uint64 generation = 12;
    */
-  sourceGeneration = protoInt64.zero;
+  generation = protoInt64.zero;
 
   constructor(data?: PartialMessage<IndexEvent>) {
     super();
@@ -780,7 +784,7 @@ export class IndexEvent extends Message<IndexEvent> {
     { no: 4, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 10, name: "key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 11, name: "prefix", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 12, name: "source_generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 12, name: "generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IndexEvent {

@@ -33,17 +33,17 @@ impl IndexController {
         let key = keys::ResourceKey::parse_canonical(&event.key)?;
         match IndexOperation::try_from(event.operation).unwrap_or(IndexOperation::Upsert) {
             IndexOperation::Delete => {
-                for scope in delete_scopes_for_key(&key, event.source_generation)? {
+                for scope in delete_scopes_for_key(&key, event.generation)? {
                     self.documents.delete(&scope).await?;
                 }
             }
             IndexOperation::Unspecified | IndexOperation::Upsert => {
                 let documents = self
-                    .extract_documents_for_key(&key, event.source_generation)
+                    .extract_documents_for_key(&key, event.generation)
                     .await?;
                 if !documents.is_empty() {
                     self.documents
-                        .delete(&replace_scope_for_key(&key, event.source_generation)?)
+                        .delete(&replace_scope_for_key(&key, event.generation)?)
                         .await?;
                     self.documents.upsert_documents(&documents).await?;
                 }
@@ -233,7 +233,7 @@ mod tests {
             .handle_event(IndexEvent {
                 id: "event-1".to_string(),
                 key: key.canonical(),
-                source_generation: 7,
+                generation: 7,
                 ..Default::default()
             })
             .await
@@ -332,7 +332,7 @@ mod tests {
         IndexController::new(cp)
             .handle_event(IndexEvent {
                 key: key.canonical(),
-                source_generation: meta.generation,
+                generation: meta.generation,
                 ..Default::default()
             })
             .await
@@ -393,7 +393,7 @@ mod tests {
         controller
             .handle_event(IndexEvent {
                 key: key.canonical(),
-                source_generation: current_generation,
+                generation: current_generation,
                 ..Default::default()
             })
             .await
@@ -402,7 +402,7 @@ mod tests {
         controller
             .handle_event(IndexEvent {
                 key: key.canonical(),
-                source_generation: current_generation - 1,
+                generation: current_generation - 1,
                 ..Default::default()
             })
             .await
@@ -421,7 +421,7 @@ mod tests {
             .handle_event(IndexEvent {
                 operation: IndexOperation::Delete as i32,
                 key: key.canonical(),
-                source_generation: current_generation - 1,
+                generation: current_generation - 1,
                 ..Default::default()
             })
             .await
@@ -458,7 +458,7 @@ mod tests {
         let error = IndexController::new(cp)
             .handle_event(IndexEvent {
                 key: key.canonical(),
-                source_generation: current_generation + 1,
+                generation: current_generation + 1,
                 ..Default::default()
             })
             .await
