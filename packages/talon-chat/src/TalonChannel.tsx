@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Hash } from "lucide-react";
-import { buildGatewayHeaders, normalizeGatewayUrl } from "./lib/grpc";
 import { ChatInputBox } from "./lib/ChatInputBox";
 import {
   findTalonChatCommand,
@@ -56,30 +55,30 @@ export type TalonChannelCommandTarget = {
 export type TalonChannelCommand = TalonChatCommand<TalonChannelCommandTarget, ChannelMessage>;
 
 export type ChannelGatewayClientLike = {
-  listChannelMessages(request: {
-    ns: string;
-    channel: string;
-    limit?: number;
-    pageSize?: number;
-    beforeMessageId?: string;
-  }): Promise<any>;
-  postChannelMessage(request: {
-    ns: string;
-    channel: string;
-    authorKind: string;
-    author: string;
-    content: string;
-    subscriptionNames?: string[];
-    labels?: Record<string, string>;
-  }): Promise<any>;
+  channels: {
+    listMessages(request: {
+      ns: string;
+      channel: string;
+      limit?: number;
+      pageSize?: number;
+      beforeMessageId?: string;
+    }): Promise<any>;
+    postMessage(request: {
+      ns: string;
+      channel: string;
+      authorKind: string;
+      author: string;
+      content: string;
+      subscriptionNames?: string[];
+      labels?: Record<string, string>;
+    }): Promise<any>;
+  };
 };
 
 export type TalonChannelProps = {
   namespace: string;
   channel: string | ChannelLike | null | undefined;
-  gatewayUrl: string;
-  authToken?: string | null;
-  gatewayClient?: ChannelGatewayClientLike;
+  gatewayClient: ChannelGatewayClientLike;
   className?: string;
   style?: React.CSSProperties;
   disabled?: boolean;
@@ -97,9 +96,7 @@ export type TalonChannelProps = {
 export type UseTalonChannelMessagesOptions = {
   namespace: string;
   channel: string | ChannelLike | null | undefined;
-  gatewayUrl: string;
-  authToken?: string | null;
-  gatewayClient?: ChannelGatewayClientLike;
+  gatewayClient: ChannelGatewayClientLike;
   disabled?: boolean;
   messageLimit?: number;
   refreshIntervalMs?: number | false;
@@ -172,21 +169,6 @@ function defaultFormatTimestamp(message: ChannelMessage, timestampLocale?: Intl.
   });
 }
 
-function buildGatewayChannelMessagesUrl(
-  gatewayUrl: string,
-  namespace: string,
-  channel: string,
-  pageSize: number,
-  beforeMessageId?: string,
-) {
-  const url = new URL(`${normalizeGatewayUrl(gatewayUrl)}/v1/ns/${encodeURIComponent(namespace)}/channels/${encodeURIComponent(channel)}/messages`);
-  url.searchParams.set("page_size", String(Math.trunc(pageSize)));
-  if (beforeMessageId) {
-    url.searchParams.set("before_message_id", beforeMessageId);
-  }
-  return url.toString();
-}
-
 function normalizeChannelPage(response: any): {
   messages: ChannelMessage[];
   hasMore: boolean;
@@ -238,8 +220,6 @@ function mergeChannelMessages(existing: ChannelMessage[], incoming: ChannelMessa
 export function useTalonChannelMessages({
   namespace,
   channel,
-  gatewayUrl,
-  authToken,
   gatewayClient,
   disabled = false,
   messageLimit = 100,
@@ -272,15 +252,7 @@ export function useTalonChannelMessages({
     refreshRequestIdRef.current += 1;
     pendingRefreshRef.current = false;
     setIsLoading(false);
-  }, [authToken, disabled, gatewayClient, gatewayUrl, messageLimit]);
-
-  const headers = useCallback(
-    (json = false): HeadersInit => ({
-      ...(json ? { "Content-Type": "application/json" } : {}),
-      ...(buildGatewayHeaders(authToken) || {}),
-    }),
-    [authToken],
-  );
+  }, [disabled, gatewayClient, messageLimit]);
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -309,21 +281,16 @@ export function useTalonChannelMessages({
       }
       setError(null);
       try {
-        const responseJson = gatewayClient
-          ? await gatewayClient.listChannelMessages({
-              ns: requestNamespace,
-              channel: requestChannelName,
-              limit: messageLimit,
-              pageSize: messageLimit,
-            })
-          : await (async () => {
-              const messagesResponse = await fetch(
-                buildGatewayChannelMessagesUrl(gatewayUrl, requestNamespace, requestChannelName, messageLimit),
-                { headers: headers() },
-              );
-              if (!messagesResponse.ok) throw new Error(`Messages HTTP ${messagesResponse.status}`);
-              return messagesResponse.json();
-            })();
+        const channels = gatewayClient?.channels;
+        if (!channels?.listMessages) {
+          throw new Error("TalonChannel requires a Talon clientset with channels.listMessages().");
+        }
+        const responseJson = await channels.listMessages({
+          ns: requestNamespace,
+          channel: requestChannelName,
+          limit: messageLimit,
+          pageSize: messageLimit,
+        });
         if (
           requestNamespace !== currentChannelRef.current.namespace ||
           requestChannelName !== currentChannelRef.current.channelName ||
@@ -371,7 +338,7 @@ export function useTalonChannelMessages({
         }
       }
     },
-    [channelName, disabled, gatewayClient, gatewayUrl, headers, messageLimit, namespace],
+    [channelName, disabled, gatewayClient, messageLimit, namespace],
   );
 
   useEffect(() => {
@@ -413,22 +380,17 @@ export function useTalonChannelMessages({
     setIsLoadingOlderMessages(true);
     setError(null);
     try {
-      const responseJson = gatewayClient
-        ? await gatewayClient.listChannelMessages({
-            ns: requestNamespace,
-            channel: requestChannelName,
-            limit: messageLimit,
-            pageSize: messageLimit,
-            beforeMessageId: nextBeforeMessageId,
-          })
-        : await (async () => {
-            const response = await fetch(
-              buildGatewayChannelMessagesUrl(gatewayUrl, requestNamespace, requestChannelName, messageLimit, nextBeforeMessageId),
-              { headers: headers() },
-            );
-            if (!response.ok) throw new Error(`Messages HTTP ${response.status}`);
-            return response.json();
-          })();
+      const channels = gatewayClient?.channels;
+      if (!channels?.listMessages) {
+        throw new Error("TalonChannel requires a Talon clientset with channels.listMessages().");
+      }
+      const responseJson = await channels.listMessages({
+        ns: requestNamespace,
+        channel: requestChannelName,
+        limit: messageLimit,
+        pageSize: messageLimit,
+        beforeMessageId: nextBeforeMessageId,
+      });
       if (
         requestNamespace !== currentChannelRef.current.namespace ||
         requestChannelName !== currentChannelRef.current.channelName
@@ -455,7 +417,7 @@ export function useTalonChannelMessages({
         setIsLoadingOlderMessages(false);
       }
     }
-  }, [channelName, disabled, gatewayClient, gatewayUrl, hasMoreMessages, headers, messageLimit, namespace, nextBeforeMessageId]);
+  }, [channelName, disabled, gatewayClient, hasMoreMessages, messageLimit, namespace, nextBeforeMessageId]);
 
   const postMessage = useCallback(
     async ({ author, authorKind, content }: { author: string; authorKind: string; content: string }) => {
@@ -463,8 +425,9 @@ export function useTalonChannelMessages({
       if (!trimmedContent || !namespace || !channelName || disabled || status === "closed") return;
       setError(null);
       try {
-        if (gatewayClient) {
-          await gatewayClient.postChannelMessage({
+        const channels = gatewayClient?.channels;
+        if (channels?.postMessage) {
+          await channels.postMessage({
             ns: namespace,
             channel: channelName,
             authorKind,
@@ -474,21 +437,7 @@ export function useTalonChannelMessages({
             labels: {},
           });
         } else {
-          const response = await fetch(
-            `${normalizeGatewayUrl(gatewayUrl)}/v1/ns/${encodeURIComponent(namespace)}/channels/${encodeURIComponent(channelName)}/messages`,
-            {
-              method: "POST",
-              headers: headers(true),
-              body: JSON.stringify({
-                ns: namespace,
-                channel: channelName,
-                authorKind,
-                author,
-                content: trimmedContent,
-              }),
-            },
-          );
-          if (!response.ok) throw new Error(`Post HTTP ${response.status}`);
+          throw new Error("TalonChannel requires a Talon clientset with channels.postMessage().");
         }
         await refresh();
         if (delayedRefreshTimeoutRef.current !== null) {
@@ -503,7 +452,7 @@ export function useTalonChannelMessages({
         throw err;
       }
     },
-    [channelName, disabled, gatewayClient, gatewayUrl, headers, namespace, refresh, status],
+    [channelName, disabled, gatewayClient, namespace, refresh, status],
   );
 
   return {
@@ -523,8 +472,6 @@ export function useTalonChannelMessages({
 export function TalonChannel({
   namespace,
   channel,
-  gatewayUrl,
-  authToken,
   gatewayClient,
   className,
   style,
@@ -559,8 +506,6 @@ export function TalonChannel({
   } = useTalonChannelMessages({
     namespace,
     channel,
-    gatewayUrl,
-    authToken,
     gatewayClient,
     disabled,
     messageLimit,

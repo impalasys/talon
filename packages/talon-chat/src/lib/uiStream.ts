@@ -1,4 +1,5 @@
 import type React from "react";
+import { data } from "@impalasys/talon-client";
 import {
   appendAssistantReasoning,
   appendAssistantText,
@@ -31,6 +32,14 @@ function createLocalMessageId() {
     return `local-${crypto.randomUUID()}`;
   }
   return `local-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+function appendAssistantPart(messages: CopilotMessage[], messageId: string, part: unknown): CopilotMessage[] {
+  return messages.map((message) => {
+    if (message.id !== messageId) return message;
+    const parts = Array.isArray(message.parts) ? [...message.parts, part] : [part];
+    return { ...message, parts };
+  });
 }
 
 export function sessionResponseHasAssistantText(response: any): boolean {
@@ -252,4 +261,89 @@ export async function streamUiSubmission(options: {
   }
 
   return { assistantText };
+}
+
+export async function streamSessionPartEvents(options: {
+  events: AsyncIterable<any>;
+  setMessages: React.Dispatch<React.SetStateAction<CopilotMessage[]>>;
+  setStreamEvents: React.Dispatch<React.SetStateAction<StreamEventItem[]>>;
+  signal?: AbortSignal;
+}) {
+  const { events, setMessages, setStreamEvents, signal } = options;
+  let assistantText = "";
+  let assistantMessageId: string | null = null;
+
+  const ensureLiveAssistant = (messageId?: string) => {
+    const nextMessageId = messageId || assistantMessageId || createLocalMessageId();
+    const previousMessageId = assistantMessageId;
+    const idChanged = Boolean(previousMessageId && previousMessageId !== nextMessageId);
+    const isNew = !previousMessageId;
+    assistantMessageId = nextMessageId;
+    if (idChanged || isNew) {
+      setMessages((prev) => {
+        const reconciled =
+          previousMessageId && previousMessageId !== nextMessageId
+            ? reconcileAssistantMessageId(prev, previousMessageId, nextMessageId)
+            : prev;
+        return ensureAssistantMessage(reconciled, nextMessageId);
+      });
+    }
+    return nextMessageId;
+  };
+
+  for await (const event of events) {
+    if (signal?.aborted) break;
+    const kind = event?.kind;
+    if (kind === 3 || kind === "SESSION_MESSAGE_PART_EVENT_KIND_ERROR") {
+      const error = new Error(event?.part?.content || "Session stream error");
+      throw error;
+    }
+    if (kind === 2 || kind === "SESSION_MESSAGE_PART_EVENT_KIND_DONE") {
+      break;
+    }
+
+    const part = event?.part;
+    if (!part) continue;
+    const partType = part.partType ?? part.part_type;
+    const content = String(part.content ?? "");
+    const payload = parsePayload(part.payloadJson ?? part.payload_json);
+    const messageId = ensureLiveAssistant(event?.messageId ?? event?.message_id);
+
+    if (partType === data.SessionMessagePartType.TEXT || partType === "SESSION_MESSAGE_PART_TYPE_TEXT") {
+      assistantText += content;
+      setMessages((prev) => appendAssistantText(prev, messageId, content));
+    } else if (partType === data.SessionMessagePartType.REASONING || partType === "SESSION_MESSAGE_PART_TYPE_REASONING") {
+      setStreamEvents((prev) => [...prev, { type: "reasoning", content }]);
+      setMessages((prev) => appendAssistantReasoning(prev, messageId, content));
+    } else if (partType === data.SessionMessagePartType.TOOL_CALL || partType === "SESSION_MESSAGE_PART_TYPE_TOOL_CALL") {
+      const toolCallId = typeof payload?.tool_call_id === "string" ? payload.tool_call_id : part.id || `tool-${createLocalMessageId()}`;
+      const toolName = typeof part.name === "string" && part.name ? part.name : "tool";
+      setStreamEvents((prev) => [...prev, { type: "tool_call", content: toolName, name: toolName, payload }]);
+      setMessages((prev) => applyToolInvocationToMessages(prev, toolCallId, toolName, payload?.input, undefined, messageId));
+    } else if (partType === data.SessionMessagePartType.TOOL_RESULT || partType === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT") {
+      const toolCallId = typeof payload?.tool_call_id === "string" ? payload.tool_call_id : part.id || `tool-${createLocalMessageId()}`;
+      setStreamEvents((prev) => [...prev, { type: "tool_result", content: toolCallId, payload }]);
+      setMessages((prev) => applyToolInvocationToMessages(prev, toolCallId, "", undefined, payload?.output ?? content, messageId));
+    } else if (partType === data.SessionMessagePartType.USAGE || partType === "SESSION_MESSAGE_PART_TYPE_USAGE") {
+      const usage = payload && typeof payload === "object" ? payload as UsageSummary : {};
+      setStreamEvents((prev) => [...prev, { type: "usage", content: formatUsageSummary(usage), payload: usage }]);
+      setMessages((prev) => applyUsageToMessages(prev, messageId, usage));
+    } else if (partType === data.SessionMessagePartType.ERROR || partType === "SESSION_MESSAGE_PART_TYPE_ERROR") {
+      const error = new Error(content || "Session stream error");
+      throw error;
+    } else if (partType === data.SessionMessagePartType.IMAGE || partType === "SESSION_MESSAGE_PART_TYPE_IMAGE") {
+      setMessages((prev) => appendAssistantPart(prev, messageId, part));
+    }
+  }
+
+  return { assistantText };
+}
+
+function parsePayload(value: unknown): any {
+  if (typeof value !== "string" || !value) return undefined;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return undefined;
+  }
 }

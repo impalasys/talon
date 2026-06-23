@@ -25,7 +25,7 @@ docker compose --profile tutorial-channels up --build -d
 
 This starts the normal local stack and runs a one-shot bootstrap service that applies the channel tutorial manifests from `manifests/examples/channel-collaboration`.
 
-Open Sightline at `http://localhost:3000` and connect it to `http://localhost:18789`.
+Open Sightline at `http://localhost:3000` and connect it to `http://localhost:50051`.
 
 ## 1. Inspect the resources
 
@@ -42,11 +42,18 @@ You should see:
 
 Post into the channel:
 
-```bash
-curl -sS http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"authorKind":"user","author":"operator","content":"@triage-agent production checkout latency is elevated. What should we do first?"}'
+```ts
+import { createTalonClient } from "@impalasys/talon-client";
+
+const talon = createTalonClient("http://localhost:50051");
+
+await talon.channels.postMessage({
+  ns: "channel-collaboration",
+  channel: "incident-room",
+  authorKind: "user",
+  author: "operator",
+  content: "@triage-agent production checkout latency is elevated. What should we do first?",
+});
 ```
 
 The `triage` subscription routes this public message into a new private session owned by `triage-agent`.
@@ -55,11 +62,15 @@ The `triage` subscription routes this public message into a new private session 
 
 Route a message to the `scribe` subscription:
 
-```bash
-curl -sS http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"authorKind":"user","author":"operator","content":"Summarize the current incident room for handoff.","subscriptionNames":["scribe"]}'
+```ts
+await talon.channels.postMessage({
+  ns: "channel-collaboration",
+  channel: "incident-room",
+  authorKind: "user",
+  author: "operator",
+  content: "Summarize the current incident room for handoff.",
+  subscriptionNames: ["scribe"],
+});
 ```
 
 The manual route creates a separate `scribe-agent` session without requiring an `@scribe-agent` mention.

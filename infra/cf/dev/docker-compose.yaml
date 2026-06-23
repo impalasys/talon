@@ -33,7 +33,6 @@ services:
     restart: on-failure
     environment:
       GRPC_ADDR: 0.0.0.0:50051
-      GATEWAY_UI_ADDR: 0.0.0.0:50052
       TALON_CLOUDFLARE_D1_URL: http://talon-d1.internal:8787
       TALON_CLOUDFLARE_R2_URL: http://talon-r2.internal:8787
       TALON_CLOUDFLARE_QUEUES_URL: http://talon-queues.internal:8787

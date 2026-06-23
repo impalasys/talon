@@ -3,45 +3,24 @@ title: Runtime Surfaces
 sidebar_position: 2
 ---
 
-Talon exposes multiple API surfaces over the same runtime system.
+Talon exposes one public gateway surface over the runtime system.
 
-## Native gRPC
+## Native gRPC and gRPC-Web
 
-The canonical contract is the `GatewayService` gRPC API.
+The canonical contract is the versioned `talon.v1` gRPC API, served as both native gRPC and gRPC-Web on the gateway port.
 
 Use it when you want:
 
 - typed service integration
 - the full system-of-record contract
-- native streaming with `StreamSessionSteps`
-
-## REST-transcoded HTTP
-
-Envoy exposes REST mappings for the gateway’s control-plane operations.
-
-Use it when you want:
-
-- simpler HTTP access
-- easier curl or service-to-service integration
-- CRUD over namespaces, agents, schedules, templates, and related resources
-
-## Browser-oriented UI session surface
-
-The gateway also exposes a UI HTTP surface for session interactions used by Sightline-style clients.
-
-Use it when you want:
-
-- browser chat/session interactions
-- live streamed UI responses
-- tool visibility in a browser-native flow
+- native and browser streaming
 
 ## Which one should you choose
 
-- backend integration: prefer gRPC
-- operational HTTP integration: use REST-transcoded routes
-- browser frontend integration: use the UI session surface
+- backend integration: use native gRPC clients
+- browser integration: use gRPC-Web clients
+- SDK integration: use a Talon clientset and access the named services from it
 
 ## Read next
 
-- [Gateway API](./generated/gateway-service.md)
 - [Events and Models](./events-and-models.md)

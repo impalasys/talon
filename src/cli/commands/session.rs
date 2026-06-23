@@ -11,7 +11,7 @@ use super::{Cli, RunOutcome};
 use crate::cli::connect_gateway;
 use talon_client::data as data_proto;
 use talon_client::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
-use talon_client::gateway::{
+use talon_client::v1::{
     AnswerSessionPermissionRequest, ClearSessionRequest, CreateSessionRequest,
     DeleteSessionRequest, GetSessionRequest, ListSessionMessagesRequest, ListSessionsRequest,
     SendMessageRequest, StopSessionGenerationRequest, StreamSessionPartsRequest,
@@ -635,7 +635,7 @@ async fn session_delete(
 }
 
 fn session_response_json(
-    response: &talon_client::gateway::SessionResponse,
+    response: &talon_client::v1::SessionResponse,
 ) -> serde_json::Value {
     json!({
         "sessionId": response.session_id,

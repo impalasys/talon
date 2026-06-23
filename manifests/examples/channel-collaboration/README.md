@@ -12,11 +12,18 @@ The default compose stack can apply these resources with:
 docker compose --profile tutorial-channels up --build -d
 ```
 
-Post a channel message through the gateway edge:
+Post a channel message through the Talon clientset:
 
-```bash
-curl -sS http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"authorKind":"user","author":"operator","content":"@triage-agent production checkout latency is elevated. What should we do first?"}'
+```ts
+import { createTalonClient } from "@impalasys/talon-client";
+
+const talon = createTalonClient("http://localhost:50051");
+
+await talon.channels.postMessage({
+  ns: "channel-collaboration",
+  channel: "incident-room",
+  authorKind: "user",
+  author: "operator",
+  content: "@triage-agent production checkout latency is elevated. What should we do first?",
+});
 ```

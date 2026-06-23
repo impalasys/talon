@@ -17,6 +17,7 @@ from a2a.client.client import ClientConfig
 from a2a.client.client_factory import ClientFactory
 from a2a.types import Message, Role, TextPart, TransportProtocol
 import conftest
+from proto.talon.v1 import namespaces_pb2
 
 
 def card_resolver(client: httpx.AsyncClient, agent_card_url: str) -> A2ACardResolver:
@@ -74,17 +75,51 @@ def get_field(value, snake_name, camel_name):
     return value.get(snake_name, value.get(camel_name))
 
 
+def grpc_web_frame(message):
+    payload = message.SerializeToString()
+    return b"\x00" + len(payload).to_bytes(4, "big") + payload
+
+
+def parse_grpc_web_response(response_body, message_type):
+    assert len(response_body) >= 5
+    assert response_body[0] == 0
+    message_len = int.from_bytes(response_body[1:5], "big")
+    assert len(response_body) >= 5 + message_len
+    message = message_type()
+    message.ParseFromString(response_body[5 : 5 + message_len])
+    return message
+
+
+async def assert_grpc_web_list_namespaces(gateway_url: str):
+    async with httpx.AsyncClient(timeout=30.0) as http_client:
+        response = await http_client.post(
+            f"{gateway_url}/talon.v1.NamespaceService/List",
+            headers={
+                "content-type": "application/grpc-web+proto",
+                "x-grpc-web": "1",
+            },
+            content=grpc_web_frame(namespaces_pb2.ListNamespacesRequest()),
+        )
+    response.raise_for_status()
+    assert response.headers["content-type"].startswith("application/grpc-web")
+    list_response = parse_grpc_web_response(
+        response.content,
+        namespaces_pb2.ListNamespacesResponse,
+    )
+    assert any(namespace.name == "default" for namespace in list_response.namespaces)
+
+
 def bool_field(value, snake_name, camel_name):
     field_value = get_field(value, snake_name, camel_name)
     return bool(field_value)
 
 
-def apply_manifest(path):
+def apply_manifest(path, gateway_url):
     subprocess.run(
         [
             conftest.get_binary_path("talon_cli"),
             "--gateway",
-            "http://127.0.0.1:50052",
+            gateway_url,
             "apply",
             "--file",
             str(path),
@@ -99,7 +134,7 @@ def write_manifest(tmp_path, name, content):
     return path
 
 
-def create_a2a_fixture(namespace: str, agent_name: str, tmp_path):
+def create_a2a_fixture(namespace: str, agent_name: str, tmp_path, gateway_url: str):
     agent_path = write_manifest(
         tmp_path,
         "agent.yaml",
@@ -145,19 +180,21 @@ def create_a2a_fixture(namespace: str, agent_name: str, tmp_path):
                       - text/plain
         """,
     )
-    apply_manifest(agent_path)
+    apply_manifest(agent_path, gateway_url)
 
 
 @pytest.mark.asyncio
 async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
-    talon_infrastructure, mock_llm_server, tmp_path
+    talon_infrastructure, mock_llm_server, tmp_path, test_grpc_port
 ):
     run_id = uuid.uuid4().hex[:8]
     namespace = f"talon-a2a-compat-{run_id}"
     agent_name = f"a2a-agent-{run_id}"
-    create_a2a_fixture(namespace, agent_name, tmp_path)
+    gateway_url = f"http://127.0.0.1:{test_grpc_port}"
+    create_a2a_fixture(namespace, agent_name, tmp_path, gateway_url)
+    await assert_grpc_web_list_namespaces(gateway_url)
 
-    agent_card_url = f"http://localhost:50053/a2a/{namespace}/{agent_name}/agent-card.json"
+    agent_card_url = f"http://localhost:{test_grpc_port}/a2a/{namespace}/{agent_name}/agent-card.json"
     async with httpx.AsyncClient(
         timeout=90.0, headers={"x-forwarded-proto": "http"}
     ) as http_client:
@@ -167,7 +204,7 @@ async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
         assert card.name == "A2A Compatibility Agent"
         assert card.protocol_version == "0.3.0"
         assert card.preferred_transport == TransportProtocol.http_json
-        assert card.url == f"http://localhost:50053/a2a/{namespace}/{agent_name}"
+        assert card.url == f"http://localhost:{test_grpc_port}/a2a/{namespace}/{agent_name}"
         assert card.capabilities.streaming is True
         assert card.default_input_modes == ["text/plain"]
         assert card.default_output_modes == ["text/plain"]

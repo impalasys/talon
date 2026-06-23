@@ -64,6 +64,7 @@ COPY --from=builder /usr/src/talon/dist/talon-worker /usr/local/bin/talon-worker
 COPY --from=builder /usr/src/talon/dist/talon-cli /usr/local/bin/talon-cli
 COPY --from=builder /usr/src/talon/dist/talon-node /usr/local/bin/talon-node
 COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
+RUN command -v talon-cli >/dev/null
 RUN mkdir -p /data/talon
 COPY --from=builder /usr/src/talon/talon.yaml /data/talon/talon.yaml
 
@@ -72,6 +73,6 @@ ENV RUST_LOG=info
 
 WORKDIR /data/talon
 
-EXPOSE 50051 50052 8081
+EXPOSE 50051 8081
 
 CMD ["talon-server"]

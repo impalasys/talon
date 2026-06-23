@@ -13,6 +13,7 @@ const customJestConfig = {
   ],
   moduleNameMapper: {
     '^@impalasys/talon-chat$': '<rootDir>/../packages/talon-chat/src/index.ts',
+    '^@impalasys/talon-client$': '<rootDir>/../sdk/js/talon-client/dist/index.js',
     '^streamdown$': '<rootDir>/test/streamdownMock.js',
   },
   collectCoverage: true,

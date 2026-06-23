@@ -5,7 +5,7 @@ use anyhow::{Context, Result};
 
 use super::{Cli, RunOutcome};
 use crate::cli::{connect_gateway, resource_lookup_target};
-use talon_client::gateway::DeleteResourceRequest;
+use talon_client::v1::DeleteResourceRequest;
 
 #[derive(clap::Args)]
 pub(crate) struct DeleteCommand {

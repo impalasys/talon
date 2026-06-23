@@ -17,11 +17,13 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./gen/*": {
       "types": "./dist/gen/*.d.ts",
-      "import": "./dist/gen/*.js"
+      "import": "./dist/gen/*.js",
+      "default": "./dist/gen/*.js"
     }
   },
   "scripts": {

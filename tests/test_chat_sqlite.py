@@ -1,19 +1,15 @@
 import grpc
 import json
-import pytest
-import sys
 import os
+import pytest
 import shutil
 import subprocess
 import threading
 import time
 import uuid
 
-# Important: Add generated protos to path so "proto.xxx" resolves locally and not to proto_plus
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
-
-from proto.gateway_pb2_grpc import GatewayServiceStub
-from proto.gateway_pb2 import (
+from talon_client import (
+    TalonClient,
     CreateNamespaceRequest,
     CreateResourceRequest,
     CreateSessionRequest,
@@ -22,9 +18,7 @@ from proto.gateway_pb2 import (
     SendMessageRequest,
     StreamSessionPartsRequest,
 )
-from proto.resources.agents_pb2 import AgentSpec, Model
-from proto.resources.common_pb2 import ResourceMeta
-from proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
+from talon_client.resources import AgentSpec, Model, ResourceManifest, ResourceMeta, ResourceSpec
 import conftest
 from e2e.cli_harness import TalonCli
 from e2e import scenarios as e2e
@@ -49,14 +43,14 @@ def last_assistant_message(messages):
 
 def ensure_namespace(stub, name):
     try:
-        stub.CreateNamespace(CreateNamespaceRequest(name=name, recursive=True))
+        stub.namespaces.Create(CreateNamespaceRequest(name=name, recursive=True))
     except grpc.RpcError as err:
         if err.code() != grpc.StatusCode.ALREADY_EXISTS:
             raise
 
 
 def create_agent_resource(stub, ns, name, spec):
-    return stub.CreateResource(
+    return stub.resources.Create(
         CreateResourceRequest(
             ns=ns,
             manifest=ResourceManifest(
@@ -70,7 +64,7 @@ def create_agent_resource(stub, ns, name, spec):
 
 
 def test_single_turn_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_server):
-    stub = GatewayServiceStub(gateway_channel_sqlite)
+    stub = TalonClient(gateway_channel_sqlite)
 
     ensure_namespace(stub, "talon-sqlite-test")
 
@@ -96,13 +90,13 @@ def test_single_turn_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_s
     )
     assert agent.metadata.name == "test-llm-agent"
 
-    session = stub.CreateSession(
+    session = stub.sessions.Create(
         CreateSessionRequest(agent="test-llm-agent", ns="talon-sqlite-test")
     )
     session_id = session.session_id
     assert session_id != ""
 
-    stub.SendMessage(
+    stub.sessions.SendMessage(
         SendMessageRequest(
             agent="test-llm-agent",
             session_id=session_id,
@@ -115,7 +109,7 @@ def test_single_turn_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_s
     messages = []
     for _ in range(30):
         time.sleep(1)
-        res = stub.GetSession(
+        res = stub.sessions.Get(
             GetSessionRequest(
                 agent="test-llm-agent",
                 session_id=session_id,
@@ -136,7 +130,7 @@ def test_single_turn_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_s
 
 
 def test_streaming_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_server):
-    stub = GatewayServiceStub(gateway_channel_sqlite)
+    stub = TalonClient(gateway_channel_sqlite)
 
     ensure_namespace(stub, "talon-sqlite-stream-test")
 
@@ -161,14 +155,14 @@ def test_streaming_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_ser
             ),
     )
 
-    session = stub.CreateSession(
+    session = stub.sessions.Create(
         CreateSessionRequest(agent="stream-agent", ns="talon-sqlite-stream-test")
     )
     session_id = session.session_id
 
     def send_msg():
         time.sleep(2.0)
-        stub.SendMessage(
+        stub.sessions.SendMessage(
             SendMessageRequest(
                 agent="stream-agent",
                 session_id=session_id,
@@ -190,7 +184,7 @@ def test_streaming_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_ser
         saw_reasoning = False
         saw_token = False
         saw_usage = False
-        for idx, event in enumerate(stub.StreamSessionParts(stream_req)):
+        for idx, event in enumerate(stub.sessions.StreamParts(stream_req)):
             events.append(event)
             if event.part.part_type == PART_TYPE_REASONING:
                 saw_reasoning = True
@@ -365,7 +359,7 @@ status:
 
 
 def list_resources(stub, namespace, kind):
-    return list(stub.ListResources(ListResourcesRequest(ns=namespace, kind=kind)).resources)
+    return list(stub.resources.List(ListResourcesRequest(ns=namespace, kind=kind)).resources)
 
 
 def wait_for_resources(stub, namespace, kind, expected_names):
@@ -423,7 +417,7 @@ def wait_for_session_reply(stub, namespace, agent, session_id, expected_text, at
     last_assistant_text = ""
     for _ in range(attempts):
         time.sleep(1)
-        res = stub.GetSession(
+        res = stub.sessions.Get(
             GetSessionRequest(
                 agent=agent,
                 session_id=session_id,

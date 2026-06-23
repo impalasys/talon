@@ -79,12 +79,23 @@ const fixedMessages = [
 ];
 
 const gatewayClient: GatewayClientLike = {
-  createSession: async () => ({ sessionId: "storybook-session" }),
-  listSessionMessages: async () => ({
-    messages: fixedMessages,
-    hasMore: false,
-    state: "IDLE",
-  }),
+  sessions: {
+    create: async () => ({ sessionId: "storybook-session" }),
+    clear: async () => ({}),
+    get: async () => ({
+      sessionId: "storybook-session",
+      messages: fixedMessages,
+      state: "IDLE",
+    }),
+    listMessages: async () => ({
+      messages: fixedMessages,
+      hasMore: false,
+      state: "IDLE",
+    }),
+    submitTurn: async function* () {},
+    streamParts: async function* () {},
+    stopGeneration: async () => ({}),
+  },
 };
 
 const mockImageUpload: TalonSessionProps["onImageUpload"] = async ({ file, namespace, agent, sessionId }) => ({
@@ -96,18 +107,12 @@ const mockImageUpload: TalonSessionProps["onImageUpload"] = async ({ file, names
 
 const streamingPrompt = "Summarize the latest incident notes and identify the next owner.";
 const streamingAssistantMessage = fixedMessages[1];
-const originalFetch = globalThis.fetch;
-
-function uiStreamLine(code: string, value: unknown) {
-  return `${code}:${JSON.stringify(value)}\n`;
-}
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function createStreamingResponse(signal?: AbortSignal | null) {
-  const encoder = new TextEncoder();
+async function* createStreamingEvents(signal?: AbortSignal | null) {
   const parts = Array.isArray(streamingAssistantMessage.parts) ? streamingAssistantMessage.parts : [];
   const reasoningPart = parts.find((part: any) => part?.type === "reasoning") as any;
   const toolParts = parts.filter((part: any) => typeof part?.type === "string" && part.type.startsWith("tool-")) as any[];
@@ -125,87 +130,102 @@ function createStreamingResponse(signal?: AbortSignal | null) {
     reasoningText.slice(70),
   ].filter(Boolean);
 
-  const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      const enqueue = async (line: string, wait = 360) => {
-        if (signal?.aborted) {
-          controller.close();
-          return false;
-        }
-        await delay(wait);
-        if (signal?.aborted) {
-          controller.close();
-          return false;
-        }
-        controller.enqueue(encoder.encode(line));
-        return true;
-      };
+  const emit = async (event: any, wait = 360) => {
+    if (signal?.aborted) return false;
+    await delay(wait);
+    return !signal?.aborted && event;
+  };
 
-      if (!(await enqueue(uiStreamLine("f", { messageId: streamingAssistantMessage.id }), 180))) return;
-      for (const chunk of reasoningChunks) {
-        if (!(await enqueue(uiStreamLine("g", chunk)))) return;
-      }
-      for (const toolPart of toolParts) {
-        if (!(await enqueue(uiStreamLine("9", {
-          toolCallId: toolPart.toolCallId,
-          toolName: toolPart.toolName,
-          args: toolPart.input,
-        })))) return;
-        if (!(await enqueue(uiStreamLine("a", {
-          toolCallId: toolPart.toolCallId,
-          result: toolPart.output,
-        })))) return;
-      }
-      for (const chunk of textChunks) {
-        if (!(await enqueue(uiStreamLine("0", chunk)))) return;
-      }
-      if (usagePart?.payloadJson) {
-        await enqueue(uiStreamLine("h", JSON.parse(usagePart.payloadJson)), 220);
-      }
-      controller.close();
-    },
-  });
+  const first = await emit({ kind: 1, messageId: streamingAssistantMessage.id }, 180);
+  if (!first) return;
+  yield first;
 
-  return new Response(stream, {
-    status: 200,
-    headers: { "Content-Type": "text/plain; charset=utf-8" },
-  });
+  for (const chunk of reasoningChunks) {
+    const event = await emit({
+      kind: 1,
+      messageId: streamingAssistantMessage.id,
+      part: { partType: 2, content: chunk },
+    });
+    if (!event) return;
+    yield event;
+  }
+  for (const toolPart of toolParts) {
+    const call = await emit({
+      kind: 1,
+      messageId: streamingAssistantMessage.id,
+      part: {
+        id: toolPart.toolCallId,
+        partType: 3,
+        name: toolPart.toolName,
+        payloadJson: JSON.stringify({ tool_call_id: toolPart.toolCallId, input: toolPart.input }),
+      },
+    });
+    if (!call) return;
+    yield call;
+
+    const result = await emit({
+      kind: 1,
+      messageId: streamingAssistantMessage.id,
+      part: {
+        id: toolPart.toolCallId,
+        partType: 4,
+        payloadJson: JSON.stringify({ tool_call_id: toolPart.toolCallId, output: toolPart.output }),
+      },
+    });
+    if (!result) return;
+    yield result;
+  }
+  for (const chunk of textChunks) {
+    const event = await emit({
+      kind: 1,
+      messageId: streamingAssistantMessage.id,
+      part: { partType: 1, content: chunk },
+    });
+    if (!event) return;
+    yield event;
+  }
+  if (usagePart?.payloadJson) {
+    const usage = await emit({
+      kind: 1,
+      messageId: streamingAssistantMessage.id,
+      part: { partType: 5, payloadJson: usagePart.payloadJson },
+    }, 220);
+    if (!usage) return;
+    yield usage;
+  }
+  yield { kind: 2, messageId: streamingAssistantMessage.id };
 }
 
 function createStreamingGatewayClient() {
   let submitted = false;
-  return {
-    createSession: async () => ({ sessionId: "storybook-streaming-session" }),
-    listSessionMessages: async () => ({
-      messages: submitted ? fixedMessages : [],
-      hasMore: false,
-      state: submitted ? "IDLE" : "RUNNING",
-    }),
-    markSubmitted: () => {
-      submitted = true;
+  const client: GatewayClientLike = {
+    sessions: {
+      create: async () => ({ sessionId: "storybook-streaming-session" }),
+      clear: async () => {
+        submitted = false;
+        return {};
+      },
+      get: async () => ({
+        sessionId: "storybook-streaming-session",
+        messages: submitted ? fixedMessages : [],
+        state: submitted ? "IDLE" : "RUNNING",
+      }),
+      listMessages: async () => ({
+        messages: submitted ? fixedMessages : [],
+        hasMore: false,
+        state: submitted ? "IDLE" : "RUNNING",
+      }),
+      submitTurn: async function* (_request, options) {
+        submitted = true;
+        yield* createStreamingEvents(options?.signal);
+      },
+      streamParts: async function* (_request, options) {
+        yield* createStreamingEvents(options?.signal);
+      },
+      stopGeneration: async () => ({}),
     },
   };
-}
-
-function MockStreamingGateway({ children, gateway }: { children: React.ReactNode; gateway: ReturnType<typeof createStreamingGatewayClient> }) {
-  globalThis.fetch = async (_input, init) => {
-    if (init?.method === "DELETE") {
-      return new Response(null, { status: 204 });
-    }
-    if (init?.method === "POST") {
-      gateway.markSubmitted();
-      return createStreamingResponse(init?.signal);
-    }
-    return originalFetch(_input, init);
-  };
-
-  useEffect(() => {
-    return () => {
-      globalThis.fetch = originalFetch;
-    };
-  }, []);
-
-  return children;
+  return client;
 }
 
 function AutoSubmitPrompt() {
@@ -234,7 +254,6 @@ const meta = {
   args: {
     namespace: "support",
     agent: "triage",
-    gatewayUrl: "http://localhost:18789",
     gatewayClient,
     sessionId: "storybook-session",
     autoFocus: false,
@@ -278,7 +297,7 @@ export const StreamingResponse: Story = {
   render: (args) => {
     const streamingGateway = createStreamingGatewayClient();
     return (
-      <MockStreamingGateway gateway={streamingGateway}>
+      <>
         <AutoSubmitPrompt />
         <div style={{ height: "100%", padding: 24, overflow: "hidden" }}>
           <div style={{ height: "min(680px, calc(100vh - 48px))", maxWidth: 480, margin: "0 auto", border: "1px dotted var(--talon-chat-border, rgba(212,212,216,0.7))", background: "var(--talon-chat-surface, #fff)" }}>
@@ -289,7 +308,7 @@ export const StreamingResponse: Story = {
             />
           </div>
         </div>
-      </MockStreamingGateway>
+      </>
     );
   },
 };

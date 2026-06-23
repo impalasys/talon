@@ -80,7 +80,6 @@
       "new_sqlite_classes": [
         "GatewayContainer",
         "WorkerContainer",
-        "EnvoyContainer",
         "ScheduleShard",
         "SessionStreamShard"
       ]

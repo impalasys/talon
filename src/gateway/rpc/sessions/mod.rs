@@ -1122,7 +1122,12 @@ impl GrpcGatewayHandler {
     pub async fn handle_stream_session_parts(
         &self,
         req: tonic::Request<proto::StreamSessionPartsRequest>,
-    ) -> std::result::Result<tonic::Response<<GrpcGatewayHandler as proto::gateway_service_server::GatewayService>::StreamSessionPartsStream>, tonic::Status>{
+    ) -> std::result::Result<
+        tonic::Response<
+            <GrpcGatewayHandler as proto::session_service_server::SessionService>::StreamPartsStream,
+        >,
+        tonic::Status,
+    >{
         crate::require_auth!(
             read,
             self,
@@ -1162,7 +1167,7 @@ impl GrpcGatewayHandler {
         req: tonic::Request<proto::StreamSessionPartsBatchRequest>,
     ) -> std::result::Result<
         tonic::Response<
-            <GrpcGatewayHandler as proto::gateway_service_server::GatewayService>::StreamSessionPartsBatchStream,
+            <GrpcGatewayHandler as proto::session_service_server::SessionService>::StreamPartsBatchStream,
         >,
         tonic::Status,
     >{
@@ -1217,6 +1222,85 @@ impl GrpcGatewayHandler {
         );
 
         Ok(tonic::Response::new(event_stream))
+    }
+
+    pub async fn handle_submit_session_turn(
+        &self,
+        req: tonic::Request<proto::SubmitSessionTurnRequest>,
+    ) -> std::result::Result<
+        tonic::Response<
+            <GrpcGatewayHandler as proto::session_service_server::SessionService>::SubmitTurnStream,
+        >,
+        tonic::Status,
+    > {
+        crate::require_auth!(
+            self,
+            req,
+            &req.get_ref().ns,
+            &req.get_ref().agent,
+            &req.get_ref().session_id
+        );
+        let req = req.into_inner();
+        let targets = vec![SessionStreamTarget::new(
+            req.ns.clone(),
+            req.agent.clone(),
+            req.session_id.clone(),
+        )];
+        let receiver = self
+            .gateway
+            .session_streams
+            .subscribe(&req.ns, &req.agent, &req.session_id)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to subscribe to session stream: {}", e))
+            })?;
+
+        let mut message = req
+            .message
+            .ok_or_else(|| tonic::Status::invalid_argument("message is required"))?;
+        message.labels.extend(req.labels);
+        let message = normalize_appended_session_message(message);
+        let now = chrono::Utc::now();
+        scheduling::send_session_message(
+            self.gateway.kv.as_ref(),
+            self.gateway.pubsub.as_ref(),
+            &req.ns,
+            &req.agent,
+            &req.session_id,
+            message,
+            now,
+        )
+        .await
+        .map_err(map_session_submit_error)?;
+
+        let event_stream = session_parts_event_stream(
+            receiver,
+            targets,
+            self.gateway.kv.clone(),
+            self.gateway.pubsub.clone(),
+        );
+        Ok(tonic::Response::new(event_stream))
+    }
+}
+
+fn map_session_submit_error(err: anyhow::Error) -> tonic::Status {
+    if err
+        .downcast_ref::<scheduling::SessionCurrentlyProcessingError>()
+        .is_some()
+    {
+        tonic::Status::resource_exhausted("Session is currently generating a response.")
+    } else if err
+        .downcast_ref::<scheduling::EmptyMessageError>()
+        .is_some()
+    {
+        tonic::Status::invalid_argument("message content is required")
+    } else if err
+        .downcast_ref::<scheduling::SessionNotFoundError>()
+        .is_some()
+    {
+        tonic::Status::not_found("Session not found")
+    } else {
+        tonic::Status::internal(format!("Failed to submit session turn: {}", err))
     }
 }
 

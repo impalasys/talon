@@ -75,36 +75,6 @@ jobs:
           cache-from: type=gha,scope=talon-runtime
           cache-to: type=gha,mode=max,scope=talon-runtime
 
-  envoy_image:
-    name: Envoy Image
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Log in to GHCR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build envoy image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: dockerfiles/envoy.Dockerfile
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-          load: false
-          tags: |
-            ghcr.io/impalasys/talon-envoy:latest
-            ghcr.io/impalasys/talon-envoy:sha-${{ github.sha }}
-          cache-from: type=gha,scope=talon-envoy-v2
-          cache-to: type=gha,mode=max,scope=talon-envoy-v2
-
   codex_acp_image:
     name: Codex ACP Sandbox Image
     runs-on: ubuntu-latest
@@ -181,7 +151,7 @@ jobs:
             ghcr.io/impalasys/talon-ui:latest
             ghcr.io/impalasys/talon-ui:sha-${{ github.sha }}
           build-args: |
-            NEXT_PUBLIC_GATEWAY_URL=http://localhost:18789
+            NEXT_PUBLIC_GATEWAY_URL=http://localhost:50051
 
   sdk:
     name: SDKs
@@ -373,10 +343,8 @@ jobs:
     needs:
       - cargo
       - runtime_image
-      - envoy_image
       - ui
       - sdk
-      - a2a_compat
     strategy:
       fail-fast: false
       matrix:
@@ -417,16 +385,6 @@ jobs:
           TALON_GOOGLE_CLIENT_SECRET: ${{ secrets.TALON_GOOGLE_CLIENT_SECRET }}
         run: cargo build --locked --release --bin talon-cli
 
-      - name: Generate gateway descriptor
-        if: runner.os == 'Linux'
-        run: |
-          protoc -I. -Iproto -Ithird_party/googleapis \
-            --include_imports \
-            --include_source_info \
-            --experimental_allow_proto3_optional \
-            --descriptor_set_out=talon_gateway_proto-descriptor-set.proto.bin \
-            proto/gateway.proto
-
       - name: Package binaries
         run: |
           ARTIFACT_DIR="dist/talon-${{ matrix.artifact_name }}"
@@ -436,9 +394,6 @@ jobs:
           cp target/release/talon-cli "$ARTIFACT_DIR"/
           cp target/release/talon-node "$ARTIFACT_DIR"/
           cp talon.yaml "$ARTIFACT_DIR"/
-          if [ "${RUNNER_OS}" = "Linux" ]; then
-            cp talon_gateway_proto-descriptor-set.proto.bin "$ARTIFACT_DIR"/
-          fi
           if [ "${RUNNER_OS}" = "macOS" ]; then
             (
               cd "$ARTIFACT_DIR"
@@ -452,8 +407,7 @@ jobs:
                 talon-worker \
                 talon-cli \
                 talon-node \
-                talon.yaml \
-                talon_gateway_proto-descriptor-set.proto.bin > SHA256SUMS
+                talon.yaml > SHA256SUMS
             )
           fi
           tar -C dist -czf "dist/talon-${{ matrix.artifact_name }}-${GITHUB_SHA}.tar.gz" "talon-${{ matrix.artifact_name }}"

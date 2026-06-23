@@ -36,7 +36,7 @@ Each system tutorial includes:
 
 - valid example assets in `talon/manifests/examples`
 - exact commands for the parts the CLI supports directly
-- explicit REST calls when the workflow is not manifest-applied
+- SDK/clientset calls when a workflow needs direct API interaction
 - one inspection/debugging path in Sightline
 
 ## Read next

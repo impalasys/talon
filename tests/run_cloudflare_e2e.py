@@ -99,7 +99,7 @@ def wait_for_health():
 def check_cors_preflight():
     status, headers, body = request(
         "OPTIONS",
-        "/talon.gateway.GatewayService/ListNamespaces",
+        "/talon.v1.NamespaceService/List",
         headers={
             "Origin": SIGHTLINE_ORIGIN,
             "Access-Control-Request-Method": "POST",

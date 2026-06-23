@@ -244,7 +244,7 @@ function parseJsonObject(value: string | undefined) {
 }
 
 async function listResourceKind(ns: string, kind: string, options?: { signal?: AbortSignal }) {
-  const response = await getGatewayClient().listResources({ ns, kind }, options);
+  const response = await getGatewayClient().resources.list({ ns, kind }, options);
   return (response.resources || []) as ResourceEnvelope[];
 }
 
@@ -842,7 +842,7 @@ export function NamespaceExplorer({
         processedNamespaces.add(parentNs);
 
         try {
-          const res = await getGatewayClient().listNamespaces({ parent: parentNs || undefined });
+          const res = await getGatewayClient().namespaces.list({ parent: parentNs || undefined });
           const namespaces = (res.namespaces || []).slice().sort((left, right) => left.name.localeCompare(right.name));
 
           for (const namespace of namespaces) {
@@ -888,7 +888,7 @@ export function NamespaceExplorer({
                 
                 if (expanded.has(agentId)) {
                     try {
-                      const sessionRes = await getGatewayClient().listSessions({ ns, agent });
+                      const sessionRes = await getGatewayClient().sessions.list({ ns, agent });
                       for (const sessionId of (sessionRes.sessionIds || [])) {
                         const sessionFullId = `${ns}:${agent}:${sessionId}`;
                         currentLevel.children[agent].children[sessionId] = {
@@ -1401,7 +1401,7 @@ export function NamespaceExplorer({
     if (!newNamespace.trim()) return;
     setIsCreatingNamespace(true);
     try {
-      await getGatewayClient().createNamespace({
+      await getGatewayClient().namespaces.create({
         name: newNamespace.trim(),
         recursive: true
       });
@@ -1430,7 +1430,7 @@ export function NamespaceExplorer({
         throw new Error(`Template '${agentForm.template}' renders ${templateSpec.kind}, not Agent`);
       }
       const agentSpec = templateSpec ? parseJsonObject(templateSpec.specJson) : { systemPrompt: '' };
-      await getGatewayClient().createResource({
+      await getGatewayClient().resources.create({
         ns: agentModalOpen.ns,
         manifest: {
           apiVersion: API_VERSION,
@@ -1456,7 +1456,7 @@ export function NamespaceExplorer({
     if (!channelForm.name.trim()) return;
     setIsSubmittingChannel(true);
     try {
-      await getGatewayClient().createResource({
+      await getGatewayClient().resources.create({
         ns: channelModalOpen.ns,
         manifest: {
           apiVersion: API_VERSION,
@@ -1483,7 +1483,7 @@ export function NamespaceExplorer({
     if (!subscriptionForm.name.trim() || !subscriptionForm.agent.trim()) return;
     setIsSubmittingSubscription(true);
     try {
-      await getGatewayClient().createResource({
+      await getGatewayClient().resources.create({
         ns: subscriptionModalOpen.ns,
         manifest: {
           apiVersion: API_VERSION,
@@ -1522,21 +1522,21 @@ export function NamespaceExplorer({
     setIsDeleting(true);
     try {
       if (selection.type === 'namespace') {
-        await getGatewayClient().deleteNamespace({ name: selection.ns });
+        await getGatewayClient().namespaces.delete({ name: selection.ns });
       } else if (selection.type === 'agent') {
-        await getGatewayClient().deleteResource({ ns: selection.ns, kind: 'Agent', name: selection.agent || '' });
+        await getGatewayClient().resources.delete({ ns: selection.ns, kind: 'Agent', name: selection.agent || '' });
       } else if (selection.type === 'session') {
-        await getGatewayClient().deleteSession({ ns: selection.ns, agent: selection.agent!, sessionId: selection.sessionId! });
+        await getGatewayClient().sessions.delete({ ns: selection.ns, agent: selection.agent!, sessionId: selection.sessionId! });
       } else if (selection.type === 'channel') {
-        await getGatewayClient().deleteResource({ ns: selection.ns, kind: 'Channel', name: selection.resourceName || selection.channel || '' });
+        await getGatewayClient().resources.delete({ ns: selection.ns, kind: 'Channel', name: selection.resourceName || selection.channel || '' });
       } else if (selection.type === 'channel-subscription') {
-        await getGatewayClient().deleteResource({ ns: selection.ns, kind: 'ChannelSubscription', name: selection.resourceName || '' });
+        await getGatewayClient().resources.delete({ ns: selection.ns, kind: 'ChannelSubscription', name: selection.resourceName || '' });
       } else if (selection.type === 'schedule') {
-        await getGatewayClient().deleteResource({ ns: selection.ns, kind: 'Schedule', name: selection.resourceName || '' });
+        await getGatewayClient().resources.delete({ ns: selection.ns, kind: 'Schedule', name: selection.resourceName || '' });
       } else {
         const kind = RESOURCE_KIND_BY_SELECTION[selection.type];
         if (kind && selection.resourceName) {
-          await getGatewayClient().deleteResource({ ns: selection.ns, kind, name: selection.resourceName });
+          await getGatewayClient().resources.delete({ ns: selection.ns, kind, name: selection.resourceName });
         }
       }
       await refreshControlResources();
@@ -1794,7 +1794,7 @@ export function NamespaceExplorer({
                onAction={async () => {
                 setContextMenu(null);
                 try {
-                  await getGatewayClient().createSession({ ns: menuNode.selection.ns, agent: menuNode.selection.agent });
+                  await getGatewayClient().sessions.create({ ns: menuNode.selection.ns, agent: menuNode.selection.agent });
                   setExpanded(prev => new Set(prev).add(menuNode.id));
                   await refreshData();
                 } catch (e) {

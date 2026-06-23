@@ -69,7 +69,7 @@ type ContainerStartAndWaitOptions = {
   cancellationOptions: typeof CONTAINER_START_OPTIONS;
 };
 
-const GATEWAY_CONTAINER_PORTS = [50051, 50052];
+const GATEWAY_CONTAINER_PORTS = [50051];
 const WORKER_CONTAINER_PORTS = [8081];
 
 const GATEWAY_CONTAINER_ENTRYPOINT = ["/usr/local/bin/talon-server"];
@@ -84,7 +84,6 @@ function gatewayContainerStartProfile(env: Env): ContainerStartProfile {
       envVars: {
         ...forwardedWorkerEnv(env),
         GRPC_ADDR: "0.0.0.0:50051",
-        GATEWAY_UI_ADDR: "0.0.0.0:50052",
         ...(env.TALON_CONFIG_INLINE_YAML ? { TALON_CONFIG_INLINE_YAML: env.TALON_CONFIG_INLINE_YAML } : {}),
         TALON_SCHEDULER_DRIVER: "cf_alarms",
         ...(env.TALON_SCHEDULER_AUTH_TOKEN ? { TALON_SCHEDULER_AUTH_TOKEN: env.TALON_SCHEDULER_AUTH_TOKEN } : {}),
@@ -233,13 +232,13 @@ async function serviceReady(origin: string, path: string, init?: RequestInit): P
 
 function gatewayGrpcRequest(request: Request): boolean {
   const url = new URL(request.url);
-  if (url.pathname.startsWith("/talon.gateway.GatewayService/")) return true;
+  if (url.pathname.startsWith("/talon.v1.")) return true;
   const contentType = request.headers.get("content-type")?.toLowerCase() ?? "";
   return contentType.startsWith("application/grpc") || contentType.startsWith("application/grpc-web");
 }
 
 function gatewayPort(request: Request): number {
-  return gatewayGrpcRequest(request) ? 50051 : 50052;
+  return 50051;
 }
 
 async function fetchGateway(env: Env, request: Request): Promise<Response> {
@@ -303,7 +302,7 @@ const outboundByHost = {
 };
 
 export class GatewayContainer extends Container<Env> {
-  defaultPort = 50052;
+  defaultPort = 50051;
   requiredPorts = GATEWAY_CONTAINER_PORTS;
   enableInternet = GATEWAY_CONTAINER_DEFAULT_START_OPTIONS.enableInternet;
   entrypoint = GATEWAY_CONTAINER_DEFAULT_START_OPTIONS.entrypoint;
@@ -317,10 +316,6 @@ export class WorkerContainer extends Container<Env> {
   enableInternet = WORKER_CONTAINER_DEFAULT_START_OPTIONS.enableInternet;
   entrypoint = WORKER_CONTAINER_DEFAULT_START_OPTIONS.entrypoint;
   usingInterception = true;
-}
-
-export class EnvoyContainer extends Container<Env> {
-  // Kept only so existing Durable Object migration history remains valid.
 }
 
 // Assign after class declarations so @cloudflare/containers' inherited static
@@ -343,7 +338,7 @@ export default {
     if (url.pathname === "/healthz") {
       await env.TALON_D1.prepare("SELECT 1 AS ok").first();
       if (externalContainersEnabled(env)) {
-        const gatewayUrl = env.TALON_CF_DEV_GATEWAY_URL ?? "http://gateway:50052";
+        const gatewayUrl = env.TALON_CF_DEV_GATEWAY_URL ?? "http://gateway:50051";
         const workerUrl = env.TALON_CF_DEV_WORKER_URL ?? "http://worker:8081";
         const [gatewayReady, workerReady] = await Promise.all([
           serviceReady(gatewayUrl, "/"),
@@ -408,9 +403,7 @@ export default {
     }
 
     if (externalContainersEnabled(env)) {
-      const origin = gatewayGrpcRequest(request)
-        ? env.TALON_CF_DEV_GATEWAY_GRPC_URL ?? "http://gateway:50051"
-        : env.TALON_CF_DEV_GATEWAY_URL ?? "http://gateway:50052";
+      const origin = env.TALON_CF_DEV_GATEWAY_GRPC_URL ?? env.TALON_CF_DEV_GATEWAY_URL ?? "http://gateway:50051";
       return withCors(await fetch(requestToOrigin(request, origin)), request);
     }
 

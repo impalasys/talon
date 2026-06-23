@@ -16,7 +16,11 @@ except ModuleNotFoundError:
     except ModuleNotFoundError:
         runfiles = None
 
-# Important: Add generated protos to path
+REPO_ROOT = Path(__file__).resolve().parents[1]
+PYTHON_SDK_SRC = REPO_ROOT / "sdk" / "python" / "talon-client" / "src"
+
+# Important: Add local test helpers and generated client packages to the import path.
+sys.path.insert(0, str(PYTHON_SDK_SRC))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
@@ -28,8 +32,6 @@ SESSION_DISPATCH_TOPIC = "talon.session.dispatch"
 RESOURCE_LIFECYCLE_TOPIC = "talon.resource.lifecycle"
 WORKFLOW_DISPATCH_TOPIC = "talon.workflow.dispatch"
 MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
-REPO_ROOT = Path(__file__).resolve().parents[1]
-
 def load_repo_dotenv_values():
     dotenv_path = REPO_ROOT / ".env"
     values = {}
@@ -201,10 +203,8 @@ def talon_infrastructure():
         print(f"Warning: Failed to pre-provision pubsub: {e}")
     
     # Use an isolated port to guarantee we don't accidentally talk to a host docker-compose talon_server 
-    test_grpc_port = 50052
-    test_ui_port = 50053
+    test_grpc_port = 50061
     env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
-    env["GATEWAY_UI_ADDR"] = f"127.0.0.1:{test_ui_port}"
     env["NOVITA_API_KEY"] = "test-dummy-key"
     
     temp_dir = Path(tempfile.mkdtemp(prefix="talon-postgres-e2e-"))
@@ -222,7 +222,7 @@ providers:
       key: NOVITA_API_KEY
 server:
   host: "127.0.0.1"
-  port: {test_ui_port}
+  port: {test_grpc_port}
 control_plane:
   database:
     driver: postgres
@@ -296,7 +296,7 @@ def mock_llm_server():
 
 @pytest.fixture
 def test_grpc_port():
-    return 50052
+    return 50061
 
 @pytest.fixture
 def gateway_channel(talon_infrastructure, test_grpc_port):
@@ -310,7 +310,6 @@ def gateway_channel(talon_infrastructure, test_grpc_port):
 def talon_infrastructure_sqlite():
     print("\nStarting SQLite + local_socket Talon stack...")
     test_grpc_port = 50054
-    test_ui_port = 50055
     worker_port = 18082
 
     env = os.environ.copy()
@@ -318,7 +317,6 @@ def talon_infrastructure_sqlite():
     env["RUST_LOG"] = "info"
     env["NOVITA_API_KEY"] = "test-dummy-key"
     env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
-    env["GATEWAY_UI_ADDR"] = f"127.0.0.1:{test_ui_port}"
     env["PORT"] = str(worker_port)
     env["TALON_SESSION_PROCESSING_TIMEOUT_SECONDS"] = "1"
 
@@ -339,7 +337,7 @@ providers:
       key: NOVITA_API_KEY
 server:
   host: "127.0.0.1"
-  port: {test_ui_port}
+  port: {test_grpc_port}
 control_plane:
   database:
     driver: sqlite
@@ -359,7 +357,6 @@ control_plane:
 
     state = {
         "grpc_port": test_grpc_port,
-        "ui_port": test_ui_port,
         "worker_port": worker_port,
         "config_path": str(config_path),
         "data_dir": str(data_dir),

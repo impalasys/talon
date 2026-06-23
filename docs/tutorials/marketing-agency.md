@@ -33,10 +33,10 @@ This tutorial stays inside real surfaces that exist in the repo. It does not pre
 ## 1. Apply the workspace resources
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/marketing-agency/namespace.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/marketing-agency/strategist-template.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/marketing-agency/campaign-writer.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:18789 apply -f manifests/examples/marketing-agency/campaign-reviewer.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/marketing-agency/namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/marketing-agency/strategist-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/marketing-agency/campaign-writer.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/marketing-agency/campaign-reviewer.yaml
 ```
 
 That creates:
@@ -49,7 +49,7 @@ That creates:
 ## 2. Sync the shared knowledge
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 knowledge sync \
+cargo run --bin talon-cli -- --gateway http://localhost:50051 knowledge sync \
   --namespace marketing-agency \
   --dir manifests/examples/marketing-agency/knowledge
 ```
@@ -61,42 +61,26 @@ The example files are:
 
 ## 3. Start a drafting session
 
-Create a session for the writer:
+Create a writer session and stream the draft:
 
 ```bash
-curl -sS http://localhost:18789/v1/ns/marketing-agency/agents/campaign-writer/sessions \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"ns":"marketing-agency","agent":"campaign-writer"}'
-```
-
-Send a prompt through the UI session API:
-
-```bash
-curl -sS http://localhost:18789/v1/ui/ns/marketing-agency/agents/campaign-writer/sessions/<writer-session-id> \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"messages":[{"content":"Draft a launch email for the campaign in our plan."}]}'
+cargo run --bin talon-cli -- --gateway http://localhost:50051 session prompt \
+  --namespace marketing-agency \
+  --agent campaign-writer \
+  --stream \
+  "Draft a launch email for the campaign in our plan."
 ```
 
 ## 4. Start a review session
 
-Create a separate session for the reviewer:
+Create a separate reviewer session and ask for critique:
 
 ```bash
-curl -sS http://localhost:18789/v1/ns/marketing-agency/agents/campaign-reviewer/sessions \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"ns":"marketing-agency","agent":"campaign-reviewer"}'
-```
-
-Then ask for critique:
-
-```bash
-curl -sS http://localhost:18789/v1/ui/ns/marketing-agency/agents/campaign-reviewer/sessions/<review-session-id> \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"messages":[{"content":"Review the launch email for tone, positioning, and CTA clarity."}]}'
+cargo run --bin talon-cli -- --gateway http://localhost:50051 session prompt \
+  --namespace marketing-agency \
+  --agent campaign-reviewer \
+  --stream \
+  "Review the launch email for tone, positioning, and CTA clarity."
 ```
 
 ## 5. Inspect the workspace in Sightline

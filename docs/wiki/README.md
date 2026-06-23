@@ -10,4 +10,4 @@ Promotion flow:
 
 Current drafts:
 
-- `local-single-host-development.md`: single-host gateway + worker startup with SQLite and local Unix sockets, without Compose, using host-native Envoy as the Sightline edge
+- `local-single-host-development.md`: single-host gateway + worker startup with SQLite and local Unix sockets, without Compose

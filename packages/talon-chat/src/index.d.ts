@@ -1,16 +1,11 @@
 import type React from "react";
+import type { TalonClient } from "@impalasys/talon-client";
 
 export type GatewayClientLike = {
-  createSession(request: { ns: string; agent: string }): Promise<{ sessionId: string }>;
-  clearSession?(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
-  listSessionMessages?(request: {
-    ns: string;
-    agent: string;
-    sessionId: string;
-    pageSize: number;
-    beforeMessageId?: string;
-  }): Promise<any>;
-  getSession(request: { ns: string; agent: string; sessionId: string; messageLimit?: number; stepLimit?: number }): Promise<any>;
+  sessions: Pick<
+    TalonClient["sessions"],
+    "create" | "clear" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
+  >;
 };
 
 export type ToolInvocationItem = {
@@ -104,9 +99,7 @@ export type TalonImageUploadResult = TalonChatObjectRef | {
 export type TalonSessionProps = {
   namespace: string;
   agent: string;
-  gatewayUrl: string;
-  authToken?: string | null;
-  gatewayClient?: GatewayClientLike;
+  gatewayClient: GatewayClientLike;
   sessionId?: string;
   onSessionChange?: (sessionId: string) => void;
   className?: string;
@@ -168,22 +161,7 @@ export type TalonChannelCommandTarget = {
 export type TalonChannelCommand = TalonChatCommand<TalonChannelCommandTarget, ChannelMessage>;
 
 export type ChannelGatewayClientLike = {
-  listChannelMessages(request: {
-    ns: string;
-    channel: string;
-    limit?: number;
-    pageSize?: number;
-    beforeMessageId?: string;
-  }): Promise<any>;
-  postChannelMessage(request: {
-    ns: string;
-    channel: string;
-    authorKind: string;
-    author: string;
-    content: string;
-    subscriptionNames?: string[];
-    labels?: Record<string, string>;
-  }): Promise<any>;
+  channels: Pick<TalonClient["channels"], "listMessages" | "postMessage">;
 };
 
 export type TalonChannelProps = {
@@ -196,9 +174,7 @@ export type TalonChannelProps = {
     metadata?: Record<string, string>;
     labels?: Record<string, string>;
   };
-  gatewayUrl: string;
-  authToken?: string | null;
-  gatewayClient?: ChannelGatewayClientLike;
+  gatewayClient: ChannelGatewayClientLike;
   className?: string;
   style?: React.CSSProperties;
   disabled?: boolean;
@@ -223,9 +199,7 @@ export type UseTalonChannelMessagesOptions = {
     metadata?: Record<string, string>;
     labels?: Record<string, string>;
   } | null | undefined;
-  gatewayUrl: string;
-  authToken?: string | null;
-  gatewayClient?: ChannelGatewayClientLike;
+  gatewayClient: ChannelGatewayClientLike;
   disabled?: boolean;
   messageLimit?: number;
   refreshIntervalMs?: number | false;

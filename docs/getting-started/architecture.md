@@ -11,9 +11,9 @@ Talon splits its runtime into a few clear roles.
 
 The gateway owns the external API surface:
 
-- gRPC service definitions in `proto/gateway.proto`
-- REST endpoints via `google.api.http` annotations
-- browser-facing UI session endpoints for Sightline and AI SDK-compatible clients
+- versioned gRPC service definitions under `proto/talon/v1`
+- native gRPC and gRPC-Web on the same gateway port
+- named services for namespaces, resources, sessions, channels, workflows, knowledge, and auth
 
 ### Worker
 
@@ -34,10 +34,6 @@ The UI is a browser-native operator surface for:
 - inspecting sessions and schedules
 - observing tool calls and streamed responses
 - debugging local or remote Talon deployments
-
-### Envoy / edge surface
-
-Envoy provides a consistent edge interface over the gateway. It is the right place for browser-facing concerns like CORS and consistent URL routing.
 
 ## Resource model
 
@@ -65,12 +61,11 @@ Talon is organized around a few resource types:
 
 ## Transport model
 
-- **gRPC** is the canonical service contract
-- **REST** is derived from the same proto definitions through HTTP annotations
-- **Browser streaming** is exposed for clients like Sightline and AI SDK-compatible frontends
+- **gRPC** is the canonical service contract for backend integrations
+- **gRPC-Web** is the browser contract for clients like Sightline and AI SDK-compatible frontends
+- SDKs expose one Talon clientset with accessors for the named services
 
 ## Where to go next
 
 - [Agents and templates](../concepts/agents-and-templates.md)
 - [Sessions and streaming](../concepts/sessions-and-streaming.md)
-- [Gateway API reference](../reference/generated/gateway-service.md)

@@ -224,7 +224,7 @@ impl GrpcGatewayHandler {
         req: tonic::Request<proto::StreamWorkflowEventsRequest>,
     ) -> Result<
         tonic::Response<
-            <GrpcGatewayHandler as proto::gateway_service_server::GatewayService>::StreamWorkflowEventsStream,
+            <GrpcGatewayHandler as proto::workflow_service_server::WorkflowService>::StreamEventsStream,
         >,
         tonic::Status,
     >{

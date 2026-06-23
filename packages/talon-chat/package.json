@@ -37,6 +37,7 @@
     "chromatic": "chromatic --config-file chromatic.config.json",
     "clean": "rm -rf dist",
     "prepack": "pnpm run build",
+    "prebuild-storybook": "pnpm --dir ../../sdk/js/talon-client build",
     "screenshots": "node scripts/capture-storybook-screenshots.mjs",
     "storybook": "storybook dev -p 6006"
   },
@@ -44,6 +45,7 @@
     "access": "public"
   },
   "peerDependencies": {
+    "@impalasys/talon-client": "^0.1.17",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -52,6 +54,7 @@
     "streamdown": "^2.5.0"
   },
   "devDependencies": {
+    "@impalasys/talon-client": "workspace:0.1.17",
     "@playwright/test": "^1.60.0",
     "@storybook/addon-docs": "^10.4.2",
     "@storybook/react-vite": "^10.4.2",

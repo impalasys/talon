@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package talon.v1;
+
+import "proto/resources/resource.proto";
+
+service ResourceService {
+  rpc Create(CreateResourceRequest) returns (ResourceResponse);
+  rpc Get(GetResourceRequest) returns (ResourceResponse);
+  rpc List(ListResourcesRequest) returns (ListResourcesResponse);
+  rpc Delete(DeleteResourceRequest) returns (DeleteResourceResponse);
+}
+
+message CreateResourceRequest {
+  string ns = 1;
+  talon.resources.ResourceManifest manifest = 2;
+}
+
+message GetResourceRequest {
+  string ns = 1;
+  string kind = 2;
+  string name = 3;
+}
+
+message ListResourcesRequest {
+  string ns = 1;
+  optional string kind = 2;
+}
+
+message DeleteResourceRequest {
+  string ns = 1;
+  string kind = 2;
+  string name = 3;
+}
+
+message ResourceResponse {
+  talon.resources.Resource resource = 1;
+}
+
+message ListResourcesResponse {
+  repeated talon.resources.Resource resources = 1;
+}
+
+message DeleteResourceResponse {
+  bool success = 1;
+}

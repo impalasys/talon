@@ -1,26 +1,28 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use talon_client::gateway::{
-    gateway_service_client::GatewayServiceClient, CreateNamespaceRequest, ListNamespacesRequest,
+use talon_client::{
+    v1::{CreateNamespaceRequest, ListNamespacesRequest},
+    NativeTalonClient,
 };
 use talon_server::{Options, Server};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let server = Server::start(Options::default())?;
-    let mut client =
-        GatewayServiceClient::connect(format!("http://{}", server.grpc_endpoint())).await?;
+    let mut client = NativeTalonClient::connect(format!("http://{}", server.grpc_endpoint())).await?;
 
     client
-        .create_namespace(CreateNamespaceRequest {
+        .namespaces
+        .create(CreateNamespaceRequest {
             name: "example-app".to_string(),
             ..Default::default()
         })
         .await?;
 
     let response = client
-        .list_namespaces(ListNamespacesRequest::default())
+        .namespaces
+        .list(ListNamespacesRequest::default())
         .await?
         .into_inner();
     println!(
@@ -32,4 +34,3 @@ async fn main() -> anyhow::Result<()> {
     server.stop()?;
     Ok(())
 }
-

@@ -41,15 +41,6 @@ GENERATED_DIR = TESTS_DIR / "generated"
 sys.path.insert(0, str(GENERATED_DIR))
 sys.path.insert(0, str(TESTS_DIR))
 
-from proto.gateway_pb2 import (  # noqa: E402
-    CreateNamespaceRequest,
-    CreateResourceRequest,
-    CreateSessionRequest,
-    SendMessageRequest,
-    StreamSessionPartsBatchRequest,
-    StreamSessionPartsRequest,
-)
-from proto.gateway_pb2_grpc import GatewayServiceStub  # noqa: E402
 from proto.events_pb2 import (  # noqa: E402
     SESSION_MESSAGE_PART_EVENT_KIND_DONE,
     SESSION_MESSAGE_PART_EVENT_KIND_ERROR,
@@ -58,11 +49,21 @@ from proto.data.data_pb2 import SESSION_MESSAGE_PART_TYPE_TEXT  # noqa: E402
 from proto.resources.agents_pb2 import AgentSpec  # noqa: E402
 from proto.resources.common_pb2 import ResourceMeta  # noqa: E402
 from proto.resources.resource_pb2 import ResourceManifest, ResourceSpec  # noqa: E402
+from proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest  # noqa: E402
+from proto.talon.v1.namespaces_pb2_grpc import NamespaceServiceStub  # noqa: E402
+from proto.talon.v1.resources_pb2 import CreateResourceRequest  # noqa: E402
+from proto.talon.v1.resources_pb2_grpc import ResourceServiceStub  # noqa: E402
+from proto.talon.v1.sessions_pb2 import (  # noqa: E402
+    CreateSessionRequest,
+    SendMessageRequest,
+    StreamSessionPartsBatchRequest,
+    StreamSessionPartsRequest,
+)
+from proto.talon.v1.sessions_pb2_grpc import SessionServiceStub  # noqa: E402
 
 
 MOCK_LLM_PORT = 8000
 TALON_GRPC_PORT = 50051
-TALON_UI_PORT = 50052
 POSTGRES_PORT = 5432
 PROJECT_NAME_RE = re.compile(r"^talon-[a-z0-9]{6}$")
 
@@ -183,9 +184,6 @@ providers:
     api_key:
       source: env
       key: NOVITA_API_KEY
-server:
-  host: "0.0.0.0"
-  port: 50052
 control_plane:
   database:
 {database_config}
@@ -208,7 +206,7 @@ exec talon-node
 set -eu
 talon-server &
 server_pid=$!
-until curl -sS --max-time 1 -o /dev/null http://127.0.0.1:50052/; do
+until talon-cli --gateway http://127.0.0.1:50051 get namespaces >/dev/null 2>&1; do
   if ! kill -0 "$server_pid" 2>/dev/null; then
     wait "$server_pid"
   fi
@@ -503,7 +501,6 @@ services:
       RUST_LOG: {json_quote(rust_log)}
       NOVITA_API_KEY: bench-dummy-key
       GRPC_ADDR: 0.0.0.0:{TALON_GRPC_PORT}
-      GATEWAY_UI_ADDR: 0.0.0.0:{TALON_UI_PORT}
       PORT: "8081"
       TALON_TOKEN_BATCH_MS: "10000"
       TALON_WORKER_SESSION_CONCURRENCY: "{worker_concurrency}"
@@ -526,7 +523,6 @@ services:
       - {json_quote(data_volume)}
     ports:
       - "{TALON_GRPC_PORT}"
-      - "{TALON_UI_PORT}"
 """.lstrip(),
         encoding="utf-8",
     )
@@ -558,14 +554,21 @@ def agent_manifest(ns: str, name: str) -> ResourceManifest:
     )
 
 
-async def provision(stub: GatewayServiceStub, ns: str, agents: int, concurrency: int) -> list[str]:
-    await stub.CreateNamespace(CreateNamespaceRequest(name=ns, recursive=True))
+async def provision(
+    namespaces: NamespaceServiceStub,
+    resources: ResourceServiceStub,
+    sessions: SessionServiceStub,
+    ns: str,
+    agents: int,
+    concurrency: int,
+) -> list[str]:
+    await namespaces.Create(CreateNamespaceRequest(name=ns, recursive=True))
     sem = asyncio.Semaphore(concurrency)
 
     async def create_agent(index: int) -> str:
         name = f"agent-{index:04d}"
         async with sem:
-            await stub.CreateResource(
+            await resources.Create(
                 CreateResourceRequest(ns=ns, manifest=agent_manifest(ns, name))
             )
             return name
@@ -574,14 +577,14 @@ async def provision(stub: GatewayServiceStub, ns: str, agents: int, concurrency:
 
     async def create_session(agent: str) -> str:
         async with sem:
-            response = await stub.CreateSession(CreateSessionRequest(ns=ns, agent=agent))
+            response = await sessions.Create(CreateSessionRequest(ns=ns, agent=agent))
             return response.session_id
 
     return await asyncio.gather(*(create_session(agent) for agent in agent_names))
 
 
 async def consume_stream(
-    stub: GatewayServiceStub,
+    stub: SessionServiceStub,
     ns: str,
     agent: str,
     session_id: str,
@@ -590,7 +593,7 @@ async def consume_stream(
 ) -> None:
     request = StreamSessionPartsRequest(ns=ns, agent=agent, session_id=session_id)
     try:
-        stream = stub.StreamSessionParts(request)
+        stream = stub.StreamParts(request)
         timings.stream_opened = time.perf_counter()
         stream_ready.set()
         async for event in stream:
@@ -625,7 +628,7 @@ def canonical_session_name(ns: str, agent: str, session_id: str) -> str:
 
 
 async def consume_batch_stream(
-    stub: GatewayServiceStub,
+    stub: SessionServiceStub,
     ns: str,
     agent_names: list[str],
     session_ids: list[str],
@@ -643,7 +646,7 @@ async def consume_batch_stream(
         )
     }
     try:
-        stream = stub.StreamSessionPartsBatch(
+        stream = stub.StreamPartsBatch(
             StreamSessionPartsBatchRequest(session_names=session_names)
         )
         opened = time.perf_counter()
@@ -693,7 +696,7 @@ async def consume_batch_stream(
 
 
 async def send_message(
-    stub: GatewayServiceStub,
+    stub: SessionServiceStub,
     ns: str,
     agent: str,
     session_id: str,
@@ -740,14 +743,22 @@ async def run_workload(
             for _ in range(grpc_client_channels)
         ]
         await asyncio.gather(*(channel.channel_ready() for channel in channels))
-        stubs = [GatewayServiceStub(channel) for channel in channels]
-        stub = stubs[0]
+        session_stubs = [SessionServiceStub(channel) for channel in channels]
+        namespace_stub = NamespaceServiceStub(channels[0])
+        resource_stub = ResourceServiceStub(channels[0])
 
         if worker_warmup_seconds > 0:
             await asyncio.sleep(worker_warmup_seconds)
 
         provision_started = time.perf_counter()
-        session_ids = await provision(stub, ns, agents, provision_concurrency)
+        session_ids = await provision(
+            namespace_stub,
+            resource_stub,
+            session_stubs[0],
+            ns,
+            agents,
+            provision_concurrency,
+        )
         provision_finished = time.perf_counter()
         print(
             f"provisioned {agents} agents/sessions in {provision_finished - provision_started:.2f}s",
@@ -766,7 +777,7 @@ async def run_workload(
                 stream_ready.append(ready)
                 task = asyncio.create_task(
                     consume_batch_stream(
-                        stubs[chunk_index % len(stubs)],
+                        session_stubs[chunk_index % len(session_stubs)],
                         ns,
                         agent_names[start:end],
                         session_ids[start:end],
@@ -780,7 +791,7 @@ async def run_workload(
             stream_ready = [asyncio.Event() for _ in range(agents)]
             stream_tasks = []
             for index in range(agents):
-                stream_stub = stubs[index % len(stubs)]
+                stream_stub = session_stubs[index % len(session_stubs)]
                 task = asyncio.create_task(
                     consume_stream(
                         stream_stub,
@@ -806,7 +817,7 @@ async def run_workload(
 
             async def send_with_sem(index: int) -> None:
                 async with send_sem:
-                    send_stub = stubs[index % len(stubs)]
+                    send_stub = session_stubs[index % len(session_stubs)]
                     await send_message(
                         send_stub,
                         ns,

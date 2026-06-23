@@ -7,7 +7,7 @@ use serde_json::json;
 use super::Cli;
 use crate::cli::{connect_gateway, resource_lookup_target, to_internal_resource};
 use crate::gateway::rpc::resources_proto;
-use talon_client::gateway::{GetResourceRequest, ListNamespacesRequest, ListResourcesRequest};
+use talon_client::v1::{GetResourceRequest, ListNamespacesRequest, ListResourcesRequest};
 
 #[derive(clap::Args)]
 pub(crate) struct GetCommand {
@@ -345,7 +345,7 @@ fn render_resource_list_table(resources: &[resources_proto::Resource]) -> String
 }
 
 fn render_namespace_list_table_from_proto(
-    namespaces: &[talon_client::gateway::NamespaceResponse],
+    namespaces: &[talon_client::v1::NamespaceResponse],
 ) -> String {
     let mut rows = vec![vec![
         "NAME".to_string(),

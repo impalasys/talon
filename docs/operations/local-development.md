@@ -15,7 +15,6 @@ This starts the local compose stack and brings up:
 
 - the gateway
 - the worker
-- Envoy
 - Sightline UI
 - Postgres
 - the Pub/Sub emulator
@@ -38,7 +37,7 @@ Keep the SQLite database on a local filesystem and run the gateway and worker on
 
 ## Useful endpoints
 
-- Gateway edge: `http://localhost:18789`
+- Gateway edge: `http://localhost:50051`
 - Sightline UI: `http://localhost:3000`
 
 ## Common tasks
@@ -50,9 +49,7 @@ Keep the SQLite database on a local filesystem and run the gateway and worker on
 ## Useful runtime ports
 
 - `3000`: Sightline UI
-- `18789`: Envoy edge surface
-- `50051`: native gRPC gateway
-- `50052`: gateway UI HTTP surface
+- `50051`: gateway (native gRPC and gRPC-Web)
 
 ## Docs workflow
 

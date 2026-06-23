@@ -1,12 +1,12 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use talon_client::gateway::ListResourcesRequest;
+use talon_client::v1::ListResourcesRequest;
 use talon_client::{data::SessionJournalEntryPayloadLlmResponse, harness::ChatResponse};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[test]
-fn generated_gateway_types_are_available() {
+fn generated_talon_v1_types_are_available() {
     let request = ListResourcesRequest {
         ns: "default".to_string(),
         kind: Some("Agent".to_string()),
@@ -27,6 +27,18 @@ fn generated_data_types_can_reference_harness_types() {
     assert_eq!(payload.response.unwrap().content, "ok");
 }
 
+#[test]
+fn generated_clientset_exposes_all_talon_v1_services_and_streaming_methods() {
+    let _ = talon_client::TalonClient::get_namespace;
+    let _ = talon_client::TalonClient::append_session_message;
+    let _ = talon_client::TalonClient::stream_session_parts_batch;
+    let _ = talon_client::TalonClient::submit_session_turn;
+    let _ = talon_client::TalonClient::post_channel_message;
+    let _ = talon_client::TalonClient::stream_channel_events;
+    let _ = talon_client::TalonClient::stream_workflow_events;
+    let _ = talon_client::TalonClient::exchange_oidc_token;
+}
+
 fn grpc_web_response_body(message: &impl prost::Message) -> Vec<u8> {
     let mut message_bytes = Vec::new();
     message.encode(&mut message_bytes).expect("encode message");
@@ -43,9 +55,9 @@ fn grpc_web_response_body(message: &impl prost::Message) -> Vec<u8> {
 }
 
 #[tokio::test]
-async fn grpc_web_gateway_client_uses_http1_grpc_web_requests() {
-    let response_body = grpc_web_response_body(&talon_client::gateway::ListNamespacesResponse {
-        namespaces: vec![talon_client::gateway::NamespaceResponse {
+async fn grpc_web_talon_client_uses_http1_grpc_web_requests() {
+    let response_body = grpc_web_response_body(&talon_client::v1::ListNamespacesResponse {
+        namespaces: vec![talon_client::v1::NamespaceResponse {
             name: "from-grpc-web".to_string(),
             parent: None,
             is_deleted: false,
@@ -73,7 +85,7 @@ async fn grpc_web_gateway_client_uses_http1_grpc_web_requests() {
             }
         }
         let request = String::from_utf8_lossy(&request);
-        assert!(request.starts_with("POST /talon.gateway.GatewayService/ListNamespaces "));
+        assert!(request.starts_with("POST /talon.v1.NamespaceService/List "));
         assert!(request.contains("content-type: application/grpc-web"));
         assert!(request.contains("x-grpc-web: 1"));
 
@@ -92,11 +104,11 @@ async fn grpc_web_gateway_client_uses_http1_grpc_web_requests() {
     });
 
     let gateway = format!("http://{addr}");
-    let mut client = talon_client::TalonGatewayClient::connect_grpc_web(gateway)
-        .await
+    let mut client = talon_client::GrpcWebTalonClient::connect_grpc_web(gateway)
         .expect("connect gRPC-Web client");
     let response = client
-        .list_namespaces(talon_client::gateway::ListNamespacesRequest { parent: None })
+        .namespaces
+        .list(talon_client::v1::ListNamespacesRequest { parent: None })
         .await
         .expect("list namespaces")
         .into_inner();

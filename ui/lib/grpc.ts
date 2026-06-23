@@ -1,23 +1,53 @@
-import { createClient, type Interceptor } from "@connectrpc/connect";
-import { createGrpcWebTransport } from "@connectrpc/connect-web";
-import { GatewayService } from "../proto/proto/gateway_pb";
+import {
+  buildAuthorizationHeader,
+  createTalonClient,
+  type Interceptor,
+  type TalonClient,
+} from "@impalasys/talon-client";
 
 export function normalizeGatewayUrl(url: string) {
   return url.trim().replace(/\/+$/, "");
 }
 
-function hasAuthorizationScheme(value: string) {
-  return /^(Basic|Bearer)\s+/i.test(value);
+export function getDefaultGatewayUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_GATEWAY_URL?.trim();
+  if (configuredUrl) {
+    return normalizeGatewayUrl(configuredUrl);
+  }
+
+  if (typeof window !== "undefined" && window.location.protocol === "https:") {
+    if (window.location.hostname.startsWith("ui.")) {
+      const gatewayUrl = new URL(window.location.href);
+      gatewayUrl.hostname = gatewayUrl.hostname.replace(/^ui\./, "gateway.");
+      gatewayUrl.port = "";
+      gatewayUrl.pathname = "";
+      gatewayUrl.search = "";
+      gatewayUrl.hash = "";
+      return gatewayUrl.origin;
+    }
+    return window.location.origin;
+  }
+
+  return "http://localhost:50051";
+}
+
+export function isBlockedMixedContentGatewayUrl(url: string) {
+  if (typeof window === "undefined" || window.location.protocol !== "https:") {
+    return false;
+  }
+
+  try {
+    return new URL(normalizeGatewayUrl(url), window.location.href).protocol === "http:";
+  } catch {
+    return false;
+  }
 }
 
 export function buildGatewayHeaders(authToken?: string | null) {
-  if (!authToken) return undefined;
-  const normalizedToken = authToken.trim();
-  if (!normalizedToken) return undefined;
+  const authorization = buildAuthorizationHeader(authToken);
+  if (!authorization) return undefined;
   return {
-    Authorization: hasAuthorizationScheme(normalizedToken)
-      ? normalizedToken
-      : `Bearer ${normalizedToken}`,
+    Authorization: authorization,
   };
 }
 
@@ -38,18 +68,16 @@ const authInterceptor: Interceptor = (next) => async (req) => {
   return await next(req);
 };
 
-const createTransport = (url: string) => createGrpcWebTransport({ 
+const createClientset = (url: string): TalonClient => createTalonClient({
   baseUrl: normalizeGatewayUrl(url),
-  interceptors: [authInterceptor]
+  interceptors: [authInterceptor],
 });
 
-let currentClient = createClient(
-  GatewayService, 
-  createTransport(process.env.NEXT_PUBLIC_GATEWAY_URL || "https://envoy.talon.orb.local")
-);
+let currentClient = createClientset(getDefaultGatewayUrl());
 
+export const getTalonClient = () => currentClient;
 export const getGatewayClient = () => currentClient;
 
 export const updateGatewayClient = (url: string) => {
-  currentClient = createClient(GatewayService, createTransport(url));
+  currentClient = createClientset(url);
 };

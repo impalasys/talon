@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package talon.v1;
+
+service AuthService {
+  rpc GetSsoConfig(GetSsoConfigRequest) returns (GetSsoConfigResponse);
+  rpc ExchangeOidcToken(ExchangeOidcTokenRequest) returns (ExchangeOidcTokenResponse);
+}
+
+message GetSsoConfigRequest {}
+
+message GetSsoConfigResponse {
+  bool google_sso_enabled = 1;
+  optional string google_web_client_id = 2;
+}
+
+message ExchangeOidcTokenRequest {
+  string id_token = 1;
+  optional string trust = 2;
+  optional string client_type = 3;
+}
+
+message ExchangeOidcTokenResponse {
+  string access_token = 1;
+  string token_type = 2;
+  uint64 expires_in = 3;
+  string subject = 4;
+  optional string email = 5;
+  string trust = 6;
+  optional string client_type = 7;
+}

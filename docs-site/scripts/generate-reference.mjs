@@ -9,7 +9,15 @@ const docsRoot = path.resolve(talonRoot, "docs");
 const generatedRoot = path.resolve(docsRoot, "reference", "generated");
 const protoRoot = path.resolve(talonRoot, "proto");
 
-const gatewayProto = path.resolve(protoRoot, "gateway.proto");
+const apiProtos = [
+  "auth.proto",
+  "channels.proto",
+  "knowledge.proto",
+  "namespaces.proto",
+  "resources.proto",
+  "sessions.proto",
+  "workflows.proto",
+].map((file) => path.resolve(protoRoot, "talon", "v1", file));
 const configProto = path.resolve(protoRoot, "config.proto");
 const resourceProtos = [
   "resources/common.proto",
@@ -46,7 +54,7 @@ sidebar_position: 1
 
 This section is generated from Talon's canonical source files in the monorepo:
 
-- \`talon/proto/gateway.proto\`
+- \`talon/proto/talon/v1/*.proto\`
 - \`talon/proto/config.proto\`
 - \`talon/proto/resources/*.proto\`
 - \`talon/proto/data/data.proto\`
@@ -72,67 +80,52 @@ await generateSchemaReference({
 });
 
 async function generateGatewayReference() {
-  const proto = await readFile(gatewayProto, "utf8");
-  const serviceBlock = extractBlock(proto, "service", "GatewayService");
-  const methods = parseServiceMethods(serviceBlock);
-
-  const sectionOrder = [
-    "Agents",
-    "Knowledge",
-    "Sessions",
-    "Schedules",
-    "Namespaces",
-    "Templates",
-    "MCP",
-    "Other",
+  const proto = (await Promise.all(apiProtos.map((file) => readFile(file, "utf8")))).join("\n");
+  const serviceNames = [
+    "NamespaceService",
+    "ResourceService",
+    "SessionService",
+    "ChannelService",
+    "WorkflowService",
+    "KnowledgeService",
+    "AuthService",
   ];
-
-  const grouped = new Map();
-  for (const section of sectionOrder) {
-    grouped.set(section, []);
-  }
-  for (const method of methods) {
-    grouped.get(classifyMethod(method))?.push(method);
-  }
+  const services = serviceNames.map((name) => ({
+    name,
+    methods: parseServiceMethods(extractBlock(proto, "service", name)),
+  }));
+  const methodCount = services.reduce((count, service) => count + service.methods.length, 0);
 
   const lines = [
     "---",
-    "title: Gateway Service",
+    "title: Talon v1 Services",
     "sidebar_position: 2",
     "---",
     "",
-    "The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contract for both gRPC and the REST-transcoded HTTP surface exposed through the gateway and Envoy.",
+    "The Talon gateway API is defined by the domain service files in `proto/talon/v1/*.proto`. They are the canonical first-class gRPC and gRPC-Web contract exposed directly by the gateway.",
     "",
     "## Surface summary",
     "",
-    `- Service: \`talon.gateway.GatewayService\``,
-    `- Transport modes: gRPC, gRPC-web, REST via \`google.api.http\` annotations, and the browser-oriented \`/v1/ui/... \` stream path documented separately in the hand-written guides`,
-    `- Total RPC methods: **${methods.length}**`,
+    `- Package: \`talon.v1\``,
+    `- Services: ${serviceNames.map((name) => `\`${name}\``).join(", ")}`,
+    `- Transport modes: native gRPC and gRPC-Web on the gateway port`,
+    `- Total RPC methods: **${methodCount}**`,
     "",
   ];
 
-  for (const section of sectionOrder) {
-    const entries = grouped.get(section);
-    if (!entries?.length) {
+  for (const service of services) {
+    if (!service.methods.length) {
       continue;
     }
 
-    lines.push(`## ${section}`, "");
-    for (const method of entries) {
+    lines.push(`## ${service.name}`, "");
+    for (const method of service.methods) {
       lines.push(`### \`${method.name}\``, "");
       if (method.comment) {
         lines.push(method.comment, "");
       }
       lines.push(`- Request: \`${method.request}\``);
       lines.push(`- Response: \`${method.response}\`${method.stream ? " (server stream)" : ""}`);
-      if (method.http) {
-        lines.push(`- REST mapping: \`${method.http.verb.toUpperCase()} ${method.http.path}\``);
-        if (method.http.body) {
-          lines.push(`- REST body: \`${method.http.body}\``);
-        }
-      } else {
-        lines.push("- REST mapping: none");
-      }
       lines.push("");
     }
   }
@@ -198,19 +191,21 @@ function parseServiceMethods(serviceBlock) {
       continue;
     }
 
-    const rpcMatch = line.match(/^rpc\s+(\w+)\(([\w.]+)\)\s+returns\s+\((stream\s+)?([\w.]+)\)\s*\{$/);
+    const rpcMatch = line.match(/^rpc\s+(\w+)\(([\w.]+)\)\s+returns\s+\((stream\s+)?([\w.]+)\)\s*([;{])\s*$/);
     if (!rpcMatch) {
       continue;
     }
 
     const bodyLines = [];
-    let depth = 1;
-    while (depth > 0 && index + 1 < lines.length) {
-      index += 1;
-      const bodyLine = lines[index];
-      depth += count(bodyLine, "{");
-      depth -= count(bodyLine, "}");
-      bodyLines.push(bodyLine);
+    if (rpcMatch[5] === "{") {
+      let depth = 1;
+      while (depth > 0 && index + 1 < lines.length) {
+        index += 1;
+        const bodyLine = lines[index];
+        depth += count(bodyLine, "{");
+        depth -= count(bodyLine, "}");
+        bodyLines.push(bodyLine);
+      }
     }
 
     const body = bodyLines.join("\n");

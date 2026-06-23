@@ -21,7 +21,7 @@ Talon’s docs are canonical in the monorepo.
 
 Generated pages come from:
 
-- `proto/gateway.proto`
+- `proto/talon/v1/*.proto`
 - `proto/config.proto`
 - `proto/resources/*.proto`
 - `proto/data/data.proto`

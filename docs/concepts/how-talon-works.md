@@ -22,9 +22,8 @@ The usual Talon flow is:
 
 The gateway is the API entry point. It owns:
 
-- the canonical gRPC service
-- REST-transcoded HTTP routes exposed through Envoy
-- the browser-facing UI session surface used by Sightline-style clients
+- the canonical `talon.v1` gRPC services
+- first-class gRPC-Web for browser clients
 - CRUD for namespaces, agents, schedules, templates, knowledge, and MCP resources
 
 ### Worker
@@ -45,7 +44,7 @@ The control plane backing Talon provides:
 
 At a high level:
 
-1. a client sends `SendMessage`
+1. a client calls `SessionService.SubmitTurn`
 2. the gateway validates auth and appends the user message to the session
 3. the gateway publishes a session-dispatch event
 4. the worker consumes that event

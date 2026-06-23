@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { data } from "@impalasys/talon-client";
 import { Activity, ChevronRight, Wrench } from "lucide-react";
 import {
   formatUsageSummary,
@@ -20,23 +21,28 @@ import {
   type TalonBuiltInCommandName,
   type TalonChatCommand,
 } from "./lib/commands";
-import { buildGatewayHeaders, normalizeGatewayUrl } from "./lib/grpc";
 import { MarkdownMessage } from "./lib/MarkdownMessage";
-import { streamSessionResume, streamUiSubmission, type StreamEventItem } from "./lib/uiStream";
+import { streamSessionPartEvents, type StreamEventItem } from "./lib/uiStream";
 
 const useSafeLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-export type GatewayClientLike = {
-  createSession(request: { ns: string; agent: string }): Promise<{ sessionId: string }>;
-  clearSession?(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
-  listSessionMessages?(request: {
+export type SessionServiceClientLike = {
+  create(request: { ns: string; agent: string; labels?: Record<string, string> }): Promise<{ sessionId: string }>;
+  clear(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
+  listMessages(request: {
     ns: string;
     agent: string;
     sessionId: string;
     pageSize: number;
     beforeMessageId?: string;
   }): Promise<any>;
-  getSession(request: { ns: string; agent: string; sessionId: string; messageLimit?: number; stepLimit?: number }): Promise<any>;
+  submitTurn(request: any, options?: { signal?: AbortSignal }): AsyncIterable<any>;
+  streamParts(request: { ns: string; agent: string; sessionId: string }, options?: { signal?: AbortSignal }): AsyncIterable<any>;
+  stopGeneration(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
+};
+
+export type GatewayClientLike = {
+  sessions: SessionServiceClientLike;
 };
 
 export type TalonSessionCommandTarget = {
@@ -75,9 +81,7 @@ export type TalonImageUploadResult = TalonChatObjectRef | {
 export type TalonSessionProps = {
   namespace: string;
   agent: string;
-  gatewayUrl: string;
-  authToken?: string | null;
-  gatewayClient?: GatewayClientLike;
+  gatewayClient: GatewayClientLike;
   sessionId?: string;
   onSessionChange?: (sessionId: string) => void;
   className?: string;
@@ -118,33 +122,6 @@ const DEFAULT_HISTORY_PAGE_SIZE = 50;
 const DEFAULT_HISTORY_MESSAGE_LIMIT = 100;
 const DEFAULT_HISTORY_STEP_LIMIT = 1000;
 const HISTORY_SCROLL_LOAD_THRESHOLD_PX = 120;
-const SESSION_MESSAGE_PART_TYPE_IMAGE = 7;
-
-function buildGatewayChatUiUrl(gatewayUrl: string, ns: string, agent: string, sessionId: string) {
-  return `${normalizeGatewayUrl(gatewayUrl)}/v1/ui/ns/${encodeURIComponent(ns)}/agents/${encodeURIComponent(agent)}/sessions/${encodeURIComponent(sessionId)}`;
-}
-
-function buildGatewaySessionMessagesUrl(
-  gatewayUrl: string,
-  ns: string,
-  agent: string,
-  sessionId: string,
-  pageSize: number,
-  beforeMessageId?: string,
-) {
-  const url = new URL(
-    `${normalizeGatewayUrl(gatewayUrl)}/v1/ns/${encodeURIComponent(ns)}/agents/${encodeURIComponent(agent)}/sessions/${encodeURIComponent(sessionId)}/messages`,
-  );
-  url.searchParams.set("page_size", String(Math.trunc(pageSize)));
-  if (beforeMessageId) {
-    url.searchParams.set("before_message_id", beforeMessageId);
-  }
-  return url.toString();
-}
-
-function buildGatewayClearSessionUrl(gatewayUrl: string, ns: string, agent: string, sessionId: string) {
-  return `${normalizeGatewayUrl(gatewayUrl)}/v1/ns/${encodeURIComponent(ns)}/agents/${encodeURIComponent(agent)}/sessions/${encodeURIComponent(sessionId)}:clear`;
-}
 
 function border(color: string) {
   return `1px solid ${color}`;
@@ -295,6 +272,22 @@ function serializableMessageParts(parts: unknown) {
   });
 }
 
+function protoSessionPartsFromChatParts(parts: unknown) {
+  return (serializableMessageParts(parts) || []).map((part: any) => {
+    if (part?.type === "image") {
+      return {
+        partType: data.SessionMessagePartType.IMAGE,
+        payloadJson: part.payloadJson ?? part.payload_json ?? "",
+        object: part.object,
+      };
+    }
+    return {
+      partType: data.SessionMessagePartType.TEXT,
+      content: String(part?.text ?? part?.content ?? ""),
+    };
+  });
+}
+
 function parsePayloadJson(payloadJson: unknown): Record<string, unknown> {
   if (typeof payloadJson !== "string" || payloadJson.length === 0) return {};
   try {
@@ -317,7 +310,7 @@ function messageImageParts(
   if (!Array.isArray(message.parts)) return [];
   return message.parts.flatMap((part: any, index) => {
     const type = part?.type ?? part?.partType ?? part?.part_type;
-    if (type !== "image" && type !== SESSION_MESSAGE_PART_TYPE_IMAGE && type !== "SESSION_MESSAGE_PART_TYPE_IMAGE") {
+    if (type !== "image" && type !== data.SessionMessagePartType.IMAGE && type !== "SESSION_MESSAGE_PART_TYPE_IMAGE") {
       return [];
     }
     const payload = parsePayloadJson(part.payloadJson ?? part.payload_json);
@@ -473,8 +466,6 @@ function mergeNewestCanonicalPage(existingMessages: CopilotMessage[], newestPage
 export function TalonSession({
   namespace,
   agent,
-  gatewayUrl,
-  authToken,
   gatewayClient,
   sessionId,
   onSessionChange,
@@ -626,15 +617,6 @@ export function TalonSession({
       }
     };
   }, []);
-
-  const jsonHeaders = useMemo(() => {
-    const headers: HeadersInit = { "Content-Type": "application/json" };
-    const authHeaders = buildGatewayHeaders(authToken);
-    if (authHeaders?.Authorization) {
-      headers.Authorization = authHeaders.Authorization;
-    }
-    return headers;
-  }, [authToken]);
 
   const inputRows = useMemo(() => {
     let rowCount = 1;
@@ -908,61 +890,30 @@ export function TalonSession({
 
   const getSessionMessagesPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }, beforeMessageId?: string | null) => {
-      if (gatewayClient?.listSessionMessages) {
-        return gatewayClient.listSessionMessages({
+      const sessions = gatewayClient?.sessions;
+      if (sessions?.listMessages) {
+        return sessions.listMessages({
           ...target,
           pageSize: resolvedHistoryPageSize,
           beforeMessageId: beforeMessageId || undefined,
         });
       }
 
-      if (gatewayClient) {
-        return gatewayClient.getSession({
-          ...target,
-          messageLimit: resolvedHistoryPageSize,
-          stepLimit: historyStepLimit > 0 ? historyStepLimit : undefined,
-        });
-      }
-
-      const response = await fetch(
-        buildGatewaySessionMessagesUrl(
-          gatewayUrl,
-          target.ns,
-          target.agent,
-          target.sessionId,
-          resolvedHistoryPageSize,
-          beforeMessageId || undefined,
-        ),
-        { headers: buildGatewayHeaders(authToken) },
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to load session messages: ${response.status}`);
-      }
-      return response.json();
+      throw new Error("TalonSession requires a Talon clientset with sessions.listMessages().");
     },
-    [authToken, gatewayClient, gatewayUrl, historyStepLimit, resolvedHistoryPageSize],
+    [gatewayClient, resolvedHistoryPageSize],
   );
 
   const createSession = useCallback(
     async (target: { ns: string; agent: string }) => {
-      if (gatewayClient) {
-        return gatewayClient.createSession(target);
+      const sessions = gatewayClient?.sessions;
+      if (sessions?.create) {
+        return sessions.create(target);
       }
 
-      const response = await fetch(
-        `${normalizeGatewayUrl(gatewayUrl)}/v1/ns/${encodeURIComponent(target.ns)}/agents/${encodeURIComponent(target.agent)}/sessions`,
-        {
-          method: "POST",
-          headers: jsonHeaders,
-          body: JSON.stringify(target),
-        },
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to create session: ${response.status}`);
-      }
-      return response.json();
+      throw new Error("TalonSession requires a Talon clientset with sessions.create().");
     },
-    [gatewayClient, gatewayUrl, jsonHeaders],
+    [gatewayClient],
   );
 
   const loadInitialSessionPage = useCallback(
@@ -1058,18 +1009,23 @@ export function TalonSession({
   const resumeStream = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }, signal?: AbortSignal) => {
       try {
-        const response = await fetch(buildGatewayChatUiUrl(gatewayUrl, target.ns, target.agent, target.sessionId), {
-          headers: buildGatewayHeaders(authToken),
+        const sessions = gatewayClient?.sessions;
+        if (!sessions?.streamParts) {
+          throw new Error("TalonSession requires a Talon clientset with sessions.streamParts().");
+        }
+        await streamSessionPartEvents({
+          events: sessions.streamParts(target, { signal }),
+          setMessages,
+          setStreamEvents,
           signal,
         });
-        await streamSessionResume({ response, setMessages, setError, signal });
       } catch (err) {
         if (!signal?.aborted) {
           setError(err instanceof Error ? err : new Error(String(err)));
         }
       }
     },
-    [authToken, gatewayUrl],
+    [gatewayClient],
   );
 
   useEffect(() => {
@@ -1148,21 +1104,18 @@ export function TalonSession({
   const clearSession = useCallback(async () => {
     const session = currentSessionRef.current;
     if (session) {
-      if (gatewayClient?.clearSession) {
-        await gatewayClient.clearSession(session);
-      } else {
-        const response = await fetch(buildGatewayClearSessionUrl(gatewayUrl, session.ns, session.agent, session.sessionId), {
-          method: "POST",
-          headers: jsonHeaders,
-          body: JSON.stringify(session),
-        });
-        if (!response.ok) {
-          throw new Error(`Failed to clear session: ${response.status}`);
+      try {
+        const sessions = gatewayClient?.sessions;
+        if (!sessions?.clear) {
+          throw new Error("TalonSession requires a Talon clientset with sessions.clear().");
         }
+        await sessions.clear(session);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
       }
     }
     clearLocalSession();
-  }, [clearLocalSession, gatewayClient, gatewayUrl, jsonHeaders]);
+  }, [clearLocalSession, gatewayClient, setError]);
 
   const resolvedCommands = useMemo<Array<TalonSessionCommand>>(() => {
     const builtInCommands: TalonSessionCommand[] = [];
@@ -1305,6 +1258,7 @@ export function TalonSession({
     const pendingAttachments = imageAttachmentsRef.current;
     const hasImages = pendingAttachments.length > 0;
     if ((!text && !hasImages) || isLoading || disabled) return;
+    let submitTurnStarted = false;
 
     const parsedCommand = parseTalonChatCommandInput(text);
     const command = findTalonChatCommand(resolvedCommands, parsedCommand);
@@ -1391,22 +1345,29 @@ export function TalonSession({
       setLoadingNow(Date.now());
       setIsLoading(true);
 
-      const response = await fetch(buildGatewayChatUiUrl(gatewayUrl, session.ns, session.agent, session.sessionId), {
-        method: "POST",
-        headers: jsonHeaders,
-        signal: controller.signal,
-        body: JSON.stringify({
-          messages: [{
-            role: userMessage.role,
-            parts: serializableMessageParts(userMessage.parts),
-          }],
-        }),
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to send message: ${response.status}`);
+      const sessions = gatewayClient?.sessions;
+      if (!sessions?.submitTurn) {
+        throw new Error("TalonSession requires a Talon clientset with sessions.submitTurn().");
       }
 
-      const { assistantText } = await streamUiSubmission({ response, setMessages, setStreamEvents });
+      const turnStream = sessions.submitTurn({
+        ns: session.ns,
+        agent: session.agent,
+        sessionId: session.sessionId,
+        message: {
+          role: data.MessageRole.ROLE_USER,
+          parts: protoSessionPartsFromChatParts(userMessage.parts),
+        },
+        labels: {},
+      }, { signal: controller.signal });
+
+      submitTurnStarted = true;
+      const { assistantText } = await streamSessionPartEvents({
+        events: turnStream,
+        setMessages,
+        setStreamEvents,
+        signal: controller.signal,
+      });
 
       if (!assistantText) {
         await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature);
@@ -1416,7 +1377,7 @@ export function TalonSession({
     } catch (err: any) {
       const nextError = err instanceof Error ? err : new Error(String(err));
       const session = currentSessionRef.current;
-      if (session) {
+      if (session && submitTurnStarted) {
         const baselineAssistantSignature = getAssistantSignature(
           messagesRef.current.slice(-resolvedHistoryPageSize),
         );
@@ -1432,7 +1393,7 @@ export function TalonSession({
       setIsLoading(false);
       setLoadingStartedAt(null);
     }
-  }, [agent, clearSession, createSession, disabled, gatewayUrl, isLoading, jsonHeaders, namespace, onSessionChange, refreshNewestSessionPage, resolvedCommands, resolvedHistoryPageSize, sessionId, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
+  }, [agent, clearSession, createSession, disabled, gatewayClient, isLoading, namespace, onSessionChange, refreshNewestSessionPage, resolvedCommands, resolvedHistoryPageSize, sessionId, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
 
   const stopGeneration = useCallback(async () => {
     if (!currentSessionRef.current || !isLoading) return;
@@ -1442,17 +1403,17 @@ export function TalonSession({
     setIsLoading(false);
     setLoadingStartedAt(null);
 
-    const session = currentSessionRef.current;
-    const response = await fetch(buildGatewayChatUiUrl(gatewayUrl, session.ns, session.agent, session.sessionId), {
-      method: "DELETE",
-      headers: jsonHeaders,
-      body: JSON.stringify(session),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to stop generation: ${response.status}`);
+    try {
+      const session = currentSessionRef.current;
+      const sessions = gatewayClient?.sessions;
+      if (!sessions?.stopGeneration) {
+        throw new Error("TalonSession requires a Talon clientset with sessions.stopGeneration().");
+      }
+      await sessions.stopGeneration(session);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
     }
-  }, [gatewayUrl, isLoading, jsonHeaders]);
+  }, [gatewayClient, isLoading, setError]);
 
   const handleTranscriptScroll = useCallback(() => {
     updateTranscriptScrollThumb();

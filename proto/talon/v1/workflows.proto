@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package talon.v1;
+
+import "proto/data/data.proto";
+
+service WorkflowService {
+  rpc CreateRun(CreateWorkflowRunRequest) returns (WorkflowRunResponse);
+  rpc GetRun(GetWorkflowRunRequest) returns (WorkflowRunResponse);
+  rpc ListRuns(ListWorkflowRunsRequest) returns (ListWorkflowRunsResponse);
+  rpc ResumeRun(ResumeWorkflowRunRequest) returns (WorkflowRunResponse);
+  rpc CancelRun(CancelWorkflowRunRequest) returns (WorkflowRunResponse);
+  rpc StreamEvents(StreamWorkflowEventsRequest) returns (stream talon.data.WorkflowRunEvent);
+}
+
+message CreateWorkflowRunRequest {
+  string ns = 1;
+  string workflow = 2;
+  string input_json = 3;
+  map<string, string> labels = 4;
+}
+
+message GetWorkflowRunRequest {
+  string ns = 1;
+  string workflow = 2;
+  string run_id = 3;
+}
+
+message ListWorkflowRunsRequest {
+  string ns = 1;
+  string workflow = 2;
+  int32 page_size = 3;
+  string before_run_id = 4;
+}
+
+message ResumeWorkflowRunRequest {
+  string ns = 1;
+  string workflow = 2;
+  string run_id = 3;
+  string step_id = 4;
+  string resume_json = 5;
+}
+
+message CancelWorkflowRunRequest {
+  string ns = 1;
+  string workflow = 2;
+  string run_id = 3;
+}
+
+message StreamWorkflowEventsRequest {
+  string ns = 1;
+  string workflow = 2;
+  string run_id = 3;
+}
+
+message WorkflowRunResponse {
+  talon.data.WorkflowRun run = 1;
+  repeated talon.data.WorkflowStepRun steps = 2;
+}
+
+message ListWorkflowRunsResponse {
+  repeated talon.data.WorkflowRun runs = 1;
+  bool has_more = 2;
+  string next_before_run_id = 3;
+}

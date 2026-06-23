@@ -24,8 +24,8 @@ docker compose up --build -d
 Use:
 
 - gRPC when you want a typed backend or integration service
-- REST when you want straightforward CRUD with `curl` or ordinary HTTP clients
-- the UI session surface when you want a browser chat client like Sightline
+- gRPC-Web when you want browser clients such as Sightline or `@impalasys/talon-chat`
+- the SDK clientset when you want one transport with domain services like `talon.sessions` and `talon.channels`
 
 ## Option 1: typed client with the SDK
 
@@ -34,13 +34,13 @@ The UI end-to-end tests already create namespaces, agents, and sessions through 
 The core flow is:
 
 ```ts
-import { agents, common, createGatewayClient, gateway, resources } from "@impalasys/talon-client";
+import { agents, common, createTalonClient, resources, v1 } from "@impalasys/talon-client";
 
-const client = createGatewayClient("http://127.0.0.1:18789");
+const talon = createTalonClient("http://127.0.0.1:50051");
 
-await client.createNamespace({ name: "client-demo", recursive: true });
+await talon.namespaces.create({ name: "client-demo", recursive: true });
 
-await client.createResource(new gateway.CreateResourceRequest({
+await talon.resources.create(new v1.CreateResourceRequest({
   ns: "client-demo",
   manifest: new resources.ResourceManifest({
     apiVersion: "talon.impalasys.com/v1",
@@ -65,64 +65,60 @@ await client.createResource(new gateway.CreateResourceRequest({
   }),
 }));
 
-const session = await client.createSession({ ns: "client-demo", agent: "docs-agent" });
+const session = await talon.sessions.create({ ns: "client-demo", agent: "docs-agent" });
 ```
 
 Use this path when Talon is one service inside a larger typed system. Browser clients use gRPC-Web through the SDK helper; backend services can use native gRPC.
 
-## Option 2: CRUD with REST
+## Option 2: send a turn through the SDK
 
-The gateway exposes REST-transcoded endpoints through Envoy on `http://localhost:18789`.
+For chat-style UX, send a user message with `SessionService.SubmitTurn`. The method returns a stream of `SessionMessagePartEvent` values.
 
-Create a session:
+```ts
+import { data } from "@impalasys/talon-client";
 
-```bash
-curl -sS http://localhost:18789/v1/ns/client-demo/agents/docs-agent/sessions \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"ns":"client-demo","agent":"docs-agent"}'
+let assistantText = "";
+for await (const event of talon.sessions.submitTurn({
+  ns: "client-demo",
+  agent: "docs-agent",
+  sessionId: session.sessionId,
+  message: new data.SessionMessage({
+    role: data.MessageRole.ROLE_USER,
+    parts: [
+      new data.SessionMessagePart({
+        partType: data.SessionMessagePartType.TEXT,
+        content: "Summarize the namespace model.",
+      }),
+    ],
+  }),
+  labels: {},
+})) {
+  const part = event.part;
+  if (part?.partType === data.SessionMessagePartType.TEXT) {
+    assistantText += part.content;
+  }
+}
+console.log(assistantText);
 ```
 
-Fetch the session later:
+Use `talon.sessions.listMessages(...)` to hydrate history and `talon.sessions.streamParts(...)` to resume a live stream.
 
-```bash
-curl -sS http://localhost:18789/v1/ns/client-demo/agents/docs-agent/sessions/<session-id>
-```
-
-Use this path for scripts, ops tooling, and quick integration tests.
-
-## Option 3: browser chat with the UI session surface
-
-For browser-native chat, create the session through CRUD first, then post messages to:
-
-```text
-POST /v1/ui/ns/<namespace>/agents/<agent>/sessions/<session-id>
-```
-
-Example request:
-
-```bash
-curl -sS http://localhost:18789/v1/ui/ns/client-demo/agents/docs-agent/sessions/<session-id> \
-  -X POST \
-  -H 'content-type: application/json' \
-  -d '{"messages":[{"content":"Summarize the namespace model."}]}'
-```
-
-The body shape is the same one used by Sightline and the copilot package.
-
-## Fastest React path
+## Option 3: fastest React path
 
 If you want a working chat panel instead of building the stream parser yourself, use `@impalasys/talon-chat`.
 
 ```tsx
+import { createTalonClient } from "@impalasys/talon-client";
 import { TalonCopilot } from "@impalasys/talon-chat";
+
+const talon = createTalonClient("http://localhost:50051");
 
 export function App() {
   return (
     <TalonCopilot
       namespace="client-demo"
       agent="docs-agent"
-      gatewayUrl="http://localhost:18789"
+      gatewayClient={talon}
     />
   );
 }
@@ -131,7 +127,8 @@ export function App() {
 That component handles:
 
 - session creation
-- the UI session POST
+- `SessionService.SubmitTurn`
+- `SessionService.StreamParts`
 - transcript hydration from the canonical session state
 - streamed tool and reasoning events
 
@@ -139,9 +136,9 @@ The minimal package usage is documented in `packages/talon-chat/README.md`.
 
 ## What to avoid
 
-- Do not invent a separate backend just to proxy browser chat unless you need app-specific auth or policy.
-- Do not send browser chat traffic to the CRUD `message` route if you want the same behavior Sightline uses.
-- Do not document schedule creation as a manifest-apply flow; Talon currently creates schedules through the gateway API.
+- Avoid inventing a separate backend just to proxy browser chat unless you need app-specific auth or policy.
+- Keep Talon operations on the gRPC/gRPC-Web gateway instead of adding HTTP routes.
+- Use one Talon clientset and access named services from it, rather than creating a separate gRPC transport per service.
 
 ## Read next
 

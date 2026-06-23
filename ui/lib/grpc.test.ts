@@ -1,6 +1,7 @@
 import {
   applyGatewayAuthorizationHeader,
   buildGatewayHeaders,
+  getDefaultGatewayUrl,
   getGatewayClient,
   normalizeGatewayUrl,
   updateGatewayClient,
@@ -8,8 +9,8 @@ import {
 
 describe("normalizeGatewayUrl", () => {
   it("trims whitespace and trailing slashes", () => {
-    expect(normalizeGatewayUrl("  http://localhost:18789///  ")).toBe(
-      "http://localhost:18789",
+    expect(normalizeGatewayUrl("  http://localhost:50051///  ")).toBe(
+      "http://localhost:50051",
     );
   });
 
@@ -17,6 +18,24 @@ describe("normalizeGatewayUrl", () => {
     expect(normalizeGatewayUrl("https://example.com/base/")).toBe(
       "https://example.com/base",
     );
+  });
+});
+
+describe("getDefaultGatewayUrl", () => {
+  const originalGatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL;
+
+  afterEach(() => {
+    if (originalGatewayUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_GATEWAY_URL;
+    } else {
+      process.env.NEXT_PUBLIC_GATEWAY_URL = originalGatewayUrl;
+    }
+  });
+
+  it("uses the configured gateway URL when present", () => {
+    process.env.NEXT_PUBLIC_GATEWAY_URL = "  https://gateway.example.com///  ";
+
+    expect(getDefaultGatewayUrl()).toBe("https://gateway.example.com");
   });
 });
 
@@ -80,8 +99,9 @@ describe("gateway client lifecycle", () => {
   it("replaces the shared client when the gateway URL changes", () => {
     const initialClient = getGatewayClient();
 
-    updateGatewayClient("http://localhost:18789/");
+    updateGatewayClient("http://localhost:50051/");
 
     expect(getGatewayClient()).not.toBe(initialClient);
+    expect(getGatewayClient().sessions).toBeDefined();
   });
 });

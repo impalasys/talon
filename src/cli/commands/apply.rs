@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use crate::control::ns;
 use crate::control::resource_model::TypedResource;
 use crate::gateway::rpc::resources_proto;
-use talon_client::gateway::{CreateNamespaceRequest, CreateResourceRequest};
+use talon_client::v1::{CreateNamespaceRequest, CreateResourceRequest};
 
 use super::Cli;
 use crate::cli::{connect_gateway, parse_raw_manifest, render_manifest_file, to_sdk_resource_manifest};
