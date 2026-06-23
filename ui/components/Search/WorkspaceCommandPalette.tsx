@@ -195,7 +195,7 @@ export function WorkspaceCommandPalette({
         const response = await getGatewayClient().searches.search({
           query: trimmedQuery,
           source: {
-            namespace: ns,
+            namespaces: [ns],
             kinds: resourceKind ? [resourceKind] : [],
           },
           limit: 12,

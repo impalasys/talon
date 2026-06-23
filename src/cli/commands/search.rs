@@ -75,7 +75,7 @@ pub(super) async fn run(cli: &Cli, command: &SearchCommand) -> Result<RunOutcome
                 .search(SearchRequest {
                     query: query.clone(),
                     source: Some(SearchSourceFilter {
-                        namespace: namespace.clone(),
+                        namespaces: vec![namespace.clone()],
                         kinds: resource_kinds.clone(),
                         ..Default::default()
                     }),
@@ -110,7 +110,7 @@ pub(super) async fn run(cli: &Cli, command: &SearchCommand) -> Result<RunOutcome
                 .search(SearchRequest {
                     query: query.clone(),
                     source: Some(SearchSourceFilter {
-                        namespace: namespace.clone(),
+                        namespaces: vec![namespace.clone()],
                         kinds: vec!["SessionMessage".to_string()],
                         ..Default::default()
                     }),

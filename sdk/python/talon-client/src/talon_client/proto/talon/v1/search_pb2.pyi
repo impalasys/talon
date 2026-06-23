@@ -66,20 +66,18 @@ class SearchRequest(_message.Message):
     def __init__(self, query: _Optional[str] = ..., source: _Optional[_Union[SearchSourceFilter, _Mapping]] = ..., attributes: _Optional[_Mapping[str, str]] = ..., labels: _Optional[_Mapping[str, str]] = ..., start_time: _Optional[int] = ..., end_time: _Optional[int] = ..., limit: _Optional[int] = ..., page_token: _Optional[str] = ..., mode: _Optional[_Union[SearchMode, str]] = ..., sort: _Optional[_Union[SearchSort, str]] = ...) -> None: ...
 
 class SearchSourceFilter(_message.Message):
-    __slots__ = ("namespace", "key", "key_prefix", "kinds", "parent_key", "namespaces")
-    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("key", "key_prefix", "kinds", "parent_key", "namespaces")
     KEY_FIELD_NUMBER: _ClassVar[int]
     KEY_PREFIX_FIELD_NUMBER: _ClassVar[int]
     KINDS_FIELD_NUMBER: _ClassVar[int]
     PARENT_KEY_FIELD_NUMBER: _ClassVar[int]
     NAMESPACES_FIELD_NUMBER: _ClassVar[int]
-    namespace: str
     key: str
     key_prefix: str
     kinds: _containers.RepeatedScalarFieldContainer[str]
     parent_key: str
     namespaces: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, namespace: _Optional[str] = ..., key: _Optional[str] = ..., key_prefix: _Optional[str] = ..., kinds: _Optional[_Iterable[str]] = ..., parent_key: _Optional[str] = ..., namespaces: _Optional[_Iterable[str]] = ...) -> None: ...
+    def __init__(self, key: _Optional[str] = ..., key_prefix: _Optional[str] = ..., kinds: _Optional[_Iterable[str]] = ..., parent_key: _Optional[str] = ..., namespaces: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class Document(_message.Message):
     __slots__ = ("id", "source", "document_kind", "subdocument_id", "attributes", "title", "snippet", "labels", "metadata_json", "acl_scope_json", "created_at", "updated_at", "indexed_at", "generation", "embedding_ref")

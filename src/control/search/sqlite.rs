@@ -532,7 +532,7 @@ mod tests {
             .search(&proto::SearchRequest {
                 query: "refund".to_string(),
                 source: Some(proto::SearchSourceFilter {
-                    namespace: "acme".to_string(),
+                    namespaces: vec!["acme".to_string()],
                     kinds: vec!["SessionMessage".to_string()],
                     ..Default::default()
                 }),
@@ -559,7 +559,7 @@ mod tests {
             .search(&proto::SearchRequest {
                 query: "ref".to_string(),
                 source: Some(proto::SearchSourceFilter {
-                    namespace: "acme".to_string(),
+                    namespaces: vec!["acme".to_string()],
                     kinds: vec!["SessionMessage".to_string()],
                     ..Default::default()
                 }),

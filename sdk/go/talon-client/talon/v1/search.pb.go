@@ -240,7 +240,6 @@ func (x *SearchRequest) GetSort() SearchSort {
 
 type SearchSourceFilter struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Namespace     string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
 	KeyPrefix     string                 `protobuf:"bytes,3,opt,name=key_prefix,json=keyPrefix,proto3" json:"key_prefix,omitempty"`
 	Kinds         []string               `protobuf:"bytes,4,rep,name=kinds,proto3" json:"kinds,omitempty"`
@@ -278,13 +277,6 @@ func (x *SearchSourceFilter) ProtoReflect() protoreflect.Message {
 // Deprecated: Use SearchSourceFilter.ProtoReflect.Descriptor instead.
 func (*SearchSourceFilter) Descriptor() ([]byte, []int) {
 	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *SearchSourceFilter) GetNamespace() string {
-	if x != nil {
-		return x.Namespace
-	}
-	return ""
 }
 
 func (x *SearchSourceFilter) GetKey() string {
@@ -799,9 +791,8 @@ const file_proto_talon_v1_search_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\r\n" +
 	"\v_start_timeB\v\n" +
-	"\t_end_time\"\xb8\x01\n" +
-	"\x12SearchSourceFilter\x12\x1c\n" +
-	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x10\n" +
+	"\t_end_time\"\xab\x01\n" +
+	"\x12SearchSourceFilter\x12\x10\n" +
 	"\x03key\x18\x02 \x01(\tR\x03key\x12\x1d\n" +
 	"\n" +
 	"key_prefix\x18\x03 \x01(\tR\tkeyPrefix\x12\x14\n" +
@@ -810,7 +801,7 @@ const file_proto_talon_v1_search_proto_rawDesc = "" +
 	"parent_key\x18\x05 \x01(\tR\tparentKey\x12\x1e\n" +
 	"\n" +
 	"namespaces\x18\x06 \x03(\tR\n" +
-	"namespaces\"\xab\x05\n" +
+	"namespacesJ\x04\b\x01\x10\x02R\tnamespace\"\xab\x05\n" +
 	"\bDocument\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x120\n" +
 	"\x06source\x18\x02 \x01(\v2\x18.talon.v1.DocumentSourceR\x06source\x12#\n" +

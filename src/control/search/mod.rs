@@ -168,11 +168,7 @@ pub fn search_namespaces(query: &proto::SearchRequest) -> Vec<&str> {
     let Some(source) = query.source.as_ref() else {
         return Vec::new();
     };
-    if source.namespaces.is_empty() {
-        vec![source.namespace.as_str()]
-    } else {
-        source.namespaces.iter().map(String::as_str).collect()
-    }
+    source.namespaces.iter().map(String::as_str).collect()
 }
 
 pub fn search_limit(query: &proto::SearchRequest) -> usize {
@@ -467,7 +463,7 @@ mod tests {
             .search(&proto::SearchRequest {
                 query: "refund".to_string(),
                 source: Some(proto::SearchSourceFilter {
-                    namespace: "acme".to_string(),
+                    namespaces: vec!["acme".to_string()],
                     kinds: vec![KIND_SESSION_MESSAGE.to_string()],
                     ..Default::default()
                 }),
@@ -495,7 +491,7 @@ mod tests {
             .search(&proto::SearchRequest {
                 query: "refund".to_string(),
                 source: Some(proto::SearchSourceFilter {
-                    namespace: "acme".to_string(),
+                    namespaces: vec!["acme".to_string()],
                     ..Default::default()
                 }),
                 limit: 10,
@@ -534,7 +530,7 @@ mod tests {
             .search(&proto::SearchRequest {
                 query: "policy".to_string(),
                 source: Some(proto::SearchSourceFilter {
-                    namespace: "acme".to_string(),
+                    namespaces: vec!["acme".to_string()],
                     ..Default::default()
                 }),
                 limit: 2,
@@ -591,7 +587,7 @@ mod tests {
             .search(&proto::SearchRequest {
                 query: "refund".to_string(),
                 source: Some(proto::SearchSourceFilter {
-                    namespace: "acme".to_string(),
+                    namespaces: vec!["acme".to_string()],
                     ..Default::default()
                 }),
                 mode: proto::SearchMode::Hybrid as i32,

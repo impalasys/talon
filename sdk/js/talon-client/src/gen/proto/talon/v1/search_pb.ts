@@ -160,11 +160,6 @@ export class SearchRequest extends Message<SearchRequest> {
  */
 export class SearchSourceFilter extends Message<SearchSourceFilter> {
   /**
-   * @generated from field: string namespace = 1;
-   */
-  namespace = "";
-
-  /**
    * @generated from field: string key = 2;
    */
   key = "";
@@ -197,7 +192,6 @@ export class SearchSourceFilter extends Message<SearchSourceFilter> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.v1.SearchSourceFilter";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "key_prefix", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "kinds", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },

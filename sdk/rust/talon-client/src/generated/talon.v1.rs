@@ -1746,8 +1746,6 @@ pub struct SearchRequest {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SearchSourceFilter {
-    #[prost(string, tag = "1")]
-    pub namespace: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub key: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]

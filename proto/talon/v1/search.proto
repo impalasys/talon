@@ -34,7 +34,8 @@ message SearchRequest {
 }
 
 message SearchSourceFilter {
-  string namespace = 1;
+  reserved 1;
+  reserved "namespace";
   string key = 2;
   string key_prefix = 3;
   repeated string kinds = 4;

@@ -282,7 +282,7 @@ def wait_for_session_search(
             SearchRequest(
                 query=query,
                 source=SearchSourceFilter(
-                    namespace=namespace,
+                    namespaces=[namespace],
                     kinds=["SessionMessage"],
                 ),
                 attributes={
@@ -337,7 +337,7 @@ def wait_for_search(
             SearchRequest(
                 query=query,
                 source=SearchSourceFilter(
-                    namespace=namespace,
+                    namespaces=[namespace],
                     kinds=resource_kinds or [],
                 ),
                 attributes={
@@ -387,7 +387,7 @@ def wait_for_no_session_search_results(
             SearchRequest(
                 query=query,
                 source=SearchSourceFilter(
-                    namespace=namespace,
+                    namespaces=[namespace],
                     kinds=["SessionMessage"],
                 ),
                 attributes={

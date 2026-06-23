@@ -2241,18 +2241,6 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string namespace = 1;</code>
-     * @return The namespace.
-     */
-    java.lang.String getNamespace();
-    /**
-     * <code>string namespace = 1;</code>
-     * @return The bytes for namespace.
-     */
-    com.google.protobuf.ByteString
-        getNamespaceBytes();
-
-    /**
      * <code>string key = 2;</code>
      * @return The key.
      */
@@ -2360,7 +2348,6 @@ java.lang.String defaultValue) {
       super(builder);
     }
     private SearchSourceFilter() {
-      namespace_ = "";
       key_ = "";
       keyPrefix_ = "";
       kinds_ =
@@ -2386,45 +2373,6 @@ java.lang.String defaultValue) {
       return talon.v1.Search.internal_static_talon_v1_SearchSourceFilter_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               talon.v1.Search.SearchSourceFilter.class, talon.v1.Search.SearchSourceFilter.Builder.class);
-    }
-
-    public static final int NAMESPACE_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object namespace_ = "";
-    /**
-     * <code>string namespace = 1;</code>
-     * @return The namespace.
-     */
-    @java.lang.Override
-    public java.lang.String getNamespace() {
-      java.lang.Object ref = namespace_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        namespace_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string namespace = 1;</code>
-     * @return The bytes for namespace.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNamespaceBytes() {
-      java.lang.Object ref = namespace_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        namespace_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
     }
 
     public static final int KEY_FIELD_NUMBER = 2;
@@ -2632,9 +2580,6 @@ java.lang.String defaultValue) {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, namespace_);
-      }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(key_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 2, key_);
       }
@@ -2659,9 +2604,6 @@ java.lang.String defaultValue) {
       if (size != -1) return size;
 
       size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, namespace_);
-      }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(key_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(2, key_);
       }
@@ -2702,8 +2644,6 @@ java.lang.String defaultValue) {
       }
       talon.v1.Search.SearchSourceFilter other = (talon.v1.Search.SearchSourceFilter) obj;
 
-      if (!getNamespace()
-          .equals(other.getNamespace())) return false;
       if (!getKey()
           .equals(other.getKey())) return false;
       if (!getKeyPrefix()
@@ -2725,8 +2665,6 @@ java.lang.String defaultValue) {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
-      hash = (53 * hash) + getNamespace().hashCode();
       hash = (37 * hash) + KEY_FIELD_NUMBER;
       hash = (53 * hash) + getKey().hashCode();
       hash = (37 * hash) + KEY_PREFIX_FIELD_NUMBER;
@@ -2872,7 +2810,6 @@ java.lang.String defaultValue) {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        namespace_ = "";
         key_ = "";
         keyPrefix_ = "";
         kinds_ =
@@ -2914,22 +2851,19 @@ java.lang.String defaultValue) {
       private void buildPartial0(talon.v1.Search.SearchSourceFilter result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.namespace_ = namespace_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
           result.key_ = key_;
         }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
           result.keyPrefix_ = keyPrefix_;
         }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           kinds_.makeImmutable();
           result.kinds_ = kinds_;
         }
-        if (((from_bitField0_ & 0x00000010) != 0)) {
+        if (((from_bitField0_ & 0x00000008) != 0)) {
           result.parentKey_ = parentKey_;
         }
-        if (((from_bitField0_ & 0x00000020) != 0)) {
+        if (((from_bitField0_ & 0x00000010) != 0)) {
           namespaces_.makeImmutable();
           result.namespaces_ = namespaces_;
         }
@@ -2947,25 +2881,20 @@ java.lang.String defaultValue) {
 
       public Builder mergeFrom(talon.v1.Search.SearchSourceFilter other) {
         if (other == talon.v1.Search.SearchSourceFilter.getDefaultInstance()) return this;
-        if (!other.getNamespace().isEmpty()) {
-          namespace_ = other.namespace_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
         if (!other.getKey().isEmpty()) {
           key_ = other.key_;
-          bitField0_ |= 0x00000002;
+          bitField0_ |= 0x00000001;
           onChanged();
         }
         if (!other.getKeyPrefix().isEmpty()) {
           keyPrefix_ = other.keyPrefix_;
-          bitField0_ |= 0x00000004;
+          bitField0_ |= 0x00000002;
           onChanged();
         }
         if (!other.kinds_.isEmpty()) {
           if (kinds_.isEmpty()) {
             kinds_ = other.kinds_;
-            bitField0_ |= 0x00000008;
+            bitField0_ |= 0x00000004;
           } else {
             ensureKindsIsMutable();
             kinds_.addAll(other.kinds_);
@@ -2974,13 +2903,13 @@ java.lang.String defaultValue) {
         }
         if (!other.getParentKey().isEmpty()) {
           parentKey_ = other.parentKey_;
-          bitField0_ |= 0x00000010;
+          bitField0_ |= 0x00000008;
           onChanged();
         }
         if (!other.namespaces_.isEmpty()) {
           if (namespaces_.isEmpty()) {
             namespaces_ = other.namespaces_;
-            bitField0_ |= 0x00000020;
+            bitField0_ |= 0x00000010;
           } else {
             ensureNamespacesIsMutable();
             namespaces_.addAll(other.namespaces_);
@@ -3013,19 +2942,14 @@ java.lang.String defaultValue) {
               case 0:
                 done = true;
                 break;
-              case 10: {
-                namespace_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
               case 18: {
                 key_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
+                bitField0_ |= 0x00000001;
                 break;
               } // case 18
               case 26: {
                 keyPrefix_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000004;
+                bitField0_ |= 0x00000002;
                 break;
               } // case 26
               case 34: {
@@ -3035,7 +2959,7 @@ java.lang.String defaultValue) {
               } // case 34
               case 42: {
                 parentKey_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000010;
+                bitField0_ |= 0x00000008;
                 break;
               } // case 42
               case 50: {
@@ -3059,78 +2983,6 @@ java.lang.String defaultValue) {
         return this;
       }
       private int bitField0_;
-
-      private java.lang.Object namespace_ = "";
-      /**
-       * <code>string namespace = 1;</code>
-       * @return The namespace.
-       */
-      public java.lang.String getNamespace() {
-        java.lang.Object ref = namespace_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          namespace_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string namespace = 1;</code>
-       * @return The bytes for namespace.
-       */
-      public com.google.protobuf.ByteString
-          getNamespaceBytes() {
-        java.lang.Object ref = namespace_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          namespace_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string namespace = 1;</code>
-       * @param value The namespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNamespace(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        namespace_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string namespace = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearNamespace() {
-        namespace_ = getDefaultInstance().getNamespace();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string namespace = 1;</code>
-       * @param value The bytes for namespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNamespaceBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        namespace_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
 
       private java.lang.Object key_ = "";
       /**
@@ -3175,7 +3027,7 @@ java.lang.String defaultValue) {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         key_ = value;
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
@@ -3185,7 +3037,7 @@ java.lang.String defaultValue) {
        */
       public Builder clearKey() {
         key_ = getDefaultInstance().getKey();
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
@@ -3199,7 +3051,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         key_ = value;
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
@@ -3247,7 +3099,7 @@ java.lang.String defaultValue) {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         keyPrefix_ = value;
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
@@ -3257,7 +3109,7 @@ java.lang.String defaultValue) {
        */
       public Builder clearKeyPrefix() {
         keyPrefix_ = getDefaultInstance().getKeyPrefix();
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         onChanged();
         return this;
       }
@@ -3271,7 +3123,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         keyPrefix_ = value;
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
@@ -3282,7 +3134,7 @@ java.lang.String defaultValue) {
         if (!kinds_.isModifiable()) {
           kinds_ = new com.google.protobuf.LazyStringArrayList(kinds_);
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
       }
       /**
        * <code>repeated string kinds = 4;</code>
@@ -3328,7 +3180,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         ensureKindsIsMutable();
         kinds_.set(index, value);
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
@@ -3342,7 +3194,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         ensureKindsIsMutable();
         kinds_.add(value);
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
@@ -3356,7 +3208,7 @@ java.lang.String defaultValue) {
         ensureKindsIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
             values, kinds_);
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
@@ -3367,7 +3219,7 @@ java.lang.String defaultValue) {
       public Builder clearKinds() {
         kinds_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000008);;
+        bitField0_ = (bitField0_ & ~0x00000004);;
         onChanged();
         return this;
       }
@@ -3382,7 +3234,7 @@ java.lang.String defaultValue) {
         checkByteStringIsUtf8(value);
         ensureKindsIsMutable();
         kinds_.add(value);
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
@@ -3430,7 +3282,7 @@ java.lang.String defaultValue) {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         parentKey_ = value;
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
@@ -3440,7 +3292,7 @@ java.lang.String defaultValue) {
        */
       public Builder clearParentKey() {
         parentKey_ = getDefaultInstance().getParentKey();
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000008);
         onChanged();
         return this;
       }
@@ -3454,7 +3306,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         parentKey_ = value;
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
@@ -3465,7 +3317,7 @@ java.lang.String defaultValue) {
         if (!namespaces_.isModifiable()) {
           namespaces_ = new com.google.protobuf.LazyStringArrayList(namespaces_);
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
       }
       /**
        * <code>repeated string namespaces = 6;</code>
@@ -3511,7 +3363,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         ensureNamespacesIsMutable();
         namespaces_.set(index, value);
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
@@ -3525,7 +3377,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         ensureNamespacesIsMutable();
         namespaces_.add(value);
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
@@ -3539,7 +3391,7 @@ java.lang.String defaultValue) {
         ensureNamespacesIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
             values, namespaces_);
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
@@ -3550,7 +3402,7 @@ java.lang.String defaultValue) {
       public Builder clearNamespaces() {
         namespaces_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000020);;
+        bitField0_ = (bitField0_ & ~0x00000010);;
         onChanged();
         return this;
       }
@@ -3565,7 +3417,7 @@ java.lang.String defaultValue) {
         checkByteStringIsUtf8(value);
         ensureNamespacesIsMutable();
         namespaces_.add(value);
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
@@ -10559,43 +10411,43 @@ java.lang.String defaultValue) {
       "\n \001(\0162\024.talon.v1.SearchSort\0321\n\017Attribute" +
       "sEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-" +
       "\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
-      "\t:\0028\001B\r\n\013_start_timeB\013\n\t_end_time\"\177\n\022Sea" +
-      "rchSourceFilter\022\021\n\tnamespace\030\001 \001(\t\022\013\n\003ke" +
-      "y\030\002 \001(\t\022\022\n\nkey_prefix\030\003 \001(\t\022\r\n\005kinds\030\004 \003" +
-      "(\t\022\022\n\nparent_key\030\005 \001(\t\022\022\n\nnamespaces\030\006 \003" +
-      "(\t\"\357\003\n\010Document\022\n\n\002id\030\001 \001(\t\022(\n\006source\030\002 " +
-      "\001(\0132\030.talon.v1.DocumentSource\022\025\n\rdocumen" +
-      "t_kind\030\003 \001(\t\022\026\n\016subdocument_id\030\004 \001(\t\0226\n\n" +
-      "attributes\030\005 \003(\0132\".talon.v1.Document.Att" +
-      "ributesEntry\022\r\n\005title\030\006 \001(\t\022\017\n\007snippet\030\007" +
-      " \001(\t\022.\n\006labels\030\010 \003(\0132\036.talon.v1.Document" +
-      ".LabelsEntry\022\025\n\rmetadata_json\030\t \001(\t\022\026\n\016a" +
-      "cl_scope_json\030\n \001(\t\022\022\n\ncreated_at\030\013 \001(\003\022" +
-      "\022\n\nupdated_at\030\014 \001(\003\022\022\n\nindexed_at\030\r \001(\003\022" +
-      "\022\n\ngeneration\030\016 \001(\004\022\025\n\rembedding_ref\030\017 \001" +
-      "(\t\0321\n\017AttributesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va" +
-      "lue\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(" +
-      "\t\022\r\n\005value\030\002 \001(\t:\0028\001\"u\n\016DocumentSource\022\013" +
-      "\n\003key\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\014\n\004kind\030\003" +
-      " \001(\t\022\014\n\004name\030\004 \001(\t\022\023\n\013parent_kind\030\005 \001(\t\022" +
-      "\022\n\nparent_key\030\006 \001(\t\"C\n\014SearchResult\022$\n\010d" +
-      "ocument\030\001 \001(\0132\022.talon.v1.Document\022\r\n\005sco" +
-      "re\030\002 \001(\002\"R\n\016SearchResponse\022\'\n\007results\030\001 " +
-      "\003(\0132\026.talon.v1.SearchResult\022\027\n\017next_page" +
-      "_token\030\002 \001(\t\"9\n\026GetSearchResultRequest\022\n" +
-      "\n\002ns\030\001 \001(\t\022\023\n\013document_id\030\002 \001(\t\"P\n\027GetSe" +
-      "archResultResponse\022$\n\010document\030\001 \001(\0132\022.t" +
-      "alon.v1.Document\022\017\n\007content\030\002 \001(\t*t\n\nSea" +
-      "rchMode\022\033\n\027SEARCH_MODE_UNSPECIFIED\020\000\022\027\n\023" +
-      "SEARCH_MODE_KEYWORD\020\001\022\030\n\024SEARCH_MODE_SEM" +
-      "ANTIC\020\002\022\026\n\022SEARCH_MODE_HYBRID\020\003*]\n\nSearc" +
-      "hSort\022\033\n\027SEARCH_SORT_UNSPECIFIED\020\000\022\031\n\025SE" +
-      "ARCH_SORT_RELEVANCE\020\001\022\027\n\023SEARCH_SORT_REC" +
-      "ENCY\020\0022\236\001\n\rSearchService\022;\n\006Search\022\027.tal" +
-      "on.v1.SearchRequest\032\030.talon.v1.SearchRes" +
-      "ponse\022P\n\tGetResult\022 .talon.v1.GetSearchR" +
-      "esultRequest\032!.talon.v1.GetSearchResultR" +
-      "esponseb\006proto3"
+      "\t:\0028\001B\r\n\013_start_timeB\013\n\t_end_time\"}\n\022Sea" +
+      "rchSourceFilter\022\013\n\003key\030\002 \001(\t\022\022\n\nkey_pref" +
+      "ix\030\003 \001(\t\022\r\n\005kinds\030\004 \003(\t\022\022\n\nparent_key\030\005 " +
+      "\001(\t\022\022\n\nnamespaces\030\006 \003(\tJ\004\010\001\020\002R\tnamespace" +
+      "\"\357\003\n\010Document\022\n\n\002id\030\001 \001(\t\022(\n\006source\030\002 \001(" +
+      "\0132\030.talon.v1.DocumentSource\022\025\n\rdocument_" +
+      "kind\030\003 \001(\t\022\026\n\016subdocument_id\030\004 \001(\t\0226\n\nat" +
+      "tributes\030\005 \003(\0132\".talon.v1.Document.Attri" +
+      "butesEntry\022\r\n\005title\030\006 \001(\t\022\017\n\007snippet\030\007 \001" +
+      "(\t\022.\n\006labels\030\010 \003(\0132\036.talon.v1.Document.L" +
+      "abelsEntry\022\025\n\rmetadata_json\030\t \001(\t\022\026\n\016acl" +
+      "_scope_json\030\n \001(\t\022\022\n\ncreated_at\030\013 \001(\003\022\022\n" +
+      "\nupdated_at\030\014 \001(\003\022\022\n\nindexed_at\030\r \001(\003\022\022\n" +
+      "\ngeneration\030\016 \001(\004\022\025\n\rembedding_ref\030\017 \001(\t" +
+      "\0321\n\017AttributesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005valu" +
+      "e\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022" +
+      "\r\n\005value\030\002 \001(\t:\0028\001\"u\n\016DocumentSource\022\013\n\003" +
+      "key\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\014\n\004kind\030\003 \001" +
+      "(\t\022\014\n\004name\030\004 \001(\t\022\023\n\013parent_kind\030\005 \001(\t\022\022\n" +
+      "\nparent_key\030\006 \001(\t\"C\n\014SearchResult\022$\n\010doc" +
+      "ument\030\001 \001(\0132\022.talon.v1.Document\022\r\n\005score" +
+      "\030\002 \001(\002\"R\n\016SearchResponse\022\'\n\007results\030\001 \003(" +
+      "\0132\026.talon.v1.SearchResult\022\027\n\017next_page_t" +
+      "oken\030\002 \001(\t\"9\n\026GetSearchResultRequest\022\n\n\002" +
+      "ns\030\001 \001(\t\022\023\n\013document_id\030\002 \001(\t\"P\n\027GetSear" +
+      "chResultResponse\022$\n\010document\030\001 \001(\0132\022.tal" +
+      "on.v1.Document\022\017\n\007content\030\002 \001(\t*t\n\nSearc" +
+      "hMode\022\033\n\027SEARCH_MODE_UNSPECIFIED\020\000\022\027\n\023SE" +
+      "ARCH_MODE_KEYWORD\020\001\022\030\n\024SEARCH_MODE_SEMAN" +
+      "TIC\020\002\022\026\n\022SEARCH_MODE_HYBRID\020\003*]\n\nSearchS" +
+      "ort\022\033\n\027SEARCH_SORT_UNSPECIFIED\020\000\022\031\n\025SEAR" +
+      "CH_SORT_RELEVANCE\020\001\022\027\n\023SEARCH_SORT_RECEN" +
+      "CY\020\0022\236\001\n\rSearchService\022;\n\006Search\022\027.talon" +
+      ".v1.SearchRequest\032\030.talon.v1.SearchRespo" +
+      "nse\022P\n\tGetResult\022 .talon.v1.GetSearchRes" +
+      "ultRequest\032!.talon.v1.GetSearchResultRes" +
+      "ponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -10624,7 +10476,7 @@ java.lang.String defaultValue) {
     internal_static_talon_v1_SearchSourceFilter_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SearchSourceFilter_descriptor,
-        new java.lang.String[] { "Namespace", "Key", "KeyPrefix", "Kinds", "ParentKey", "Namespaces", });
+        new java.lang.String[] { "Key", "KeyPrefix", "Kinds", "ParentKey", "Namespaces", });
     internal_static_talon_v1_Document_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_v1_Document_fieldAccessorTable = new
