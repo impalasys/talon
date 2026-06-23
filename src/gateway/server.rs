@@ -4,10 +4,9 @@
 use crate::control::search::DocumentStore;
 use crate::control::{
     config::proto::TrustConfig, object_store::ObjectStore, scheduler::SchedulerBackend,
-    usage::SubjectRateLimiter, ControlPlane, KeyValueStore, MessagePublisher,
+    ControlPlane, KeyValueStore, MessagePublisher,
 };
 use crate::gateway::auth::AuthConfig;
-use crate::gateway::session_streams::SessionStreamHub;
 use crate::gateway::worker_conn::WorkerConnectionPool;
 use anyhow::Result;
 use axum::{
@@ -33,8 +32,6 @@ pub struct Gateway {
     pub objects: Arc<dyn ObjectStore + Send + Sync>,
     pub documents: Arc<dyn DocumentStore + Send + Sync>,
     pub(crate) worker_connections: Arc<WorkerConnectionPool>,
-    pub session_streams: Arc<SessionStreamHub>,
-    pub usage_limiter: Arc<SubjectRateLimiter>,
 }
 
 impl Gateway {
@@ -58,8 +55,6 @@ impl Gateway {
         objects: Arc<dyn ObjectStore + Send + Sync>,
         documents: Arc<dyn DocumentStore + Send + Sync>,
     ) -> Self {
-        let session_streams = Arc::new(SessionStreamHub::new(pubsub.clone()));
-        let usage_limiter = Arc::new(SubjectRateLimiter::default());
         Self {
             auth_config,
             trust_config,
@@ -69,8 +64,6 @@ impl Gateway {
             objects,
             documents,
             worker_connections: Arc::new(WorkerConnectionPool::new()),
-            session_streams,
-            usage_limiter,
         }
     }
 
@@ -98,8 +91,6 @@ impl Gateway {
             objects: self.objects.clone(),
             documents: self.documents.clone(),
             worker_connections: self.worker_connections.clone(),
-            session_streams: self.session_streams.clone(),
-            usage_limiter: self.usage_limiter.clone(),
         }
     }
 

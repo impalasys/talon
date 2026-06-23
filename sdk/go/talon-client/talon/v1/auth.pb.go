@@ -270,6 +270,7 @@ type MintAccessTokenRequest struct {
 	Channel       *string                `protobuf:"bytes,4,opt,name=channel,proto3,oneof" json:"channel,omitempty"`
 	ExpiresIn     uint64                 `protobuf:"varint,5,opt,name=expires_in,json=expiresIn,proto3" json:"expires_in,omitempty"`
 	Origins       []string               `protobuf:"bytes,6,rep,name=origins,proto3" json:"origins,omitempty"`
+	Sub           *string                `protobuf:"bytes,7,opt,name=sub,proto3,oneof" json:"sub,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -344,6 +345,13 @@ func (x *MintAccessTokenRequest) GetOrigins() []string {
 		return x.Origins
 	}
 	return nil
+}
+
+func (x *MintAccessTokenRequest) GetSub() string {
+	if x != nil && x.Sub != nil {
+		return *x.Sub
+	}
+	return ""
 }
 
 type MintAccessTokenResponse struct {
@@ -959,7 +967,7 @@ const file_proto_talon_v1_auth_proto_rawDesc = "" +
 	"\vclient_type\x18\a \x01(\tH\x01R\n" +
 	"clientType\x88\x01\x01B\b\n" +
 	"\x06_emailB\x0e\n" +
-	"\f_client_type\"\xea\x01\n" +
+	"\f_client_type\"\x89\x02\n" +
 	"\x16MintAccessTokenRequest\x12\x1c\n" +
 	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x19\n" +
 	"\x05agent\x18\x02 \x01(\tH\x00R\x05agent\x88\x01\x01\x12\x1d\n" +
@@ -967,12 +975,14 @@ const file_proto_talon_v1_auth_proto_rawDesc = "" +
 	"\achannel\x18\x04 \x01(\tH\x02R\achannel\x88\x01\x01\x12\x1d\n" +
 	"\n" +
 	"expires_in\x18\x05 \x01(\x04R\texpiresIn\x12\x18\n" +
-	"\aorigins\x18\x06 \x03(\tR\aoriginsB\b\n" +
+	"\aorigins\x18\x06 \x03(\tR\aorigins\x12\x15\n" +
+	"\x03sub\x18\a \x01(\tH\x03R\x03sub\x88\x01\x01B\b\n" +
 	"\x06_agentB\n" +
 	"\n" +
 	"\b_sessionB\n" +
 	"\n" +
-	"\b_channel\"\x99\x01\n" +
+	"\b_channelB\x06\n" +
+	"\x04_sub\"\x99\x01\n" +
 	"\x17MintAccessTokenResponse\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1d\n" +
 	"\n" +

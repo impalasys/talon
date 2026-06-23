@@ -4,12 +4,10 @@
 use crate::control::{keys, KeyValueStore};
 use crate::gateway::rpc::{harness_proto, resources_proto};
 use anyhow::{anyhow, bail, Context, Result};
-use dashmap::DashMap;
 use prost::Message;
 use std::error::Error;
 use std::fmt;
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 const MAX_CAS_RETRIES: usize = 16;
 
@@ -20,12 +18,6 @@ pub const METRIC_LLM_REASONING_TOKENS: &str = "llm.reasoningTokens";
 pub const METRIC_LLM_TOTAL_TOKENS: &str = "llm.totalTokens";
 pub const METRIC_AGENT_SESSIONS: &str = "agent.sessions";
 pub const METRIC_TOOL_CALLS: &str = "tool.calls";
-pub const METRIC_GATEWAY_REQUESTS: &str = "gateway.requests";
-
-const ANONYMOUS_GATEWAY_BURST: u64 = 2;
-const ANONYMOUS_GATEWAY_WINDOW: Duration = Duration::from_secs(1);
-const RATE_LIMITER_PRUNE_INTERVAL_CHECKS: u64 = 1024;
-const RATE_LIMITER_IDLE_TTL: Duration = Duration::from_secs(10 * 60);
 
 #[derive(Debug, Clone)]
 pub struct UsageSubject {
@@ -82,103 +74,8 @@ impl fmt::Display for UsageQuotaExceeded {
 
 impl Error for UsageQuotaExceeded {}
 
-#[derive(Debug, Clone)]
-pub struct GatewayUsageAdmissionExceeded {
-    pub metric: String,
-    pub rate_limit_key: String,
-    pub max: u64,
-    pub window_seconds: u64,
-}
-
-impl fmt::Display for GatewayUsageAdmissionExceeded {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "gateway rate limit exceeded for metric '{}' and subject '{}': max {} per {}s",
-            self.metric, self.rate_limit_key, self.max, self.window_seconds
-        )
-    }
-}
-
-impl Error for GatewayUsageAdmissionExceeded {}
-
-#[derive(Debug, Default)]
-pub struct SubjectRateLimiter {
-    buckets: DashMap<String, TokenBucket>,
-    checks: AtomicU64,
-}
-
-#[derive(Debug, Clone, Copy)]
-struct TokenBucketRule {
-    max: u64,
-    window: Window,
-}
-
-#[derive(Debug, Clone, Copy)]
-struct TokenBucket {
-    tokens: f64,
-    last_refill: Instant,
-}
-
-impl SubjectRateLimiter {
-    fn check(&self, key: String, metric: &str, rule: TokenBucketRule, now: Instant) -> Result<()> {
-        self.maybe_prune(now);
-        if rule.max == 0 {
-            bail!("token bucket max must be greater than zero");
-        }
-        let window_seconds = rule.window.seconds.max(1);
-        let capacity = rule.max as f64;
-        let refill_per_second = capacity / window_seconds as f64;
-        let mut bucket = self.buckets.entry(key.clone()).or_insert(TokenBucket {
-            tokens: capacity,
-            last_refill: now,
-        });
-        let elapsed = now
-            .checked_duration_since(bucket.last_refill)
-            .unwrap_or_default()
-            .as_secs_f64();
-        bucket.tokens = (bucket.tokens + elapsed * refill_per_second).min(capacity);
-        bucket.last_refill = now;
-        if bucket.tokens < 1.0 {
-            return Err(GatewayUsageAdmissionExceeded {
-                metric: metric.to_string(),
-                rate_limit_key: key,
-                max: rule.max,
-                window_seconds,
-            }
-            .into());
-        }
-        bucket.tokens -= 1.0;
-        Ok(())
-    }
-
-    fn refund(&self, key: &str, rule: TokenBucketRule, now: Instant) {
-        let capacity = rule.max as f64;
-        let mut bucket = self.buckets.entry(key.to_string()).or_insert(TokenBucket {
-            tokens: capacity,
-            last_refill: now,
-        });
-        bucket.tokens = (bucket.tokens + 1.0).min(capacity);
-    }
-
-    fn maybe_prune(&self, now: Instant) {
-        let check = self.checks.fetch_add(1, Ordering::Relaxed);
-        if check % RATE_LIMITER_PRUNE_INTERVAL_CHECKS != 0 {
-            return;
-        }
-        self.buckets.retain(|_, bucket| {
-            now.checked_duration_since(bucket.last_refill)
-                .unwrap_or_default()
-                <= RATE_LIMITER_IDLE_TTL
-        });
-    }
-}
-
 pub fn is_quota_exceeded_error(err: &anyhow::Error) -> bool {
     err.downcast_ref::<UsageQuotaExceeded>().is_some()
-        || err
-            .downcast_ref::<GatewayUsageAdmissionExceeded>()
-            .is_some()
 }
 
 pub fn llm_usage_charges(usage: Option<&harness_proto::ChatUsage>) -> Vec<UsageCharge> {
@@ -199,6 +96,8 @@ pub fn llm_usage_charges(usage: Option<&harness_proto::ChatUsage>) -> Vec<UsageC
     charges
 }
 
+/// Checks whether any matching UsagePolicy counter is already at or above its
+/// limit without mutating counters.
 pub async fn check_namespace_usage(
     kv: &(dyn KeyValueStore + Send + Sync),
     subject: &UsageSubject,
@@ -227,6 +126,10 @@ pub async fn check_namespace_usage(
     Ok(())
 }
 
+/// Increments matching UsagePolicy counters without enforcing their maximums.
+///
+/// Call this after an operation has already been admitted by another check, or
+/// for best-effort accounting where the charge itself should not reject work.
 pub async fn charge_namespace_usage(
     kv: &(dyn KeyValueStore + Send + Sync),
     subject: &UsageSubject,
@@ -259,111 +162,10 @@ pub async fn charge_namespace_usage(
     Ok(())
 }
 
-pub async fn admit_gateway_usage(
-    kv: &(dyn KeyValueStore + Send + Sync),
-    limiter: &SubjectRateLimiter,
-    subject: &UsageSubject,
-    charges: &[UsageCharge],
-    now_seconds: i64,
-) -> Result<()> {
-    let rate_limit_key = subject
-        .rate_limit_key
-        .as_deref()
-        .filter(|key| !key.trim().is_empty())
-        .unwrap_or("anonymous:fallback");
-    let now = Instant::now();
-    let anonymous_rule = TokenBucketRule {
-        max: ANONYMOUS_GATEWAY_BURST,
-        window: Window {
-            seconds: ANONYMOUS_GATEWAY_WINDOW.as_secs(),
-        },
-    };
-    let anonymous_bucket_key = format!("{rate_limit_key}:strict-fallback");
-    let anonymous_checked = subject.rate_limit_key.is_none();
-    if anonymous_checked {
-        limiter.check(
-            anonymous_bucket_key.clone(),
-            METRIC_GATEWAY_REQUESTS,
-            anonymous_rule,
-            now,
-        )?;
-    }
-
-    let metrics = charges
-        .iter()
-        .map(|charge| charge.metric)
-        .collect::<Vec<_>>();
-    let mut charged = Vec::new();
-    for limit in matched_limits(kv, subject, &metrics, now_seconds).await? {
-        let Some(charge) = charges
-            .iter()
-            .find(|charge| charge.metric == limit.limit.metric)
-        else {
-            continue;
-        };
-        if charge.delta == 0 {
-            continue;
-        }
-        let bucket_subject_key = gateway_bucket_subject_key(&limit, rate_limit_key)?;
-        let bucket_key = gateway_bucket_key(&limit, bucket_subject_key);
-        let rule = TokenBucketRule {
-            max: limit.limit.max,
-            window: limit.window,
-        };
-        if let Err(err) = limiter.check(bucket_key.clone(), &limit.limit.metric, rule, now) {
-            rollback_gateway_usage(kv, limiter, charged, now).await;
-            if anonymous_checked {
-                limiter.refund(&anonymous_bucket_key, anonymous_rule, now);
-            }
-            return Err(err);
-        }
-        let key = counter_key(
-            &limit.policy_namespace,
-            &limit.policy_name,
-            &limit.rule_id,
-            gateway_counter_subject_key(&limit, rate_limit_key)?,
-            window_start(now_seconds, limit.window),
-        );
-        if let Err(err) = increment_counter_cas_under_limit(
-            kv,
-            &key,
-            charge.delta,
-            limit.limit.max,
-            &limit,
-            subject,
-        )
-        .await
-        {
-            limiter.refund(&bucket_key, rule, now);
-            rollback_gateway_usage(kv, limiter, charged, now).await;
-            if anonymous_checked {
-                limiter.refund(&anonymous_bucket_key, anonymous_rule, now);
-            }
-            return Err(err);
-        }
-        charged.push((bucket_key, rule, key, charge.delta));
-    }
-    Ok(())
-}
-
-async fn rollback_gateway_usage(
-    kv: &(dyn KeyValueStore + Send + Sync),
-    limiter: &SubjectRateLimiter,
-    charged: Vec<(String, TokenBucketRule, keys::ResourceKey, u64)>,
-    now: Instant,
-) {
-    for (bucket_key, rule, counter_key, delta) in charged.into_iter().rev() {
-        limiter.refund(&bucket_key, rule, now);
-        if let Err(err) = decrement_counter_cas(kv, &counter_key, delta).await {
-            tracing::warn!(
-                key = %counter_key,
-                error = %err,
-                "failed to roll back gateway usage counter after admission failure"
-            );
-        }
-    }
-}
-
+/// Atomically admits and charges usage against all matching UsagePolicy limits.
+///
+/// If any matched counter would exceed its configured maximum, previously
+/// charged counters from this call are rolled back and the operation is denied.
 pub async fn charge_namespace_usage_under_limit(
     kv: &(dyn KeyValueStore + Send + Sync),
     subject: &UsageSubject,
@@ -421,31 +223,11 @@ pub async fn charge_namespace_usage_under_limit(
     Ok(())
 }
 
-pub async fn check_concurrent_agent_sessions(
-    kv: &(dyn KeyValueStore + Send + Sync),
-    subject: &UsageSubject,
-    active_sessions: u64,
-    active_subject_sessions: u64,
-    now_seconds: i64,
-) -> Result<()> {
-    for limit in matched_limits(kv, subject, &[METRIC_AGENT_SESSIONS], now_seconds).await? {
-        let used = match subject_scope(&limit.limit)? {
-            SubjectScope::All => active_sessions,
-            SubjectScope::Identity => active_subject_sessions,
-        };
-        if used >= limit.limit.max {
-            return Err(UsageQuotaExceeded {
-                metric: limit.limit.metric,
-                namespace: subject.namespace.clone(),
-                used,
-                max: limit.limit.max,
-            }
-            .into());
-        }
-    }
-    Ok(())
-}
-
+/// Decrements matching UsagePolicy counters to undo a charge from a failed
+/// operation.
+///
+/// This is for rollback paths only. Normal completion/deletion should not call
+/// it for event-style metrics such as `agent.sessions`.
 pub async fn refund_namespace_usage(
     kv: &(dyn KeyValueStore + Send + Sync),
     subject: &UsageSubject,
@@ -478,6 +260,10 @@ pub async fn refund_namespace_usage(
     Ok(())
 }
 
+/// Populates UsagePolicy status from the counters for the current fixed window.
+///
+/// Identity-scoped status reports the hottest subject counter in the window,
+/// rather than summing all identities together.
 pub async fn populate_usage_policy_status(
     kv: &(dyn KeyValueStore + Send + Sync),
     resource: &mut resources_proto::Resource,
@@ -683,6 +469,9 @@ async fn decrement_counter_cas(
             None => 0,
         };
         let next = current.saturating_sub(delta);
+        if current_bytes.is_none() && next == 0 {
+            return Ok(0);
+        }
         let next_bytes = encode_counter(next);
         if kv
             .compare_and_swap(key, current_bytes.as_deref(), &next_bytes)
@@ -854,12 +643,12 @@ fn subject_scope_name(limit: &resources_proto::UsageLimit) -> Result<&'static st
     })
 }
 
-fn effective_rate_limit_key(subject: &UsageSubject) -> &str {
+fn effective_rate_limit_key(subject: &UsageSubject) -> Result<&str> {
     subject
         .rate_limit_key
         .as_deref()
         .filter(|key| !key.trim().is_empty())
-        .unwrap_or("anonymous:fallback")
+        .ok_or_else(|| anyhow!("identity-scoped UsagePolicy requires a request identity"))
 }
 
 fn counter_subject_key<'a>(
@@ -868,27 +657,7 @@ fn counter_subject_key<'a>(
 ) -> Result<Option<&'a str>> {
     Ok(match subject_scope(&limit.limit)? {
         SubjectScope::All => None,
-        SubjectScope::Identity => Some(effective_rate_limit_key(subject)),
-    })
-}
-
-fn gateway_counter_subject_key<'a>(
-    limit: &MatchedLimit,
-    rate_limit_key: &'a str,
-) -> Result<Option<&'a str>> {
-    Ok(match subject_scope(&limit.limit)? {
-        SubjectScope::All => None,
-        SubjectScope::Identity => Some(rate_limit_key),
-    })
-}
-
-fn gateway_bucket_subject_key<'a>(
-    limit: &MatchedLimit,
-    rate_limit_key: &'a str,
-) -> Result<&'a str> {
-    Ok(match subject_scope(&limit.limit)? {
-        SubjectScope::All => "all",
-        SubjectScope::Identity => rate_limit_key,
+        SubjectScope::Identity => Some(effective_rate_limit_key(subject)?),
     })
 }
 
@@ -900,8 +669,7 @@ fn validate_metric(metric: &str) -> Result<()> {
         | METRIC_LLM_REASONING_TOKENS
         | METRIC_LLM_TOTAL_TOKENS
         | METRIC_AGENT_SESSIONS
-        | METRIC_TOOL_CALLS
-        | METRIC_GATEWAY_REQUESTS => Ok(()),
+        | METRIC_TOOL_CALLS => Ok(()),
         _ => bail!("unsupported UsagePolicy metric '{metric}'"),
     }
 }
@@ -964,25 +732,29 @@ fn counter_key(
     )
 }
 
-fn gateway_bucket_key(limit: &MatchedLimit, rate_limit_key: &str) -> String {
-    format!(
-        "{}:{}:{}:{}",
-        limit.policy_namespace, limit.policy_name, limit.rule_id, rate_limit_key
-    )
-}
-
 fn rule_id(limit: &resources_proto::UsageLimit) -> String {
     let selector = limit.selector.as_ref();
-    let subject_scope = subject_scope_name(limit).unwrap_or("invalid");
-    let canonical = format!(
-        "metric={};window={};subjectScope={};agent={};provider={};model={}",
-        limit.metric,
-        limit.window,
-        subject_scope,
-        selector.map(|s| s.agent.as_str()).unwrap_or_default(),
-        selector.map(|s| s.provider.as_str()).unwrap_or_default(),
-        selector.map(|s| s.model.as_str()).unwrap_or_default(),
-    );
+    let canonical = if limit.subject_scope.trim().is_empty() {
+        format!(
+            "metric={};window={};agent={};provider={};model={}",
+            limit.metric,
+            limit.window,
+            selector.map(|s| s.agent.as_str()).unwrap_or_default(),
+            selector.map(|s| s.provider.as_str()).unwrap_or_default(),
+            selector.map(|s| s.model.as_str()).unwrap_or_default(),
+        )
+    } else {
+        let subject_scope = subject_scope_name(limit).unwrap_or("invalid");
+        format!(
+            "metric={};window={};subjectScope={};agent={};provider={};model={}",
+            limit.metric,
+            limit.window,
+            subject_scope,
+            selector.map(|s| s.agent.as_str()).unwrap_or_default(),
+            selector.map(|s| s.provider.as_str()).unwrap_or_default(),
+            selector.map(|s| s.model.as_str()).unwrap_or_default(),
+        )
+    };
     format!("{:016x}", fnv1a64(canonical.as_bytes()))
 }
 
@@ -1020,13 +792,6 @@ mod tests {
             max: 10,
             window: window.to_string(),
             subject_scope: String::new(),
-        }
-    }
-
-    fn limit_with_max(metric: &str, window: &str, max: u64) -> resources_proto::UsageLimit {
-        resources_proto::UsageLimit {
-            max,
-            ..limit(metric, window)
         }
     }
 
@@ -1136,9 +901,6 @@ mod tests {
 
     #[test]
     fn validates_subject_scope_and_defaults_by_metric() {
-        let gateway_default = limit(METRIC_GATEWAY_REQUESTS, "1m");
-        assert_eq!(subject_scope(&gateway_default).unwrap(), SubjectScope::All);
-
         let sessions_default = limit(METRIC_AGENT_SESSIONS, "1m");
         assert_eq!(subject_scope(&sessions_default).unwrap(), SubjectScope::All);
 
@@ -1151,15 +913,23 @@ mod tests {
         assert!(
             validate_usage_policy_spec(&resources_proto::UsagePolicySpec {
                 namespace_scope: "self".to_string(),
-                hard: vec![limit_with_scope(
-                    METRIC_GATEWAY_REQUESTS,
-                    "1m",
-                    1,
-                    "nonsense"
-                )],
+                hard: vec![limit_with_scope(METRIC_AGENT_SESSIONS, "1m", 1, "nonsense")],
             })
             .is_err()
         );
+    }
+
+    #[test]
+    fn omitted_subject_scope_rule_id_uses_legacy_canonical_string() {
+        let default_scope = limit(METRIC_AGENT_SESSIONS, "1m");
+        let legacy_canonical = b"metric=agent.sessions;window=1m;agent=;provider=;model=";
+        assert_eq!(
+            rule_id(&default_scope),
+            format!("{:016x}", fnv1a64(legacy_canonical))
+        );
+
+        let explicit_all = limit_with_scope(METRIC_AGENT_SESSIONS, "1m", 10, "all");
+        assert_ne!(rule_id(&default_scope), rule_id(&explicit_all));
     }
 
     #[test]
@@ -1186,6 +956,15 @@ mod tests {
         kv.set(&key, b"bad").await.unwrap();
         assert!(read_counter(&kv, &key).await.is_err());
         assert!(increment_counter_cas(&kv, &key, 1).await.is_err());
+    }
+
+    #[tokio::test]
+    async fn decrement_missing_counter_does_not_create_zero_record() {
+        let kv = MockKvStore::new();
+        let key = counter_key("acme", "policy", "rule", None, 120);
+
+        assert_eq!(decrement_counter_cas(&kv, &key, 1).await.unwrap(), 0);
+        assert!(kv.get(&key).await.unwrap().is_none());
     }
 
     #[tokio::test]
@@ -1296,70 +1075,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn gateway_usage_is_rate_limited_per_oidc_subject() {
-        let kv = MockKvStore::new();
-        install_policy(
-            &kv,
-            "gateway",
-            vec![limit_with_scope(
-                METRIC_GATEWAY_REQUESTS,
-                "1m",
-                1,
-                "identity",
-            )],
-        )
-        .await;
-        let limiter = SubjectRateLimiter::default();
-        let first_subject = usage_subject(Some("oidc:first"));
-        let second_subject = usage_subject(Some("oidc:second"));
-        let charge = [UsageCharge {
-            metric: METRIC_GATEWAY_REQUESTS,
-            delta: 1,
-        }];
-
-        admit_gateway_usage(&kv, &limiter, &first_subject, &charge, 65)
-            .await
-            .unwrap();
-        let err = admit_gateway_usage(&kv, &limiter, &first_subject, &charge, 65)
-            .await
-            .unwrap_err();
-        assert!(is_quota_exceeded_error(&err));
-
-        admit_gateway_usage(&kv, &limiter, &second_subject, &charge, 65)
-            .await
-            .unwrap();
-    }
-
-    #[tokio::test]
-    async fn gateway_usage_defaults_to_all_subject_scope() {
-        let kv = MockKvStore::new();
-        install_policy(
-            &kv,
-            "gateway-default-all",
-            vec![limit_with_max(METRIC_GATEWAY_REQUESTS, "1m", 1)],
-        )
-        .await;
-        let limiter = SubjectRateLimiter::default();
-        let first_subject = usage_subject(Some("oidc:first"));
-        let second_subject = usage_subject(Some("oidc:second"));
-        let charge = [UsageCharge {
-            metric: METRIC_GATEWAY_REQUESTS,
-            delta: 1,
-        }];
-
-        admit_gateway_usage(&kv, &limiter, &first_subject, &charge, 65)
-            .await
-            .unwrap();
-        let err = admit_gateway_usage(&kv, &limiter, &second_subject, &charge, 65)
-            .await
-            .expect_err("omitted subjectScope should share quota across identities");
-
-        assert!(err
-            .downcast_ref::<GatewayUsageAdmissionExceeded>()
-            .is_some());
-    }
-
-    #[tokio::test]
     async fn namespace_usage_identity_subject_scope_limits_per_subject() {
         let kv = MockKvStore::new();
         install_policy(
@@ -1460,156 +1175,24 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn gateway_usage_rolls_back_earlier_limits_when_later_limit_rejects() {
-        let kv = MockKvStore::new();
-        let broad_limit = limit_with_scope(METRIC_GATEWAY_REQUESTS, "1m", 10, "identity");
-        let strict_limit = limit_with_scope(METRIC_GATEWAY_REQUESTS, "1m", 1, "identity");
-        install_policy(&kv, "broad", vec![broad_limit.clone()]).await;
-        install_policy(&kv, "strict", vec![strict_limit]).await;
-        let limiter = SubjectRateLimiter::default();
-        let subject = usage_subject(Some("oidc:rollback"));
-        let charge = [UsageCharge {
-            metric: METRIC_GATEWAY_REQUESTS,
-            delta: 1,
-        }];
-
-        admit_gateway_usage(&kv, &limiter, &subject, &charge, 65)
-            .await
-            .unwrap();
-        let err = admit_gateway_usage(&kv, &limiter, &subject, &charge, 65)
-            .await
-            .unwrap_err();
-        assert!(is_quota_exceeded_error(&err));
-
-        let broad_key = counter_key(
-            "acme",
-            "broad",
-            &rule_id(&broad_limit),
-            Some("oidc:rollback"),
-            window_start(65, parse_window("1m").unwrap()),
-        );
-        assert_eq!(read_counter(&kv, &broad_key).await.unwrap(), 1);
-    }
-
-    #[tokio::test]
-    async fn anonymous_gateway_usage_gets_strict_fallback_bucket() {
-        let kv = MockKvStore::new();
-        let limiter = SubjectRateLimiter::default();
-        let subject = usage_subject(None);
-        let charge = [UsageCharge {
-            metric: METRIC_GATEWAY_REQUESTS,
-            delta: 1,
-        }];
-
-        admit_gateway_usage(&kv, &limiter, &subject, &charge, 65)
-            .await
-            .unwrap();
-        admit_gateway_usage(&kv, &limiter, &subject, &charge, 65)
-            .await
-            .unwrap();
-        let err = admit_gateway_usage(&kv, &limiter, &subject, &charge, 65)
-            .await
-            .unwrap_err();
-        assert!(is_quota_exceeded_error(&err));
-    }
-
-    #[tokio::test]
-    async fn anonymous_gateway_fallback_is_refunded_when_policy_rejects() {
+    async fn namespace_identity_scope_rejects_missing_rate_limit_key() {
         let kv = MockKvStore::new();
         install_policy(
             &kv,
-            "gateway",
-            vec![limit_with_max(METRIC_GATEWAY_REQUESTS, "1m", 1)],
+            "session-identity",
+            vec![limit_with_scope(METRIC_AGENT_SESSIONS, "1m", 1, "identity")],
         )
         .await;
-        let limiter = SubjectRateLimiter::default();
-        let subject = usage_subject(None);
         let charge = [UsageCharge {
-            metric: METRIC_GATEWAY_REQUESTS,
+            metric: METRIC_AGENT_SESSIONS,
             delta: 1,
         }];
-
-        admit_gateway_usage(&kv, &limiter, &subject, &charge, 65)
-            .await
-            .unwrap();
-        let err = admit_gateway_usage(&kv, &limiter, &subject, &charge, 65)
+        let err = charge_namespace_usage_under_limit(&kv, &usage_subject(None), &charge, 65)
             .await
             .unwrap_err();
-        assert!(is_quota_exceeded_error(&err));
-        let err = admit_gateway_usage(&kv, &limiter, &subject, &charge, 65)
-            .await
-            .unwrap_err();
-        assert!(is_quota_exceeded_error(&err));
-        assert!(matches!(
-            err.downcast_ref::<GatewayUsageAdmissionExceeded>(),
-            Some(exceeded)
-                if exceeded.metric == METRIC_GATEWAY_REQUESTS
-                    && exceeded.rate_limit_key != "anonymous:fallback:strict-fallback"
-        ));
-    }
-
-    #[tokio::test]
-    async fn gateway_limiter_handles_concurrent_hot_subject_checks() {
-        use std::sync::Arc;
-
-        let kv = Arc::new(MockKvStore::new());
-        install_policy(
-            kv.as_ref(),
-            "gateway",
-            vec![limit_with_max(METRIC_GATEWAY_REQUESTS, "1m", 128)],
-        )
-        .await;
-        let limiter = Arc::new(SubjectRateLimiter::default());
-        let charge = [UsageCharge {
-            metric: METRIC_GATEWAY_REQUESTS,
-            delta: 1,
-        }];
-        let mut handles = Vec::new();
-        for _ in 0..32 {
-            let kv = kv.clone();
-            let limiter = limiter.clone();
-            let charge = charge.clone();
-            handles.push(tokio::spawn(async move {
-                let subject = usage_subject(Some("oidc:hot"));
-                admit_gateway_usage(kv.as_ref(), limiter.as_ref(), &subject, &charge, 65).await
-            }));
-        }
-
-        for handle in handles {
-            handle.await.unwrap().unwrap();
-        }
-    }
-
-    #[test]
-    fn gateway_limiter_prunes_idle_buckets() {
-        let limiter = SubjectRateLimiter::default();
-        let now = Instant::now();
-        limiter.buckets.insert(
-            "old".to_string(),
-            TokenBucket {
-                tokens: 1.0,
-                last_refill: now - RATE_LIMITER_IDLE_TTL - Duration::from_secs(1),
-            },
-        );
-        limiter.checks.store(
-            RATE_LIMITER_PRUNE_INTERVAL_CHECKS,
-            std::sync::atomic::Ordering::Relaxed,
-        );
-
-        limiter
-            .check(
-                "fresh".to_string(),
-                METRIC_GATEWAY_REQUESTS,
-                TokenBucketRule {
-                    max: 1,
-                    window: Window { seconds: 60 },
-                },
-                now,
-            )
-            .unwrap();
-
-        assert!(!limiter.buckets.contains_key("old"));
-        assert!(limiter.buckets.contains_key("fresh"));
+        assert!(err
+            .to_string()
+            .contains("identity-scoped UsagePolicy requires a request identity"));
     }
 
     #[tokio::test]

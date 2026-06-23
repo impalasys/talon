@@ -3349,6 +3349,23 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
      */
     com.google.protobuf.ByteString
         getOriginsBytes(int index);
+
+    /**
+     * <code>optional string sub = 7;</code>
+     * @return Whether the sub field is set.
+     */
+    boolean hasSub();
+    /**
+     * <code>optional string sub = 7;</code>
+     * @return The sub.
+     */
+    java.lang.String getSub();
+    /**
+     * <code>optional string sub = 7;</code>
+     * @return The bytes for sub.
+     */
+    com.google.protobuf.ByteString
+        getSubBytes();
   }
   /**
    * Protobuf type {@code talon.v1.MintAccessTokenRequest}
@@ -3378,6 +3395,7 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
       channel_ = "";
       origins_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
+      sub_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -3627,6 +3645,53 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
       return origins_.getByteString(index);
     }
 
+    public static final int SUB_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sub_ = "";
+    /**
+     * <code>optional string sub = 7;</code>
+     * @return Whether the sub field is set.
+     */
+    @java.lang.Override
+    public boolean hasSub() {
+      return ((bitField0_ & 0x00000008) != 0);
+    }
+    /**
+     * <code>optional string sub = 7;</code>
+     * @return The sub.
+     */
+    @java.lang.Override
+    public java.lang.String getSub() {
+      java.lang.Object ref = sub_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sub_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string sub = 7;</code>
+     * @return The bytes for sub.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSubBytes() {
+      java.lang.Object ref = sub_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sub_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -3658,6 +3723,9 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
       }
       for (int i = 0; i < origins_.size(); i++) {
         com.google.protobuf.GeneratedMessage.writeString(output, 6, origins_.getRaw(i));
+      }
+      if (((bitField0_ & 0x00000008) != 0)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, sub_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3691,6 +3759,9 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
         }
         size += dataSize;
         size += 1 * getOriginsList().size();
+      }
+      if (((bitField0_ & 0x00000008) != 0)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, sub_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -3728,6 +3799,11 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
           != other.getExpiresIn()) return false;
       if (!getOriginsList()
           .equals(other.getOriginsList())) return false;
+      if (hasSub() != other.hasSub()) return false;
+      if (hasSub()) {
+        if (!getSub()
+            .equals(other.getSub())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -3759,6 +3835,10 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
       if (getOriginsCount() > 0) {
         hash = (37 * hash) + ORIGINS_FIELD_NUMBER;
         hash = (53 * hash) + getOriginsList().hashCode();
+      }
+      if (hasSub()) {
+        hash = (37 * hash) + SUB_FIELD_NUMBER;
+        hash = (53 * hash) + getSub().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -3898,6 +3978,7 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
         expiresIn_ = 0L;
         origins_ =
             com.google.protobuf.LazyStringArrayList.emptyList();
+        sub_ = "";
         return this;
       }
 
@@ -3954,6 +4035,10 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
           origins_.makeImmutable();
           result.origins_ = origins_;
         }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.sub_ = sub_;
+          to_bitField0_ |= 0x00000008;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -4000,6 +4085,11 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
             ensureOriginsIsMutable();
             origins_.addAll(other.origins_);
           }
+          onChanged();
+        }
+        if (other.hasSub()) {
+          sub_ = other.sub_;
+          bitField0_ |= 0x00000040;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -4058,6 +4148,11 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
                 origins_.add(input.readStringRequireUtf8());
                 break;
               } // case 50
+              case 58: {
+                sub_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -4523,6 +4618,85 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
         ensureOriginsIsMutable();
         origins_.add(value);
         bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object sub_ = "";
+      /**
+       * <code>optional string sub = 7;</code>
+       * @return Whether the sub field is set.
+       */
+      public boolean hasSub() {
+        return ((bitField0_ & 0x00000040) != 0);
+      }
+      /**
+       * <code>optional string sub = 7;</code>
+       * @return The sub.
+       */
+      public java.lang.String getSub() {
+        java.lang.Object ref = sub_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sub_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string sub = 7;</code>
+       * @return The bytes for sub.
+       */
+      public com.google.protobuf.ByteString
+          getSubBytes() {
+        java.lang.Object ref = sub_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sub_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string sub = 7;</code>
+       * @param value The sub to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSub(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sub_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string sub = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSub() {
+        sub_ = getDefaultInstance().getSub();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string sub = 7;</code>
+       * @param value The bytes for sub to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSubBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sub_ = value;
+        bitField0_ |= 0x00000040;
         onChanged();
         return this;
       }
@@ -12879,50 +13053,51 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
       "ken\030\001 \001(\t\022\022\n\ntoken_type\030\002 \001(\t\022\022\n\nexpires" +
       "_in\030\003 \001(\004\022\017\n\007subject\030\004 \001(\t\022\022\n\005email\030\005 \001(" +
       "\tH\000\210\001\001\022\r\n\005trust\030\006 \001(\t\022\030\n\013client_type\030\007 \001" +
-      "(\tH\001\210\001\001B\010\n\006_emailB\016\n\014_client_type\"\262\001\n\026Mi" +
+      "(\tH\001\210\001\001B\010\n\006_emailB\016\n\014_client_type\"\314\001\n\026Mi" +
       "ntAccessTokenRequest\022\021\n\tnamespace\030\001 \001(\t\022" +
       "\022\n\005agent\030\002 \001(\tH\000\210\001\001\022\024\n\007session\030\003 \001(\tH\001\210\001" +
       "\001\022\024\n\007channel\030\004 \001(\tH\002\210\001\001\022\022\n\nexpires_in\030\005 " +
-      "\001(\004\022\017\n\007origins\030\006 \003(\tB\010\n\006_agentB\n\n\010_sessi" +
-      "onB\n\n\010_channel\"k\n\027MintAccessTokenRespons" +
-      "e\022\024\n\014access_token\030\001 \001(\t\022\022\n\ntoken_type\030\002 " +
-      "\001(\t\022\022\n\nexpires_in\030\003 \001(\004\022\022\n\nexpires_at\030\004 " +
-      "\001(\004\"\331\001\n\nApiKeyInfo\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002" +
-      " \001(\t\022\016\n\006prefix\030\003 \001(\t\022\'\n\006grants\030\004 \003(\0132\027.t" +
-      "alon.data.ApiKeyGrant\022\022\n\ncreated_at\030\005 \001(" +
-      "\004\022\024\n\014last_used_at\030\006 \001(\004\022\027\n\nexpires_at\030\007 " +
-      "\001(\004H\000\210\001\001\022\027\n\nrevoked_at\030\010 \001(\004H\001\210\001\001B\r\n\013_ex" +
-      "pires_atB\r\n\013_revoked_at\"t\n\023CreateApiKeyR" +
-      "equest\022\014\n\004name\030\001 \001(\t\022\'\n\006grants\030\002 \003(\0132\027.t" +
-      "alon.data.ApiKeyGrant\022\027\n\nexpires_at\030\003 \001(" +
-      "\004H\000\210\001\001B\r\n\013_expires_at\"M\n\024CreateApiKeyRes" +
-      "ponse\022%\n\007api_key\030\001 \001(\0132\024.talon.v1.ApiKey" +
-      "Info\022\016\n\006secret\030\002 \001(\t\"\024\n\022ListApiKeysReque" +
-      "st\"=\n\023ListApiKeysResponse\022&\n\010api_keys\030\001 " +
-      "\003(\0132\024.talon.v1.ApiKeyInfo\"!\n\023RevokeApiKe" +
-      "yRequest\022\n\n\002id\030\001 \001(\t\"=\n\024RevokeApiKeyResp" +
-      "onse\022%\n\007api_key\030\001 \001(\0132\024.talon.v1.ApiKeyI" +
-      "nfo\"s\n\025ExchangeApiKeyRequest\022\017\n\007api_key\030" +
-      "\001 \001(\t\022+\n\005grant\030\002 \001(\0132\027.talon.data.ApiKey" +
-      "GrantH\000\210\001\001\022\022\n\nexpires_in\030\003 \001(\004B\010\n\006_grant" +
-      "\"j\n\026ExchangeApiKeyResponse\022\024\n\014access_tok" +
-      "en\030\001 \001(\t\022\022\n\ntoken_type\030\002 \001(\t\022\022\n\nexpires_" +
-      "in\030\003 \001(\004\022\022\n\nexpires_at\030\004 \001(\0042\321\004\n\013AuthSer" +
-      "vice\022M\n\014GetSsoConfig\022\035.talon.v1.GetSsoCo" +
-      "nfigRequest\032\036.talon.v1.GetSsoConfigRespo" +
-      "nse\022\\\n\021ExchangeOidcToken\022\".talon.v1.Exch" +
-      "angeOidcTokenRequest\032#.talon.v1.Exchange" +
-      "OidcTokenResponse\022V\n\017MintAccessToken\022 .t" +
-      "alon.v1.MintAccessTokenRequest\032!.talon.v" +
-      "1.MintAccessTokenResponse\022M\n\014CreateApiKe" +
-      "y\022\035.talon.v1.CreateApiKeyRequest\032\036.talon" +
-      ".v1.CreateApiKeyResponse\022J\n\013ListApiKeys\022" +
-      "\034.talon.v1.ListApiKeysRequest\032\035.talon.v1" +
-      ".ListApiKeysResponse\022M\n\014RevokeApiKey\022\035.t" +
-      "alon.v1.RevokeApiKeyRequest\032\036.talon.v1.R" +
-      "evokeApiKeyResponse\022S\n\016ExchangeApiKey\022\037." +
-      "talon.v1.ExchangeApiKeyRequest\032 .talon.v" +
-      "1.ExchangeApiKeyResponseb\006proto3"
+      "\001(\004\022\017\n\007origins\030\006 \003(\t\022\020\n\003sub\030\007 \001(\tH\003\210\001\001B\010" +
+      "\n\006_agentB\n\n\010_sessionB\n\n\010_channelB\006\n\004_sub" +
+      "\"k\n\027MintAccessTokenResponse\022\024\n\014access_to" +
+      "ken\030\001 \001(\t\022\022\n\ntoken_type\030\002 \001(\t\022\022\n\nexpires" +
+      "_in\030\003 \001(\004\022\022\n\nexpires_at\030\004 \001(\004\"\331\001\n\nApiKey" +
+      "Info\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\016\n\006prefix" +
+      "\030\003 \001(\t\022\'\n\006grants\030\004 \003(\0132\027.talon.data.ApiK" +
+      "eyGrant\022\022\n\ncreated_at\030\005 \001(\004\022\024\n\014last_used" +
+      "_at\030\006 \001(\004\022\027\n\nexpires_at\030\007 \001(\004H\000\210\001\001\022\027\n\nre" +
+      "voked_at\030\010 \001(\004H\001\210\001\001B\r\n\013_expires_atB\r\n\013_r" +
+      "evoked_at\"t\n\023CreateApiKeyRequest\022\014\n\004name" +
+      "\030\001 \001(\t\022\'\n\006grants\030\002 \003(\0132\027.talon.data.ApiK" +
+      "eyGrant\022\027\n\nexpires_at\030\003 \001(\004H\000\210\001\001B\r\n\013_exp" +
+      "ires_at\"M\n\024CreateApiKeyResponse\022%\n\007api_k" +
+      "ey\030\001 \001(\0132\024.talon.v1.ApiKeyInfo\022\016\n\006secret" +
+      "\030\002 \001(\t\"\024\n\022ListApiKeysRequest\"=\n\023ListApiK" +
+      "eysResponse\022&\n\010api_keys\030\001 \003(\0132\024.talon.v1" +
+      ".ApiKeyInfo\"!\n\023RevokeApiKeyRequest\022\n\n\002id" +
+      "\030\001 \001(\t\"=\n\024RevokeApiKeyResponse\022%\n\007api_ke" +
+      "y\030\001 \001(\0132\024.talon.v1.ApiKeyInfo\"s\n\025Exchang" +
+      "eApiKeyRequest\022\017\n\007api_key\030\001 \001(\t\022+\n\005grant" +
+      "\030\002 \001(\0132\027.talon.data.ApiKeyGrantH\000\210\001\001\022\022\n\n" +
+      "expires_in\030\003 \001(\004B\010\n\006_grant\"j\n\026ExchangeAp" +
+      "iKeyResponse\022\024\n\014access_token\030\001 \001(\t\022\022\n\nto" +
+      "ken_type\030\002 \001(\t\022\022\n\nexpires_in\030\003 \001(\004\022\022\n\nex" +
+      "pires_at\030\004 \001(\0042\321\004\n\013AuthService\022M\n\014GetSso" +
+      "Config\022\035.talon.v1.GetSsoConfigRequest\032\036." +
+      "talon.v1.GetSsoConfigResponse\022\\\n\021Exchang" +
+      "eOidcToken\022\".talon.v1.ExchangeOidcTokenR" +
+      "equest\032#.talon.v1.ExchangeOidcTokenRespo" +
+      "nse\022V\n\017MintAccessToken\022 .talon.v1.MintAc" +
+      "cessTokenRequest\032!.talon.v1.MintAccessTo" +
+      "kenResponse\022M\n\014CreateApiKey\022\035.talon.v1.C" +
+      "reateApiKeyRequest\032\036.talon.v1.CreateApiK" +
+      "eyResponse\022J\n\013ListApiKeys\022\034.talon.v1.Lis" +
+      "tApiKeysRequest\032\035.talon.v1.ListApiKeysRe" +
+      "sponse\022M\n\014RevokeApiKey\022\035.talon.v1.Revoke" +
+      "ApiKeyRequest\032\036.talon.v1.RevokeApiKeyRes" +
+      "ponse\022S\n\016ExchangeApiKey\022\037.talon.v1.Excha" +
+      "ngeApiKeyRequest\032 .talon.v1.ExchangeApiK" +
+      "eyResponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -12958,7 +13133,7 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
     internal_static_talon_v1_MintAccessTokenRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_MintAccessTokenRequest_descriptor,
-        new java.lang.String[] { "Namespace", "Agent", "Session", "Channel", "ExpiresIn", "Origins", });
+        new java.lang.String[] { "Namespace", "Agent", "Session", "Channel", "ExpiresIn", "Origins", "Sub", });
     internal_static_talon_v1_MintAccessTokenResponse_descriptor =
       getDescriptor().getMessageType(5);
     internal_static_talon_v1_MintAccessTokenResponse_fieldAccessorTable = new

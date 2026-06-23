@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from talon_client.proto.data import api_keys_pb2 as proto_dot_data_dot_api__keys__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19proto/talon/v1/auth.proto\x12\x08talon.v1\x1a\x19proto/data/api_keys.proto\"\x15\n\x13GetSsoConfigRequest\"n\n\x14GetSsoConfigResponse\x12\x1a\n\x12google_sso_enabled\x18\x01 \x01(\x08\x12!\n\x14google_web_client_id\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\x17\n\x15_google_web_client_id\"t\n\x18\x45xchangeOidcTokenRequest\x12\x10\n\x08id_token\x18\x01 \x01(\t\x12\x12\n\x05trust\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x18\n\x0b\x63lient_type\x18\x03 \x01(\tH\x01\x88\x01\x01\x42\x08\n\x06_trustB\x0e\n\x0c_client_type\"\xc1\x01\n\x19\x45xchangeOidcTokenResponse\x12\x14\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\t\x12\x12\n\ntoken_type\x18\x02 \x01(\t\x12\x12\n\nexpires_in\x18\x03 \x01(\x04\x12\x0f\n\x07subject\x18\x04 \x01(\t\x12\x12\n\x05\x65mail\x18\x05 \x01(\tH\x00\x88\x01\x01\x12\r\n\x05trust\x18\x06 \x01(\t\x12\x18\n\x0b\x63lient_type\x18\x07 \x01(\tH\x01\x88\x01\x01\x42\x08\n\x06_emailB\x0e\n\x0c_client_type\"\xb2\x01\n\x16MintAccessTokenRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x12\n\x05\x61gent\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x14\n\x07session\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x14\n\x07\x63hannel\x18\x04 \x01(\tH\x02\x88\x01\x01\x12\x12\n\nexpires_in\x18\x05 \x01(\x04\x12\x0f\n\x07origins\x18\x06 \x03(\tB\x08\n\x06_agentB\n\n\x08_sessionB\n\n\x08_channel\"k\n\x17MintAccessTokenResponse\x12\x14\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\t\x12\x12\n\ntoken_type\x18\x02 \x01(\t\x12\x12\n\nexpires_in\x18\x03 \x01(\x04\x12\x12\n\nexpires_at\x18\x04 \x01(\x04\"\xd9\x01\n\nApiKeyInfo\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0e\n\x06prefix\x18\x03 \x01(\t\x12\'\n\x06grants\x18\x04 \x03(\x0b\x32\x17.talon.data.ApiKeyGrant\x12\x12\n\ncreated_at\x18\x05 \x01(\x04\x12\x14\n\x0clast_used_at\x18\x06 \x01(\x04\x12\x17\n\nexpires_at\x18\x07 \x01(\x04H\x00\x88\x01\x01\x12\x17\n\nrevoked_at\x18\x08 \x01(\x04H\x01\x88\x01\x01\x42\r\n\x0b_expires_atB\r\n\x0b_revoked_at\"t\n\x13\x43reateApiKeyRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\'\n\x06grants\x18\x02 \x03(\x0b\x32\x17.talon.data.ApiKeyGrant\x12\x17\n\nexpires_at\x18\x03 \x01(\x04H\x00\x88\x01\x01\x42\r\n\x0b_expires_at\"M\n\x14\x43reateApiKeyResponse\x12%\n\x07\x61pi_key\x18\x01 \x01(\x0b\x32\x14.talon.v1.ApiKeyInfo\x12\x0e\n\x06secret\x18\x02 \x01(\t\"\x14\n\x12ListApiKeysRequest\"=\n\x13ListApiKeysResponse\x12&\n\x08\x61pi_keys\x18\x01 \x03(\x0b\x32\x14.talon.v1.ApiKeyInfo\"!\n\x13RevokeApiKeyRequest\x12\n\n\x02id\x18\x01 \x01(\t\"=\n\x14RevokeApiKeyResponse\x12%\n\x07\x61pi_key\x18\x01 \x01(\x0b\x32\x14.talon.v1.ApiKeyInfo\"s\n\x15\x45xchangeApiKeyRequest\x12\x0f\n\x07\x61pi_key\x18\x01 \x01(\t\x12+\n\x05grant\x18\x02 \x01(\x0b\x32\x17.talon.data.ApiKeyGrantH\x00\x88\x01\x01\x12\x12\n\nexpires_in\x18\x03 \x01(\x04\x42\x08\n\x06_grant\"j\n\x16\x45xchangeApiKeyResponse\x12\x14\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\t\x12\x12\n\ntoken_type\x18\x02 \x01(\t\x12\x12\n\nexpires_in\x18\x03 \x01(\x04\x12\x12\n\nexpires_at\x18\x04 \x01(\x04\x32\xd1\x04\n\x0b\x41uthService\x12M\n\x0cGetSsoConfig\x12\x1d.talon.v1.GetSsoConfigRequest\x1a\x1e.talon.v1.GetSsoConfigResponse\x12\\\n\x11\x45xchangeOidcToken\x12\".talon.v1.ExchangeOidcTokenRequest\x1a#.talon.v1.ExchangeOidcTokenResponse\x12V\n\x0fMintAccessToken\x12 .talon.v1.MintAccessTokenRequest\x1a!.talon.v1.MintAccessTokenResponse\x12M\n\x0c\x43reateApiKey\x12\x1d.talon.v1.CreateApiKeyRequest\x1a\x1e.talon.v1.CreateApiKeyResponse\x12J\n\x0bListApiKeys\x12\x1c.talon.v1.ListApiKeysRequest\x1a\x1d.talon.v1.ListApiKeysResponse\x12M\n\x0cRevokeApiKey\x12\x1d.talon.v1.RevokeApiKeyRequest\x1a\x1e.talon.v1.RevokeApiKeyResponse\x12S\n\x0e\x45xchangeApiKey\x12\x1f.talon.v1.ExchangeApiKeyRequest\x1a .talon.v1.ExchangeApiKeyResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19proto/talon/v1/auth.proto\x12\x08talon.v1\x1a\x19proto/data/api_keys.proto\"\x15\n\x13GetSsoConfigRequest\"n\n\x14GetSsoConfigResponse\x12\x1a\n\x12google_sso_enabled\x18\x01 \x01(\x08\x12!\n\x14google_web_client_id\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\x17\n\x15_google_web_client_id\"t\n\x18\x45xchangeOidcTokenRequest\x12\x10\n\x08id_token\x18\x01 \x01(\t\x12\x12\n\x05trust\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x18\n\x0b\x63lient_type\x18\x03 \x01(\tH\x01\x88\x01\x01\x42\x08\n\x06_trustB\x0e\n\x0c_client_type\"\xc1\x01\n\x19\x45xchangeOidcTokenResponse\x12\x14\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\t\x12\x12\n\ntoken_type\x18\x02 \x01(\t\x12\x12\n\nexpires_in\x18\x03 \x01(\x04\x12\x0f\n\x07subject\x18\x04 \x01(\t\x12\x12\n\x05\x65mail\x18\x05 \x01(\tH\x00\x88\x01\x01\x12\r\n\x05trust\x18\x06 \x01(\t\x12\x18\n\x0b\x63lient_type\x18\x07 \x01(\tH\x01\x88\x01\x01\x42\x08\n\x06_emailB\x0e\n\x0c_client_type\"\xcc\x01\n\x16MintAccessTokenRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x12\n\x05\x61gent\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x14\n\x07session\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x14\n\x07\x63hannel\x18\x04 \x01(\tH\x02\x88\x01\x01\x12\x12\n\nexpires_in\x18\x05 \x01(\x04\x12\x0f\n\x07origins\x18\x06 \x03(\t\x12\x10\n\x03sub\x18\x07 \x01(\tH\x03\x88\x01\x01\x42\x08\n\x06_agentB\n\n\x08_sessionB\n\n\x08_channelB\x06\n\x04_sub\"k\n\x17MintAccessTokenResponse\x12\x14\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\t\x12\x12\n\ntoken_type\x18\x02 \x01(\t\x12\x12\n\nexpires_in\x18\x03 \x01(\x04\x12\x12\n\nexpires_at\x18\x04 \x01(\x04\"\xd9\x01\n\nApiKeyInfo\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0e\n\x06prefix\x18\x03 \x01(\t\x12\'\n\x06grants\x18\x04 \x03(\x0b\x32\x17.talon.data.ApiKeyGrant\x12\x12\n\ncreated_at\x18\x05 \x01(\x04\x12\x14\n\x0clast_used_at\x18\x06 \x01(\x04\x12\x17\n\nexpires_at\x18\x07 \x01(\x04H\x00\x88\x01\x01\x12\x17\n\nrevoked_at\x18\x08 \x01(\x04H\x01\x88\x01\x01\x42\r\n\x0b_expires_atB\r\n\x0b_revoked_at\"t\n\x13\x43reateApiKeyRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\'\n\x06grants\x18\x02 \x03(\x0b\x32\x17.talon.data.ApiKeyGrant\x12\x17\n\nexpires_at\x18\x03 \x01(\x04H\x00\x88\x01\x01\x42\r\n\x0b_expires_at\"M\n\x14\x43reateApiKeyResponse\x12%\n\x07\x61pi_key\x18\x01 \x01(\x0b\x32\x14.talon.v1.ApiKeyInfo\x12\x0e\n\x06secret\x18\x02 \x01(\t\"\x14\n\x12ListApiKeysRequest\"=\n\x13ListApiKeysResponse\x12&\n\x08\x61pi_keys\x18\x01 \x03(\x0b\x32\x14.talon.v1.ApiKeyInfo\"!\n\x13RevokeApiKeyRequest\x12\n\n\x02id\x18\x01 \x01(\t\"=\n\x14RevokeApiKeyResponse\x12%\n\x07\x61pi_key\x18\x01 \x01(\x0b\x32\x14.talon.v1.ApiKeyInfo\"s\n\x15\x45xchangeApiKeyRequest\x12\x0f\n\x07\x61pi_key\x18\x01 \x01(\t\x12+\n\x05grant\x18\x02 \x01(\x0b\x32\x17.talon.data.ApiKeyGrantH\x00\x88\x01\x01\x12\x12\n\nexpires_in\x18\x03 \x01(\x04\x42\x08\n\x06_grant\"j\n\x16\x45xchangeApiKeyResponse\x12\x14\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\t\x12\x12\n\ntoken_type\x18\x02 \x01(\t\x12\x12\n\nexpires_in\x18\x03 \x01(\x04\x12\x12\n\nexpires_at\x18\x04 \x01(\x04\x32\xd1\x04\n\x0b\x41uthService\x12M\n\x0cGetSsoConfig\x12\x1d.talon.v1.GetSsoConfigRequest\x1a\x1e.talon.v1.GetSsoConfigResponse\x12\\\n\x11\x45xchangeOidcToken\x12\".talon.v1.ExchangeOidcTokenRequest\x1a#.talon.v1.ExchangeOidcTokenResponse\x12V\n\x0fMintAccessToken\x12 .talon.v1.MintAccessTokenRequest\x1a!.talon.v1.MintAccessTokenResponse\x12M\n\x0c\x43reateApiKey\x12\x1d.talon.v1.CreateApiKeyRequest\x1a\x1e.talon.v1.CreateApiKeyResponse\x12J\n\x0bListApiKeys\x12\x1c.talon.v1.ListApiKeysRequest\x1a\x1d.talon.v1.ListApiKeysResponse\x12M\n\x0cRevokeApiKey\x12\x1d.talon.v1.RevokeApiKeyRequest\x1a\x1e.talon.v1.RevokeApiKeyResponse\x12S\n\x0e\x45xchangeApiKey\x12\x1f.talon.v1.ExchangeApiKeyRequest\x1a .talon.v1.ExchangeApiKeyResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -41,27 +41,27 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_EXCHANGEOIDCTOKENRESPONSE']._serialized_start=320
   _globals['_EXCHANGEOIDCTOKENRESPONSE']._serialized_end=513
   _globals['_MINTACCESSTOKENREQUEST']._serialized_start=516
-  _globals['_MINTACCESSTOKENREQUEST']._serialized_end=694
-  _globals['_MINTACCESSTOKENRESPONSE']._serialized_start=696
-  _globals['_MINTACCESSTOKENRESPONSE']._serialized_end=803
-  _globals['_APIKEYINFO']._serialized_start=806
-  _globals['_APIKEYINFO']._serialized_end=1023
-  _globals['_CREATEAPIKEYREQUEST']._serialized_start=1025
-  _globals['_CREATEAPIKEYREQUEST']._serialized_end=1141
-  _globals['_CREATEAPIKEYRESPONSE']._serialized_start=1143
-  _globals['_CREATEAPIKEYRESPONSE']._serialized_end=1220
-  _globals['_LISTAPIKEYSREQUEST']._serialized_start=1222
-  _globals['_LISTAPIKEYSREQUEST']._serialized_end=1242
-  _globals['_LISTAPIKEYSRESPONSE']._serialized_start=1244
-  _globals['_LISTAPIKEYSRESPONSE']._serialized_end=1305
-  _globals['_REVOKEAPIKEYREQUEST']._serialized_start=1307
-  _globals['_REVOKEAPIKEYREQUEST']._serialized_end=1340
-  _globals['_REVOKEAPIKEYRESPONSE']._serialized_start=1342
-  _globals['_REVOKEAPIKEYRESPONSE']._serialized_end=1403
-  _globals['_EXCHANGEAPIKEYREQUEST']._serialized_start=1405
-  _globals['_EXCHANGEAPIKEYREQUEST']._serialized_end=1520
-  _globals['_EXCHANGEAPIKEYRESPONSE']._serialized_start=1522
-  _globals['_EXCHANGEAPIKEYRESPONSE']._serialized_end=1628
-  _globals['_AUTHSERVICE']._serialized_start=1631
-  _globals['_AUTHSERVICE']._serialized_end=2224
+  _globals['_MINTACCESSTOKENREQUEST']._serialized_end=720
+  _globals['_MINTACCESSTOKENRESPONSE']._serialized_start=722
+  _globals['_MINTACCESSTOKENRESPONSE']._serialized_end=829
+  _globals['_APIKEYINFO']._serialized_start=832
+  _globals['_APIKEYINFO']._serialized_end=1049
+  _globals['_CREATEAPIKEYREQUEST']._serialized_start=1051
+  _globals['_CREATEAPIKEYREQUEST']._serialized_end=1167
+  _globals['_CREATEAPIKEYRESPONSE']._serialized_start=1169
+  _globals['_CREATEAPIKEYRESPONSE']._serialized_end=1246
+  _globals['_LISTAPIKEYSREQUEST']._serialized_start=1248
+  _globals['_LISTAPIKEYSREQUEST']._serialized_end=1268
+  _globals['_LISTAPIKEYSRESPONSE']._serialized_start=1270
+  _globals['_LISTAPIKEYSRESPONSE']._serialized_end=1331
+  _globals['_REVOKEAPIKEYREQUEST']._serialized_start=1333
+  _globals['_REVOKEAPIKEYREQUEST']._serialized_end=1366
+  _globals['_REVOKEAPIKEYRESPONSE']._serialized_start=1368
+  _globals['_REVOKEAPIKEYRESPONSE']._serialized_end=1429
+  _globals['_EXCHANGEAPIKEYREQUEST']._serialized_start=1431
+  _globals['_EXCHANGEAPIKEYREQUEST']._serialized_end=1546
+  _globals['_EXCHANGEAPIKEYRESPONSE']._serialized_start=1548
+  _globals['_EXCHANGEAPIKEYRESPONSE']._serialized_end=1654
+  _globals['_AUTHSERVICE']._serialized_start=1657
+  _globals['_AUTHSERVICE']._serialized_end=2250
 # @@protoc_insertion_point(module_scope)

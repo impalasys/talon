@@ -4,47 +4,97 @@ package talon.resources;
 
 import "proto/resources/common.proto";
 
+// Selects the traffic within a namespace that a UsagePolicy limit applies to.
+// Empty fields are wildcards.
 message UsageSelector {
+  // Agent name to match. Empty matches all agents.
   string agent = 1;
+  // LLM provider name to match for llm.* metrics. Empty matches all providers.
   string provider = 2;
+  // LLM model name to match for llm.* metrics. Empty matches all models.
   string model = 3;
 }
 
+// A single hard usage limit enforced by a UsagePolicy.
 message UsageLimit {
+  // Optional selector for narrowing the limit. If omitted, the limit applies to
+  // all traffic in the policy namespace scope.
   UsageSelector selector = 1;
+  // Metric to limit. Valid values are:
+  // - "llm.requests"
+  // - "llm.inputTokens"
+  // - "llm.outputTokens"
+  // - "llm.reasoningTokens"
+  // - "llm.totalTokens"
+  // - "agent.sessions": successful session creations.
+  // - "tool.calls"
   string metric = 2;
+  // Maximum allowed usage for the metric within the configured window.
   uint64 max = 3;
+  // Rolling counter window encoded as an integer duration with a unit suffix,
+  // such as "1m", "5h", or "7d". Supported units are seconds ("s"),
+  // minutes ("m"), hours ("h"), and days ("d").
   string window = 4;
+  // Identity partitioning for this limit. Valid values are:
+  // - "" or "all": one shared quota for all matching traffic.
+  // - "identity": separate quota per authenticated rate-limit identity.
+  // The value "subject" is accepted as a deprecated alias for "identity".
   string subject_scope = 5;
 }
 
+// Desired usage policy for a namespace.
 message UsagePolicySpec {
+  // Namespace matching mode. Valid values are:
+  // - "" or "recursive": applies to the policy namespace and descendant namespaces.
+  // - "self": applies only to the policy namespace.
   string namespace_scope = 1;
+  // Hard limits enforced for matching traffic.
   repeated UsageLimit hard = 2;
 }
 
+// Current status for one UsageLimit.
 message UsageLimitStatus {
+  // Selector copied from the configured limit.
   UsageSelector selector = 1;
+  // Metric copied from the configured limit.
   string metric = 2;
+  // Maximum configured usage for the current window.
   uint64 max = 3;
+  // Window copied from the configured limit.
   string window = 4;
+  // Unix timestamp in seconds for the start of the current window.
   int64 window_start = 5;
+  // Unix timestamp in seconds when the current window resets.
   int64 reset_at = 6;
+  // Used quota in the current window. For identity-scoped limits, this reports
+  // the highest usage observed for any one identity in the window.
   uint64 used = 7;
+  // Remaining quota in the current window.
   uint64 remaining = 8;
+  // True when used is greater than or equal to max.
   bool exceeded = 9;
+  // Canonical subject scope for the limit. Values are "all" or "identity".
   string subject_scope = 10;
 }
 
+// Current status for a UsagePolicy resource.
 message UsagePolicyStatus {
+  // Resource generation reflected by this status.
   uint64 observed_generation = 1;
+  // Policy lifecycle phase. Current value is "Active" when the policy validates.
   string phase = 2;
+  // Conditions describing validation or reconciliation issues.
   repeated ResourceCondition conditions = 3;
+  // Status for each configured hard limit.
   repeated UsageLimitStatus hard = 4;
 }
 
+// UsagePolicy configures quota and rate limits for a namespace.
 message UsagePolicy {
+  // Resource identity and namespace metadata.
   ResourceMeta metadata = 1;
+  // Desired policy configuration.
   UsagePolicySpec spec = 2;
+  // Observed policy status.
   UsagePolicyStatus status = 3;
 }

@@ -2214,6 +2214,8 @@ pub struct MintAccessTokenRequest {
     pub expires_in: u64,
     #[prost(string, repeated, tag = "6")]
     pub origins: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "7")]
+    pub sub: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MintAccessTokenResponse {

@@ -8,20 +8,29 @@ import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 import { ResourceCondition, ResourceMeta } from "./common_pb.js";
 
 /**
+ * Selects the traffic within a namespace that a UsagePolicy limit applies to.
+ * Empty fields are wildcards.
+ *
  * @generated from message talon.resources.UsageSelector
  */
 export class UsageSelector extends Message<UsageSelector> {
   /**
+   * Agent name to match. Empty matches all agents.
+   *
    * @generated from field: string agent = 1;
    */
   agent = "";
 
   /**
+   * LLM provider name to match for llm.* metrics. Empty matches all providers.
+   *
    * @generated from field: string provider = 2;
    */
   provider = "";
 
   /**
+   * LLM model name to match for llm.* metrics. Empty matches all models.
+   *
    * @generated from field: string model = 3;
    */
   model = "";
@@ -57,30 +66,55 @@ export class UsageSelector extends Message<UsageSelector> {
 }
 
 /**
+ * A single hard usage limit enforced by a UsagePolicy.
+ *
  * @generated from message talon.resources.UsageLimit
  */
 export class UsageLimit extends Message<UsageLimit> {
   /**
+   * Optional selector for narrowing the limit. If omitted, the limit applies to
+   * all traffic in the policy namespace scope.
+   *
    * @generated from field: talon.resources.UsageSelector selector = 1;
    */
   selector?: UsageSelector;
 
   /**
+   * Metric to limit. Valid values are:
+   * - "llm.requests"
+   * - "llm.inputTokens"
+   * - "llm.outputTokens"
+   * - "llm.reasoningTokens"
+   * - "llm.totalTokens"
+   * - "agent.sessions": successful session creations.
+   * - "tool.calls"
+   *
    * @generated from field: string metric = 2;
    */
   metric = "";
 
   /**
+   * Maximum allowed usage for the metric within the configured window.
+   *
    * @generated from field: uint64 max = 3;
    */
   max = protoInt64.zero;
 
   /**
+   * Rolling counter window encoded as an integer duration with a unit suffix,
+   * such as "1m", "5h", or "7d". Supported units are seconds ("s"),
+   * minutes ("m"), hours ("h"), and days ("d").
+   *
    * @generated from field: string window = 4;
    */
   window = "";
 
   /**
+   * Identity partitioning for this limit. Valid values are:
+   * - "" or "all": one shared quota for all matching traffic.
+   * - "identity": separate quota per authenticated rate-limit identity.
+   * The value "subject" is accepted as a deprecated alias for "identity".
+   *
    * @generated from field: string subject_scope = 5;
    */
   subjectScope = "";
@@ -118,15 +152,23 @@ export class UsageLimit extends Message<UsageLimit> {
 }
 
 /**
+ * Desired usage policy for a namespace.
+ *
  * @generated from message talon.resources.UsagePolicySpec
  */
 export class UsagePolicySpec extends Message<UsagePolicySpec> {
   /**
+   * Namespace matching mode. Valid values are:
+   * - "" or "recursive": applies to the policy namespace and descendant namespaces.
+   * - "self": applies only to the policy namespace.
+   *
    * @generated from field: string namespace_scope = 1;
    */
   namespaceScope = "";
 
   /**
+   * Hard limits enforced for matching traffic.
+   *
    * @generated from field: repeated talon.resources.UsageLimit hard = 2;
    */
   hard: UsageLimit[] = [];
@@ -161,55 +203,78 @@ export class UsagePolicySpec extends Message<UsagePolicySpec> {
 }
 
 /**
+ * Current status for one UsageLimit.
+ *
  * @generated from message talon.resources.UsageLimitStatus
  */
 export class UsageLimitStatus extends Message<UsageLimitStatus> {
   /**
+   * Selector copied from the configured limit.
+   *
    * @generated from field: talon.resources.UsageSelector selector = 1;
    */
   selector?: UsageSelector;
 
   /**
+   * Metric copied from the configured limit.
+   *
    * @generated from field: string metric = 2;
    */
   metric = "";
 
   /**
+   * Maximum configured usage for the current window.
+   *
    * @generated from field: uint64 max = 3;
    */
   max = protoInt64.zero;
 
   /**
+   * Window copied from the configured limit.
+   *
    * @generated from field: string window = 4;
    */
   window = "";
 
   /**
+   * Unix timestamp in seconds for the start of the current window.
+   *
    * @generated from field: int64 window_start = 5;
    */
   windowStart = protoInt64.zero;
 
   /**
+   * Unix timestamp in seconds when the current window resets.
+   *
    * @generated from field: int64 reset_at = 6;
    */
   resetAt = protoInt64.zero;
 
   /**
+   * Used quota in the current window. For identity-scoped limits, this reports
+   * the highest usage observed for any one identity in the window.
+   *
    * @generated from field: uint64 used = 7;
    */
   used = protoInt64.zero;
 
   /**
+   * Remaining quota in the current window.
+   *
    * @generated from field: uint64 remaining = 8;
    */
   remaining = protoInt64.zero;
 
   /**
+   * True when used is greater than or equal to max.
+   *
    * @generated from field: bool exceeded = 9;
    */
   exceeded = false;
 
   /**
+   * Canonical subject scope for the limit. Values are "all" or "identity".
+   *
    * @generated from field: string subject_scope = 10;
    */
   subjectScope = "";
@@ -252,25 +317,35 @@ export class UsageLimitStatus extends Message<UsageLimitStatus> {
 }
 
 /**
+ * Current status for a UsagePolicy resource.
+ *
  * @generated from message talon.resources.UsagePolicyStatus
  */
 export class UsagePolicyStatus extends Message<UsagePolicyStatus> {
   /**
+   * Resource generation reflected by this status.
+   *
    * @generated from field: uint64 observed_generation = 1;
    */
   observedGeneration = protoInt64.zero;
 
   /**
+   * Policy lifecycle phase. Current value is "Active" when the policy validates.
+   *
    * @generated from field: string phase = 2;
    */
   phase = "";
 
   /**
+   * Conditions describing validation or reconciliation issues.
+   *
    * @generated from field: repeated talon.resources.ResourceCondition conditions = 3;
    */
   conditions: ResourceCondition[] = [];
 
   /**
+   * Status for each configured hard limit.
+   *
    * @generated from field: repeated talon.resources.UsageLimitStatus hard = 4;
    */
   hard: UsageLimitStatus[] = [];
@@ -307,20 +382,28 @@ export class UsagePolicyStatus extends Message<UsagePolicyStatus> {
 }
 
 /**
+ * UsagePolicy configures quota and rate limits for a namespace.
+ *
  * @generated from message talon.resources.UsagePolicy
  */
 export class UsagePolicy extends Message<UsagePolicy> {
   /**
+   * Resource identity and namespace metadata.
+   *
    * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
   metadata?: ResourceMeta;
 
   /**
+   * Desired policy configuration.
+   *
    * @generated from field: talon.resources.UsagePolicySpec spec = 2;
    */
   spec?: UsagePolicySpec;
 
   /**
+   * Observed policy status.
+   *
    * @generated from field: talon.resources.UsagePolicyStatus status = 3;
    */
   status?: UsagePolicyStatus;

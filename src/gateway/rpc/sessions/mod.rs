@@ -21,23 +21,9 @@ const MAX_SESSION_MESSAGES_PAGE_SIZE: usize = 200;
 const SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
 const DEFAULT_SESSION_STREAM_BATCH_MAX: usize = 10_000;
 const CLEAR_SESSION_CAS_RETRIES: usize = 8;
-const SESSION_RATE_LIMIT_KEY_METADATA: &str = "talon.rateLimitKey";
 
-fn gateway_usage_subject<T>(
-    req: &tonic::Request<T>,
-    ns: &str,
-    agent: &str,
-) -> crate::control::usage::UsageSubject {
-    let identity = crate::gateway::auth::rate_limit_identity_from_request(req);
-    crate::control::usage::UsageSubject {
-        namespace: ns.to_string(),
-        agent: agent.to_string(),
-        provider: String::new(),
-        model: String::new(),
-        rate_limit_key: (!identity.is_anonymous()).then(|| identity.rate_limit_key().to_string()),
-    }
-}
-
+// Session creation charges namespace/agent usage; provider/model are only used
+// by LLM metrics and intentionally stay empty here.
 fn namespace_usage_subject(
     ns: &str,
     agent: &str,
@@ -52,41 +38,23 @@ fn namespace_usage_subject(
     }
 }
 
+// Attach the authenticated request identity to the session create charge when
+// one is available. Identity-scoped policies require this rate-limit key.
 fn session_usage_subject_from_request<T>(
     req: &tonic::Request<T>,
     ns: &str,
     agent: &str,
 ) -> crate::control::usage::UsageSubject {
-    let identity = crate::gateway::auth::rate_limit_identity_from_request(req);
     namespace_usage_subject(
         ns,
         agent,
-        (!identity.is_anonymous()).then(|| identity.rate_limit_key().to_string()),
+        crate::gateway::auth::rate_limit_key_from_request(req),
     )
 }
 
-async fn admit_gateway_session_usage(
-    gateway: &crate::gateway::Gateway,
-    subject: &crate::control::usage::UsageSubject,
-    charges: &[crate::control::usage::UsageCharge],
-) -> std::result::Result<(), tonic::Status> {
-    crate::control::usage::admit_gateway_usage(
-        gateway.kv.as_ref(),
-        gateway.usage_limiter.as_ref(),
-        subject,
-        charges,
-        chrono::Utc::now().timestamp(),
-    )
-    .await
-    .map_err(|e| {
-        if crate::control::usage::is_quota_exceeded_error(&e) {
-            tonic::Status::resource_exhausted(e.to_string())
-        } else {
-            tonic::Status::internal(format!("Failed to check gateway usage: {}", e))
-        }
-    })
-}
-
+// Charge the successful session creation. If quota admission fails after the
+// session row was written, delete that row so rejected creates do not leave
+// visible sessions behind.
 async fn charge_session_quota_or_delete(
     gateway: &crate::gateway::Gateway,
     session_key: &keys::ResourceKey,
@@ -111,6 +79,9 @@ async fn charge_session_quota_or_delete(
                 error = %delete_err,
                 "failed to roll back session after quota admission failure"
             );
+            return Err(tonic::Status::internal(
+                "Failed to roll back session after quota admission failure",
+            ));
         }
         return Err(if crate::control::usage::is_quota_exceeded_error(&err) {
             tonic::Status::resource_exhausted(err.to_string())
@@ -122,18 +93,24 @@ async fn charge_session_quota_or_delete(
     Ok(())
 }
 
+// Undo a session create after it was already charged. This is only for create
+// failure rollback, not normal DeleteSession, because `agent.sessions` counts
+// successful creates in the rate-limit window.
 async fn rollback_created_session(
     gateway: &crate::gateway::Gateway,
     session_key: &keys::ResourceKey,
     subject: &crate::control::usage::UsageSubject,
     now_seconds: i64,
-) {
+) -> std::result::Result<(), tonic::Status> {
     if let Err(delete_err) = gateway.kv.delete(session_key).await {
         tracing::warn!(
             key = %session_key,
             error = %delete_err,
             "failed to delete session while rolling back create_session"
         );
+        return Err(tonic::Status::internal(
+            "Failed to delete session while rolling back create_session",
+        ));
     }
     if let Err(refund_err) = crate::control::usage::refund_namespace_usage(
         gateway.kv.as_ref(),
@@ -151,38 +128,11 @@ async fn rollback_created_session(
             error = %refund_err,
             "failed to refund session quota while rolling back create_session"
         );
+        return Err(tonic::Status::internal(
+            "Failed to refund session quota while rolling back create_session",
+        ));
     }
-}
-
-async fn count_active_subject_sessions(
-    gateway: &crate::gateway::Gateway,
-    session_keys: &[keys::ResourceKey],
-    subject: &crate::control::usage::UsageSubject,
-) -> std::result::Result<u64, tonic::Status> {
-    let subject_key = subject
-        .rate_limit_key
-        .as_deref()
-        .filter(|key| !key.trim().is_empty());
-    let mut active = 0;
-    for key in session_keys {
-        let session = gateway
-            .kv
-            .get_msg::<data_proto::Session>(key)
-            .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to fetch session: {}", e)))?;
-        let Some(session) = session else {
-            continue;
-        };
-        let session_key = session
-            .metadata
-            .get(SESSION_RATE_LIMIT_KEY_METADATA)
-            .map(String::as_str)
-            .filter(|key| !key.trim().is_empty());
-        if session_key == subject_key {
-            active += 1;
-        }
-    }
-    Ok(active)
+    Ok(())
 }
 
 async fn delete_descendants(kv: &dyn KeyValueStore, parent: ResourceParent) -> anyhow::Result<()> {
@@ -423,8 +373,6 @@ impl GrpcGatewayHandler {
         req: tonic::Request<proto::CreateSessionRequest>,
     ) -> std::result::Result<tonic::Response<proto::SessionResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns, &req.get_ref().agent);
-        let gateway_usage_subject =
-            gateway_usage_subject(&req, &req.get_ref().ns, &req.get_ref().agent);
         let session_usage_subject =
             session_usage_subject_from_request(&req, &req.get_ref().ns, &req.get_ref().agent);
         let req = req.into_inner();
@@ -464,51 +412,9 @@ impl GrpcGatewayHandler {
             )));
         }
 
-        admit_gateway_session_usage(
-            &self.gateway,
-            &gateway_usage_subject,
-            &[crate::control::usage::UsageCharge {
-                metric: crate::control::usage::METRIC_GATEWAY_REQUESTS,
-                delta: 1,
-            }],
-        )
-        .await?;
-        let session_keys = self
-            .gateway
-            .kv
-            .list_keys(&keys::session_prefix(&req.ns, &req.agent))
-            .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to list sessions: {}", e)))?;
-        let active_sessions = session_keys.len() as u64;
-        let active_subject_sessions =
-            count_active_subject_sessions(&self.gateway, &session_keys, &session_usage_subject)
-                .await?;
-        crate::control::usage::check_concurrent_agent_sessions(
-            self.gateway.kv.as_ref(),
-            &session_usage_subject,
-            active_sessions,
-            active_subject_sessions,
-            chrono::Utc::now().timestamp(),
-        )
-        .await
-        .map_err(|e| {
-            if crate::control::usage::is_quota_exceeded_error(&e) {
-                tonic::Status::resource_exhausted(e.to_string())
-            } else {
-                tonic::Status::internal(format!("Failed to check active session usage: {}", e))
-            }
-        })?;
-
         // Use ULID (UUID v7 gives time-sorted guarantees like ULID)
         let session_id = crate::control::uuid::session_id();
-
-        let mut session_metadata = std::collections::HashMap::new();
-        if let Some(rate_limit_key) = session_usage_subject.rate_limit_key.as_ref() {
-            session_metadata.insert(
-                SESSION_RATE_LIMIT_KEY_METADATA.to_string(),
-                rate_limit_key.clone(),
-            );
-        }
+        let session_usage_now = chrono::Utc::now().timestamp();
 
         let session = data_proto::Session {
             id: session_id.clone(),
@@ -517,7 +423,7 @@ impl GrpcGatewayHandler {
             status: "IDLE".to_string(),
             created_at: chrono::Utc::now().timestamp_micros(),
             last_active: chrono::Utc::now().timestamp_micros(),
-            metadata: session_metadata,
+            metadata: std::collections::HashMap::new(),
             labels: req.labels.clone(),
         };
 
@@ -528,7 +434,6 @@ impl GrpcGatewayHandler {
             .set_msg(&session_db_key, &session)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to save session state: {}", e)))?;
-        let session_usage_now = chrono::Utc::now().timestamp();
         charge_session_quota_or_delete(
             &self.gateway,
             &session_db_key,
@@ -556,7 +461,7 @@ impl GrpcGatewayHandler {
                 &session_usage_subject,
                 session_usage_now,
             )
-            .await;
+            .await?;
             return Err(tonic::Status::internal(format!(
                 "Failed to publish event: {}",
                 e
@@ -945,12 +850,6 @@ impl GrpcGatewayHandler {
         let req = req.into_inner();
 
         let session_db_key = keys::session(&req.ns, &req.agent, &req.session_id);
-        let session = self
-            .gateway
-            .kv
-            .get_msg::<data_proto::Session>(&session_db_key)
-            .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to fetch session: {}", e)))?;
 
         delete_descendants(
             self.gateway.kv.as_ref(),
@@ -983,37 +882,6 @@ impl GrpcGatewayHandler {
                 session_id = %req.session_id,
                 "failed to publish search delete event for deleted session"
             );
-        }
-
-        if let Some(session) = session {
-            let subject = namespace_usage_subject(
-                &req.ns,
-                &req.agent,
-                session
-                    .metadata
-                    .get(SESSION_RATE_LIMIT_KEY_METADATA)
-                    .filter(|key| !key.trim().is_empty())
-                    .cloned(),
-            );
-            if let Err(err) = crate::control::usage::refund_namespace_usage(
-                self.gateway.kv.as_ref(),
-                &subject,
-                &[crate::control::usage::UsageCharge {
-                    metric: crate::control::usage::METRIC_AGENT_SESSIONS,
-                    delta: 1,
-                }],
-                session.created_at.div_euclid(1_000_000),
-            )
-            .await
-            {
-                tracing::warn!(
-                    ns = %req.ns,
-                    agent = %req.agent,
-                    session_id = %req.session_id,
-                    error = %err,
-                    "failed to refund session quota after delete"
-                );
-            }
         }
 
         let event = events::LifecycleEvent {
@@ -1109,16 +977,6 @@ impl GrpcGatewayHandler {
             &req.get_ref().agent,
             &req.get_ref().session_id
         );
-        let usage_subject = gateway_usage_subject(&req, &req.get_ref().ns, &req.get_ref().agent);
-        admit_gateway_session_usage(
-            &self.gateway,
-            &usage_subject,
-            &[crate::control::usage::UsageCharge {
-                metric: crate::control::usage::METRIC_GATEWAY_REQUESTS,
-                delta: 1,
-            }],
-        )
-        .await?;
         let req = req.into_inner();
 
         println!(
@@ -1521,16 +1379,6 @@ impl GrpcGatewayHandler {
             &req.get_ref().agent,
             &req.get_ref().session_id
         );
-        let usage_subject = gateway_usage_subject(&req, &req.get_ref().ns, &req.get_ref().agent);
-        admit_gateway_session_usage(
-            &self.gateway,
-            &usage_subject,
-            &[crate::control::usage::UsageCharge {
-                metric: crate::control::usage::METRIC_GATEWAY_REQUESTS,
-                delta: 1,
-            }],
-        )
-        .await?;
         let req = req.into_inner();
         let mut message = req
             .message
@@ -1588,6 +1436,7 @@ fn map_session_submit_error(err: anyhow::Error) -> tonic::Status {
 mod tests {
     use super::*;
     use crate::control::ControlPlane;
+    use crate::control::MessagePublisher;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::gateway::rpc::resources_proto;
     use crate::gateway::Gateway;
@@ -1620,14 +1469,9 @@ mod tests {
     }
 
     fn failing_publish_handler(kv: Arc<MockKvStore>) -> GrpcGatewayHandler {
+        let control_plane = ControlPlane::builder(kv, Arc::new(FailingPubSub)).build();
         GrpcGatewayHandler {
-            gateway: Arc::new(Gateway::new(
-                None,
-                kv,
-                Arc::new(FailingPubSub),
-                Arc::new(NoopSchedulerBackend),
-                crate::control::object_store::default_object_store(),
-            )),
+            gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
         }
     }
 
@@ -1825,14 +1669,16 @@ mod tests {
             request
                 .extensions_mut()
                 .insert(crate::gateway::auth::Claims {
+                    iss: None,
                     sub: format!("oidc:{subject}"),
                     aud: "talon".to_string(),
+                    iat: None,
                     exp: 10_000_000_000,
-                    oidc_issuer: Some("https://accounts.google.com".to_string()),
                     ns: None,
                     agent: None,
                     session: None,
                     channel: None,
+                    origins: Vec::new(),
                     grants: Vec::new(),
                 });
             request
@@ -1859,11 +1705,10 @@ mod tests {
         )
         .await;
 
-        let first = handler
+        handler
             .handle_create_session(oidc_request("assistant", "first-subject"))
             .await
-            .unwrap()
-            .into_inner();
+            .unwrap();
 
         let status =
             usage_policy_status(kv.clone(), pubsub.clone(), ns, "assistant-session-limit").await;
@@ -1881,23 +1726,6 @@ mod tests {
             .await
             .expect_err("second assistant session should be over all quota");
         assert_eq!(rejected.code(), tonic::Code::ResourceExhausted);
-
-        handler
-            .handle_delete_session(tonic::Request::new(proto::DeleteSessionRequest {
-                ns: ns.to_string(),
-                agent: "assistant".to_string(),
-                session_id: first.session_id,
-            }))
-            .await
-            .unwrap();
-        let status =
-            usage_policy_status(kv.clone(), pubsub.clone(), ns, "assistant-session-limit").await;
-        assert_eq!(status.hard[0].used, 0);
-
-        handler
-            .handle_create_session(oidc_request("assistant", "second-subject"))
-            .await
-            .expect("deleted session should release all session quota");
 
         handler
             .handle_create_session(oidc_request("other", "second-subject"))
@@ -1924,14 +1752,16 @@ mod tests {
             request
                 .extensions_mut()
                 .insert(crate::gateway::auth::Claims {
+                    iss: None,
                     sub: format!("oidc:{subject}"),
                     aud: "talon".to_string(),
+                    iat: None,
                     exp: 10_000_000_000,
-                    oidc_issuer: Some("https://accounts.google.com".to_string()),
                     ns: None,
                     agent: None,
                     session: None,
                     channel: None,
+                    origins: Vec::new(),
                     grants: Vec::new(),
                 });
             request

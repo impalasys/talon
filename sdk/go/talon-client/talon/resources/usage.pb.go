@@ -21,11 +21,16 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Selects the traffic within a namespace that a UsagePolicy limit applies to.
+// Empty fields are wildcards.
 type UsageSelector struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Agent         string                 `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
-	Provider      string                 `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"`
-	Model         string                 `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Agent name to match. Empty matches all agents.
+	Agent string `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
+	// LLM provider name to match for llm.* metrics. Empty matches all providers.
+	Provider string `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"`
+	// LLM model name to match for llm.* metrics. Empty matches all models.
+	Model         string `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -81,13 +86,32 @@ func (x *UsageSelector) GetModel() string {
 	return ""
 }
 
+// A single hard usage limit enforced by a UsagePolicy.
 type UsageLimit struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Selector      *UsageSelector         `protobuf:"bytes,1,opt,name=selector,proto3" json:"selector,omitempty"`
-	Metric        string                 `protobuf:"bytes,2,opt,name=metric,proto3" json:"metric,omitempty"`
-	Max           uint64                 `protobuf:"varint,3,opt,name=max,proto3" json:"max,omitempty"`
-	Window        string                 `protobuf:"bytes,4,opt,name=window,proto3" json:"window,omitempty"`
-	SubjectScope  string                 `protobuf:"bytes,5,opt,name=subject_scope,json=subjectScope,proto3" json:"subject_scope,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Optional selector for narrowing the limit. If omitted, the limit applies to
+	// all traffic in the policy namespace scope.
+	Selector *UsageSelector `protobuf:"bytes,1,opt,name=selector,proto3" json:"selector,omitempty"`
+	// Metric to limit. Valid values are:
+	// - "llm.requests"
+	// - "llm.inputTokens"
+	// - "llm.outputTokens"
+	// - "llm.reasoningTokens"
+	// - "llm.totalTokens"
+	// - "agent.sessions": successful session creations.
+	// - "tool.calls"
+	Metric string `protobuf:"bytes,2,opt,name=metric,proto3" json:"metric,omitempty"`
+	// Maximum allowed usage for the metric within the configured window.
+	Max uint64 `protobuf:"varint,3,opt,name=max,proto3" json:"max,omitempty"`
+	// Rolling counter window encoded as an integer duration with a unit suffix,
+	// such as "1m", "5h", or "7d". Supported units are seconds ("s"),
+	// minutes ("m"), hours ("h"), and days ("d").
+	Window string `protobuf:"bytes,4,opt,name=window,proto3" json:"window,omitempty"`
+	// Identity partitioning for this limit. Valid values are:
+	// - "" or "all": one shared quota for all matching traffic.
+	// - "identity": separate quota per authenticated rate-limit identity.
+	// The value "subject" is accepted as a deprecated alias for "identity".
+	SubjectScope  string `protobuf:"bytes,5,opt,name=subject_scope,json=subjectScope,proto3" json:"subject_scope,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -157,12 +181,17 @@ func (x *UsageLimit) GetSubjectScope() string {
 	return ""
 }
 
+// Desired usage policy for a namespace.
 type UsagePolicySpec struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	NamespaceScope string                 `protobuf:"bytes,1,opt,name=namespace_scope,json=namespaceScope,proto3" json:"namespace_scope,omitempty"`
-	Hard           []*UsageLimit          `protobuf:"bytes,2,rep,name=hard,proto3" json:"hard,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Namespace matching mode. Valid values are:
+	// - "" or "recursive": applies to the policy namespace and descendant namespaces.
+	// - "self": applies only to the policy namespace.
+	NamespaceScope string `protobuf:"bytes,1,opt,name=namespace_scope,json=namespaceScope,proto3" json:"namespace_scope,omitempty"`
+	// Hard limits enforced for matching traffic.
+	Hard          []*UsageLimit `protobuf:"bytes,2,rep,name=hard,proto3" json:"hard,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UsagePolicySpec) Reset() {
@@ -209,18 +238,30 @@ func (x *UsagePolicySpec) GetHard() []*UsageLimit {
 	return nil
 }
 
+// Current status for one UsageLimit.
 type UsageLimitStatus struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Selector      *UsageSelector         `protobuf:"bytes,1,opt,name=selector,proto3" json:"selector,omitempty"`
-	Metric        string                 `protobuf:"bytes,2,opt,name=metric,proto3" json:"metric,omitempty"`
-	Max           uint64                 `protobuf:"varint,3,opt,name=max,proto3" json:"max,omitempty"`
-	Window        string                 `protobuf:"bytes,4,opt,name=window,proto3" json:"window,omitempty"`
-	WindowStart   int64                  `protobuf:"varint,5,opt,name=window_start,json=windowStart,proto3" json:"window_start,omitempty"`
-	ResetAt       int64                  `protobuf:"varint,6,opt,name=reset_at,json=resetAt,proto3" json:"reset_at,omitempty"`
-	Used          uint64                 `protobuf:"varint,7,opt,name=used,proto3" json:"used,omitempty"`
-	Remaining     uint64                 `protobuf:"varint,8,opt,name=remaining,proto3" json:"remaining,omitempty"`
-	Exceeded      bool                   `protobuf:"varint,9,opt,name=exceeded,proto3" json:"exceeded,omitempty"`
-	SubjectScope  string                 `protobuf:"bytes,10,opt,name=subject_scope,json=subjectScope,proto3" json:"subject_scope,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Selector copied from the configured limit.
+	Selector *UsageSelector `protobuf:"bytes,1,opt,name=selector,proto3" json:"selector,omitempty"`
+	// Metric copied from the configured limit.
+	Metric string `protobuf:"bytes,2,opt,name=metric,proto3" json:"metric,omitempty"`
+	// Maximum configured usage for the current window.
+	Max uint64 `protobuf:"varint,3,opt,name=max,proto3" json:"max,omitempty"`
+	// Window copied from the configured limit.
+	Window string `protobuf:"bytes,4,opt,name=window,proto3" json:"window,omitempty"`
+	// Unix timestamp in seconds for the start of the current window.
+	WindowStart int64 `protobuf:"varint,5,opt,name=window_start,json=windowStart,proto3" json:"window_start,omitempty"`
+	// Unix timestamp in seconds when the current window resets.
+	ResetAt int64 `protobuf:"varint,6,opt,name=reset_at,json=resetAt,proto3" json:"reset_at,omitempty"`
+	// Used quota in the current window. For identity-scoped limits, this reports
+	// the highest usage observed for any one identity in the window.
+	Used uint64 `protobuf:"varint,7,opt,name=used,proto3" json:"used,omitempty"`
+	// Remaining quota in the current window.
+	Remaining uint64 `protobuf:"varint,8,opt,name=remaining,proto3" json:"remaining,omitempty"`
+	// True when used is greater than or equal to max.
+	Exceeded bool `protobuf:"varint,9,opt,name=exceeded,proto3" json:"exceeded,omitempty"`
+	// Canonical subject scope for the limit. Values are "all" or "identity".
+	SubjectScope  string `protobuf:"bytes,10,opt,name=subject_scope,json=subjectScope,proto3" json:"subject_scope,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -325,14 +366,19 @@ func (x *UsageLimitStatus) GetSubjectScope() string {
 	return ""
 }
 
+// Current status for a UsagePolicy resource.
 type UsagePolicyStatus struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	ObservedGeneration uint64                 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
-	Phase              string                 `protobuf:"bytes,2,opt,name=phase,proto3" json:"phase,omitempty"`
-	Conditions         []*ResourceCondition   `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
-	Hard               []*UsageLimitStatus    `protobuf:"bytes,4,rep,name=hard,proto3" json:"hard,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Resource generation reflected by this status.
+	ObservedGeneration uint64 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
+	// Policy lifecycle phase. Current value is "Active" when the policy validates.
+	Phase string `protobuf:"bytes,2,opt,name=phase,proto3" json:"phase,omitempty"`
+	// Conditions describing validation or reconciliation issues.
+	Conditions []*ResourceCondition `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	// Status for each configured hard limit.
+	Hard          []*UsageLimitStatus `protobuf:"bytes,4,rep,name=hard,proto3" json:"hard,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UsagePolicyStatus) Reset() {
@@ -393,11 +439,15 @@ func (x *UsagePolicyStatus) GetHard() []*UsageLimitStatus {
 	return nil
 }
 
+// UsagePolicy configures quota and rate limits for a namespace.
 type UsagePolicy struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Spec          *UsagePolicySpec       `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
-	Status        *UsagePolicyStatus     `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Resource identity and namespace metadata.
+	Metadata *ResourceMeta `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// Desired policy configuration.
+	Spec *UsagePolicySpec `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	// Observed policy status.
+	Status        *UsagePolicyStatus `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
