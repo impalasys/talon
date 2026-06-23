@@ -293,7 +293,12 @@ impl DocumentStore for D1DocumentStore {
 
     async fn search(&self, query: &SearchQuery) -> Result<SearchResponse> {
         self.capabilities().require_mode(query.mode)?;
-        if query.namespaces.is_empty() {
+        if query
+            .source
+            .namespaces()
+            .iter()
+            .all(|namespace| namespace.is_empty())
+        {
             return Ok(SearchResponse::default());
         }
         let fts_query = fts5_query(&query.query);
@@ -379,33 +384,32 @@ impl SqlParts {
 
 fn push_query_filters(parts: &mut SqlParts, query: &SearchQuery) {
     parts.sql.push_str(" AND d.namespace IN (");
-    push_placeholders(parts, query.namespaces.iter().map(String::as_str));
+    push_placeholders(parts, query.source.namespaces().into_iter());
     parts.sql.push(')');
-    if !query.resource_kinds.is_empty() {
+    if !query.source.key.is_empty() {
+        parts.sql.push_str(" AND d.resource_key = ?");
+        parts.params.push(D1Param::text(&query.source.key));
+    }
+    if !query.source.key_prefix.is_empty() {
+        parts.sql.push_str(" AND d.resource_key LIKE ? ESCAPE '\\'");
+        parts
+            .params
+            .push(D1Param::text(like_prefix_pattern(&query.source.key_prefix)));
+    }
+    if !query.source.parent_key.is_empty() {
+        parts.sql.push_str(" AND d.parent_key = ?");
+        parts.params.push(D1Param::text(&query.source.parent_key));
+    }
+    if !query.source.kinds.is_empty() {
         parts.sql.push_str(" AND d.resource_kind IN (");
-        push_placeholders(parts, query.resource_kinds.iter().map(String::as_str));
+        push_placeholders(parts, query.source.kinds.iter().map(String::as_str));
         parts.sql.push(')');
     }
-    if !query.agent.is_empty() {
-        parts.sql.push_str(" AND d.agent = ?");
-        parts.params.push(D1Param::text(&query.agent));
-    }
-    if !query.session_id.is_empty() {
-        parts.sql.push_str(" AND d.session_id = ?");
-        parts.params.push(D1Param::text(&query.session_id));
-    }
-    if !query.channel.is_empty() {
-        parts.sql.push_str(" AND d.channel = ?");
-        parts.params.push(D1Param::text(&query.channel));
-    }
-    if !query.role.is_empty() {
-        parts.sql.push_str(" AND d.role = ?");
-        parts.params.push(D1Param::text(&query.role));
-    }
-    if !query.part_type.is_empty() {
-        parts.sql.push_str(" AND d.part_type = ?");
-        parts.params.push(D1Param::text(&query.part_type));
-    }
+    push_attribute_filter(parts, "agent", &query.attributes);
+    push_attribute_filter(parts, "session_id", &query.attributes);
+    push_attribute_filter(parts, "channel", &query.attributes);
+    push_attribute_filter(parts, "role", &query.attributes);
+    push_attribute_filter(parts, "part_type", &query.attributes);
     if let Some(start) = query.start_time {
         parts.sql.push_str(" AND d.created_at >= ?");
         parts.params.push(D1Param::integer(start));
@@ -421,6 +425,20 @@ fn push_query_filters(parts: &mut SqlParts, query: &SearchQuery) {
         parts.params.push(D1Param::text(key));
         parts.params.push(D1Param::text(value));
     }
+}
+
+fn push_attribute_filter(
+    parts: &mut SqlParts,
+    key: &'static str,
+    attributes: &HashMap<String, String>,
+) {
+    let Some(value) = attributes.get(key).filter(|value| !value.is_empty()) else {
+        return;
+    };
+    parts.sql.push_str(" AND d.");
+    parts.sql.push_str(key);
+    parts.sql.push_str(" = ?");
+    parts.params.push(D1Param::text(value));
 }
 
 fn push_delete_filters(parts: &mut SqlParts, scope: &DeleteScope) {
@@ -678,8 +696,11 @@ mod tests {
         push_query_filters(
             &mut parts,
             &SearchQuery {
-                namespaces: vec!["acme".to_string(), "acme/dev".to_string()],
-                resource_kinds: vec!["Knowledge".to_string()],
+                source: crate::control::search::SearchSourceFilter {
+                    namespaces: vec!["acme".to_string(), "acme/dev".to_string()],
+                    kinds: vec!["Knowledge".to_string()],
+                    ..Default::default()
+                },
                 labels: [("talon.io/agent".to_string(), "support".to_string())]
                     .into_iter()
                     .collect(),

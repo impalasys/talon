@@ -167,13 +167,8 @@ pub fn document_attributes(
 #[serde(rename_all = "camelCase", default)]
 pub struct SearchQuery {
     pub query: String,
-    pub namespaces: Vec<String>,
-    pub resource_kinds: Vec<String>,
-    pub agent: String,
-    pub session_id: String,
-    pub channel: String,
-    pub role: String,
-    pub part_type: String,
+    pub source: SearchSourceFilter,
+    pub attributes: HashMap<String, String>,
     pub labels: HashMap<String, String>,
     pub start_time: Option<i64>,
     pub end_time: Option<i64>,
@@ -181,6 +176,27 @@ pub struct SearchQuery {
     pub page_token: String,
     pub sort: SearchSort,
     pub mode: SearchMode,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+pub struct SearchSourceFilter {
+    pub namespace: String,
+    pub namespaces: Vec<String>,
+    pub key: String,
+    pub key_prefix: String,
+    pub kinds: Vec<String>,
+    pub parent_key: String,
+}
+
+impl SearchSourceFilter {
+    pub fn namespaces(&self) -> Vec<&str> {
+        if self.namespaces.is_empty() {
+            vec![self.namespace.as_str()]
+        } else {
+            self.namespaces.iter().map(String::as_str).collect()
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default, PartialEq, Eq)]
@@ -238,28 +254,32 @@ pub struct DeleteScope {
 }
 
 pub(crate) fn query_matches(query: &SearchQuery, document: &Document) -> bool {
-    if !query.resource_kinds.is_empty()
+    if !query.source.key.is_empty() && query.source.key != document.resource_key() {
+        return false;
+    }
+    if !query.source.key_prefix.is_empty()
+        && !document
+            .resource_key()
+            .starts_with(&query.source.key_prefix)
+    {
+        return false;
+    }
+    if !query.source.parent_key.is_empty() && query.source.parent_key != document.parent_key() {
+        return false;
+    }
+    if !query.source.kinds.is_empty()
         && !query
-            .resource_kinds
+            .source
+            .kinds
             .iter()
             .any(|kind| kind == document.resource_kind())
     {
         return false;
     }
-    if !query.agent.is_empty() && query.agent != document.agent() {
-        return false;
-    }
-    if !query.session_id.is_empty() && query.session_id != document.session_id() {
-        return false;
-    }
-    if !query.channel.is_empty() && query.channel != document.channel() {
-        return false;
-    }
-    if !query.role.is_empty() && query.role != document.role() {
-        return false;
-    }
-    if !query.part_type.is_empty() && query.part_type != document.part_type() {
-        return false;
+    for (key, value) in &query.attributes {
+        if document.attributes.get(key) != Some(value) {
+            return false;
+        }
     }
     if let Some(start) = query.start_time {
         if document.created_at < start {
@@ -468,9 +488,12 @@ mod tests {
         let response = backend
             .search(&SearchQuery {
                 query: "refund".to_string(),
-                namespaces: vec!["acme".to_string()],
-                resource_kinds: vec![KIND_SESSION_MESSAGE.to_string()],
-                agent: "support".to_string(),
+                source: SearchSourceFilter {
+                    namespace: "acme".to_string(),
+                    kinds: vec![KIND_SESSION_MESSAGE.to_string()],
+                    ..Default::default()
+                },
+                attributes: document_attributes([(ATTR_AGENT, "support".to_string())]),
                 limit: 10,
                 ..Default::default()
             })
@@ -493,7 +516,10 @@ mod tests {
         let response = backend
             .search(&SearchQuery {
                 query: "refund".to_string(),
-                namespaces: vec!["acme".to_string()],
+                source: SearchSourceFilter {
+                    namespace: "acme".to_string(),
+                    ..Default::default()
+                },
                 limit: 10,
                 ..Default::default()
             })
@@ -529,7 +555,10 @@ mod tests {
         let response = backend
             .search(&SearchQuery {
                 query: "policy".to_string(),
-                namespaces: vec!["acme".to_string()],
+                source: SearchSourceFilter {
+                    namespace: "acme".to_string(),
+                    ..Default::default()
+                },
                 limit: 2,
                 sort: SearchSort::Recency,
                 ..Default::default()
@@ -583,7 +612,10 @@ mod tests {
         let error = backend
             .search(&SearchQuery {
                 query: "refund".to_string(),
-                namespaces: vec!["acme".to_string()],
+                source: SearchSourceFilter {
+                    namespace: "acme".to_string(),
+                    ..Default::default()
+                },
                 mode: SearchMode::Hybrid,
                 ..Default::default()
             })

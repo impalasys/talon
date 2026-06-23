@@ -21,21 +21,24 @@ enum SearchSort {
 }
 
 message SearchRequest {
-  string ns = 1;
-  string query = 2;
-  repeated string resource_kinds = 3;
-  string agent = 4;
-  string session_id = 5;
-  string channel = 6;
-  string role = 7;
-  string part_type = 8;
-  map<string, string> labels = 9;
-  optional int64 start_time = 10;
-  optional int64 end_time = 11;
-  int32 limit = 12;
-  string page_token = 13;
-  SearchMode mode = 14;
-  SearchSort sort = 15;
+  string query = 1;
+  SearchSourceFilter source = 2;
+  map<string, string> attributes = 3;
+  map<string, string> labels = 4;
+  optional int64 start_time = 5;
+  optional int64 end_time = 6;
+  int32 limit = 7;
+  string page_token = 8;
+  SearchMode mode = 9;
+  SearchSort sort = 10;
+}
+
+message SearchSourceFilter {
+  string namespace = 1;
+  string key = 2;
+  string key_prefix = 3;
+  repeated string kinds = 4;
+  string parent_key = 5;
 }
 
 message Document {

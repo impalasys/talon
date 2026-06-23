@@ -193,9 +193,11 @@ export function WorkspaceCommandPalette({
       setError(null);
       try {
         const response = await getGatewayClient().searches.search({
-          ns,
           query: trimmedQuery,
-          resourceKinds: resourceKind ? [resourceKind] : [],
+          source: {
+            namespace: ns,
+            kinds: resourceKind ? [resourceKind] : [],
+          },
           limit: 12,
           mode: v1Search.SearchMode.KEYWORD,
           sort: v1Search.SearchSort.RELEVANCE,

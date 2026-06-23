@@ -1718,38 +1718,44 @@ pub mod workflow_service_client {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SearchRequest {
     #[prost(string, tag = "1")]
-    pub ns: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
     pub query: ::prost::alloc::string::String,
-    #[prost(string, repeated, tag = "3")]
-    pub resource_kinds: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(string, tag = "4")]
-    pub agent: ::prost::alloc::string::String,
-    #[prost(string, tag = "5")]
-    pub session_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "6")]
-    pub channel: ::prost::alloc::string::String,
-    #[prost(string, tag = "7")]
-    pub role: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
-    pub part_type: ::prost::alloc::string::String,
-    #[prost(map = "string, string", tag = "9")]
+    #[prost(message, optional, tag = "2")]
+    pub source: ::core::option::Option<SearchSourceFilter>,
+    #[prost(map = "string, string", tag = "3")]
+    pub attributes: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    #[prost(map = "string, string", tag = "4")]
     pub labels: ::std::collections::HashMap<
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
-    #[prost(int64, optional, tag = "10")]
+    #[prost(int64, optional, tag = "5")]
     pub start_time: ::core::option::Option<i64>,
-    #[prost(int64, optional, tag = "11")]
+    #[prost(int64, optional, tag = "6")]
     pub end_time: ::core::option::Option<i64>,
-    #[prost(int32, tag = "12")]
+    #[prost(int32, tag = "7")]
     pub limit: i32,
-    #[prost(string, tag = "13")]
+    #[prost(string, tag = "8")]
     pub page_token: ::prost::alloc::string::String,
-    #[prost(enumeration = "SearchMode", tag = "14")]
+    #[prost(enumeration = "SearchMode", tag = "9")]
     pub mode: i32,
-    #[prost(enumeration = "SearchSort", tag = "15")]
+    #[prost(enumeration = "SearchSort", tag = "10")]
     pub sort: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SearchSourceFilter {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub key: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub key_prefix: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "4")]
+    pub kinds: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag = "5")]
+    pub parent_key: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Document {

@@ -5,7 +5,9 @@ use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::control::keys;
 use crate::control::ns;
 use crate::control::resources::ResourceStore;
-use crate::control::search::{SearchQuery, SearchSort, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
+use crate::control::search::{
+    SearchQuery, SearchSort, SearchSourceFilter, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE,
+};
 use crate::gateway::rpc::resources_proto;
 use crate::harness::knowledge::KnowledgeEntry;
 use std::collections::HashMap;
@@ -138,8 +140,11 @@ impl GrpcGatewayHandler {
                     .documents
                     .search(&SearchQuery {
                         query: req.query.clone(),
-                        namespaces: namespaces.clone(),
-                        resource_kinds: vec![KIND_KNOWLEDGE.to_string()],
+                        source: SearchSourceFilter {
+                            namespaces: namespaces.clone(),
+                            kinds: vec![KIND_KNOWLEDGE.to_string()],
+                            ..Default::default()
+                        },
                         limit: super::search::limit(req.limit)
                             .saturating_mul(namespaces.len().max(1)),
                         mode,

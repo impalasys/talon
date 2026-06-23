@@ -8,6 +8,7 @@ use super::{Cli, RunOutcome};
 use crate::cli::connect_gateway;
 use talon_client::v1::{
     SearchKnowledgeRequest, SearchMode, SearchRequest, SearchResult, SearchSort,
+    SearchSourceFilter,
 };
 
 #[derive(Args)]
@@ -72,14 +73,20 @@ pub(super) async fn run(cli: &Cli, command: &SearchCommand) -> Result<RunOutcome
         } => {
             let response = client
                 .search(SearchRequest {
-                    ns: namespace.clone(),
                     query: query.clone(),
-                    resource_kinds: resource_kinds.clone(),
-                    agent: agent.clone().unwrap_or_default(),
-                    session_id: session.clone().unwrap_or_default(),
-                    channel: channel.clone().unwrap_or_default(),
-                    role: String::new(),
-                    part_type: String::new(),
+                    source: Some(SearchSourceFilter {
+                        namespace: namespace.clone(),
+                        kinds: resource_kinds.clone(),
+                        ..Default::default()
+                    }),
+                    attributes: [
+                        ("agent".to_string(), agent.clone().unwrap_or_default()),
+                        ("session_id".to_string(), session.clone().unwrap_or_default()),
+                        ("channel".to_string(), channel.clone().unwrap_or_default()),
+                    ]
+                    .into_iter()
+                    .filter(|(_, value)| !value.is_empty())
+                    .collect(),
                     labels: Default::default(),
                     start_time: None,
                     end_time: None,
@@ -101,14 +108,19 @@ pub(super) async fn run(cli: &Cli, command: &SearchCommand) -> Result<RunOutcome
         } => {
             let response = client
                 .search(SearchRequest {
-                    ns: namespace.clone(),
                     query: query.clone(),
-                    resource_kinds: vec!["SessionMessage".to_string()],
-                    agent: agent.clone(),
-                    session_id: session.clone().unwrap_or_default(),
-                    channel: String::new(),
-                    role: String::new(),
-                    part_type: String::new(),
+                    source: Some(SearchSourceFilter {
+                        namespace: namespace.clone(),
+                        kinds: vec!["SessionMessage".to_string()],
+                        ..Default::default()
+                    }),
+                    attributes: [
+                        ("agent".to_string(), agent.clone()),
+                        ("session_id".to_string(), session.clone().unwrap_or_default()),
+                    ]
+                    .into_iter()
+                    .filter(|(_, value)| !value.is_empty())
+                    .collect(),
                     labels: Default::default(),
                     start_time: None,
                     end_time: None,

@@ -124,21 +124,16 @@ func (SearchSort) EnumDescriptor() ([]byte, []int) {
 
 type SearchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ns            string                 `protobuf:"bytes,1,opt,name=ns,proto3" json:"ns,omitempty"`
-	Query         string                 `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
-	ResourceKinds []string               `protobuf:"bytes,3,rep,name=resource_kinds,json=resourceKinds,proto3" json:"resource_kinds,omitempty"`
-	Agent         string                 `protobuf:"bytes,4,opt,name=agent,proto3" json:"agent,omitempty"`
-	SessionId     string                 `protobuf:"bytes,5,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Channel       string                 `protobuf:"bytes,6,opt,name=channel,proto3" json:"channel,omitempty"`
-	Role          string                 `protobuf:"bytes,7,opt,name=role,proto3" json:"role,omitempty"`
-	PartType      string                 `protobuf:"bytes,8,opt,name=part_type,json=partType,proto3" json:"part_type,omitempty"`
-	Labels        map[string]string      `protobuf:"bytes,9,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	StartTime     *int64                 `protobuf:"varint,10,opt,name=start_time,json=startTime,proto3,oneof" json:"start_time,omitempty"`
-	EndTime       *int64                 `protobuf:"varint,11,opt,name=end_time,json=endTime,proto3,oneof" json:"end_time,omitempty"`
-	Limit         int32                  `protobuf:"varint,12,opt,name=limit,proto3" json:"limit,omitempty"`
-	PageToken     string                 `protobuf:"bytes,13,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	Mode          SearchMode             `protobuf:"varint,14,opt,name=mode,proto3,enum=talon.v1.SearchMode" json:"mode,omitempty"`
-	Sort          SearchSort             `protobuf:"varint,15,opt,name=sort,proto3,enum=talon.v1.SearchSort" json:"sort,omitempty"`
+	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
+	Source        *SearchSourceFilter    `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
+	Attributes    map[string]string      `protobuf:"bytes,3,rep,name=attributes,proto3" json:"attributes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Labels        map[string]string      `protobuf:"bytes,4,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	StartTime     *int64                 `protobuf:"varint,5,opt,name=start_time,json=startTime,proto3,oneof" json:"start_time,omitempty"`
+	EndTime       *int64                 `protobuf:"varint,6,opt,name=end_time,json=endTime,proto3,oneof" json:"end_time,omitempty"`
+	Limit         int32                  `protobuf:"varint,7,opt,name=limit,proto3" json:"limit,omitempty"`
+	PageToken     string                 `protobuf:"bytes,8,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	Mode          SearchMode             `protobuf:"varint,9,opt,name=mode,proto3,enum=talon.v1.SearchMode" json:"mode,omitempty"`
+	Sort          SearchSort             `protobuf:"varint,10,opt,name=sort,proto3,enum=talon.v1.SearchSort" json:"sort,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -173,13 +168,6 @@ func (*SearchRequest) Descriptor() ([]byte, []int) {
 	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *SearchRequest) GetNs() string {
-	if x != nil {
-		return x.Ns
-	}
-	return ""
-}
-
 func (x *SearchRequest) GetQuery() string {
 	if x != nil {
 		return x.Query
@@ -187,46 +175,18 @@ func (x *SearchRequest) GetQuery() string {
 	return ""
 }
 
-func (x *SearchRequest) GetResourceKinds() []string {
+func (x *SearchRequest) GetSource() *SearchSourceFilter {
 	if x != nil {
-		return x.ResourceKinds
+		return x.Source
 	}
 	return nil
 }
 
-func (x *SearchRequest) GetAgent() string {
+func (x *SearchRequest) GetAttributes() map[string]string {
 	if x != nil {
-		return x.Agent
+		return x.Attributes
 	}
-	return ""
-}
-
-func (x *SearchRequest) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
-}
-
-func (x *SearchRequest) GetChannel() string {
-	if x != nil {
-		return x.Channel
-	}
-	return ""
-}
-
-func (x *SearchRequest) GetRole() string {
-	if x != nil {
-		return x.Role
-	}
-	return ""
-}
-
-func (x *SearchRequest) GetPartType() string {
-	if x != nil {
-		return x.PartType
-	}
-	return ""
+	return nil
 }
 
 func (x *SearchRequest) GetLabels() map[string]string {
@@ -278,6 +238,82 @@ func (x *SearchRequest) GetSort() SearchSort {
 	return SearchSort_SEARCH_SORT_UNSPECIFIED
 }
 
+type SearchSourceFilter struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Namespace     string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	KeyPrefix     string                 `protobuf:"bytes,3,opt,name=key_prefix,json=keyPrefix,proto3" json:"key_prefix,omitempty"`
+	Kinds         []string               `protobuf:"bytes,4,rep,name=kinds,proto3" json:"kinds,omitempty"`
+	ParentKey     string                 `protobuf:"bytes,5,opt,name=parent_key,json=parentKey,proto3" json:"parent_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchSourceFilter) Reset() {
+	*x = SearchSourceFilter{}
+	mi := &file_proto_talon_v1_search_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchSourceFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchSourceFilter) ProtoMessage() {}
+
+func (x *SearchSourceFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_search_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchSourceFilter.ProtoReflect.Descriptor instead.
+func (*SearchSourceFilter) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *SearchSourceFilter) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *SearchSourceFilter) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *SearchSourceFilter) GetKeyPrefix() string {
+	if x != nil {
+		return x.KeyPrefix
+	}
+	return ""
+}
+
+func (x *SearchSourceFilter) GetKinds() []string {
+	if x != nil {
+		return x.Kinds
+	}
+	return nil
+}
+
+func (x *SearchSourceFilter) GetParentKey() string {
+	if x != nil {
+		return x.ParentKey
+	}
+	return ""
+}
+
 type Document struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -302,7 +338,7 @@ type Document struct {
 
 func (x *Document) Reset() {
 	*x = Document{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[1]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -314,7 +350,7 @@ func (x *Document) String() string {
 func (*Document) ProtoMessage() {}
 
 func (x *Document) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[1]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -327,7 +363,7 @@ func (x *Document) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Document.ProtoReflect.Descriptor instead.
 func (*Document) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{1}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Document) GetId() string {
@@ -449,7 +485,7 @@ type DocumentSource struct {
 
 func (x *DocumentSource) Reset() {
 	*x = DocumentSource{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[2]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -461,7 +497,7 @@ func (x *DocumentSource) String() string {
 func (*DocumentSource) ProtoMessage() {}
 
 func (x *DocumentSource) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[2]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -474,7 +510,7 @@ func (x *DocumentSource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DocumentSource.ProtoReflect.Descriptor instead.
 func (*DocumentSource) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{2}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *DocumentSource) GetKey() string {
@@ -529,7 +565,7 @@ type SearchResult struct {
 
 func (x *SearchResult) Reset() {
 	*x = SearchResult{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[3]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -541,7 +577,7 @@ func (x *SearchResult) String() string {
 func (*SearchResult) ProtoMessage() {}
 
 func (x *SearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[3]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -554,7 +590,7 @@ func (x *SearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResult.ProtoReflect.Descriptor instead.
 func (*SearchResult) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{3}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SearchResult) GetDocument() *Document {
@@ -581,7 +617,7 @@ type SearchResponse struct {
 
 func (x *SearchResponse) Reset() {
 	*x = SearchResponse{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[4]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -593,7 +629,7 @@ func (x *SearchResponse) String() string {
 func (*SearchResponse) ProtoMessage() {}
 
 func (x *SearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[4]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -606,7 +642,7 @@ func (x *SearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResponse.ProtoReflect.Descriptor instead.
 func (*SearchResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{4}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SearchResponse) GetResults() []*SearchResult {
@@ -633,7 +669,7 @@ type GetSearchResultRequest struct {
 
 func (x *GetSearchResultRequest) Reset() {
 	*x = GetSearchResultRequest{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[5]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -645,7 +681,7 @@ func (x *GetSearchResultRequest) String() string {
 func (*GetSearchResultRequest) ProtoMessage() {}
 
 func (x *GetSearchResultRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[5]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -658,7 +694,7 @@ func (x *GetSearchResultRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSearchResultRequest.ProtoReflect.Descriptor instead.
 func (*GetSearchResultRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{5}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetSearchResultRequest) GetNs() string {
@@ -685,7 +721,7 @@ type GetSearchResultResponse struct {
 
 func (x *GetSearchResultResponse) Reset() {
 	*x = GetSearchResultResponse{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[6]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -697,7 +733,7 @@ func (x *GetSearchResultResponse) String() string {
 func (*GetSearchResultResponse) ProtoMessage() {}
 
 func (x *GetSearchResultResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[6]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -710,7 +746,7 @@ func (x *GetSearchResultResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSearchResultResponse.ProtoReflect.Descriptor instead.
 func (*GetSearchResultResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{6}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetSearchResultResponse) GetDocument() *Document {
@@ -731,32 +767,39 @@ var File_proto_talon_v1_search_proto protoreflect.FileDescriptor
 
 const file_proto_talon_v1_search_proto_rawDesc = "" +
 	"\n" +
-	"\x1bproto/talon/v1/search.proto\x12\btalon.v1\"\xbd\x04\n" +
-	"\rSearchRequest\x12\x0e\n" +
-	"\x02ns\x18\x01 \x01(\tR\x02ns\x12\x14\n" +
-	"\x05query\x18\x02 \x01(\tR\x05query\x12%\n" +
-	"\x0eresource_kinds\x18\x03 \x03(\tR\rresourceKinds\x12\x14\n" +
-	"\x05agent\x18\x04 \x01(\tR\x05agent\x12\x1d\n" +
+	"\x1bproto/talon/v1/search.proto\x12\btalon.v1\"\xc4\x04\n" +
+	"\rSearchRequest\x12\x14\n" +
+	"\x05query\x18\x01 \x01(\tR\x05query\x124\n" +
+	"\x06source\x18\x02 \x01(\v2\x1c.talon.v1.SearchSourceFilterR\x06source\x12G\n" +
 	"\n" +
-	"session_id\x18\x05 \x01(\tR\tsessionId\x12\x18\n" +
-	"\achannel\x18\x06 \x01(\tR\achannel\x12\x12\n" +
-	"\x04role\x18\a \x01(\tR\x04role\x12\x1b\n" +
-	"\tpart_type\x18\b \x01(\tR\bpartType\x12;\n" +
-	"\x06labels\x18\t \x03(\v2#.talon.v1.SearchRequest.LabelsEntryR\x06labels\x12\"\n" +
+	"attributes\x18\x03 \x03(\v2'.talon.v1.SearchRequest.AttributesEntryR\n" +
+	"attributes\x12;\n" +
+	"\x06labels\x18\x04 \x03(\v2#.talon.v1.SearchRequest.LabelsEntryR\x06labels\x12\"\n" +
 	"\n" +
-	"start_time\x18\n" +
-	" \x01(\x03H\x00R\tstartTime\x88\x01\x01\x12\x1e\n" +
-	"\bend_time\x18\v \x01(\x03H\x01R\aendTime\x88\x01\x01\x12\x14\n" +
-	"\x05limit\x18\f \x01(\x05R\x05limit\x12\x1d\n" +
+	"start_time\x18\x05 \x01(\x03H\x00R\tstartTime\x88\x01\x01\x12\x1e\n" +
+	"\bend_time\x18\x06 \x01(\x03H\x01R\aendTime\x88\x01\x01\x12\x14\n" +
+	"\x05limit\x18\a \x01(\x05R\x05limit\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\r \x01(\tR\tpageToken\x12(\n" +
-	"\x04mode\x18\x0e \x01(\x0e2\x14.talon.v1.SearchModeR\x04mode\x12(\n" +
-	"\x04sort\x18\x0f \x01(\x0e2\x14.talon.v1.SearchSortR\x04sort\x1a9\n" +
+	"page_token\x18\b \x01(\tR\tpageToken\x12(\n" +
+	"\x04mode\x18\t \x01(\x0e2\x14.talon.v1.SearchModeR\x04mode\x12(\n" +
+	"\x04sort\x18\n" +
+	" \x01(\x0e2\x14.talon.v1.SearchSortR\x04sort\x1a=\n" +
+	"\x0fAttributesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\r\n" +
 	"\v_start_timeB\v\n" +
-	"\t_end_time\"\xab\x05\n" +
+	"\t_end_time\"\x98\x01\n" +
+	"\x12SearchSourceFilter\x12\x1c\n" +
+	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12\x1d\n" +
+	"\n" +
+	"key_prefix\x18\x03 \x01(\tR\tkeyPrefix\x12\x14\n" +
+	"\x05kinds\x18\x04 \x03(\tR\x05kinds\x12\x1d\n" +
+	"\n" +
+	"parent_key\x18\x05 \x01(\tR\tparentKey\"\xab\x05\n" +
 	"\bDocument\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x120\n" +
 	"\x06source\x18\x02 \x01(\v2\x18.talon.v1.DocumentSourceR\x06source\x12#\n" +
@@ -837,40 +880,44 @@ func file_proto_talon_v1_search_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_talon_v1_search_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_talon_v1_search_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_proto_talon_v1_search_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_proto_talon_v1_search_proto_goTypes = []any{
 	(SearchMode)(0),                 // 0: talon.v1.SearchMode
 	(SearchSort)(0),                 // 1: talon.v1.SearchSort
 	(*SearchRequest)(nil),           // 2: talon.v1.SearchRequest
-	(*Document)(nil),                // 3: talon.v1.Document
-	(*DocumentSource)(nil),          // 4: talon.v1.DocumentSource
-	(*SearchResult)(nil),            // 5: talon.v1.SearchResult
-	(*SearchResponse)(nil),          // 6: talon.v1.SearchResponse
-	(*GetSearchResultRequest)(nil),  // 7: talon.v1.GetSearchResultRequest
-	(*GetSearchResultResponse)(nil), // 8: talon.v1.GetSearchResultResponse
-	nil,                             // 9: talon.v1.SearchRequest.LabelsEntry
-	nil,                             // 10: talon.v1.Document.AttributesEntry
-	nil,                             // 11: talon.v1.Document.LabelsEntry
+	(*SearchSourceFilter)(nil),      // 3: talon.v1.SearchSourceFilter
+	(*Document)(nil),                // 4: talon.v1.Document
+	(*DocumentSource)(nil),          // 5: talon.v1.DocumentSource
+	(*SearchResult)(nil),            // 6: talon.v1.SearchResult
+	(*SearchResponse)(nil),          // 7: talon.v1.SearchResponse
+	(*GetSearchResultRequest)(nil),  // 8: talon.v1.GetSearchResultRequest
+	(*GetSearchResultResponse)(nil), // 9: talon.v1.GetSearchResultResponse
+	nil,                             // 10: talon.v1.SearchRequest.AttributesEntry
+	nil,                             // 11: talon.v1.SearchRequest.LabelsEntry
+	nil,                             // 12: talon.v1.Document.AttributesEntry
+	nil,                             // 13: talon.v1.Document.LabelsEntry
 }
 var file_proto_talon_v1_search_proto_depIdxs = []int32{
-	9,  // 0: talon.v1.SearchRequest.labels:type_name -> talon.v1.SearchRequest.LabelsEntry
-	0,  // 1: talon.v1.SearchRequest.mode:type_name -> talon.v1.SearchMode
-	1,  // 2: talon.v1.SearchRequest.sort:type_name -> talon.v1.SearchSort
-	4,  // 3: talon.v1.Document.source:type_name -> talon.v1.DocumentSource
-	10, // 4: talon.v1.Document.attributes:type_name -> talon.v1.Document.AttributesEntry
-	11, // 5: talon.v1.Document.labels:type_name -> talon.v1.Document.LabelsEntry
-	3,  // 6: talon.v1.SearchResult.document:type_name -> talon.v1.Document
-	5,  // 7: talon.v1.SearchResponse.results:type_name -> talon.v1.SearchResult
-	3,  // 8: talon.v1.GetSearchResultResponse.document:type_name -> talon.v1.Document
-	2,  // 9: talon.v1.SearchService.Search:input_type -> talon.v1.SearchRequest
-	7,  // 10: talon.v1.SearchService.GetResult:input_type -> talon.v1.GetSearchResultRequest
-	6,  // 11: talon.v1.SearchService.Search:output_type -> talon.v1.SearchResponse
-	8,  // 12: talon.v1.SearchService.GetResult:output_type -> talon.v1.GetSearchResultResponse
-	11, // [11:13] is the sub-list for method output_type
-	9,  // [9:11] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	3,  // 0: talon.v1.SearchRequest.source:type_name -> talon.v1.SearchSourceFilter
+	10, // 1: talon.v1.SearchRequest.attributes:type_name -> talon.v1.SearchRequest.AttributesEntry
+	11, // 2: talon.v1.SearchRequest.labels:type_name -> talon.v1.SearchRequest.LabelsEntry
+	0,  // 3: talon.v1.SearchRequest.mode:type_name -> talon.v1.SearchMode
+	1,  // 4: talon.v1.SearchRequest.sort:type_name -> talon.v1.SearchSort
+	5,  // 5: talon.v1.Document.source:type_name -> talon.v1.DocumentSource
+	12, // 6: talon.v1.Document.attributes:type_name -> talon.v1.Document.AttributesEntry
+	13, // 7: talon.v1.Document.labels:type_name -> talon.v1.Document.LabelsEntry
+	4,  // 8: talon.v1.SearchResult.document:type_name -> talon.v1.Document
+	6,  // 9: talon.v1.SearchResponse.results:type_name -> talon.v1.SearchResult
+	4,  // 10: talon.v1.GetSearchResultResponse.document:type_name -> talon.v1.Document
+	2,  // 11: talon.v1.SearchService.Search:input_type -> talon.v1.SearchRequest
+	8,  // 12: talon.v1.SearchService.GetResult:input_type -> talon.v1.GetSearchResultRequest
+	7,  // 13: talon.v1.SearchService.Search:output_type -> talon.v1.SearchResponse
+	9,  // 14: talon.v1.SearchService.GetResult:output_type -> talon.v1.GetSearchResultResponse
+	13, // [13:15] is the sub-list for method output_type
+	11, // [11:13] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_proto_talon_v1_search_proto_init() }
@@ -885,7 +932,7 @@ func file_proto_talon_v1_search_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_talon_v1_search_proto_rawDesc), len(file_proto_talon_v1_search_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

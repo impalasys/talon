@@ -69,77 +69,52 @@ proto3.util.setEnumType(SearchSort, "talon.v1.SearchSort", [
  */
 export class SearchRequest extends Message<SearchRequest> {
   /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string query = 2;
+   * @generated from field: string query = 1;
    */
   query = "";
 
   /**
-   * @generated from field: repeated string resource_kinds = 3;
+   * @generated from field: talon.v1.SearchSourceFilter source = 2;
    */
-  resourceKinds: string[] = [];
+  source?: SearchSourceFilter;
 
   /**
-   * @generated from field: string agent = 4;
+   * @generated from field: map<string, string> attributes = 3;
    */
-  agent = "";
+  attributes: { [key: string]: string } = {};
 
   /**
-   * @generated from field: string session_id = 5;
-   */
-  sessionId = "";
-
-  /**
-   * @generated from field: string channel = 6;
-   */
-  channel = "";
-
-  /**
-   * @generated from field: string role = 7;
-   */
-  role = "";
-
-  /**
-   * @generated from field: string part_type = 8;
-   */
-  partType = "";
-
-  /**
-   * @generated from field: map<string, string> labels = 9;
+   * @generated from field: map<string, string> labels = 4;
    */
   labels: { [key: string]: string } = {};
 
   /**
-   * @generated from field: optional int64 start_time = 10;
+   * @generated from field: optional int64 start_time = 5;
    */
   startTime?: bigint;
 
   /**
-   * @generated from field: optional int64 end_time = 11;
+   * @generated from field: optional int64 end_time = 6;
    */
   endTime?: bigint;
 
   /**
-   * @generated from field: int32 limit = 12;
+   * @generated from field: int32 limit = 7;
    */
   limit = 0;
 
   /**
-   * @generated from field: string page_token = 13;
+   * @generated from field: string page_token = 8;
    */
   pageToken = "";
 
   /**
-   * @generated from field: talon.v1.SearchMode mode = 14;
+   * @generated from field: talon.v1.SearchMode mode = 9;
    */
   mode = SearchMode.UNSPECIFIED;
 
   /**
-   * @generated from field: talon.v1.SearchSort sort = 15;
+   * @generated from field: talon.v1.SearchSort sort = 10;
    */
   sort = SearchSort.UNSPECIFIED;
 
@@ -151,21 +126,16 @@ export class SearchRequest extends Message<SearchRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.v1.SearchRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "query", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "resource_kinds", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 4, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "role", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 8, name: "part_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 9, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-    { no: 10, name: "start_time", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
-    { no: 11, name: "end_time", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
-    { no: 12, name: "limit", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
-    { no: 13, name: "page_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 14, name: "mode", kind: "enum", T: proto3.getEnumType(SearchMode) },
-    { no: 15, name: "sort", kind: "enum", T: proto3.getEnumType(SearchSort) },
+    { no: 1, name: "query", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "source", kind: "message", T: SearchSourceFilter },
+    { no: 3, name: "attributes", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 4, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 5, name: "start_time", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 6, name: "end_time", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 7, name: "limit", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 8, name: "page_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "mode", kind: "enum", T: proto3.getEnumType(SearchMode) },
+    { no: 10, name: "sort", kind: "enum", T: proto3.getEnumType(SearchSort) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SearchRequest {
@@ -182,6 +152,67 @@ export class SearchRequest extends Message<SearchRequest> {
 
   static equals(a: SearchRequest | PlainMessage<SearchRequest> | undefined, b: SearchRequest | PlainMessage<SearchRequest> | undefined): boolean {
     return proto3.util.equals(SearchRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.SearchSourceFilter
+ */
+export class SearchSourceFilter extends Message<SearchSourceFilter> {
+  /**
+   * @generated from field: string namespace = 1;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string key = 2;
+   */
+  key = "";
+
+  /**
+   * @generated from field: string key_prefix = 3;
+   */
+  keyPrefix = "";
+
+  /**
+   * @generated from field: repeated string kinds = 4;
+   */
+  kinds: string[] = [];
+
+  /**
+   * @generated from field: string parent_key = 5;
+   */
+  parentKey = "";
+
+  constructor(data?: PartialMessage<SearchSourceFilter>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.SearchSourceFilter";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "key_prefix", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "kinds", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 5, name: "parent_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SearchSourceFilter {
+    return new SearchSourceFilter().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SearchSourceFilter {
+    return new SearchSourceFilter().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SearchSourceFilter {
+    return new SearchSourceFilter().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SearchSourceFilter | PlainMessage<SearchSourceFilter> | undefined, b: SearchSourceFilter | PlainMessage<SearchSourceFilter> | undefined): boolean {
+    return proto3.util.equals(SearchSourceFilter, a, b);
   }
 }
 

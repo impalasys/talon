@@ -6,7 +6,9 @@ use serde_json::{json, Value};
 use std::sync::Arc;
 
 use crate::control::resources::ResourceStore;
-use crate::control::search::{DocumentStore, SearchQuery, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
+use crate::control::search::{
+    DocumentStore, SearchQuery, SearchSourceFilter, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE,
+};
 use crate::control::MessagePublisher;
 use crate::gateway::rpc::resources_proto;
 
@@ -328,8 +330,11 @@ impl KvKnowledgeBook {
         let response = documents
             .search(&SearchQuery {
                 query: query.to_string(),
-                namespaces: namespaces.clone(),
-                resource_kinds: vec![KIND_KNOWLEDGE.to_string()],
+                source: SearchSourceFilter {
+                    namespaces: namespaces.clone(),
+                    kinds: vec![KIND_KNOWLEDGE.to_string()],
+                    ..Default::default()
+                },
                 limit: limit.saturating_mul(namespaces.len().max(1)),
                 ..Default::default()
             })

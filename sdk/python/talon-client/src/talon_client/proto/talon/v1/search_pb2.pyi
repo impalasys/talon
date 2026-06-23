@@ -28,7 +28,14 @@ SEARCH_SORT_RELEVANCE: SearchSort
 SEARCH_SORT_RECENCY: SearchSort
 
 class SearchRequest(_message.Message):
-    __slots__ = ("ns", "query", "resource_kinds", "agent", "session_id", "channel", "role", "part_type", "labels", "start_time", "end_time", "limit", "page_token", "mode", "sort")
+    __slots__ = ("query", "source", "attributes", "labels", "start_time", "end_time", "limit", "page_token", "mode", "sort")
+    class AttributesEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     class LabelsEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -36,14 +43,9 @@ class SearchRequest(_message.Message):
         key: str
         value: str
         def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
-    NS_FIELD_NUMBER: _ClassVar[int]
     QUERY_FIELD_NUMBER: _ClassVar[int]
-    RESOURCE_KINDS_FIELD_NUMBER: _ClassVar[int]
-    AGENT_FIELD_NUMBER: _ClassVar[int]
-    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
-    CHANNEL_FIELD_NUMBER: _ClassVar[int]
-    ROLE_FIELD_NUMBER: _ClassVar[int]
-    PART_TYPE_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
     LABELS_FIELD_NUMBER: _ClassVar[int]
     START_TIME_FIELD_NUMBER: _ClassVar[int]
     END_TIME_FIELD_NUMBER: _ClassVar[int]
@@ -51,14 +53,9 @@ class SearchRequest(_message.Message):
     PAGE_TOKEN_FIELD_NUMBER: _ClassVar[int]
     MODE_FIELD_NUMBER: _ClassVar[int]
     SORT_FIELD_NUMBER: _ClassVar[int]
-    ns: str
     query: str
-    resource_kinds: _containers.RepeatedScalarFieldContainer[str]
-    agent: str
-    session_id: str
-    channel: str
-    role: str
-    part_type: str
+    source: SearchSourceFilter
+    attributes: _containers.ScalarMap[str, str]
     labels: _containers.ScalarMap[str, str]
     start_time: int
     end_time: int
@@ -66,7 +63,21 @@ class SearchRequest(_message.Message):
     page_token: str
     mode: SearchMode
     sort: SearchSort
-    def __init__(self, ns: _Optional[str] = ..., query: _Optional[str] = ..., resource_kinds: _Optional[_Iterable[str]] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., channel: _Optional[str] = ..., role: _Optional[str] = ..., part_type: _Optional[str] = ..., labels: _Optional[_Mapping[str, str]] = ..., start_time: _Optional[int] = ..., end_time: _Optional[int] = ..., limit: _Optional[int] = ..., page_token: _Optional[str] = ..., mode: _Optional[_Union[SearchMode, str]] = ..., sort: _Optional[_Union[SearchSort, str]] = ...) -> None: ...
+    def __init__(self, query: _Optional[str] = ..., source: _Optional[_Union[SearchSourceFilter, _Mapping]] = ..., attributes: _Optional[_Mapping[str, str]] = ..., labels: _Optional[_Mapping[str, str]] = ..., start_time: _Optional[int] = ..., end_time: _Optional[int] = ..., limit: _Optional[int] = ..., page_token: _Optional[str] = ..., mode: _Optional[_Union[SearchMode, str]] = ..., sort: _Optional[_Union[SearchSort, str]] = ...) -> None: ...
+
+class SearchSourceFilter(_message.Message):
+    __slots__ = ("namespace", "key", "key_prefix", "kinds", "parent_key")
+    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    KEY_FIELD_NUMBER: _ClassVar[int]
+    KEY_PREFIX_FIELD_NUMBER: _ClassVar[int]
+    KINDS_FIELD_NUMBER: _ClassVar[int]
+    PARENT_KEY_FIELD_NUMBER: _ClassVar[int]
+    namespace: str
+    key: str
+    key_prefix: str
+    kinds: _containers.RepeatedScalarFieldContainer[str]
+    parent_key: str
+    def __init__(self, namespace: _Optional[str] = ..., key: _Optional[str] = ..., key_prefix: _Optional[str] = ..., kinds: _Optional[_Iterable[str]] = ..., parent_key: _Optional[str] = ...) -> None: ...
 
 class Document(_message.Message):
     __slots__ = ("id", "source", "document_kind", "subdocument_id", "attributes", "title", "snippet", "labels", "metadata_json", "acl_scope_json", "created_at", "updated_at", "indexed_at", "generation", "embedding_ref")

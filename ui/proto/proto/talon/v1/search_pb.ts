@@ -10,84 +10,59 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/talon/v1/search.proto.
  */
 export const file_proto_talon_v1_search: GenFile = /*@__PURE__*/
-  fileDesc("Chtwcm90by90YWxvbi92MS9zZWFyY2gucHJvdG8SCHRhbG9uLnYxIrIDCg1TZWFyY2hSZXF1ZXN0EgoKAm5zGAEgASgJEg0KBXF1ZXJ5GAIgASgJEhYKDnJlc291cmNlX2tpbmRzGAMgAygJEg0KBWFnZW50GAQgASgJEhIKCnNlc3Npb25faWQYBSABKAkSDwoHY2hhbm5lbBgGIAEoCRIMCgRyb2xlGAcgASgJEhEKCXBhcnRfdHlwZRgIIAEoCRIzCgZsYWJlbHMYCSADKAsyIy50YWxvbi52MS5TZWFyY2hSZXF1ZXN0LkxhYmVsc0VudHJ5EhcKCnN0YXJ0X3RpbWUYCiABKANIAIgBARIVCghlbmRfdGltZRgLIAEoA0gBiAEBEg0KBWxpbWl0GAwgASgFEhIKCnBhZ2VfdG9rZW4YDSABKAkSIgoEbW9kZRgOIAEoDjIULnRhbG9uLnYxLlNlYXJjaE1vZGUSIgoEc29ydBgPIAEoDjIULnRhbG9uLnYxLlNlYXJjaFNvcnQaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4AUINCgtfc3RhcnRfdGltZUILCglfZW5kX3RpbWUi7wMKCERvY3VtZW50EgoKAmlkGAEgASgJEigKBnNvdXJjZRgCIAEoCzIYLnRhbG9uLnYxLkRvY3VtZW50U291cmNlEhUKDWRvY3VtZW50X2tpbmQYAyABKAkSFgoOc3ViZG9jdW1lbnRfaWQYBCABKAkSNgoKYXR0cmlidXRlcxgFIAMoCzIiLnRhbG9uLnYxLkRvY3VtZW50LkF0dHJpYnV0ZXNFbnRyeRINCgV0aXRsZRgGIAEoCRIPCgdzbmlwcGV0GAcgASgJEi4KBmxhYmVscxgIIAMoCzIeLnRhbG9uLnYxLkRvY3VtZW50LkxhYmVsc0VudHJ5EhUKDW1ldGFkYXRhX2pzb24YCSABKAkSFgoOYWNsX3Njb3BlX2pzb24YCiABKAkSEgoKY3JlYXRlZF9hdBgLIAEoAxISCgp1cGRhdGVkX2F0GAwgASgDEhIKCmluZGV4ZWRfYXQYDSABKAMSEgoKZ2VuZXJhdGlvbhgOIAEoBBIVCg1lbWJlZGRpbmdfcmVmGA8gASgJGjEKD0F0dHJpYnV0ZXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEidQoORG9jdW1lbnRTb3VyY2USCwoDa2V5GAEgASgJEhEKCW5hbWVzcGFjZRgCIAEoCRIMCgRraW5kGAMgASgJEgwKBG5hbWUYBCABKAkSEwoLcGFyZW50X2tpbmQYBSABKAkSEgoKcGFyZW50X2tleRgGIAEoCSJDCgxTZWFyY2hSZXN1bHQSJAoIZG9jdW1lbnQYASABKAsyEi50YWxvbi52MS5Eb2N1bWVudBINCgVzY29yZRgCIAEoAiJSCg5TZWFyY2hSZXNwb25zZRInCgdyZXN1bHRzGAEgAygLMhYudGFsb24udjEuU2VhcmNoUmVzdWx0EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSI5ChZHZXRTZWFyY2hSZXN1bHRSZXF1ZXN0EgoKAm5zGAEgASgJEhMKC2RvY3VtZW50X2lkGAIgASgJIlAKF0dldFNlYXJjaFJlc3VsdFJlc3BvbnNlEiQKCGRvY3VtZW50GAEgASgLMhIudGFsb24udjEuRG9jdW1lbnQSDwoHY29udGVudBgCIAEoCSp0CgpTZWFyY2hNb2RlEhsKF1NFQVJDSF9NT0RFX1VOU1BFQ0lGSUVEEAASFwoTU0VBUkNIX01PREVfS0VZV09SRBABEhgKFFNFQVJDSF9NT0RFX1NFTUFOVElDEAISFgoSU0VBUkNIX01PREVfSFlCUklEEAMqXQoKU2VhcmNoU29ydBIbChdTRUFSQ0hfU09SVF9VTlNQRUNJRklFRBAAEhkKFVNFQVJDSF9TT1JUX1JFTEVWQU5DRRABEhcKE1NFQVJDSF9TT1JUX1JFQ0VOQ1kQAjKeAQoNU2VhcmNoU2VydmljZRI7CgZTZWFyY2gSFy50YWxvbi52MS5TZWFyY2hSZXF1ZXN0GhgudGFsb24udjEuU2VhcmNoUmVzcG9uc2USUAoJR2V0UmVzdWx0EiAudGFsb24udjEuR2V0U2VhcmNoUmVzdWx0UmVxdWVzdBohLnRhbG9uLnYxLkdldFNlYXJjaFJlc3VsdFJlc3BvbnNlYgZwcm90bzM");
+  fileDesc("Chtwcm90by90YWxvbi92MS9zZWFyY2gucHJvdG8SCHRhbG9uLnYxItcDCg1TZWFyY2hSZXF1ZXN0Eg0KBXF1ZXJ5GAEgASgJEiwKBnNvdXJjZRgCIAEoCzIcLnRhbG9uLnYxLlNlYXJjaFNvdXJjZUZpbHRlchI7CgphdHRyaWJ1dGVzGAMgAygLMicudGFsb24udjEuU2VhcmNoUmVxdWVzdC5BdHRyaWJ1dGVzRW50cnkSMwoGbGFiZWxzGAQgAygLMiMudGFsb24udjEuU2VhcmNoUmVxdWVzdC5MYWJlbHNFbnRyeRIXCgpzdGFydF90aW1lGAUgASgDSACIAQESFQoIZW5kX3RpbWUYBiABKANIAYgBARINCgVsaW1pdBgHIAEoBRISCgpwYWdlX3Rva2VuGAggASgJEiIKBG1vZGUYCSABKA4yFC50YWxvbi52MS5TZWFyY2hNb2RlEiIKBHNvcnQYCiABKA4yFC50YWxvbi52MS5TZWFyY2hTb3J0GjEKD0F0dHJpYnV0ZXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAFCDQoLX3N0YXJ0X3RpbWVCCwoJX2VuZF90aW1lImsKElNlYXJjaFNvdXJjZUZpbHRlchIRCgluYW1lc3BhY2UYASABKAkSCwoDa2V5GAIgASgJEhIKCmtleV9wcmVmaXgYAyABKAkSDQoFa2luZHMYBCADKAkSEgoKcGFyZW50X2tleRgFIAEoCSLvAwoIRG9jdW1lbnQSCgoCaWQYASABKAkSKAoGc291cmNlGAIgASgLMhgudGFsb24udjEuRG9jdW1lbnRTb3VyY2USFQoNZG9jdW1lbnRfa2luZBgDIAEoCRIWCg5zdWJkb2N1bWVudF9pZBgEIAEoCRI2CgphdHRyaWJ1dGVzGAUgAygLMiIudGFsb24udjEuRG9jdW1lbnQuQXR0cmlidXRlc0VudHJ5Eg0KBXRpdGxlGAYgASgJEg8KB3NuaXBwZXQYByABKAkSLgoGbGFiZWxzGAggAygLMh4udGFsb24udjEuRG9jdW1lbnQuTGFiZWxzRW50cnkSFQoNbWV0YWRhdGFfanNvbhgJIAEoCRIWCg5hY2xfc2NvcGVfanNvbhgKIAEoCRISCgpjcmVhdGVkX2F0GAsgASgDEhIKCnVwZGF0ZWRfYXQYDCABKAMSEgoKaW5kZXhlZF9hdBgNIAEoAxISCgpnZW5lcmF0aW9uGA4gASgEEhUKDWVtYmVkZGluZ19yZWYYDyABKAkaMQoPQXR0cmlidXRlc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASJ1Cg5Eb2N1bWVudFNvdXJjZRILCgNrZXkYASABKAkSEQoJbmFtZXNwYWNlGAIgASgJEgwKBGtpbmQYAyABKAkSDAoEbmFtZRgEIAEoCRITCgtwYXJlbnRfa2luZBgFIAEoCRISCgpwYXJlbnRfa2V5GAYgASgJIkMKDFNlYXJjaFJlc3VsdBIkCghkb2N1bWVudBgBIAEoCzISLnRhbG9uLnYxLkRvY3VtZW50Eg0KBXNjb3JlGAIgASgCIlIKDlNlYXJjaFJlc3BvbnNlEicKB3Jlc3VsdHMYASADKAsyFi50YWxvbi52MS5TZWFyY2hSZXN1bHQSFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIjkKFkdldFNlYXJjaFJlc3VsdFJlcXVlc3QSCgoCbnMYASABKAkSEwoLZG9jdW1lbnRfaWQYAiABKAkiUAoXR2V0U2VhcmNoUmVzdWx0UmVzcG9uc2USJAoIZG9jdW1lbnQYASABKAsyEi50YWxvbi52MS5Eb2N1bWVudBIPCgdjb250ZW50GAIgASgJKnQKClNlYXJjaE1vZGUSGwoXU0VBUkNIX01PREVfVU5TUEVDSUZJRUQQABIXChNTRUFSQ0hfTU9ERV9LRVlXT1JEEAESGAoUU0VBUkNIX01PREVfU0VNQU5USUMQAhIWChJTRUFSQ0hfTU9ERV9IWUJSSUQQAypdCgpTZWFyY2hTb3J0EhsKF1NFQVJDSF9TT1JUX1VOU1BFQ0lGSUVEEAASGQoVU0VBUkNIX1NPUlRfUkVMRVZBTkNFEAESFwoTU0VBUkNIX1NPUlRfUkVDRU5DWRACMp4BCg1TZWFyY2hTZXJ2aWNlEjsKBlNlYXJjaBIXLnRhbG9uLnYxLlNlYXJjaFJlcXVlc3QaGC50YWxvbi52MS5TZWFyY2hSZXNwb25zZRJQCglHZXRSZXN1bHQSIC50YWxvbi52MS5HZXRTZWFyY2hSZXN1bHRSZXF1ZXN0GiEudGFsb24udjEuR2V0U2VhcmNoUmVzdWx0UmVzcG9uc2ViBnByb3RvMw");
 
 /**
  * @generated from message talon.v1.SearchRequest
  */
 export type SearchRequest = Message<"talon.v1.SearchRequest"> & {
   /**
-   * @generated from field: string ns = 1;
-   */
-  ns: string;
-
-  /**
-   * @generated from field: string query = 2;
+   * @generated from field: string query = 1;
    */
   query: string;
 
   /**
-   * @generated from field: repeated string resource_kinds = 3;
+   * @generated from field: talon.v1.SearchSourceFilter source = 2;
    */
-  resourceKinds: string[];
+  source?: SearchSourceFilter;
 
   /**
-   * @generated from field: string agent = 4;
+   * @generated from field: map<string, string> attributes = 3;
    */
-  agent: string;
+  attributes: { [key: string]: string };
 
   /**
-   * @generated from field: string session_id = 5;
-   */
-  sessionId: string;
-
-  /**
-   * @generated from field: string channel = 6;
-   */
-  channel: string;
-
-  /**
-   * @generated from field: string role = 7;
-   */
-  role: string;
-
-  /**
-   * @generated from field: string part_type = 8;
-   */
-  partType: string;
-
-  /**
-   * @generated from field: map<string, string> labels = 9;
+   * @generated from field: map<string, string> labels = 4;
    */
   labels: { [key: string]: string };
 
   /**
-   * @generated from field: optional int64 start_time = 10;
+   * @generated from field: optional int64 start_time = 5;
    */
   startTime?: bigint;
 
   /**
-   * @generated from field: optional int64 end_time = 11;
+   * @generated from field: optional int64 end_time = 6;
    */
   endTime?: bigint;
 
   /**
-   * @generated from field: int32 limit = 12;
+   * @generated from field: int32 limit = 7;
    */
   limit: number;
 
   /**
-   * @generated from field: string page_token = 13;
+   * @generated from field: string page_token = 8;
    */
   pageToken: string;
 
   /**
-   * @generated from field: talon.v1.SearchMode mode = 14;
+   * @generated from field: talon.v1.SearchMode mode = 9;
    */
   mode: SearchMode;
 
   /**
-   * @generated from field: talon.v1.SearchSort sort = 15;
+   * @generated from field: talon.v1.SearchSort sort = 10;
    */
   sort: SearchSort;
 };
@@ -98,6 +73,43 @@ export type SearchRequest = Message<"talon.v1.SearchRequest"> & {
  */
 export const SearchRequestSchema: GenMessage<SearchRequest> = /*@__PURE__*/
   messageDesc(file_proto_talon_v1_search, 0);
+
+/**
+ * @generated from message talon.v1.SearchSourceFilter
+ */
+export type SearchSourceFilter = Message<"talon.v1.SearchSourceFilter"> & {
+  /**
+   * @generated from field: string namespace = 1;
+   */
+  namespace: string;
+
+  /**
+   * @generated from field: string key = 2;
+   */
+  key: string;
+
+  /**
+   * @generated from field: string key_prefix = 3;
+   */
+  keyPrefix: string;
+
+  /**
+   * @generated from field: repeated string kinds = 4;
+   */
+  kinds: string[];
+
+  /**
+   * @generated from field: string parent_key = 5;
+   */
+  parentKey: string;
+};
+
+/**
+ * Describes the message talon.v1.SearchSourceFilter.
+ * Use `create(SearchSourceFilterSchema)` to create a new message.
+ */
+export const SearchSourceFilterSchema: GenMessage<SearchSourceFilter> = /*@__PURE__*/
+  messageDesc(file_proto_talon_v1_search, 1);
 
 /**
  * @generated from message talon.v1.Document
@@ -186,7 +198,7 @@ export type Document = Message<"talon.v1.Document"> & {
  * Use `create(DocumentSchema)` to create a new message.
  */
 export const DocumentSchema: GenMessage<Document> = /*@__PURE__*/
-  messageDesc(file_proto_talon_v1_search, 1);
+  messageDesc(file_proto_talon_v1_search, 2);
 
 /**
  * @generated from message talon.v1.DocumentSource
@@ -228,7 +240,7 @@ export type DocumentSource = Message<"talon.v1.DocumentSource"> & {
  * Use `create(DocumentSourceSchema)` to create a new message.
  */
 export const DocumentSourceSchema: GenMessage<DocumentSource> = /*@__PURE__*/
-  messageDesc(file_proto_talon_v1_search, 2);
+  messageDesc(file_proto_talon_v1_search, 3);
 
 /**
  * @generated from message talon.v1.SearchResult
@@ -250,7 +262,7 @@ export type SearchResult = Message<"talon.v1.SearchResult"> & {
  * Use `create(SearchResultSchema)` to create a new message.
  */
 export const SearchResultSchema: GenMessage<SearchResult> = /*@__PURE__*/
-  messageDesc(file_proto_talon_v1_search, 3);
+  messageDesc(file_proto_talon_v1_search, 4);
 
 /**
  * @generated from message talon.v1.SearchResponse
@@ -272,7 +284,7 @@ export type SearchResponse = Message<"talon.v1.SearchResponse"> & {
  * Use `create(SearchResponseSchema)` to create a new message.
  */
 export const SearchResponseSchema: GenMessage<SearchResponse> = /*@__PURE__*/
-  messageDesc(file_proto_talon_v1_search, 4);
+  messageDesc(file_proto_talon_v1_search, 5);
 
 /**
  * @generated from message talon.v1.GetSearchResultRequest
@@ -294,7 +306,7 @@ export type GetSearchResultRequest = Message<"talon.v1.GetSearchResultRequest"> 
  * Use `create(GetSearchResultRequestSchema)` to create a new message.
  */
 export const GetSearchResultRequestSchema: GenMessage<GetSearchResultRequest> = /*@__PURE__*/
-  messageDesc(file_proto_talon_v1_search, 5);
+  messageDesc(file_proto_talon_v1_search, 6);
 
 /**
  * @generated from message talon.v1.GetSearchResultResponse
@@ -316,7 +328,7 @@ export type GetSearchResultResponse = Message<"talon.v1.GetSearchResultResponse"
  * Use `create(GetSearchResultResponseSchema)` to create a new message.
  */
 export const GetSearchResultResponseSchema: GenMessage<GetSearchResultResponse> = /*@__PURE__*/
-  messageDesc(file_proto_talon_v1_search, 6);
+  messageDesc(file_proto_talon_v1_search, 7);
 
 /**
  * @generated from enum talon.v1.SearchMode

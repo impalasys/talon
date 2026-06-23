@@ -159,7 +159,12 @@ impl DocumentStore for SqliteDocumentStore {
 
     async fn search(&self, query: &SearchQuery) -> Result<SearchResponse> {
         self.capabilities().require_mode(query.mode)?;
-        if query.namespaces.is_empty() {
+        if query
+            .source
+            .namespaces()
+            .iter()
+            .all(|namespace| namespace.is_empty())
+        {
             return Ok(SearchResponse::default());
         }
         let fts_query = fts5_query(&query.query);
@@ -300,37 +305,39 @@ async fn init_schema(pool: &SqlitePool) -> Result<()> {
 fn push_query_filters<'a>(builder: &mut QueryBuilder<'a, Sqlite>, query: &'a SearchQuery) {
     builder.push(" AND d.namespace IN (");
     let mut separated = builder.separated(", ");
-    for namespace in &query.namespaces {
+    for namespace in query.source.namespaces() {
         separated.push_bind(namespace);
     }
     separated.push_unseparated(")");
-    if !query.resource_kinds.is_empty() {
+    if !query.source.key.is_empty() {
+        builder
+            .push(" AND d.resource_key = ")
+            .push_bind(&query.source.key);
+    }
+    if !query.source.key_prefix.is_empty() {
+        builder
+            .push(" AND d.resource_key LIKE ")
+            .push_bind(like_prefix_pattern(&query.source.key_prefix))
+            .push(" ESCAPE '\\'");
+    }
+    if !query.source.parent_key.is_empty() {
+        builder
+            .push(" AND d.parent_key = ")
+            .push_bind(&query.source.parent_key);
+    }
+    if !query.source.kinds.is_empty() {
         builder.push(" AND d.resource_kind IN (");
         let mut separated = builder.separated(", ");
-        for kind in &query.resource_kinds {
+        for kind in &query.source.kinds {
             separated.push_bind(kind);
         }
         separated.push_unseparated(")");
     }
-    if !query.agent.is_empty() {
-        builder.push(" AND d.agent = ").push_bind(&query.agent);
-    }
-    if !query.session_id.is_empty() {
-        builder
-            .push(" AND d.session_id = ")
-            .push_bind(&query.session_id);
-    }
-    if !query.channel.is_empty() {
-        builder.push(" AND d.channel = ").push_bind(&query.channel);
-    }
-    if !query.role.is_empty() {
-        builder.push(" AND d.role = ").push_bind(&query.role);
-    }
-    if !query.part_type.is_empty() {
-        builder
-            .push(" AND d.part_type = ")
-            .push_bind(&query.part_type);
-    }
+    push_attribute_filter(builder, "agent", &query.attributes);
+    push_attribute_filter(builder, "session_id", &query.attributes);
+    push_attribute_filter(builder, "channel", &query.attributes);
+    push_attribute_filter(builder, "role", &query.attributes);
+    push_attribute_filter(builder, "part_type", &query.attributes);
     if let Some(start) = query.start_time {
         builder.push(" AND d.created_at >= ").push_bind(start);
     }
@@ -345,6 +352,20 @@ fn push_query_filters<'a>(builder: &mut QueryBuilder<'a, Sqlite>, query: &'a Sea
             .push_bind(value);
         builder.push(")");
     }
+}
+
+fn push_attribute_filter<'a>(
+    builder: &mut QueryBuilder<'a, Sqlite>,
+    key: &'static str,
+    attributes: &'a HashMap<String, String>,
+) {
+    let Some(value) = attributes.get(key).filter(|value| !value.is_empty()) else {
+        return;
+    };
+    builder.push(" AND d.");
+    builder.push(key);
+    builder.push(" = ");
+    builder.push_bind(value);
 }
 
 fn push_delete_filters<'a>(builder: &mut QueryBuilder<'a, Sqlite>, scope: &'a DeleteScope) {
@@ -508,9 +529,12 @@ mod tests {
         let response = store
             .search(&SearchQuery {
                 query: "refund".to_string(),
-                namespaces: vec!["acme".to_string()],
-                resource_kinds: vec!["SessionMessage".to_string()],
-                agent: "support".to_string(),
+                source: crate::control::search::SearchSourceFilter {
+                    namespace: "acme".to_string(),
+                    kinds: vec!["SessionMessage".to_string()],
+                    ..Default::default()
+                },
+                attributes: document_attributes([(ATTR_AGENT, "support".to_string())]),
                 labels: [
                     ("tier".to_string(), "gold".to_string()),
                     ("talon.io/agent".to_string(), "support".to_string()),
@@ -532,8 +556,11 @@ mod tests {
         let prefix_response = store
             .search(&SearchQuery {
                 query: "ref".to_string(),
-                namespaces: vec!["acme".to_string()],
-                resource_kinds: vec!["SessionMessage".to_string()],
+                source: crate::control::search::SearchSourceFilter {
+                    namespace: "acme".to_string(),
+                    kinds: vec!["SessionMessage".to_string()],
+                    ..Default::default()
+                },
                 limit: 10,
                 ..Default::default()
             })

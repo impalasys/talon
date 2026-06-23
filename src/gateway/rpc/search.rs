@@ -3,7 +3,10 @@
 
 use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
 use crate::control::ns;
-use crate::control::search::{self, Document, SearchMode, SearchQuery, SearchSort};
+use crate::control::search::{
+    self, Document, SearchMode, SearchQuery, SearchSort, SearchSourceFilter, ATTR_AGENT,
+    ATTR_CHANNEL, ATTR_SESSION_ID,
+};
 use crate::control::{keys, ProtoKeyValueStoreExt};
 use crate::gateway::auth::{self, AuthMode, Claims};
 
@@ -14,18 +17,21 @@ impl GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::SearchResponse>, tonic::Status> {
         let metadata = req.metadata().clone();
         let req = req.into_inner();
-        if req.ns.trim().is_empty() {
+        let source = req.source.unwrap_or_default();
+        if source.namespace.trim().is_empty() {
             return Err(tonic::Status::invalid_argument("namespace is required"));
         }
         let mut query = SearchQuery {
             query: req.query,
-            namespaces: vec![req.ns],
-            resource_kinds: req.resource_kinds,
-            agent: req.agent,
-            session_id: req.session_id,
-            channel: req.channel,
-            role: req.role,
-            part_type: req.part_type,
+            source: SearchSourceFilter {
+                namespace: source.namespace,
+                key: source.key,
+                key_prefix: source.key_prefix,
+                kinds: source.kinds,
+                parent_key: source.parent_key,
+                ..Default::default()
+            },
+            attributes: req.attributes,
             labels: req.labels,
             start_time: req.start_time,
             end_time: req.end_time,
@@ -76,11 +82,13 @@ fn authorize_search(
     query: &mut SearchQuery,
 ) -> std::result::Result<(), tonic::Status> {
     let namespace = query
-        .namespaces
+        .source
+        .namespaces()
         .first()
-        .map(String::as_str)
-        .unwrap_or_default();
-    let Some(claims) = authorize_search_namespace(handler, metadata, namespace)? else {
+        .copied()
+        .unwrap_or_default()
+        .to_string();
+    let Some(claims) = authorize_search_namespace(handler, metadata, &namespace)? else {
         return Ok(());
     };
     apply_claim_scope(claims, query)
@@ -116,28 +124,48 @@ fn apply_claim_scope(
     query: &mut SearchQuery,
 ) -> std::result::Result<(), tonic::Status> {
     if let Some(agent) = claims.agent.filter(|value| !value.is_empty()) {
-        if !query.agent.is_empty() && query.agent != agent {
-            return Err(tonic::Status::permission_denied(format!(
-                "Token scope restricted to agent: {agent}"
-            )));
+        if let Some(current) = query
+            .attributes
+            .get(ATTR_AGENT)
+            .filter(|value| !value.is_empty())
+        {
+            if current != &agent {
+                return Err(tonic::Status::permission_denied(format!(
+                    "Token scope restricted to agent: {agent}"
+                )));
+            }
         }
-        query.agent = agent;
+        query.attributes.insert(ATTR_AGENT.to_string(), agent);
     }
     if let Some(session) = claims.session.filter(|value| !value.is_empty()) {
-        if !query.session_id.is_empty() && query.session_id != session {
-            return Err(tonic::Status::permission_denied(format!(
-                "Token scope restricted to session: {session}"
-            )));
+        if let Some(current) = query
+            .attributes
+            .get(ATTR_SESSION_ID)
+            .filter(|value| !value.is_empty())
+        {
+            if current != &session {
+                return Err(tonic::Status::permission_denied(format!(
+                    "Token scope restricted to session: {session}"
+                )));
+            }
         }
-        query.session_id = session;
+        query
+            .attributes
+            .insert(ATTR_SESSION_ID.to_string(), session);
     }
     if let Some(channel) = claims.channel.filter(|value| !value.is_empty()) {
-        if !query.channel.is_empty() && query.channel != channel {
-            return Err(tonic::Status::permission_denied(format!(
-                "Token scope restricted to channel: {channel}"
-            )));
+        if let Some(current) = query
+            .attributes
+            .get(ATTR_CHANNEL)
+            .filter(|value| !value.is_empty())
+        {
+            if current != &channel {
+                return Err(tonic::Status::permission_denied(format!(
+                    "Token scope restricted to channel: {channel}"
+                )));
+            }
         }
-        query.channel = channel;
+        query.attributes.insert(ATTR_CHANNEL.to_string(), channel);
     }
     Ok(())
 }

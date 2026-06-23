@@ -6,6 +6,7 @@ from talon_client import (
     SEARCH_MODE_KEYWORD,
     SEARCH_SORT_RELEVANCE,
     SearchRequest,
+    SearchSourceFilter,
 )
 
 
@@ -279,14 +280,21 @@ def wait_for_session_search(
         response = search_call(
             stub,
             SearchRequest(
-                ns=namespace,
                 query=query,
-                resource_kinds=["SessionMessage"],
-                agent=agent,
-                session_id=session_id,
-                channel="",
-                role=role,
-                part_type=part_type,
+                source=SearchSourceFilter(
+                    namespace=namespace,
+                    kinds=["SessionMessage"],
+                ),
+                attributes={
+                    key: value
+                    for key, value in {
+                        "agent": agent,
+                        "session_id": session_id,
+                        "role": role,
+                        "part_type": part_type,
+                    }.items()
+                    if value
+                },
                 labels=labels or {},
                 limit=limit,
                 mode=SEARCH_MODE_KEYWORD,
@@ -327,14 +335,22 @@ def wait_for_search(
         response = search_call(
             stub,
             SearchRequest(
-                ns=namespace,
                 query=query,
-                resource_kinds=resource_kinds or [],
-                agent=agent,
-                session_id=session_id,
-                channel=channel,
-                role=role,
-                part_type=part_type,
+                source=SearchSourceFilter(
+                    namespace=namespace,
+                    kinds=resource_kinds or [],
+                ),
+                attributes={
+                    key: value
+                    for key, value in {
+                        "agent": agent,
+                        "session_id": session_id,
+                        "channel": channel,
+                        "role": role,
+                        "part_type": part_type,
+                    }.items()
+                    if value
+                },
                 labels=labels or {},
                 limit=limit,
                 mode=SEARCH_MODE_KEYWORD,
@@ -369,11 +385,19 @@ def wait_for_no_session_search_results(
         response = search_call(
             stub,
             SearchRequest(
-                ns=namespace,
                 query=query,
-                resource_kinds=["SessionMessage"],
-                agent=agent,
-                session_id=session_id,
+                source=SearchSourceFilter(
+                    namespace=namespace,
+                    kinds=["SessionMessage"],
+                ),
+                attributes={
+                    key: value
+                    for key, value in {
+                        "agent": agent,
+                        "session_id": session_id,
+                    }.items()
+                    if value
+                },
                 limit=limit,
                 mode=SEARCH_MODE_KEYWORD,
                 sort=SEARCH_SORT_RELEVANCE,

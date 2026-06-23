@@ -119,14 +119,14 @@ impl DocumentStore for MemoryDocumentStore {
     async fn search(&self, query: &SearchQuery) -> Result<SearchResponse> {
         self.capabilities().require_mode(query.mode)?;
         let stored = self.documents.read().await;
+        let namespaces = query.source.namespaces();
         let mut matches = stored
             .iter()
             .filter(|document| {
-                !query.namespaces.is_empty()
-                    && query
-                        .namespaces
+                !namespaces.is_empty()
+                    && namespaces
                         .iter()
-                        .any(|namespace| namespace == document.namespace())
+                        .any(|namespace| *namespace == document.namespace())
                     && query_matches(query, document)
             })
             .cloned()
