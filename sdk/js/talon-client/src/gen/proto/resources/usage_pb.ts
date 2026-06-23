@@ -80,6 +80,11 @@ export class UsageLimit extends Message<UsageLimit> {
    */
   window = "";
 
+  /**
+   * @generated from field: string subject_scope = 5;
+   */
+  subjectScope = "";
+
   constructor(data?: PartialMessage<UsageLimit>) {
     super();
     proto3.util.initPartial(data, this);
@@ -92,6 +97,7 @@ export class UsageLimit extends Message<UsageLimit> {
     { no: 2, name: "metric", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "max", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 4, name: "window", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "subject_scope", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UsageLimit {
@@ -203,6 +209,11 @@ export class UsageLimitStatus extends Message<UsageLimitStatus> {
    */
   exceeded = false;
 
+  /**
+   * @generated from field: string subject_scope = 10;
+   */
+  subjectScope = "";
+
   constructor(data?: PartialMessage<UsageLimitStatus>) {
     super();
     proto3.util.initPartial(data, this);
@@ -220,6 +231,7 @@ export class UsageLimitStatus extends Message<UsageLimitStatus> {
     { no: 7, name: "used", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 8, name: "remaining", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 9, name: "exceeded", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 10, name: "subject_scope", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UsageLimitStatus {

@@ -815,6 +815,7 @@ fn mint_connector_callback_token(namespace: &str) -> Result<String> {
         exp: now
             .checked_add(CONNECTOR_CALLBACK_TOKEN_TTL_SECONDS)
             .context("connector callback token ttl is too large")? as usize,
+        oidc_issuer: None,
         ns: Some(namespace.to_string()),
         agent: None,
         session: None,

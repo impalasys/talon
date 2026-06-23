@@ -552,6 +552,7 @@ pub(crate) fn mint_local_platform_access_jwt(
         aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
         iat: Some(now as usize),
         exp: exp as usize,
+        oidc_issuer: None,
         ns: namespace.map(str::to_string),
         agent: agent.map(str::to_string),
         session: session.map(str::to_string),

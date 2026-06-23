@@ -26,7 +26,7 @@ const API_KEY_SECRET_BYTES: usize = 32;
 #[derive(Debug, Deserialize, Clone)]
 struct OidcIdentityClaims {
     #[serde(rename = "iss")]
-    _iss: String,
+    iss: String,
     sub: String,
     #[serde(rename = "aud")]
     _aud: serde_json::Value,
@@ -134,6 +134,7 @@ impl GrpcGatewayHandler {
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(now as usize),
             exp: expires_at as usize,
+            oidc_issuer: None,
             ns: Some(scope.namespace),
             agent: scope.agent,
             session: scope.session,
@@ -292,6 +293,7 @@ impl GrpcGatewayHandler {
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(now as usize),
             exp: expires_at as usize,
+            oidc_issuer: None,
             ns: effective_grant.namespace.clone(),
             agent: effective_grant.agent.clone(),
             session: effective_grant.session.clone(),
@@ -1048,6 +1050,7 @@ fn mint_talon_access_token(
         aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
         iat: Some(now as usize),
         exp: exp as usize,
+        oidc_issuer: Some(identity.claims.iss.clone()),
         ns: None,
         agent: None,
         session: None,
