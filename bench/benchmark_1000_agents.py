@@ -276,6 +276,7 @@ def write_compose_file(
     image: str,
     config_path: Path,
     data_dir: Path,
+    agents: int,
     memory: str,
     worker_concurrency: int,
     local_socket_buffer_size: int,
@@ -504,6 +505,7 @@ services:
       PORT: "8081"
       TALON_TOKEN_BATCH_MS: "10000"
       TALON_WORKER_SESSION_CONCURRENCY: "{worker_concurrency}"
+      TALON_ANONYMOUS_GATEWAY_BURST: "{max(agents * 4, 1000)}"
       TALON_LOCAL_SOCKET_SUBSCRIBER_BUFFER_SIZE: "{local_socket_buffer_size}"
       TALON_SQLITE_MAX_CONNECTIONS: "{sqlite_pool_size}"
       TALON_SQLITE_BUSY_TIMEOUT_MS: "{sqlite_busy_timeout_ms}"
@@ -1290,6 +1292,7 @@ async def run_profile(
         image=image,
         config_path=config_path,
         data_dir=data_dir,
+        agents=args.agents,
         memory=args.memory,
         worker_concurrency=args.worker_concurrency,
         local_socket_buffer_size=args.local_socket_buffer_size,

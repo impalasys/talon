@@ -885,6 +885,18 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
      */
     com.google.protobuf.ByteString
         getWindowBytes();
+
+    /**
+     * <code>string subject_scope = 5;</code>
+     * @return The subjectScope.
+     */
+    java.lang.String getSubjectScope();
+    /**
+     * <code>string subject_scope = 5;</code>
+     * @return The bytes for subjectScope.
+     */
+    com.google.protobuf.ByteString
+        getSubjectScopeBytes();
   }
   /**
    * Protobuf type {@code talon.resources.UsageLimit}
@@ -910,6 +922,7 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     private UsageLimit() {
       metric_ = "";
       window_ = "";
+      subjectScope_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -1046,6 +1059,45 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
     }
 
+    public static final int SUBJECT_SCOPE_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object subjectScope_ = "";
+    /**
+     * <code>string subject_scope = 5;</code>
+     * @return The subjectScope.
+     */
+    @java.lang.Override
+    public java.lang.String getSubjectScope() {
+      java.lang.Object ref = subjectScope_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        subjectScope_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string subject_scope = 5;</code>
+     * @return The bytes for subjectScope.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSubjectScopeBytes() {
+      java.lang.Object ref = subjectScope_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        subjectScope_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -1072,6 +1124,9 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(window_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 4, window_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(subjectScope_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, subjectScope_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -1094,6 +1149,9 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(window_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(4, window_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(subjectScope_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, subjectScope_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -1121,6 +1179,8 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
           != other.getMax()) return false;
       if (!getWindow()
           .equals(other.getWindow())) return false;
+      if (!getSubjectScope()
+          .equals(other.getSubjectScope())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1143,6 +1203,8 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
           getMax());
       hash = (37 * hash) + WINDOW_FIELD_NUMBER;
       hash = (53 * hash) + getWindow().hashCode();
+      hash = (37 * hash) + SUBJECT_SCOPE_FIELD_NUMBER;
+      hash = (53 * hash) + getSubjectScope().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1288,6 +1350,7 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         metric_ = "";
         max_ = 0L;
         window_ = "";
+        subjectScope_ = "";
         return this;
       }
 
@@ -1337,6 +1400,9 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000008) != 0)) {
           result.window_ = window_;
         }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.subjectScope_ = subjectScope_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -1366,6 +1432,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         if (!other.getWindow().isEmpty()) {
           window_ = other.window_;
           bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getSubjectScope().isEmpty()) {
+          subjectScope_ = other.subjectScope_;
+          bitField0_ |= 0x00000010;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -1416,6 +1487,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000008;
                 break;
               } // case 34
+              case 42: {
+                subjectScope_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1726,6 +1802,78 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         checkByteStringIsUtf8(value);
         window_ = value;
         bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object subjectScope_ = "";
+      /**
+       * <code>string subject_scope = 5;</code>
+       * @return The subjectScope.
+       */
+      public java.lang.String getSubjectScope() {
+        java.lang.Object ref = subjectScope_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          subjectScope_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string subject_scope = 5;</code>
+       * @return The bytes for subjectScope.
+       */
+      public com.google.protobuf.ByteString
+          getSubjectScopeBytes() {
+        java.lang.Object ref = subjectScope_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          subjectScope_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string subject_scope = 5;</code>
+       * @param value The subjectScope to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSubjectScope(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        subjectScope_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string subject_scope = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSubjectScope() {
+        subjectScope_ = getDefaultInstance().getSubjectScope();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string subject_scope = 5;</code>
+       * @param value The bytes for subjectScope to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSubjectScopeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        subjectScope_ = value;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
@@ -2757,6 +2905,18 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
      * @return The exceeded.
      */
     boolean getExceeded();
+
+    /**
+     * <code>string subject_scope = 10;</code>
+     * @return The subjectScope.
+     */
+    java.lang.String getSubjectScope();
+    /**
+     * <code>string subject_scope = 10;</code>
+     * @return The bytes for subjectScope.
+     */
+    com.google.protobuf.ByteString
+        getSubjectScopeBytes();
   }
   /**
    * Protobuf type {@code talon.resources.UsageLimitStatus}
@@ -2782,6 +2942,7 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     private UsageLimitStatus() {
       metric_ = "";
       window_ = "";
+      subjectScope_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -2973,6 +3134,45 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return exceeded_;
     }
 
+    public static final int SUBJECT_SCOPE_FIELD_NUMBER = 10;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object subjectScope_ = "";
+    /**
+     * <code>string subject_scope = 10;</code>
+     * @return The subjectScope.
+     */
+    @java.lang.Override
+    public java.lang.String getSubjectScope() {
+      java.lang.Object ref = subjectScope_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        subjectScope_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string subject_scope = 10;</code>
+     * @return The bytes for subjectScope.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSubjectScopeBytes() {
+      java.lang.Object ref = subjectScope_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        subjectScope_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -3013,6 +3213,9 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
       if (exceeded_ != false) {
         output.writeBool(9, exceeded_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(subjectScope_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 10, subjectScope_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3057,6 +3260,9 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(9, exceeded_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(subjectScope_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(10, subjectScope_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -3093,6 +3299,8 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
           != other.getRemaining()) return false;
       if (getExceeded()
           != other.getExceeded()) return false;
+      if (!getSubjectScope()
+          .equals(other.getSubjectScope())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -3130,6 +3338,8 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       hash = (37 * hash) + EXCEEDED_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getExceeded());
+      hash = (37 * hash) + SUBJECT_SCOPE_FIELD_NUMBER;
+      hash = (53 * hash) + getSubjectScope().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -3280,6 +3490,7 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         used_ = 0L;
         remaining_ = 0L;
         exceeded_ = false;
+        subjectScope_ = "";
         return this;
       }
 
@@ -3344,6 +3555,9 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000100) != 0)) {
           result.exceeded_ = exceeded_;
         }
+        if (((from_bitField0_ & 0x00000200) != 0)) {
+          result.subjectScope_ = subjectScope_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -3389,6 +3603,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
         if (other.getExceeded() != false) {
           setExceeded(other.getExceeded());
+        }
+        if (!other.getSubjectScope().isEmpty()) {
+          subjectScope_ = other.subjectScope_;
+          bitField0_ |= 0x00000200;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -3463,6 +3682,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000100;
                 break;
               } // case 72
+              case 82: {
+                subjectScope_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000200;
+                break;
+              } // case 82
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3933,6 +4157,78 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       public Builder clearExceeded() {
         bitField0_ = (bitField0_ & ~0x00000100);
         exceeded_ = false;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object subjectScope_ = "";
+      /**
+       * <code>string subject_scope = 10;</code>
+       * @return The subjectScope.
+       */
+      public java.lang.String getSubjectScope() {
+        java.lang.Object ref = subjectScope_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          subjectScope_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string subject_scope = 10;</code>
+       * @return The bytes for subjectScope.
+       */
+      public com.google.protobuf.ByteString
+          getSubjectScopeBytes() {
+        java.lang.Object ref = subjectScope_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          subjectScope_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string subject_scope = 10;</code>
+       * @param value The subjectScope to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSubjectScope(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        subjectScope_ = value;
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string subject_scope = 10;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSubjectScope() {
+        subjectScope_ = getDefaultInstance().getSubjectScope();
+        bitField0_ = (bitField0_ & ~0x00000200);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string subject_scope = 10;</code>
+       * @param value The bytes for subjectScope to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSubjectScopeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        subjectScope_ = value;
+        bitField0_ |= 0x00000200;
         onChanged();
         return this;
       }
@@ -6355,26 +6651,27 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       "\n\033proto/resources/usage.proto\022\017talon.res" +
       "ources\032\034proto/resources/common.proto\"?\n\r" +
       "UsageSelector\022\r\n\005agent\030\001 \001(\t\022\020\n\010provider" +
-      "\030\002 \001(\t\022\r\n\005model\030\003 \001(\t\"k\n\nUsageLimit\0220\n\010s" +
-      "elector\030\001 \001(\0132\036.talon.resources.UsageSel" +
-      "ector\022\016\n\006metric\030\002 \001(\t\022\013\n\003max\030\003 \001(\004\022\016\n\006wi" +
-      "ndow\030\004 \001(\t\"U\n\017UsagePolicySpec\022\027\n\017namespa" +
-      "ce_scope\030\001 \001(\t\022)\n\004hard\030\002 \003(\0132\033.talon.res" +
-      "ources.UsageLimit\"\314\001\n\020UsageLimitStatus\0220" +
-      "\n\010selector\030\001 \001(\0132\036.talon.resources.Usage" +
-      "Selector\022\016\n\006metric\030\002 \001(\t\022\013\n\003max\030\003 \001(\004\022\016\n" +
-      "\006window\030\004 \001(\t\022\024\n\014window_start\030\005 \001(\003\022\020\n\010r" +
-      "eset_at\030\006 \001(\003\022\014\n\004used\030\007 \001(\004\022\021\n\tremaining" +
-      "\030\010 \001(\004\022\020\n\010exceeded\030\t \001(\010\"\250\001\n\021UsagePolicy" +
-      "Status\022\033\n\023observed_generation\030\001 \001(\004\022\r\n\005p" +
-      "hase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\".talon.r" +
-      "esources.ResourceCondition\022/\n\004hard\030\004 \003(\013" +
-      "2!.talon.resources.UsageLimitStatus\"\242\001\n\013" +
-      "UsagePolicy\022/\n\010metadata\030\001 \001(\0132\035.talon.re" +
-      "sources.ResourceMeta\022.\n\004spec\030\002 \001(\0132 .tal" +
-      "on.resources.UsagePolicySpec\0222\n\006status\030\003" +
-      " \001(\0132\".talon.resources.UsagePolicyStatus" +
-      "b\006proto3"
+      "\030\002 \001(\t\022\r\n\005model\030\003 \001(\t\"\202\001\n\nUsageLimit\0220\n\010" +
+      "selector\030\001 \001(\0132\036.talon.resources.UsageSe" +
+      "lector\022\016\n\006metric\030\002 \001(\t\022\013\n\003max\030\003 \001(\004\022\016\n\006w" +
+      "indow\030\004 \001(\t\022\025\n\rsubject_scope\030\005 \001(\t\"U\n\017Us" +
+      "agePolicySpec\022\027\n\017namespace_scope\030\001 \001(\t\022)" +
+      "\n\004hard\030\002 \003(\0132\033.talon.resources.UsageLimi" +
+      "t\"\343\001\n\020UsageLimitStatus\0220\n\010selector\030\001 \001(\013" +
+      "2\036.talon.resources.UsageSelector\022\016\n\006metr" +
+      "ic\030\002 \001(\t\022\013\n\003max\030\003 \001(\004\022\016\n\006window\030\004 \001(\t\022\024\n" +
+      "\014window_start\030\005 \001(\003\022\020\n\010reset_at\030\006 \001(\003\022\014\n" +
+      "\004used\030\007 \001(\004\022\021\n\tremaining\030\010 \001(\004\022\020\n\010exceed" +
+      "ed\030\t \001(\010\022\025\n\rsubject_scope\030\n \001(\t\"\250\001\n\021Usag" +
+      "ePolicyStatus\022\033\n\023observed_generation\030\001 \001" +
+      "(\004\022\r\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\"." +
+      "talon.resources.ResourceCondition\022/\n\004har" +
+      "d\030\004 \003(\0132!.talon.resources.UsageLimitStat" +
+      "us\"\242\001\n\013UsagePolicy\022/\n\010metadata\030\001 \001(\0132\035.t" +
+      "alon.resources.ResourceMeta\022.\n\004spec\030\002 \001(" +
+      "\0132 .talon.resources.UsagePolicySpec\0222\n\006s" +
+      "tatus\030\003 \001(\0132\".talon.resources.UsagePolic" +
+      "yStatusb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -6392,7 +6689,7 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     internal_static_talon_resources_UsageLimit_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_UsageLimit_descriptor,
-        new java.lang.String[] { "Selector", "Metric", "Max", "Window", });
+        new java.lang.String[] { "Selector", "Metric", "Max", "Window", "SubjectScope", });
     internal_static_talon_resources_UsagePolicySpec_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_resources_UsagePolicySpec_fieldAccessorTable = new
@@ -6404,7 +6701,7 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     internal_static_talon_resources_UsageLimitStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_UsageLimitStatus_descriptor,
-        new java.lang.String[] { "Selector", "Metric", "Max", "Window", "WindowStart", "ResetAt", "Used", "Remaining", "Exceeded", });
+        new java.lang.String[] { "Selector", "Metric", "Max", "Window", "WindowStart", "ResetAt", "Used", "Remaining", "Exceeded", "SubjectScope", });
     internal_static_talon_resources_UsagePolicyStatus_descriptor =
       getDescriptor().getMessageType(4);
     internal_static_talon_resources_UsagePolicyStatus_fieldAccessorTable = new

@@ -649,6 +649,7 @@ impl AgentExecutor {
             agent: self.agent_id.clone(),
             provider: self.llm_provider_key.clone(),
             model: self.llm_model.clone(),
+            rate_limit_key: None,
         }
     }
 

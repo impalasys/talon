@@ -15,6 +15,7 @@ message UsageLimit {
   string metric = 2;
   uint64 max = 3;
   string window = 4;
+  string subject_scope = 5;
 }
 
 message UsagePolicySpec {
@@ -32,6 +33,7 @@ message UsageLimitStatus {
   uint64 used = 7;
   uint64 remaining = 8;
   bool exceeded = 9;
+  string subject_scope = 10;
 }
 
 message UsagePolicyStatus {

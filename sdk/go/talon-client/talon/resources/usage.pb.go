@@ -87,6 +87,7 @@ type UsageLimit struct {
 	Metric        string                 `protobuf:"bytes,2,opt,name=metric,proto3" json:"metric,omitempty"`
 	Max           uint64                 `protobuf:"varint,3,opt,name=max,proto3" json:"max,omitempty"`
 	Window        string                 `protobuf:"bytes,4,opt,name=window,proto3" json:"window,omitempty"`
+	SubjectScope  string                 `protobuf:"bytes,5,opt,name=subject_scope,json=subjectScope,proto3" json:"subject_scope,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -145,6 +146,13 @@ func (x *UsageLimit) GetMax() uint64 {
 func (x *UsageLimit) GetWindow() string {
 	if x != nil {
 		return x.Window
+	}
+	return ""
+}
+
+func (x *UsageLimit) GetSubjectScope() string {
+	if x != nil {
+		return x.SubjectScope
 	}
 	return ""
 }
@@ -212,6 +220,7 @@ type UsageLimitStatus struct {
 	Used          uint64                 `protobuf:"varint,7,opt,name=used,proto3" json:"used,omitempty"`
 	Remaining     uint64                 `protobuf:"varint,8,opt,name=remaining,proto3" json:"remaining,omitempty"`
 	Exceeded      bool                   `protobuf:"varint,9,opt,name=exceeded,proto3" json:"exceeded,omitempty"`
+	SubjectScope  string                 `protobuf:"bytes,10,opt,name=subject_scope,json=subjectScope,proto3" json:"subject_scope,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -307,6 +316,13 @@ func (x *UsageLimitStatus) GetExceeded() bool {
 		return x.Exceeded
 	}
 	return false
+}
+
+func (x *UsageLimitStatus) GetSubjectScope() string {
+	if x != nil {
+		return x.SubjectScope
+	}
+	return ""
 }
 
 type UsagePolicyStatus struct {
@@ -445,16 +461,17 @@ const file_proto_resources_usage_proto_rawDesc = "" +
 	"\rUsageSelector\x12\x14\n" +
 	"\x05agent\x18\x01 \x01(\tR\x05agent\x12\x1a\n" +
 	"\bprovider\x18\x02 \x01(\tR\bprovider\x12\x14\n" +
-	"\x05model\x18\x03 \x01(\tR\x05model\"\x8a\x01\n" +
+	"\x05model\x18\x03 \x01(\tR\x05model\"\xaf\x01\n" +
 	"\n" +
 	"UsageLimit\x12:\n" +
 	"\bselector\x18\x01 \x01(\v2\x1e.talon.resources.UsageSelectorR\bselector\x12\x16\n" +
 	"\x06metric\x18\x02 \x01(\tR\x06metric\x12\x10\n" +
 	"\x03max\x18\x03 \x01(\x04R\x03max\x12\x16\n" +
-	"\x06window\x18\x04 \x01(\tR\x06window\"k\n" +
+	"\x06window\x18\x04 \x01(\tR\x06window\x12#\n" +
+	"\rsubject_scope\x18\x05 \x01(\tR\fsubjectScope\"k\n" +
 	"\x0fUsagePolicySpec\x12'\n" +
 	"\x0fnamespace_scope\x18\x01 \x01(\tR\x0enamespaceScope\x12/\n" +
-	"\x04hard\x18\x02 \x03(\v2\x1b.talon.resources.UsageLimitR\x04hard\"\x9c\x02\n" +
+	"\x04hard\x18\x02 \x03(\v2\x1b.talon.resources.UsageLimitR\x04hard\"\xc1\x02\n" +
 	"\x10UsageLimitStatus\x12:\n" +
 	"\bselector\x18\x01 \x01(\v2\x1e.talon.resources.UsageSelectorR\bselector\x12\x16\n" +
 	"\x06metric\x18\x02 \x01(\tR\x06metric\x12\x10\n" +
@@ -464,7 +481,9 @@ const file_proto_resources_usage_proto_rawDesc = "" +
 	"\breset_at\x18\x06 \x01(\x03R\aresetAt\x12\x12\n" +
 	"\x04used\x18\a \x01(\x04R\x04used\x12\x1c\n" +
 	"\tremaining\x18\b \x01(\x04R\tremaining\x12\x1a\n" +
-	"\bexceeded\x18\t \x01(\bR\bexceeded\"\xd5\x01\n" +
+	"\bexceeded\x18\t \x01(\bR\bexceeded\x12#\n" +
+	"\rsubject_scope\x18\n" +
+	" \x01(\tR\fsubjectScope\"\xd5\x01\n" +
 	"\x11UsagePolicyStatus\x12/\n" +
 	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x12\x14\n" +
 	"\x05phase\x18\x02 \x01(\tR\x05phase\x12B\n" +

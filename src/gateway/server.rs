@@ -3,7 +3,7 @@
 
 use crate::control::{
     config::proto::TrustConfig, object_store::ObjectStore, scheduler::SchedulerBackend,
-    ControlPlane, KeyValueStore, MessagePublisher,
+    usage::SubjectRateLimiter, ControlPlane, KeyValueStore, MessagePublisher,
 };
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::session_streams::SessionStreamHub;
@@ -30,6 +30,7 @@ pub struct Gateway {
     pub scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
     pub objects: Arc<dyn ObjectStore + Send + Sync>,
     pub session_streams: Arc<SessionStreamHub>,
+    pub usage_limiter: Arc<SubjectRateLimiter>,
 }
 
 impl Gateway {
@@ -52,6 +53,7 @@ impl Gateway {
         objects: Arc<dyn ObjectStore + Send + Sync>,
     ) -> Self {
         let session_streams = Arc::new(SessionStreamHub::new(pubsub.clone()));
+        let usage_limiter = Arc::new(SubjectRateLimiter::default());
         Self {
             auth_config,
             trust_config,
@@ -60,6 +62,7 @@ impl Gateway {
             scheduler,
             objects,
             session_streams,
+            usage_limiter,
         }
     }
 
@@ -72,6 +75,7 @@ impl Gateway {
             scheduler: self.scheduler.clone(),
             objects: self.objects.clone(),
             session_streams: self.session_streams.clone(),
+            usage_limiter: self.usage_limiter.clone(),
         }
     }
 

@@ -26,6 +26,7 @@ bollard = "0.15"
 chrono = { version = "0.4", features = ["serde"] }
 chrono-tz = "0.10"
 cron = "0.12"
+dashmap = "6"
 jsonwebtoken = { version = "10.4", features = ["rust_crypto"] }
 futures = "0.3"
 opentelemetry = "0.31"
