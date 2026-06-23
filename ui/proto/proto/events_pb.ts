@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/events.proto.
  */
 export const file_proto_events: GenFile = /*@__PURE__*/
-  fileDesc("ChJwcm90by9ldmVudHMucHJvdG8SDHRhbG9uLmV2ZW50cyKAAQoOTGlmZWN5Y2xlRXZlbnQSFQoNcmVzb3VyY2VfdHlwZRgBIAEoCRIMCgRuYW1lGAIgASgJEgoKAm5zGAMgASgJEioKBmFjdGlvbhgEIAEoDjIaLnRhbG9uLmV2ZW50cy5TeXN0ZW1BY3Rpb24SEQoJdGltZXN0YW1wGAUgASgDIsYBChNTZXNzaW9uTWVzc2FnZUV2ZW50EhIKCnNlc3Npb25faWQYASABKAkSEgoKbWVzc2FnZV9pZBgCIAEoCRIxCglkaXJlY3Rpb24YAyABKA4yHi50YWxvbi5ldmVudHMuTWVzc2FnZURpcmVjdGlvbhIRCgl0aW1lc3RhbXAYBCABKAMSDQoFYWdlbnQYBSABKAkSDwoHbWVzc2FnZRgGIAEoCRIKCgJucxgHIAEoCRIVCg1zdWJtaXNzaW9uX2lkGAggASgJImcKE1Nlc3Npb25Db250cm9sRXZlbnQSEgoKc2Vzc2lvbl9pZBgBIAEoCRINCgVhZ2VudBgCIAEoCRIKCgJucxgDIAEoCRIOCgZhY3Rpb24YBCABKAkSEQoJdGltZXN0YW1wGAUgASgDItYBChdTZXNzaW9uTWVzc2FnZVBhcnRFdmVudBISCgpzZXNzaW9uX2lkGAEgASgJEjcKBGtpbmQYAiABKA4yKS50YWxvbi5ldmVudHMuU2Vzc2lvbk1lc3NhZ2VQYXJ0RXZlbnRLaW5kEiwKBHBhcnQYAyABKAsyHi50YWxvbi5kYXRhLlNlc3Npb25NZXNzYWdlUGFydBIRCgl0aW1lc3RhbXAYBCABKAMSDQoFYWdlbnQYBSABKAkSCgoCbnMYBiABKAkSEgoKbWVzc2FnZV9pZBgHIAEoCSLhAQoMQ2hhbm5lbEV2ZW50EgoKAm5zGAEgASgJEg8KB2NoYW5uZWwYAiABKAkSLAoEa2luZBgDIAEoDjIeLnRhbG9uLmV2ZW50cy5DaGFubmVsRXZlbnRLaW5kEisKB21lc3NhZ2UYBCABKAsyGi50YWxvbi5kYXRhLkNoYW5uZWxNZXNzYWdlEhIKCnNlc3Npb25faWQYBSABKAkSDQoFYWdlbnQYBiABKAkSFAoMc3Vic2NyaXB0aW9uGAcgASgJEg0KBWVycm9yGAggASgJEhEKCXRpbWVzdGFtcBgJIAEoAyKTAQoVV29ya2Zsb3dEaXNwYXRjaEV2ZW50EgoKAm5zGAEgASgJEhAKCHdvcmtmbG93GAIgASgJEg4KBnJ1bl9pZBgDIAEoCRIOCgZyZWFzb24YBCABKAkSDwoHc3RlcF9pZBgFIAEoCRIYChBjaGlsZF9zZXNzaW9uX2lkGAYgASgJEhEKCXRpbWVzdGFtcBgHIAEoAyLtAQoUUmVzb3VyY2VDaGFuZ2VkRXZlbnQSEQoJbmFtZXNwYWNlGAEgASgJEhUKDXJlc291cmNlX2tpbmQYAiABKAkSDAoEbmFtZRgDIAEoCRILCgN1aWQYBCABKAkSGAoQcmVzb3VyY2VfdmVyc2lvbhgFIAEoCRISCgpnZW5lcmF0aW9uGAYgASgEEjUKC2NoYW5nZV90eXBlGAcgASgOMiAudGFsb24uZXZlbnRzLlJlc291cmNlQ2hhbmdlVHlwZRIYChBjaGFuZ2VkX3NlY3Rpb25zGAggAygJEhEKCXRpbWVzdGFtcBgJIAEoAyKrAgoKSW5kZXhFdmVudBIKCgJpZBgBIAEoCRIvCglvcGVyYXRpb24YAiABKA4yHC50YWxvbi5ldmVudHMuSW5kZXhPcGVyYXRpb24SEgoKY3JlYXRlZF9hdBgDIAEoAxISCgp1cGRhdGVkX2F0GAQgASgDEjUKCHJlc291cmNlGAogASgLMiEudGFsb24uZXZlbnRzLkluZGV4UmVzb3VyY2VUYXJnZXRIABJCCg9zZXNzaW9uX21lc3NhZ2UYCyABKAsyJy50YWxvbi5ldmVudHMuSW5kZXhTZXNzaW9uTWVzc2FnZVRhcmdldEgAEjMKB3Nlc3Npb24YDCABKAsyIC50YWxvbi5ldmVudHMuSW5kZXhTZXNzaW9uVGFyZ2V0SABCCAoGdGFyZ2V0IkYKE0luZGV4UmVzb3VyY2VUYXJnZXQSFAoMcmVzb3VyY2Vfa2V5GAEgASgJEhkKEXNvdXJjZV9nZW5lcmF0aW9uGAIgASgEIoABChlJbmRleFNlc3Npb25NZXNzYWdlVGFyZ2V0EhEKCW5hbWVzcGFjZRgBIAEoCRINCgVhZ2VudBgCIAEoCRISCgpzZXNzaW9uX2lkGAMgASgJEhIKCm1lc3NhZ2VfaWQYBCABKAkSGQoRc291cmNlX2dlbmVyYXRpb24YBSABKAQiSgoSSW5kZXhTZXNzaW9uVGFyZ2V0EhEKCW5hbWVzcGFjZRgBIAEoCRINCgVhZ2VudBgCIAEoCRISCgpzZXNzaW9uX2lkGAMgASgJKrABCgxTeXN0ZW1BY3Rpb24SHQoZU1lTVEVNX0FDVElPTl9VTlNQRUNJRklFRBAAEhgKFFNZU1RFTV9BQ1RJT05fQ1JFQVRFEAESGAoUU1lTVEVNX0FDVElPTl9VUERBVEUQAhIYChRTWVNURU1fQUNUSU9OX0RFTEVURRADEhkKFVNZU1RFTV9BQ1RJT05fU1VTUEVORBAEEhgKFFNZU1RFTV9BQ1RJT05fUkVTVU1FEAUqdAoQTWVzc2FnZURpcmVjdGlvbhIhCh1NRVNTQUdFX0RJUkVDVElPTl9VTlNQRUNJRklFRBAAEh0KGU1FU1NBR0VfRElSRUNUSU9OX0lOQk9VTkQQARIeChpNRVNTQUdFX0RJUkVDVElPTl9PVVRCT1VORBACKs4BChtTZXNzaW9uTWVzc2FnZVBhcnRFdmVudEtpbmQSLworU0VTU0lPTl9NRVNTQUdFX1BBUlRfRVZFTlRfS0lORF9VTlNQRUNJRklFRBAAEikKJVNFU1NJT05fTUVTU0FHRV9QQVJUX0VWRU5UX0tJTkRfREVMVEEQARIoCiRTRVNTSU9OX01FU1NBR0VfUEFSVF9FVkVOVF9LSU5EX0RPTkUQAhIpCiVTRVNTSU9OX01FU1NBR0VfUEFSVF9FVkVOVF9LSU5EX0VSUk9SEAMqywEKEENoYW5uZWxFdmVudEtpbmQSIgoeQ0hBTk5FTF9FVkVOVF9LSU5EX1VOU1BFQ0lGSUVEEAASJgoiQ0hBTk5FTF9FVkVOVF9LSU5EX01FU1NBR0VfQ1JFQVRFRBABEiUKIUNIQU5ORUxfRVZFTlRfS0lORF9TRVNTSU9OX1JPVVRFRBACEiYKIkNIQU5ORUxfRVZFTlRfS0lORF9QVUJMSVNIX1NLSVBQRUQQAxIcChhDSEFOTkVMX0VWRU5UX0tJTkRfRVJST1IQBCqgAQoSUmVzb3VyY2VDaGFuZ2VUeXBlEiQKIFJFU09VUkNFX0NIQU5HRV9UWVBFX1VOU1BFQ0lGSUVEEAASIAocUkVTT1VSQ0VfQ0hBTkdFX1RZUEVfQ1JFQVRFRBABEiAKHFJFU09VUkNFX0NIQU5HRV9UWVBFX1VQREFURUQQAhIgChxSRVNPVVJDRV9DSEFOR0VfVFlQRV9ERUxFVEVEEAMqaQoOSW5kZXhPcGVyYXRpb24SHwobSU5ERVhfT1BFUkFUSU9OX1VOU1BFQ0lGSUVEEAASGgoWSU5ERVhfT1BFUkFUSU9OX1VQU0VSVBABEhoKFklOREVYX09QRVJBVElPTl9ERUxFVEUQAmIGcHJvdG8z", [file_proto_data_data]);
+  fileDesc("ChJwcm90by9ldmVudHMucHJvdG8SDHRhbG9uLmV2ZW50cyKAAQoOTGlmZWN5Y2xlRXZlbnQSFQoNcmVzb3VyY2VfdHlwZRgBIAEoCRIMCgRuYW1lGAIgASgJEgoKAm5zGAMgASgJEioKBmFjdGlvbhgEIAEoDjIaLnRhbG9uLmV2ZW50cy5TeXN0ZW1BY3Rpb24SEQoJdGltZXN0YW1wGAUgASgDIsYBChNTZXNzaW9uTWVzc2FnZUV2ZW50EhIKCnNlc3Npb25faWQYASABKAkSEgoKbWVzc2FnZV9pZBgCIAEoCRIxCglkaXJlY3Rpb24YAyABKA4yHi50YWxvbi5ldmVudHMuTWVzc2FnZURpcmVjdGlvbhIRCgl0aW1lc3RhbXAYBCABKAMSDQoFYWdlbnQYBSABKAkSDwoHbWVzc2FnZRgGIAEoCRIKCgJucxgHIAEoCRIVCg1zdWJtaXNzaW9uX2lkGAggASgJImcKE1Nlc3Npb25Db250cm9sRXZlbnQSEgoKc2Vzc2lvbl9pZBgBIAEoCRINCgVhZ2VudBgCIAEoCRIKCgJucxgDIAEoCRIOCgZhY3Rpb24YBCABKAkSEQoJdGltZXN0YW1wGAUgASgDItYBChdTZXNzaW9uTWVzc2FnZVBhcnRFdmVudBISCgpzZXNzaW9uX2lkGAEgASgJEjcKBGtpbmQYAiABKA4yKS50YWxvbi5ldmVudHMuU2Vzc2lvbk1lc3NhZ2VQYXJ0RXZlbnRLaW5kEiwKBHBhcnQYAyABKAsyHi50YWxvbi5kYXRhLlNlc3Npb25NZXNzYWdlUGFydBIRCgl0aW1lc3RhbXAYBCABKAMSDQoFYWdlbnQYBSABKAkSCgoCbnMYBiABKAkSEgoKbWVzc2FnZV9pZBgHIAEoCSLhAQoMQ2hhbm5lbEV2ZW50EgoKAm5zGAEgASgJEg8KB2NoYW5uZWwYAiABKAkSLAoEa2luZBgDIAEoDjIeLnRhbG9uLmV2ZW50cy5DaGFubmVsRXZlbnRLaW5kEisKB21lc3NhZ2UYBCABKAsyGi50YWxvbi5kYXRhLkNoYW5uZWxNZXNzYWdlEhIKCnNlc3Npb25faWQYBSABKAkSDQoFYWdlbnQYBiABKAkSFAoMc3Vic2NyaXB0aW9uGAcgASgJEg0KBWVycm9yGAggASgJEhEKCXRpbWVzdGFtcBgJIAEoAyKTAQoVV29ya2Zsb3dEaXNwYXRjaEV2ZW50EgoKAm5zGAEgASgJEhAKCHdvcmtmbG93GAIgASgJEg4KBnJ1bl9pZBgDIAEoCRIOCgZyZWFzb24YBCABKAkSDwoHc3RlcF9pZBgFIAEoCRIYChBjaGlsZF9zZXNzaW9uX2lkGAYgASgJEhEKCXRpbWVzdGFtcBgHIAEoAyLtAQoUUmVzb3VyY2VDaGFuZ2VkRXZlbnQSEQoJbmFtZXNwYWNlGAEgASgJEhUKDXJlc291cmNlX2tpbmQYAiABKAkSDAoEbmFtZRgDIAEoCRILCgN1aWQYBCABKAkSGAoQcmVzb3VyY2VfdmVyc2lvbhgFIAEoCRISCgpnZW5lcmF0aW9uGAYgASgEEjUKC2NoYW5nZV90eXBlGAcgASgOMiAudGFsb24uZXZlbnRzLlJlc291cmNlQ2hhbmdlVHlwZRIYChBjaGFuZ2VkX3NlY3Rpb25zGAggAygJEhEKCXRpbWVzdGFtcBgJIAEoAyKpAQoKSW5kZXhFdmVudBIKCgJpZBgBIAEoCRIvCglvcGVyYXRpb24YAiABKA4yHC50YWxvbi5ldmVudHMuSW5kZXhPcGVyYXRpb24SEgoKY3JlYXRlZF9hdBgDIAEoAxISCgp1cGRhdGVkX2F0GAQgASgDEgsKA2tleRgKIAEoCRIOCgZwcmVmaXgYCyABKAgSGQoRc291cmNlX2dlbmVyYXRpb24YDCABKAQqsAEKDFN5c3RlbUFjdGlvbhIdChlTWVNURU1fQUNUSU9OX1VOU1BFQ0lGSUVEEAASGAoUU1lTVEVNX0FDVElPTl9DUkVBVEUQARIYChRTWVNURU1fQUNUSU9OX1VQREFURRACEhgKFFNZU1RFTV9BQ1RJT05fREVMRVRFEAMSGQoVU1lTVEVNX0FDVElPTl9TVVNQRU5EEAQSGAoUU1lTVEVNX0FDVElPTl9SRVNVTUUQBSp0ChBNZXNzYWdlRGlyZWN0aW9uEiEKHU1FU1NBR0VfRElSRUNUSU9OX1VOU1BFQ0lGSUVEEAASHQoZTUVTU0FHRV9ESVJFQ1RJT05fSU5CT1VORBABEh4KGk1FU1NBR0VfRElSRUNUSU9OX09VVEJPVU5EEAIqzgEKG1Nlc3Npb25NZXNzYWdlUGFydEV2ZW50S2luZBIvCitTRVNTSU9OX01FU1NBR0VfUEFSVF9FVkVOVF9LSU5EX1VOU1BFQ0lGSUVEEAASKQolU0VTU0lPTl9NRVNTQUdFX1BBUlRfRVZFTlRfS0lORF9ERUxUQRABEigKJFNFU1NJT05fTUVTU0FHRV9QQVJUX0VWRU5UX0tJTkRfRE9ORRACEikKJVNFU1NJT05fTUVTU0FHRV9QQVJUX0VWRU5UX0tJTkRfRVJST1IQAyrLAQoQQ2hhbm5lbEV2ZW50S2luZBIiCh5DSEFOTkVMX0VWRU5UX0tJTkRfVU5TUEVDSUZJRUQQABImCiJDSEFOTkVMX0VWRU5UX0tJTkRfTUVTU0FHRV9DUkVBVEVEEAESJQohQ0hBTk5FTF9FVkVOVF9LSU5EX1NFU1NJT05fUk9VVEVEEAISJgoiQ0hBTk5FTF9FVkVOVF9LSU5EX1BVQkxJU0hfU0tJUFBFRBADEhwKGENIQU5ORUxfRVZFTlRfS0lORF9FUlJPUhAEKqABChJSZXNvdXJjZUNoYW5nZVR5cGUSJAogUkVTT1VSQ0VfQ0hBTkdFX1RZUEVfVU5TUEVDSUZJRUQQABIgChxSRVNPVVJDRV9DSEFOR0VfVFlQRV9DUkVBVEVEEAESIAocUkVTT1VSQ0VfQ0hBTkdFX1RZUEVfVVBEQVRFRBACEiAKHFJFU09VUkNFX0NIQU5HRV9UWVBFX0RFTEVURUQQAyppCg5JbmRleE9wZXJhdGlvbhIfChtJTkRFWF9PUEVSQVRJT05fVU5TUEVDSUZJRUQQABIaChZJTkRFWF9PUEVSQVRJT05fVVBTRVJUEAESGgoWSU5ERVhfT1BFUkFUSU9OX0RFTEVURRACYgZwcm90bzM", [file_proto_data_data]);
 
 /**
  * @generated from message talon.events.LifecycleEvent
@@ -373,27 +373,24 @@ export type IndexEvent = Message<"talon.events.IndexEvent"> & {
   updatedAt: bigint;
 
   /**
-   * @generated from oneof talon.events.IndexEvent.target
+   * Canonical source key for the changed record. The index controller parses
+   * this key to load the canonical source and derive the Document projection.
+   *
+   * @generated from field: string key = 10;
    */
-  target: {
-    /**
-     * @generated from field: talon.events.IndexResourceTarget resource = 10;
-     */
-    value: IndexResourceTarget;
-    case: "resource";
-  } | {
-    /**
-     * @generated from field: talon.events.IndexSessionMessageTarget session_message = 11;
-     */
-    value: IndexSessionMessageTarget;
-    case: "sessionMessage";
-  } | {
-    /**
-     * @generated from field: talon.events.IndexSessionTarget session = 12;
-     */
-    value: IndexSessionTarget;
-    case: "session";
-  } | { case: undefined; value?: undefined };
+  key: string;
+
+  /**
+   * Reserved for future scoped invalidation. MVP publishers keep this false.
+   *
+   * @generated from field: bool prefix = 11;
+   */
+  prefix: boolean;
+
+  /**
+   * @generated from field: uint64 source_generation = 12;
+   */
+  sourceGeneration: bigint;
 };
 
 /**
@@ -402,92 +399,6 @@ export type IndexEvent = Message<"talon.events.IndexEvent"> & {
  */
 export const IndexEventSchema: GenMessage<IndexEvent> = /*@__PURE__*/
   messageDesc(file_proto_events, 7);
-
-/**
- * @generated from message talon.events.IndexResourceTarget
- */
-export type IndexResourceTarget = Message<"talon.events.IndexResourceTarget"> & {
-  /**
-   * @generated from field: string resource_key = 1;
-   */
-  resourceKey: string;
-
-  /**
-   * @generated from field: uint64 source_generation = 2;
-   */
-  sourceGeneration: bigint;
-};
-
-/**
- * Describes the message talon.events.IndexResourceTarget.
- * Use `create(IndexResourceTargetSchema)` to create a new message.
- */
-export const IndexResourceTargetSchema: GenMessage<IndexResourceTarget> = /*@__PURE__*/
-  messageDesc(file_proto_events, 8);
-
-/**
- * @generated from message talon.events.IndexSessionMessageTarget
- */
-export type IndexSessionMessageTarget = Message<"talon.events.IndexSessionMessageTarget"> & {
-  /**
-   * @generated from field: string namespace = 1;
-   */
-  namespace: string;
-
-  /**
-   * @generated from field: string agent = 2;
-   */
-  agent: string;
-
-  /**
-   * @generated from field: string session_id = 3;
-   */
-  sessionId: string;
-
-  /**
-   * @generated from field: string message_id = 4;
-   */
-  messageId: string;
-
-  /**
-   * @generated from field: uint64 source_generation = 5;
-   */
-  sourceGeneration: bigint;
-};
-
-/**
- * Describes the message talon.events.IndexSessionMessageTarget.
- * Use `create(IndexSessionMessageTargetSchema)` to create a new message.
- */
-export const IndexSessionMessageTargetSchema: GenMessage<IndexSessionMessageTarget> = /*@__PURE__*/
-  messageDesc(file_proto_events, 9);
-
-/**
- * @generated from message talon.events.IndexSessionTarget
- */
-export type IndexSessionTarget = Message<"talon.events.IndexSessionTarget"> & {
-  /**
-   * @generated from field: string namespace = 1;
-   */
-  namespace: string;
-
-  /**
-   * @generated from field: string agent = 2;
-   */
-  agent: string;
-
-  /**
-   * @generated from field: string session_id = 3;
-   */
-  sessionId: string;
-};
-
-/**
- * Describes the message talon.events.IndexSessionTarget.
- * Use `create(IndexSessionTargetSchema)` to create a new message.
- */
-export const IndexSessionTargetSchema: GenMessage<IndexSessionTarget> = /*@__PURE__*/
-  messageDesc(file_proto_events, 10);
 
 /**
  * @generated from enum talon.events.SystemAction

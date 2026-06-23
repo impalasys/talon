@@ -765,13 +765,7 @@ impl GrpcGatewayHandler {
             self.gateway.pubsub.as_ref(),
             crate::control::events::IndexEvent {
                 operation: crate::control::events::IndexOperation::Delete as i32,
-                target: Some(crate::control::events::index_event::Target::Session(
-                    crate::control::events::IndexSessionTarget {
-                        namespace: req.ns.clone(),
-                        agent: req.agent.clone(),
-                        session_id: req.session_id.clone(),
-                    },
-                )),
+                key: session_db_key.canonical(),
                 ..Default::default()
             },
         )
@@ -848,13 +842,7 @@ impl GrpcGatewayHandler {
             self.gateway.pubsub.as_ref(),
             crate::control::events::IndexEvent {
                 operation: crate::control::events::IndexOperation::Delete as i32,
-                target: Some(crate::control::events::index_event::Target::Session(
-                    crate::control::events::IndexSessionTarget {
-                        namespace: req.ns.clone(),
-                        agent: req.agent.clone(),
-                        session_id: req.session_id.clone(),
-                    },
-                )),
+                key: session_db_key.canonical(),
                 ..Default::default()
             },
         )
@@ -983,15 +971,7 @@ impl GrpcGatewayHandler {
             self.gateway.pubsub.as_ref(),
             crate::control::events::IndexEvent {
                 operation: crate::control::events::IndexOperation::Upsert as i32,
-                target: Some(crate::control::events::index_event::Target::SessionMessage(
-                    crate::control::events::IndexSessionMessageTarget {
-                        namespace: req.ns.clone(),
-                        agent: req.agent.clone(),
-                        session_id: req.session_id.clone(),
-                        message_id: message.id.clone(),
-                        ..Default::default()
-                    },
-                )),
+                key: message_key.canonical(),
                 ..Default::default()
             },
         )

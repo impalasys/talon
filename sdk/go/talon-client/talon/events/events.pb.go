@@ -995,14 +995,14 @@ type IndexEvent struct {
 	Operation IndexOperation         `protobuf:"varint,2,opt,name=operation,proto3,enum=talon.events.IndexOperation" json:"operation,omitempty"`
 	CreatedAt int64                  `protobuf:"varint,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt int64                  `protobuf:"varint,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	// Types that are valid to be assigned to Target:
-	//
-	//	*IndexEvent_Resource
-	//	*IndexEvent_SessionMessage
-	//	*IndexEvent_Session
-	Target        isIndexEvent_Target `protobuf_oneof:"target"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Canonical source key for the changed record. The index controller parses
+	// this key to load the canonical source and derive the Document projection.
+	Key string `protobuf:"bytes,10,opt,name=key,proto3" json:"key,omitempty"`
+	// Reserved for future scoped invalidation. MVP publishers keep this false.
+	Prefix           bool   `protobuf:"varint,11,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	SourceGeneration uint64 `protobuf:"varint,12,opt,name=source_generation,json=sourceGeneration,proto3" json:"source_generation,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *IndexEvent) Reset() {
@@ -1063,248 +1063,25 @@ func (x *IndexEvent) GetUpdatedAt() int64 {
 	return 0
 }
 
-func (x *IndexEvent) GetTarget() isIndexEvent_Target {
+func (x *IndexEvent) GetKey() string {
 	if x != nil {
-		return x.Target
-	}
-	return nil
-}
-
-func (x *IndexEvent) GetResource() *IndexResourceTarget {
-	if x != nil {
-		if x, ok := x.Target.(*IndexEvent_Resource); ok {
-			return x.Resource
-		}
-	}
-	return nil
-}
-
-func (x *IndexEvent) GetSessionMessage() *IndexSessionMessageTarget {
-	if x != nil {
-		if x, ok := x.Target.(*IndexEvent_SessionMessage); ok {
-			return x.SessionMessage
-		}
-	}
-	return nil
-}
-
-func (x *IndexEvent) GetSession() *IndexSessionTarget {
-	if x != nil {
-		if x, ok := x.Target.(*IndexEvent_Session); ok {
-			return x.Session
-		}
-	}
-	return nil
-}
-
-type isIndexEvent_Target interface {
-	isIndexEvent_Target()
-}
-
-type IndexEvent_Resource struct {
-	Resource *IndexResourceTarget `protobuf:"bytes,10,opt,name=resource,proto3,oneof"`
-}
-
-type IndexEvent_SessionMessage struct {
-	SessionMessage *IndexSessionMessageTarget `protobuf:"bytes,11,opt,name=session_message,json=sessionMessage,proto3,oneof"`
-}
-
-type IndexEvent_Session struct {
-	Session *IndexSessionTarget `protobuf:"bytes,12,opt,name=session,proto3,oneof"`
-}
-
-func (*IndexEvent_Resource) isIndexEvent_Target() {}
-
-func (*IndexEvent_SessionMessage) isIndexEvent_Target() {}
-
-func (*IndexEvent_Session) isIndexEvent_Target() {}
-
-type IndexResourceTarget struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	ResourceKey      string                 `protobuf:"bytes,1,opt,name=resource_key,json=resourceKey,proto3" json:"resource_key,omitempty"`
-	SourceGeneration uint64                 `protobuf:"varint,2,opt,name=source_generation,json=sourceGeneration,proto3" json:"source_generation,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
-}
-
-func (x *IndexResourceTarget) Reset() {
-	*x = IndexResourceTarget{}
-	mi := &file_proto_events_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *IndexResourceTarget) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*IndexResourceTarget) ProtoMessage() {}
-
-func (x *IndexResourceTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_events_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use IndexResourceTarget.ProtoReflect.Descriptor instead.
-func (*IndexResourceTarget) Descriptor() ([]byte, []int) {
-	return file_proto_events_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *IndexResourceTarget) GetResourceKey() string {
-	if x != nil {
-		return x.ResourceKey
+		return x.Key
 	}
 	return ""
 }
 
-func (x *IndexResourceTarget) GetSourceGeneration() uint64 {
+func (x *IndexEvent) GetPrefix() bool {
+	if x != nil {
+		return x.Prefix
+	}
+	return false
+}
+
+func (x *IndexEvent) GetSourceGeneration() uint64 {
 	if x != nil {
 		return x.SourceGeneration
 	}
 	return 0
-}
-
-type IndexSessionMessageTarget struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Namespace        string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Agent            string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
-	SessionId        string                 `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	MessageId        string                 `protobuf:"bytes,4,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
-	SourceGeneration uint64                 `protobuf:"varint,5,opt,name=source_generation,json=sourceGeneration,proto3" json:"source_generation,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
-}
-
-func (x *IndexSessionMessageTarget) Reset() {
-	*x = IndexSessionMessageTarget{}
-	mi := &file_proto_events_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *IndexSessionMessageTarget) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*IndexSessionMessageTarget) ProtoMessage() {}
-
-func (x *IndexSessionMessageTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_events_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use IndexSessionMessageTarget.ProtoReflect.Descriptor instead.
-func (*IndexSessionMessageTarget) Descriptor() ([]byte, []int) {
-	return file_proto_events_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *IndexSessionMessageTarget) GetNamespace() string {
-	if x != nil {
-		return x.Namespace
-	}
-	return ""
-}
-
-func (x *IndexSessionMessageTarget) GetAgent() string {
-	if x != nil {
-		return x.Agent
-	}
-	return ""
-}
-
-func (x *IndexSessionMessageTarget) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
-}
-
-func (x *IndexSessionMessageTarget) GetMessageId() string {
-	if x != nil {
-		return x.MessageId
-	}
-	return ""
-}
-
-func (x *IndexSessionMessageTarget) GetSourceGeneration() uint64 {
-	if x != nil {
-		return x.SourceGeneration
-	}
-	return 0
-}
-
-type IndexSessionTarget struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Namespace     string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Agent         string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
-	SessionId     string                 `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *IndexSessionTarget) Reset() {
-	*x = IndexSessionTarget{}
-	mi := &file_proto_events_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *IndexSessionTarget) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*IndexSessionTarget) ProtoMessage() {}
-
-func (x *IndexSessionTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_events_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use IndexSessionTarget.ProtoReflect.Descriptor instead.
-func (*IndexSessionTarget) Descriptor() ([]byte, []int) {
-	return file_proto_events_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *IndexSessionTarget) GetNamespace() string {
-	if x != nil {
-		return x.Namespace
-	}
-	return ""
-}
-
-func (x *IndexSessionTarget) GetAgent() string {
-	if x != nil {
-		return x.Agent
-	}
-	return ""
-}
-
-func (x *IndexSessionTarget) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
 }
 
 var File_proto_events_proto protoreflect.FileDescriptor
@@ -1377,7 +1154,7 @@ const file_proto_events_proto_rawDesc = "" +
 	"\vchange_type\x18\a \x01(\x0e2 .talon.events.ResourceChangeTypeR\n" +
 	"changeType\x12)\n" +
 	"\x10changed_sections\x18\b \x03(\tR\x0fchangedSections\x12\x1c\n" +
-	"\ttimestamp\x18\t \x01(\x03R\ttimestamp\"\xf3\x02\n" +
+	"\ttimestamp\x18\t \x01(\x03R\ttimestamp\"\xed\x01\n" +
 	"\n" +
 	"IndexEvent\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12:\n" +
@@ -1385,28 +1162,11 @@ const file_proto_events_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x03 \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\x12?\n" +
-	"\bresource\x18\n" +
-	" \x01(\v2!.talon.events.IndexResourceTargetH\x00R\bresource\x12R\n" +
-	"\x0fsession_message\x18\v \x01(\v2'.talon.events.IndexSessionMessageTargetH\x00R\x0esessionMessage\x12<\n" +
-	"\asession\x18\f \x01(\v2 .talon.events.IndexSessionTargetH\x00R\asessionB\b\n" +
-	"\x06target\"e\n" +
-	"\x13IndexResourceTarget\x12!\n" +
-	"\fresource_key\x18\x01 \x01(\tR\vresourceKey\x12+\n" +
-	"\x11source_generation\x18\x02 \x01(\x04R\x10sourceGeneration\"\xba\x01\n" +
-	"\x19IndexSessionMessageTarget\x12\x1c\n" +
-	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x14\n" +
-	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\x03 \x01(\tR\tsessionId\x12\x1d\n" +
-	"\n" +
-	"message_id\x18\x04 \x01(\tR\tmessageId\x12+\n" +
-	"\x11source_generation\x18\x05 \x01(\x04R\x10sourceGeneration\"g\n" +
-	"\x12IndexSessionTarget\x12\x1c\n" +
-	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x14\n" +
-	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\x03 \x01(\tR\tsessionId*\xb0\x01\n" +
+	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\x12\x10\n" +
+	"\x03key\x18\n" +
+	" \x01(\tR\x03key\x12\x16\n" +
+	"\x06prefix\x18\v \x01(\bR\x06prefix\x12+\n" +
+	"\x11source_generation\x18\f \x01(\x04R\x10sourceGeneration*\xb0\x01\n" +
 	"\fSystemAction\x12\x1d\n" +
 	"\x19SYSTEM_ACTION_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14SYSTEM_ACTION_CREATE\x10\x01\x12\x18\n" +
@@ -1452,45 +1212,39 @@ func file_proto_events_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_events_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_proto_events_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_proto_events_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_proto_events_proto_goTypes = []any{
-	(SystemAction)(0),                 // 0: talon.events.SystemAction
-	(MessageDirection)(0),             // 1: talon.events.MessageDirection
-	(SessionMessagePartEventKind)(0),  // 2: talon.events.SessionMessagePartEventKind
-	(ChannelEventKind)(0),             // 3: talon.events.ChannelEventKind
-	(ResourceChangeType)(0),           // 4: talon.events.ResourceChangeType
-	(IndexOperation)(0),               // 5: talon.events.IndexOperation
-	(*LifecycleEvent)(nil),            // 6: talon.events.LifecycleEvent
-	(*SessionMessageEvent)(nil),       // 7: talon.events.SessionMessageEvent
-	(*SessionControlEvent)(nil),       // 8: talon.events.SessionControlEvent
-	(*SessionMessagePartEvent)(nil),   // 9: talon.events.SessionMessagePartEvent
-	(*ChannelEvent)(nil),              // 10: talon.events.ChannelEvent
-	(*WorkflowDispatchEvent)(nil),     // 11: talon.events.WorkflowDispatchEvent
-	(*ResourceChangedEvent)(nil),      // 12: talon.events.ResourceChangedEvent
-	(*IndexEvent)(nil),                // 13: talon.events.IndexEvent
-	(*IndexResourceTarget)(nil),       // 14: talon.events.IndexResourceTarget
-	(*IndexSessionMessageTarget)(nil), // 15: talon.events.IndexSessionMessageTarget
-	(*IndexSessionTarget)(nil),        // 16: talon.events.IndexSessionTarget
-	(*data.SessionMessagePart)(nil),   // 17: talon.data.SessionMessagePart
-	(*data.ChannelMessage)(nil),       // 18: talon.data.ChannelMessage
+	(SystemAction)(0),                // 0: talon.events.SystemAction
+	(MessageDirection)(0),            // 1: talon.events.MessageDirection
+	(SessionMessagePartEventKind)(0), // 2: talon.events.SessionMessagePartEventKind
+	(ChannelEventKind)(0),            // 3: talon.events.ChannelEventKind
+	(ResourceChangeType)(0),          // 4: talon.events.ResourceChangeType
+	(IndexOperation)(0),              // 5: talon.events.IndexOperation
+	(*LifecycleEvent)(nil),           // 6: talon.events.LifecycleEvent
+	(*SessionMessageEvent)(nil),      // 7: talon.events.SessionMessageEvent
+	(*SessionControlEvent)(nil),      // 8: talon.events.SessionControlEvent
+	(*SessionMessagePartEvent)(nil),  // 9: talon.events.SessionMessagePartEvent
+	(*ChannelEvent)(nil),             // 10: talon.events.ChannelEvent
+	(*WorkflowDispatchEvent)(nil),    // 11: talon.events.WorkflowDispatchEvent
+	(*ResourceChangedEvent)(nil),     // 12: talon.events.ResourceChangedEvent
+	(*IndexEvent)(nil),               // 13: talon.events.IndexEvent
+	(*data.SessionMessagePart)(nil),  // 14: talon.data.SessionMessagePart
+	(*data.ChannelMessage)(nil),      // 15: talon.data.ChannelMessage
 }
 var file_proto_events_proto_depIdxs = []int32{
 	0,  // 0: talon.events.LifecycleEvent.action:type_name -> talon.events.SystemAction
 	1,  // 1: talon.events.SessionMessageEvent.direction:type_name -> talon.events.MessageDirection
 	2,  // 2: talon.events.SessionMessagePartEvent.kind:type_name -> talon.events.SessionMessagePartEventKind
-	17, // 3: talon.events.SessionMessagePartEvent.part:type_name -> talon.data.SessionMessagePart
+	14, // 3: talon.events.SessionMessagePartEvent.part:type_name -> talon.data.SessionMessagePart
 	3,  // 4: talon.events.ChannelEvent.kind:type_name -> talon.events.ChannelEventKind
-	18, // 5: talon.events.ChannelEvent.message:type_name -> talon.data.ChannelMessage
+	15, // 5: talon.events.ChannelEvent.message:type_name -> talon.data.ChannelMessage
 	4,  // 6: talon.events.ResourceChangedEvent.change_type:type_name -> talon.events.ResourceChangeType
 	5,  // 7: talon.events.IndexEvent.operation:type_name -> talon.events.IndexOperation
-	14, // 8: talon.events.IndexEvent.resource:type_name -> talon.events.IndexResourceTarget
-	15, // 9: talon.events.IndexEvent.session_message:type_name -> talon.events.IndexSessionMessageTarget
-	16, // 10: talon.events.IndexEvent.session:type_name -> talon.events.IndexSessionTarget
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	8,  // [8:8] is the sub-list for method output_type
+	8,  // [8:8] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_proto_events_proto_init() }
@@ -1498,18 +1252,13 @@ func file_proto_events_proto_init() {
 	if File_proto_events_proto != nil {
 		return
 	}
-	file_proto_events_proto_msgTypes[7].OneofWrappers = []any{
-		(*IndexEvent_Resource)(nil),
-		(*IndexEvent_SessionMessage)(nil),
-		(*IndexEvent_Session)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_events_proto_rawDesc), len(file_proto_events_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   11,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

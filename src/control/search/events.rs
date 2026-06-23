@@ -17,8 +17,8 @@ pub(crate) async fn publish_index_event(
     if event.operation == IndexOperation::Unspecified as i32 {
         event.operation = IndexOperation::Upsert as i32;
     }
-    if event.target.is_none() {
-        anyhow::bail!("index event target is required");
+    if event.key.trim().is_empty() {
+        anyhow::bail!("index event key is required");
     }
     if event.created_at == 0 {
         event.created_at = now;

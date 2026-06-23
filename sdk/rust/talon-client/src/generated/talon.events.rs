@@ -133,49 +133,15 @@ pub struct IndexEvent {
     pub created_at: i64,
     #[prost(int64, tag = "4")]
     pub updated_at: i64,
-    #[prost(oneof = "index_event::Target", tags = "10, 11, 12")]
-    pub target: ::core::option::Option<index_event::Target>,
-}
-/// Nested message and enum types in `IndexEvent`.
-pub mod index_event {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Target {
-        #[prost(message, tag = "10")]
-        Resource(super::IndexResourceTarget),
-        #[prost(message, tag = "11")]
-        SessionMessage(super::IndexSessionMessageTarget),
-        #[prost(message, tag = "12")]
-        Session(super::IndexSessionTarget),
-    }
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct IndexResourceTarget {
-    #[prost(string, tag = "1")]
-    pub resource_key: ::prost::alloc::string::String,
-    #[prost(uint64, tag = "2")]
+    /// Canonical source key for the changed record. The index controller parses
+    /// this key to load the canonical source and derive the Document projection.
+    #[prost(string, tag = "10")]
+    pub key: ::prost::alloc::string::String,
+    /// Reserved for future scoped invalidation. MVP publishers keep this false.
+    #[prost(bool, tag = "11")]
+    pub prefix: bool,
+    #[prost(uint64, tag = "12")]
     pub source_generation: u64,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct IndexSessionMessageTarget {
-    #[prost(string, tag = "1")]
-    pub namespace: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub agent: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub session_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub message_id: ::prost::alloc::string::String,
-    #[prost(uint64, tag = "5")]
-    pub source_generation: u64,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct IndexSessionTarget {
-    #[prost(string, tag = "1")]
-    pub namespace: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub agent: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub session_id: ::prost::alloc::string::String,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]

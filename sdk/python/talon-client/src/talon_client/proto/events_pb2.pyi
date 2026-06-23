@@ -205,51 +205,19 @@ class ResourceChangedEvent(_message.Message):
     def __init__(self, namespace: _Optional[str] = ..., resource_kind: _Optional[str] = ..., name: _Optional[str] = ..., uid: _Optional[str] = ..., resource_version: _Optional[str] = ..., generation: _Optional[int] = ..., change_type: _Optional[_Union[ResourceChangeType, str]] = ..., changed_sections: _Optional[_Iterable[str]] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
 class IndexEvent(_message.Message):
-    __slots__ = ("id", "operation", "created_at", "updated_at", "resource", "session_message", "session")
+    __slots__ = ("id", "operation", "created_at", "updated_at", "key", "prefix", "source_generation")
     ID_FIELD_NUMBER: _ClassVar[int]
     OPERATION_FIELD_NUMBER: _ClassVar[int]
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
     UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
-    RESOURCE_FIELD_NUMBER: _ClassVar[int]
-    SESSION_MESSAGE_FIELD_NUMBER: _ClassVar[int]
-    SESSION_FIELD_NUMBER: _ClassVar[int]
+    KEY_FIELD_NUMBER: _ClassVar[int]
+    PREFIX_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_GENERATION_FIELD_NUMBER: _ClassVar[int]
     id: str
     operation: IndexOperation
     created_at: int
     updated_at: int
-    resource: IndexResourceTarget
-    session_message: IndexSessionMessageTarget
-    session: IndexSessionTarget
-    def __init__(self, id: _Optional[str] = ..., operation: _Optional[_Union[IndexOperation, str]] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., resource: _Optional[_Union[IndexResourceTarget, _Mapping]] = ..., session_message: _Optional[_Union[IndexSessionMessageTarget, _Mapping]] = ..., session: _Optional[_Union[IndexSessionTarget, _Mapping]] = ...) -> None: ...
-
-class IndexResourceTarget(_message.Message):
-    __slots__ = ("resource_key", "source_generation")
-    RESOURCE_KEY_FIELD_NUMBER: _ClassVar[int]
-    SOURCE_GENERATION_FIELD_NUMBER: _ClassVar[int]
-    resource_key: str
+    key: str
+    prefix: bool
     source_generation: int
-    def __init__(self, resource_key: _Optional[str] = ..., source_generation: _Optional[int] = ...) -> None: ...
-
-class IndexSessionMessageTarget(_message.Message):
-    __slots__ = ("namespace", "agent", "session_id", "message_id", "source_generation")
-    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    AGENT_FIELD_NUMBER: _ClassVar[int]
-    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
-    MESSAGE_ID_FIELD_NUMBER: _ClassVar[int]
-    SOURCE_GENERATION_FIELD_NUMBER: _ClassVar[int]
-    namespace: str
-    agent: str
-    session_id: str
-    message_id: str
-    source_generation: int
-    def __init__(self, namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., message_id: _Optional[str] = ..., source_generation: _Optional[int] = ...) -> None: ...
-
-class IndexSessionTarget(_message.Message):
-    __slots__ = ("namespace", "agent", "session_id")
-    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    AGENT_FIELD_NUMBER: _ClassVar[int]
-    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
-    namespace: str
-    agent: str
-    session_id: str
-    def __init__(self, namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, id: _Optional[str] = ..., operation: _Optional[_Union[IndexOperation, str]] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., key: _Optional[str] = ..., prefix: bool = ..., source_generation: _Optional[int] = ...) -> None: ...

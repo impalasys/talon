@@ -692,15 +692,7 @@ impl PubSubSessionSink {
             self.pubsub.as_ref(),
             crate::control::events::IndexEvent {
                 operation: crate::control::events::IndexOperation::Upsert as i32,
-                target: Some(crate::control::events::index_event::Target::SessionMessage(
-                    crate::control::events::IndexSessionMessageTarget {
-                        namespace: self.ns.clone(),
-                        agent: self.agent_id.clone(),
-                        session_id: self.session_id.clone(),
-                        message_id: self.reply_msg_id.clone(),
-                        ..Default::default()
-                    },
-                )),
+                key: self.reply_msg_key.canonical(),
                 ..Default::default()
             },
         )

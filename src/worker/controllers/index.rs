@@ -1,10 +1,10 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::events::{index_event, IndexEvent, IndexOperation, IndexSessionMessageTarget};
+use crate::control::events::{IndexEvent, IndexOperation};
 use crate::control::resources::ResourceStore;
 use crate::control::search::{mapper, DeleteScope, Document, DocumentStore, KIND_SESSION_MESSAGE};
-use crate::control::{keys, ControlPlane};
+use crate::control::{keys, ns, ControlPlane};
 use anyhow::Result;
 use std::sync::Arc;
 
@@ -27,17 +27,23 @@ impl IndexController {
             tracing::debug!("index controller skipped because document store is disabled");
             return Ok(());
         }
+        if event.prefix {
+            anyhow::bail!("prefix index events are reserved but not supported yet");
+        }
+        let key = keys::ResourceKey::parse_canonical(&event.key)?;
         match IndexOperation::try_from(event.operation).unwrap_or(IndexOperation::Upsert) {
             IndexOperation::Delete => {
-                self.documents
-                    .delete(&delete_scope_for_event(&event)?)
-                    .await?;
+                for scope in delete_scopes_for_key(&key, event.source_generation)? {
+                    self.documents.delete(&scope).await?;
+                }
             }
             IndexOperation::Unspecified | IndexOperation::Upsert => {
-                let documents = self.extract_documents_for_event(&event).await?;
+                let documents = self
+                    .extract_documents_for_key(&key, event.source_generation)
+                    .await?;
                 if !documents.is_empty() {
                     self.documents
-                        .delete(&delete_scope_for_event(&event)?)
+                        .delete(&replace_scope_for_key(&key, event.source_generation)?)
                         .await?;
                     self.documents.upsert_documents(&documents).await?;
                 }
@@ -46,28 +52,29 @@ impl IndexController {
         Ok(())
     }
 
-    async fn extract_documents_for_event(&self, event: &IndexEvent) -> Result<Vec<Document>> {
+    async fn extract_documents_for_key(
+        &self,
+        key: &keys::ResourceKey,
+        source_generation: u64,
+    ) -> Result<Vec<Document>> {
         let now = chrono::Utc::now().timestamp_micros();
-        match event
-            .target
-            .as_ref()
-            .ok_or_else(|| anyhow::anyhow!("index event target is required"))?
-        {
-            index_event::Target::SessionMessage(target) => {
-                let key = session_message_key(target);
-                let Some(bytes) = self.cp.kv.get(&key).await? else {
+        match key.kind.as_str() {
+            "SessionMessage" => {
+                let Some(bytes) = self.cp.kv.get(key).await? else {
                     return Ok(Vec::new());
                 };
                 let message = mapper::decode_session_message(bytes.as_slice())?;
                 Ok(mapper::map_session_message(
-                    &key,
+                    key,
                     message,
-                    target.source_generation,
+                    source_generation,
                     now,
                 ))
             }
-            index_event::Target::Resource(target) => {
-                let key = keys::ResourceKey::parse_canonical(&target.resource_key)?;
+            "Session" => {
+                anyhow::bail!("session index key cannot be upserted")
+            }
+            _ => {
                 let store = ResourceStore::new(self.cp.kv.clone(), self.cp.pubsub.clone());
                 let Some(resource) = store.get(&key.namespace, &key.kind, &key.name).await? else {
                     return Ok(Vec::new());
@@ -77,82 +84,92 @@ impl IndexController {
                     .as_ref()
                     .map(|metadata| metadata.generation)
                     .unwrap_or_default();
-                if target.source_generation > 0 {
-                    if current_generation > target.source_generation {
+                if source_generation > 0 {
+                    if current_generation > source_generation {
                         tracing::debug!(
-                            resource_key = target.resource_key,
-                            event_generation = target.source_generation,
+                            resource_key = key.canonical(),
+                            event_generation = source_generation,
                             current_generation,
                             "skipping stale resource index event"
                         );
                         return Ok(Vec::new());
                     }
-                    if current_generation < target.source_generation {
+                    if current_generation < source_generation {
                         anyhow::bail!(
                             "resource {} generation {} is behind index event generation {}",
-                            target.resource_key,
+                            key.canonical(),
                             current_generation,
-                            target.source_generation
+                            source_generation
                         );
                     }
                 }
-                mapper::map_control_plane_resource(&key, &resource, now)
-            }
-            index_event::Target::Session(_) => {
-                anyhow::bail!("session index target cannot be upserted")
+                mapper::map_control_plane_resource(key, &resource, now)
             }
         }
     }
 }
 
-fn delete_scope_for_event(event: &IndexEvent) -> Result<DeleteScope> {
-    match event
-        .target
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("index event target is required"))?
-    {
-        index_event::Target::Resource(target) => {
-            let key = keys::ResourceKey::parse_canonical(&target.resource_key)?;
-            Ok(DeleteScope {
-                namespace: key.namespace,
-                resource_kind: key.kind,
-                resource_key: target.resource_key.clone(),
-                max_source_generation: target.source_generation,
+fn replace_scope_for_key(key: &keys::ResourceKey, source_generation: u64) -> Result<DeleteScope> {
+    exact_scope_for_key(key, source_generation)
+}
+
+fn delete_scopes_for_key(
+    key: &keys::ResourceKey,
+    source_generation: u64,
+) -> Result<Vec<DeleteScope>> {
+    match key.kind.as_str() {
+        "Session" => Ok(vec![session_scope_for_key(key)]),
+        "Namespace" if key.namespace == ns::TALON_SYSTEM => Ok(vec![
+            exact_scope_for_key(key, source_generation)?,
+            DeleteScope {
+                namespace: key.name.clone(),
                 ..Default::default()
-            })
-        }
-        index_event::Target::SessionMessage(target) => Ok(DeleteScope {
-            namespace: target.namespace.clone(),
-            resource_kind: KIND_SESSION_MESSAGE.to_string(),
-            resource_key: session_message_key(target).canonical(),
-            agent: target.agent.clone(),
-            session_id: target.session_id.clone(),
-            max_source_generation: target.source_generation,
-            ..Default::default()
-        }),
-        index_event::Target::Session(target) => Ok(DeleteScope {
-            namespace: target.namespace.clone(),
-            resource_kind: KIND_SESSION_MESSAGE.to_string(),
-            agent: target.agent.clone(),
-            session_id: target.session_id.clone(),
-            ..Default::default()
-        }),
+            },
+        ]),
+        _ => Ok(vec![exact_scope_for_key(key, source_generation)?]),
     }
 }
 
-fn session_message_key(target: &IndexSessionMessageTarget) -> keys::ResourceKey {
-    keys::session_message(
-        &target.namespace,
-        &target.agent,
-        &target.session_id,
-        &target.message_id,
-    )
+fn exact_scope_for_key(key: &keys::ResourceKey, source_generation: u64) -> Result<DeleteScope> {
+    let mut scope = DeleteScope {
+        namespace: key.namespace.clone(),
+        resource_kind: key.kind.clone(),
+        resource_key: key.canonical(),
+        max_source_generation: source_generation,
+        ..Default::default()
+    };
+    if key.kind == "SessionMessage" {
+        scope.agent = parent_segment(key, "Agent");
+        scope.session_id = parent_segment(key, "Session");
+    }
+    Ok(scope)
+}
+
+fn session_scope_for_key(key: &keys::ResourceKey) -> DeleteScope {
+    DeleteScope {
+        namespace: key.namespace.clone(),
+        resource_kind: KIND_SESSION_MESSAGE.to_string(),
+        agent: parent_segment(key, "Agent"),
+        session_id: key.name.clone(),
+        ..Default::default()
+    }
+}
+
+fn parent_segment(key: &keys::ResourceKey, kind: &str) -> String {
+    key.parent_segments()
+        .ok()
+        .and_then(|segments| {
+            segments
+                .into_iter()
+                .find(|segment| segment.kind == kind)
+                .map(|segment| segment.name)
+        })
+        .unwrap_or_default()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::events::{IndexResourceTarget, IndexSessionTarget};
     use crate::control::search;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::gateway::rpc::data_proto;
@@ -179,15 +196,7 @@ mod tests {
         controller
             .handle_event(IndexEvent {
                 id: "event-1".to_string(),
-                target: Some(index_event::Target::SessionMessage(
-                    IndexSessionMessageTarget {
-                        namespace: "acme".to_string(),
-                        agent: "support".to_string(),
-                        session_id: "s1".to_string(),
-                        message_id: "m1".to_string(),
-                        ..Default::default()
-                    },
-                )),
+                key: keys::session_message("acme", "support", "s1", "m1").canonical(),
                 ..Default::default()
             })
             .await
@@ -223,15 +232,8 @@ mod tests {
         IndexController::new(cp)
             .handle_event(IndexEvent {
                 id: "event-1".to_string(),
-                target: Some(index_event::Target::SessionMessage(
-                    IndexSessionMessageTarget {
-                        namespace: "acme".to_string(),
-                        agent: "support".to_string(),
-                        session_id: "s1".to_string(),
-                        message_id: "m1".to_string(),
-                        source_generation: 7,
-                    },
-                )),
+                key: key.canonical(),
+                source_generation: 7,
                 ..Default::default()
             })
             .await
@@ -278,15 +280,7 @@ mod tests {
         let controller = IndexController::new(cp);
         controller
             .handle_event(IndexEvent {
-                target: Some(index_event::Target::SessionMessage(
-                    IndexSessionMessageTarget {
-                        namespace: "acme".to_string(),
-                        agent: "support".to_string(),
-                        session_id: "s1".to_string(),
-                        message_id: "m1".to_string(),
-                        ..Default::default()
-                    },
-                )),
+                key: key.canonical(),
                 ..Default::default()
             })
             .await
@@ -305,11 +299,7 @@ mod tests {
         controller
             .handle_event(IndexEvent {
                 operation: IndexOperation::Delete as i32,
-                target: Some(index_event::Target::Session(IndexSessionTarget {
-                    namespace: "acme".to_string(),
-                    agent: "support".to_string(),
-                    session_id: "s1".to_string(),
-                })),
+                key: keys::session("acme", "support", "s1").canonical(),
                 ..Default::default()
             })
             .await
@@ -341,10 +331,8 @@ mod tests {
 
         IndexController::new(cp)
             .handle_event(IndexEvent {
-                target: Some(index_event::Target::Resource(IndexResourceTarget {
-                    resource_key: key.canonical(),
-                    source_generation: meta.generation,
-                })),
+                key: key.canonical(),
+                source_generation: meta.generation,
                 ..Default::default()
             })
             .await
@@ -404,10 +392,8 @@ mod tests {
 
         controller
             .handle_event(IndexEvent {
-                target: Some(index_event::Target::Resource(IndexResourceTarget {
-                    resource_key: key.canonical(),
-                    source_generation: current_generation,
-                })),
+                key: key.canonical(),
+                source_generation: current_generation,
                 ..Default::default()
             })
             .await
@@ -415,10 +401,8 @@ mod tests {
 
         controller
             .handle_event(IndexEvent {
-                target: Some(index_event::Target::Resource(IndexResourceTarget {
-                    resource_key: key.canonical(),
-                    source_generation: current_generation - 1,
-                })),
+                key: key.canonical(),
+                source_generation: current_generation - 1,
                 ..Default::default()
             })
             .await
@@ -436,10 +420,8 @@ mod tests {
         controller
             .handle_event(IndexEvent {
                 operation: IndexOperation::Delete as i32,
-                target: Some(index_event::Target::Resource(IndexResourceTarget {
-                    resource_key: key.canonical(),
-                    source_generation: current_generation - 1,
-                })),
+                key: key.canonical(),
+                source_generation: current_generation - 1,
                 ..Default::default()
             })
             .await
@@ -475,10 +457,8 @@ mod tests {
 
         let error = IndexController::new(cp)
             .handle_event(IndexEvent {
-                target: Some(index_event::Target::Resource(IndexResourceTarget {
-                    resource_key: key.canonical(),
-                    source_generation: current_generation + 1,
-                })),
+                key: key.canonical(),
+                source_generation: current_generation + 1,
                 ..Default::default()
             })
             .await
@@ -489,6 +469,67 @@ mod tests {
             .contains("is behind index event generation"));
         assert!(documents
             .get_document("acme", &document_id)
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
+    async fn index_controller_deletes_namespace_scope_from_namespace_key() {
+        let kv = Arc::new(MockKvStore::default());
+        let documents = search::memory_document_store();
+        let cp = control_plane(kv.clone(), documents.clone());
+        let namespace_key = keys::namespace_metadata("acme");
+        let namespace_doc_id = search::document_id(
+            &namespace_key.canonical(),
+            search::DOCUMENT_KIND_METADATA,
+            "",
+        );
+        let agent_key = keys::agent("acme", "support");
+        let agent_doc_id =
+            search::document_id(&agent_key.canonical(), search::DOCUMENT_KIND_METADATA, "");
+        documents
+            .upsert_documents(&[
+                Document {
+                    id: namespace_doc_id.clone(),
+                    namespace: ns::TALON_SYSTEM.to_string(),
+                    resource_kind: "Namespace".to_string(),
+                    resource_key: namespace_key.canonical(),
+                    document_kind: search::DOCUMENT_KIND_METADATA.to_string(),
+                    title: "Namespace/acme".to_string(),
+                    text: "acme namespace".to_string(),
+                    ..Default::default()
+                },
+                Document {
+                    id: agent_doc_id.clone(),
+                    namespace: "acme".to_string(),
+                    resource_kind: "Agent".to_string(),
+                    resource_key: agent_key.canonical(),
+                    document_kind: search::DOCUMENT_KIND_METADATA.to_string(),
+                    title: "Agent/support".to_string(),
+                    text: "support agent".to_string(),
+                    ..Default::default()
+                },
+            ])
+            .await
+            .unwrap();
+
+        IndexController::new(cp)
+            .handle_event(IndexEvent {
+                operation: IndexOperation::Delete as i32,
+                key: namespace_key.canonical(),
+                ..Default::default()
+            })
+            .await
+            .unwrap();
+
+        assert!(documents
+            .get_document(ns::TALON_SYSTEM, &namespace_doc_id)
+            .await
+            .unwrap()
+            .is_none());
+        assert!(documents
+            .get_document("acme", &agent_doc_id)
             .await
             .unwrap()
             .is_none());
