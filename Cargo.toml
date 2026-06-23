@@ -6,6 +6,7 @@ edition = "2021"
 [features]
 bazel = []
 cpu-profile = ["dep:pprof"]
+dynamodb = ["dep:aws-sdk-dynamodb"]
 heap-profile = [
     "dep:tikv-jemallocator",
     "tikv-jemallocator/profiling",
@@ -14,6 +15,8 @@ heap-profile = [
     "tikv-jemalloc-ctl/stats",
 ]
 rocksdb = ["dep:rocksdb"]
+sqs = ["dep:aws-sdk-sqs"]
+aws-local-e2e = ["dynamodb", "sqs"]
 
 [dependencies]
 aead = "0.5"
@@ -22,7 +25,7 @@ anyhow = "1.0"
 async-trait = "0.1"
 async-stream = "0.3"
 base64 = "0.21"
-bollard = "0.15"
+bollard = "0.20"
 chrono = { version = "0.4", features = ["serde"] }
 chrono-tz = "0.10"
 cron = "0.12"
@@ -63,8 +66,10 @@ url = "2"
 google-cloud-secretmanager-v1 = "1.7"
 google-cloud-auth = "1.8"
 aws-config = "1.8"
+aws-sdk-dynamodb = { version = "1.103", optional = true }
 aws-sdk-s3 = "1.103"
 aws-sdk-secretsmanager = "1.103"
+aws-sdk-sqs = { version = "1.102", optional = true }
 azure_identity = "0.33"
 azure_security_keyvault_secrets = "0.12"
 uuid = { version = "1.23.0", features = ["v7"] }
@@ -86,6 +91,7 @@ aws-smithy-runtime-api = "1.11"
 aws-smithy-types = "1.4"
 tempfile = "3.0"
 tokio-stream = { version = "0.1", features = ["net"] }
+testcontainers-modules = { version = "0.15", features = ["dynamodb", "localstack"] }
 
 [[bin]]
 name = "talon-server"
