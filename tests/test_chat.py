@@ -312,7 +312,7 @@ def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
     assert len(search.results) >= 1
     assert search.results[0].path == "guide.md"
     assert len(search.search_results) >= 1
-    assert search.search_results[0].document.resource_kind == "Knowledge"
+    assert search.search_results[0].document.source.kind == "Knowledge"
 
     deleted = stub.resources.Delete(DeleteResourceRequest(
         ns=namespace,

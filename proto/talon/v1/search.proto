@@ -40,30 +40,30 @@ message SearchRequest {
 
 message Document {
   string id = 1;
+  DocumentSource source = 2;
+  string document_kind = 3;
+  string subdocument_id = 4;
+  map<string, string> attributes = 5;
+  string title = 6;
+  string snippet = 7;
+  map<string, string> labels = 8;
+  string metadata_json = 9;
+  string acl_scope_json = 10;
+  int64 created_at = 11;
+  int64 updated_at = 12;
+  int64 indexed_at = 13;
+  // Canonical source generation that produced this disposable document projection.
+  uint64 generation = 14;
+  string embedding_ref = 15;
+}
+
+message DocumentSource {
+  string key = 1;
   string namespace = 2;
-  string resource_kind = 3;
-  string resource_key = 4;
+  string kind = 3;
+  string name = 4;
   string parent_kind = 5;
   string parent_key = 6;
-  string agent = 7;
-  string session_id = 8;
-  string channel = 9;
-  string message_id = 10;
-  string run_id = 11;
-  string part_id = 12;
-  string part_type = 13;
-  string role = 14;
-  string title = 15;
-  string snippet = 16;
-  map<string, string> labels = 17;
-  string metadata_json = 18;
-  string acl_scope_json = 19;
-  int64 created_at = 20;
-  int64 updated_at = 21;
-  int64 indexed_at = 22;
-  uint64 source_generation = 23;
-  string embedding_ref = 24;
-  string document_kind = 25;
 }
 
 message SearchResult {

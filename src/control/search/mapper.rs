@@ -2,14 +2,16 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::{
-    document_id, snippet, Document, ResourceRef, DOCUMENT_KIND_CONTENT, DOCUMENT_KIND_MESSAGE_PART,
-    DOCUMENT_KIND_METADATA, KIND_SESSION_MESSAGE,
+    document_id, snippet, Document, DocumentSource, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID,
+    ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_SESSION_ID, DOCUMENT_KIND_CONTENT,
+    DOCUMENT_KIND_MESSAGE_PART, DOCUMENT_KIND_METADATA, KIND_SESSION_MESSAGE,
 };
 use crate::control::keys;
 use crate::gateway::rpc::{data_proto, resources_proto};
 use anyhow::{anyhow, Result};
 use prost::Message;
 use serde_json::json;
+use std::collections::HashMap;
 
 pub fn map_control_plane_resource(
     key: &keys::ResourceKey,
@@ -29,12 +31,8 @@ pub fn map_control_plane_resource(
         if !spec.content.trim().is_empty() {
             documents.push(Document {
                 id: document_id(&source.key, DOCUMENT_KIND_CONTENT, ""),
-                namespace: source.namespace.clone(),
-                resource_kind: source.kind.clone(),
-                resource_key: source.key.clone(),
+                source: source.clone(),
                 document_kind: DOCUMENT_KIND_CONTENT.to_string(),
-                parent_kind: source.parent_kind.clone(),
-                parent_key: source.parent_key.clone(),
                 title: spec.path.clone(),
                 text: spec.content.clone(),
                 snippet: snippet(&spec.content),
@@ -49,7 +47,7 @@ pub fn map_control_plane_resource(
                 .to_string(),
                 acl_scope_json: acl_scope_json(key, resource),
                 indexed_at,
-                source_generation: meta.generation,
+                generation: meta.generation,
                 ..Default::default()
             });
         }
@@ -61,7 +59,7 @@ pub fn map_control_plane_resource(
 pub fn map_session_message(
     key: &keys::ResourceKey,
     message: data_proto::SessionMessage,
-    source_generation: u64,
+    generation: u64,
     indexed_at: i64,
 ) -> Vec<Document> {
     let agent = parent_segment(key, "Agent").unwrap_or_default();
@@ -80,18 +78,25 @@ pub fn map_session_message(
         }
         docs.push(Document {
             id: document_id(&key.canonical(), DOCUMENT_KIND_MESSAGE_PART, &part.id),
-            namespace: key.namespace.clone(),
-            resource_kind: KIND_SESSION_MESSAGE.to_string(),
-            resource_key: key.canonical(),
+            source: DocumentSource {
+                namespace: key.namespace.clone(),
+                kind: KIND_SESSION_MESSAGE.to_string(),
+                key: key.canonical(),
+                name: key.name.clone(),
+                parent_kind: "Session".to_string(),
+                parent_key: keys::session(&key.namespace, &agent, &session_id).canonical(),
+                ..Default::default()
+            },
             document_kind: DOCUMENT_KIND_MESSAGE_PART.to_string(),
-            parent_kind: "Session".to_string(),
-            parent_key: keys::session(&key.namespace, &agent, &session_id).canonical(),
-            agent: agent.clone(),
-            session_id: session_id.clone(),
-            message_id: message.id.clone(),
-            part_id: part.id,
-            part_type: "TEXT".to_string(),
-            role: role.clone(),
+            subdocument_id: part.id.clone(),
+            attributes: attributes([
+                (ATTR_AGENT, agent.clone()),
+                (ATTR_SESSION_ID, session_id.clone()),
+                (ATTR_MESSAGE_ID, message.id.clone()),
+                (ATTR_PART_ID, part.id.clone()),
+                (ATTR_PART_TYPE, "TEXT".to_string()),
+                (ATTR_ROLE, role.clone()),
+            ]),
             title: format!("{agent} / {session_id}"),
             snippet: snippet(&part.content),
             text: part.content,
@@ -114,7 +119,7 @@ pub fn map_session_message(
                 part.created_at
             },
             indexed_at,
-            source_generation,
+            generation,
             ..Default::default()
         });
     }
@@ -124,7 +129,7 @@ pub fn map_session_message(
 fn metadata_document(
     key: &keys::ResourceKey,
     resource: &resources_proto::Resource,
-    source: &ResourceRef,
+    source: &DocumentSource,
     indexed_at: i64,
 ) -> Result<Document> {
     let meta = resource
@@ -135,15 +140,9 @@ fn metadata_document(
     let text = metadata_text(resource);
     Ok(Document {
         id: document_id(&source.key, DOCUMENT_KIND_METADATA, ""),
-        namespace: source.namespace.clone(),
-        resource_kind: source.kind.clone(),
-        resource_key: source.key.clone(),
+        source: source.clone(),
         document_kind: DOCUMENT_KIND_METADATA.to_string(),
-        parent_kind: source.parent_kind.clone(),
-        parent_key: source.parent_key.clone(),
-        agent: derived_agent(key, resource),
-        session_id: derived_session(key, resource),
-        channel: derived_channel(key, resource),
+        attributes: metadata_attributes(key, resource),
         title: format!("{}/{}", source.kind, meta.name),
         snippet: snippet(&text),
         text,
@@ -166,15 +165,15 @@ fn metadata_document(
         created_at,
         updated_at,
         indexed_at,
-        source_generation: meta.generation,
+        generation: meta.generation,
         ..Default::default()
     })
 }
 
-fn resource_ref(key: &keys::ResourceKey, resource: &resources_proto::Resource) -> ResourceRef {
+fn resource_ref(key: &keys::ResourceKey, resource: &resources_proto::Resource) -> DocumentSource {
     let meta = resource.metadata.as_ref();
     let (parent_kind, parent_key) = parent_ref(key);
-    ResourceRef {
+    DocumentSource {
         namespace: key.namespace.clone(),
         kind: resource.kind.clone(),
         key: key.canonical(),
@@ -189,6 +188,25 @@ fn resource_ref(key: &keys::ResourceKey, resource: &resources_proto::Resource) -
             .map(|meta| meta.resource_version.clone())
             .unwrap_or_default(),
     }
+}
+
+fn metadata_attributes(
+    key: &keys::ResourceKey,
+    resource: &resources_proto::Resource,
+) -> HashMap<String, String> {
+    attributes([
+        (ATTR_AGENT, derived_agent(key, resource)),
+        (ATTR_SESSION_ID, derived_session(key, resource)),
+        (ATTR_CHANNEL, derived_channel(key, resource)),
+    ])
+}
+
+fn attributes(values: impl IntoIterator<Item = (&'static str, String)>) -> HashMap<String, String> {
+    values
+        .into_iter()
+        .filter(|(_, value)| !value.is_empty())
+        .map(|(key, value)| (key.to_string(), value))
+        .collect()
 }
 
 fn parent_ref(key: &keys::ResourceKey) -> (String, String) {
@@ -441,7 +459,7 @@ mod tests {
         let documents = map_control_plane_resource(&key, &resource, 10).unwrap();
         assert_eq!(documents.len(), 1);
         assert_eq!(documents[0].id, format!("{}:metadata", key.canonical()));
-        assert_eq!(documents[0].resource_kind, "Agent");
+        assert_eq!(documents[0].resource_kind(), "Agent");
         assert_eq!(documents[0].document_kind, DOCUMENT_KIND_METADATA);
         assert!(documents[0].text.contains("support"));
         assert!(documents[0].text.contains("Ready"));

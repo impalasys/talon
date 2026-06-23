@@ -55,7 +55,7 @@ impl IndexController {
     async fn extract_documents_for_key(
         &self,
         key: &keys::ResourceKey,
-        source_generation: u64,
+        generation: u64,
     ) -> Result<Vec<Document>> {
         let now = chrono::Utc::now().timestamp_micros();
         match key.kind.as_str() {
@@ -64,12 +64,7 @@ impl IndexController {
                     return Ok(Vec::new());
                 };
                 let message = mapper::decode_session_message(bytes.as_slice())?;
-                Ok(mapper::map_session_message(
-                    key,
-                    message,
-                    source_generation,
-                    now,
-                ))
+                Ok(mapper::map_session_message(key, message, generation, now))
             }
             "Session" => {
                 anyhow::bail!("session index key cannot be upserted")
@@ -84,22 +79,22 @@ impl IndexController {
                     .as_ref()
                     .map(|metadata| metadata.generation)
                     .unwrap_or_default();
-                if source_generation > 0 {
-                    if current_generation > source_generation {
+                if generation > 0 {
+                    if current_generation > generation {
                         tracing::debug!(
                             resource_key = key.canonical(),
-                            event_generation = source_generation,
+                            event_generation = generation,
                             current_generation,
                             "skipping stale resource index event"
                         );
                         return Ok(Vec::new());
                     }
-                    if current_generation < source_generation {
+                    if current_generation < generation {
                         anyhow::bail!(
                             "resource {} generation {} is behind index event generation {}",
                             key.canonical(),
                             current_generation,
-                            source_generation
+                            generation
                         );
                     }
                 }
@@ -109,33 +104,30 @@ impl IndexController {
     }
 }
 
-fn replace_scope_for_key(key: &keys::ResourceKey, source_generation: u64) -> Result<DeleteScope> {
-    exact_scope_for_key(key, source_generation)
+fn replace_scope_for_key(key: &keys::ResourceKey, generation: u64) -> Result<DeleteScope> {
+    exact_scope_for_key(key, generation)
 }
 
-fn delete_scopes_for_key(
-    key: &keys::ResourceKey,
-    source_generation: u64,
-) -> Result<Vec<DeleteScope>> {
+fn delete_scopes_for_key(key: &keys::ResourceKey, generation: u64) -> Result<Vec<DeleteScope>> {
     match key.kind.as_str() {
         "Session" => Ok(vec![session_scope_for_key(key)]),
         "Namespace" if key.namespace == ns::TALON_SYSTEM => Ok(vec![
-            exact_scope_for_key(key, source_generation)?,
+            exact_scope_for_key(key, generation)?,
             DeleteScope {
                 namespace: key.name.clone(),
                 ..Default::default()
             },
         ]),
-        _ => Ok(vec![exact_scope_for_key(key, source_generation)?]),
+        _ => Ok(vec![exact_scope_for_key(key, generation)?]),
     }
 }
 
-fn exact_scope_for_key(key: &keys::ResourceKey, source_generation: u64) -> Result<DeleteScope> {
+fn exact_scope_for_key(key: &keys::ResourceKey, generation: u64) -> Result<DeleteScope> {
     let mut scope = DeleteScope {
         namespace: key.namespace.clone(),
         resource_kind: key.kind.clone(),
         resource_key: key.canonical(),
-        max_source_generation: source_generation,
+        max_source_generation: generation,
         ..Default::default()
     };
     if key.kind == "SessionMessage" {
@@ -250,7 +242,7 @@ mod tests {
             .expect("document should be indexed");
         assert_eq!(document.text, "Refund policy details");
         assert_eq!(document.document_kind, search::DOCUMENT_KIND_MESSAGE_PART);
-        assert_eq!(document.source_generation, 7);
+        assert_eq!(document.generation, 7);
     }
 
     #[tokio::test]
@@ -345,9 +337,9 @@ mod tests {
             .await
             .unwrap()
             .expect("metadata document should be indexed");
-        assert_eq!(document.resource_kind, "Agent");
+        assert_eq!(document.resource_kind(), "Agent");
         assert_eq!(document.document_kind, search::DOCUMENT_KIND_METADATA);
-        assert_eq!(document.source_generation, meta.generation);
+        assert_eq!(document.generation, meta.generation);
         assert!(document.text.contains("support"));
     }
 
@@ -413,7 +405,7 @@ mod tests {
                 .await
                 .unwrap()
                 .expect("current document should remain after stale upsert")
-                .source_generation,
+                .generation,
             current_generation
         );
 
@@ -492,9 +484,13 @@ mod tests {
             .upsert_documents(&[
                 Document {
                     id: namespace_doc_id.clone(),
-                    namespace: ns::TALON_SYSTEM.to_string(),
-                    resource_kind: "Namespace".to_string(),
-                    resource_key: namespace_key.canonical(),
+                    source: search::document_source(
+                        ns::TALON_SYSTEM.to_string(),
+                        "Namespace".to_string(),
+                        namespace_key.canonical(),
+                        String::new(),
+                        String::new(),
+                    ),
                     document_kind: search::DOCUMENT_KIND_METADATA.to_string(),
                     title: "Namespace/acme".to_string(),
                     text: "acme namespace".to_string(),
@@ -502,9 +498,13 @@ mod tests {
                 },
                 Document {
                     id: agent_doc_id.clone(),
-                    namespace: "acme".to_string(),
-                    resource_kind: "Agent".to_string(),
-                    resource_key: agent_key.canonical(),
+                    source: search::document_source(
+                        "acme".to_string(),
+                        "Agent".to_string(),
+                        agent_key.canonical(),
+                        String::new(),
+                        String::new(),
+                    ),
                     document_kind: search::DOCUMENT_KIND_METADATA.to_string(),
                     title: "Agent/support".to_string(),
                     text: "support agent".to_string(),

@@ -238,12 +238,12 @@ def document_summary(result):
     document = result.document
     return {
         "id": document.id,
-        "namespace": document.namespace,
-        "resourceKind": document.resource_kind,
+        "namespace": document.source.namespace,
+        "resourceKind": document.source.kind,
         "documentKind": document.document_kind,
-        "agent": document.agent,
-        "sessionId": document.session_id,
-        "partType": document.part_type,
+        "agent": document.attributes.get("agent", ""),
+        "sessionId": document.attributes.get("session_id", ""),
+        "partType": document.attributes.get("part_type", ""),
         "snippet": document.snippet,
         "score": result.score,
     }

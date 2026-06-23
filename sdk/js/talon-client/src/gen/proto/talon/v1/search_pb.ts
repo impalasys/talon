@@ -195,124 +195,76 @@ export class Document extends Message<Document> {
   id = "";
 
   /**
-   * @generated from field: string namespace = 2;
+   * @generated from field: talon.v1.DocumentSource source = 2;
    */
-  namespace = "";
+  source?: DocumentSource;
 
   /**
-   * @generated from field: string resource_kind = 3;
+   * @generated from field: string document_kind = 3;
    */
-  resourceKind = "";
+  documentKind = "";
 
   /**
-   * @generated from field: string resource_key = 4;
+   * @generated from field: string subdocument_id = 4;
    */
-  resourceKey = "";
+  subdocumentId = "";
 
   /**
-   * @generated from field: string parent_kind = 5;
+   * @generated from field: map<string, string> attributes = 5;
    */
-  parentKind = "";
+  attributes: { [key: string]: string } = {};
 
   /**
-   * @generated from field: string parent_key = 6;
-   */
-  parentKey = "";
-
-  /**
-   * @generated from field: string agent = 7;
-   */
-  agent = "";
-
-  /**
-   * @generated from field: string session_id = 8;
-   */
-  sessionId = "";
-
-  /**
-   * @generated from field: string channel = 9;
-   */
-  channel = "";
-
-  /**
-   * @generated from field: string message_id = 10;
-   */
-  messageId = "";
-
-  /**
-   * @generated from field: string run_id = 11;
-   */
-  runId = "";
-
-  /**
-   * @generated from field: string part_id = 12;
-   */
-  partId = "";
-
-  /**
-   * @generated from field: string part_type = 13;
-   */
-  partType = "";
-
-  /**
-   * @generated from field: string role = 14;
-   */
-  role = "";
-
-  /**
-   * @generated from field: string title = 15;
+   * @generated from field: string title = 6;
    */
   title = "";
 
   /**
-   * @generated from field: string snippet = 16;
+   * @generated from field: string snippet = 7;
    */
   snippet = "";
 
   /**
-   * @generated from field: map<string, string> labels = 17;
+   * @generated from field: map<string, string> labels = 8;
    */
   labels: { [key: string]: string } = {};
 
   /**
-   * @generated from field: string metadata_json = 18;
+   * @generated from field: string metadata_json = 9;
    */
   metadataJson = "";
 
   /**
-   * @generated from field: string acl_scope_json = 19;
+   * @generated from field: string acl_scope_json = 10;
    */
   aclScopeJson = "";
 
   /**
-   * @generated from field: int64 created_at = 20;
+   * @generated from field: int64 created_at = 11;
    */
   createdAt = protoInt64.zero;
 
   /**
-   * @generated from field: int64 updated_at = 21;
+   * @generated from field: int64 updated_at = 12;
    */
   updatedAt = protoInt64.zero;
 
   /**
-   * @generated from field: int64 indexed_at = 22;
+   * @generated from field: int64 indexed_at = 13;
    */
   indexedAt = protoInt64.zero;
 
   /**
-   * @generated from field: uint64 source_generation = 23;
+   * Canonical source generation that produced this disposable document projection.
+   *
+   * @generated from field: uint64 generation = 14;
    */
-  sourceGeneration = protoInt64.zero;
+  generation = protoInt64.zero;
 
   /**
-   * @generated from field: string embedding_ref = 24;
+   * @generated from field: string embedding_ref = 15;
    */
   embeddingRef = "";
-
-  /**
-   * @generated from field: string document_kind = 25;
-   */
-  documentKind = "";
 
   constructor(data?: PartialMessage<Document>) {
     super();
@@ -323,30 +275,20 @@ export class Document extends Message<Document> {
   static readonly typeName = "talon.v1.Document";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "resource_kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "resource_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "parent_kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "parent_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 8, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 9, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 10, name: "message_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 11, name: "run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 12, name: "part_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 13, name: "part_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 14, name: "role", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 15, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 16, name: "snippet", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 17, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-    { no: 18, name: "metadata_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 19, name: "acl_scope_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 20, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 21, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 22, name: "indexed_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 23, name: "source_generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 24, name: "embedding_ref", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 25, name: "document_kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "source", kind: "message", T: DocumentSource },
+    { no: 3, name: "document_kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "subdocument_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "attributes", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 6, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "snippet", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 9, name: "metadata_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "acl_scope_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 11, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 12, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 13, name: "indexed_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 14, name: "generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 15, name: "embedding_ref", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Document {
@@ -363,6 +305,73 @@ export class Document extends Message<Document> {
 
   static equals(a: Document | PlainMessage<Document> | undefined, b: Document | PlainMessage<Document> | undefined): boolean {
     return proto3.util.equals(Document, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.DocumentSource
+ */
+export class DocumentSource extends Message<DocumentSource> {
+  /**
+   * @generated from field: string key = 1;
+   */
+  key = "";
+
+  /**
+   * @generated from field: string namespace = 2;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string kind = 3;
+   */
+  kind = "";
+
+  /**
+   * @generated from field: string name = 4;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string parent_kind = 5;
+   */
+  parentKind = "";
+
+  /**
+   * @generated from field: string parent_key = 6;
+   */
+  parentKey = "";
+
+  constructor(data?: PartialMessage<DocumentSource>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.DocumentSource";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "parent_kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "parent_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DocumentSource {
+    return new DocumentSource().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DocumentSource {
+    return new DocumentSource().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DocumentSource {
+    return new DocumentSource().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DocumentSource | PlainMessage<DocumentSource> | undefined, b: DocumentSource | PlainMessage<DocumentSource> | undefined): boolean {
+    return proto3.util.equals(DocumentSource, a, b);
   }
 }
 

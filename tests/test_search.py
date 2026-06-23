@@ -110,12 +110,12 @@ def append_user_message(stub, namespace, agent, session_id, text, token):
 
 
 def assert_session_message_document(document, namespace, agent, session_id, token):
-    assert document.namespace == namespace
-    assert document.resource_kind == "SessionMessage"
+    assert document.source.namespace == namespace
+    assert document.source.kind == "SessionMessage"
     assert document.document_kind == "part"
-    assert document.part_type == "TEXT"
-    assert document.agent == agent
-    assert document.session_id == session_id
+    assert document.attributes.get("part_type", "") == "TEXT"
+    assert document.attributes.get("agent", "") == agent
+    assert document.attributes.get("session_id", "") == session_id
     assert token in document.snippet
 
 
@@ -142,7 +142,7 @@ def test_postgres_pubsub_session_search_indexes_opens_and_deletes(
         namespace,
         agent,
         token,
-        lambda item: item.document.session_id == session_id
+        lambda item: item.document.attributes.get("session_id", "") == session_id
         and item.document.document_kind == "part",
         session_id=session_id,
     )
@@ -198,13 +198,13 @@ def test_postgres_pubsub_workspace_search_indexes_resources_and_knowledge(
         stub,
         namespace,
         workflow_token,
-        lambda item: item.document.resource_kind == "Workflow"
+        lambda item: item.document.source.kind == "Workflow"
         and item.document.document_kind == "metadata",
         resource_kinds=["Workflow"],
     )
     workflow_doc = workflow_result.document
-    assert workflow_doc.namespace == namespace
-    assert workflow_doc.resource_kind == "Workflow"
+    assert workflow_doc.source.namespace == namespace
+    assert workflow_doc.source.kind == "Workflow"
     assert workflow_doc.document_kind == "metadata"
     assert workflow_token in workflow_doc.snippet
 
@@ -231,13 +231,13 @@ def test_postgres_pubsub_workspace_search_indexes_resources_and_knowledge(
         stub,
         namespace,
         knowledge_token,
-        lambda item: item.document.resource_kind == "Knowledge"
+        lambda item: item.document.source.kind == "Knowledge"
         and item.document.document_kind == "content",
         resource_kinds=["Knowledge"],
     )
     knowledge_doc = knowledge_result.document
-    assert knowledge_doc.namespace == namespace
-    assert knowledge_doc.resource_kind == "Knowledge"
+    assert knowledge_doc.source.namespace == namespace
+    assert knowledge_doc.source.kind == "Knowledge"
     assert knowledge_doc.document_kind == "content"
     assert knowledge_token in knowledge_doc.snippet
 
@@ -270,7 +270,7 @@ def test_sqlite_local_socket_session_search_indexes_and_opens(
         namespace,
         agent,
         token,
-        lambda item: item.document.session_id == session_id
+        lambda item: item.document.attributes.get("session_id", "") == session_id
         and item.document.document_kind == "part",
         session_id=session_id,
     )

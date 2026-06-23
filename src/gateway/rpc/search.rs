@@ -159,20 +159,17 @@ pub(crate) fn search_response_proto(response: search::SearchResponse) -> proto::
 pub(crate) fn document_proto(document: Document) -> proto::Document {
     proto::Document {
         id: document.id,
-        namespace: document.namespace,
-        resource_kind: document.resource_kind,
-        resource_key: document.resource_key,
+        source: Some(proto::DocumentSource {
+            key: document.source.key,
+            namespace: document.source.namespace,
+            kind: document.source.kind,
+            name: document.source.name,
+            parent_kind: document.source.parent_kind,
+            parent_key: document.source.parent_key,
+        }),
         document_kind: document.document_kind,
-        parent_kind: document.parent_kind,
-        parent_key: document.parent_key,
-        agent: document.agent,
-        session_id: document.session_id,
-        channel: document.channel,
-        message_id: document.message_id,
-        run_id: document.run_id,
-        part_id: document.part_id,
-        part_type: document.part_type,
-        role: document.role,
+        subdocument_id: document.subdocument_id,
+        attributes: document.attributes,
         title: document.title,
         snippet: document.snippet,
         labels: document.labels,
@@ -181,7 +178,7 @@ pub(crate) fn document_proto(document: Document) -> proto::Document {
         created_at: document.created_at,
         updated_at: document.updated_at,
         indexed_at: document.indexed_at,
-        source_generation: document.source_generation,
+        generation: document.generation,
         embedding_ref: document.embedding_ref,
     }
 }
@@ -230,17 +227,21 @@ fn recheck_document_auth(
     let Some(auth_config) = &handler.gateway.auth_config else {
         return Ok(());
     };
-    match document.resource_kind.as_str() {
+    match document.resource_kind() {
         "SessionMessage" => crate::gateway::auth::check_auth(
             metadata,
             auth_config,
-            &document.namespace,
-            Some(&document.agent),
-            Some(&document.session_id),
+            document.namespace(),
+            Some(document.agent()),
+            Some(document.session_id()),
         ),
-        _ => {
-            crate::gateway::auth::check_auth(metadata, auth_config, &document.namespace, None, None)
-        }
+        _ => crate::gateway::auth::check_auth(
+            metadata,
+            auth_config,
+            document.namespace(),
+            None,
+            None,
+        ),
     }
 }
 
@@ -248,9 +249,9 @@ async fn canonical_content(
     handler: &GrpcGatewayHandler,
     document: &Document,
 ) -> std::result::Result<String, tonic::Status> {
-    let key = keys::ResourceKey::parse_canonical(&document.resource_key)
+    let key = keys::ResourceKey::parse_canonical(document.resource_key())
         .map_err(|error| tonic::Status::internal(error.to_string()))?;
-    match document.resource_kind.as_str() {
+    match document.resource_kind() {
         "SessionMessage" => {
             let message = handler
                 .gateway
@@ -272,7 +273,7 @@ async fn canonical_content(
                 .await
                 .map_err(|error| tonic::Status::internal(error.to_string()))?
                 .ok_or_else(|| tonic::Status::not_found("resource not found"))?;
-            if document.resource_kind == "Knowledge" && document.document_kind == "content" {
+            if document.resource_kind() == "Knowledge" && document.document_kind == "content" {
                 let Some(resources_proto::resource_spec::Kind::Knowledge(spec)) =
                     resource.spec.and_then(|spec| spec.kind)
                 else {

@@ -3,8 +3,9 @@
 
 use super::store::{sort_results, DocumentStore};
 use super::{
-    next_page_token, page_offset, query_terms, DeleteScope, Document, SearchQuery, SearchResponse,
-    SearchResult, SearchSort,
+    document_attributes, document_source, next_page_token, page_offset, query_terms, DeleteScope,
+    Document, SearchQuery, SearchResponse, SearchResult, SearchSort, ATTR_AGENT, ATTR_CHANNEL,
+    ATTR_MESSAGE_ID, ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
 };
 use anyhow::Result;
 use sqlx::{postgres::PgPoolOptions, PgPool, Postgres, QueryBuilder, Row};
@@ -82,21 +83,21 @@ impl DocumentStore for PostgresDocumentStore {
                     search_vector=excluded.search_vector
                 "#,
             )
-            .bind(&document.namespace)
+            .bind(document.namespace())
             .bind(&document.id)
-            .bind(&document.resource_kind)
-            .bind(&document.resource_key)
+            .bind(document.resource_kind())
+            .bind(document.resource_key())
             .bind(&document.document_kind)
-            .bind(&document.parent_kind)
-            .bind(&document.parent_key)
-            .bind(&document.agent)
-            .bind(&document.session_id)
-            .bind(&document.channel)
-            .bind(&document.message_id)
-            .bind(&document.run_id)
-            .bind(&document.part_id)
-            .bind(&document.part_type)
-            .bind(&document.role)
+            .bind(document.parent_kind())
+            .bind(document.parent_key())
+            .bind(document.agent())
+            .bind(document.session_id())
+            .bind(document.channel())
+            .bind(document.message_id())
+            .bind(document.run_id())
+            .bind(document.part_id())
+            .bind(document.part_type())
+            .bind(document.role())
             .bind(&document.title)
             .bind(&document.text)
             .bind(&document.snippet)
@@ -106,7 +107,7 @@ impl DocumentStore for PostgresDocumentStore {
             .bind(document.created_at)
             .bind(document.updated_at)
             .bind(document.indexed_at)
-            .bind(document.source_generation as i64)
+            .bind(document.generation as i64)
             .bind(&document.embedding_ref)
             .execute(&mut *tx)
             .await?;
@@ -380,22 +381,28 @@ fn like_prefix_pattern(prefix: &str) -> String {
 
 fn document_from_row(row: &sqlx::postgres::PgRow) -> Result<Document> {
     let labels_json: String = row.try_get("labels_json")?;
+    let part_id: String = row.try_get("part_id")?;
     Ok(Document {
         id: row.try_get("id")?,
-        namespace: row.try_get("namespace")?,
-        resource_kind: row.try_get("resource_kind")?,
-        resource_key: row.try_get("resource_key")?,
+        source: document_source(
+            row.try_get("namespace")?,
+            row.try_get("resource_kind")?,
+            row.try_get("resource_key")?,
+            row.try_get("parent_kind")?,
+            row.try_get("parent_key")?,
+        ),
         document_kind: row.try_get("document_kind").unwrap_or_default(),
-        parent_kind: row.try_get("parent_kind")?,
-        parent_key: row.try_get("parent_key")?,
-        agent: row.try_get("agent")?,
-        session_id: row.try_get("session_id")?,
-        channel: row.try_get("channel")?,
-        message_id: row.try_get("message_id")?,
-        run_id: row.try_get("run_id")?,
-        part_id: row.try_get("part_id")?,
-        part_type: row.try_get("part_type")?,
-        role: row.try_get("role")?,
+        subdocument_id: part_id.clone(),
+        attributes: document_attributes([
+            (ATTR_AGENT, row.try_get("agent")?),
+            (ATTR_SESSION_ID, row.try_get("session_id")?),
+            (ATTR_CHANNEL, row.try_get("channel")?),
+            (ATTR_MESSAGE_ID, row.try_get("message_id")?),
+            (ATTR_RUN_ID, row.try_get("run_id")?),
+            (ATTR_PART_ID, part_id),
+            (ATTR_PART_TYPE, row.try_get("part_type")?),
+            (ATTR_ROLE, row.try_get("role")?),
+        ]),
         title: row.try_get("title")?,
         text: row.try_get("text")?,
         snippet: row.try_get("snippet")?,
@@ -405,7 +412,7 @@ fn document_from_row(row: &sqlx::postgres::PgRow) -> Result<Document> {
         created_at: row.try_get("created_at")?,
         updated_at: row.try_get("updated_at")?,
         indexed_at: row.try_get("indexed_at")?,
-        source_generation: row.try_get::<i64, _>("source_generation")? as u64,
+        generation: row.try_get::<i64, _>("source_generation")? as u64,
         embedding_ref: row.try_get("embedding_ref")?,
     })
 }
@@ -463,9 +470,13 @@ mod tests {
         let store = init_test_store(&pg.database_url()).await;
         let document = Document {
             id: "doc-1".to_string(),
-            namespace: "acme".to_string(),
-            resource_kind: "Knowledge".to_string(),
-            resource_key: "@Namespace/acme/Knowledge/refunds".to_string(),
+            source: document_source(
+                "acme".to_string(),
+                "Knowledge".to_string(),
+                "@Namespace/acme/Knowledge/refunds".to_string(),
+                String::new(),
+                String::new(),
+            ),
             document_kind: DOCUMENT_KIND_CONTENT.to_string(),
             title: "Refunds".to_string(),
             text: "Refund policy for enterprise customers".to_string(),
@@ -476,7 +487,7 @@ mod tests {
             created_at: 10,
             updated_at: 20,
             indexed_at: 30,
-            source_generation: 4,
+            generation: 4,
             ..Default::default()
         };
 

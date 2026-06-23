@@ -349,10 +349,10 @@ impl KvKnowledgeBook {
             let path = knowledge_path_from_metadata(&document.metadata_json)
                 .unwrap_or_else(|| document.title.clone());
             let rank = *namespace_rank
-                .get(&document.namespace)
+                .get(document.namespace())
                 .unwrap_or(&usize::MAX);
             let entry = KnowledgeResult {
-                namespace: document.namespace,
+                namespace: document.namespace().to_string(),
                 path: path.clone(),
                 excerpt: document.snippet,
                 updated_at: document.updated_at,
@@ -612,7 +612,9 @@ mod tests {
     };
     use crate::control::{
         keys::{ResourceKey, ResourceList},
-        search::{memory_document_store, Document, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE},
+        search::{
+            document_source, memory_document_store, Document, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE,
+        },
         KeyValueStore,
     };
     use async_trait::async_trait;
@@ -780,9 +782,13 @@ mod tests {
         documents
             .upsert_documents(&[Document {
                 id: "@Namespace/conic/@/Knowledge/docs:content".to_string(),
-                namespace: "conic".to_string(),
-                resource_kind: KIND_KNOWLEDGE.to_string(),
-                resource_key: "@Namespace/conic/@/Knowledge/docs".to_string(),
+                source: document_source(
+                    "conic".to_string(),
+                    KIND_KNOWLEDGE.to_string(),
+                    "@Namespace/conic/@/Knowledge/docs".to_string(),
+                    String::new(),
+                    String::new(),
+                ),
                 document_kind: DOCUMENT_KIND_CONTENT.to_string(),
                 title: "docs.md".to_string(),
                 text: "Document-store knowledge result".to_string(),
@@ -827,9 +833,13 @@ mod tests {
             .upsert_documents(&[
                 Document {
                     id: "@Namespace/conic/@/Knowledge/docs:content".to_string(),
-                    namespace: "conic".to_string(),
-                    resource_kind: KIND_KNOWLEDGE.to_string(),
-                    resource_key: "@Namespace/conic/@/Knowledge/docs".to_string(),
+                    source: document_source(
+                        "conic".to_string(),
+                        KIND_KNOWLEDGE.to_string(),
+                        "@Namespace/conic/@/Knowledge/docs".to_string(),
+                        String::new(),
+                        String::new(),
+                    ),
                     document_kind: DOCUMENT_KIND_CONTENT.to_string(),
                     title: "docs.md".to_string(),
                     text: "shared document store result".to_string(),
@@ -840,9 +850,13 @@ mod tests {
                 },
                 Document {
                     id: "@Namespace/conic:wks:13/@/Knowledge/docs:content".to_string(),
-                    namespace: "conic:wks:13".to_string(),
-                    resource_kind: KIND_KNOWLEDGE.to_string(),
-                    resource_key: "@Namespace/conic:wks:13/@/Knowledge/docs".to_string(),
+                    source: document_source(
+                        "conic:wks:13".to_string(),
+                        KIND_KNOWLEDGE.to_string(),
+                        "@Namespace/conic:wks:13/@/Knowledge/docs".to_string(),
+                        String::new(),
+                        String::new(),
+                    ),
                     document_kind: DOCUMENT_KIND_CONTENT.to_string(),
                     title: "docs.md".to_string(),
                     text: "shared document store result".to_string(),

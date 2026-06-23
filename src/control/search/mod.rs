@@ -12,6 +12,8 @@ pub mod store;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
+use crate::control::keys;
+
 pub use d1::D1DocumentStore;
 pub use disabled::{disabled_document_store, DisabledDocumentStore};
 pub(crate) use events::publish_index_event;
@@ -28,9 +30,18 @@ pub const DOCUMENT_KIND_METADATA: &str = "metadata";
 pub const DOCUMENT_KIND_CONTENT: &str = "content";
 pub const DOCUMENT_KIND_MESSAGE_PART: &str = "part";
 
+pub const ATTR_AGENT: &str = "agent";
+pub const ATTR_SESSION_ID: &str = "session_id";
+pub const ATTR_CHANNEL: &str = "channel";
+pub const ATTR_MESSAGE_ID: &str = "message_id";
+pub const ATTR_RUN_ID: &str = "run_id";
+pub const ATTR_PART_ID: &str = "part_id";
+pub const ATTR_PART_TYPE: &str = "part_type";
+pub const ATTR_ROLE: &str = "role";
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 #[serde(rename_all = "camelCase", default)]
-pub struct ResourceRef {
+pub struct DocumentSource {
     pub namespace: String,
     pub kind: String,
     pub key: String,
@@ -46,20 +57,10 @@ pub struct ResourceRef {
 #[serde(rename_all = "camelCase", default)]
 pub struct Document {
     pub id: String,
-    pub namespace: String,
-    pub resource_kind: String,
-    pub resource_key: String,
+    pub source: DocumentSource,
     pub document_kind: String,
-    pub parent_kind: String,
-    pub parent_key: String,
-    pub agent: String,
-    pub session_id: String,
-    pub channel: String,
-    pub message_id: String,
-    pub run_id: String,
-    pub part_id: String,
-    pub part_type: String,
-    pub role: String,
+    pub subdocument_id: String,
+    pub attributes: HashMap<String, String>,
     pub title: String,
     pub text: String,
     pub snippet: String,
@@ -69,8 +70,97 @@ pub struct Document {
     pub created_at: i64,
     pub updated_at: i64,
     pub indexed_at: i64,
-    pub source_generation: u64,
+    pub generation: u64,
     pub embedding_ref: String,
+}
+
+impl Document {
+    pub fn namespace(&self) -> &str {
+        &self.source.namespace
+    }
+
+    pub fn resource_kind(&self) -> &str {
+        &self.source.kind
+    }
+
+    pub fn resource_key(&self) -> &str {
+        &self.source.key
+    }
+
+    pub fn parent_kind(&self) -> &str {
+        &self.source.parent_kind
+    }
+
+    pub fn parent_key(&self) -> &str {
+        &self.source.parent_key
+    }
+
+    pub fn attribute(&self, key: &str) -> &str {
+        self.attributes.get(key).map(String::as_str).unwrap_or("")
+    }
+
+    pub fn agent(&self) -> &str {
+        self.attribute(ATTR_AGENT)
+    }
+
+    pub fn session_id(&self) -> &str {
+        self.attribute(ATTR_SESSION_ID)
+    }
+
+    pub fn channel(&self) -> &str {
+        self.attribute(ATTR_CHANNEL)
+    }
+
+    pub fn message_id(&self) -> &str {
+        self.attribute(ATTR_MESSAGE_ID)
+    }
+
+    pub fn run_id(&self) -> &str {
+        self.attribute(ATTR_RUN_ID)
+    }
+
+    pub fn part_id(&self) -> &str {
+        self.attribute(ATTR_PART_ID)
+    }
+
+    pub fn part_type(&self) -> &str {
+        self.attribute(ATTR_PART_TYPE)
+    }
+
+    pub fn role(&self) -> &str {
+        self.attribute(ATTR_ROLE)
+    }
+}
+
+pub fn document_source(
+    namespace: String,
+    kind: String,
+    key: String,
+    parent_kind: String,
+    parent_key: String,
+) -> DocumentSource {
+    let name = keys::ResourceKey::parse_canonical(&key)
+        .map(|key| key.name)
+        .unwrap_or_default();
+    DocumentSource {
+        namespace,
+        kind,
+        key,
+        name,
+        parent_kind,
+        parent_key,
+        ..Default::default()
+    }
+}
+
+pub fn document_attributes(
+    values: impl IntoIterator<Item = (&'static str, String)>,
+) -> HashMap<String, String> {
+    values
+        .into_iter()
+        .filter(|(_, value)| !value.is_empty())
+        .map(|(key, value)| (key.to_string(), value))
+        .collect()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -152,23 +242,23 @@ pub(crate) fn query_matches(query: &SearchQuery, document: &Document) -> bool {
         && !query
             .resource_kinds
             .iter()
-            .any(|kind| kind == &document.resource_kind)
+            .any(|kind| kind == document.resource_kind())
     {
         return false;
     }
-    if !query.agent.is_empty() && query.agent != document.agent {
+    if !query.agent.is_empty() && query.agent != document.agent() {
         return false;
     }
-    if !query.session_id.is_empty() && query.session_id != document.session_id {
+    if !query.session_id.is_empty() && query.session_id != document.session_id() {
         return false;
     }
-    if !query.channel.is_empty() && query.channel != document.channel {
+    if !query.channel.is_empty() && query.channel != document.channel() {
         return false;
     }
-    if !query.role.is_empty() && query.role != document.role {
+    if !query.role.is_empty() && query.role != document.role() {
         return false;
     }
-    if !query.part_type.is_empty() && query.part_type != document.part_type {
+    if !query.part_type.is_empty() && query.part_type != document.part_type() {
         return false;
     }
     if let Some(start) = query.start_time {
@@ -196,29 +286,29 @@ pub(crate) fn query_matches(query: &SearchQuery, document: &Document) -> bool {
 }
 
 pub(crate) fn delete_matches(scope: &DeleteScope, document: &Document) -> bool {
-    if !scope.resource_kind.is_empty() && scope.resource_kind != document.resource_kind {
+    if !scope.resource_kind.is_empty() && scope.resource_kind != document.resource_kind() {
         return false;
     }
-    if !scope.resource_key.is_empty() && scope.resource_key != document.resource_key {
+    if !scope.resource_key.is_empty() && scope.resource_key != document.resource_key() {
         return false;
     }
     if !scope.resource_key_prefix.is_empty()
         && !document
-            .resource_key
+            .resource_key()
             .starts_with(&scope.resource_key_prefix)
     {
         return false;
     }
-    if !scope.agent.is_empty() && scope.agent != document.agent {
+    if !scope.agent.is_empty() && scope.agent != document.agent() {
         return false;
     }
-    if !scope.session_id.is_empty() && scope.session_id != document.session_id {
+    if !scope.session_id.is_empty() && scope.session_id != document.session_id() {
         return false;
     }
-    if !scope.channel.is_empty() && scope.channel != document.channel {
+    if !scope.channel.is_empty() && scope.channel != document.channel() {
         return false;
     }
-    if scope.max_source_generation > 0 && document.source_generation > scope.max_source_generation {
+    if scope.max_source_generation > 0 && document.generation > scope.max_source_generation {
         return false;
     }
     true
@@ -354,13 +444,18 @@ mod tests {
         let backend = memory_document_store();
         let document = Document {
             id: "doc-1".to_string(),
-            namespace: "acme".to_string(),
-            resource_kind: KIND_SESSION_MESSAGE.to_string(),
-            resource_key: "@Namespace/acme/Agent/support/Session/s1/@/SessionMessage/m1"
-                .to_string(),
+            source: document_source(
+                "acme".to_string(),
+                KIND_SESSION_MESSAGE.to_string(),
+                "@Namespace/acme/Agent/support/Session/s1/@/SessionMessage/m1".to_string(),
+                "Session".to_string(),
+                "@Namespace/acme/Agent/support/@/Session/s1".to_string(),
+            ),
             document_kind: DOCUMENT_KIND_MESSAGE_PART.to_string(),
-            agent: "support".to_string(),
-            session_id: "s1".to_string(),
+            attributes: document_attributes([
+                (ATTR_AGENT, "support".to_string()),
+                (ATTR_SESSION_ID, "s1".to_string()),
+            ]),
             title: "Support session".to_string(),
             text: "refund policy details".to_string(),
             snippet: "refund policy details".to_string(),
@@ -413,15 +508,19 @@ mod tests {
         let documents = (0..3)
             .map(|index| Document {
                 id: format!("doc-{index}"),
-                namespace: "acme".to_string(),
-                resource_kind: KIND_KNOWLEDGE.to_string(),
-                resource_key: format!("@Namespace/acme/Knowledge/doc-{index}"),
+                source: document_source(
+                    "acme".to_string(),
+                    KIND_KNOWLEDGE.to_string(),
+                    format!("@Namespace/acme/Knowledge/doc-{index}"),
+                    String::new(),
+                    String::new(),
+                ),
                 document_kind: DOCUMENT_KIND_METADATA.to_string(),
                 title: "Knowledge".to_string(),
                 text: "policy".to_string(),
                 snippet: "policy".to_string(),
                 updated_at: index,
-                source_generation: index as u64 + 1,
+                generation: index as u64 + 1,
                 ..Default::default()
             })
             .collect::<Vec<_>>();

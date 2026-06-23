@@ -73,28 +73,43 @@ function nameFromDocument(document: SearchDocument) {
   return (
     metadata.name ||
     document.title?.split('/').at(-1) ||
-    document.resourceKey?.split('/').at(-1) ||
+    document.source?.key?.split('/').at(-1) ||
     ''
   );
+}
+
+function sourceNamespace(document: SearchDocument, selectedNamespace: Selection | null) {
+  return document.source?.namespace || selectedNamespace?.ns || 'default';
+}
+
+function sourceKind(document: SearchDocument) {
+  return document.source?.kind || '';
+}
+
+function attr(document: SearchDocument, key: string) {
+  return document.attributes?.[key] || '';
 }
 
 function selectionForDocument(
   document: SearchDocument,
   selectedNamespace: Selection | null,
 ): Selection | null {
-  const namespace = document.namespace || selectedNamespace?.ns || 'default';
+  const namespace = sourceNamespace(document, selectedNamespace);
+  const kind = sourceKind(document);
+  const agent = attr(document, 'agent');
+  const sessionId = attr(document, 'session_id');
 
-  if (document.resourceKind === 'SessionMessage' && document.agent && document.sessionId) {
+  if (kind === 'SessionMessage' && agent && sessionId) {
     return {
       type: 'session',
       ns: namespace,
-      agent: document.agent,
-      sessionId: document.sessionId,
-      fullPath: `${namespace}/${document.agent}/${document.sessionId}`,
+      agent,
+      sessionId,
+      fullPath: `${namespace}/${agent}/${sessionId}`,
     };
   }
 
-  const resourceType = SELECTION_TYPE_BY_RESOURCE_KIND[document.resourceKind];
+  const resourceType = SELECTION_TYPE_BY_RESOURCE_KIND[kind];
   if (!resourceType) return null;
 
   const resourceName = nameFromDocument(document);
@@ -120,7 +135,7 @@ function selectionForDocument(
   }
 
   if (resourceType === 'channel-subscription') {
-    const channel = document.channel || parseMetadataJson(document.metadataJson).channel || '';
+    const channel = attr(document, 'channel') || parseMetadataJson(document.metadataJson).channel || '';
     return {
       type: 'channel-subscription',
       ns: namespace,
@@ -292,19 +307,24 @@ export function WorkspaceCommandPalette({
               {results.map((result) => {
                 const document = result.document;
                 if (!document) return null;
+                const kind = sourceKind(document);
+                const namespace = sourceNamespace(document, selectedNamespace);
+                const agent = attr(document, 'agent');
+                const sessionId = attr(document, 'session_id');
+                const channel = attr(document, 'channel');
                 return (
                   <button
-                    key={document.id || `${document.resourceKey}-${document.messageId}`}
+                    key={document.id || `${document.source?.key}-${document.subdocumentId}`}
                     type="button"
                     onClick={() => openDocument(document)}
                     className="block w-full border-b border-border/50 px-4 py-3 text-left transition-colors hover:bg-white/[0.045]"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0 truncate text-sm font-medium">
-                        {document.title || document.resourceKind || 'Result'}
+                        {document.title || kind || 'Result'}
                       </div>
                       <div className="shrink-0 text-[11px] text-muted-foreground">
-                        {document.resourceKind}
+                        {kind}
                         {document.documentKind ? ` / ${document.documentKind}` : ''}
                       </div>
                     </div>
@@ -312,10 +332,10 @@ export function WorkspaceCommandPalette({
                       {document.snippet}
                     </div>
                     <div className="mt-2 truncate text-[11px] text-muted-foreground">
-                      {document.namespace}
-                      {document.agent ? ` / ${document.agent}` : ''}
-                      {document.sessionId ? ` / ${document.sessionId}` : ''}
-                      {document.channel ? ` / ${document.channel}` : ''}
+                      {namespace}
+                      {agent ? ` / ${agent}` : ''}
+                      {sessionId ? ` / ${sessionId}` : ''}
+                      {channel ? ` / ${channel}` : ''}
                     </div>
                   </button>
                 );

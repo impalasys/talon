@@ -279,34 +279,25 @@ func (x *SearchRequest) GetSort() SearchSort {
 }
 
 type Document struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Namespace        string                 `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	ResourceKind     string                 `protobuf:"bytes,3,opt,name=resource_kind,json=resourceKind,proto3" json:"resource_kind,omitempty"`
-	ResourceKey      string                 `protobuf:"bytes,4,opt,name=resource_key,json=resourceKey,proto3" json:"resource_key,omitempty"`
-	ParentKind       string                 `protobuf:"bytes,5,opt,name=parent_kind,json=parentKind,proto3" json:"parent_kind,omitempty"`
-	ParentKey        string                 `protobuf:"bytes,6,opt,name=parent_key,json=parentKey,proto3" json:"parent_key,omitempty"`
-	Agent            string                 `protobuf:"bytes,7,opt,name=agent,proto3" json:"agent,omitempty"`
-	SessionId        string                 `protobuf:"bytes,8,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Channel          string                 `protobuf:"bytes,9,opt,name=channel,proto3" json:"channel,omitempty"`
-	MessageId        string                 `protobuf:"bytes,10,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
-	RunId            string                 `protobuf:"bytes,11,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
-	PartId           string                 `protobuf:"bytes,12,opt,name=part_id,json=partId,proto3" json:"part_id,omitempty"`
-	PartType         string                 `protobuf:"bytes,13,opt,name=part_type,json=partType,proto3" json:"part_type,omitempty"`
-	Role             string                 `protobuf:"bytes,14,opt,name=role,proto3" json:"role,omitempty"`
-	Title            string                 `protobuf:"bytes,15,opt,name=title,proto3" json:"title,omitempty"`
-	Snippet          string                 `protobuf:"bytes,16,opt,name=snippet,proto3" json:"snippet,omitempty"`
-	Labels           map[string]string      `protobuf:"bytes,17,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	MetadataJson     string                 `protobuf:"bytes,18,opt,name=metadata_json,json=metadataJson,proto3" json:"metadata_json,omitempty"`
-	AclScopeJson     string                 `protobuf:"bytes,19,opt,name=acl_scope_json,json=aclScopeJson,proto3" json:"acl_scope_json,omitempty"`
-	CreatedAt        int64                  `protobuf:"varint,20,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt        int64                  `protobuf:"varint,21,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	IndexedAt        int64                  `protobuf:"varint,22,opt,name=indexed_at,json=indexedAt,proto3" json:"indexed_at,omitempty"`
-	SourceGeneration uint64                 `protobuf:"varint,23,opt,name=source_generation,json=sourceGeneration,proto3" json:"source_generation,omitempty"`
-	EmbeddingRef     string                 `protobuf:"bytes,24,opt,name=embedding_ref,json=embeddingRef,proto3" json:"embedding_ref,omitempty"`
-	DocumentKind     string                 `protobuf:"bytes,25,opt,name=document_kind,json=documentKind,proto3" json:"document_kind,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Source        *DocumentSource        `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
+	DocumentKind  string                 `protobuf:"bytes,3,opt,name=document_kind,json=documentKind,proto3" json:"document_kind,omitempty"`
+	SubdocumentId string                 `protobuf:"bytes,4,opt,name=subdocument_id,json=subdocumentId,proto3" json:"subdocument_id,omitempty"`
+	Attributes    map[string]string      `protobuf:"bytes,5,rep,name=attributes,proto3" json:"attributes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Title         string                 `protobuf:"bytes,6,opt,name=title,proto3" json:"title,omitempty"`
+	Snippet       string                 `protobuf:"bytes,7,opt,name=snippet,proto3" json:"snippet,omitempty"`
+	Labels        map[string]string      `protobuf:"bytes,8,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	MetadataJson  string                 `protobuf:"bytes,9,opt,name=metadata_json,json=metadataJson,proto3" json:"metadata_json,omitempty"`
+	AclScopeJson  string                 `protobuf:"bytes,10,opt,name=acl_scope_json,json=aclScopeJson,proto3" json:"acl_scope_json,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	IndexedAt     int64                  `protobuf:"varint,13,opt,name=indexed_at,json=indexedAt,proto3" json:"indexed_at,omitempty"`
+	// Canonical source generation that produced this disposable document projection.
+	Generation    uint64 `protobuf:"varint,14,opt,name=generation,proto3" json:"generation,omitempty"`
+	EmbeddingRef  string `protobuf:"bytes,15,opt,name=embedding_ref,json=embeddingRef,proto3" json:"embedding_ref,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Document) Reset() {
@@ -346,95 +337,32 @@ func (x *Document) GetId() string {
 	return ""
 }
 
-func (x *Document) GetNamespace() string {
+func (x *Document) GetSource() *DocumentSource {
 	if x != nil {
-		return x.Namespace
+		return x.Source
+	}
+	return nil
+}
+
+func (x *Document) GetDocumentKind() string {
+	if x != nil {
+		return x.DocumentKind
 	}
 	return ""
 }
 
-func (x *Document) GetResourceKind() string {
+func (x *Document) GetSubdocumentId() string {
 	if x != nil {
-		return x.ResourceKind
+		return x.SubdocumentId
 	}
 	return ""
 }
 
-func (x *Document) GetResourceKey() string {
+func (x *Document) GetAttributes() map[string]string {
 	if x != nil {
-		return x.ResourceKey
+		return x.Attributes
 	}
-	return ""
-}
-
-func (x *Document) GetParentKind() string {
-	if x != nil {
-		return x.ParentKind
-	}
-	return ""
-}
-
-func (x *Document) GetParentKey() string {
-	if x != nil {
-		return x.ParentKey
-	}
-	return ""
-}
-
-func (x *Document) GetAgent() string {
-	if x != nil {
-		return x.Agent
-	}
-	return ""
-}
-
-func (x *Document) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
-}
-
-func (x *Document) GetChannel() string {
-	if x != nil {
-		return x.Channel
-	}
-	return ""
-}
-
-func (x *Document) GetMessageId() string {
-	if x != nil {
-		return x.MessageId
-	}
-	return ""
-}
-
-func (x *Document) GetRunId() string {
-	if x != nil {
-		return x.RunId
-	}
-	return ""
-}
-
-func (x *Document) GetPartId() string {
-	if x != nil {
-		return x.PartId
-	}
-	return ""
-}
-
-func (x *Document) GetPartType() string {
-	if x != nil {
-		return x.PartType
-	}
-	return ""
-}
-
-func (x *Document) GetRole() string {
-	if x != nil {
-		return x.Role
-	}
-	return ""
+	return nil
 }
 
 func (x *Document) GetTitle() string {
@@ -493,9 +421,9 @@ func (x *Document) GetIndexedAt() int64 {
 	return 0
 }
 
-func (x *Document) GetSourceGeneration() uint64 {
+func (x *Document) GetGeneration() uint64 {
 	if x != nil {
-		return x.SourceGeneration
+		return x.Generation
 	}
 	return 0
 }
@@ -507,9 +435,86 @@ func (x *Document) GetEmbeddingRef() string {
 	return ""
 }
 
-func (x *Document) GetDocumentKind() string {
+type DocumentSource struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Namespace     string                 `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Kind          string                 `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
+	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	ParentKind    string                 `protobuf:"bytes,5,opt,name=parent_kind,json=parentKind,proto3" json:"parent_kind,omitempty"`
+	ParentKey     string                 `protobuf:"bytes,6,opt,name=parent_key,json=parentKey,proto3" json:"parent_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DocumentSource) Reset() {
+	*x = DocumentSource{}
+	mi := &file_proto_talon_v1_search_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DocumentSource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DocumentSource) ProtoMessage() {}
+
+func (x *DocumentSource) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_search_proto_msgTypes[2]
 	if x != nil {
-		return x.DocumentKind
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DocumentSource.ProtoReflect.Descriptor instead.
+func (*DocumentSource) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *DocumentSource) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *DocumentSource) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *DocumentSource) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *DocumentSource) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DocumentSource) GetParentKind() string {
+	if x != nil {
+		return x.ParentKind
+	}
+	return ""
+}
+
+func (x *DocumentSource) GetParentKey() string {
+	if x != nil {
+		return x.ParentKey
 	}
 	return ""
 }
@@ -524,7 +529,7 @@ type SearchResult struct {
 
 func (x *SearchResult) Reset() {
 	*x = SearchResult{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[2]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -536,7 +541,7 @@ func (x *SearchResult) String() string {
 func (*SearchResult) ProtoMessage() {}
 
 func (x *SearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[2]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -549,7 +554,7 @@ func (x *SearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResult.ProtoReflect.Descriptor instead.
 func (*SearchResult) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{2}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SearchResult) GetDocument() *Document {
@@ -576,7 +581,7 @@ type SearchResponse struct {
 
 func (x *SearchResponse) Reset() {
 	*x = SearchResponse{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[3]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -588,7 +593,7 @@ func (x *SearchResponse) String() string {
 func (*SearchResponse) ProtoMessage() {}
 
 func (x *SearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[3]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -601,7 +606,7 @@ func (x *SearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResponse.ProtoReflect.Descriptor instead.
 func (*SearchResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{3}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SearchResponse) GetResults() []*SearchResult {
@@ -628,7 +633,7 @@ type GetSearchResultRequest struct {
 
 func (x *GetSearchResultRequest) Reset() {
 	*x = GetSearchResultRequest{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[4]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -640,7 +645,7 @@ func (x *GetSearchResultRequest) String() string {
 func (*GetSearchResultRequest) ProtoMessage() {}
 
 func (x *GetSearchResultRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[4]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -653,7 +658,7 @@ func (x *GetSearchResultRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSearchResultRequest.ProtoReflect.Descriptor instead.
 func (*GetSearchResultRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{4}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetSearchResultRequest) GetNs() string {
@@ -680,7 +685,7 @@ type GetSearchResultResponse struct {
 
 func (x *GetSearchResultResponse) Reset() {
 	*x = GetSearchResultResponse{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[5]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -692,7 +697,7 @@ func (x *GetSearchResultResponse) String() string {
 func (*GetSearchResultResponse) ProtoMessage() {}
 
 func (x *GetSearchResultResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[5]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -705,7 +710,7 @@ func (x *GetSearchResultResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSearchResultResponse.ProtoReflect.Descriptor instead.
 func (*GetSearchResultResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{5}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetSearchResultResponse) GetDocument() *Document {
@@ -751,44 +756,46 @@ const file_proto_talon_v1_search_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\r\n" +
 	"\v_start_timeB\v\n" +
-	"\t_end_time\"\xd1\x06\n" +
+	"\t_end_time\"\xab\x05\n" +
 	"\bDocument\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1c\n" +
-	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12#\n" +
-	"\rresource_kind\x18\x03 \x01(\tR\fresourceKind\x12!\n" +
-	"\fresource_key\x18\x04 \x01(\tR\vresourceKey\x12\x1f\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x120\n" +
+	"\x06source\x18\x02 \x01(\v2\x18.talon.v1.DocumentSourceR\x06source\x12#\n" +
+	"\rdocument_kind\x18\x03 \x01(\tR\fdocumentKind\x12%\n" +
+	"\x0esubdocument_id\x18\x04 \x01(\tR\rsubdocumentId\x12B\n" +
+	"\n" +
+	"attributes\x18\x05 \x03(\v2\".talon.v1.Document.AttributesEntryR\n" +
+	"attributes\x12\x14\n" +
+	"\x05title\x18\x06 \x01(\tR\x05title\x12\x18\n" +
+	"\asnippet\x18\a \x01(\tR\asnippet\x126\n" +
+	"\x06labels\x18\b \x03(\v2\x1e.talon.v1.Document.LabelsEntryR\x06labels\x12#\n" +
+	"\rmetadata_json\x18\t \x01(\tR\fmetadataJson\x12$\n" +
+	"\x0eacl_scope_json\x18\n" +
+	" \x01(\tR\faclScopeJson\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\v \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\f \x01(\x03R\tupdatedAt\x12\x1d\n" +
+	"\n" +
+	"indexed_at\x18\r \x01(\x03R\tindexedAt\x12\x1e\n" +
+	"\n" +
+	"generation\x18\x0e \x01(\x04R\n" +
+	"generation\x12#\n" +
+	"\rembedding_ref\x18\x0f \x01(\tR\fembeddingRef\x1a=\n" +
+	"\x0fAttributesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa8\x01\n" +
+	"\x0eDocumentSource\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1c\n" +
+	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12\x12\n" +
+	"\x04kind\x18\x03 \x01(\tR\x04kind\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12\x1f\n" +
 	"\vparent_kind\x18\x05 \x01(\tR\n" +
 	"parentKind\x12\x1d\n" +
 	"\n" +
-	"parent_key\x18\x06 \x01(\tR\tparentKey\x12\x14\n" +
-	"\x05agent\x18\a \x01(\tR\x05agent\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\b \x01(\tR\tsessionId\x12\x18\n" +
-	"\achannel\x18\t \x01(\tR\achannel\x12\x1d\n" +
-	"\n" +
-	"message_id\x18\n" +
-	" \x01(\tR\tmessageId\x12\x15\n" +
-	"\x06run_id\x18\v \x01(\tR\x05runId\x12\x17\n" +
-	"\apart_id\x18\f \x01(\tR\x06partId\x12\x1b\n" +
-	"\tpart_type\x18\r \x01(\tR\bpartType\x12\x12\n" +
-	"\x04role\x18\x0e \x01(\tR\x04role\x12\x14\n" +
-	"\x05title\x18\x0f \x01(\tR\x05title\x12\x18\n" +
-	"\asnippet\x18\x10 \x01(\tR\asnippet\x126\n" +
-	"\x06labels\x18\x11 \x03(\v2\x1e.talon.v1.Document.LabelsEntryR\x06labels\x12#\n" +
-	"\rmetadata_json\x18\x12 \x01(\tR\fmetadataJson\x12$\n" +
-	"\x0eacl_scope_json\x18\x13 \x01(\tR\faclScopeJson\x12\x1d\n" +
-	"\n" +
-	"created_at\x18\x14 \x01(\x03R\tcreatedAt\x12\x1d\n" +
-	"\n" +
-	"updated_at\x18\x15 \x01(\x03R\tupdatedAt\x12\x1d\n" +
-	"\n" +
-	"indexed_at\x18\x16 \x01(\x03R\tindexedAt\x12+\n" +
-	"\x11source_generation\x18\x17 \x01(\x04R\x10sourceGeneration\x12#\n" +
-	"\rembedding_ref\x18\x18 \x01(\tR\fembeddingRef\x12#\n" +
-	"\rdocument_kind\x18\x19 \x01(\tR\fdocumentKind\x1a9\n" +
-	"\vLabelsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"T\n" +
+	"parent_key\x18\x06 \x01(\tR\tparentKey\"T\n" +
 	"\fSearchResult\x12.\n" +
 	"\bdocument\x18\x01 \x01(\v2\x12.talon.v1.DocumentR\bdocument\x12\x14\n" +
 	"\x05score\x18\x02 \x01(\x02R\x05score\"j\n" +
@@ -830,36 +837,40 @@ func file_proto_talon_v1_search_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_talon_v1_search_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_talon_v1_search_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_talon_v1_search_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_talon_v1_search_proto_goTypes = []any{
 	(SearchMode)(0),                 // 0: talon.v1.SearchMode
 	(SearchSort)(0),                 // 1: talon.v1.SearchSort
 	(*SearchRequest)(nil),           // 2: talon.v1.SearchRequest
 	(*Document)(nil),                // 3: talon.v1.Document
-	(*SearchResult)(nil),            // 4: talon.v1.SearchResult
-	(*SearchResponse)(nil),          // 5: talon.v1.SearchResponse
-	(*GetSearchResultRequest)(nil),  // 6: talon.v1.GetSearchResultRequest
-	(*GetSearchResultResponse)(nil), // 7: talon.v1.GetSearchResultResponse
-	nil,                             // 8: talon.v1.SearchRequest.LabelsEntry
-	nil,                             // 9: talon.v1.Document.LabelsEntry
+	(*DocumentSource)(nil),          // 4: talon.v1.DocumentSource
+	(*SearchResult)(nil),            // 5: talon.v1.SearchResult
+	(*SearchResponse)(nil),          // 6: talon.v1.SearchResponse
+	(*GetSearchResultRequest)(nil),  // 7: talon.v1.GetSearchResultRequest
+	(*GetSearchResultResponse)(nil), // 8: talon.v1.GetSearchResultResponse
+	nil,                             // 9: talon.v1.SearchRequest.LabelsEntry
+	nil,                             // 10: talon.v1.Document.AttributesEntry
+	nil,                             // 11: talon.v1.Document.LabelsEntry
 }
 var file_proto_talon_v1_search_proto_depIdxs = []int32{
-	8, // 0: talon.v1.SearchRequest.labels:type_name -> talon.v1.SearchRequest.LabelsEntry
-	0, // 1: talon.v1.SearchRequest.mode:type_name -> talon.v1.SearchMode
-	1, // 2: talon.v1.SearchRequest.sort:type_name -> talon.v1.SearchSort
-	9, // 3: talon.v1.Document.labels:type_name -> talon.v1.Document.LabelsEntry
-	3, // 4: talon.v1.SearchResult.document:type_name -> talon.v1.Document
-	4, // 5: talon.v1.SearchResponse.results:type_name -> talon.v1.SearchResult
-	3, // 6: talon.v1.GetSearchResultResponse.document:type_name -> talon.v1.Document
-	2, // 7: talon.v1.SearchService.Search:input_type -> talon.v1.SearchRequest
-	6, // 8: talon.v1.SearchService.GetResult:input_type -> talon.v1.GetSearchResultRequest
-	5, // 9: talon.v1.SearchService.Search:output_type -> talon.v1.SearchResponse
-	7, // 10: talon.v1.SearchService.GetResult:output_type -> talon.v1.GetSearchResultResponse
-	9, // [9:11] is the sub-list for method output_type
-	7, // [7:9] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	9,  // 0: talon.v1.SearchRequest.labels:type_name -> talon.v1.SearchRequest.LabelsEntry
+	0,  // 1: talon.v1.SearchRequest.mode:type_name -> talon.v1.SearchMode
+	1,  // 2: talon.v1.SearchRequest.sort:type_name -> talon.v1.SearchSort
+	4,  // 3: talon.v1.Document.source:type_name -> talon.v1.DocumentSource
+	10, // 4: talon.v1.Document.attributes:type_name -> talon.v1.Document.AttributesEntry
+	11, // 5: talon.v1.Document.labels:type_name -> talon.v1.Document.LabelsEntry
+	3,  // 6: talon.v1.SearchResult.document:type_name -> talon.v1.Document
+	5,  // 7: talon.v1.SearchResponse.results:type_name -> talon.v1.SearchResult
+	3,  // 8: talon.v1.GetSearchResultResponse.document:type_name -> talon.v1.Document
+	2,  // 9: talon.v1.SearchService.Search:input_type -> talon.v1.SearchRequest
+	7,  // 10: talon.v1.SearchService.GetResult:input_type -> talon.v1.GetSearchResultRequest
+	6,  // 11: talon.v1.SearchService.Search:output_type -> talon.v1.SearchResponse
+	8,  // 12: talon.v1.SearchService.GetResult:output_type -> talon.v1.GetSearchResultResponse
+	11, // [11:13] is the sub-list for method output_type
+	9,  // [9:11] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_talon_v1_search_proto_init() }
@@ -874,7 +885,7 @@ func file_proto_talon_v1_search_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_talon_v1_search_proto_rawDesc), len(file_proto_talon_v1_search_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

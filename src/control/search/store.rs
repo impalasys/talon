@@ -94,7 +94,7 @@ impl DocumentStore for MemoryDocumentStore {
         let mut stored = self.documents.write().await;
         for document in documents {
             if let Some(existing) = stored.iter_mut().find(|existing| {
-                existing.namespace == document.namespace && existing.id == document.id
+                existing.namespace() == document.namespace() && existing.id == document.id
             }) {
                 *existing = document.clone();
             } else {
@@ -111,7 +111,7 @@ impl DocumentStore for MemoryDocumentStore {
         let mut stored = self.documents.write().await;
         let before = stored.len();
         stored.retain(|document| {
-            document.namespace != scope.namespace || !delete_matches(scope, document)
+            document.namespace() != scope.namespace || !delete_matches(scope, document)
         });
         Ok(before.saturating_sub(stored.len()) as u64)
     }
@@ -126,7 +126,7 @@ impl DocumentStore for MemoryDocumentStore {
                     && query
                         .namespaces
                         .iter()
-                        .any(|namespace| namespace == &document.namespace)
+                        .any(|namespace| namespace == document.namespace())
                     && query_matches(query, document)
             })
             .cloned()
@@ -153,7 +153,7 @@ impl DocumentStore for MemoryDocumentStore {
             .read()
             .await
             .iter()
-            .find(|document| document.namespace == namespace && document.id == id)
+            .find(|document| document.namespace() == namespace && document.id == id)
             .cloned())
     }
 }

@@ -3,8 +3,9 @@
 
 use super::store::{sort_results, DocumentStore};
 use super::{
-    next_page_token, page_offset, query_terms, DeleteScope, Document, SearchQuery, SearchResponse,
-    SearchResult, SearchSort,
+    document_attributes, document_source, next_page_token, page_offset, query_terms, DeleteScope,
+    Document, SearchQuery, SearchResponse, SearchResult, SearchSort, ATTR_AGENT, ATTR_CHANNEL,
+    ATTR_MESSAGE_ID, ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
 };
 use anyhow::Result;
 use sqlx::{
@@ -80,21 +81,21 @@ impl DocumentStore for SqliteDocumentStore {
                     embedding_ref=excluded.embedding_ref
                 "#,
             )
-            .bind(&document.namespace)
+            .bind(document.namespace())
             .bind(&document.id)
-            .bind(&document.resource_kind)
-            .bind(&document.resource_key)
+            .bind(document.resource_kind())
+            .bind(document.resource_key())
             .bind(&document.document_kind)
-            .bind(&document.parent_kind)
-            .bind(&document.parent_key)
-            .bind(&document.agent)
-            .bind(&document.session_id)
-            .bind(&document.channel)
-            .bind(&document.message_id)
-            .bind(&document.run_id)
-            .bind(&document.part_id)
-            .bind(&document.part_type)
-            .bind(&document.role)
+            .bind(document.parent_kind())
+            .bind(document.parent_key())
+            .bind(document.agent())
+            .bind(document.session_id())
+            .bind(document.channel())
+            .bind(document.message_id())
+            .bind(document.run_id())
+            .bind(document.part_id())
+            .bind(document.part_type())
+            .bind(document.role())
             .bind(&document.title)
             .bind(&document.text)
             .bind(&document.snippet)
@@ -104,20 +105,20 @@ impl DocumentStore for SqliteDocumentStore {
             .bind(document.created_at)
             .bind(document.updated_at)
             .bind(document.indexed_at)
-            .bind(document.source_generation as i64)
+            .bind(document.generation as i64)
             .bind(&document.embedding_ref)
             .execute(&mut *tx)
             .await?;
 
             sqlx::query("DELETE FROM talon_documents_fts WHERE namespace = ? AND id = ?")
-                .bind(&document.namespace)
+                .bind(document.namespace())
                 .bind(&document.id)
                 .execute(&mut *tx)
                 .await?;
             sqlx::query(
                 "INSERT INTO talon_documents_fts(namespace, id, title, text, snippet) VALUES (?, ?, ?, ?, ?)",
             )
-            .bind(&document.namespace)
+            .bind(document.namespace())
             .bind(&document.id)
             .bind(&document.title)
             .bind(&document.text)
@@ -395,22 +396,28 @@ fn like_prefix_pattern(prefix: &str) -> String {
 
 fn document_from_sqlite_row(row: &SqliteRow) -> Result<Document> {
     let labels_json: String = row.try_get("labels_json")?;
+    let part_id: String = row.try_get("part_id")?;
     Ok(Document {
         id: row.try_get("id")?,
-        namespace: row.try_get("namespace")?,
-        resource_kind: row.try_get(DOCUMENTS_TABLE_FIELD_RESOURCE_KIND)?,
-        resource_key: row.try_get("resource_key")?,
+        source: document_source(
+            row.try_get("namespace")?,
+            row.try_get(DOCUMENTS_TABLE_FIELD_RESOURCE_KIND)?,
+            row.try_get("resource_key")?,
+            row.try_get("parent_kind")?,
+            row.try_get("parent_key")?,
+        ),
         document_kind: row.try_get("document_kind").unwrap_or_default(),
-        parent_kind: row.try_get("parent_kind")?,
-        parent_key: row.try_get("parent_key")?,
-        agent: row.try_get("agent")?,
-        session_id: row.try_get("session_id")?,
-        channel: row.try_get("channel")?,
-        message_id: row.try_get("message_id")?,
-        run_id: row.try_get("run_id")?,
-        part_id: row.try_get("part_id")?,
-        part_type: row.try_get("part_type")?,
-        role: row.try_get("role")?,
+        subdocument_id: part_id.clone(),
+        attributes: document_attributes([
+            (ATTR_AGENT, row.try_get("agent")?),
+            (ATTR_SESSION_ID, row.try_get("session_id")?),
+            (ATTR_CHANNEL, row.try_get("channel")?),
+            (ATTR_MESSAGE_ID, row.try_get("message_id")?),
+            (ATTR_RUN_ID, row.try_get("run_id")?),
+            (ATTR_PART_ID, part_id),
+            (ATTR_PART_TYPE, row.try_get("part_type")?),
+            (ATTR_ROLE, row.try_get("role")?),
+        ]),
         title: row.try_get("title")?,
         text: row.try_get("text")?,
         snippet: row.try_get("snippet")?,
@@ -420,7 +427,7 @@ fn document_from_sqlite_row(row: &SqliteRow) -> Result<Document> {
         created_at: row.try_get("created_at")?,
         updated_at: row.try_get("updated_at")?,
         indexed_at: row.try_get("indexed_at")?,
-        source_generation: row.try_get::<i64, _>("source_generation")? as u64,
+        generation: row.try_get::<i64, _>("source_generation")? as u64,
         embedding_ref: row.try_get("embedding_ref")?,
     })
 }
@@ -465,13 +472,18 @@ mod tests {
         labels.insert("talon.io/agent".to_string(), "support".to_string());
         let document = Document {
             id: "doc-1".to_string(),
-            namespace: "acme".to_string(),
-            resource_kind: "SessionMessage".to_string(),
-            resource_key: "@Namespace/acme/Agent/support/Session/s1/@/SessionMessage/m1"
-                .to_string(),
+            source: document_source(
+                "acme".to_string(),
+                "SessionMessage".to_string(),
+                "@Namespace/acme/Agent/support/Session/s1/@/SessionMessage/m1".to_string(),
+                "Session".to_string(),
+                "@Namespace/acme/Agent/support/@/Session/s1".to_string(),
+            ),
             document_kind: DOCUMENT_KIND_MESSAGE_PART.to_string(),
-            agent: "support".to_string(),
-            session_id: "s1".to_string(),
+            attributes: document_attributes([
+                (ATTR_AGENT, "support".to_string()),
+                (ATTR_SESSION_ID, "s1".to_string()),
+            ]),
             title: "Refund policy".to_string(),
             text: "Refund policy details for gold customers".to_string(),
             snippet: "Refund policy details".to_string(),
@@ -479,7 +491,7 @@ mod tests {
             created_at: 10,
             updated_at: 10,
             indexed_at: 20,
-            source_generation: 1,
+            generation: 1,
             ..Default::default()
         };
 
@@ -487,7 +499,7 @@ mod tests {
         store
             .upsert_documents(&[Document {
                 text: "Refund policy details updated".to_string(),
-                source_generation: 2,
+                generation: 2,
                 ..document.clone()
             }])
             .await
@@ -511,7 +523,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(response.results.len(), 1);
-        assert_eq!(response.results[0].document.source_generation, 2);
+        assert_eq!(response.results[0].document.generation, 2);
         assert_eq!(
             response.results[0].document.document_kind,
             DOCUMENT_KIND_MESSAGE_PART

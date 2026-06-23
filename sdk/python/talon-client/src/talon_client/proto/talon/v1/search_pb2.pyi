@@ -69,7 +69,14 @@ class SearchRequest(_message.Message):
     def __init__(self, ns: _Optional[str] = ..., query: _Optional[str] = ..., resource_kinds: _Optional[_Iterable[str]] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., channel: _Optional[str] = ..., role: _Optional[str] = ..., part_type: _Optional[str] = ..., labels: _Optional[_Mapping[str, str]] = ..., start_time: _Optional[int] = ..., end_time: _Optional[int] = ..., limit: _Optional[int] = ..., page_token: _Optional[str] = ..., mode: _Optional[_Union[SearchMode, str]] = ..., sort: _Optional[_Union[SearchSort, str]] = ...) -> None: ...
 
 class Document(_message.Message):
-    __slots__ = ("id", "namespace", "resource_kind", "resource_key", "parent_kind", "parent_key", "agent", "session_id", "channel", "message_id", "run_id", "part_id", "part_type", "role", "title", "snippet", "labels", "metadata_json", "acl_scope_json", "created_at", "updated_at", "indexed_at", "source_generation", "embedding_ref", "document_kind")
+    __slots__ = ("id", "source", "document_kind", "subdocument_id", "attributes", "title", "snippet", "labels", "metadata_json", "acl_scope_json", "created_at", "updated_at", "indexed_at", "generation", "embedding_ref")
+    class AttributesEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     class LabelsEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -78,19 +85,10 @@ class Document(_message.Message):
         value: str
         def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     ID_FIELD_NUMBER: _ClassVar[int]
-    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    RESOURCE_KIND_FIELD_NUMBER: _ClassVar[int]
-    RESOURCE_KEY_FIELD_NUMBER: _ClassVar[int]
-    PARENT_KIND_FIELD_NUMBER: _ClassVar[int]
-    PARENT_KEY_FIELD_NUMBER: _ClassVar[int]
-    AGENT_FIELD_NUMBER: _ClassVar[int]
-    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
-    CHANNEL_FIELD_NUMBER: _ClassVar[int]
-    MESSAGE_ID_FIELD_NUMBER: _ClassVar[int]
-    RUN_ID_FIELD_NUMBER: _ClassVar[int]
-    PART_ID_FIELD_NUMBER: _ClassVar[int]
-    PART_TYPE_FIELD_NUMBER: _ClassVar[int]
-    ROLE_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    DOCUMENT_KIND_FIELD_NUMBER: _ClassVar[int]
+    SUBDOCUMENT_ID_FIELD_NUMBER: _ClassVar[int]
+    ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
     TITLE_FIELD_NUMBER: _ClassVar[int]
     SNIPPET_FIELD_NUMBER: _ClassVar[int]
     LABELS_FIELD_NUMBER: _ClassVar[int]
@@ -99,23 +97,13 @@ class Document(_message.Message):
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
     UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
     INDEXED_AT_FIELD_NUMBER: _ClassVar[int]
-    SOURCE_GENERATION_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_FIELD_NUMBER: _ClassVar[int]
     EMBEDDING_REF_FIELD_NUMBER: _ClassVar[int]
-    DOCUMENT_KIND_FIELD_NUMBER: _ClassVar[int]
     id: str
-    namespace: str
-    resource_kind: str
-    resource_key: str
-    parent_kind: str
-    parent_key: str
-    agent: str
-    session_id: str
-    channel: str
-    message_id: str
-    run_id: str
-    part_id: str
-    part_type: str
-    role: str
+    source: DocumentSource
+    document_kind: str
+    subdocument_id: str
+    attributes: _containers.ScalarMap[str, str]
     title: str
     snippet: str
     labels: _containers.ScalarMap[str, str]
@@ -124,10 +112,25 @@ class Document(_message.Message):
     created_at: int
     updated_at: int
     indexed_at: int
-    source_generation: int
+    generation: int
     embedding_ref: str
-    document_kind: str
-    def __init__(self, id: _Optional[str] = ..., namespace: _Optional[str] = ..., resource_kind: _Optional[str] = ..., resource_key: _Optional[str] = ..., parent_kind: _Optional[str] = ..., parent_key: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., channel: _Optional[str] = ..., message_id: _Optional[str] = ..., run_id: _Optional[str] = ..., part_id: _Optional[str] = ..., part_type: _Optional[str] = ..., role: _Optional[str] = ..., title: _Optional[str] = ..., snippet: _Optional[str] = ..., labels: _Optional[_Mapping[str, str]] = ..., metadata_json: _Optional[str] = ..., acl_scope_json: _Optional[str] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., indexed_at: _Optional[int] = ..., source_generation: _Optional[int] = ..., embedding_ref: _Optional[str] = ..., document_kind: _Optional[str] = ...) -> None: ...
+    def __init__(self, id: _Optional[str] = ..., source: _Optional[_Union[DocumentSource, _Mapping]] = ..., document_kind: _Optional[str] = ..., subdocument_id: _Optional[str] = ..., attributes: _Optional[_Mapping[str, str]] = ..., title: _Optional[str] = ..., snippet: _Optional[str] = ..., labels: _Optional[_Mapping[str, str]] = ..., metadata_json: _Optional[str] = ..., acl_scope_json: _Optional[str] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., indexed_at: _Optional[int] = ..., generation: _Optional[int] = ..., embedding_ref: _Optional[str] = ...) -> None: ...
+
+class DocumentSource(_message.Message):
+    __slots__ = ("key", "namespace", "kind", "name", "parent_kind", "parent_key")
+    KEY_FIELD_NUMBER: _ClassVar[int]
+    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    KIND_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    PARENT_KIND_FIELD_NUMBER: _ClassVar[int]
+    PARENT_KEY_FIELD_NUMBER: _ClassVar[int]
+    key: str
+    namespace: str
+    kind: str
+    name: str
+    parent_kind: str
+    parent_key: str
+    def __init__(self, key: _Optional[str] = ..., namespace: _Optional[str] = ..., kind: _Optional[str] = ..., name: _Optional[str] = ..., parent_kind: _Optional[str] = ..., parent_key: _Optional[str] = ...) -> None: ...
 
 class SearchResult(_message.Message):
     __slots__ = ("document", "score")

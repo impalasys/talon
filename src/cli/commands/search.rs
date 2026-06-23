@@ -149,10 +149,11 @@ fn print_results(results: Vec<SearchResult>) {
         let Some(document) = result.document else {
             continue;
         };
+        let source = document.source.as_ref();
         println!(
             "{}\t{}\t{}\t{}\t{:.3}\t{}",
-            document.namespace,
-            document.resource_kind,
+            source.map(|source| source.namespace.as_str()).unwrap_or(""),
+            source.map(|source| source.kind.as_str()).unwrap_or(""),
             document.document_kind,
             document.id,
             result.score,

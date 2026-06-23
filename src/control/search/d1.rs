@@ -3,8 +3,9 @@
 
 use super::store::{sort_results, DocumentStore};
 use super::{
-    next_page_token, page_offset, query_terms, DeleteScope, Document, SearchQuery, SearchResponse,
-    SearchResult, SearchSort,
+    document_attributes, document_source, next_page_token, page_offset, query_terms, DeleteScope,
+    Document, SearchQuery, SearchResponse, SearchResult, SearchSort, ATTR_AGENT, ATTR_CHANNEL,
+    ATTR_MESSAGE_ID, ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
 };
 use anyhow::{anyhow, Result};
 use reqwest::StatusCode;
@@ -213,21 +214,21 @@ impl DocumentStore for D1DocumentStore {
             self.execute_run(
                 UPSERT_DOCUMENT_SQL.to_string(),
                 vec![
-                    D1Param::text(&document.namespace),
+                    D1Param::text(document.namespace()),
                     D1Param::text(&document.id),
-                    D1Param::text(&document.resource_kind),
-                    D1Param::text(&document.resource_key),
+                    D1Param::text(document.resource_kind()),
+                    D1Param::text(document.resource_key()),
                     D1Param::text(&document.document_kind),
-                    D1Param::text(&document.parent_kind),
-                    D1Param::text(&document.parent_key),
-                    D1Param::text(&document.agent),
-                    D1Param::text(&document.session_id),
-                    D1Param::text(&document.channel),
-                    D1Param::text(&document.message_id),
-                    D1Param::text(&document.run_id),
-                    D1Param::text(&document.part_id),
-                    D1Param::text(&document.part_type),
-                    D1Param::text(&document.role),
+                    D1Param::text(document.parent_kind()),
+                    D1Param::text(document.parent_key()),
+                    D1Param::text(document.agent()),
+                    D1Param::text(document.session_id()),
+                    D1Param::text(document.channel()),
+                    D1Param::text(document.message_id()),
+                    D1Param::text(document.run_id()),
+                    D1Param::text(document.part_id()),
+                    D1Param::text(document.part_type()),
+                    D1Param::text(document.role()),
                     D1Param::text(&document.title),
                     D1Param::text(&document.text),
                     D1Param::text(&document.snippet),
@@ -237,7 +238,7 @@ impl DocumentStore for D1DocumentStore {
                     D1Param::integer(document.created_at),
                     D1Param::integer(document.updated_at),
                     D1Param::integer(document.indexed_at),
-                    D1Param::integer(document.source_generation as i64),
+                    D1Param::integer(document.generation as i64),
                     D1Param::text(&document.embedding_ref),
                 ],
             )
@@ -246,7 +247,7 @@ impl DocumentStore for D1DocumentStore {
             self.execute_run(
                 "DELETE FROM talon_documents_fts WHERE namespace = ? AND id = ?".to_string(),
                 vec![
-                    D1Param::text(&document.namespace),
+                    D1Param::text(document.namespace()),
                     D1Param::text(&document.id),
                 ],
             )
@@ -254,7 +255,7 @@ impl DocumentStore for D1DocumentStore {
             self.execute_run(
                 "INSERT INTO talon_documents_fts(namespace, id, title, text, snippet) VALUES (?, ?, ?, ?, ?)".to_string(),
                 vec![
-                    D1Param::text(&document.namespace),
+                    D1Param::text(document.namespace()),
                     D1Param::text(&document.id),
                     D1Param::text(&document.title),
                     D1Param::text(&document.text),
@@ -550,22 +551,28 @@ ON CONFLICT(namespace, id) DO UPDATE SET
 
 fn document_from_row(row: &D1Row) -> Result<Document> {
     let labels_json = cell_string(row, "labels_json")?;
+    let part_id = cell_string(row, "part_id")?;
     Ok(Document {
         id: cell_string(row, "id")?,
-        namespace: cell_string(row, "namespace")?,
-        resource_kind: cell_string(row, "resource_kind")?,
-        resource_key: cell_string(row, "resource_key")?,
+        source: document_source(
+            cell_string(row, "namespace")?,
+            cell_string(row, "resource_kind")?,
+            cell_string(row, "resource_key")?,
+            cell_string(row, "parent_kind")?,
+            cell_string(row, "parent_key")?,
+        ),
         document_kind: cell_string(row, "document_kind").unwrap_or_default(),
-        parent_kind: cell_string(row, "parent_kind")?,
-        parent_key: cell_string(row, "parent_key")?,
-        agent: cell_string(row, "agent")?,
-        session_id: cell_string(row, "session_id")?,
-        channel: cell_string(row, "channel")?,
-        message_id: cell_string(row, "message_id")?,
-        run_id: cell_string(row, "run_id")?,
-        part_id: cell_string(row, "part_id")?,
-        part_type: cell_string(row, "part_type")?,
-        role: cell_string(row, "role")?,
+        subdocument_id: part_id.clone(),
+        attributes: document_attributes([
+            (ATTR_AGENT, cell_string(row, "agent")?),
+            (ATTR_SESSION_ID, cell_string(row, "session_id")?),
+            (ATTR_CHANNEL, cell_string(row, "channel")?),
+            (ATTR_MESSAGE_ID, cell_string(row, "message_id")?),
+            (ATTR_RUN_ID, cell_string(row, "run_id")?),
+            (ATTR_PART_ID, part_id),
+            (ATTR_PART_TYPE, cell_string(row, "part_type")?),
+            (ATTR_ROLE, cell_string(row, "role")?),
+        ]),
         title: cell_string(row, "title")?,
         text: cell_string(row, "text")?,
         snippet: cell_string(row, "snippet")?,
@@ -575,7 +582,7 @@ fn document_from_row(row: &D1Row) -> Result<Document> {
         created_at: cell_i64(row, "created_at")?,
         updated_at: cell_i64(row, "updated_at")?,
         indexed_at: cell_i64(row, "indexed_at")?,
-        source_generation: cell_i64(row, "source_generation")? as u64,
+        generation: cell_i64(row, "source_generation")? as u64,
         embedding_ref: cell_string(row, "embedding_ref")?,
     })
 }

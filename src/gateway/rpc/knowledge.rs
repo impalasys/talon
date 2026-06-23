@@ -175,7 +175,7 @@ impl GrpcGatewayHandler {
                         })
                         .unwrap_or_else(|| result.document.title.clone());
                 let rank = *namespace_rank
-                    .get(&result.document.namespace)
+                    .get(result.document.namespace())
                     .unwrap_or(&usize::MAX);
                 match by_path.get(&path) {
                     Some((current_rank, _)) if *current_rank <= rank => {}
@@ -229,7 +229,7 @@ impl GrpcGatewayHandler {
                         })
                         .unwrap_or_else(|| result.document.title.clone());
                         data_proto::KnowledgeSearchResult {
-                            namespace: result.document.namespace.clone(),
+                            namespace: result.document.namespace().to_string(),
                             path,
                             snippet: result.document.snippet.clone(),
                             score: result.score,
