@@ -78,6 +78,9 @@ importers:
         specifier: ^1.7.0
         version: 1.7.0(@bufbuild/protobuf@1.10.1)(@connectrpc/connect@1.7.0(@bufbuild/protobuf@1.10.1))
     devDependencies:
+      '@types/node':
+        specifier: ^24.9.1
+        version: 24.12.4
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
