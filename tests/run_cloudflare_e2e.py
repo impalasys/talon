@@ -8,10 +8,12 @@ import urllib.request
 import uuid
 
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+REPO_ROOT = os.path.abspath(os.path.join(TESTS_DIR, os.pardir))
 
 # Important: Add generated protos to path so "proto.xxx" resolves locally and not to proto_plus.
 sys.path.insert(0, TESTS_DIR)
 sys.path.insert(0, os.path.join(TESTS_DIR, "generated"))
+sys.path.insert(0, os.path.join(REPO_ROOT, "sdk", "python", "talon-client", "src"))
 
 from e2e.cli_harness import TalonCli
 from e2e import scenarios as e2e
