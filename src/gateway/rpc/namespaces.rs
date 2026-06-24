@@ -454,7 +454,7 @@ mod tests {
             pubsub: pubsub.clone(),
             scheduler: Arc::new(NoopSchedulerBackend),
             objects: crate::control::object_store::default_object_store(),
-            documents: crate::control::search::memory_document_store(),
+            documents: crate::control::search::ephemeral_document_store(),
             session_streams: Arc::new(SessionStreamHub::new(pubsub)),
         });
         GrpcGatewayHandler { gateway }

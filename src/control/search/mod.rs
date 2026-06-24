@@ -18,10 +18,7 @@ use crate::gateway::rpc::{data_proto, proto};
 
 pub use d1::D1DocumentStore;
 pub use disabled::{disabled_document_store, DisabledDocumentStore};
-pub use ephemeral::{
-    ephemeral_document_store, ephemeral_document_store as memory_document_store,
-    EphemeralDocumentStore,
-};
+pub use ephemeral::{ephemeral_document_store, EphemeralDocumentStore};
 pub(crate) use events::publish_index_event;
 pub use postgres::PostgresDocumentStore;
 pub use sqlite::SqliteDocumentStore;

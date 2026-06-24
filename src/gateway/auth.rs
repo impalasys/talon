@@ -611,7 +611,7 @@ mod tests {
             Arc::new(EmptyPubSub),
             Arc::new(NoopSchedulerBackend),
             crate::control::object_store::default_object_store(),
-            crate::control::search::memory_document_store(),
+            crate::control::search::ephemeral_document_store(),
         ))
     }
 

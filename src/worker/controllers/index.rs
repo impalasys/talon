@@ -146,7 +146,7 @@ mod tests {
     #[tokio::test]
     async fn index_controller_writes_session_documents_to_document_store() {
         let kv = Arc::new(MockKvStore::default());
-        let documents = search::memory_document_store();
+        let documents = search::ephemeral_document_store();
         let cp = control_plane(kv.clone(), documents.clone());
         let key = keys::session_message("acme", "support", "s1", "m1");
         kv.set_msg(
@@ -200,7 +200,7 @@ mod tests {
     #[tokio::test]
     async fn index_controller_deletes_session_documents_from_session_target() {
         let kv = Arc::new(MockKvStore::default());
-        let documents = search::memory_document_store();
+        let documents = search::ephemeral_document_store();
         let cp = control_plane(kv.clone(), documents.clone());
         let key = keys::session_message("acme", "support", "s1", "m1");
         kv.set_msg(
@@ -258,7 +258,7 @@ mod tests {
     #[tokio::test]
     async fn index_controller_writes_metadata_for_control_plane_resource() {
         let kv = Arc::new(MockKvStore::default());
-        let documents = search::memory_document_store();
+        let documents = search::ephemeral_document_store();
         let cp = control_plane(kv.clone(), documents.clone());
         let store = ResourceStore::new(kv.clone(), cp.pubsub.clone());
         let resource = crate::control::resource_model::agent_resource(
@@ -300,7 +300,7 @@ mod tests {
     #[tokio::test]
     async fn index_controller_skips_stale_resource_events() {
         let kv = Arc::new(MockKvStore::default());
-        let documents = search::memory_document_store();
+        let documents = search::ephemeral_document_store();
         let cp = control_plane(kv.clone(), documents.clone());
         let store = ResourceStore::new(kv.clone(), cp.pubsub.clone());
         store
@@ -385,7 +385,7 @@ mod tests {
     #[tokio::test]
     async fn index_controller_retries_resource_events_ahead_of_canonical_generation() {
         let kv = Arc::new(MockKvStore::default());
-        let documents = search::memory_document_store();
+        let documents = search::ephemeral_document_store();
         let cp = control_plane(kv.clone(), documents.clone());
         let store = ResourceStore::new(kv.clone(), cp.pubsub.clone());
         let resource = store
@@ -426,7 +426,7 @@ mod tests {
     #[tokio::test]
     async fn index_controller_deletes_namespace_scope_from_namespace_key() {
         let kv = Arc::new(MockKvStore::default());
-        let documents = search::memory_document_store();
+        let documents = search::ephemeral_document_store();
         let cp = control_plane(kv.clone(), documents.clone());
         let namespace_key = keys::namespace_metadata("acme");
         let namespace_doc_id = search::document_id(

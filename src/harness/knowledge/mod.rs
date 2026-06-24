@@ -620,7 +620,7 @@ mod tests {
     use crate::control::{
         keys::{ResourceKey, ResourceList},
         search::{
-            document_ref, document_source, memory_document_store, Document, DocumentRef,
+            document_ref, document_source, ephemeral_document_store, Document, DocumentRef,
             DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE,
         },
         KeyValueStore,
@@ -816,7 +816,7 @@ mod tests {
     #[tokio::test]
     async fn search_uses_document_store_when_enabled() {
         let kv = Arc::new(MockKvStore::new());
-        let documents = memory_document_store();
+        let documents = ephemeral_document_store();
         documents
             .upsert_documents(&[knowledge_document(
                 "@Namespace/conic/@/Knowledge/docs:content",
@@ -857,7 +857,7 @@ mod tests {
     #[tokio::test]
     async fn document_store_search_prefers_child_namespace_for_shadowed_paths() {
         let kv = Arc::new(MockKvStore::new());
-        let documents = memory_document_store();
+        let documents = ephemeral_document_store();
         documents
             .upsert_documents(&[
                 knowledge_document(

@@ -213,7 +213,7 @@ impl ControlPlane {
             pubsub,
             scheduler: Arc::new(scheduler::NoopSchedulerBackend),
             objects: object_store::default_object_store(),
-            documents: search::memory_document_store(),
+            documents: search::ephemeral_document_store(),
         }
     }
 

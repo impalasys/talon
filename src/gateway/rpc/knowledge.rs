@@ -387,7 +387,7 @@ mod tests {
     }
 
     fn handler(kv: Arc<MockKvStore>) -> GrpcGatewayHandler {
-        handler_with_documents(kv, crate::control::search::memory_document_store())
+        handler_with_documents(kv, crate::control::search::ephemeral_document_store())
     }
 
     fn handler_with_documents(
