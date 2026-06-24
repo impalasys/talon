@@ -6,7 +6,7 @@ use serde_json::{json, Value};
 use std::sync::Arc;
 
 use crate::control::resources::ResourceStore;
-use crate::control::search::{DocumentExt, DocumentStore, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
+use crate::control::search::{DocumentStore, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
 use crate::control::MessagePublisher;
 use crate::gateway::rpc::{proto, resources_proto};
 
@@ -346,19 +346,23 @@ impl KvKnowledgeBook {
         for result in response.results {
             let score = result.score;
             let document = result.document;
-            if document.document_kind() != DOCUMENT_KIND_CONTENT {
+            let Some(document_ref) = document.r#ref.as_ref() else {
+                continue;
+            };
+            let Some(source) = document_ref.source.as_ref() else {
+                continue;
+            };
+            if document_ref.document_kind != DOCUMENT_KIND_CONTENT {
                 continue;
             }
-            let path = knowledge_path_from_metadata(document.metadata_json())
-                .unwrap_or_else(|| document.title().to_string());
-            let rank = *namespace_rank
-                .get(document.namespace())
-                .unwrap_or(&usize::MAX);
+            let path = knowledge_path_from_metadata(&document_ref.metadata_json)
+                .unwrap_or_else(|| document_ref.title.clone());
+            let rank = *namespace_rank.get(&source.namespace).unwrap_or(&usize::MAX);
             let entry = KnowledgeResult {
-                namespace: document.namespace().to_string(),
+                namespace: source.namespace.clone(),
                 path: path.clone(),
                 excerpt: result.snippet,
-                updated_at: document.updated_at(),
+                updated_at: document_ref.updated_at,
             };
             match by_path.get(&path) {
                 Some((current_rank, _, _)) if *current_rank <= rank => {}

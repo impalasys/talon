@@ -5,7 +5,7 @@ use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::control::keys;
 use crate::control::ns;
 use crate::control::resources::ResourceStore;
-use crate::control::search::{DocumentExt, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
+use crate::control::search::{DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
 use crate::gateway::rpc::resources_proto;
 use crate::harness::knowledge::KnowledgeEntry;
 use std::collections::HashMap;
@@ -165,22 +165,25 @@ impl GrpcGatewayHandler {
             let mut by_path: HashMap<String, (usize, crate::control::search::SearchResult)> =
                 HashMap::new();
             for result in indexed.results {
-                if result.document.document_kind() != DOCUMENT_KIND_CONTENT {
+                let Some(document_ref) = result.document.r#ref.as_ref() else {
+                    continue;
+                };
+                let Some(source) = document_ref.source.as_ref() else {
+                    continue;
+                };
+                if document_ref.document_kind != DOCUMENT_KIND_CONTENT {
                     continue;
                 }
-                let path =
-                    serde_json::from_str::<serde_json::Value>(result.document.metadata_json())
-                        .ok()
-                        .and_then(|value| {
-                            value
-                                .get("path")
-                                .and_then(|path| path.as_str())
-                                .map(str::to_string)
-                        })
-                        .unwrap_or_else(|| result.document.title().to_string());
-                let rank = *namespace_rank
-                    .get(result.document.namespace())
-                    .unwrap_or(&usize::MAX);
+                let path = serde_json::from_str::<serde_json::Value>(&document_ref.metadata_json)
+                    .ok()
+                    .and_then(|value| {
+                        value
+                            .get("path")
+                            .and_then(|path| path.as_str())
+                            .map(str::to_string)
+                    })
+                    .unwrap_or_else(|| document_ref.title.clone());
+                let rank = *namespace_rank.get(&source.namespace).unwrap_or(&usize::MAX);
                 match by_path.get(&path) {
                     Some((current_rank, _)) if *current_rank <= rank => {}
                     _ => {
@@ -194,16 +197,24 @@ impl GrpcGatewayHandler {
                 .collect::<Vec<_>>();
             match sort {
                 proto::SearchSort::Recency => search_results.sort_by(|left, right| {
-                    right
+                    let right_updated_at = right
                         .document
-                        .updated_at()
-                        .cmp(&left.document.updated_at())
-                        .then_with(|| {
-                            right
-                                .score
-                                .partial_cmp(&left.score)
-                                .unwrap_or(std::cmp::Ordering::Equal)
-                        })
+                        .r#ref
+                        .as_ref()
+                        .map(|document| document.updated_at)
+                        .unwrap_or_default();
+                    let left_updated_at = left
+                        .document
+                        .r#ref
+                        .as_ref()
+                        .map(|document| document.updated_at)
+                        .unwrap_or_default();
+                    right_updated_at.cmp(&left_updated_at).then_with(|| {
+                        right
+                            .score
+                            .partial_cmp(&left.score)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    })
                 }),
                 proto::SearchSort::Unspecified | proto::SearchSort::Relevance => search_results
                     .sort_by(|left, right| {
@@ -212,7 +223,19 @@ impl GrpcGatewayHandler {
                             .partial_cmp(&left.score)
                             .unwrap_or(std::cmp::Ordering::Equal)
                             .then_with(|| {
-                                right.document.updated_at().cmp(&left.document.updated_at())
+                                let right_updated_at = right
+                                    .document
+                                    .r#ref
+                                    .as_ref()
+                                    .map(|document| document.updated_at)
+                                    .unwrap_or_default();
+                                let left_updated_at = left
+                                    .document
+                                    .r#ref
+                                    .as_ref()
+                                    .map(|document| document.updated_at)
+                                    .unwrap_or_default();
+                                right_updated_at.cmp(&left_updated_at)
                             })
                     }),
             }
@@ -224,23 +247,24 @@ impl GrpcGatewayHandler {
                 let legacy_results = search_results
                     .iter()
                     .map(|result| {
-                        let path = serde_json::from_str::<serde_json::Value>(
-                            result.document.metadata_json(),
-                        )
-                        .ok()
-                        .and_then(|value| {
-                            value
-                                .get("path")
-                                .and_then(|path| path.as_str())
-                                .map(str::to_string)
-                        })
-                        .unwrap_or_else(|| result.document.title().to_string());
+                        let document_ref = result.document.r#ref.as_ref().expect("document ref");
+                        let source = document_ref.source.as_ref().expect("document source");
+                        let path =
+                            serde_json::from_str::<serde_json::Value>(&document_ref.metadata_json)
+                                .ok()
+                                .and_then(|value| {
+                                    value
+                                        .get("path")
+                                        .and_then(|path| path.as_str())
+                                        .map(str::to_string)
+                                })
+                                .unwrap_or_else(|| document_ref.title.clone());
                         data_proto::KnowledgeSearchResult {
-                            namespace: result.document.namespace().to_string(),
+                            namespace: source.namespace.clone(),
                             path,
                             snippet: result.snippet.clone(),
                             score: result.score,
-                            timestamp: result.document.updated_at(),
+                            timestamp: document_ref.updated_at,
                         }
                     })
                     .collect();

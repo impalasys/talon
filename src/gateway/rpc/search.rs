@@ -3,9 +3,7 @@
 
 use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
 use crate::control::ns;
-use crate::control::search::{
-    self, Document, DocumentExt, ATTR_AGENT, ATTR_CHANNEL, ATTR_SESSION_ID,
-};
+use crate::control::search::{self, Document, ATTR_AGENT, ATTR_CHANNEL, ATTR_SESSION_ID};
 use crate::control::{keys, ProtoKeyValueStoreExt};
 use crate::gateway::auth::{self, AuthMode, Claims};
 
@@ -221,21 +219,35 @@ fn recheck_document_auth(
     let Some(auth_config) = &handler.gateway.auth_config else {
         return Ok(());
     };
-    match document.resource_kind() {
+    let document_ref = document
+        .r#ref
+        .as_ref()
+        .ok_or_else(|| tonic::Status::internal("search document is missing ref"))?;
+    let source = document_ref
+        .source
+        .as_ref()
+        .ok_or_else(|| tonic::Status::internal("search document is missing source"))?;
+    match source.kind.as_str() {
         "SessionMessage" => crate::gateway::auth::check_auth(
             metadata,
             auth_config,
-            document.namespace(),
-            Some(document.agent()),
-            Some(document.session_id()),
+            &source.namespace,
+            Some(
+                document_ref
+                    .attributes
+                    .get(ATTR_AGENT)
+                    .map(String::as_str)
+                    .unwrap_or(""),
+            ),
+            Some(
+                document_ref
+                    .attributes
+                    .get(ATTR_SESSION_ID)
+                    .map(String::as_str)
+                    .unwrap_or(""),
+            ),
         ),
-        _ => crate::gateway::auth::check_auth(
-            metadata,
-            auth_config,
-            document.namespace(),
-            None,
-            None,
-        ),
+        _ => crate::gateway::auth::check_auth(metadata, auth_config, &source.namespace, None, None),
     }
 }
 
@@ -243,9 +255,17 @@ async fn canonical_content(
     handler: &GrpcGatewayHandler,
     document: &Document,
 ) -> std::result::Result<String, tonic::Status> {
-    let key = keys::ResourceKey::parse_canonical(document.resource_key())
+    let document_ref = document
+        .r#ref
+        .as_ref()
+        .ok_or_else(|| tonic::Status::internal("search document is missing ref"))?;
+    let source = document_ref
+        .source
+        .as_ref()
+        .ok_or_else(|| tonic::Status::internal("search document is missing source"))?;
+    let key = keys::ResourceKey::parse_canonical(&source.key)
         .map_err(|error| tonic::Status::internal(error.to_string()))?;
-    match document.resource_kind() {
+    match source.kind.as_str() {
         "SessionMessage" => {
             let message = handler
                 .gateway
@@ -267,7 +287,7 @@ async fn canonical_content(
                 .await
                 .map_err(|error| tonic::Status::internal(error.to_string()))?
                 .ok_or_else(|| tonic::Status::not_found("resource not found"))?;
-            if document.resource_kind() == "Knowledge" && document.document_kind() == "content" {
+            if source.kind == "Knowledge" && document_ref.document_kind == "content" {
                 let Some(resources_proto::resource_spec::Kind::Knowledge(spec)) =
                     resource.spec.and_then(|spec| spec.kind)
                 else {

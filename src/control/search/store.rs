@@ -4,7 +4,7 @@
 use super::{
     delete_matches, next_page_token, page_offset, query_matches, score_document, search_limit,
     search_mode, search_mode_name, search_namespaces, search_sort, snippet, DeleteScope, Document,
-    DocumentExt, SearchResponse, SearchResult,
+    SearchResponse, SearchResult,
 };
 use crate::gateway::rpc::proto;
 use anyhow::{anyhow, Result};
@@ -95,8 +95,19 @@ impl DocumentStore for MemoryDocumentStore {
     async fn upsert_documents(&self, documents: &[Document]) -> Result<()> {
         let mut stored = self.documents.write().await;
         for document in documents {
+            let document_ref = document.r#ref.as_ref().expect("document ref is required");
+            let document_source = document_ref
+                .source
+                .as_ref()
+                .expect("document source is required");
             if let Some(existing) = stored.iter_mut().find(|existing| {
-                existing.namespace() == document.namespace() && existing.id() == document.id()
+                let existing_ref = existing.r#ref.as_ref().expect("document ref is required");
+                let existing_source = existing_ref
+                    .source
+                    .as_ref()
+                    .expect("document source is required");
+                existing_source.namespace == document_source.namespace
+                    && existing_ref.id == document_ref.id
             }) {
                 *existing = document.clone();
             } else {
@@ -113,7 +124,12 @@ impl DocumentStore for MemoryDocumentStore {
         let mut stored = self.documents.write().await;
         let before = stored.len();
         stored.retain(|document| {
-            document.namespace() != scope.namespace || !delete_matches(scope, document)
+            let document_ref = document.r#ref.as_ref().expect("document ref is required");
+            let source = document_ref
+                .source
+                .as_ref()
+                .expect("document source is required");
+            source.namespace != scope.namespace || !delete_matches(scope, document)
         });
         Ok(before.saturating_sub(stored.len()) as u64)
     }
@@ -125,10 +141,15 @@ impl DocumentStore for MemoryDocumentStore {
         let mut matches = stored
             .iter()
             .filter(|document| {
+                let document_ref = document.r#ref.as_ref().expect("document ref is required");
+                let source = document_ref
+                    .source
+                    .as_ref()
+                    .expect("document source is required");
                 !namespaces.is_empty()
                     && namespaces
                         .iter()
-                        .any(|namespace| *namespace == document.namespace())
+                        .any(|namespace| *namespace == source.namespace)
                     && query_matches(query, document)
             })
             .cloned()
@@ -156,7 +177,14 @@ impl DocumentStore for MemoryDocumentStore {
             .read()
             .await
             .iter()
-            .find(|document| document.namespace() == namespace && document.id() == id)
+            .find(|document| {
+                let document_ref = document.r#ref.as_ref().expect("document ref is required");
+                let source = document_ref
+                    .source
+                    .as_ref()
+                    .expect("document source is required");
+                source.namespace == namespace && document_ref.id == id
+            })
             .cloned())
     }
 }
@@ -169,10 +197,33 @@ pub(crate) fn sort_results(results: &mut [SearchResult], sort: proto::SearchSort
                     .score
                     .partial_cmp(&left.score)
                     .unwrap_or(std::cmp::Ordering::Equal)
-                    .then_with(|| right.document.updated_at().cmp(&left.document.updated_at()))
+                    .then_with(|| {
+                        let right_ref = right
+                            .document
+                            .r#ref
+                            .as_ref()
+                            .expect("document ref is required");
+                        let left_ref = left
+                            .document
+                            .r#ref
+                            .as_ref()
+                            .expect("document ref is required");
+                        right_ref.updated_at.cmp(&left_ref.updated_at)
+                    })
             })
         }
-        proto::SearchSort::Recency => results
-            .sort_by(|left, right| right.document.updated_at().cmp(&left.document.updated_at())),
+        proto::SearchSort::Recency => results.sort_by(|left, right| {
+            let right_ref = right
+                .document
+                .r#ref
+                .as_ref()
+                .expect("document ref is required");
+            let left_ref = left
+                .document
+                .r#ref
+                .as_ref()
+                .expect("document ref is required");
+            right_ref.updated_at.cmp(&left_ref.updated_at)
+        }),
     }
 }

@@ -5,8 +5,8 @@ use super::store::{sort_results, DocumentStore};
 use super::{
     document_attributes, document_ref, document_source, next_page_token, page_offset, query_terms,
     search_limit, search_mode, search_namespaces, search_sort, snippet, DeleteScope, Document,
-    DocumentExt, SearchResponse, SearchResult, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID,
-    ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
+    SearchResponse, SearchResult, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID, ATTR_PART_ID,
+    ATTR_PART_TYPE, ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
 };
 use crate::gateway::rpc::proto;
 use anyhow::{anyhow, Result};
@@ -210,39 +210,51 @@ impl D1DocumentStore {
 impl DocumentStore for D1DocumentStore {
     async fn upsert_documents(&self, documents: &[Document]) -> Result<()> {
         for document in documents {
-            let labels_json = serde_json::to_string(document.labels())?;
-            let metadata_json = json_or_empty_object(document.metadata_json()).to_string();
-            let acl_scope_json = json_or_empty_object(document.acl_scope_json()).to_string();
+            let document_ref = document.r#ref.as_ref().expect("document ref is required");
+            let source = document_ref
+                .source
+                .as_ref()
+                .expect("document source is required");
+            let attr = |key: &str| {
+                document_ref
+                    .attributes
+                    .get(key)
+                    .map(String::as_str)
+                    .unwrap_or("")
+            };
+            let labels_json = serde_json::to_string(&document_ref.labels)?;
+            let metadata_json = json_or_empty_object(&document_ref.metadata_json).to_string();
+            let acl_scope_json = json_or_empty_object(&document_ref.acl_scope_json).to_string();
             let snippet = snippet(&document.text);
             self.execute_run(
                 UPSERT_DOCUMENT_SQL.to_string(),
                 vec![
-                    D1Param::text(document.namespace()),
-                    D1Param::text(document.id()),
-                    D1Param::text(document.resource_kind()),
-                    D1Param::text(document.resource_key()),
-                    D1Param::text(document.document_kind()),
-                    D1Param::text(document.parent_kind()),
-                    D1Param::text(document.parent_key()),
-                    D1Param::text(document.agent()),
-                    D1Param::text(document.session_id()),
-                    D1Param::text(document.channel()),
-                    D1Param::text(document.message_id()),
-                    D1Param::text(document.run_id()),
-                    D1Param::text(document.part_id()),
-                    D1Param::text(document.part_type()),
-                    D1Param::text(document.role()),
-                    D1Param::text(document.title()),
+                    D1Param::text(&source.namespace),
+                    D1Param::text(&document_ref.id),
+                    D1Param::text(&source.kind),
+                    D1Param::text(&source.key),
+                    D1Param::text(&document_ref.document_kind),
+                    D1Param::text(&source.parent_kind),
+                    D1Param::text(&source.parent_key),
+                    D1Param::text(attr(ATTR_AGENT)),
+                    D1Param::text(attr(ATTR_SESSION_ID)),
+                    D1Param::text(attr(ATTR_CHANNEL)),
+                    D1Param::text(attr(ATTR_MESSAGE_ID)),
+                    D1Param::text(attr(ATTR_RUN_ID)),
+                    D1Param::text(attr(ATTR_PART_ID)),
+                    D1Param::text(attr(ATTR_PART_TYPE)),
+                    D1Param::text(attr(ATTR_ROLE)),
+                    D1Param::text(&document_ref.title),
                     D1Param::text(&document.text),
                     D1Param::text(&snippet),
                     D1Param::text(labels_json),
                     D1Param::text(metadata_json),
                     D1Param::text(acl_scope_json),
-                    D1Param::integer(document.created_at()),
-                    D1Param::integer(document.updated_at()),
-                    D1Param::integer(document.indexed_at()),
-                    D1Param::integer(document.generation() as i64),
-                    D1Param::text(document.embedding_ref()),
+                    D1Param::integer(document_ref.created_at),
+                    D1Param::integer(document_ref.updated_at),
+                    D1Param::integer(document_ref.indexed_at),
+                    D1Param::integer(document_ref.generation as i64),
+                    D1Param::text(&document_ref.embedding_ref),
                 ],
             )
             .await?;
@@ -250,17 +262,17 @@ impl DocumentStore for D1DocumentStore {
             self.execute_run(
                 "DELETE FROM talon_documents_fts WHERE namespace = ? AND id = ?".to_string(),
                 vec![
-                    D1Param::text(document.namespace()),
-                    D1Param::text(document.id()),
+                    D1Param::text(&source.namespace),
+                    D1Param::text(&document_ref.id),
                 ],
             )
             .await?;
             self.execute_run(
                 "INSERT INTO talon_documents_fts(namespace, id, title, text, snippet) VALUES (?, ?, ?, ?, ?)".to_string(),
                 vec![
-                    D1Param::text(document.namespace()),
-                    D1Param::text(document.id()),
-                    D1Param::text(document.title()),
+                    D1Param::text(&source.namespace),
+                    D1Param::text(&document_ref.id),
+                    D1Param::text(&document_ref.title),
                     D1Param::text(&document.text),
                     D1Param::text(&snippet),
                 ],

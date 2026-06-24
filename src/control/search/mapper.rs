@@ -430,7 +430,7 @@ pub fn decode_session_message(bytes: &[u8]) -> Result<data_proto::SessionMessage
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::search::{DocumentExt, KIND_KNOWLEDGE};
+    use crate::control::search::KIND_KNOWLEDGE;
 
     #[test]
     fn generic_resource_emits_metadata_document() {
@@ -466,9 +466,11 @@ mod tests {
 
         let documents = map_control_plane_resource(&key, &resource, 10).unwrap();
         assert_eq!(documents.len(), 1);
-        assert_eq!(documents[0].id(), format!("{}:metadata", key.canonical()));
-        assert_eq!(documents[0].resource_kind(), "Agent");
-        assert_eq!(documents[0].document_kind(), DOCUMENT_KIND_METADATA);
+        let document_ref = documents[0].r#ref.as_ref().expect("document ref");
+        let source = document_ref.source.as_ref().expect("document source");
+        assert_eq!(document_ref.id, format!("{}:metadata", key.canonical()));
+        assert_eq!(source.kind, "Agent");
+        assert_eq!(document_ref.document_kind, DOCUMENT_KIND_METADATA);
         assert!(documents[0].text.contains("support"));
         assert!(documents[0].text.contains("Ready"));
     }
@@ -498,8 +500,22 @@ mod tests {
 
         let documents = map_control_plane_resource(&key, &resource, 10).unwrap();
         assert_eq!(documents.len(), 2);
-        assert_eq!(documents[0].document_kind(), DOCUMENT_KIND_METADATA);
-        assert_eq!(documents[1].document_kind(), DOCUMENT_KIND_CONTENT);
+        assert_eq!(
+            documents[0]
+                .r#ref
+                .as_ref()
+                .expect("document ref")
+                .document_kind,
+            DOCUMENT_KIND_METADATA
+        );
+        assert_eq!(
+            documents[1]
+                .r#ref
+                .as_ref()
+                .expect("document ref")
+                .document_kind,
+            DOCUMENT_KIND_CONTENT
+        );
         assert_eq!(documents[1].text, "Refund policy details");
     }
 
@@ -529,7 +545,14 @@ mod tests {
 
         let documents = map_control_plane_resource(&key, &resource, 10).unwrap();
         assert_eq!(documents.len(), 1);
-        assert_eq!(documents[0].document_kind(), DOCUMENT_KIND_METADATA);
+        assert_eq!(
+            documents[0]
+                .r#ref
+                .as_ref()
+                .expect("document ref")
+                .document_kind,
+            DOCUMENT_KIND_METADATA
+        );
         assert!(documents[0].text.contains("raw-one"));
         assert!(!documents[0].text.contains("do-not-index"));
     }
@@ -564,10 +587,8 @@ mod tests {
             200,
         );
         assert_eq!(documents.len(), 1);
-        assert_eq!(
-            documents[0].id(),
-            format!("{}:part:000000", key.canonical())
-        );
-        assert_eq!(documents[0].document_kind(), DOCUMENT_KIND_MESSAGE_PART);
+        let document_ref = documents[0].r#ref.as_ref().expect("document ref");
+        assert_eq!(document_ref.id, format!("{}:part:000000", key.canonical()));
+        assert_eq!(document_ref.document_kind, DOCUMENT_KIND_MESSAGE_PART);
     }
 }

@@ -5,8 +5,8 @@ use super::store::{sort_results, DocumentStore};
 use super::{
     document_attributes, document_ref, document_source, next_page_token, page_offset, query_terms,
     search_limit, search_mode, search_namespaces, search_sort, snippet, DeleteScope, Document,
-    DocumentExt, SearchResponse, SearchResult, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID,
-    ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
+    SearchResponse, SearchResult, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID, ATTR_PART_ID,
+    ATTR_PART_TYPE, ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
 };
 use crate::gateway::rpc::proto;
 use anyhow::Result;
@@ -38,9 +38,21 @@ impl DocumentStore for PostgresDocumentStore {
     async fn upsert_documents(&self, documents: &[Document]) -> Result<()> {
         let mut tx = self.pool.begin().await?;
         for document in documents {
-            let labels_json = serde_json::to_string(document.labels())?;
-            let metadata_json = json_or_empty_object(document.metadata_json());
-            let acl_scope_json = json_or_empty_object(document.acl_scope_json());
+            let document_ref = document.r#ref.as_ref().expect("document ref is required");
+            let source = document_ref
+                .source
+                .as_ref()
+                .expect("document source is required");
+            let attr = |key: &str| {
+                document_ref
+                    .attributes
+                    .get(key)
+                    .map(String::as_str)
+                    .unwrap_or("")
+            };
+            let labels_json = serde_json::to_string(&document_ref.labels)?;
+            let metadata_json = json_or_empty_object(&document_ref.metadata_json);
+            let acl_scope_json = json_or_empty_object(&document_ref.acl_scope_json);
             let snippet = snippet(&document.text);
             sqlx::query(
                 r#"
@@ -86,32 +98,32 @@ impl DocumentStore for PostgresDocumentStore {
                     search_vector=excluded.search_vector
                 "#,
             )
-            .bind(document.namespace())
-            .bind(document.id())
-            .bind(document.resource_kind())
-            .bind(document.resource_key())
-            .bind(document.document_kind())
-            .bind(document.parent_kind())
-            .bind(document.parent_key())
-            .bind(document.agent())
-            .bind(document.session_id())
-            .bind(document.channel())
-            .bind(document.message_id())
-            .bind(document.run_id())
-            .bind(document.part_id())
-            .bind(document.part_type())
-            .bind(document.role())
-            .bind(document.title())
+            .bind(&source.namespace)
+            .bind(&document_ref.id)
+            .bind(&source.kind)
+            .bind(&source.key)
+            .bind(&document_ref.document_kind)
+            .bind(&source.parent_kind)
+            .bind(&source.parent_key)
+            .bind(attr(ATTR_AGENT))
+            .bind(attr(ATTR_SESSION_ID))
+            .bind(attr(ATTR_CHANNEL))
+            .bind(attr(ATTR_MESSAGE_ID))
+            .bind(attr(ATTR_RUN_ID))
+            .bind(attr(ATTR_PART_ID))
+            .bind(attr(ATTR_PART_TYPE))
+            .bind(attr(ATTR_ROLE))
+            .bind(&document_ref.title)
             .bind(&document.text)
             .bind(&snippet)
             .bind(labels_json)
             .bind(metadata_json)
             .bind(acl_scope_json)
-            .bind(document.created_at())
-            .bind(document.updated_at())
-            .bind(document.indexed_at())
-            .bind(document.generation() as i64)
-            .bind(document.embedding_ref())
+            .bind(document_ref.created_at)
+            .bind(document_ref.updated_at)
+            .bind(document_ref.indexed_at)
+            .bind(document_ref.generation as i64)
+            .bind(&document_ref.embedding_ref)
             .execute(&mut *tx)
             .await?;
         }
@@ -543,11 +555,13 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(response.results.len(), 1);
-        assert_eq!(response.results[0].document.id(), "doc-1");
-        assert_eq!(
-            response.results[0].document.document_kind(),
-            DOCUMENT_KIND_CONTENT
-        );
+        let document_ref = response.results[0]
+            .document
+            .r#ref
+            .as_ref()
+            .expect("document ref");
+        assert_eq!(document_ref.id, "doc-1");
+        assert_eq!(document_ref.document_kind, DOCUMENT_KIND_CONTENT);
 
         let prefix_response = store
             .search(&proto::SearchRequest {

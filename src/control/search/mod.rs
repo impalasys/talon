@@ -44,158 +44,6 @@ pub type Document = data_proto::Document;
 pub type DocumentRef = data_proto::DocumentRef;
 pub type DocumentSource = data_proto::DocumentSource;
 
-pub trait DocumentExt {
-    fn document_ref(&self) -> &DocumentRef;
-    fn source(&self) -> &DocumentSource;
-    fn id(&self) -> &str;
-    fn namespace(&self) -> &str;
-    fn resource_kind(&self) -> &str;
-    fn resource_key(&self) -> &str;
-    fn parent_kind(&self) -> &str;
-    fn parent_key(&self) -> &str;
-    fn document_kind(&self) -> &str;
-    fn subdocument_id(&self) -> &str;
-    fn title(&self) -> &str;
-    fn labels(&self) -> &HashMap<String, String>;
-    fn metadata_json(&self) -> &str;
-    fn acl_scope_json(&self) -> &str;
-    fn created_at(&self) -> i64;
-    fn updated_at(&self) -> i64;
-    fn indexed_at(&self) -> i64;
-    fn generation(&self) -> u64;
-    fn embedding_ref(&self) -> &str;
-    fn attribute(&self, key: &str) -> &str;
-    fn agent(&self) -> &str;
-    fn session_id(&self) -> &str;
-    fn channel(&self) -> &str;
-    fn message_id(&self) -> &str;
-    fn run_id(&self) -> &str;
-    fn part_id(&self) -> &str;
-    fn part_type(&self) -> &str;
-    fn role(&self) -> &str;
-}
-
-impl DocumentExt for Document {
-    fn document_ref(&self) -> &DocumentRef {
-        self.r#ref.as_ref().expect("document ref is required")
-    }
-
-    fn source(&self) -> &DocumentSource {
-        self.document_ref()
-            .source
-            .as_ref()
-            .expect("document source is required")
-    }
-
-    fn id(&self) -> &str {
-        &self.document_ref().id
-    }
-
-    fn namespace(&self) -> &str {
-        &self.source().namespace
-    }
-
-    fn resource_kind(&self) -> &str {
-        &self.source().kind
-    }
-
-    fn resource_key(&self) -> &str {
-        &self.source().key
-    }
-
-    fn parent_kind(&self) -> &str {
-        &self.source().parent_kind
-    }
-
-    fn parent_key(&self) -> &str {
-        &self.source().parent_key
-    }
-
-    fn document_kind(&self) -> &str {
-        &self.document_ref().document_kind
-    }
-
-    fn subdocument_id(&self) -> &str {
-        &self.document_ref().subdocument_id
-    }
-
-    fn title(&self) -> &str {
-        &self.document_ref().title
-    }
-
-    fn labels(&self) -> &HashMap<String, String> {
-        &self.document_ref().labels
-    }
-
-    fn metadata_json(&self) -> &str {
-        &self.document_ref().metadata_json
-    }
-
-    fn acl_scope_json(&self) -> &str {
-        &self.document_ref().acl_scope_json
-    }
-
-    fn created_at(&self) -> i64 {
-        self.document_ref().created_at
-    }
-
-    fn updated_at(&self) -> i64 {
-        self.document_ref().updated_at
-    }
-
-    fn indexed_at(&self) -> i64 {
-        self.document_ref().indexed_at
-    }
-
-    fn generation(&self) -> u64 {
-        self.document_ref().generation
-    }
-
-    fn embedding_ref(&self) -> &str {
-        &self.document_ref().embedding_ref
-    }
-
-    fn attribute(&self, key: &str) -> &str {
-        self.document_ref()
-            .attributes
-            .get(key)
-            .map(String::as_str)
-            .unwrap_or("")
-    }
-
-    fn agent(&self) -> &str {
-        self.attribute(ATTR_AGENT)
-    }
-
-    fn session_id(&self) -> &str {
-        self.attribute(ATTR_SESSION_ID)
-    }
-
-    fn channel(&self) -> &str {
-        self.attribute(ATTR_CHANNEL)
-    }
-
-    fn message_id(&self) -> &str {
-        self.attribute(ATTR_MESSAGE_ID)
-    }
-
-    fn run_id(&self) -> &str {
-        self.attribute(ATTR_RUN_ID)
-    }
-
-    fn part_id(&self) -> &str {
-        self.attribute(ATTR_PART_ID)
-    }
-
-    fn part_type(&self) -> &str {
-        self.attribute(ATTR_PART_TYPE)
-    }
-
-    fn role(&self) -> &str {
-        self.attribute(ATTR_ROLE)
-    }
-}
-
 pub fn document_ref(
     id: String,
     source: DocumentSource,
@@ -309,43 +157,45 @@ pub struct DeleteScope {
 }
 
 pub(crate) fn query_matches(query: &proto::SearchRequest, document: &Document) -> bool {
-    if let Some(source) = query.source.as_ref() {
-        if !source.key.is_empty() && source.key != document.resource_key() {
+    let document_ref = document.r#ref.as_ref().expect("document ref is required");
+    let source = document_ref
+        .source
+        .as_ref()
+        .expect("document source is required");
+    if let Some(query_source) = query.source.as_ref() {
+        if !query_source.key.is_empty() && query_source.key != source.key {
             return false;
         }
-        if !source.key_prefix.is_empty() && !document.resource_key().starts_with(&source.key_prefix)
+        if !query_source.key_prefix.is_empty() && !source.key.starts_with(&query_source.key_prefix)
         {
             return false;
         }
-        if !source.parent_key.is_empty() && source.parent_key != document.parent_key() {
+        if !query_source.parent_key.is_empty() && query_source.parent_key != source.parent_key {
             return false;
         }
-        if !source.kinds.is_empty()
-            && !source
-                .kinds
-                .iter()
-                .any(|kind| kind == document.resource_kind())
+        if !query_source.kinds.is_empty()
+            && !query_source.kinds.iter().any(|kind| kind == &source.kind)
         {
             return false;
         }
     }
     for (key, value) in &query.attributes {
-        if document.document_ref().attributes.get(key) != Some(value) {
+        if document_ref.attributes.get(key) != Some(value) {
             return false;
         }
     }
     if let Some(start) = query.start_time {
-        if document.created_at() < start {
+        if document_ref.created_at < start {
             return false;
         }
     }
     if let Some(end) = query.end_time {
-        if document.created_at() > end {
+        if document_ref.created_at > end {
             return false;
         }
     }
     for (key, value) in &query.labels {
-        if document.labels().get(key) != Some(value) {
+        if document_ref.labels.get(key) != Some(value) {
             return false;
         }
     }
@@ -353,45 +203,62 @@ pub(crate) fn query_matches(query: &proto::SearchRequest, document: &Document) -
     if terms.is_empty() {
         return true;
     }
-    let haystack = format!("{} {}", document.title(), document.text).to_lowercase();
+    let haystack = format!("{} {}", document_ref.title, document.text).to_lowercase();
     terms.iter().all(|term| haystack.contains(term))
 }
 
 pub(crate) fn delete_matches(scope: &DeleteScope, document: &Document) -> bool {
-    if !scope.resource_kind.is_empty() && scope.resource_kind != document.resource_kind() {
+    let document_ref = document.r#ref.as_ref().expect("document ref is required");
+    let source = document_ref
+        .source
+        .as_ref()
+        .expect("document source is required");
+    if !scope.resource_kind.is_empty() && scope.resource_kind != source.kind {
         return false;
     }
-    if !scope.resource_key.is_empty() && scope.resource_key != document.resource_key() {
+    if !scope.resource_key.is_empty() && scope.resource_key != source.key {
         return false;
     }
-    if !scope.resource_key_prefix.is_empty()
-        && !document
-            .resource_key()
-            .starts_with(&scope.resource_key_prefix)
+    if !scope.resource_key_prefix.is_empty() && !source.key.starts_with(&scope.resource_key_prefix)
     {
         return false;
     }
-    if !scope.agent.is_empty() && scope.agent != document.agent() {
+    if !scope.agent.is_empty()
+        && document_ref.attributes.get(ATTR_AGENT).map(String::as_str) != Some(scope.agent.as_str())
+    {
         return false;
     }
-    if !scope.session_id.is_empty() && scope.session_id != document.session_id() {
+    if !scope.session_id.is_empty()
+        && document_ref
+            .attributes
+            .get(ATTR_SESSION_ID)
+            .map(String::as_str)
+            != Some(scope.session_id.as_str())
+    {
         return false;
     }
-    if !scope.channel.is_empty() && scope.channel != document.channel() {
+    if !scope.channel.is_empty()
+        && document_ref
+            .attributes
+            .get(ATTR_CHANNEL)
+            .map(String::as_str)
+            != Some(scope.channel.as_str())
+    {
         return false;
     }
-    if scope.max_source_generation > 0 && document.generation() > scope.max_source_generation {
+    if scope.max_source_generation > 0 && document_ref.generation > scope.max_source_generation {
         return false;
     }
     true
 }
 
 pub(crate) fn score_document(query: &str, document: &Document) -> f32 {
+    let document_ref = document.r#ref.as_ref().expect("document ref is required");
     let terms = query_terms(query);
     if terms.is_empty() {
         return 1.0;
     }
-    let title = document.title().to_lowercase();
+    let title = document_ref.title.to_lowercase();
     let text = document.text.to_lowercase();
     let mut score = 0.0;
     for term in terms {
@@ -568,7 +435,15 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(response.results.len(), 1);
-        assert_eq!(response.results[0].document.id(), "doc-1");
+        assert_eq!(
+            response.results[0]
+                .document
+                .r#ref
+                .as_ref()
+                .expect("document ref")
+                .id,
+            "doc-1"
+        );
 
         let deleted = backend
             .delete(&DeleteScope {

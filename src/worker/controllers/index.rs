@@ -162,7 +162,7 @@ fn parent_segment(key: &keys::ResourceKey, kind: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::search::{self, DocumentExt};
+    use crate::control::search;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::gateway::rpc::data_proto;
     use crate::test_support::{EmptyPubSub, MockKvStore};
@@ -240,9 +240,13 @@ mod tests {
             .await
             .unwrap()
             .expect("document should be indexed");
+        let document_ref = document.r#ref.as_ref().expect("document ref");
         assert_eq!(document.text, "Refund policy details");
-        assert_eq!(document.document_kind(), search::DOCUMENT_KIND_MESSAGE_PART);
-        assert_eq!(document.generation(), 7);
+        assert_eq!(
+            document_ref.document_kind,
+            search::DOCUMENT_KIND_MESSAGE_PART
+        );
+        assert_eq!(document_ref.generation, 7);
     }
 
     #[tokio::test]
@@ -337,9 +341,11 @@ mod tests {
             .await
             .unwrap()
             .expect("metadata document should be indexed");
-        assert_eq!(document.resource_kind(), "Agent");
-        assert_eq!(document.document_kind(), search::DOCUMENT_KIND_METADATA);
-        assert_eq!(document.generation(), meta.generation);
+        let document_ref = document.r#ref.as_ref().expect("document ref");
+        let source = document_ref.source.as_ref().expect("document source");
+        assert_eq!(source.kind, "Agent");
+        assert_eq!(document_ref.document_kind, search::DOCUMENT_KIND_METADATA);
+        assert_eq!(document_ref.generation, meta.generation);
         assert!(document.text.contains("support"));
     }
 
@@ -405,7 +411,10 @@ mod tests {
                 .await
                 .unwrap()
                 .expect("current document should remain after stale upsert")
-                .generation(),
+                .r#ref
+                .as_ref()
+                .expect("document ref")
+                .generation,
             current_generation
         );
 
