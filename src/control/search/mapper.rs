@@ -19,26 +19,34 @@ pub struct DocumentMapper {
     cp: Arc<ControlPlane>,
 }
 
-enum MappableSource {
-    SessionMessage(data_proto::SessionMessage),
-    Resource(resources_proto::Resource),
+trait MappableSource: Send + Sync {
+    fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>>;
 }
 
-impl MappableSource {
-    fn map(
-        self,
-        key: &keys::ResourceKey,
-        generation: u64,
-        indexed_at: i64,
-    ) -> Result<Vec<Document>> {
-        match self {
-            Self::SessionMessage(message) => Ok(map_session_message_parts(
-                key, message, generation, indexed_at,
-            )),
-            Self::Resource(resource) => {
-                map_control_plane_resource(key, resource, generation, indexed_at)
-            }
-        }
+struct SessionMessageSource {
+    key: keys::ResourceKey,
+    message: data_proto::SessionMessage,
+}
+
+impl MappableSource for SessionMessageSource {
+    fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>> {
+        Ok(map_session_message_parts(
+            &self.key,
+            self.message,
+            generation,
+            indexed_at,
+        ))
+    }
+}
+
+struct ControlPlaneResourceSource {
+    key: keys::ResourceKey,
+    resource: resources_proto::Resource,
+}
+
+impl MappableSource for ControlPlaneResourceSource {
+    fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>> {
+        map_control_plane_resource(&self.key, self.resource, generation, indexed_at)
     }
 }
 
@@ -54,13 +62,16 @@ impl DocumentMapper {
         generation: u64,
         indexed_at: i64,
     ) -> Result<Vec<Document>> {
-        self.load_source(key)
-            .await?
-            .map(|source| source.map(key, generation, indexed_at))
-            .unwrap_or_else(|| Ok(Vec::new()))
+        let Some(source) = self.load_source(key).await? else {
+            return Ok(Vec::new());
+        };
+        source.map(generation, indexed_at)
     }
 
-    async fn load_source(&self, key: &keys::ResourceKey) -> Result<Option<MappableSource>> {
+    async fn load_source(
+        &self,
+        key: &keys::ResourceKey,
+    ) -> Result<Option<Box<dyn MappableSource>>> {
         if key.kind == "Session" {
             anyhow::bail!("session index key cannot be upserted");
         }
@@ -71,14 +82,19 @@ impl DocumentMapper {
     }
 }
 
-fn mappable_source_for_key(key: &keys::ResourceKey, bytes: &[u8]) -> Result<MappableSource> {
+fn mappable_source_for_key(
+    key: &keys::ResourceKey,
+    bytes: &[u8],
+) -> Result<Box<dyn MappableSource>> {
     match key.kind.as_str() {
-        "SessionMessage" => Ok(MappableSource::SessionMessage(
-            data_proto::SessionMessage::decode(bytes)?,
-        )),
-        _ => Ok(MappableSource::Resource(
-            ResourceStore::decode_stored_resource(&key.kind, bytes)?,
-        )),
+        "SessionMessage" => Ok(Box::new(SessionMessageSource {
+            key: key.clone(),
+            message: data_proto::SessionMessage::decode(bytes)?,
+        })),
+        _ => Ok(Box::new(ControlPlaneResourceSource {
+            key: key.clone(),
+            resource: ResourceStore::decode_stored_resource(&key.kind, bytes)?,
+        })),
     }
 }
 
