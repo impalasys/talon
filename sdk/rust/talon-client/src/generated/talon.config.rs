@@ -359,6 +359,8 @@ pub struct ControlPlaneConfig {
     pub scheduler: ::core::option::Option<SchedulerConfig>,
     #[prost(message, optional, tag = "4")]
     pub object_store: ::core::option::Option<ObjectStoreConfig>,
+    #[prost(message, optional, tag = "5")]
+    pub documents: ::core::option::Option<DatabaseConfig>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ServerConfig {
