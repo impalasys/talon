@@ -3,7 +3,9 @@
 
 use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
 use crate::control::ns;
-use crate::control::search::{self, Document, ATTR_AGENT, ATTR_CHANNEL, ATTR_SESSION_ID};
+use crate::control::search::{
+    self, Document, DocumentExt, ATTR_AGENT, ATTR_CHANNEL, ATTR_SESSION_ID,
+};
 use crate::control::{keys, ProtoKeyValueStoreExt};
 use crate::gateway::auth::{self, AuthMode, Claims};
 
@@ -52,7 +54,7 @@ impl GrpcGatewayHandler {
         recheck_document_auth(self, &metadata, &document)?;
         let content = canonical_content(self, &document).await?;
         Ok(tonic::Response::new(proto::GetSearchResultResponse {
-            document: Some(document_proto(document)),
+            document: Some(document),
             content,
         }))
     }
@@ -164,38 +166,12 @@ pub(crate) fn search_response_proto(response: search::SearchResponse) -> proto::
             .results
             .into_iter()
             .map(|result| proto::SearchResult {
-                document: Some(document_proto(result.document)),
+                document: result.document.r#ref,
+                snippet: result.snippet,
                 score: result.score,
             })
             .collect(),
         next_page_token: response.next_page_token,
-    }
-}
-
-pub(crate) fn document_proto(document: Document) -> proto::Document {
-    proto::Document {
-        id: document.id,
-        source: Some(proto::DocumentSource {
-            key: document.source.key,
-            namespace: document.source.namespace,
-            kind: document.source.kind,
-            name: document.source.name,
-            parent_kind: document.source.parent_kind,
-            parent_key: document.source.parent_key,
-        }),
-        document_kind: document.document_kind,
-        subdocument_id: document.subdocument_id,
-        attributes: document.attributes,
-        title: document.title,
-        snippet: document.snippet,
-        labels: document.labels,
-        metadata_json: document.metadata_json,
-        acl_scope_json: document.acl_scope_json,
-        created_at: document.created_at,
-        updated_at: document.updated_at,
-        indexed_at: document.indexed_at,
-        generation: document.generation,
-        embedding_ref: document.embedding_ref,
     }
 }
 
@@ -291,7 +267,7 @@ async fn canonical_content(
                 .await
                 .map_err(|error| tonic::Status::internal(error.to_string()))?
                 .ok_or_else(|| tonic::Status::not_found("resource not found"))?;
-            if document.resource_kind() == "Knowledge" && document.document_kind == "content" {
+            if document.resource_kind() == "Knowledge" && document.document_kind() == "content" {
                 let Some(resources_proto::resource_spec::Kind::Knowledge(spec)) =
                     resource.spec.and_then(|spec| spec.kind)
                 else {

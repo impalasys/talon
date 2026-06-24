@@ -162,7 +162,7 @@ fn parent_segment(key: &keys::ResourceKey, kind: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::search;
+    use crate::control::search::{self, DocumentExt};
     use crate::control::ProtoKeyValueStoreExt;
     use crate::gateway::rpc::data_proto;
     use crate::test_support::{EmptyPubSub, MockKvStore};
@@ -241,8 +241,8 @@ mod tests {
             .unwrap()
             .expect("document should be indexed");
         assert_eq!(document.text, "Refund policy details");
-        assert_eq!(document.document_kind, search::DOCUMENT_KIND_MESSAGE_PART);
-        assert_eq!(document.generation, 7);
+        assert_eq!(document.document_kind(), search::DOCUMENT_KIND_MESSAGE_PART);
+        assert_eq!(document.generation(), 7);
     }
 
     #[tokio::test]
@@ -338,8 +338,8 @@ mod tests {
             .unwrap()
             .expect("metadata document should be indexed");
         assert_eq!(document.resource_kind(), "Agent");
-        assert_eq!(document.document_kind, search::DOCUMENT_KIND_METADATA);
-        assert_eq!(document.generation, meta.generation);
+        assert_eq!(document.document_kind(), search::DOCUMENT_KIND_METADATA);
+        assert_eq!(document.generation(), meta.generation);
         assert!(document.text.contains("support"));
     }
 
@@ -405,7 +405,7 @@ mod tests {
                 .await
                 .unwrap()
                 .expect("current document should remain after stale upsert")
-                .generation,
+                .generation(),
             current_generation
         );
 
@@ -483,32 +483,36 @@ mod tests {
         documents
             .upsert_documents(&[
                 Document {
-                    id: namespace_doc_id.clone(),
-                    source: search::document_source(
-                        ns::TALON_SYSTEM.to_string(),
-                        "Namespace".to_string(),
-                        namespace_key.canonical(),
-                        String::new(),
-                        String::new(),
-                    ),
-                    document_kind: search::DOCUMENT_KIND_METADATA.to_string(),
-                    title: "Namespace/acme".to_string(),
+                    r#ref: Some(search::DocumentRef {
+                        id: namespace_doc_id.clone(),
+                        source: Some(search::document_source(
+                            ns::TALON_SYSTEM.to_string(),
+                            "Namespace".to_string(),
+                            namespace_key.canonical(),
+                            String::new(),
+                            String::new(),
+                        )),
+                        document_kind: search::DOCUMENT_KIND_METADATA.to_string(),
+                        title: "Namespace/acme".to_string(),
+                        ..Default::default()
+                    }),
                     text: "acme namespace".to_string(),
-                    ..Default::default()
                 },
                 Document {
-                    id: agent_doc_id.clone(),
-                    source: search::document_source(
-                        "acme".to_string(),
-                        "Agent".to_string(),
-                        agent_key.canonical(),
-                        String::new(),
-                        String::new(),
-                    ),
-                    document_kind: search::DOCUMENT_KIND_METADATA.to_string(),
-                    title: "Agent/support".to_string(),
+                    r#ref: Some(search::DocumentRef {
+                        id: agent_doc_id.clone(),
+                        source: Some(search::document_source(
+                            "acme".to_string(),
+                            "Agent".to_string(),
+                            agent_key.canonical(),
+                            String::new(),
+                            String::new(),
+                        )),
+                        document_kind: search::DOCUMENT_KIND_METADATA.to_string(),
+                        title: "Agent/support".to_string(),
+                        ..Default::default()
+                    }),
                     text: "support agent".to_string(),
-                    ..Default::default()
                 },
             ])
             .await

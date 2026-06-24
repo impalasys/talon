@@ -6,7 +6,7 @@ use serde_json::{json, Value};
 use std::sync::Arc;
 
 use crate::control::resources::ResourceStore;
-use crate::control::search::{DocumentStore, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
+use crate::control::search::{DocumentExt, DocumentStore, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
 use crate::control::MessagePublisher;
 use crate::gateway::rpc::{proto, resources_proto};
 
@@ -346,19 +346,19 @@ impl KvKnowledgeBook {
         for result in response.results {
             let score = result.score;
             let document = result.document;
-            if document.document_kind != DOCUMENT_KIND_CONTENT {
+            if document.document_kind() != DOCUMENT_KIND_CONTENT {
                 continue;
             }
-            let path = knowledge_path_from_metadata(&document.metadata_json)
-                .unwrap_or_else(|| document.title.clone());
+            let path = knowledge_path_from_metadata(document.metadata_json())
+                .unwrap_or_else(|| document.title().to_string());
             let rank = *namespace_rank
                 .get(document.namespace())
                 .unwrap_or(&usize::MAX);
             let entry = KnowledgeResult {
                 namespace: document.namespace().to_string(),
                 path: path.clone(),
-                excerpt: document.snippet,
-                updated_at: document.updated_at,
+                excerpt: result.snippet,
+                updated_at: document.updated_at(),
             };
             match by_path.get(&path) {
                 Some((current_rank, _, _)) if *current_rank <= rank => {}
@@ -616,7 +616,8 @@ mod tests {
     use crate::control::{
         keys::{ResourceKey, ResourceList},
         search::{
-            document_source, memory_document_store, Document, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE,
+            document_ref, document_source, memory_document_store, Document, DocumentRef,
+            DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE,
         },
         KeyValueStore,
     };
@@ -628,6 +629,36 @@ mod tests {
 
     struct MockKvStore {
         store: Mutex<HashMap<ResourceKey, Vec<u8>>>,
+    }
+
+    fn knowledge_document(
+        id: &str,
+        namespace: &str,
+        key: &str,
+        title: &str,
+        text: &str,
+        updated_at: i64,
+    ) -> Document {
+        Document {
+            r#ref: Some(DocumentRef {
+                title: title.to_string(),
+                metadata_json: r#"{"path":"docs.md"}"#.to_string(),
+                updated_at,
+                ..document_ref(
+                    id.to_string(),
+                    document_source(
+                        namespace.to_string(),
+                        KIND_KNOWLEDGE.to_string(),
+                        key.to_string(),
+                        String::new(),
+                        String::new(),
+                    ),
+                    DOCUMENT_KIND_CONTENT.to_string(),
+                    String::new(),
+                )
+            }),
+            text: text.to_string(),
+        }
     }
 
     #[tokio::test]
@@ -783,23 +814,14 @@ mod tests {
         let kv = Arc::new(MockKvStore::new());
         let documents = memory_document_store();
         documents
-            .upsert_documents(&[Document {
-                id: "@Namespace/conic/@/Knowledge/docs:content".to_string(),
-                source: document_source(
-                    "conic".to_string(),
-                    KIND_KNOWLEDGE.to_string(),
-                    "@Namespace/conic/@/Knowledge/docs".to_string(),
-                    String::new(),
-                    String::new(),
-                ),
-                document_kind: DOCUMENT_KIND_CONTENT.to_string(),
-                title: "docs.md".to_string(),
-                text: "Document-store knowledge result".to_string(),
-                snippet: "Document-store knowledge result".to_string(),
-                metadata_json: r#"{"path":"docs.md"}"#.to_string(),
-                updated_at: 42,
-                ..Default::default()
-            }])
+            .upsert_documents(&[knowledge_document(
+                "@Namespace/conic/@/Knowledge/docs:content",
+                "conic",
+                "@Namespace/conic/@/Knowledge/docs",
+                "docs.md",
+                "Document-store knowledge result",
+                42,
+            )])
             .await
             .unwrap();
         let book = KvKnowledgeBook::with_documents(
@@ -834,40 +856,22 @@ mod tests {
         let documents = memory_document_store();
         documents
             .upsert_documents(&[
-                Document {
-                    id: "@Namespace/conic/@/Knowledge/docs:content".to_string(),
-                    source: document_source(
-                        "conic".to_string(),
-                        KIND_KNOWLEDGE.to_string(),
-                        "@Namespace/conic/@/Knowledge/docs".to_string(),
-                        String::new(),
-                        String::new(),
-                    ),
-                    document_kind: DOCUMENT_KIND_CONTENT.to_string(),
-                    title: "docs.md".to_string(),
-                    text: "shared document store result".to_string(),
-                    snippet: "root result".to_string(),
-                    metadata_json: r#"{"path":"docs.md"}"#.to_string(),
-                    updated_at: 42,
-                    ..Default::default()
-                },
-                Document {
-                    id: "@Namespace/conic:wks:13/@/Knowledge/docs:content".to_string(),
-                    source: document_source(
-                        "conic:wks:13".to_string(),
-                        KIND_KNOWLEDGE.to_string(),
-                        "@Namespace/conic:wks:13/@/Knowledge/docs".to_string(),
-                        String::new(),
-                        String::new(),
-                    ),
-                    document_kind: DOCUMENT_KIND_CONTENT.to_string(),
-                    title: "docs.md".to_string(),
-                    text: "shared document store result".to_string(),
-                    snippet: "child result".to_string(),
-                    metadata_json: r#"{"path":"docs.md"}"#.to_string(),
-                    updated_at: 41,
-                    ..Default::default()
-                },
+                knowledge_document(
+                    "@Namespace/conic/@/Knowledge/docs:content",
+                    "conic",
+                    "@Namespace/conic/@/Knowledge/docs",
+                    "docs.md",
+                    "root document-store result",
+                    42,
+                ),
+                knowledge_document(
+                    "@Namespace/conic:wks:13/@/Knowledge/docs:content",
+                    "conic:wks:13",
+                    "@Namespace/conic:wks:13/@/Knowledge/docs",
+                    "docs.md",
+                    "child document-store result",
+                    41,
+                ),
             ])
             .await
             .unwrap();
@@ -885,7 +889,7 @@ mod tests {
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].namespace, "conic:wks:13");
         assert_eq!(results[0].path, "docs.md");
-        assert_eq!(results[0].excerpt, "child result");
+        assert!(results[0].excerpt.contains("child"));
     }
 
     #[tokio::test]

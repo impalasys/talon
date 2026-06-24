@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
 use crate::control::keys;
-use crate::gateway::rpc::proto;
+use crate::gateway::rpc::{data_proto, proto};
 
 pub use d1::D1DocumentStore;
 pub use disabled::{disabled_document_store, DisabledDocumentStore};
@@ -40,96 +40,174 @@ pub const ATTR_PART_ID: &str = "part_id";
 pub const ATTR_PART_TYPE: &str = "part_type";
 pub const ATTR_ROLE: &str = "role";
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
-#[serde(rename_all = "camelCase", default)]
-pub struct DocumentSource {
-    pub namespace: String,
-    pub kind: String,
-    pub key: String,
-    pub name: String,
-    pub parent_kind: String,
-    pub parent_key: String,
-    pub uid: String,
-    pub generation: u64,
-    pub resource_version: String,
+pub type Document = data_proto::Document;
+pub type DocumentRef = data_proto::DocumentRef;
+pub type DocumentSource = data_proto::DocumentSource;
+
+pub trait DocumentExt {
+    fn document_ref(&self) -> &DocumentRef;
+    fn source(&self) -> &DocumentSource;
+    fn id(&self) -> &str;
+    fn namespace(&self) -> &str;
+    fn resource_kind(&self) -> &str;
+    fn resource_key(&self) -> &str;
+    fn parent_kind(&self) -> &str;
+    fn parent_key(&self) -> &str;
+    fn document_kind(&self) -> &str;
+    fn subdocument_id(&self) -> &str;
+    fn title(&self) -> &str;
+    fn labels(&self) -> &HashMap<String, String>;
+    fn metadata_json(&self) -> &str;
+    fn acl_scope_json(&self) -> &str;
+    fn created_at(&self) -> i64;
+    fn updated_at(&self) -> i64;
+    fn indexed_at(&self) -> i64;
+    fn generation(&self) -> u64;
+    fn embedding_ref(&self) -> &str;
+    fn attribute(&self, key: &str) -> &str;
+    fn agent(&self) -> &str;
+    fn session_id(&self) -> &str;
+    fn channel(&self) -> &str;
+    fn message_id(&self) -> &str;
+    fn run_id(&self) -> &str;
+    fn part_id(&self) -> &str;
+    fn part_type(&self) -> &str;
+    fn role(&self) -> &str;
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(rename_all = "camelCase", default)]
-pub struct Document {
-    pub id: String,
-    pub source: DocumentSource,
-    pub document_kind: String,
-    pub subdocument_id: String,
-    pub attributes: HashMap<String, String>,
-    pub title: String,
-    pub text: String,
-    pub snippet: String,
-    pub labels: HashMap<String, String>,
-    pub metadata_json: String,
-    pub acl_scope_json: String,
-    pub created_at: i64,
-    pub updated_at: i64,
-    pub indexed_at: i64,
-    pub generation: u64,
-    pub embedding_ref: String,
-}
-
-impl Document {
-    pub fn namespace(&self) -> &str {
-        &self.source.namespace
+impl DocumentExt for Document {
+    fn document_ref(&self) -> &DocumentRef {
+        self.r#ref.as_ref().expect("document ref is required")
     }
 
-    pub fn resource_kind(&self) -> &str {
-        &self.source.kind
+    fn source(&self) -> &DocumentSource {
+        self.document_ref()
+            .source
+            .as_ref()
+            .expect("document source is required")
     }
 
-    pub fn resource_key(&self) -> &str {
-        &self.source.key
+    fn id(&self) -> &str {
+        &self.document_ref().id
     }
 
-    pub fn parent_kind(&self) -> &str {
-        &self.source.parent_kind
+    fn namespace(&self) -> &str {
+        &self.source().namespace
     }
 
-    pub fn parent_key(&self) -> &str {
-        &self.source.parent_key
+    fn resource_kind(&self) -> &str {
+        &self.source().kind
     }
 
-    pub fn attribute(&self, key: &str) -> &str {
-        self.attributes.get(key).map(String::as_str).unwrap_or("")
+    fn resource_key(&self) -> &str {
+        &self.source().key
     }
 
-    pub fn agent(&self) -> &str {
+    fn parent_kind(&self) -> &str {
+        &self.source().parent_kind
+    }
+
+    fn parent_key(&self) -> &str {
+        &self.source().parent_key
+    }
+
+    fn document_kind(&self) -> &str {
+        &self.document_ref().document_kind
+    }
+
+    fn subdocument_id(&self) -> &str {
+        &self.document_ref().subdocument_id
+    }
+
+    fn title(&self) -> &str {
+        &self.document_ref().title
+    }
+
+    fn labels(&self) -> &HashMap<String, String> {
+        &self.document_ref().labels
+    }
+
+    fn metadata_json(&self) -> &str {
+        &self.document_ref().metadata_json
+    }
+
+    fn acl_scope_json(&self) -> &str {
+        &self.document_ref().acl_scope_json
+    }
+
+    fn created_at(&self) -> i64 {
+        self.document_ref().created_at
+    }
+
+    fn updated_at(&self) -> i64 {
+        self.document_ref().updated_at
+    }
+
+    fn indexed_at(&self) -> i64 {
+        self.document_ref().indexed_at
+    }
+
+    fn generation(&self) -> u64 {
+        self.document_ref().generation
+    }
+
+    fn embedding_ref(&self) -> &str {
+        &self.document_ref().embedding_ref
+    }
+
+    fn attribute(&self, key: &str) -> &str {
+        self.document_ref()
+            .attributes
+            .get(key)
+            .map(String::as_str)
+            .unwrap_or("")
+    }
+
+    fn agent(&self) -> &str {
         self.attribute(ATTR_AGENT)
     }
 
-    pub fn session_id(&self) -> &str {
+    fn session_id(&self) -> &str {
         self.attribute(ATTR_SESSION_ID)
     }
 
-    pub fn channel(&self) -> &str {
+    fn channel(&self) -> &str {
         self.attribute(ATTR_CHANNEL)
     }
 
-    pub fn message_id(&self) -> &str {
+    fn message_id(&self) -> &str {
         self.attribute(ATTR_MESSAGE_ID)
     }
 
-    pub fn run_id(&self) -> &str {
+    fn run_id(&self) -> &str {
         self.attribute(ATTR_RUN_ID)
     }
 
-    pub fn part_id(&self) -> &str {
+    fn part_id(&self) -> &str {
         self.attribute(ATTR_PART_ID)
     }
 
-    pub fn part_type(&self) -> &str {
+    fn part_type(&self) -> &str {
         self.attribute(ATTR_PART_TYPE)
     }
 
-    pub fn role(&self) -> &str {
+    fn role(&self) -> &str {
         self.attribute(ATTR_ROLE)
+    }
+}
+
+pub fn document_ref(
+    id: String,
+    source: DocumentSource,
+    document_kind: String,
+    subdocument_id: String,
+) -> DocumentRef {
+    DocumentRef {
+        id,
+        source: Some(source),
+        document_kind,
+        subdocument_id,
+        ..Default::default()
     }
 }
 
@@ -145,8 +223,8 @@ pub fn document_source(
         .unwrap_or_default();
     DocumentSource {
         namespace,
-        kind,
         key,
+        kind,
         name,
         parent_kind,
         parent_key,
@@ -206,6 +284,7 @@ pub fn search_sort(query: &proto::SearchRequest) -> proto::SearchSort {
 #[serde(rename_all = "camelCase", default)]
 pub struct SearchResult {
     pub document: Document,
+    pub snippet: String,
     pub score: f32,
 }
 
@@ -251,22 +330,22 @@ pub(crate) fn query_matches(query: &proto::SearchRequest, document: &Document) -
         }
     }
     for (key, value) in &query.attributes {
-        if document.attributes.get(key) != Some(value) {
+        if document.document_ref().attributes.get(key) != Some(value) {
             return false;
         }
     }
     if let Some(start) = query.start_time {
-        if document.created_at < start {
+        if document.created_at() < start {
             return false;
         }
     }
     if let Some(end) = query.end_time {
-        if document.created_at > end {
+        if document.created_at() > end {
             return false;
         }
     }
     for (key, value) in &query.labels {
-        if document.labels.get(key) != Some(value) {
+        if document.labels().get(key) != Some(value) {
             return false;
         }
     }
@@ -274,8 +353,7 @@ pub(crate) fn query_matches(query: &proto::SearchRequest, document: &Document) -
     if terms.is_empty() {
         return true;
     }
-    let haystack =
-        format!("{} {} {}", document.title, document.text, document.snippet).to_lowercase();
+    let haystack = format!("{} {}", document.title(), document.text).to_lowercase();
     terms.iter().all(|term| haystack.contains(term))
 }
 
@@ -302,7 +380,7 @@ pub(crate) fn delete_matches(scope: &DeleteScope, document: &Document) -> bool {
     if !scope.channel.is_empty() && scope.channel != document.channel() {
         return false;
     }
-    if scope.max_source_generation > 0 && document.generation > scope.max_source_generation {
+    if scope.max_source_generation > 0 && document.generation() > scope.max_source_generation {
         return false;
     }
     true
@@ -313,7 +391,7 @@ pub(crate) fn score_document(query: &str, document: &Document) -> f32 {
     if terms.is_empty() {
         return 1.0;
     }
-    let title = document.title.to_lowercase();
+    let title = document.title().to_lowercase();
     let text = document.text.to_lowercase();
     let mut score = 0.0;
     for term in terms {
@@ -414,6 +492,23 @@ pub fn unique_namespaces(namespaces: impl IntoIterator<Item = String>) -> Vec<St
 mod tests {
     use super::*;
 
+    fn test_document(
+        id: String,
+        source: DocumentSource,
+        document_kind: String,
+        text: String,
+    ) -> Document {
+        Document {
+            r#ref: Some(DocumentRef {
+                id,
+                source: Some(source),
+                document_kind,
+                ..Default::default()
+            }),
+            text,
+        }
+    }
+
     #[test]
     fn document_store_capabilities_advertise_supported_modes() {
         let keyword = DocumentStoreCapabilities::keyword_only();
@@ -436,27 +531,26 @@ mod tests {
     #[tokio::test]
     async fn memory_document_store_searches_and_deletes_documents() {
         let backend = memory_document_store();
-        let document = Document {
-            id: "doc-1".to_string(),
-            source: document_source(
+        let mut document = test_document(
+            "doc-1".to_string(),
+            document_source(
                 "acme".to_string(),
                 KIND_SESSION_MESSAGE.to_string(),
                 "@Namespace/acme/Agent/support/Session/s1/@/SessionMessage/m1".to_string(),
                 "Session".to_string(),
                 "@Namespace/acme/Agent/support/@/Session/s1".to_string(),
             ),
-            document_kind: DOCUMENT_KIND_MESSAGE_PART.to_string(),
-            attributes: document_attributes([
-                (ATTR_AGENT, "support".to_string()),
-                (ATTR_SESSION_ID, "s1".to_string()),
-            ]),
-            title: "Support session".to_string(),
-            text: "refund policy details".to_string(),
-            snippet: "refund policy details".to_string(),
-            created_at: 10,
-            updated_at: 10,
-            ..Default::default()
-        };
+            DOCUMENT_KIND_MESSAGE_PART.to_string(),
+            "refund policy details".to_string(),
+        );
+        let reference = document.r#ref.as_mut().unwrap();
+        reference.attributes = document_attributes([
+            (ATTR_AGENT, "support".to_string()),
+            (ATTR_SESSION_ID, "s1".to_string()),
+        ]);
+        reference.title = "Support session".to_string();
+        reference.created_at = 10;
+        reference.updated_at = 10;
         backend.upsert_documents(&[document]).await.unwrap();
 
         let response = backend
@@ -474,7 +568,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(response.results.len(), 1);
-        assert_eq!(response.results[0].document.id, "doc-1");
+        assert_eq!(response.results[0].document.id(), "doc-1");
 
         let deleted = backend
             .delete(&DeleteScope {
@@ -506,22 +600,24 @@ mod tests {
     async fn memory_document_store_paginates_and_respects_delete_generation() {
         let backend = memory_document_store();
         let documents = (0..3)
-            .map(|index| Document {
-                id: format!("doc-{index}"),
-                source: document_source(
-                    "acme".to_string(),
-                    KIND_KNOWLEDGE.to_string(),
-                    format!("@Namespace/acme/Knowledge/doc-{index}"),
-                    String::new(),
-                    String::new(),
-                ),
-                document_kind: DOCUMENT_KIND_METADATA.to_string(),
-                title: "Knowledge".to_string(),
-                text: "policy".to_string(),
-                snippet: "policy".to_string(),
-                updated_at: index,
-                generation: index as u64 + 1,
-                ..Default::default()
+            .map(|index| {
+                let mut document = test_document(
+                    format!("doc-{index}"),
+                    document_source(
+                        "acme".to_string(),
+                        KIND_KNOWLEDGE.to_string(),
+                        format!("@Namespace/acme/Knowledge/doc-{index}"),
+                        String::new(),
+                        String::new(),
+                    ),
+                    DOCUMENT_KIND_METADATA.to_string(),
+                    "policy".to_string(),
+                );
+                let reference = document.r#ref.as_mut().unwrap();
+                reference.title = "Knowledge".to_string();
+                reference.updated_at = index;
+                reference.generation = index as u64 + 1;
+                document
             })
             .collect::<Vec<_>>();
         backend.upsert_documents(&documents).await.unwrap();

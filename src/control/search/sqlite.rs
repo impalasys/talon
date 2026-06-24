@@ -3,10 +3,10 @@
 
 use super::store::{sort_results, DocumentStore};
 use super::{
-    document_attributes, document_source, next_page_token, page_offset, query_terms, search_limit,
-    search_mode, search_namespaces, search_sort, DeleteScope, Document, SearchResponse,
-    SearchResult, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID, ATTR_PART_ID, ATTR_PART_TYPE,
-    ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
+    document_attributes, document_ref, document_source, next_page_token, page_offset, query_terms,
+    search_limit, search_mode, search_namespaces, search_sort, snippet, DeleteScope, Document,
+    DocumentExt, SearchResponse, SearchResult, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID,
+    ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
 };
 use crate::gateway::rpc::proto;
 use anyhow::Result;
@@ -44,9 +44,10 @@ impl DocumentStore for SqliteDocumentStore {
     async fn upsert_documents(&self, documents: &[Document]) -> Result<()> {
         let mut tx = self.pool.begin().await?;
         for document in documents {
-            let labels_json = serde_json::to_string(&document.labels)?;
-            let metadata_json = json_or_empty_object(&document.metadata_json);
-            let acl_scope_json = json_or_empty_object(&document.acl_scope_json);
+            let labels_json = serde_json::to_string(document.labels())?;
+            let metadata_json = json_or_empty_object(document.metadata_json());
+            let acl_scope_json = json_or_empty_object(document.acl_scope_json());
+            let snippet = snippet(&document.text);
             sqlx::query(
                 r#"
                 INSERT INTO talon_documents (
@@ -84,10 +85,10 @@ impl DocumentStore for SqliteDocumentStore {
                 "#,
             )
             .bind(document.namespace())
-            .bind(&document.id)
+            .bind(document.id())
             .bind(document.resource_kind())
             .bind(document.resource_key())
-            .bind(&document.document_kind)
+            .bind(document.document_kind())
             .bind(document.parent_kind())
             .bind(document.parent_key())
             .bind(document.agent())
@@ -98,33 +99,33 @@ impl DocumentStore for SqliteDocumentStore {
             .bind(document.part_id())
             .bind(document.part_type())
             .bind(document.role())
-            .bind(&document.title)
+            .bind(document.title())
             .bind(&document.text)
-            .bind(&document.snippet)
+            .bind(&snippet)
             .bind(labels_json)
             .bind(metadata_json)
             .bind(acl_scope_json)
-            .bind(document.created_at)
-            .bind(document.updated_at)
-            .bind(document.indexed_at)
-            .bind(document.generation as i64)
-            .bind(&document.embedding_ref)
+            .bind(document.created_at())
+            .bind(document.updated_at())
+            .bind(document.indexed_at())
+            .bind(document.generation() as i64)
+            .bind(document.embedding_ref())
             .execute(&mut *tx)
             .await?;
 
             sqlx::query("DELETE FROM talon_documents_fts WHERE namespace = ? AND id = ?")
                 .bind(document.namespace())
-                .bind(&document.id)
+                .bind(document.id())
                 .execute(&mut *tx)
                 .await?;
             sqlx::query(
                 "INSERT INTO talon_documents_fts(namespace, id, title, text, snippet) VALUES (?, ?, ?, ?, ?)",
             )
             .bind(document.namespace())
-            .bind(&document.id)
-            .bind(&document.title)
+            .bind(document.id())
+            .bind(document.title())
             .bind(&document.text)
-            .bind(&document.snippet)
+            .bind(&snippet)
             .execute(&mut *tx)
             .await?;
         }
@@ -209,6 +210,7 @@ impl DocumentStore for SqliteDocumentStore {
                 let score = row.try_get::<f64, _>("score").unwrap_or(1.0) as f32;
                 Ok(SearchResult {
                     document: document_from_sqlite_row(&row)?,
+                    snippet: row.try_get("snippet")?,
                     score,
                 })
             })
@@ -421,37 +423,41 @@ fn document_from_sqlite_row(row: &SqliteRow) -> Result<Document> {
     let labels_json: String = row.try_get("labels_json")?;
     let part_id: String = row.try_get("part_id")?;
     Ok(Document {
-        id: row.try_get("id")?,
-        source: document_source(
-            row.try_get("namespace")?,
-            row.try_get(DOCUMENTS_TABLE_FIELD_RESOURCE_KIND)?,
-            row.try_get("resource_key")?,
-            row.try_get("parent_kind")?,
-            row.try_get("parent_key")?,
-        ),
-        document_kind: row.try_get("document_kind").unwrap_or_default(),
-        subdocument_id: part_id.clone(),
-        attributes: document_attributes([
-            (ATTR_AGENT, row.try_get("agent")?),
-            (ATTR_SESSION_ID, row.try_get("session_id")?),
-            (ATTR_CHANNEL, row.try_get("channel")?),
-            (ATTR_MESSAGE_ID, row.try_get("message_id")?),
-            (ATTR_RUN_ID, row.try_get("run_id")?),
-            (ATTR_PART_ID, part_id),
-            (ATTR_PART_TYPE, row.try_get("part_type")?),
-            (ATTR_ROLE, row.try_get("role")?),
-        ]),
-        title: row.try_get("title")?,
+        r#ref: Some(crate::gateway::rpc::data_proto::DocumentRef {
+            attributes: document_attributes([
+                (ATTR_AGENT, row.try_get("agent")?),
+                (ATTR_SESSION_ID, row.try_get("session_id")?),
+                (ATTR_CHANNEL, row.try_get("channel")?),
+                (ATTR_MESSAGE_ID, row.try_get("message_id")?),
+                (ATTR_RUN_ID, row.try_get("run_id")?),
+                (ATTR_PART_ID, part_id.clone()),
+                (ATTR_PART_TYPE, row.try_get("part_type")?),
+                (ATTR_ROLE, row.try_get("role")?),
+            ]),
+            title: row.try_get("title")?,
+            labels: serde_json::from_str::<HashMap<String, String>>(&labels_json)
+                .unwrap_or_default(),
+            metadata_json: row.try_get("metadata_json")?,
+            acl_scope_json: row.try_get("acl_scope_json")?,
+            created_at: row.try_get("created_at")?,
+            updated_at: row.try_get("updated_at")?,
+            indexed_at: row.try_get("indexed_at")?,
+            generation: row.try_get::<i64, _>("source_generation")? as u64,
+            embedding_ref: row.try_get("embedding_ref")?,
+            ..document_ref(
+                row.try_get("id")?,
+                document_source(
+                    row.try_get("namespace")?,
+                    row.try_get(DOCUMENTS_TABLE_FIELD_RESOURCE_KIND)?,
+                    row.try_get("resource_key")?,
+                    row.try_get("parent_kind")?,
+                    row.try_get("parent_key")?,
+                ),
+                row.try_get("document_kind").unwrap_or_default(),
+                part_id,
+            )
+        }),
         text: row.try_get("text")?,
-        snippet: row.try_get("snippet")?,
-        labels: serde_json::from_str::<HashMap<String, String>>(&labels_json).unwrap_or_default(),
-        metadata_json: row.try_get("metadata_json")?,
-        acl_scope_json: row.try_get("acl_scope_json")?,
-        created_at: row.try_get("created_at")?,
-        updated_at: row.try_get("updated_at")?,
-        indexed_at: row.try_get("indexed_at")?,
-        generation: row.try_get::<i64, _>("source_generation")? as u64,
-        embedding_ref: row.try_get("embedding_ref")?,
     })
 }
 
@@ -485,6 +491,23 @@ mod tests {
     use crate::control::kv::sqlite_url_for_path;
     use crate::control::search::DOCUMENT_KIND_MESSAGE_PART;
 
+    fn test_document(
+        id: String,
+        source: crate::control::search::DocumentSource,
+        document_kind: String,
+        text: String,
+    ) -> Document {
+        Document {
+            r#ref: Some(crate::control::search::DocumentRef {
+                id,
+                source: Some(source),
+                document_kind,
+                ..Default::default()
+            }),
+            text,
+        }
+    }
+
     #[tokio::test]
     async fn sqlite_document_store_searches_filters_and_deletes_documents() {
         let dir = tempfile::tempdir().unwrap();
@@ -493,40 +516,35 @@ mod tests {
         let mut labels = HashMap::new();
         labels.insert("tier".to_string(), "gold".to_string());
         labels.insert("talon.io/agent".to_string(), "support".to_string());
-        let document = Document {
-            id: "doc-1".to_string(),
-            source: document_source(
+        let mut document = test_document(
+            "doc-1".to_string(),
+            document_source(
                 "acme".to_string(),
                 "SessionMessage".to_string(),
                 "@Namespace/acme/Agent/support/Session/s1/@/SessionMessage/m1".to_string(),
                 "Session".to_string(),
                 "@Namespace/acme/Agent/support/@/Session/s1".to_string(),
             ),
-            document_kind: DOCUMENT_KIND_MESSAGE_PART.to_string(),
-            attributes: document_attributes([
-                (ATTR_AGENT, "support".to_string()),
-                (ATTR_SESSION_ID, "s1".to_string()),
-            ]),
-            title: "Refund policy".to_string(),
-            text: "Refund policy details for gold customers".to_string(),
-            snippet: "Refund policy details".to_string(),
-            labels,
-            created_at: 10,
-            updated_at: 10,
-            indexed_at: 20,
-            generation: 1,
-            ..Default::default()
-        };
+            DOCUMENT_KIND_MESSAGE_PART.to_string(),
+            "Refund policy details for gold customers".to_string(),
+        );
+        let reference = document.r#ref.as_mut().unwrap();
+        reference.attributes = document_attributes([
+            (ATTR_AGENT, "support".to_string()),
+            (ATTR_SESSION_ID, "s1".to_string()),
+        ]);
+        reference.title = "Refund policy".to_string();
+        reference.labels = labels;
+        reference.created_at = 10;
+        reference.updated_at = 10;
+        reference.indexed_at = 20;
+        reference.generation = 1;
 
         store.upsert_documents(&[document.clone()]).await.unwrap();
-        store
-            .upsert_documents(&[Document {
-                text: "Refund policy details updated".to_string(),
-                generation: 2,
-                ..document.clone()
-            }])
-            .await
-            .unwrap();
+        let mut updated = document.clone();
+        updated.text = "Refund policy details updated".to_string();
+        updated.r#ref.as_mut().unwrap().generation = 2;
+        store.upsert_documents(&[updated]).await.unwrap();
 
         let response = store
             .search(&proto::SearchRequest {
@@ -549,9 +567,9 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(response.results.len(), 1);
-        assert_eq!(response.results[0].document.generation, 2);
+        assert_eq!(response.results[0].document.generation(), 2);
         assert_eq!(
-            response.results[0].document.document_kind,
+            response.results[0].document.document_kind(),
             DOCUMENT_KIND_MESSAGE_PART
         );
 

@@ -169,7 +169,7 @@ fn print_results(results: Vec<SearchResult>) {
             document.document_kind,
             document.id,
             result.score,
-            document.snippet.replace(['\n', '\t'], " ")
+            result.snippet.replace(['\n', '\t'], " ")
         );
     }
 }

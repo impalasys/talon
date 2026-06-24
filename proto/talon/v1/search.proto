@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package talon.v1;
 
+import "proto/data/search.proto";
+
 service SearchService {
   rpc Search(SearchRequest) returns (SearchResponse);
   rpc GetResult(GetSearchResultRequest) returns (GetSearchResultResponse);
@@ -43,37 +45,10 @@ message SearchSourceFilter {
   repeated string namespaces = 6;
 }
 
-message Document {
-  string id = 1;
-  DocumentSource source = 2;
-  string document_kind = 3;
-  string subdocument_id = 4;
-  map<string, string> attributes = 5;
-  string title = 6;
-  string snippet = 7;
-  map<string, string> labels = 8;
-  string metadata_json = 9;
-  string acl_scope_json = 10;
-  int64 created_at = 11;
-  int64 updated_at = 12;
-  int64 indexed_at = 13;
-  // Canonical source generation that produced this disposable document projection.
-  uint64 generation = 14;
-  string embedding_ref = 15;
-}
-
-message DocumentSource {
-  string key = 1;
-  string namespace = 2;
-  string kind = 3;
-  string name = 4;
-  string parent_kind = 5;
-  string parent_key = 6;
-}
-
 message SearchResult {
-  Document document = 1;
-  float score = 2;
+  talon.data.DocumentRef document = 1;
+  string snippet = 2;
+  float score = 3;
 }
 
 message SearchResponse {
@@ -87,6 +62,6 @@ message GetSearchResultRequest {
 }
 
 message GetSearchResultResponse {
-  Document document = 1;
+  talon.data.Document document = 1;
   string content = 2;
 }

@@ -5,6 +5,7 @@ import {
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
 import * as config from "./gen/proto/config_pb.js";
 import * as data from "./gen/proto/data/data_pb.js";
+import * as dataSearch from "./gen/proto/data/search_pb.js";
 import * as events from "./gen/proto/events_pb.js";
 import * as agents from "./gen/proto/resources/agents_pb.js";
 import * as channels from "./gen/proto/resources/channels_pb.js";
@@ -41,6 +42,7 @@ import { createTalonClientset, type TalonClient } from "./clientset.js";
 export {
   config,
   data,
+  dataSearch,
   events,
   agents,
   channels,

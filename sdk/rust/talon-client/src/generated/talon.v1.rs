@@ -1758,65 +1758,12 @@ pub struct SearchSourceFilter {
     pub namespaces: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Document {
-    #[prost(string, tag = "1")]
-    pub id: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "2")]
-    pub source: ::core::option::Option<DocumentSource>,
-    #[prost(string, tag = "3")]
-    pub document_kind: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub subdocument_id: ::prost::alloc::string::String,
-    #[prost(map = "string, string", tag = "5")]
-    pub attributes: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
-    #[prost(string, tag = "6")]
-    pub title: ::prost::alloc::string::String,
-    #[prost(string, tag = "7")]
-    pub snippet: ::prost::alloc::string::String,
-    #[prost(map = "string, string", tag = "8")]
-    pub labels: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
-    #[prost(string, tag = "9")]
-    pub metadata_json: ::prost::alloc::string::String,
-    #[prost(string, tag = "10")]
-    pub acl_scope_json: ::prost::alloc::string::String,
-    #[prost(int64, tag = "11")]
-    pub created_at: i64,
-    #[prost(int64, tag = "12")]
-    pub updated_at: i64,
-    #[prost(int64, tag = "13")]
-    pub indexed_at: i64,
-    /// Canonical source generation that produced this disposable document projection.
-    #[prost(uint64, tag = "14")]
-    pub generation: u64,
-    #[prost(string, tag = "15")]
-    pub embedding_ref: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DocumentSource {
-    #[prost(string, tag = "1")]
-    pub key: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub namespace: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub kind: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag = "5")]
-    pub parent_kind: ::prost::alloc::string::String,
-    #[prost(string, tag = "6")]
-    pub parent_key: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SearchResult {
     #[prost(message, optional, tag = "1")]
-    pub document: ::core::option::Option<Document>,
-    #[prost(float, tag = "2")]
+    pub document: ::core::option::Option<super::data::DocumentRef>,
+    #[prost(string, tag = "2")]
+    pub snippet: ::prost::alloc::string::String,
+    #[prost(float, tag = "3")]
     pub score: f32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1836,7 +1783,7 @@ pub struct GetSearchResultRequest {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetSearchResultResponse {
     #[prost(message, optional, tag = "1")]
-    pub document: ::core::option::Option<Document>,
+    pub document: ::core::option::Option<super::data::Document>,
     #[prost(string, tag = "2")]
     pub content: ::prost::alloc::string::String,
 }

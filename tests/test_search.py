@@ -109,14 +109,15 @@ def append_user_message(stub, namespace, agent, session_id, text, token):
     ).message
 
 
-def assert_session_message_document(document, namespace, agent, session_id, token):
+def assert_session_message_document(result, namespace, agent, session_id, token):
+    document = result.document
     assert document.source.namespace == namespace
     assert document.source.kind == "SessionMessage"
     assert document.document_kind == "part"
     assert document.attributes.get("part_type", "") == "TEXT"
     assert document.attributes.get("agent", "") == agent
     assert document.attributes.get("session_id", "") == session_id
-    assert token in document.snippet
+    assert token in result.snippet
 
 
 def test_postgres_pubsub_session_search_indexes_opens_and_deletes(
@@ -146,12 +147,12 @@ def test_postgres_pubsub_session_search_indexes_opens_and_deletes(
         and item.document.document_kind == "part",
         session_id=session_id,
     )
-    assert_session_message_document(result.document, namespace, agent, session_id, token)
+    assert_session_message_document(result, namespace, agent, session_id, token)
 
     opened = stub.searches.GetResult(
         GetSearchResultRequest(ns=namespace, document_id=result.document.id)
     )
-    assert opened.document.id == result.document.id
+    assert opened.document.ref.id == result.document.id
     assert message_text in opened.content
 
     deleted = stub.sessions.Delete(
@@ -206,7 +207,7 @@ def test_postgres_pubsub_workspace_search_indexes_resources_and_knowledge(
     assert workflow_doc.source.namespace == namespace
     assert workflow_doc.source.kind == "Workflow"
     assert workflow_doc.document_kind == "metadata"
-    assert workflow_token in workflow_doc.snippet
+    assert workflow_token in workflow_result.snippet
 
     opened_workflow = stub.searches.GetResult(
         GetSearchResultRequest(ns=namespace, document_id=workflow_doc.id)
@@ -239,7 +240,7 @@ def test_postgres_pubsub_workspace_search_indexes_resources_and_knowledge(
     assert knowledge_doc.source.namespace == namespace
     assert knowledge_doc.source.kind == "Knowledge"
     assert knowledge_doc.document_kind == "content"
-    assert knowledge_token in knowledge_doc.snippet
+    assert knowledge_token in knowledge_result.snippet
 
     opened_knowledge = stub.searches.GetResult(
         GetSearchResultRequest(ns=namespace, document_id=knowledge_doc.id)
@@ -274,10 +275,10 @@ def test_sqlite_local_socket_session_search_indexes_and_opens(
         and item.document.document_kind == "part",
         session_id=session_id,
     )
-    assert_session_message_document(result.document, namespace, agent, session_id, token)
+    assert_session_message_document(result, namespace, agent, session_id, token)
 
     opened = stub.searches.GetResult(
         GetSearchResultRequest(ns=namespace, document_id=result.document.id)
     )
-    assert opened.document.id == result.document.id
+    assert opened.document.ref.id == result.document.id
     assert message_text in opened.content

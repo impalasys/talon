@@ -26,6 +26,7 @@ PY_EXPORT_GROUPS = {
     ],
     "data": [
         "proto/data/data.proto",
+        "proto/data/search.proto",
         "proto/data/session_submission.proto",
         "proto/data/session_journal_entry.proto",
     ],

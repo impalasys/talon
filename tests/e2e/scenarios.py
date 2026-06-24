@@ -245,7 +245,7 @@ def document_summary(result):
         "agent": document.attributes.get("agent", ""),
         "sessionId": document.attributes.get("session_id", ""),
         "partType": document.attributes.get("part_type", ""),
-        "snippet": document.snippet,
+        "snippet": result.snippet,
         "score": result.score,
     }
 

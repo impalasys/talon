@@ -4,7 +4,8 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
+import { Message, proto3 } from "@bufbuild/protobuf";
+import { Document, DocumentRef } from "../../data/search_pb.js";
 
 /**
  * @generated from enum talon.v1.SearchMode
@@ -217,206 +218,21 @@ export class SearchSourceFilter extends Message<SearchSourceFilter> {
 }
 
 /**
- * @generated from message talon.v1.Document
- */
-export class Document extends Message<Document> {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  /**
-   * @generated from field: talon.v1.DocumentSource source = 2;
-   */
-  source?: DocumentSource;
-
-  /**
-   * @generated from field: string document_kind = 3;
-   */
-  documentKind = "";
-
-  /**
-   * @generated from field: string subdocument_id = 4;
-   */
-  subdocumentId = "";
-
-  /**
-   * @generated from field: map<string, string> attributes = 5;
-   */
-  attributes: { [key: string]: string } = {};
-
-  /**
-   * @generated from field: string title = 6;
-   */
-  title = "";
-
-  /**
-   * @generated from field: string snippet = 7;
-   */
-  snippet = "";
-
-  /**
-   * @generated from field: map<string, string> labels = 8;
-   */
-  labels: { [key: string]: string } = {};
-
-  /**
-   * @generated from field: string metadata_json = 9;
-   */
-  metadataJson = "";
-
-  /**
-   * @generated from field: string acl_scope_json = 10;
-   */
-  aclScopeJson = "";
-
-  /**
-   * @generated from field: int64 created_at = 11;
-   */
-  createdAt = protoInt64.zero;
-
-  /**
-   * @generated from field: int64 updated_at = 12;
-   */
-  updatedAt = protoInt64.zero;
-
-  /**
-   * @generated from field: int64 indexed_at = 13;
-   */
-  indexedAt = protoInt64.zero;
-
-  /**
-   * Canonical source generation that produced this disposable document projection.
-   *
-   * @generated from field: uint64 generation = 14;
-   */
-  generation = protoInt64.zero;
-
-  /**
-   * @generated from field: string embedding_ref = 15;
-   */
-  embeddingRef = "";
-
-  constructor(data?: PartialMessage<Document>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.v1.Document";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "source", kind: "message", T: DocumentSource },
-    { no: 3, name: "document_kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "subdocument_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "attributes", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-    { no: 6, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "snippet", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 8, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-    { no: 9, name: "metadata_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 10, name: "acl_scope_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 11, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 12, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 13, name: "indexed_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 14, name: "generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 15, name: "embedding_ref", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Document {
-    return new Document().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Document {
-    return new Document().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Document {
-    return new Document().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: Document | PlainMessage<Document> | undefined, b: Document | PlainMessage<Document> | undefined): boolean {
-    return proto3.util.equals(Document, a, b);
-  }
-}
-
-/**
- * @generated from message talon.v1.DocumentSource
- */
-export class DocumentSource extends Message<DocumentSource> {
-  /**
-   * @generated from field: string key = 1;
-   */
-  key = "";
-
-  /**
-   * @generated from field: string namespace = 2;
-   */
-  namespace = "";
-
-  /**
-   * @generated from field: string kind = 3;
-   */
-  kind = "";
-
-  /**
-   * @generated from field: string name = 4;
-   */
-  name = "";
-
-  /**
-   * @generated from field: string parent_kind = 5;
-   */
-  parentKind = "";
-
-  /**
-   * @generated from field: string parent_key = 6;
-   */
-  parentKey = "";
-
-  constructor(data?: PartialMessage<DocumentSource>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.v1.DocumentSource";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "parent_kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "parent_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DocumentSource {
-    return new DocumentSource().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DocumentSource {
-    return new DocumentSource().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DocumentSource {
-    return new DocumentSource().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DocumentSource | PlainMessage<DocumentSource> | undefined, b: DocumentSource | PlainMessage<DocumentSource> | undefined): boolean {
-    return proto3.util.equals(DocumentSource, a, b);
-  }
-}
-
-/**
  * @generated from message talon.v1.SearchResult
  */
 export class SearchResult extends Message<SearchResult> {
   /**
-   * @generated from field: talon.v1.Document document = 1;
+   * @generated from field: talon.data.DocumentRef document = 1;
    */
-  document?: Document;
+  document?: DocumentRef;
 
   /**
-   * @generated from field: float score = 2;
+   * @generated from field: string snippet = 2;
+   */
+  snippet = "";
+
+  /**
+   * @generated from field: float score = 3;
    */
   score = 0;
 
@@ -428,8 +244,9 @@ export class SearchResult extends Message<SearchResult> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.v1.SearchResult";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "document", kind: "message", T: Document },
-    { no: 2, name: "score", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
+    { no: 1, name: "document", kind: "message", T: DocumentRef },
+    { no: 2, name: "snippet", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "score", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SearchResult {
@@ -540,7 +357,7 @@ export class GetSearchResultRequest extends Message<GetSearchResultRequest> {
  */
 export class GetSearchResultResponse extends Message<GetSearchResultResponse> {
   /**
-   * @generated from field: talon.v1.Document document = 1;
+   * @generated from field: talon.data.Document document = 1;
    */
   document?: Document;
 

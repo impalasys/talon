@@ -20,8 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../tailgrids/core/select';
-type SearchDocument = v1Search.Document;
 type SearchResult = v1Search.SearchResult;
+type SearchDocument = NonNullable<SearchResult['document']>;
 
 const RESOURCE_KIND_OPTIONS = [
   { label: 'All', value: '' },
@@ -331,7 +331,7 @@ export function WorkspaceCommandPalette({
                       </div>
                     </div>
                     <div className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
-                      {document.snippet}
+                      {result.snippet}
                     </div>
                     <div className="mt-2 truncate text-[11px] text-muted-foreground">
                       {namespace}

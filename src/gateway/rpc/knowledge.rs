@@ -5,7 +5,7 @@ use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::control::keys;
 use crate::control::ns;
 use crate::control::resources::ResourceStore;
-use crate::control::search::{DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
+use crate::control::search::{DocumentExt, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
 use crate::gateway::rpc::resources_proto;
 use crate::harness::knowledge::KnowledgeEntry;
 use std::collections::HashMap;
@@ -165,11 +165,11 @@ impl GrpcGatewayHandler {
             let mut by_path: HashMap<String, (usize, crate::control::search::SearchResult)> =
                 HashMap::new();
             for result in indexed.results {
-                if result.document.document_kind != DOCUMENT_KIND_CONTENT {
+                if result.document.document_kind() != DOCUMENT_KIND_CONTENT {
                     continue;
                 }
                 let path =
-                    serde_json::from_str::<serde_json::Value>(&result.document.metadata_json)
+                    serde_json::from_str::<serde_json::Value>(result.document.metadata_json())
                         .ok()
                         .and_then(|value| {
                             value
@@ -177,7 +177,7 @@ impl GrpcGatewayHandler {
                                 .and_then(|path| path.as_str())
                                 .map(str::to_string)
                         })
-                        .unwrap_or_else(|| result.document.title.clone());
+                        .unwrap_or_else(|| result.document.title().to_string());
                 let rank = *namespace_rank
                     .get(result.document.namespace())
                     .unwrap_or(&usize::MAX);
@@ -196,8 +196,8 @@ impl GrpcGatewayHandler {
                 proto::SearchSort::Recency => search_results.sort_by(|left, right| {
                     right
                         .document
-                        .updated_at
-                        .cmp(&left.document.updated_at)
+                        .updated_at()
+                        .cmp(&left.document.updated_at())
                         .then_with(|| {
                             right
                                 .score
@@ -211,7 +211,9 @@ impl GrpcGatewayHandler {
                             .score
                             .partial_cmp(&left.score)
                             .unwrap_or(std::cmp::Ordering::Equal)
-                            .then_with(|| right.document.updated_at.cmp(&left.document.updated_at))
+                            .then_with(|| {
+                                right.document.updated_at().cmp(&left.document.updated_at())
+                            })
                     }),
             }
             search_results.truncate(super::search::limit(req.limit));
@@ -223,7 +225,7 @@ impl GrpcGatewayHandler {
                     .iter()
                     .map(|result| {
                         let path = serde_json::from_str::<serde_json::Value>(
-                            &result.document.metadata_json,
+                            result.document.metadata_json(),
                         )
                         .ok()
                         .and_then(|value| {
@@ -232,13 +234,13 @@ impl GrpcGatewayHandler {
                                 .and_then(|path| path.as_str())
                                 .map(str::to_string)
                         })
-                        .unwrap_or_else(|| result.document.title.clone());
+                        .unwrap_or_else(|| result.document.title().to_string());
                         data_proto::KnowledgeSearchResult {
                             namespace: result.document.namespace().to_string(),
                             path,
-                            snippet: result.document.snippet.clone(),
+                            snippet: result.snippet.clone(),
                             score: result.score,
-                            timestamp: result.document.updated_at,
+                            timestamp: result.document.updated_at(),
                         }
                     })
                     .collect();
@@ -247,7 +249,8 @@ impl GrpcGatewayHandler {
                     search_results: search_results
                         .into_iter()
                         .map(|result| proto::SearchResult {
-                            document: Some(super::search::document_proto(result.document)),
+                            document: result.document.r#ref,
+                            snippet: result.snippet,
                             score: result.score,
                         })
                         .collect(),

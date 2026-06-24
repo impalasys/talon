@@ -3473,3951 +3473,39 @@ java.lang.String defaultValue) {
 
   }
 
-  public interface DocumentOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.v1.Document)
+  public interface SearchResultOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.SearchResult)
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string id = 1;</code>
-     * @return The id.
+     * <code>.talon.data.DocumentRef document = 1;</code>
+     * @return Whether the document field is set.
      */
-    java.lang.String getId();
+    boolean hasDocument();
     /**
-     * <code>string id = 1;</code>
-     * @return The bytes for id.
+     * <code>.talon.data.DocumentRef document = 1;</code>
+     * @return The document.
      */
-    com.google.protobuf.ByteString
-        getIdBytes();
+    talon.data.Search.DocumentRef getDocument();
+    /**
+     * <code>.talon.data.DocumentRef document = 1;</code>
+     */
+    talon.data.Search.DocumentRefOrBuilder getDocumentOrBuilder();
 
     /**
-     * <code>.talon.v1.DocumentSource source = 2;</code>
-     * @return Whether the source field is set.
-     */
-    boolean hasSource();
-    /**
-     * <code>.talon.v1.DocumentSource source = 2;</code>
-     * @return The source.
-     */
-    talon.v1.Search.DocumentSource getSource();
-    /**
-     * <code>.talon.v1.DocumentSource source = 2;</code>
-     */
-    talon.v1.Search.DocumentSourceOrBuilder getSourceOrBuilder();
-
-    /**
-     * <code>string document_kind = 3;</code>
-     * @return The documentKind.
-     */
-    java.lang.String getDocumentKind();
-    /**
-     * <code>string document_kind = 3;</code>
-     * @return The bytes for documentKind.
-     */
-    com.google.protobuf.ByteString
-        getDocumentKindBytes();
-
-    /**
-     * <code>string subdocument_id = 4;</code>
-     * @return The subdocumentId.
-     */
-    java.lang.String getSubdocumentId();
-    /**
-     * <code>string subdocument_id = 4;</code>
-     * @return The bytes for subdocumentId.
-     */
-    com.google.protobuf.ByteString
-        getSubdocumentIdBytes();
-
-    /**
-     * <code>map&lt;string, string&gt; attributes = 5;</code>
-     */
-    int getAttributesCount();
-    /**
-     * <code>map&lt;string, string&gt; attributes = 5;</code>
-     */
-    boolean containsAttributes(
-        java.lang.String key);
-    /**
-     * Use {@link #getAttributesMap()} instead.
-     */
-    @java.lang.Deprecated
-    java.util.Map<java.lang.String, java.lang.String>
-    getAttributes();
-    /**
-     * <code>map&lt;string, string&gt; attributes = 5;</code>
-     */
-    java.util.Map<java.lang.String, java.lang.String>
-    getAttributesMap();
-    /**
-     * <code>map&lt;string, string&gt; attributes = 5;</code>
-     */
-    /* nullable */
-java.lang.String getAttributesOrDefault(
-        java.lang.String key,
-        /* nullable */
-java.lang.String defaultValue);
-    /**
-     * <code>map&lt;string, string&gt; attributes = 5;</code>
-     */
-    java.lang.String getAttributesOrThrow(
-        java.lang.String key);
-
-    /**
-     * <code>string title = 6;</code>
-     * @return The title.
-     */
-    java.lang.String getTitle();
-    /**
-     * <code>string title = 6;</code>
-     * @return The bytes for title.
-     */
-    com.google.protobuf.ByteString
-        getTitleBytes();
-
-    /**
-     * <code>string snippet = 7;</code>
+     * <code>string snippet = 2;</code>
      * @return The snippet.
      */
     java.lang.String getSnippet();
     /**
-     * <code>string snippet = 7;</code>
+     * <code>string snippet = 2;</code>
      * @return The bytes for snippet.
      */
     com.google.protobuf.ByteString
         getSnippetBytes();
 
     /**
-     * <code>map&lt;string, string&gt; labels = 8;</code>
-     */
-    int getLabelsCount();
-    /**
-     * <code>map&lt;string, string&gt; labels = 8;</code>
-     */
-    boolean containsLabels(
-        java.lang.String key);
-    /**
-     * Use {@link #getLabelsMap()} instead.
-     */
-    @java.lang.Deprecated
-    java.util.Map<java.lang.String, java.lang.String>
-    getLabels();
-    /**
-     * <code>map&lt;string, string&gt; labels = 8;</code>
-     */
-    java.util.Map<java.lang.String, java.lang.String>
-    getLabelsMap();
-    /**
-     * <code>map&lt;string, string&gt; labels = 8;</code>
-     */
-    /* nullable */
-java.lang.String getLabelsOrDefault(
-        java.lang.String key,
-        /* nullable */
-java.lang.String defaultValue);
-    /**
-     * <code>map&lt;string, string&gt; labels = 8;</code>
-     */
-    java.lang.String getLabelsOrThrow(
-        java.lang.String key);
-
-    /**
-     * <code>string metadata_json = 9;</code>
-     * @return The metadataJson.
-     */
-    java.lang.String getMetadataJson();
-    /**
-     * <code>string metadata_json = 9;</code>
-     * @return The bytes for metadataJson.
-     */
-    com.google.protobuf.ByteString
-        getMetadataJsonBytes();
-
-    /**
-     * <code>string acl_scope_json = 10;</code>
-     * @return The aclScopeJson.
-     */
-    java.lang.String getAclScopeJson();
-    /**
-     * <code>string acl_scope_json = 10;</code>
-     * @return The bytes for aclScopeJson.
-     */
-    com.google.protobuf.ByteString
-        getAclScopeJsonBytes();
-
-    /**
-     * <code>int64 created_at = 11;</code>
-     * @return The createdAt.
-     */
-    long getCreatedAt();
-
-    /**
-     * <code>int64 updated_at = 12;</code>
-     * @return The updatedAt.
-     */
-    long getUpdatedAt();
-
-    /**
-     * <code>int64 indexed_at = 13;</code>
-     * @return The indexedAt.
-     */
-    long getIndexedAt();
-
-    /**
-     * <pre>
-     * Canonical source generation that produced this disposable document projection.
-     * </pre>
-     *
-     * <code>uint64 generation = 14;</code>
-     * @return The generation.
-     */
-    long getGeneration();
-
-    /**
-     * <code>string embedding_ref = 15;</code>
-     * @return The embeddingRef.
-     */
-    java.lang.String getEmbeddingRef();
-    /**
-     * <code>string embedding_ref = 15;</code>
-     * @return The bytes for embeddingRef.
-     */
-    com.google.protobuf.ByteString
-        getEmbeddingRefBytes();
-  }
-  /**
-   * Protobuf type {@code talon.v1.Document}
-   */
-  public static final class Document extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.v1.Document)
-      DocumentOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "Document");
-    }
-    // Use Document.newBuilder() to construct.
-    private Document(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private Document() {
-      id_ = "";
-      documentKind_ = "";
-      subdocumentId_ = "";
-      title_ = "";
-      snippet_ = "";
-      metadataJson_ = "";
-      aclScopeJson_ = "";
-      embeddingRef_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.v1.Search.internal_static_talon_v1_Document_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.v1.Search.internal_static_talon_v1_Document_descriptor;
-    }
-
-    @SuppressWarnings({"rawtypes"})
-    @java.lang.Override
-    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
-        int number) {
-      switch (number) {
-        case 5:
-          return internalGetAttributes();
-        case 8:
-          return internalGetLabels();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.v1.Search.internal_static_talon_v1_Document_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.v1.Search.Document.class, talon.v1.Search.Document.Builder.class);
-    }
-
-    private int bitField0_;
-    public static final int ID_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object id_ = "";
-    /**
-     * <code>string id = 1;</code>
-     * @return The id.
-     */
-    @java.lang.Override
-    public java.lang.String getId() {
-      java.lang.Object ref = id_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        id_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string id = 1;</code>
-     * @return The bytes for id.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getIdBytes() {
-      java.lang.Object ref = id_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        id_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int SOURCE_FIELD_NUMBER = 2;
-    private talon.v1.Search.DocumentSource source_;
-    /**
-     * <code>.talon.v1.DocumentSource source = 2;</code>
-     * @return Whether the source field is set.
-     */
-    @java.lang.Override
-    public boolean hasSource() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <code>.talon.v1.DocumentSource source = 2;</code>
-     * @return The source.
-     */
-    @java.lang.Override
-    public talon.v1.Search.DocumentSource getSource() {
-      return source_ == null ? talon.v1.Search.DocumentSource.getDefaultInstance() : source_;
-    }
-    /**
-     * <code>.talon.v1.DocumentSource source = 2;</code>
-     */
-    @java.lang.Override
-    public talon.v1.Search.DocumentSourceOrBuilder getSourceOrBuilder() {
-      return source_ == null ? talon.v1.Search.DocumentSource.getDefaultInstance() : source_;
-    }
-
-    public static final int DOCUMENT_KIND_FIELD_NUMBER = 3;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object documentKind_ = "";
-    /**
-     * <code>string document_kind = 3;</code>
-     * @return The documentKind.
-     */
-    @java.lang.Override
-    public java.lang.String getDocumentKind() {
-      java.lang.Object ref = documentKind_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        documentKind_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string document_kind = 3;</code>
-     * @return The bytes for documentKind.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getDocumentKindBytes() {
-      java.lang.Object ref = documentKind_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        documentKind_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int SUBDOCUMENT_ID_FIELD_NUMBER = 4;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object subdocumentId_ = "";
-    /**
-     * <code>string subdocument_id = 4;</code>
-     * @return The subdocumentId.
-     */
-    @java.lang.Override
-    public java.lang.String getSubdocumentId() {
-      java.lang.Object ref = subdocumentId_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        subdocumentId_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string subdocument_id = 4;</code>
-     * @return The bytes for subdocumentId.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getSubdocumentIdBytes() {
-      java.lang.Object ref = subdocumentId_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        subdocumentId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int ATTRIBUTES_FIELD_NUMBER = 5;
-    private static final class AttributesDefaultEntryHolder {
-      static final com.google.protobuf.MapEntry<
-          java.lang.String, java.lang.String> defaultEntry =
-              com.google.protobuf.MapEntry
-              .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.v1.Search.internal_static_talon_v1_Document_AttributesEntry_descriptor,
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "",
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "");
-    }
-    @SuppressWarnings("serial")
-    private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> attributes_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetAttributes() {
-      if (attributes_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            AttributesDefaultEntryHolder.defaultEntry);
-      }
-      return attributes_;
-    }
-    public int getAttributesCount() {
-      return internalGetAttributes().getMap().size();
-    }
-    /**
-     * <code>map&lt;string, string&gt; attributes = 5;</code>
-     */
-    @java.lang.Override
-    public boolean containsAttributes(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      return internalGetAttributes().getMap().containsKey(key);
-    }
-    /**
-     * Use {@link #getAttributesMap()} instead.
-     */
-    @java.lang.Override
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getAttributes() {
-      return getAttributesMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; attributes = 5;</code>
-     */
-    @java.lang.Override
-    public java.util.Map<java.lang.String, java.lang.String> getAttributesMap() {
-      return internalGetAttributes().getMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; attributes = 5;</code>
-     */
-    @java.lang.Override
-    public /* nullable */
-java.lang.String getAttributesOrDefault(
-        java.lang.String key,
-        /* nullable */
-java.lang.String defaultValue) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetAttributes().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-    /**
-     * <code>map&lt;string, string&gt; attributes = 5;</code>
-     */
-    @java.lang.Override
-    public java.lang.String getAttributesOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetAttributes().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
-    }
-
-    public static final int TITLE_FIELD_NUMBER = 6;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object title_ = "";
-    /**
-     * <code>string title = 6;</code>
-     * @return The title.
-     */
-    @java.lang.Override
-    public java.lang.String getTitle() {
-      java.lang.Object ref = title_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        title_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string title = 6;</code>
-     * @return The bytes for title.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getTitleBytes() {
-      java.lang.Object ref = title_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        title_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int SNIPPET_FIELD_NUMBER = 7;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object snippet_ = "";
-    /**
-     * <code>string snippet = 7;</code>
-     * @return The snippet.
-     */
-    @java.lang.Override
-    public java.lang.String getSnippet() {
-      java.lang.Object ref = snippet_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        snippet_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string snippet = 7;</code>
-     * @return The bytes for snippet.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getSnippetBytes() {
-      java.lang.Object ref = snippet_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        snippet_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int LABELS_FIELD_NUMBER = 8;
-    private static final class LabelsDefaultEntryHolder {
-      static final com.google.protobuf.MapEntry<
-          java.lang.String, java.lang.String> defaultEntry =
-              com.google.protobuf.MapEntry
-              .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.v1.Search.internal_static_talon_v1_Document_LabelsEntry_descriptor,
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "",
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "");
-    }
-    @SuppressWarnings("serial")
-    private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> labels_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetLabels() {
-      if (labels_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            LabelsDefaultEntryHolder.defaultEntry);
-      }
-      return labels_;
-    }
-    public int getLabelsCount() {
-      return internalGetLabels().getMap().size();
-    }
-    /**
-     * <code>map&lt;string, string&gt; labels = 8;</code>
-     */
-    @java.lang.Override
-    public boolean containsLabels(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      return internalGetLabels().getMap().containsKey(key);
-    }
-    /**
-     * Use {@link #getLabelsMap()} instead.
-     */
-    @java.lang.Override
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getLabels() {
-      return getLabelsMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; labels = 8;</code>
-     */
-    @java.lang.Override
-    public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
-      return internalGetLabels().getMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; labels = 8;</code>
-     */
-    @java.lang.Override
-    public /* nullable */
-java.lang.String getLabelsOrDefault(
-        java.lang.String key,
-        /* nullable */
-java.lang.String defaultValue) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetLabels().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-    /**
-     * <code>map&lt;string, string&gt; labels = 8;</code>
-     */
-    @java.lang.Override
-    public java.lang.String getLabelsOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetLabels().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
-    }
-
-    public static final int METADATA_JSON_FIELD_NUMBER = 9;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object metadataJson_ = "";
-    /**
-     * <code>string metadata_json = 9;</code>
-     * @return The metadataJson.
-     */
-    @java.lang.Override
-    public java.lang.String getMetadataJson() {
-      java.lang.Object ref = metadataJson_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        metadataJson_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string metadata_json = 9;</code>
-     * @return The bytes for metadataJson.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getMetadataJsonBytes() {
-      java.lang.Object ref = metadataJson_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        metadataJson_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int ACL_SCOPE_JSON_FIELD_NUMBER = 10;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object aclScopeJson_ = "";
-    /**
-     * <code>string acl_scope_json = 10;</code>
-     * @return The aclScopeJson.
-     */
-    @java.lang.Override
-    public java.lang.String getAclScopeJson() {
-      java.lang.Object ref = aclScopeJson_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        aclScopeJson_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string acl_scope_json = 10;</code>
-     * @return The bytes for aclScopeJson.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getAclScopeJsonBytes() {
-      java.lang.Object ref = aclScopeJson_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        aclScopeJson_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int CREATED_AT_FIELD_NUMBER = 11;
-    private long createdAt_ = 0L;
-    /**
-     * <code>int64 created_at = 11;</code>
-     * @return The createdAt.
-     */
-    @java.lang.Override
-    public long getCreatedAt() {
-      return createdAt_;
-    }
-
-    public static final int UPDATED_AT_FIELD_NUMBER = 12;
-    private long updatedAt_ = 0L;
-    /**
-     * <code>int64 updated_at = 12;</code>
-     * @return The updatedAt.
-     */
-    @java.lang.Override
-    public long getUpdatedAt() {
-      return updatedAt_;
-    }
-
-    public static final int INDEXED_AT_FIELD_NUMBER = 13;
-    private long indexedAt_ = 0L;
-    /**
-     * <code>int64 indexed_at = 13;</code>
-     * @return The indexedAt.
-     */
-    @java.lang.Override
-    public long getIndexedAt() {
-      return indexedAt_;
-    }
-
-    public static final int GENERATION_FIELD_NUMBER = 14;
-    private long generation_ = 0L;
-    /**
-     * <pre>
-     * Canonical source generation that produced this disposable document projection.
-     * </pre>
-     *
-     * <code>uint64 generation = 14;</code>
-     * @return The generation.
-     */
-    @java.lang.Override
-    public long getGeneration() {
-      return generation_;
-    }
-
-    public static final int EMBEDDING_REF_FIELD_NUMBER = 15;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object embeddingRef_ = "";
-    /**
-     * <code>string embedding_ref = 15;</code>
-     * @return The embeddingRef.
-     */
-    @java.lang.Override
-    public java.lang.String getEmbeddingRef() {
-      java.lang.Object ref = embeddingRef_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        embeddingRef_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string embedding_ref = 15;</code>
-     * @return The bytes for embeddingRef.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getEmbeddingRefBytes() {
-      java.lang.Object ref = embeddingRef_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        embeddingRef_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(2, getSource());
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(documentKind_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, documentKind_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(subdocumentId_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 4, subdocumentId_);
-      }
-      com.google.protobuf.GeneratedMessage
-        .serializeStringMapTo(
-          output,
-          internalGetAttributes(),
-          AttributesDefaultEntryHolder.defaultEntry,
-          5);
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(title_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 6, title_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(snippet_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 7, snippet_);
-      }
-      com.google.protobuf.GeneratedMessage
-        .serializeStringMapTo(
-          output,
-          internalGetLabels(),
-          LabelsDefaultEntryHolder.defaultEntry,
-          8);
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(metadataJson_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 9, metadataJson_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(aclScopeJson_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 10, aclScopeJson_);
-      }
-      if (createdAt_ != 0L) {
-        output.writeInt64(11, createdAt_);
-      }
-      if (updatedAt_ != 0L) {
-        output.writeInt64(12, updatedAt_);
-      }
-      if (indexedAt_ != 0L) {
-        output.writeInt64(13, indexedAt_);
-      }
-      if (generation_ != 0L) {
-        output.writeUInt64(14, generation_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(embeddingRef_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 15, embeddingRef_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, getSource());
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(documentKind_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, documentKind_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(subdocumentId_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, subdocumentId_);
-      }
-      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-           : internalGetAttributes().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-        attributes__ = AttributesDefaultEntryHolder.defaultEntry.newBuilderForType()
-            .setKey(entry.getKey())
-            .setValue(entry.getValue())
-            .buildPartial();
-        size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(5, attributes__);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(title_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, title_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(snippet_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, snippet_);
-      }
-      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-           : internalGetLabels().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-        labels__ = LabelsDefaultEntryHolder.defaultEntry.newBuilderForType()
-            .setKey(entry.getKey())
-            .setValue(entry.getValue())
-            .buildPartial();
-        size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(8, labels__);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(metadataJson_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(9, metadataJson_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(aclScopeJson_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(10, aclScopeJson_);
-      }
-      if (createdAt_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(11, createdAt_);
-      }
-      if (updatedAt_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(12, updatedAt_);
-      }
-      if (indexedAt_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(13, indexedAt_);
-      }
-      if (generation_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(14, generation_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(embeddingRef_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(15, embeddingRef_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.v1.Search.Document)) {
-        return super.equals(obj);
-      }
-      talon.v1.Search.Document other = (talon.v1.Search.Document) obj;
-
-      if (!getId()
-          .equals(other.getId())) return false;
-      if (hasSource() != other.hasSource()) return false;
-      if (hasSource()) {
-        if (!getSource()
-            .equals(other.getSource())) return false;
-      }
-      if (!getDocumentKind()
-          .equals(other.getDocumentKind())) return false;
-      if (!getSubdocumentId()
-          .equals(other.getSubdocumentId())) return false;
-      if (!internalGetAttributes().equals(
-          other.internalGetAttributes())) return false;
-      if (!getTitle()
-          .equals(other.getTitle())) return false;
-      if (!getSnippet()
-          .equals(other.getSnippet())) return false;
-      if (!internalGetLabels().equals(
-          other.internalGetLabels())) return false;
-      if (!getMetadataJson()
-          .equals(other.getMetadataJson())) return false;
-      if (!getAclScopeJson()
-          .equals(other.getAclScopeJson())) return false;
-      if (getCreatedAt()
-          != other.getCreatedAt()) return false;
-      if (getUpdatedAt()
-          != other.getUpdatedAt()) return false;
-      if (getIndexedAt()
-          != other.getIndexedAt()) return false;
-      if (getGeneration()
-          != other.getGeneration()) return false;
-      if (!getEmbeddingRef()
-          .equals(other.getEmbeddingRef())) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + ID_FIELD_NUMBER;
-      hash = (53 * hash) + getId().hashCode();
-      if (hasSource()) {
-        hash = (37 * hash) + SOURCE_FIELD_NUMBER;
-        hash = (53 * hash) + getSource().hashCode();
-      }
-      hash = (37 * hash) + DOCUMENT_KIND_FIELD_NUMBER;
-      hash = (53 * hash) + getDocumentKind().hashCode();
-      hash = (37 * hash) + SUBDOCUMENT_ID_FIELD_NUMBER;
-      hash = (53 * hash) + getSubdocumentId().hashCode();
-      if (!internalGetAttributes().getMap().isEmpty()) {
-        hash = (37 * hash) + ATTRIBUTES_FIELD_NUMBER;
-        hash = (53 * hash) + internalGetAttributes().hashCode();
-      }
-      hash = (37 * hash) + TITLE_FIELD_NUMBER;
-      hash = (53 * hash) + getTitle().hashCode();
-      hash = (37 * hash) + SNIPPET_FIELD_NUMBER;
-      hash = (53 * hash) + getSnippet().hashCode();
-      if (!internalGetLabels().getMap().isEmpty()) {
-        hash = (37 * hash) + LABELS_FIELD_NUMBER;
-        hash = (53 * hash) + internalGetLabels().hashCode();
-      }
-      hash = (37 * hash) + METADATA_JSON_FIELD_NUMBER;
-      hash = (53 * hash) + getMetadataJson().hashCode();
-      hash = (37 * hash) + ACL_SCOPE_JSON_FIELD_NUMBER;
-      hash = (53 * hash) + getAclScopeJson().hashCode();
-      hash = (37 * hash) + CREATED_AT_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getCreatedAt());
-      hash = (37 * hash) + UPDATED_AT_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getUpdatedAt());
-      hash = (37 * hash) + INDEXED_AT_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getIndexedAt());
-      hash = (37 * hash) + GENERATION_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getGeneration());
-      hash = (37 * hash) + EMBEDDING_REF_FIELD_NUMBER;
-      hash = (53 * hash) + getEmbeddingRef().hashCode();
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.v1.Search.Document parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.v1.Search.Document parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.v1.Search.Document parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.v1.Search.Document parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.v1.Search.Document parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.v1.Search.Document parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.v1.Search.Document parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.v1.Search.Document parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.v1.Search.Document parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.v1.Search.Document parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.v1.Search.Document parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.v1.Search.Document parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.v1.Search.Document prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.v1.Document}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.v1.Document)
-        talon.v1.Search.DocumentOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.v1.Search.internal_static_talon_v1_Document_descriptor;
-      }
-
-      @SuppressWarnings({"rawtypes"})
-      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
-          int number) {
-        switch (number) {
-          case 5:
-            return internalGetAttributes();
-          case 8:
-            return internalGetLabels();
-          default:
-            throw new RuntimeException(
-                "Invalid map field number: " + number);
-        }
-      }
-      @SuppressWarnings({"rawtypes"})
-      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
-          int number) {
-        switch (number) {
-          case 5:
-            return internalGetMutableAttributes();
-          case 8:
-            return internalGetMutableLabels();
-          default:
-            throw new RuntimeException(
-                "Invalid map field number: " + number);
-        }
-      }
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.v1.Search.internal_static_talon_v1_Document_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.v1.Search.Document.class, talon.v1.Search.Document.Builder.class);
-      }
-
-      // Construct using talon.v1.Search.Document.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage
-                .alwaysUseFieldBuilders) {
-          internalGetSourceFieldBuilder();
-        }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        id_ = "";
-        source_ = null;
-        if (sourceBuilder_ != null) {
-          sourceBuilder_.dispose();
-          sourceBuilder_ = null;
-        }
-        documentKind_ = "";
-        subdocumentId_ = "";
-        internalGetMutableAttributes().clear();
-        title_ = "";
-        snippet_ = "";
-        internalGetMutableLabels().clear();
-        metadataJson_ = "";
-        aclScopeJson_ = "";
-        createdAt_ = 0L;
-        updatedAt_ = 0L;
-        indexedAt_ = 0L;
-        generation_ = 0L;
-        embeddingRef_ = "";
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.v1.Search.internal_static_talon_v1_Document_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.v1.Search.Document getDefaultInstanceForType() {
-        return talon.v1.Search.Document.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.v1.Search.Document build() {
-        talon.v1.Search.Document result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.v1.Search.Document buildPartial() {
-        talon.v1.Search.Document result = new talon.v1.Search.Document(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.v1.Search.Document result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.id_ = id_;
-        }
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.source_ = sourceBuilder_ == null
-              ? source_
-              : sourceBuilder_.build();
-          to_bitField0_ |= 0x00000001;
-        }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.documentKind_ = documentKind_;
-        }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.subdocumentId_ = subdocumentId_;
-        }
-        if (((from_bitField0_ & 0x00000010) != 0)) {
-          result.attributes_ = internalGetAttributes();
-          result.attributes_.makeImmutable();
-        }
-        if (((from_bitField0_ & 0x00000020) != 0)) {
-          result.title_ = title_;
-        }
-        if (((from_bitField0_ & 0x00000040) != 0)) {
-          result.snippet_ = snippet_;
-        }
-        if (((from_bitField0_ & 0x00000080) != 0)) {
-          result.labels_ = internalGetLabels();
-          result.labels_.makeImmutable();
-        }
-        if (((from_bitField0_ & 0x00000100) != 0)) {
-          result.metadataJson_ = metadataJson_;
-        }
-        if (((from_bitField0_ & 0x00000200) != 0)) {
-          result.aclScopeJson_ = aclScopeJson_;
-        }
-        if (((from_bitField0_ & 0x00000400) != 0)) {
-          result.createdAt_ = createdAt_;
-        }
-        if (((from_bitField0_ & 0x00000800) != 0)) {
-          result.updatedAt_ = updatedAt_;
-        }
-        if (((from_bitField0_ & 0x00001000) != 0)) {
-          result.indexedAt_ = indexedAt_;
-        }
-        if (((from_bitField0_ & 0x00002000) != 0)) {
-          result.generation_ = generation_;
-        }
-        if (((from_bitField0_ & 0x00004000) != 0)) {
-          result.embeddingRef_ = embeddingRef_;
-        }
-        result.bitField0_ |= to_bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.v1.Search.Document) {
-          return mergeFrom((talon.v1.Search.Document)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.v1.Search.Document other) {
-        if (other == talon.v1.Search.Document.getDefaultInstance()) return this;
-        if (!other.getId().isEmpty()) {
-          id_ = other.id_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (other.hasSource()) {
-          mergeSource(other.getSource());
-        }
-        if (!other.getDocumentKind().isEmpty()) {
-          documentKind_ = other.documentKind_;
-          bitField0_ |= 0x00000004;
-          onChanged();
-        }
-        if (!other.getSubdocumentId().isEmpty()) {
-          subdocumentId_ = other.subdocumentId_;
-          bitField0_ |= 0x00000008;
-          onChanged();
-        }
-        internalGetMutableAttributes().mergeFrom(
-            other.internalGetAttributes());
-        bitField0_ |= 0x00000010;
-        if (!other.getTitle().isEmpty()) {
-          title_ = other.title_;
-          bitField0_ |= 0x00000020;
-          onChanged();
-        }
-        if (!other.getSnippet().isEmpty()) {
-          snippet_ = other.snippet_;
-          bitField0_ |= 0x00000040;
-          onChanged();
-        }
-        internalGetMutableLabels().mergeFrom(
-            other.internalGetLabels());
-        bitField0_ |= 0x00000080;
-        if (!other.getMetadataJson().isEmpty()) {
-          metadataJson_ = other.metadataJson_;
-          bitField0_ |= 0x00000100;
-          onChanged();
-        }
-        if (!other.getAclScopeJson().isEmpty()) {
-          aclScopeJson_ = other.aclScopeJson_;
-          bitField0_ |= 0x00000200;
-          onChanged();
-        }
-        if (other.getCreatedAt() != 0L) {
-          setCreatedAt(other.getCreatedAt());
-        }
-        if (other.getUpdatedAt() != 0L) {
-          setUpdatedAt(other.getUpdatedAt());
-        }
-        if (other.getIndexedAt() != 0L) {
-          setIndexedAt(other.getIndexedAt());
-        }
-        if (other.getGeneration() != 0L) {
-          setGeneration(other.getGeneration());
-        }
-        if (!other.getEmbeddingRef().isEmpty()) {
-          embeddingRef_ = other.embeddingRef_;
-          bitField0_ |= 0x00004000;
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                id_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                input.readMessage(
-                    internalGetSourceFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              case 26: {
-                documentKind_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
-              case 34: {
-                subdocumentId_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 34
-              case 42: {
-                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-                attributes__ = input.readMessage(
-                    AttributesDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-                internalGetMutableAttributes().getMutableMap().put(
-                    attributes__.getKey(), attributes__.getValue());
-                bitField0_ |= 0x00000010;
-                break;
-              } // case 42
-              case 50: {
-                title_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000020;
-                break;
-              } // case 50
-              case 58: {
-                snippet_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000040;
-                break;
-              } // case 58
-              case 66: {
-                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-                labels__ = input.readMessage(
-                    LabelsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-                internalGetMutableLabels().getMutableMap().put(
-                    labels__.getKey(), labels__.getValue());
-                bitField0_ |= 0x00000080;
-                break;
-              } // case 66
-              case 74: {
-                metadataJson_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000100;
-                break;
-              } // case 74
-              case 82: {
-                aclScopeJson_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000200;
-                break;
-              } // case 82
-              case 88: {
-                createdAt_ = input.readInt64();
-                bitField0_ |= 0x00000400;
-                break;
-              } // case 88
-              case 96: {
-                updatedAt_ = input.readInt64();
-                bitField0_ |= 0x00000800;
-                break;
-              } // case 96
-              case 104: {
-                indexedAt_ = input.readInt64();
-                bitField0_ |= 0x00001000;
-                break;
-              } // case 104
-              case 112: {
-                generation_ = input.readUInt64();
-                bitField0_ |= 0x00002000;
-                break;
-              } // case 112
-              case 122: {
-                embeddingRef_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00004000;
-                break;
-              } // case 122
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object id_ = "";
-      /**
-       * <code>string id = 1;</code>
-       * @return The id.
-       */
-      public java.lang.String getId() {
-        java.lang.Object ref = id_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          id_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string id = 1;</code>
-       * @return The bytes for id.
-       */
-      public com.google.protobuf.ByteString
-          getIdBytes() {
-        java.lang.Object ref = id_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          id_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string id = 1;</code>
-       * @param value The id to set.
-       * @return This builder for chaining.
-       */
-      public Builder setId(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        id_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string id = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearId() {
-        id_ = getDefaultInstance().getId();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string id = 1;</code>
-       * @param value The bytes for id to set.
-       * @return This builder for chaining.
-       */
-      public Builder setIdBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        id_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private talon.v1.Search.DocumentSource source_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.v1.Search.DocumentSource, talon.v1.Search.DocumentSource.Builder, talon.v1.Search.DocumentSourceOrBuilder> sourceBuilder_;
-      /**
-       * <code>.talon.v1.DocumentSource source = 2;</code>
-       * @return Whether the source field is set.
-       */
-      public boolean hasSource() {
-        return ((bitField0_ & 0x00000002) != 0);
-      }
-      /**
-       * <code>.talon.v1.DocumentSource source = 2;</code>
-       * @return The source.
-       */
-      public talon.v1.Search.DocumentSource getSource() {
-        if (sourceBuilder_ == null) {
-          return source_ == null ? talon.v1.Search.DocumentSource.getDefaultInstance() : source_;
-        } else {
-          return sourceBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>.talon.v1.DocumentSource source = 2;</code>
-       */
-      public Builder setSource(talon.v1.Search.DocumentSource value) {
-        if (sourceBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          source_ = value;
-        } else {
-          sourceBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.v1.DocumentSource source = 2;</code>
-       */
-      public Builder setSource(
-          talon.v1.Search.DocumentSource.Builder builderForValue) {
-        if (sourceBuilder_ == null) {
-          source_ = builderForValue.build();
-        } else {
-          sourceBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.v1.DocumentSource source = 2;</code>
-       */
-      public Builder mergeSource(talon.v1.Search.DocumentSource value) {
-        if (sourceBuilder_ == null) {
-          if (((bitField0_ & 0x00000002) != 0) &&
-            source_ != null &&
-            source_ != talon.v1.Search.DocumentSource.getDefaultInstance()) {
-            getSourceBuilder().mergeFrom(value);
-          } else {
-            source_ = value;
-          }
-        } else {
-          sourceBuilder_.mergeFrom(value);
-        }
-        if (source_ != null) {
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.v1.DocumentSource source = 2;</code>
-       */
-      public Builder clearSource() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        source_ = null;
-        if (sourceBuilder_ != null) {
-          sourceBuilder_.dispose();
-          sourceBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.v1.DocumentSource source = 2;</code>
-       */
-      public talon.v1.Search.DocumentSource.Builder getSourceBuilder() {
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return internalGetSourceFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.v1.DocumentSource source = 2;</code>
-       */
-      public talon.v1.Search.DocumentSourceOrBuilder getSourceOrBuilder() {
-        if (sourceBuilder_ != null) {
-          return sourceBuilder_.getMessageOrBuilder();
-        } else {
-          return source_ == null ?
-              talon.v1.Search.DocumentSource.getDefaultInstance() : source_;
-        }
-      }
-      /**
-       * <code>.talon.v1.DocumentSource source = 2;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.v1.Search.DocumentSource, talon.v1.Search.DocumentSource.Builder, talon.v1.Search.DocumentSourceOrBuilder>
-          internalGetSourceFieldBuilder() {
-        if (sourceBuilder_ == null) {
-          sourceBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.v1.Search.DocumentSource, talon.v1.Search.DocumentSource.Builder, talon.v1.Search.DocumentSourceOrBuilder>(
-                  getSource(),
-                  getParentForChildren(),
-                  isClean());
-          source_ = null;
-        }
-        return sourceBuilder_;
-      }
-
-      private java.lang.Object documentKind_ = "";
-      /**
-       * <code>string document_kind = 3;</code>
-       * @return The documentKind.
-       */
-      public java.lang.String getDocumentKind() {
-        java.lang.Object ref = documentKind_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          documentKind_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string document_kind = 3;</code>
-       * @return The bytes for documentKind.
-       */
-      public com.google.protobuf.ByteString
-          getDocumentKindBytes() {
-        java.lang.Object ref = documentKind_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          documentKind_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string document_kind = 3;</code>
-       * @param value The documentKind to set.
-       * @return This builder for chaining.
-       */
-      public Builder setDocumentKind(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        documentKind_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string document_kind = 3;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearDocumentKind() {
-        documentKind_ = getDefaultInstance().getDocumentKind();
-        bitField0_ = (bitField0_ & ~0x00000004);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string document_kind = 3;</code>
-       * @param value The bytes for documentKind to set.
-       * @return This builder for chaining.
-       */
-      public Builder setDocumentKindBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        documentKind_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object subdocumentId_ = "";
-      /**
-       * <code>string subdocument_id = 4;</code>
-       * @return The subdocumentId.
-       */
-      public java.lang.String getSubdocumentId() {
-        java.lang.Object ref = subdocumentId_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          subdocumentId_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string subdocument_id = 4;</code>
-       * @return The bytes for subdocumentId.
-       */
-      public com.google.protobuf.ByteString
-          getSubdocumentIdBytes() {
-        java.lang.Object ref = subdocumentId_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          subdocumentId_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string subdocument_id = 4;</code>
-       * @param value The subdocumentId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSubdocumentId(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        subdocumentId_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string subdocument_id = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearSubdocumentId() {
-        subdocumentId_ = getDefaultInstance().getSubdocumentId();
-        bitField0_ = (bitField0_ & ~0x00000008);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string subdocument_id = 4;</code>
-       * @param value The bytes for subdocumentId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSubdocumentIdBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        subdocumentId_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-
-      private com.google.protobuf.MapField<
-          java.lang.String, java.lang.String> attributes_;
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-          internalGetAttributes() {
-        if (attributes_ == null) {
-          return com.google.protobuf.MapField.emptyMapField(
-              AttributesDefaultEntryHolder.defaultEntry);
-        }
-        return attributes_;
-      }
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-          internalGetMutableAttributes() {
-        if (attributes_ == null) {
-          attributes_ = com.google.protobuf.MapField.newMapField(
-              AttributesDefaultEntryHolder.defaultEntry);
-        }
-        if (!attributes_.isMutable()) {
-          attributes_ = attributes_.copy();
-        }
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return attributes_;
-      }
-      public int getAttributesCount() {
-        return internalGetAttributes().getMap().size();
-      }
-      /**
-       * <code>map&lt;string, string&gt; attributes = 5;</code>
-       */
-      @java.lang.Override
-      public boolean containsAttributes(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        return internalGetAttributes().getMap().containsKey(key);
-      }
-      /**
-       * Use {@link #getAttributesMap()} instead.
-       */
-      @java.lang.Override
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String> getAttributes() {
-        return getAttributesMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; attributes = 5;</code>
-       */
-      @java.lang.Override
-      public java.util.Map<java.lang.String, java.lang.String> getAttributesMap() {
-        return internalGetAttributes().getMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; attributes = 5;</code>
-       */
-      @java.lang.Override
-      public /* nullable */
-java.lang.String getAttributesOrDefault(
-          java.lang.String key,
-          /* nullable */
-java.lang.String defaultValue) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetAttributes().getMap();
-        return map.containsKey(key) ? map.get(key) : defaultValue;
-      }
-      /**
-       * <code>map&lt;string, string&gt; attributes = 5;</code>
-       */
-      @java.lang.Override
-      public java.lang.String getAttributesOrThrow(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetAttributes().getMap();
-        if (!map.containsKey(key)) {
-          throw new java.lang.IllegalArgumentException();
-        }
-        return map.get(key);
-      }
-      public Builder clearAttributes() {
-        bitField0_ = (bitField0_ & ~0x00000010);
-        internalGetMutableAttributes().getMutableMap()
-            .clear();
-        return this;
-      }
-      /**
-       * <code>map&lt;string, string&gt; attributes = 5;</code>
-       */
-      public Builder removeAttributes(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        internalGetMutableAttributes().getMutableMap()
-            .remove(key);
-        return this;
-      }
-      /**
-       * Use alternate mutation accessors instead.
-       */
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String>
-          getMutableAttributes() {
-        bitField0_ |= 0x00000010;
-        return internalGetMutableAttributes().getMutableMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; attributes = 5;</code>
-       */
-      public Builder putAttributes(
-          java.lang.String key,
-          java.lang.String value) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        if (value == null) { throw new NullPointerException("map value"); }
-        internalGetMutableAttributes().getMutableMap()
-            .put(key, value);
-        bitField0_ |= 0x00000010;
-        return this;
-      }
-      /**
-       * <code>map&lt;string, string&gt; attributes = 5;</code>
-       */
-      public Builder putAllAttributes(
-          java.util.Map<java.lang.String, java.lang.String> values) {
-        internalGetMutableAttributes().getMutableMap()
-            .putAll(values);
-        bitField0_ |= 0x00000010;
-        return this;
-      }
-
-      private java.lang.Object title_ = "";
-      /**
-       * <code>string title = 6;</code>
-       * @return The title.
-       */
-      public java.lang.String getTitle() {
-        java.lang.Object ref = title_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          title_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string title = 6;</code>
-       * @return The bytes for title.
-       */
-      public com.google.protobuf.ByteString
-          getTitleBytes() {
-        java.lang.Object ref = title_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          title_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string title = 6;</code>
-       * @param value The title to set.
-       * @return This builder for chaining.
-       */
-      public Builder setTitle(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        title_ = value;
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string title = 6;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearTitle() {
-        title_ = getDefaultInstance().getTitle();
-        bitField0_ = (bitField0_ & ~0x00000020);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string title = 6;</code>
-       * @param value The bytes for title to set.
-       * @return This builder for chaining.
-       */
-      public Builder setTitleBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        title_ = value;
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object snippet_ = "";
-      /**
-       * <code>string snippet = 7;</code>
-       * @return The snippet.
-       */
-      public java.lang.String getSnippet() {
-        java.lang.Object ref = snippet_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          snippet_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string snippet = 7;</code>
-       * @return The bytes for snippet.
-       */
-      public com.google.protobuf.ByteString
-          getSnippetBytes() {
-        java.lang.Object ref = snippet_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          snippet_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string snippet = 7;</code>
-       * @param value The snippet to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSnippet(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        snippet_ = value;
-        bitField0_ |= 0x00000040;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string snippet = 7;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearSnippet() {
-        snippet_ = getDefaultInstance().getSnippet();
-        bitField0_ = (bitField0_ & ~0x00000040);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string snippet = 7;</code>
-       * @param value The bytes for snippet to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSnippetBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        snippet_ = value;
-        bitField0_ |= 0x00000040;
-        onChanged();
-        return this;
-      }
-
-      private com.google.protobuf.MapField<
-          java.lang.String, java.lang.String> labels_;
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-          internalGetLabels() {
-        if (labels_ == null) {
-          return com.google.protobuf.MapField.emptyMapField(
-              LabelsDefaultEntryHolder.defaultEntry);
-        }
-        return labels_;
-      }
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-          internalGetMutableLabels() {
-        if (labels_ == null) {
-          labels_ = com.google.protobuf.MapField.newMapField(
-              LabelsDefaultEntryHolder.defaultEntry);
-        }
-        if (!labels_.isMutable()) {
-          labels_ = labels_.copy();
-        }
-        bitField0_ |= 0x00000080;
-        onChanged();
-        return labels_;
-      }
-      public int getLabelsCount() {
-        return internalGetLabels().getMap().size();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 8;</code>
-       */
-      @java.lang.Override
-      public boolean containsLabels(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        return internalGetLabels().getMap().containsKey(key);
-      }
-      /**
-       * Use {@link #getLabelsMap()} instead.
-       */
-      @java.lang.Override
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String> getLabels() {
-        return getLabelsMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 8;</code>
-       */
-      @java.lang.Override
-      public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
-        return internalGetLabels().getMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 8;</code>
-       */
-      @java.lang.Override
-      public /* nullable */
-java.lang.String getLabelsOrDefault(
-          java.lang.String key,
-          /* nullable */
-java.lang.String defaultValue) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetLabels().getMap();
-        return map.containsKey(key) ? map.get(key) : defaultValue;
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 8;</code>
-       */
-      @java.lang.Override
-      public java.lang.String getLabelsOrThrow(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetLabels().getMap();
-        if (!map.containsKey(key)) {
-          throw new java.lang.IllegalArgumentException();
-        }
-        return map.get(key);
-      }
-      public Builder clearLabels() {
-        bitField0_ = (bitField0_ & ~0x00000080);
-        internalGetMutableLabels().getMutableMap()
-            .clear();
-        return this;
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 8;</code>
-       */
-      public Builder removeLabels(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        internalGetMutableLabels().getMutableMap()
-            .remove(key);
-        return this;
-      }
-      /**
-       * Use alternate mutation accessors instead.
-       */
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String>
-          getMutableLabels() {
-        bitField0_ |= 0x00000080;
-        return internalGetMutableLabels().getMutableMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 8;</code>
-       */
-      public Builder putLabels(
-          java.lang.String key,
-          java.lang.String value) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        if (value == null) { throw new NullPointerException("map value"); }
-        internalGetMutableLabels().getMutableMap()
-            .put(key, value);
-        bitField0_ |= 0x00000080;
-        return this;
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 8;</code>
-       */
-      public Builder putAllLabels(
-          java.util.Map<java.lang.String, java.lang.String> values) {
-        internalGetMutableLabels().getMutableMap()
-            .putAll(values);
-        bitField0_ |= 0x00000080;
-        return this;
-      }
-
-      private java.lang.Object metadataJson_ = "";
-      /**
-       * <code>string metadata_json = 9;</code>
-       * @return The metadataJson.
-       */
-      public java.lang.String getMetadataJson() {
-        java.lang.Object ref = metadataJson_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          metadataJson_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string metadata_json = 9;</code>
-       * @return The bytes for metadataJson.
-       */
-      public com.google.protobuf.ByteString
-          getMetadataJsonBytes() {
-        java.lang.Object ref = metadataJson_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          metadataJson_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string metadata_json = 9;</code>
-       * @param value The metadataJson to set.
-       * @return This builder for chaining.
-       */
-      public Builder setMetadataJson(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        metadataJson_ = value;
-        bitField0_ |= 0x00000100;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string metadata_json = 9;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearMetadataJson() {
-        metadataJson_ = getDefaultInstance().getMetadataJson();
-        bitField0_ = (bitField0_ & ~0x00000100);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string metadata_json = 9;</code>
-       * @param value The bytes for metadataJson to set.
-       * @return This builder for chaining.
-       */
-      public Builder setMetadataJsonBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        metadataJson_ = value;
-        bitField0_ |= 0x00000100;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object aclScopeJson_ = "";
-      /**
-       * <code>string acl_scope_json = 10;</code>
-       * @return The aclScopeJson.
-       */
-      public java.lang.String getAclScopeJson() {
-        java.lang.Object ref = aclScopeJson_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          aclScopeJson_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string acl_scope_json = 10;</code>
-       * @return The bytes for aclScopeJson.
-       */
-      public com.google.protobuf.ByteString
-          getAclScopeJsonBytes() {
-        java.lang.Object ref = aclScopeJson_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          aclScopeJson_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string acl_scope_json = 10;</code>
-       * @param value The aclScopeJson to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAclScopeJson(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        aclScopeJson_ = value;
-        bitField0_ |= 0x00000200;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string acl_scope_json = 10;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearAclScopeJson() {
-        aclScopeJson_ = getDefaultInstance().getAclScopeJson();
-        bitField0_ = (bitField0_ & ~0x00000200);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string acl_scope_json = 10;</code>
-       * @param value The bytes for aclScopeJson to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAclScopeJsonBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        aclScopeJson_ = value;
-        bitField0_ |= 0x00000200;
-        onChanged();
-        return this;
-      }
-
-      private long createdAt_ ;
-      /**
-       * <code>int64 created_at = 11;</code>
-       * @return The createdAt.
-       */
-      @java.lang.Override
-      public long getCreatedAt() {
-        return createdAt_;
-      }
-      /**
-       * <code>int64 created_at = 11;</code>
-       * @param value The createdAt to set.
-       * @return This builder for chaining.
-       */
-      public Builder setCreatedAt(long value) {
-
-        createdAt_ = value;
-        bitField0_ |= 0x00000400;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>int64 created_at = 11;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearCreatedAt() {
-        bitField0_ = (bitField0_ & ~0x00000400);
-        createdAt_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private long updatedAt_ ;
-      /**
-       * <code>int64 updated_at = 12;</code>
-       * @return The updatedAt.
-       */
-      @java.lang.Override
-      public long getUpdatedAt() {
-        return updatedAt_;
-      }
-      /**
-       * <code>int64 updated_at = 12;</code>
-       * @param value The updatedAt to set.
-       * @return This builder for chaining.
-       */
-      public Builder setUpdatedAt(long value) {
-
-        updatedAt_ = value;
-        bitField0_ |= 0x00000800;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>int64 updated_at = 12;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearUpdatedAt() {
-        bitField0_ = (bitField0_ & ~0x00000800);
-        updatedAt_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private long indexedAt_ ;
-      /**
-       * <code>int64 indexed_at = 13;</code>
-       * @return The indexedAt.
-       */
-      @java.lang.Override
-      public long getIndexedAt() {
-        return indexedAt_;
-      }
-      /**
-       * <code>int64 indexed_at = 13;</code>
-       * @param value The indexedAt to set.
-       * @return This builder for chaining.
-       */
-      public Builder setIndexedAt(long value) {
-
-        indexedAt_ = value;
-        bitField0_ |= 0x00001000;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>int64 indexed_at = 13;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearIndexedAt() {
-        bitField0_ = (bitField0_ & ~0x00001000);
-        indexedAt_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private long generation_ ;
-      /**
-       * <pre>
-       * Canonical source generation that produced this disposable document projection.
-       * </pre>
-       *
-       * <code>uint64 generation = 14;</code>
-       * @return The generation.
-       */
-      @java.lang.Override
-      public long getGeneration() {
-        return generation_;
-      }
-      /**
-       * <pre>
-       * Canonical source generation that produced this disposable document projection.
-       * </pre>
-       *
-       * <code>uint64 generation = 14;</code>
-       * @param value The generation to set.
-       * @return This builder for chaining.
-       */
-      public Builder setGeneration(long value) {
-
-        generation_ = value;
-        bitField0_ |= 0x00002000;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Canonical source generation that produced this disposable document projection.
-       * </pre>
-       *
-       * <code>uint64 generation = 14;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearGeneration() {
-        bitField0_ = (bitField0_ & ~0x00002000);
-        generation_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object embeddingRef_ = "";
-      /**
-       * <code>string embedding_ref = 15;</code>
-       * @return The embeddingRef.
-       */
-      public java.lang.String getEmbeddingRef() {
-        java.lang.Object ref = embeddingRef_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          embeddingRef_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string embedding_ref = 15;</code>
-       * @return The bytes for embeddingRef.
-       */
-      public com.google.protobuf.ByteString
-          getEmbeddingRefBytes() {
-        java.lang.Object ref = embeddingRef_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          embeddingRef_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string embedding_ref = 15;</code>
-       * @param value The embeddingRef to set.
-       * @return This builder for chaining.
-       */
-      public Builder setEmbeddingRef(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        embeddingRef_ = value;
-        bitField0_ |= 0x00004000;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string embedding_ref = 15;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearEmbeddingRef() {
-        embeddingRef_ = getDefaultInstance().getEmbeddingRef();
-        bitField0_ = (bitField0_ & ~0x00004000);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string embedding_ref = 15;</code>
-       * @param value The bytes for embeddingRef to set.
-       * @return This builder for chaining.
-       */
-      public Builder setEmbeddingRefBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        embeddingRef_ = value;
-        bitField0_ |= 0x00004000;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.v1.Document)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.v1.Document)
-    private static final talon.v1.Search.Document DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.v1.Search.Document();
-    }
-
-    public static talon.v1.Search.Document getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<Document>
-        PARSER = new com.google.protobuf.AbstractParser<Document>() {
-      @java.lang.Override
-      public Document parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<Document> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<Document> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.v1.Search.Document getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface DocumentSourceOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.v1.DocumentSource)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>string key = 1;</code>
-     * @return The key.
-     */
-    java.lang.String getKey();
-    /**
-     * <code>string key = 1;</code>
-     * @return The bytes for key.
-     */
-    com.google.protobuf.ByteString
-        getKeyBytes();
-
-    /**
-     * <code>string namespace = 2;</code>
-     * @return The namespace.
-     */
-    java.lang.String getNamespace();
-    /**
-     * <code>string namespace = 2;</code>
-     * @return The bytes for namespace.
-     */
-    com.google.protobuf.ByteString
-        getNamespaceBytes();
-
-    /**
-     * <code>string kind = 3;</code>
-     * @return The kind.
-     */
-    java.lang.String getKind();
-    /**
-     * <code>string kind = 3;</code>
-     * @return The bytes for kind.
-     */
-    com.google.protobuf.ByteString
-        getKindBytes();
-
-    /**
-     * <code>string name = 4;</code>
-     * @return The name.
-     */
-    java.lang.String getName();
-    /**
-     * <code>string name = 4;</code>
-     * @return The bytes for name.
-     */
-    com.google.protobuf.ByteString
-        getNameBytes();
-
-    /**
-     * <code>string parent_kind = 5;</code>
-     * @return The parentKind.
-     */
-    java.lang.String getParentKind();
-    /**
-     * <code>string parent_kind = 5;</code>
-     * @return The bytes for parentKind.
-     */
-    com.google.protobuf.ByteString
-        getParentKindBytes();
-
-    /**
-     * <code>string parent_key = 6;</code>
-     * @return The parentKey.
-     */
-    java.lang.String getParentKey();
-    /**
-     * <code>string parent_key = 6;</code>
-     * @return The bytes for parentKey.
-     */
-    com.google.protobuf.ByteString
-        getParentKeyBytes();
-  }
-  /**
-   * Protobuf type {@code talon.v1.DocumentSource}
-   */
-  public static final class DocumentSource extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.v1.DocumentSource)
-      DocumentSourceOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "DocumentSource");
-    }
-    // Use DocumentSource.newBuilder() to construct.
-    private DocumentSource(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private DocumentSource() {
-      key_ = "";
-      namespace_ = "";
-      kind_ = "";
-      name_ = "";
-      parentKind_ = "";
-      parentKey_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.v1.Search.internal_static_talon_v1_DocumentSource_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.v1.Search.internal_static_talon_v1_DocumentSource_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.v1.Search.internal_static_talon_v1_DocumentSource_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.v1.Search.DocumentSource.class, talon.v1.Search.DocumentSource.Builder.class);
-    }
-
-    public static final int KEY_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object key_ = "";
-    /**
-     * <code>string key = 1;</code>
-     * @return The key.
-     */
-    @java.lang.Override
-    public java.lang.String getKey() {
-      java.lang.Object ref = key_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        key_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string key = 1;</code>
-     * @return The bytes for key.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getKeyBytes() {
-      java.lang.Object ref = key_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        key_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int NAMESPACE_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object namespace_ = "";
-    /**
-     * <code>string namespace = 2;</code>
-     * @return The namespace.
-     */
-    @java.lang.Override
-    public java.lang.String getNamespace() {
-      java.lang.Object ref = namespace_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        namespace_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string namespace = 2;</code>
-     * @return The bytes for namespace.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNamespaceBytes() {
-      java.lang.Object ref = namespace_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        namespace_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int KIND_FIELD_NUMBER = 3;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object kind_ = "";
-    /**
-     * <code>string kind = 3;</code>
-     * @return The kind.
-     */
-    @java.lang.Override
-    public java.lang.String getKind() {
-      java.lang.Object ref = kind_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        kind_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string kind = 3;</code>
-     * @return The bytes for kind.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getKindBytes() {
-      java.lang.Object ref = kind_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        kind_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int NAME_FIELD_NUMBER = 4;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object name_ = "";
-    /**
-     * <code>string name = 4;</code>
-     * @return The name.
-     */
-    @java.lang.Override
-    public java.lang.String getName() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        name_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string name = 4;</code>
-     * @return The bytes for name.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNameBytes() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        name_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int PARENT_KIND_FIELD_NUMBER = 5;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object parentKind_ = "";
-    /**
-     * <code>string parent_kind = 5;</code>
-     * @return The parentKind.
-     */
-    @java.lang.Override
-    public java.lang.String getParentKind() {
-      java.lang.Object ref = parentKind_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        parentKind_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string parent_kind = 5;</code>
-     * @return The bytes for parentKind.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getParentKindBytes() {
-      java.lang.Object ref = parentKind_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        parentKind_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int PARENT_KEY_FIELD_NUMBER = 6;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object parentKey_ = "";
-    /**
-     * <code>string parent_key = 6;</code>
-     * @return The parentKey.
-     */
-    @java.lang.Override
-    public java.lang.String getParentKey() {
-      java.lang.Object ref = parentKey_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        parentKey_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string parent_key = 6;</code>
-     * @return The bytes for parentKey.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getParentKeyBytes() {
-      java.lang.Object ref = parentKey_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        parentKey_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(key_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, key_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, namespace_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, kind_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 4, name_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(parentKind_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 5, parentKind_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(parentKey_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 6, parentKey_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(key_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, key_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, namespace_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, kind_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, name_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(parentKind_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, parentKind_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(parentKey_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, parentKey_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.v1.Search.DocumentSource)) {
-        return super.equals(obj);
-      }
-      talon.v1.Search.DocumentSource other = (talon.v1.Search.DocumentSource) obj;
-
-      if (!getKey()
-          .equals(other.getKey())) return false;
-      if (!getNamespace()
-          .equals(other.getNamespace())) return false;
-      if (!getKind()
-          .equals(other.getKind())) return false;
-      if (!getName()
-          .equals(other.getName())) return false;
-      if (!getParentKind()
-          .equals(other.getParentKind())) return false;
-      if (!getParentKey()
-          .equals(other.getParentKey())) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + KEY_FIELD_NUMBER;
-      hash = (53 * hash) + getKey().hashCode();
-      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
-      hash = (53 * hash) + getNamespace().hashCode();
-      hash = (37 * hash) + KIND_FIELD_NUMBER;
-      hash = (53 * hash) + getKind().hashCode();
-      hash = (37 * hash) + NAME_FIELD_NUMBER;
-      hash = (53 * hash) + getName().hashCode();
-      hash = (37 * hash) + PARENT_KIND_FIELD_NUMBER;
-      hash = (53 * hash) + getParentKind().hashCode();
-      hash = (37 * hash) + PARENT_KEY_FIELD_NUMBER;
-      hash = (53 * hash) + getParentKey().hashCode();
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.v1.Search.DocumentSource parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.v1.Search.DocumentSource parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.v1.Search.DocumentSource parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.v1.Search.DocumentSource parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.v1.Search.DocumentSource parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.v1.Search.DocumentSource parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.v1.Search.DocumentSource parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.v1.Search.DocumentSource parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.v1.Search.DocumentSource parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.v1.Search.DocumentSource parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.v1.Search.DocumentSource parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.v1.Search.DocumentSource parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.v1.Search.DocumentSource prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.v1.DocumentSource}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.v1.DocumentSource)
-        talon.v1.Search.DocumentSourceOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.v1.Search.internal_static_talon_v1_DocumentSource_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.v1.Search.internal_static_talon_v1_DocumentSource_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.v1.Search.DocumentSource.class, talon.v1.Search.DocumentSource.Builder.class);
-      }
-
-      // Construct using talon.v1.Search.DocumentSource.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        key_ = "";
-        namespace_ = "";
-        kind_ = "";
-        name_ = "";
-        parentKind_ = "";
-        parentKey_ = "";
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.v1.Search.internal_static_talon_v1_DocumentSource_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.v1.Search.DocumentSource getDefaultInstanceForType() {
-        return talon.v1.Search.DocumentSource.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.v1.Search.DocumentSource build() {
-        talon.v1.Search.DocumentSource result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.v1.Search.DocumentSource buildPartial() {
-        talon.v1.Search.DocumentSource result = new talon.v1.Search.DocumentSource(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.v1.Search.DocumentSource result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.key_ = key_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.namespace_ = namespace_;
-        }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.kind_ = kind_;
-        }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.name_ = name_;
-        }
-        if (((from_bitField0_ & 0x00000010) != 0)) {
-          result.parentKind_ = parentKind_;
-        }
-        if (((from_bitField0_ & 0x00000020) != 0)) {
-          result.parentKey_ = parentKey_;
-        }
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.v1.Search.DocumentSource) {
-          return mergeFrom((talon.v1.Search.DocumentSource)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.v1.Search.DocumentSource other) {
-        if (other == talon.v1.Search.DocumentSource.getDefaultInstance()) return this;
-        if (!other.getKey().isEmpty()) {
-          key_ = other.key_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getNamespace().isEmpty()) {
-          namespace_ = other.namespace_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        if (!other.getKind().isEmpty()) {
-          kind_ = other.kind_;
-          bitField0_ |= 0x00000004;
-          onChanged();
-        }
-        if (!other.getName().isEmpty()) {
-          name_ = other.name_;
-          bitField0_ |= 0x00000008;
-          onChanged();
-        }
-        if (!other.getParentKind().isEmpty()) {
-          parentKind_ = other.parentKind_;
-          bitField0_ |= 0x00000010;
-          onChanged();
-        }
-        if (!other.getParentKey().isEmpty()) {
-          parentKey_ = other.parentKey_;
-          bitField0_ |= 0x00000020;
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                key_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                namespace_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              case 26: {
-                kind_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
-              case 34: {
-                name_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 34
-              case 42: {
-                parentKind_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000010;
-                break;
-              } // case 42
-              case 50: {
-                parentKey_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000020;
-                break;
-              } // case 50
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object key_ = "";
-      /**
-       * <code>string key = 1;</code>
-       * @return The key.
-       */
-      public java.lang.String getKey() {
-        java.lang.Object ref = key_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          key_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string key = 1;</code>
-       * @return The bytes for key.
-       */
-      public com.google.protobuf.ByteString
-          getKeyBytes() {
-        java.lang.Object ref = key_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          key_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string key = 1;</code>
-       * @param value The key to set.
-       * @return This builder for chaining.
-       */
-      public Builder setKey(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        key_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string key = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearKey() {
-        key_ = getDefaultInstance().getKey();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string key = 1;</code>
-       * @param value The bytes for key to set.
-       * @return This builder for chaining.
-       */
-      public Builder setKeyBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        key_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object namespace_ = "";
-      /**
-       * <code>string namespace = 2;</code>
-       * @return The namespace.
-       */
-      public java.lang.String getNamespace() {
-        java.lang.Object ref = namespace_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          namespace_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string namespace = 2;</code>
-       * @return The bytes for namespace.
-       */
-      public com.google.protobuf.ByteString
-          getNamespaceBytes() {
-        java.lang.Object ref = namespace_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          namespace_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string namespace = 2;</code>
-       * @param value The namespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNamespace(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        namespace_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string namespace = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearNamespace() {
-        namespace_ = getDefaultInstance().getNamespace();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string namespace = 2;</code>
-       * @param value The bytes for namespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNamespaceBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        namespace_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object kind_ = "";
-      /**
-       * <code>string kind = 3;</code>
-       * @return The kind.
-       */
-      public java.lang.String getKind() {
-        java.lang.Object ref = kind_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          kind_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string kind = 3;</code>
-       * @return The bytes for kind.
-       */
-      public com.google.protobuf.ByteString
-          getKindBytes() {
-        java.lang.Object ref = kind_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          kind_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string kind = 3;</code>
-       * @param value The kind to set.
-       * @return This builder for chaining.
-       */
-      public Builder setKind(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        kind_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string kind = 3;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearKind() {
-        kind_ = getDefaultInstance().getKind();
-        bitField0_ = (bitField0_ & ~0x00000004);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string kind = 3;</code>
-       * @param value The bytes for kind to set.
-       * @return This builder for chaining.
-       */
-      public Builder setKindBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        kind_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object name_ = "";
-      /**
-       * <code>string name = 4;</code>
-       * @return The name.
-       */
-      public java.lang.String getName() {
-        java.lang.Object ref = name_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          name_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string name = 4;</code>
-       * @return The bytes for name.
-       */
-      public com.google.protobuf.ByteString
-          getNameBytes() {
-        java.lang.Object ref = name_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          name_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string name = 4;</code>
-       * @param value The name to set.
-       * @return This builder for chaining.
-       */
-      public Builder setName(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        name_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string name = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearName() {
-        name_ = getDefaultInstance().getName();
-        bitField0_ = (bitField0_ & ~0x00000008);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string name = 4;</code>
-       * @param value The bytes for name to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNameBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        name_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object parentKind_ = "";
-      /**
-       * <code>string parent_kind = 5;</code>
-       * @return The parentKind.
-       */
-      public java.lang.String getParentKind() {
-        java.lang.Object ref = parentKind_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          parentKind_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string parent_kind = 5;</code>
-       * @return The bytes for parentKind.
-       */
-      public com.google.protobuf.ByteString
-          getParentKindBytes() {
-        java.lang.Object ref = parentKind_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          parentKind_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string parent_kind = 5;</code>
-       * @param value The parentKind to set.
-       * @return This builder for chaining.
-       */
-      public Builder setParentKind(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        parentKind_ = value;
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string parent_kind = 5;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearParentKind() {
-        parentKind_ = getDefaultInstance().getParentKind();
-        bitField0_ = (bitField0_ & ~0x00000010);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string parent_kind = 5;</code>
-       * @param value The bytes for parentKind to set.
-       * @return This builder for chaining.
-       */
-      public Builder setParentKindBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        parentKind_ = value;
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object parentKey_ = "";
-      /**
-       * <code>string parent_key = 6;</code>
-       * @return The parentKey.
-       */
-      public java.lang.String getParentKey() {
-        java.lang.Object ref = parentKey_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          parentKey_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string parent_key = 6;</code>
-       * @return The bytes for parentKey.
-       */
-      public com.google.protobuf.ByteString
-          getParentKeyBytes() {
-        java.lang.Object ref = parentKey_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          parentKey_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string parent_key = 6;</code>
-       * @param value The parentKey to set.
-       * @return This builder for chaining.
-       */
-      public Builder setParentKey(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        parentKey_ = value;
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string parent_key = 6;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearParentKey() {
-        parentKey_ = getDefaultInstance().getParentKey();
-        bitField0_ = (bitField0_ & ~0x00000020);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string parent_key = 6;</code>
-       * @param value The bytes for parentKey to set.
-       * @return This builder for chaining.
-       */
-      public Builder setParentKeyBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        parentKey_ = value;
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.v1.DocumentSource)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.v1.DocumentSource)
-    private static final talon.v1.Search.DocumentSource DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.v1.Search.DocumentSource();
-    }
-
-    public static talon.v1.Search.DocumentSource getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<DocumentSource>
-        PARSER = new com.google.protobuf.AbstractParser<DocumentSource>() {
-      @java.lang.Override
-      public DocumentSource parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<DocumentSource> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<DocumentSource> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.v1.Search.DocumentSource getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface SearchResultOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.v1.SearchResult)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>.talon.v1.Document document = 1;</code>
-     * @return Whether the document field is set.
-     */
-    boolean hasDocument();
-    /**
-     * <code>.talon.v1.Document document = 1;</code>
-     * @return The document.
-     */
-    talon.v1.Search.Document getDocument();
-    /**
-     * <code>.talon.v1.Document document = 1;</code>
-     */
-    talon.v1.Search.DocumentOrBuilder getDocumentOrBuilder();
-
-    /**
-     * <code>float score = 2;</code>
+     * <code>float score = 3;</code>
      * @return The score.
      */
     float getScore();
@@ -7444,6 +3532,7 @@ java.lang.String defaultValue) {
       super(builder);
     }
     private SearchResult() {
+      snippet_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -7466,9 +3555,9 @@ java.lang.String defaultValue) {
 
     private int bitField0_;
     public static final int DOCUMENT_FIELD_NUMBER = 1;
-    private talon.v1.Search.Document document_;
+    private talon.data.Search.DocumentRef document_;
     /**
-     * <code>.talon.v1.Document document = 1;</code>
+     * <code>.talon.data.DocumentRef document = 1;</code>
      * @return Whether the document field is set.
      */
     @java.lang.Override
@@ -7476,25 +3565,64 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.v1.Document document = 1;</code>
+     * <code>.talon.data.DocumentRef document = 1;</code>
      * @return The document.
      */
     @java.lang.Override
-    public talon.v1.Search.Document getDocument() {
-      return document_ == null ? talon.v1.Search.Document.getDefaultInstance() : document_;
+    public talon.data.Search.DocumentRef getDocument() {
+      return document_ == null ? talon.data.Search.DocumentRef.getDefaultInstance() : document_;
     }
     /**
-     * <code>.talon.v1.Document document = 1;</code>
+     * <code>.talon.data.DocumentRef document = 1;</code>
      */
     @java.lang.Override
-    public talon.v1.Search.DocumentOrBuilder getDocumentOrBuilder() {
-      return document_ == null ? talon.v1.Search.Document.getDefaultInstance() : document_;
+    public talon.data.Search.DocumentRefOrBuilder getDocumentOrBuilder() {
+      return document_ == null ? talon.data.Search.DocumentRef.getDefaultInstance() : document_;
     }
 
-    public static final int SCORE_FIELD_NUMBER = 2;
+    public static final int SNIPPET_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object snippet_ = "";
+    /**
+     * <code>string snippet = 2;</code>
+     * @return The snippet.
+     */
+    @java.lang.Override
+    public java.lang.String getSnippet() {
+      java.lang.Object ref = snippet_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        snippet_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string snippet = 2;</code>
+     * @return The bytes for snippet.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSnippetBytes() {
+      java.lang.Object ref = snippet_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        snippet_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SCORE_FIELD_NUMBER = 3;
     private float score_ = 0F;
     /**
-     * <code>float score = 2;</code>
+     * <code>float score = 3;</code>
      * @return The score.
      */
     @java.lang.Override
@@ -7519,8 +3647,11 @@ java.lang.String defaultValue) {
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(1, getDocument());
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(snippet_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, snippet_);
+      }
       if (java.lang.Float.floatToRawIntBits(score_) != 0) {
-        output.writeFloat(2, score_);
+        output.writeFloat(3, score_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -7535,9 +3666,12 @@ java.lang.String defaultValue) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, getDocument());
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(snippet_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, snippet_);
+      }
       if (java.lang.Float.floatToRawIntBits(score_) != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeFloatSize(2, score_);
+          .computeFloatSize(3, score_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -7559,6 +3693,8 @@ java.lang.String defaultValue) {
         if (!getDocument()
             .equals(other.getDocument())) return false;
       }
+      if (!getSnippet()
+          .equals(other.getSnippet())) return false;
       if (java.lang.Float.floatToIntBits(getScore())
           != java.lang.Float.floatToIntBits(
               other.getScore())) return false;
@@ -7577,6 +3713,8 @@ java.lang.String defaultValue) {
         hash = (37 * hash) + DOCUMENT_FIELD_NUMBER;
         hash = (53 * hash) + getDocument().hashCode();
       }
+      hash = (37 * hash) + SNIPPET_FIELD_NUMBER;
+      hash = (53 * hash) + getSnippet().hashCode();
       hash = (37 * hash) + SCORE_FIELD_NUMBER;
       hash = (53 * hash) + java.lang.Float.floatToIntBits(
           getScore());
@@ -7722,6 +3860,7 @@ java.lang.String defaultValue) {
           documentBuilder_.dispose();
           documentBuilder_ = null;
         }
+        snippet_ = "";
         score_ = 0F;
         return this;
       }
@@ -7764,6 +3903,9 @@ java.lang.String defaultValue) {
           to_bitField0_ |= 0x00000001;
         }
         if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.snippet_ = snippet_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           result.score_ = score_;
         }
         result.bitField0_ |= to_bitField0_;
@@ -7783,6 +3925,11 @@ java.lang.String defaultValue) {
         if (other == talon.v1.Search.SearchResult.getDefaultInstance()) return this;
         if (other.hasDocument()) {
           mergeDocument(other.getDocument());
+        }
+        if (!other.getSnippet().isEmpty()) {
+          snippet_ = other.snippet_;
+          bitField0_ |= 0x00000002;
+          onChanged();
         }
         if (java.lang.Float.floatToRawIntBits(other.getScore()) != 0) {
           setScore(other.getScore());
@@ -7820,11 +3967,16 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
-              case 21: {
-                score_ = input.readFloat();
+              case 18: {
+                snippet_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000002;
                 break;
-              } // case 21
+              } // case 18
+              case 29: {
+                score_ = input.readFloat();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 29
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -7842,31 +3994,31 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private talon.v1.Search.Document document_;
+      private talon.data.Search.DocumentRef document_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.v1.Search.Document, talon.v1.Search.Document.Builder, talon.v1.Search.DocumentOrBuilder> documentBuilder_;
+          talon.data.Search.DocumentRef, talon.data.Search.DocumentRef.Builder, talon.data.Search.DocumentRefOrBuilder> documentBuilder_;
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.DocumentRef document = 1;</code>
        * @return Whether the document field is set.
        */
       public boolean hasDocument() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.DocumentRef document = 1;</code>
        * @return The document.
        */
-      public talon.v1.Search.Document getDocument() {
+      public talon.data.Search.DocumentRef getDocument() {
         if (documentBuilder_ == null) {
-          return document_ == null ? talon.v1.Search.Document.getDefaultInstance() : document_;
+          return document_ == null ? talon.data.Search.DocumentRef.getDefaultInstance() : document_;
         } else {
           return documentBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.DocumentRef document = 1;</code>
        */
-      public Builder setDocument(talon.v1.Search.Document value) {
+      public Builder setDocument(talon.data.Search.DocumentRef value) {
         if (documentBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -7880,10 +4032,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.DocumentRef document = 1;</code>
        */
       public Builder setDocument(
-          talon.v1.Search.Document.Builder builderForValue) {
+          talon.data.Search.DocumentRef.Builder builderForValue) {
         if (documentBuilder_ == null) {
           document_ = builderForValue.build();
         } else {
@@ -7894,13 +4046,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.DocumentRef document = 1;</code>
        */
-      public Builder mergeDocument(talon.v1.Search.Document value) {
+      public Builder mergeDocument(talon.data.Search.DocumentRef value) {
         if (documentBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             document_ != null &&
-            document_ != talon.v1.Search.Document.getDefaultInstance()) {
+            document_ != talon.data.Search.DocumentRef.getDefaultInstance()) {
             getDocumentBuilder().mergeFrom(value);
           } else {
             document_ = value;
@@ -7915,7 +4067,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.DocumentRef document = 1;</code>
        */
       public Builder clearDocument() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -7928,33 +4080,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.DocumentRef document = 1;</code>
        */
-      public talon.v1.Search.Document.Builder getDocumentBuilder() {
+      public talon.data.Search.DocumentRef.Builder getDocumentBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetDocumentFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.DocumentRef document = 1;</code>
        */
-      public talon.v1.Search.DocumentOrBuilder getDocumentOrBuilder() {
+      public talon.data.Search.DocumentRefOrBuilder getDocumentOrBuilder() {
         if (documentBuilder_ != null) {
           return documentBuilder_.getMessageOrBuilder();
         } else {
           return document_ == null ?
-              talon.v1.Search.Document.getDefaultInstance() : document_;
+              talon.data.Search.DocumentRef.getDefaultInstance() : document_;
         }
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.DocumentRef document = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.v1.Search.Document, talon.v1.Search.Document.Builder, talon.v1.Search.DocumentOrBuilder>
+          talon.data.Search.DocumentRef, talon.data.Search.DocumentRef.Builder, talon.data.Search.DocumentRefOrBuilder>
           internalGetDocumentFieldBuilder() {
         if (documentBuilder_ == null) {
           documentBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.v1.Search.Document, talon.v1.Search.Document.Builder, talon.v1.Search.DocumentOrBuilder>(
+              talon.data.Search.DocumentRef, talon.data.Search.DocumentRef.Builder, talon.data.Search.DocumentRefOrBuilder>(
                   getDocument(),
                   getParentForChildren(),
                   isClean());
@@ -7963,9 +4115,81 @@ java.lang.String defaultValue) {
         return documentBuilder_;
       }
 
+      private java.lang.Object snippet_ = "";
+      /**
+       * <code>string snippet = 2;</code>
+       * @return The snippet.
+       */
+      public java.lang.String getSnippet() {
+        java.lang.Object ref = snippet_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          snippet_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string snippet = 2;</code>
+       * @return The bytes for snippet.
+       */
+      public com.google.protobuf.ByteString
+          getSnippetBytes() {
+        java.lang.Object ref = snippet_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          snippet_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string snippet = 2;</code>
+       * @param value The snippet to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSnippet(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        snippet_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string snippet = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSnippet() {
+        snippet_ = getDefaultInstance().getSnippet();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string snippet = 2;</code>
+       * @param value The bytes for snippet to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSnippetBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        snippet_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
       private float score_ ;
       /**
-       * <code>float score = 2;</code>
+       * <code>float score = 3;</code>
        * @return The score.
        */
       @java.lang.Override
@@ -7973,23 +4197,23 @@ java.lang.String defaultValue) {
         return score_;
       }
       /**
-       * <code>float score = 2;</code>
+       * <code>float score = 3;</code>
        * @param value The score to set.
        * @return This builder for chaining.
        */
       public Builder setScore(float value) {
 
         score_ = value;
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>float score = 2;</code>
+       * <code>float score = 3;</code>
        * @return This builder for chaining.
        */
       public Builder clearScore() {
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000004);
         score_ = 0F;
         onChanged();
         return this;
@@ -9612,19 +5836,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.v1.Document document = 1;</code>
+     * <code>.talon.data.Document document = 1;</code>
      * @return Whether the document field is set.
      */
     boolean hasDocument();
     /**
-     * <code>.talon.v1.Document document = 1;</code>
+     * <code>.talon.data.Document document = 1;</code>
      * @return The document.
      */
-    talon.v1.Search.Document getDocument();
+    talon.data.Search.Document getDocument();
     /**
-     * <code>.talon.v1.Document document = 1;</code>
+     * <code>.talon.data.Document document = 1;</code>
      */
-    talon.v1.Search.DocumentOrBuilder getDocumentOrBuilder();
+    talon.data.Search.DocumentOrBuilder getDocumentOrBuilder();
 
     /**
      * <code>string content = 2;</code>
@@ -9683,9 +5907,9 @@ java.lang.String defaultValue) {
 
     private int bitField0_;
     public static final int DOCUMENT_FIELD_NUMBER = 1;
-    private talon.v1.Search.Document document_;
+    private talon.data.Search.Document document_;
     /**
-     * <code>.talon.v1.Document document = 1;</code>
+     * <code>.talon.data.Document document = 1;</code>
      * @return Whether the document field is set.
      */
     @java.lang.Override
@@ -9693,19 +5917,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.v1.Document document = 1;</code>
+     * <code>.talon.data.Document document = 1;</code>
      * @return The document.
      */
     @java.lang.Override
-    public talon.v1.Search.Document getDocument() {
-      return document_ == null ? talon.v1.Search.Document.getDefaultInstance() : document_;
+    public talon.data.Search.Document getDocument() {
+      return document_ == null ? talon.data.Search.Document.getDefaultInstance() : document_;
     }
     /**
-     * <code>.talon.v1.Document document = 1;</code>
+     * <code>.talon.data.Document document = 1;</code>
      */
     @java.lang.Override
-    public talon.v1.Search.DocumentOrBuilder getDocumentOrBuilder() {
-      return document_ == null ? talon.v1.Search.Document.getDefaultInstance() : document_;
+    public talon.data.Search.DocumentOrBuilder getDocumentOrBuilder() {
+      return document_ == null ? talon.data.Search.Document.getDefaultInstance() : document_;
     }
 
     public static final int CONTENT_FIELD_NUMBER = 2;
@@ -10086,31 +6310,31 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private talon.v1.Search.Document document_;
+      private talon.data.Search.Document document_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.v1.Search.Document, talon.v1.Search.Document.Builder, talon.v1.Search.DocumentOrBuilder> documentBuilder_;
+          talon.data.Search.Document, talon.data.Search.Document.Builder, talon.data.Search.DocumentOrBuilder> documentBuilder_;
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.Document document = 1;</code>
        * @return Whether the document field is set.
        */
       public boolean hasDocument() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.Document document = 1;</code>
        * @return The document.
        */
-      public talon.v1.Search.Document getDocument() {
+      public talon.data.Search.Document getDocument() {
         if (documentBuilder_ == null) {
-          return document_ == null ? talon.v1.Search.Document.getDefaultInstance() : document_;
+          return document_ == null ? talon.data.Search.Document.getDefaultInstance() : document_;
         } else {
           return documentBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.Document document = 1;</code>
        */
-      public Builder setDocument(talon.v1.Search.Document value) {
+      public Builder setDocument(talon.data.Search.Document value) {
         if (documentBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -10124,10 +6348,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.Document document = 1;</code>
        */
       public Builder setDocument(
-          talon.v1.Search.Document.Builder builderForValue) {
+          talon.data.Search.Document.Builder builderForValue) {
         if (documentBuilder_ == null) {
           document_ = builderForValue.build();
         } else {
@@ -10138,13 +6362,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.Document document = 1;</code>
        */
-      public Builder mergeDocument(talon.v1.Search.Document value) {
+      public Builder mergeDocument(talon.data.Search.Document value) {
         if (documentBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             document_ != null &&
-            document_ != talon.v1.Search.Document.getDefaultInstance()) {
+            document_ != talon.data.Search.Document.getDefaultInstance()) {
             getDocumentBuilder().mergeFrom(value);
           } else {
             document_ = value;
@@ -10159,7 +6383,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.Document document = 1;</code>
        */
       public Builder clearDocument() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -10172,33 +6396,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.Document document = 1;</code>
        */
-      public talon.v1.Search.Document.Builder getDocumentBuilder() {
+      public talon.data.Search.Document.Builder getDocumentBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetDocumentFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.Document document = 1;</code>
        */
-      public talon.v1.Search.DocumentOrBuilder getDocumentOrBuilder() {
+      public talon.data.Search.DocumentOrBuilder getDocumentOrBuilder() {
         if (documentBuilder_ != null) {
           return documentBuilder_.getMessageOrBuilder();
         } else {
           return document_ == null ?
-              talon.v1.Search.Document.getDefaultInstance() : document_;
+              talon.data.Search.Document.getDefaultInstance() : document_;
         }
       }
       /**
-       * <code>.talon.v1.Document document = 1;</code>
+       * <code>.talon.data.Document document = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.v1.Search.Document, talon.v1.Search.Document.Builder, talon.v1.Search.DocumentOrBuilder>
+          talon.data.Search.Document, talon.data.Search.Document.Builder, talon.data.Search.DocumentOrBuilder>
           internalGetDocumentFieldBuilder() {
         if (documentBuilder_ == null) {
           documentBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.v1.Search.Document, talon.v1.Search.Document.Builder, talon.v1.Search.DocumentOrBuilder>(
+              talon.data.Search.Document, talon.data.Search.Document.Builder, talon.data.Search.DocumentOrBuilder>(
                   getDocument(),
                   getParentForChildren(),
                   isClean());
@@ -10351,26 +6575,6 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_v1_SearchSourceFilter_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_v1_Document_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_v1_Document_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_v1_Document_AttributesEntry_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_v1_Document_AttributesEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_v1_Document_LabelsEntry_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_v1_Document_LabelsEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_v1_DocumentSource_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_v1_DocumentSource_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_v1_SearchResult_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -10399,59 +6603,46 @@ java.lang.String defaultValue) {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\033proto/talon/v1/search.proto\022\010talon.v1\"" +
-      "\327\003\n\rSearchRequest\022\r\n\005query\030\001 \001(\t\022,\n\006sour" +
-      "ce\030\002 \001(\0132\034.talon.v1.SearchSourceFilter\022;" +
-      "\n\nattributes\030\003 \003(\0132\'.talon.v1.SearchRequ" +
-      "est.AttributesEntry\0223\n\006labels\030\004 \003(\0132#.ta" +
-      "lon.v1.SearchRequest.LabelsEntry\022\027\n\nstar" +
-      "t_time\030\005 \001(\003H\000\210\001\001\022\025\n\010end_time\030\006 \001(\003H\001\210\001\001" +
-      "\022\r\n\005limit\030\007 \001(\005\022\022\n\npage_token\030\010 \001(\t\022\"\n\004m" +
-      "ode\030\t \001(\0162\024.talon.v1.SearchMode\022\"\n\004sort\030" +
-      "\n \001(\0162\024.talon.v1.SearchSort\0321\n\017Attribute" +
-      "sEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-" +
-      "\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
-      "\t:\0028\001B\r\n\013_start_timeB\013\n\t_end_time\"}\n\022Sea" +
-      "rchSourceFilter\022\013\n\003key\030\002 \001(\t\022\022\n\nkey_pref" +
-      "ix\030\003 \001(\t\022\r\n\005kinds\030\004 \003(\t\022\022\n\nparent_key\030\005 " +
-      "\001(\t\022\022\n\nnamespaces\030\006 \003(\tJ\004\010\001\020\002R\tnamespace" +
-      "\"\357\003\n\010Document\022\n\n\002id\030\001 \001(\t\022(\n\006source\030\002 \001(" +
-      "\0132\030.talon.v1.DocumentSource\022\025\n\rdocument_" +
-      "kind\030\003 \001(\t\022\026\n\016subdocument_id\030\004 \001(\t\0226\n\nat" +
-      "tributes\030\005 \003(\0132\".talon.v1.Document.Attri" +
-      "butesEntry\022\r\n\005title\030\006 \001(\t\022\017\n\007snippet\030\007 \001" +
-      "(\t\022.\n\006labels\030\010 \003(\0132\036.talon.v1.Document.L" +
-      "abelsEntry\022\025\n\rmetadata_json\030\t \001(\t\022\026\n\016acl" +
-      "_scope_json\030\n \001(\t\022\022\n\ncreated_at\030\013 \001(\003\022\022\n" +
-      "\nupdated_at\030\014 \001(\003\022\022\n\nindexed_at\030\r \001(\003\022\022\n" +
-      "\ngeneration\030\016 \001(\004\022\025\n\rembedding_ref\030\017 \001(\t" +
-      "\0321\n\017AttributesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005valu" +
-      "e\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022" +
-      "\r\n\005value\030\002 \001(\t:\0028\001\"u\n\016DocumentSource\022\013\n\003" +
-      "key\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\014\n\004kind\030\003 \001" +
-      "(\t\022\014\n\004name\030\004 \001(\t\022\023\n\013parent_kind\030\005 \001(\t\022\022\n" +
-      "\nparent_key\030\006 \001(\t\"C\n\014SearchResult\022$\n\010doc" +
-      "ument\030\001 \001(\0132\022.talon.v1.Document\022\r\n\005score" +
-      "\030\002 \001(\002\"R\n\016SearchResponse\022\'\n\007results\030\001 \003(" +
-      "\0132\026.talon.v1.SearchResult\022\027\n\017next_page_t" +
-      "oken\030\002 \001(\t\"9\n\026GetSearchResultRequest\022\n\n\002" +
-      "ns\030\001 \001(\t\022\023\n\013document_id\030\002 \001(\t\"P\n\027GetSear" +
-      "chResultResponse\022$\n\010document\030\001 \001(\0132\022.tal" +
-      "on.v1.Document\022\017\n\007content\030\002 \001(\t*t\n\nSearc" +
-      "hMode\022\033\n\027SEARCH_MODE_UNSPECIFIED\020\000\022\027\n\023SE" +
-      "ARCH_MODE_KEYWORD\020\001\022\030\n\024SEARCH_MODE_SEMAN" +
-      "TIC\020\002\022\026\n\022SEARCH_MODE_HYBRID\020\003*]\n\nSearchS" +
-      "ort\022\033\n\027SEARCH_SORT_UNSPECIFIED\020\000\022\031\n\025SEAR" +
-      "CH_SORT_RELEVANCE\020\001\022\027\n\023SEARCH_SORT_RECEN" +
-      "CY\020\0022\236\001\n\rSearchService\022;\n\006Search\022\027.talon" +
-      ".v1.SearchRequest\032\030.talon.v1.SearchRespo" +
-      "nse\022P\n\tGetResult\022 .talon.v1.GetSearchRes" +
-      "ultRequest\032!.talon.v1.GetSearchResultRes" +
-      "ponseb\006proto3"
+      "\n\033proto/talon/v1/search.proto\022\010talon.v1\032" +
+      "\027proto/data/search.proto\"\327\003\n\rSearchReque" +
+      "st\022\r\n\005query\030\001 \001(\t\022,\n\006source\030\002 \001(\0132\034.talo" +
+      "n.v1.SearchSourceFilter\022;\n\nattributes\030\003 " +
+      "\003(\0132\'.talon.v1.SearchRequest.AttributesE" +
+      "ntry\0223\n\006labels\030\004 \003(\0132#.talon.v1.SearchRe" +
+      "quest.LabelsEntry\022\027\n\nstart_time\030\005 \001(\003H\000\210" +
+      "\001\001\022\025\n\010end_time\030\006 \001(\003H\001\210\001\001\022\r\n\005limit\030\007 \001(\005" +
+      "\022\022\n\npage_token\030\010 \001(\t\022\"\n\004mode\030\t \001(\0162\024.tal" +
+      "on.v1.SearchMode\022\"\n\004sort\030\n \001(\0162\024.talon.v" +
+      "1.SearchSort\0321\n\017AttributesEntry\022\013\n\003key\030\001" +
+      " \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013" +
+      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\r\n\013_start" +
+      "_timeB\013\n\t_end_time\"}\n\022SearchSourceFilter" +
+      "\022\013\n\003key\030\002 \001(\t\022\022\n\nkey_prefix\030\003 \001(\t\022\r\n\005kin" +
+      "ds\030\004 \003(\t\022\022\n\nparent_key\030\005 \001(\t\022\022\n\nnamespac" +
+      "es\030\006 \003(\tJ\004\010\001\020\002R\tnamespace\"Y\n\014SearchResul" +
+      "t\022)\n\010document\030\001 \001(\0132\027.talon.data.Documen" +
+      "tRef\022\017\n\007snippet\030\002 \001(\t\022\r\n\005score\030\003 \001(\002\"R\n\016" +
+      "SearchResponse\022\'\n\007results\030\001 \003(\0132\026.talon." +
+      "v1.SearchResult\022\027\n\017next_page_token\030\002 \001(\t" +
+      "\"9\n\026GetSearchResultRequest\022\n\n\002ns\030\001 \001(\t\022\023" +
+      "\n\013document_id\030\002 \001(\t\"R\n\027GetSearchResultRe" +
+      "sponse\022&\n\010document\030\001 \001(\0132\024.talon.data.Do" +
+      "cument\022\017\n\007content\030\002 \001(\t*t\n\nSearchMode\022\033\n" +
+      "\027SEARCH_MODE_UNSPECIFIED\020\000\022\027\n\023SEARCH_MOD" +
+      "E_KEYWORD\020\001\022\030\n\024SEARCH_MODE_SEMANTIC\020\002\022\026\n" +
+      "\022SEARCH_MODE_HYBRID\020\003*]\n\nSearchSort\022\033\n\027S" +
+      "EARCH_SORT_UNSPECIFIED\020\000\022\031\n\025SEARCH_SORT_" +
+      "RELEVANCE\020\001\022\027\n\023SEARCH_SORT_RECENCY\020\0022\236\001\n" +
+      "\rSearchService\022;\n\006Search\022\027.talon.v1.Sear" +
+      "chRequest\032\030.talon.v1.SearchResponse\022P\n\tG" +
+      "etResult\022 .talon.v1.GetSearchResultReque" +
+      "st\032!.talon.v1.GetSearchResultResponseb\006p" +
+      "roto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
+          talon.data.Search.getDescriptor(),
         });
     internal_static_talon_v1_SearchRequest_descriptor =
       getDescriptor().getMessageType(0);
@@ -10477,55 +6668,32 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SearchSourceFilter_descriptor,
         new java.lang.String[] { "Key", "KeyPrefix", "Kinds", "ParentKey", "Namespaces", });
-    internal_static_talon_v1_Document_descriptor =
-      getDescriptor().getMessageType(2);
-    internal_static_talon_v1_Document_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_v1_Document_descriptor,
-        new java.lang.String[] { "Id", "Source", "DocumentKind", "SubdocumentId", "Attributes", "Title", "Snippet", "Labels", "MetadataJson", "AclScopeJson", "CreatedAt", "UpdatedAt", "IndexedAt", "Generation", "EmbeddingRef", });
-    internal_static_talon_v1_Document_AttributesEntry_descriptor =
-      internal_static_talon_v1_Document_descriptor.getNestedType(0);
-    internal_static_talon_v1_Document_AttributesEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_v1_Document_AttributesEntry_descriptor,
-        new java.lang.String[] { "Key", "Value", });
-    internal_static_talon_v1_Document_LabelsEntry_descriptor =
-      internal_static_talon_v1_Document_descriptor.getNestedType(1);
-    internal_static_talon_v1_Document_LabelsEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_v1_Document_LabelsEntry_descriptor,
-        new java.lang.String[] { "Key", "Value", });
-    internal_static_talon_v1_DocumentSource_descriptor =
-      getDescriptor().getMessageType(3);
-    internal_static_talon_v1_DocumentSource_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_v1_DocumentSource_descriptor,
-        new java.lang.String[] { "Key", "Namespace", "Kind", "Name", "ParentKind", "ParentKey", });
     internal_static_talon_v1_SearchResult_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(2);
     internal_static_talon_v1_SearchResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SearchResult_descriptor,
-        new java.lang.String[] { "Document", "Score", });
+        new java.lang.String[] { "Document", "Snippet", "Score", });
     internal_static_talon_v1_SearchResponse_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(3);
     internal_static_talon_v1_SearchResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SearchResponse_descriptor,
         new java.lang.String[] { "Results", "NextPageToken", });
     internal_static_talon_v1_GetSearchResultRequest_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(4);
     internal_static_talon_v1_GetSearchResultRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_GetSearchResultRequest_descriptor,
         new java.lang.String[] { "Ns", "DocumentId", });
     internal_static_talon_v1_GetSearchResultResponse_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(5);
     internal_static_talon_v1_GetSearchResultResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_GetSearchResultResponse_descriptor,
         new java.lang.String[] { "Document", "Content", });
     descriptor.resolveAllFeaturesImmutable();
+    talon.data.Search.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

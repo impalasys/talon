@@ -7,6 +7,7 @@
 package v1
 
 import (
+	data "github.com/impalasys/talon/sdk/go/talon-client/talon/data"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -314,258 +315,18 @@ func (x *SearchSourceFilter) GetNamespaces() []string {
 	return nil
 }
 
-type Document struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Source        *DocumentSource        `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
-	DocumentKind  string                 `protobuf:"bytes,3,opt,name=document_kind,json=documentKind,proto3" json:"document_kind,omitempty"`
-	SubdocumentId string                 `protobuf:"bytes,4,opt,name=subdocument_id,json=subdocumentId,proto3" json:"subdocument_id,omitempty"`
-	Attributes    map[string]string      `protobuf:"bytes,5,rep,name=attributes,proto3" json:"attributes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Title         string                 `protobuf:"bytes,6,opt,name=title,proto3" json:"title,omitempty"`
-	Snippet       string                 `protobuf:"bytes,7,opt,name=snippet,proto3" json:"snippet,omitempty"`
-	Labels        map[string]string      `protobuf:"bytes,8,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	MetadataJson  string                 `protobuf:"bytes,9,opt,name=metadata_json,json=metadataJson,proto3" json:"metadata_json,omitempty"`
-	AclScopeJson  string                 `protobuf:"bytes,10,opt,name=acl_scope_json,json=aclScopeJson,proto3" json:"acl_scope_json,omitempty"`
-	CreatedAt     int64                  `protobuf:"varint,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	IndexedAt     int64                  `protobuf:"varint,13,opt,name=indexed_at,json=indexedAt,proto3" json:"indexed_at,omitempty"`
-	// Canonical source generation that produced this disposable document projection.
-	Generation    uint64 `protobuf:"varint,14,opt,name=generation,proto3" json:"generation,omitempty"`
-	EmbeddingRef  string `protobuf:"bytes,15,opt,name=embedding_ref,json=embeddingRef,proto3" json:"embedding_ref,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Document) Reset() {
-	*x = Document{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Document) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Document) ProtoMessage() {}
-
-func (x *Document) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Document.ProtoReflect.Descriptor instead.
-func (*Document) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *Document) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *Document) GetSource() *DocumentSource {
-	if x != nil {
-		return x.Source
-	}
-	return nil
-}
-
-func (x *Document) GetDocumentKind() string {
-	if x != nil {
-		return x.DocumentKind
-	}
-	return ""
-}
-
-func (x *Document) GetSubdocumentId() string {
-	if x != nil {
-		return x.SubdocumentId
-	}
-	return ""
-}
-
-func (x *Document) GetAttributes() map[string]string {
-	if x != nil {
-		return x.Attributes
-	}
-	return nil
-}
-
-func (x *Document) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *Document) GetSnippet() string {
-	if x != nil {
-		return x.Snippet
-	}
-	return ""
-}
-
-func (x *Document) GetLabels() map[string]string {
-	if x != nil {
-		return x.Labels
-	}
-	return nil
-}
-
-func (x *Document) GetMetadataJson() string {
-	if x != nil {
-		return x.MetadataJson
-	}
-	return ""
-}
-
-func (x *Document) GetAclScopeJson() string {
-	if x != nil {
-		return x.AclScopeJson
-	}
-	return ""
-}
-
-func (x *Document) GetCreatedAt() int64 {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return 0
-}
-
-func (x *Document) GetUpdatedAt() int64 {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return 0
-}
-
-func (x *Document) GetIndexedAt() int64 {
-	if x != nil {
-		return x.IndexedAt
-	}
-	return 0
-}
-
-func (x *Document) GetGeneration() uint64 {
-	if x != nil {
-		return x.Generation
-	}
-	return 0
-}
-
-func (x *Document) GetEmbeddingRef() string {
-	if x != nil {
-		return x.EmbeddingRef
-	}
-	return ""
-}
-
-type DocumentSource struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Namespace     string                 `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Kind          string                 `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
-	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	ParentKind    string                 `protobuf:"bytes,5,opt,name=parent_kind,json=parentKind,proto3" json:"parent_kind,omitempty"`
-	ParentKey     string                 `protobuf:"bytes,6,opt,name=parent_key,json=parentKey,proto3" json:"parent_key,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DocumentSource) Reset() {
-	*x = DocumentSource{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DocumentSource) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DocumentSource) ProtoMessage() {}
-
-func (x *DocumentSource) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DocumentSource.ProtoReflect.Descriptor instead.
-func (*DocumentSource) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *DocumentSource) GetKey() string {
-	if x != nil {
-		return x.Key
-	}
-	return ""
-}
-
-func (x *DocumentSource) GetNamespace() string {
-	if x != nil {
-		return x.Namespace
-	}
-	return ""
-}
-
-func (x *DocumentSource) GetKind() string {
-	if x != nil {
-		return x.Kind
-	}
-	return ""
-}
-
-func (x *DocumentSource) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *DocumentSource) GetParentKind() string {
-	if x != nil {
-		return x.ParentKind
-	}
-	return ""
-}
-
-func (x *DocumentSource) GetParentKey() string {
-	if x != nil {
-		return x.ParentKey
-	}
-	return ""
-}
-
 type SearchResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Document      *Document              `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
-	Score         float32                `protobuf:"fixed32,2,opt,name=score,proto3" json:"score,omitempty"`
+	Document      *data.DocumentRef      `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
+	Snippet       string                 `protobuf:"bytes,2,opt,name=snippet,proto3" json:"snippet,omitempty"`
+	Score         float32                `protobuf:"fixed32,3,opt,name=score,proto3" json:"score,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SearchResult) Reset() {
 	*x = SearchResult{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[4]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -577,7 +338,7 @@ func (x *SearchResult) String() string {
 func (*SearchResult) ProtoMessage() {}
 
 func (x *SearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[4]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -590,14 +351,21 @@ func (x *SearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResult.ProtoReflect.Descriptor instead.
 func (*SearchResult) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{4}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *SearchResult) GetDocument() *Document {
+func (x *SearchResult) GetDocument() *data.DocumentRef {
 	if x != nil {
 		return x.Document
 	}
 	return nil
+}
+
+func (x *SearchResult) GetSnippet() string {
+	if x != nil {
+		return x.Snippet
+	}
+	return ""
 }
 
 func (x *SearchResult) GetScore() float32 {
@@ -617,7 +385,7 @@ type SearchResponse struct {
 
 func (x *SearchResponse) Reset() {
 	*x = SearchResponse{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[5]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -629,7 +397,7 @@ func (x *SearchResponse) String() string {
 func (*SearchResponse) ProtoMessage() {}
 
 func (x *SearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[5]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -642,7 +410,7 @@ func (x *SearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResponse.ProtoReflect.Descriptor instead.
 func (*SearchResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{5}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SearchResponse) GetResults() []*SearchResult {
@@ -669,7 +437,7 @@ type GetSearchResultRequest struct {
 
 func (x *GetSearchResultRequest) Reset() {
 	*x = GetSearchResultRequest{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[6]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -681,7 +449,7 @@ func (x *GetSearchResultRequest) String() string {
 func (*GetSearchResultRequest) ProtoMessage() {}
 
 func (x *GetSearchResultRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[6]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -694,7 +462,7 @@ func (x *GetSearchResultRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSearchResultRequest.ProtoReflect.Descriptor instead.
 func (*GetSearchResultRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{6}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetSearchResultRequest) GetNs() string {
@@ -713,7 +481,7 @@ func (x *GetSearchResultRequest) GetDocumentId() string {
 
 type GetSearchResultResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Document      *Document              `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
+	Document      *data.Document         `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
 	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -721,7 +489,7 @@ type GetSearchResultResponse struct {
 
 func (x *GetSearchResultResponse) Reset() {
 	*x = GetSearchResultResponse{}
-	mi := &file_proto_talon_v1_search_proto_msgTypes[7]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -733,7 +501,7 @@ func (x *GetSearchResultResponse) String() string {
 func (*GetSearchResultResponse) ProtoMessage() {}
 
 func (x *GetSearchResultResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_search_proto_msgTypes[7]
+	mi := &file_proto_talon_v1_search_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -746,10 +514,10 @@ func (x *GetSearchResultResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSearchResultResponse.ProtoReflect.Descriptor instead.
 func (*GetSearchResultResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{7}
+	return file_proto_talon_v1_search_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *GetSearchResultResponse) GetDocument() *Document {
+func (x *GetSearchResultResponse) GetDocument() *data.Document {
 	if x != nil {
 		return x.Document
 	}
@@ -767,7 +535,7 @@ var File_proto_talon_v1_search_proto protoreflect.FileDescriptor
 
 const file_proto_talon_v1_search_proto_rawDesc = "" +
 	"\n" +
-	"\x1bproto/talon/v1/search.proto\x12\btalon.v1\"\xc4\x04\n" +
+	"\x1bproto/talon/v1/search.proto\x12\btalon.v1\x1a\x17proto/data/search.proto\"\xc4\x04\n" +
 	"\rSearchRequest\x12\x14\n" +
 	"\x05query\x18\x01 \x01(\tR\x05query\x124\n" +
 	"\x06source\x18\x02 \x01(\v2\x1c.talon.v1.SearchSourceFilterR\x06source\x12G\n" +
@@ -801,58 +569,20 @@ const file_proto_talon_v1_search_proto_rawDesc = "" +
 	"parent_key\x18\x05 \x01(\tR\tparentKey\x12\x1e\n" +
 	"\n" +
 	"namespaces\x18\x06 \x03(\tR\n" +
-	"namespacesJ\x04\b\x01\x10\x02R\tnamespace\"\xab\x05\n" +
-	"\bDocument\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x120\n" +
-	"\x06source\x18\x02 \x01(\v2\x18.talon.v1.DocumentSourceR\x06source\x12#\n" +
-	"\rdocument_kind\x18\x03 \x01(\tR\fdocumentKind\x12%\n" +
-	"\x0esubdocument_id\x18\x04 \x01(\tR\rsubdocumentId\x12B\n" +
-	"\n" +
-	"attributes\x18\x05 \x03(\v2\".talon.v1.Document.AttributesEntryR\n" +
-	"attributes\x12\x14\n" +
-	"\x05title\x18\x06 \x01(\tR\x05title\x12\x18\n" +
-	"\asnippet\x18\a \x01(\tR\asnippet\x126\n" +
-	"\x06labels\x18\b \x03(\v2\x1e.talon.v1.Document.LabelsEntryR\x06labels\x12#\n" +
-	"\rmetadata_json\x18\t \x01(\tR\fmetadataJson\x12$\n" +
-	"\x0eacl_scope_json\x18\n" +
-	" \x01(\tR\faclScopeJson\x12\x1d\n" +
-	"\n" +
-	"created_at\x18\v \x01(\x03R\tcreatedAt\x12\x1d\n" +
-	"\n" +
-	"updated_at\x18\f \x01(\x03R\tupdatedAt\x12\x1d\n" +
-	"\n" +
-	"indexed_at\x18\r \x01(\x03R\tindexedAt\x12\x1e\n" +
-	"\n" +
-	"generation\x18\x0e \x01(\x04R\n" +
-	"generation\x12#\n" +
-	"\rembedding_ref\x18\x0f \x01(\tR\fembeddingRef\x1a=\n" +
-	"\x0fAttributesEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
-	"\vLabelsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa8\x01\n" +
-	"\x0eDocumentSource\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1c\n" +
-	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12\x12\n" +
-	"\x04kind\x18\x03 \x01(\tR\x04kind\x12\x12\n" +
-	"\x04name\x18\x04 \x01(\tR\x04name\x12\x1f\n" +
-	"\vparent_kind\x18\x05 \x01(\tR\n" +
-	"parentKind\x12\x1d\n" +
-	"\n" +
-	"parent_key\x18\x06 \x01(\tR\tparentKey\"T\n" +
-	"\fSearchResult\x12.\n" +
-	"\bdocument\x18\x01 \x01(\v2\x12.talon.v1.DocumentR\bdocument\x12\x14\n" +
-	"\x05score\x18\x02 \x01(\x02R\x05score\"j\n" +
+	"namespacesJ\x04\b\x01\x10\x02R\tnamespace\"s\n" +
+	"\fSearchResult\x123\n" +
+	"\bdocument\x18\x01 \x01(\v2\x17.talon.data.DocumentRefR\bdocument\x12\x18\n" +
+	"\asnippet\x18\x02 \x01(\tR\asnippet\x12\x14\n" +
+	"\x05score\x18\x03 \x01(\x02R\x05score\"j\n" +
 	"\x0eSearchResponse\x120\n" +
 	"\aresults\x18\x01 \x03(\v2\x16.talon.v1.SearchResultR\aresults\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"I\n" +
 	"\x16GetSearchResultRequest\x12\x0e\n" +
 	"\x02ns\x18\x01 \x01(\tR\x02ns\x12\x1f\n" +
 	"\vdocument_id\x18\x02 \x01(\tR\n" +
-	"documentId\"c\n" +
-	"\x17GetSearchResultResponse\x12.\n" +
-	"\bdocument\x18\x01 \x01(\v2\x12.talon.v1.DocumentR\bdocument\x12\x18\n" +
+	"documentId\"e\n" +
+	"\x17GetSearchResultResponse\x120\n" +
+	"\bdocument\x18\x01 \x01(\v2\x14.talon.data.DocumentR\bdocument\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent*t\n" +
 	"\n" +
 	"SearchMode\x12\x1b\n" +
@@ -882,44 +612,39 @@ func file_proto_talon_v1_search_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_talon_v1_search_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_talon_v1_search_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_proto_talon_v1_search_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_proto_talon_v1_search_proto_goTypes = []any{
 	(SearchMode)(0),                 // 0: talon.v1.SearchMode
 	(SearchSort)(0),                 // 1: talon.v1.SearchSort
 	(*SearchRequest)(nil),           // 2: talon.v1.SearchRequest
 	(*SearchSourceFilter)(nil),      // 3: talon.v1.SearchSourceFilter
-	(*Document)(nil),                // 4: talon.v1.Document
-	(*DocumentSource)(nil),          // 5: talon.v1.DocumentSource
-	(*SearchResult)(nil),            // 6: talon.v1.SearchResult
-	(*SearchResponse)(nil),          // 7: talon.v1.SearchResponse
-	(*GetSearchResultRequest)(nil),  // 8: talon.v1.GetSearchResultRequest
-	(*GetSearchResultResponse)(nil), // 9: talon.v1.GetSearchResultResponse
-	nil,                             // 10: talon.v1.SearchRequest.AttributesEntry
-	nil,                             // 11: talon.v1.SearchRequest.LabelsEntry
-	nil,                             // 12: talon.v1.Document.AttributesEntry
-	nil,                             // 13: talon.v1.Document.LabelsEntry
+	(*SearchResult)(nil),            // 4: talon.v1.SearchResult
+	(*SearchResponse)(nil),          // 5: talon.v1.SearchResponse
+	(*GetSearchResultRequest)(nil),  // 6: talon.v1.GetSearchResultRequest
+	(*GetSearchResultResponse)(nil), // 7: talon.v1.GetSearchResultResponse
+	nil,                             // 8: talon.v1.SearchRequest.AttributesEntry
+	nil,                             // 9: talon.v1.SearchRequest.LabelsEntry
+	(*data.DocumentRef)(nil),        // 10: talon.data.DocumentRef
+	(*data.Document)(nil),           // 11: talon.data.Document
 }
 var file_proto_talon_v1_search_proto_depIdxs = []int32{
 	3,  // 0: talon.v1.SearchRequest.source:type_name -> talon.v1.SearchSourceFilter
-	10, // 1: talon.v1.SearchRequest.attributes:type_name -> talon.v1.SearchRequest.AttributesEntry
-	11, // 2: talon.v1.SearchRequest.labels:type_name -> talon.v1.SearchRequest.LabelsEntry
+	8,  // 1: talon.v1.SearchRequest.attributes:type_name -> talon.v1.SearchRequest.AttributesEntry
+	9,  // 2: talon.v1.SearchRequest.labels:type_name -> talon.v1.SearchRequest.LabelsEntry
 	0,  // 3: talon.v1.SearchRequest.mode:type_name -> talon.v1.SearchMode
 	1,  // 4: talon.v1.SearchRequest.sort:type_name -> talon.v1.SearchSort
-	5,  // 5: talon.v1.Document.source:type_name -> talon.v1.DocumentSource
-	12, // 6: talon.v1.Document.attributes:type_name -> talon.v1.Document.AttributesEntry
-	13, // 7: talon.v1.Document.labels:type_name -> talon.v1.Document.LabelsEntry
-	4,  // 8: talon.v1.SearchResult.document:type_name -> talon.v1.Document
-	6,  // 9: talon.v1.SearchResponse.results:type_name -> talon.v1.SearchResult
-	4,  // 10: talon.v1.GetSearchResultResponse.document:type_name -> talon.v1.Document
-	2,  // 11: talon.v1.SearchService.Search:input_type -> talon.v1.SearchRequest
-	8,  // 12: talon.v1.SearchService.GetResult:input_type -> talon.v1.GetSearchResultRequest
-	7,  // 13: talon.v1.SearchService.Search:output_type -> talon.v1.SearchResponse
-	9,  // 14: talon.v1.SearchService.GetResult:output_type -> talon.v1.GetSearchResultResponse
-	13, // [13:15] is the sub-list for method output_type
-	11, // [11:13] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	10, // 5: talon.v1.SearchResult.document:type_name -> talon.data.DocumentRef
+	4,  // 6: talon.v1.SearchResponse.results:type_name -> talon.v1.SearchResult
+	11, // 7: talon.v1.GetSearchResultResponse.document:type_name -> talon.data.Document
+	2,  // 8: talon.v1.SearchService.Search:input_type -> talon.v1.SearchRequest
+	6,  // 9: talon.v1.SearchService.GetResult:input_type -> talon.v1.GetSearchResultRequest
+	5,  // 10: talon.v1.SearchService.Search:output_type -> talon.v1.SearchResponse
+	7,  // 11: talon.v1.SearchService.GetResult:output_type -> talon.v1.GetSearchResultResponse
+	10, // [10:12] is the sub-list for method output_type
+	8,  // [8:10] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_proto_talon_v1_search_proto_init() }
@@ -934,7 +659,7 @@ func file_proto_talon_v1_search_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_talon_v1_search_proto_rawDesc), len(file_proto_talon_v1_search_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   12,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

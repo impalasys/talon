@@ -3,8 +3,8 @@
 
 use super::{
     delete_matches, next_page_token, page_offset, query_matches, score_document, search_limit,
-    search_mode, search_mode_name, search_namespaces, search_sort, DeleteScope, Document,
-    SearchResponse, SearchResult,
+    search_mode, search_mode_name, search_namespaces, search_sort, snippet, DeleteScope, Document,
+    DocumentExt, SearchResponse, SearchResult,
 };
 use crate::gateway::rpc::proto;
 use anyhow::{anyhow, Result};
@@ -96,7 +96,7 @@ impl DocumentStore for MemoryDocumentStore {
         let mut stored = self.documents.write().await;
         for document in documents {
             if let Some(existing) = stored.iter_mut().find(|existing| {
-                existing.namespace() == document.namespace() && existing.id == document.id
+                existing.namespace() == document.namespace() && existing.id() == document.id()
             }) {
                 *existing = document.clone();
             } else {
@@ -133,6 +133,7 @@ impl DocumentStore for MemoryDocumentStore {
             })
             .cloned()
             .map(|document| SearchResult {
+                snippet: snippet(&document.text),
                 score: score_document(&query.query, &document),
                 document,
             })
@@ -155,7 +156,7 @@ impl DocumentStore for MemoryDocumentStore {
             .read()
             .await
             .iter()
-            .find(|document| document.namespace() == namespace && document.id == id)
+            .find(|document| document.namespace() == namespace && document.id() == id)
             .cloned())
     }
 }
@@ -168,11 +169,10 @@ pub(crate) fn sort_results(results: &mut [SearchResult], sort: proto::SearchSort
                     .score
                     .partial_cmp(&left.score)
                     .unwrap_or(std::cmp::Ordering::Equal)
-                    .then_with(|| right.document.updated_at.cmp(&left.document.updated_at))
+                    .then_with(|| right.document.updated_at().cmp(&left.document.updated_at()))
             })
         }
-        proto::SearchSort::Recency => {
-            results.sort_by(|left, right| right.document.updated_at.cmp(&left.document.updated_at))
-        }
+        proto::SearchSort::Recency => results
+            .sort_by(|left, right| right.document.updated_at().cmp(&left.document.updated_at())),
     }
 }

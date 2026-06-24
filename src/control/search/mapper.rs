@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::{
-    document_id, snippet, Document, DocumentSource, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID,
+    document_id, document_ref, Document, DocumentSource, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID,
     ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_SESSION_ID, DOCUMENT_KIND_CONTENT,
     DOCUMENT_KIND_MESSAGE_PART, DOCUMENT_KIND_METADATA, KIND_SESSION_MESSAGE,
 };
@@ -30,25 +30,28 @@ pub fn map_control_plane_resource(
     {
         if !spec.content.trim().is_empty() {
             documents.push(Document {
-                id: document_id(&source.key, DOCUMENT_KIND_CONTENT, ""),
-                source: source.clone(),
-                document_kind: DOCUMENT_KIND_CONTENT.to_string(),
-                title: spec.path.clone(),
+                r#ref: Some(data_proto::DocumentRef {
+                    title: spec.path.clone(),
+                    labels: meta.labels.clone(),
+                    metadata_json: json!({
+                        "documentKind": DOCUMENT_KIND_CONTENT,
+                        "path": spec.path,
+                        "name": meta.name,
+                        "uid": meta.uid,
+                        "resourceVersion": meta.resource_version,
+                    })
+                    .to_string(),
+                    acl_scope_json: acl_scope_json(key, resource),
+                    indexed_at,
+                    generation: meta.generation,
+                    ..document_ref(
+                        document_id(&source.key, DOCUMENT_KIND_CONTENT, ""),
+                        source.clone(),
+                        DOCUMENT_KIND_CONTENT.to_string(),
+                        String::new(),
+                    )
+                }),
                 text: spec.content.clone(),
-                snippet: snippet(&spec.content),
-                labels: meta.labels.clone(),
-                metadata_json: json!({
-                    "documentKind": DOCUMENT_KIND_CONTENT,
-                    "path": spec.path,
-                    "name": meta.name,
-                    "uid": meta.uid,
-                    "resourceVersion": meta.resource_version,
-                })
-                .to_string(),
-                acl_scope_json: acl_scope_json(key, resource),
-                indexed_at,
-                generation: meta.generation,
-                ..Default::default()
             });
         }
     }
@@ -77,50 +80,52 @@ pub fn map_session_message(
             continue;
         }
         docs.push(Document {
-            id: document_id(&key.canonical(), DOCUMENT_KIND_MESSAGE_PART, &part.id),
-            source: DocumentSource {
-                namespace: key.namespace.clone(),
-                kind: KIND_SESSION_MESSAGE.to_string(),
-                key: key.canonical(),
-                name: key.name.clone(),
-                parent_kind: "Session".to_string(),
-                parent_key: keys::session(&key.namespace, &agent, &session_id).canonical(),
-                ..Default::default()
-            },
-            document_kind: DOCUMENT_KIND_MESSAGE_PART.to_string(),
-            subdocument_id: part.id.clone(),
-            attributes: attributes([
-                (ATTR_AGENT, agent.clone()),
-                (ATTR_SESSION_ID, session_id.clone()),
-                (ATTR_MESSAGE_ID, message.id.clone()),
-                (ATTR_PART_ID, part.id.clone()),
-                (ATTR_PART_TYPE, "TEXT".to_string()),
-                (ATTR_ROLE, role.clone()),
-            ]),
-            title: format!("{agent} / {session_id}"),
-            snippet: snippet(&part.content),
+            r#ref: Some(data_proto::DocumentRef {
+                attributes: attributes([
+                    (ATTR_AGENT, agent.clone()),
+                    (ATTR_SESSION_ID, session_id.clone()),
+                    (ATTR_MESSAGE_ID, message.id.clone()),
+                    (ATTR_PART_ID, part.id.clone()),
+                    (ATTR_PART_TYPE, "TEXT".to_string()),
+                    (ATTR_ROLE, role.clone()),
+                ]),
+                title: format!("{agent} / {session_id}"),
+                labels: message.labels.clone(),
+                metadata_json: json!({ "documentKind": DOCUMENT_KIND_MESSAGE_PART }).to_string(),
+                acl_scope_json: json!({
+                    "namespace": key.namespace,
+                    "agent": agent,
+                    "session": session_id
+                })
+                .to_string(),
+                created_at: if part.created_at == 0 {
+                    message.created_at
+                } else {
+                    part.created_at
+                },
+                updated_at: if part.created_at == 0 {
+                    message.created_at
+                } else {
+                    part.created_at
+                },
+                indexed_at,
+                generation,
+                ..document_ref(
+                    document_id(&key.canonical(), DOCUMENT_KIND_MESSAGE_PART, &part.id),
+                    DocumentSource {
+                        namespace: key.namespace.clone(),
+                        key: key.canonical(),
+                        kind: KIND_SESSION_MESSAGE.to_string(),
+                        name: key.name.clone(),
+                        parent_kind: "Session".to_string(),
+                        parent_key: keys::session(&key.namespace, &agent, &session_id).canonical(),
+                        ..Default::default()
+                    },
+                    DOCUMENT_KIND_MESSAGE_PART.to_string(),
+                    part.id.clone(),
+                )
+            }),
             text: part.content,
-            labels: message.labels.clone(),
-            metadata_json: json!({ "documentKind": DOCUMENT_KIND_MESSAGE_PART }).to_string(),
-            acl_scope_json: json!({
-                "namespace": key.namespace,
-                "agent": agent,
-                "session": session_id
-            })
-            .to_string(),
-            created_at: if part.created_at == 0 {
-                message.created_at
-            } else {
-                part.created_at
-            },
-            updated_at: if part.created_at == 0 {
-                message.created_at
-            } else {
-                part.created_at
-            },
-            indexed_at,
-            generation,
-            ..Default::default()
         });
     }
     docs
@@ -139,34 +144,37 @@ fn metadata_document(
     let (created_at, updated_at) = resource_timestamps(resource);
     let text = metadata_text(resource);
     Ok(Document {
-        id: document_id(&source.key, DOCUMENT_KIND_METADATA, ""),
-        source: source.clone(),
-        document_kind: DOCUMENT_KIND_METADATA.to_string(),
-        attributes: metadata_attributes(key, resource),
-        title: format!("{}/{}", source.kind, meta.name),
-        snippet: snippet(&text),
+        r#ref: Some(data_proto::DocumentRef {
+            attributes: metadata_attributes(key, resource),
+            title: format!("{}/{}", source.kind, meta.name),
+            labels: meta.labels.clone(),
+            metadata_json: json!({
+                "documentKind": DOCUMENT_KIND_METADATA,
+                "apiVersion": resource.api_version,
+                "kind": resource.kind,
+                "name": meta.name,
+                "namespace": meta.namespace,
+                "uid": meta.uid,
+                "generation": meta.generation,
+                "resourceVersion": meta.resource_version,
+                "annotations": meta.annotations,
+                "ownerReferences": meta.owner_references,
+                "phase": status_phase(resource),
+            })
+            .to_string(),
+            acl_scope_json: acl_scope_json(key, resource),
+            created_at,
+            updated_at,
+            indexed_at,
+            generation: meta.generation,
+            ..document_ref(
+                document_id(&source.key, DOCUMENT_KIND_METADATA, ""),
+                source.clone(),
+                DOCUMENT_KIND_METADATA.to_string(),
+                String::new(),
+            )
+        }),
         text,
-        labels: meta.labels.clone(),
-        metadata_json: json!({
-            "documentKind": DOCUMENT_KIND_METADATA,
-            "apiVersion": resource.api_version,
-            "kind": resource.kind,
-            "name": meta.name,
-            "namespace": meta.namespace,
-            "uid": meta.uid,
-            "generation": meta.generation,
-            "resourceVersion": meta.resource_version,
-            "annotations": meta.annotations,
-            "ownerReferences": meta.owner_references,
-            "phase": status_phase(resource),
-        })
-        .to_string(),
-        acl_scope_json: acl_scope_json(key, resource),
-        created_at,
-        updated_at,
-        indexed_at,
-        generation: meta.generation,
-        ..Default::default()
     })
 }
 
@@ -422,7 +430,7 @@ pub fn decode_session_message(bytes: &[u8]) -> Result<data_proto::SessionMessage
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::search::KIND_KNOWLEDGE;
+    use crate::control::search::{DocumentExt, KIND_KNOWLEDGE};
 
     #[test]
     fn generic_resource_emits_metadata_document() {
@@ -458,9 +466,9 @@ mod tests {
 
         let documents = map_control_plane_resource(&key, &resource, 10).unwrap();
         assert_eq!(documents.len(), 1);
-        assert_eq!(documents[0].id, format!("{}:metadata", key.canonical()));
+        assert_eq!(documents[0].id(), format!("{}:metadata", key.canonical()));
         assert_eq!(documents[0].resource_kind(), "Agent");
-        assert_eq!(documents[0].document_kind, DOCUMENT_KIND_METADATA);
+        assert_eq!(documents[0].document_kind(), DOCUMENT_KIND_METADATA);
         assert!(documents[0].text.contains("support"));
         assert!(documents[0].text.contains("Ready"));
     }
@@ -490,8 +498,8 @@ mod tests {
 
         let documents = map_control_plane_resource(&key, &resource, 10).unwrap();
         assert_eq!(documents.len(), 2);
-        assert_eq!(documents[0].document_kind, DOCUMENT_KIND_METADATA);
-        assert_eq!(documents[1].document_kind, DOCUMENT_KIND_CONTENT);
+        assert_eq!(documents[0].document_kind(), DOCUMENT_KIND_METADATA);
+        assert_eq!(documents[1].document_kind(), DOCUMENT_KIND_CONTENT);
         assert_eq!(documents[1].text, "Refund policy details");
     }
 
@@ -521,7 +529,7 @@ mod tests {
 
         let documents = map_control_plane_resource(&key, &resource, 10).unwrap();
         assert_eq!(documents.len(), 1);
-        assert_eq!(documents[0].document_kind, DOCUMENT_KIND_METADATA);
+        assert_eq!(documents[0].document_kind(), DOCUMENT_KIND_METADATA);
         assert!(documents[0].text.contains("raw-one"));
         assert!(!documents[0].text.contains("do-not-index"));
     }
@@ -556,7 +564,10 @@ mod tests {
             200,
         );
         assert_eq!(documents.len(), 1);
-        assert_eq!(documents[0].id, format!("{}:part:000000", key.canonical()));
-        assert_eq!(documents[0].document_kind, DOCUMENT_KIND_MESSAGE_PART);
+        assert_eq!(
+            documents[0].id(),
+            format!("{}:part:000000", key.canonical())
+        );
+        assert_eq!(documents[0].document_kind(), DOCUMENT_KIND_MESSAGE_PART);
     }
 }

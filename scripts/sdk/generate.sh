@@ -34,6 +34,7 @@ PROTO_SRCS=(
   proto/resources/resource.proto
   proto/harness/llm.proto
   proto/data/data.proto
+  proto/data/search.proto
   proto/data/session_submission.proto
   proto/data/session_journal_entry.proto
   proto/events.proto
@@ -96,6 +97,7 @@ GO_OPTS=(
   "--go_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/harness/llm.proto=${GO_MODULE}/talon/harness"
   "--go_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
+  "--go_opt=Mproto/data/search.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/session_journal_entry.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
@@ -125,6 +127,7 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/harness/llm.proto=${GO_MODULE}/talon/harness"
   "--go-grpc_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
+  "--go-grpc_opt=Mproto/data/search.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/session_journal_entry.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/events.proto=${GO_MODULE}/talon/events"

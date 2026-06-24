@@ -3,10 +3,10 @@
 
 use super::store::{sort_results, DocumentStore};
 use super::{
-    document_attributes, document_source, next_page_token, page_offset, query_terms, search_limit,
-    search_mode, search_namespaces, search_sort, DeleteScope, Document, SearchResponse,
-    SearchResult, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID, ATTR_PART_ID, ATTR_PART_TYPE,
-    ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
+    document_attributes, document_ref, document_source, next_page_token, page_offset, query_terms,
+    search_limit, search_mode, search_namespaces, search_sort, snippet, DeleteScope, Document,
+    DocumentExt, SearchResponse, SearchResult, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID,
+    ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
 };
 use crate::gateway::rpc::proto;
 use anyhow::{anyhow, Result};
@@ -210,17 +210,18 @@ impl D1DocumentStore {
 impl DocumentStore for D1DocumentStore {
     async fn upsert_documents(&self, documents: &[Document]) -> Result<()> {
         for document in documents {
-            let labels_json = serde_json::to_string(&document.labels)?;
-            let metadata_json = json_or_empty_object(&document.metadata_json).to_string();
-            let acl_scope_json = json_or_empty_object(&document.acl_scope_json).to_string();
+            let labels_json = serde_json::to_string(document.labels())?;
+            let metadata_json = json_or_empty_object(document.metadata_json()).to_string();
+            let acl_scope_json = json_or_empty_object(document.acl_scope_json()).to_string();
+            let snippet = snippet(&document.text);
             self.execute_run(
                 UPSERT_DOCUMENT_SQL.to_string(),
                 vec![
                     D1Param::text(document.namespace()),
-                    D1Param::text(&document.id),
+                    D1Param::text(document.id()),
                     D1Param::text(document.resource_kind()),
                     D1Param::text(document.resource_key()),
-                    D1Param::text(&document.document_kind),
+                    D1Param::text(document.document_kind()),
                     D1Param::text(document.parent_kind()),
                     D1Param::text(document.parent_key()),
                     D1Param::text(document.agent()),
@@ -231,17 +232,17 @@ impl DocumentStore for D1DocumentStore {
                     D1Param::text(document.part_id()),
                     D1Param::text(document.part_type()),
                     D1Param::text(document.role()),
-                    D1Param::text(&document.title),
+                    D1Param::text(document.title()),
                     D1Param::text(&document.text),
-                    D1Param::text(&document.snippet),
+                    D1Param::text(&snippet),
                     D1Param::text(labels_json),
                     D1Param::text(metadata_json),
                     D1Param::text(acl_scope_json),
-                    D1Param::integer(document.created_at),
-                    D1Param::integer(document.updated_at),
-                    D1Param::integer(document.indexed_at),
-                    D1Param::integer(document.generation as i64),
-                    D1Param::text(&document.embedding_ref),
+                    D1Param::integer(document.created_at()),
+                    D1Param::integer(document.updated_at()),
+                    D1Param::integer(document.indexed_at()),
+                    D1Param::integer(document.generation() as i64),
+                    D1Param::text(document.embedding_ref()),
                 ],
             )
             .await?;
@@ -250,7 +251,7 @@ impl DocumentStore for D1DocumentStore {
                 "DELETE FROM talon_documents_fts WHERE namespace = ? AND id = ?".to_string(),
                 vec![
                     D1Param::text(document.namespace()),
-                    D1Param::text(&document.id),
+                    D1Param::text(document.id()),
                 ],
             )
             .await?;
@@ -258,10 +259,10 @@ impl DocumentStore for D1DocumentStore {
                 "INSERT INTO talon_documents_fts(namespace, id, title, text, snippet) VALUES (?, ?, ?, ?, ?)".to_string(),
                 vec![
                     D1Param::text(document.namespace()),
-                    D1Param::text(&document.id),
-                    D1Param::text(&document.title),
+                    D1Param::text(document.id()),
+                    D1Param::text(document.title()),
                     D1Param::text(&document.text),
-                    D1Param::text(&document.snippet),
+                    D1Param::text(&snippet),
                 ],
             )
             .await?;
@@ -341,6 +342,7 @@ impl DocumentStore for D1DocumentStore {
                 let score = cell_f64(&row, "score").unwrap_or(1.0) as f32;
                 Ok(SearchResult {
                     document: document_from_row(&row)?,
+                    snippet: cell_string(&row, "snippet")?,
                     score,
                 })
             })
@@ -573,37 +575,41 @@ fn document_from_row(row: &D1Row) -> Result<Document> {
     let labels_json = cell_string(row, "labels_json")?;
     let part_id = cell_string(row, "part_id")?;
     Ok(Document {
-        id: cell_string(row, "id")?,
-        source: document_source(
-            cell_string(row, "namespace")?,
-            cell_string(row, "resource_kind")?,
-            cell_string(row, "resource_key")?,
-            cell_string(row, "parent_kind")?,
-            cell_string(row, "parent_key")?,
-        ),
-        document_kind: cell_string(row, "document_kind").unwrap_or_default(),
-        subdocument_id: part_id.clone(),
-        attributes: document_attributes([
-            (ATTR_AGENT, cell_string(row, "agent")?),
-            (ATTR_SESSION_ID, cell_string(row, "session_id")?),
-            (ATTR_CHANNEL, cell_string(row, "channel")?),
-            (ATTR_MESSAGE_ID, cell_string(row, "message_id")?),
-            (ATTR_RUN_ID, cell_string(row, "run_id")?),
-            (ATTR_PART_ID, part_id),
-            (ATTR_PART_TYPE, cell_string(row, "part_type")?),
-            (ATTR_ROLE, cell_string(row, "role")?),
-        ]),
-        title: cell_string(row, "title")?,
+        r#ref: Some(crate::gateway::rpc::data_proto::DocumentRef {
+            attributes: document_attributes([
+                (ATTR_AGENT, cell_string(row, "agent")?),
+                (ATTR_SESSION_ID, cell_string(row, "session_id")?),
+                (ATTR_CHANNEL, cell_string(row, "channel")?),
+                (ATTR_MESSAGE_ID, cell_string(row, "message_id")?),
+                (ATTR_RUN_ID, cell_string(row, "run_id")?),
+                (ATTR_PART_ID, part_id.clone()),
+                (ATTR_PART_TYPE, cell_string(row, "part_type")?),
+                (ATTR_ROLE, cell_string(row, "role")?),
+            ]),
+            title: cell_string(row, "title")?,
+            labels: serde_json::from_str::<HashMap<String, String>>(&labels_json)
+                .unwrap_or_default(),
+            metadata_json: cell_string(row, "metadata_json")?,
+            acl_scope_json: cell_string(row, "acl_scope_json")?,
+            created_at: cell_i64(row, "created_at")?,
+            updated_at: cell_i64(row, "updated_at")?,
+            indexed_at: cell_i64(row, "indexed_at")?,
+            generation: cell_i64(row, "source_generation")? as u64,
+            embedding_ref: cell_string(row, "embedding_ref")?,
+            ..document_ref(
+                cell_string(row, "id")?,
+                document_source(
+                    cell_string(row, "namespace")?,
+                    cell_string(row, "resource_kind")?,
+                    cell_string(row, "resource_key")?,
+                    cell_string(row, "parent_kind")?,
+                    cell_string(row, "parent_key")?,
+                ),
+                cell_string(row, "document_kind").unwrap_or_default(),
+                part_id,
+            )
+        }),
         text: cell_string(row, "text")?,
-        snippet: cell_string(row, "snippet")?,
-        labels: serde_json::from_str::<HashMap<String, String>>(&labels_json).unwrap_or_default(),
-        metadata_json: cell_string(row, "metadata_json")?,
-        acl_scope_json: cell_string(row, "acl_scope_json")?,
-        created_at: cell_i64(row, "created_at")?,
-        updated_at: cell_i64(row, "updated_at")?,
-        indexed_at: cell_i64(row, "indexed_at")?,
-        generation: cell_i64(row, "source_generation")? as u64,
-        embedding_ref: cell_string(row, "embedding_ref")?,
     })
 }
 
