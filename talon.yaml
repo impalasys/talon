@@ -29,6 +29,11 @@ storage:
     url:
       source: env
       key: TALON_DATA_DATABASE_URL
+  documents:
+    driver: postgres
+    url:
+      source: env
+      key: TALON_DOCUMENT_DATABASE_URL
   objects:
     driver: local
     path: .talon/objects

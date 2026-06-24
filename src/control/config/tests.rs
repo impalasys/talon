@@ -210,6 +210,17 @@ trust:
             panic!("expected control database URL to be an env ref");
         };
         assert_eq!(url_ref.key, "TALON_CONTROL_DATABASE_URL");
+        let document_url = control_plane
+            .documents
+            .as_ref()
+            .unwrap()
+            .url
+            .as_ref()
+            .unwrap();
+        let Some(proto::secret::Source::Ref(document_url_ref)) = &document_url.source else {
+            panic!("expected document database URL to be an env ref");
+        };
+        assert_eq!(document_url_ref.key, "TALON_DOCUMENT_DATABASE_URL");
         assert_eq!(
             control_plane.message_broker.as_ref().unwrap().driver,
             "gcp_pubsub"
@@ -823,6 +834,7 @@ control_plane:
                     endpoint_url: Some("https://s3.example.com".to_string()),
                     force_path_style: Some(true),
                 }),
+                documents: None,
             }),
             storage: None,
             pubsub: None,

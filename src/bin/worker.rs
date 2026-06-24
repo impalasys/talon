@@ -1375,6 +1375,7 @@ mod tests {
             }),
             scheduler: None,
             object_store: None,
+            documents: None,
         });
         let handler = WorkerEventHandler {
             cp: Arc::new(ControlPlane::noop()),
