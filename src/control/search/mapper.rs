@@ -84,150 +84,132 @@ impl DocumentMapper {
 
 impl MappableSource for SessionMessageSource {
     fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>> {
-        Ok(map_session_message_parts(
-            &self.key,
-            self.message,
-            generation,
-            indexed_at,
-        ))
+        let agent = parent_segment(&self.key, "Agent").unwrap_or_default();
+        let session_id = parent_segment(&self.key, "Session").unwrap_or_default();
+        let role = data_proto::MessageRole::try_from(self.message.role)
+            .ok()
+            .map(|role| format!("{role:?}"))
+            .unwrap_or_else(|| "ROLE_UNSPECIFIED".to_string());
+        let mut docs = Vec::new();
+        for part in self.message.parts {
+            if part.part_type != data_proto::SessionMessagePartType::Text as i32 {
+                continue;
+            }
+            if part.content.trim().is_empty() {
+                continue;
+            }
+            docs.push(Document {
+                r#ref: Some(data_proto::DocumentRef {
+                    attributes: attributes([
+                        (ATTR_AGENT, agent.clone()),
+                        (ATTR_SESSION_ID, session_id.clone()),
+                        (ATTR_MESSAGE_ID, self.message.id.clone()),
+                        (ATTR_PART_ID, part.id.clone()),
+                        (ATTR_PART_TYPE, "TEXT".to_string()),
+                        (ATTR_ROLE, role.clone()),
+                    ]),
+                    title: format!("{agent} / {session_id}"),
+                    labels: self.message.labels.clone(),
+                    metadata_json: json!({ "documentKind": DOCUMENT_KIND_MESSAGE_PART })
+                        .to_string(),
+                    acl_scope_json: json!({
+                        "namespace": self.key.namespace,
+                        "agent": agent,
+                        "session": session_id
+                    })
+                    .to_string(),
+                    created_at: if part.created_at == 0 {
+                        self.message.created_at
+                    } else {
+                        part.created_at
+                    },
+                    updated_at: if part.created_at == 0 {
+                        self.message.created_at
+                    } else {
+                        part.created_at
+                    },
+                    indexed_at,
+                    generation,
+                    ..document_ref(
+                        document_id(&self.key.canonical(), DOCUMENT_KIND_MESSAGE_PART, &part.id),
+                        DocumentSource {
+                            namespace: self.key.namespace.clone(),
+                            key: self.key.canonical(),
+                            kind: KIND_SESSION_MESSAGE.to_string(),
+                            name: self.key.name.clone(),
+                            parent_kind: "Session".to_string(),
+                            parent_key: keys::session(&self.key.namespace, &agent, &session_id)
+                                .canonical(),
+                            ..Default::default()
+                        },
+                        DOCUMENT_KIND_MESSAGE_PART.to_string(),
+                        part.id.clone(),
+                    )
+                }),
+                text: part.content,
+            });
+        }
+        Ok(docs)
     }
 }
 
 impl MappableSource for ControlPlaneResourceSource {
     fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>> {
-        map_control_plane_resource(&self.key, self.resource, generation, indexed_at)
-    }
-}
+        let current_generation = self
+            .resource
+            .metadata
+            .as_ref()
+            .map(|metadata| metadata.generation)
+            .unwrap_or_default();
+        if generation > 0 {
+            if current_generation > generation {
+                tracing::debug!(
+                    resource_key = self.key.canonical(),
+                    event_generation = generation,
+                    current_generation,
+                    "skipping stale resource index event"
+                );
+                return Ok(Vec::new());
+            }
+            if current_generation < generation {
+                anyhow::bail!(
+                    "resource {} generation {} is behind index event generation {}",
+                    self.key.canonical(),
+                    current_generation,
+                    generation
+                );
+            }
+        }
+        let source = resource_ref(&self.key, &self.resource);
+        let mut documents = vec![resource_metadata_document(
+            &self.key,
+            &self.resource,
+            &source,
+            indexed_at,
+        )?];
 
-fn map_control_plane_resource(
-    key: &keys::ResourceKey,
-    resource: resources_proto::Resource,
-    generation: u64,
-    indexed_at: i64,
-) -> Result<Vec<Document>> {
-    let current_generation = resource
-        .metadata
-        .as_ref()
-        .map(|metadata| metadata.generation)
-        .unwrap_or_default();
-    if generation > 0 {
-        if current_generation > generation {
-            tracing::debug!(
-                resource_key = key.canonical(),
-                event_generation = generation,
-                current_generation,
-                "skipping stale resource index event"
-            );
-            return Ok(Vec::new());
+        if let Some(resources_proto::resource_spec::Kind::Knowledge(spec)) = self
+            .resource
+            .spec
+            .as_ref()
+            .and_then(|spec| spec.kind.as_ref())
+        {
+            if !spec.content.trim().is_empty() {
+                documents.push(knowledge_content_document(
+                    &self.key,
+                    &self.resource,
+                    &source,
+                    spec,
+                    indexed_at,
+                )?);
+            }
         }
-        if current_generation < generation {
-            anyhow::bail!(
-                "resource {} generation {} is behind index event generation {}",
-                key.canonical(),
-                current_generation,
-                generation
-            );
-        }
+
+        Ok(documents)
     }
-    map_control_plane_resource_documents(key, &resource, indexed_at)
 }
 
 // Document builders.
-fn map_control_plane_resource_documents(
-    key: &keys::ResourceKey,
-    resource: &resources_proto::Resource,
-    indexed_at: i64,
-) -> Result<Vec<Document>> {
-    let source = resource_ref(key, resource);
-    let mut documents = vec![resource_metadata_document(
-        key, resource, &source, indexed_at,
-    )?];
-
-    if let Some(resources_proto::resource_spec::Kind::Knowledge(spec)) =
-        resource.spec.as_ref().and_then(|spec| spec.kind.as_ref())
-    {
-        if !spec.content.trim().is_empty() {
-            documents.push(knowledge_content_document(
-                key, resource, &source, spec, indexed_at,
-            )?);
-        }
-    }
-
-    Ok(documents)
-}
-
-fn map_session_message_parts(
-    key: &keys::ResourceKey,
-    message: data_proto::SessionMessage,
-    generation: u64,
-    indexed_at: i64,
-) -> Vec<Document> {
-    let agent = parent_segment(key, "Agent").unwrap_or_default();
-    let session_id = parent_segment(key, "Session").unwrap_or_default();
-    let role = data_proto::MessageRole::try_from(message.role)
-        .ok()
-        .map(|role| format!("{role:?}"))
-        .unwrap_or_else(|| "ROLE_UNSPECIFIED".to_string());
-    let mut docs = Vec::new();
-    for part in message.parts {
-        if part.part_type != data_proto::SessionMessagePartType::Text as i32 {
-            continue;
-        }
-        if part.content.trim().is_empty() {
-            continue;
-        }
-        docs.push(Document {
-            r#ref: Some(data_proto::DocumentRef {
-                attributes: attributes([
-                    (ATTR_AGENT, agent.clone()),
-                    (ATTR_SESSION_ID, session_id.clone()),
-                    (ATTR_MESSAGE_ID, message.id.clone()),
-                    (ATTR_PART_ID, part.id.clone()),
-                    (ATTR_PART_TYPE, "TEXT".to_string()),
-                    (ATTR_ROLE, role.clone()),
-                ]),
-                title: format!("{agent} / {session_id}"),
-                labels: message.labels.clone(),
-                metadata_json: json!({ "documentKind": DOCUMENT_KIND_MESSAGE_PART }).to_string(),
-                acl_scope_json: json!({
-                    "namespace": key.namespace,
-                    "agent": agent,
-                    "session": session_id
-                })
-                .to_string(),
-                created_at: if part.created_at == 0 {
-                    message.created_at
-                } else {
-                    part.created_at
-                },
-                updated_at: if part.created_at == 0 {
-                    message.created_at
-                } else {
-                    part.created_at
-                },
-                indexed_at,
-                generation,
-                ..document_ref(
-                    document_id(&key.canonical(), DOCUMENT_KIND_MESSAGE_PART, &part.id),
-                    DocumentSource {
-                        namespace: key.namespace.clone(),
-                        key: key.canonical(),
-                        kind: KIND_SESSION_MESSAGE.to_string(),
-                        name: key.name.clone(),
-                        parent_kind: "Session".to_string(),
-                        parent_key: keys::session(&key.namespace, &agent, &session_id).canonical(),
-                        ..Default::default()
-                    },
-                    DOCUMENT_KIND_MESSAGE_PART.to_string(),
-                    part.id.clone(),
-                )
-            }),
-            text: part.content,
-        });
-    }
-    docs
-}
-
 fn resource_metadata_document(
     key: &keys::ResourceKey,
     resource: &resources_proto::Resource,
@@ -595,7 +577,12 @@ mod tests {
             }),
         };
 
-        let documents = map_control_plane_resource_documents(&key, &resource, 10).unwrap();
+        let documents = Box::new(ControlPlaneResourceSource {
+            key: key.clone(),
+            resource,
+        })
+        .map(0, 10)
+        .unwrap();
         assert_eq!(documents.len(), 1);
         let document_ref = documents[0].r#ref.as_ref().expect("document ref");
         let source = document_ref.source.as_ref().expect("document source");
@@ -629,7 +616,12 @@ mod tests {
             ..Default::default()
         };
 
-        let documents = map_control_plane_resource_documents(&key, &resource, 10).unwrap();
+        let documents = Box::new(ControlPlaneResourceSource {
+            key: key.clone(),
+            resource,
+        })
+        .map(0, 10)
+        .unwrap();
         assert_eq!(documents.len(), 2);
         assert_eq!(
             documents[0]
@@ -674,7 +666,12 @@ mod tests {
             ..Default::default()
         };
 
-        let documents = map_control_plane_resource_documents(&key, &resource, 10).unwrap();
+        let documents = Box::new(ControlPlaneResourceSource {
+            key: key.clone(),
+            resource,
+        })
+        .map(0, 10)
+        .unwrap();
         assert_eq!(documents.len(), 1);
         assert_eq!(
             documents[0]
@@ -691,9 +688,9 @@ mod tests {
     #[test]
     fn session_message_emits_one_text_part_document_per_text_part() {
         let key = keys::session_message("acme", "support", "s1", "m1");
-        let documents = map_session_message_parts(
-            &key,
-            data_proto::SessionMessage {
+        let documents = Box::new(SessionMessageSource {
+            key: key.clone(),
+            message: data_proto::SessionMessage {
                 id: "m1".to_string(),
                 role: data_proto::MessageRole::RoleUser as i32,
                 created_at: 100,
@@ -714,9 +711,9 @@ mod tests {
                 ],
                 ..Default::default()
             },
-            4,
-            200,
-        );
+        })
+        .map(4, 200)
+        .unwrap();
         assert_eq!(documents.len(), 1);
         let document_ref = documents[0].r#ref.as_ref().expect("document ref");
         assert_eq!(document_ref.id, format!("{}:part:000000", key.canonical()));
