@@ -778,9 +778,28 @@ mod tests {
         assert_eq!(message_keys.len(), 1);
 
         let published = pubsub.published.lock().await;
-        assert_eq!(published.len(), 1);
-        assert_eq!(published[0].0, topics::SESSION_DISPATCH_TOPIC);
-        let event = SessionMessageEvent::decode(published[0].1.as_slice()).unwrap();
+        let index_event = published
+            .iter()
+            .find_map(|(topic, payload)| {
+                (topic == topics::INDEX_EVENTS_TOPIC)
+                    .then(|| crate::control::events::IndexEvent::decode(payload.as_slice()).ok())
+                    .flatten()
+            })
+            .expect("scheduled message should publish a search index event");
+        assert_eq!(
+            index_event.operation,
+            crate::control::events::IndexOperation::Upsert as i32
+        );
+        assert_eq!(index_event.key, message_keys[0].canonical());
+
+        let event = published
+            .iter()
+            .find_map(|(topic, payload)| {
+                (topic == topics::SESSION_DISPATCH_TOPIC)
+                    .then(|| SessionMessageEvent::decode(payload.as_slice()).ok())
+                    .flatten()
+            })
+            .expect("scheduled message should publish a dispatch event");
         assert_eq!(event.direction, MessageDirection::Inbound as i32);
         assert_eq!(event.agent, "assistant");
         assert_eq!(event.session_id, "session-1");
