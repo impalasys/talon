@@ -56,19 +56,33 @@ class ConnectorClassStatus(_message.Message):
     registration_id: str
     def __init__(self, observed_generation: _Optional[int] = ..., phase: _Optional[str] = ..., conditions: _Optional[_Iterable[_Union[_common_pb2.ResourceCondition, _Mapping]]] = ..., registration_id: _Optional[str] = ...) -> None: ...
 
-class ConnectorTarget(_message.Message):
-    __slots__ = ("surface", "agent", "channel", "continuity", "reply_policy")
-    SURFACE_FIELD_NUMBER: _ClassVar[int]
+class ConnectorSessionTarget(_message.Message):
+    __slots__ = ("agent", "continuity")
     AGENT_FIELD_NUMBER: _ClassVar[int]
+    CONTINUITY_FIELD_NUMBER: _ClassVar[int]
+    agent: str
+    continuity: str
+    def __init__(self, agent: _Optional[str] = ..., continuity: _Optional[str] = ...) -> None: ...
+
+class ConnectorChannelTarget(_message.Message):
+    __slots__ = ("channel", "agent", "continuity", "reply_policy")
     CHANNEL_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
     CONTINUITY_FIELD_NUMBER: _ClassVar[int]
     REPLY_POLICY_FIELD_NUMBER: _ClassVar[int]
-    surface: str
-    agent: str
     channel: str
+    agent: str
     continuity: str
     reply_policy: str
-    def __init__(self, surface: _Optional[str] = ..., agent: _Optional[str] = ..., channel: _Optional[str] = ..., continuity: _Optional[str] = ..., reply_policy: _Optional[str] = ...) -> None: ...
+    def __init__(self, channel: _Optional[str] = ..., agent: _Optional[str] = ..., continuity: _Optional[str] = ..., reply_policy: _Optional[str] = ...) -> None: ...
+
+class ConnectorTarget(_message.Message):
+    __slots__ = ("session", "channel")
+    SESSION_FIELD_NUMBER: _ClassVar[int]
+    CHANNEL_FIELD_NUMBER: _ClassVar[int]
+    session: ConnectorSessionTarget
+    channel: ConnectorChannelTarget
+    def __init__(self, session: _Optional[_Union[ConnectorSessionTarget, _Mapping]] = ..., channel: _Optional[_Union[ConnectorChannelTarget, _Mapping]] = ...) -> None: ...
 
 class ConnectorSpec(_message.Message):
     __slots__ = ("class_ref", "enabled", "match_fields", "target")

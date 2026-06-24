@@ -187,19 +187,23 @@ async fn dispatch_connector_message(
     target: &resources_proto::ConnectorTarget,
     event: &proto::ConnectorMessageEvent,
 ) -> Result<(), tonic::Status> {
-    match target.surface.as_str() {
-        "session" => dispatch_to_session(cp, entry, target, event).await,
-        "channel" => dispatch_to_channel(cp, entry, target, event).await,
-        other => Err(tonic::Status::failed_precondition(format!(
-            "unsupported Connector target surface '{other}'"
-        ))),
+    match target.destination.as_ref() {
+        Some(resources_proto::connector_target::Destination::Session(session)) => {
+            dispatch_to_session(cp, entry, session, event).await
+        }
+        Some(resources_proto::connector_target::Destination::Channel(channel)) => {
+            dispatch_to_channel(cp, entry, channel, event).await
+        }
+        None => Err(tonic::Status::failed_precondition(
+            "Connector target destination is missing",
+        )),
     }
 }
 
 async fn dispatch_to_session(
     cp: &ControlPlane,
     entry: &resources_proto::ConnectorMatchEntry,
-    target: &resources_proto::ConnectorTarget,
+    target: &resources_proto::ConnectorSessionTarget,
     event: &proto::ConnectorMessageEvent,
 ) -> Result<(), tonic::Status> {
     if target.agent.trim().is_empty() {
@@ -228,7 +232,7 @@ async fn dispatch_to_session(
 async fn dispatch_to_channel(
     cp: &ControlPlane,
     entry: &resources_proto::ConnectorMatchEntry,
-    target: &resources_proto::ConnectorTarget,
+    target: &resources_proto::ConnectorChannelTarget,
     event: &proto::ConnectorMessageEvent,
 ) -> Result<(), tonic::Status> {
     if target.channel.trim().is_empty() {
@@ -286,7 +290,7 @@ async fn dispatch_to_channel(
 async fn connector_session_id(
     cp: &ControlPlane,
     entry: &resources_proto::ConnectorMatchEntry,
-    target: &resources_proto::ConnectorTarget,
+    target: &resources_proto::ConnectorSessionTarget,
     event: &proto::ConnectorMessageEvent,
     labels: HashMap<String, String>,
 ) -> Result<String, tonic::Status> {
@@ -323,7 +327,7 @@ async fn connector_session_id(
 
 fn connector_session_pointer_name(
     entry: &resources_proto::ConnectorMatchEntry,
-    target: &resources_proto::ConnectorTarget,
+    target: &resources_proto::ConnectorSessionTarget,
     event: &proto::ConnectorMessageEvent,
 ) -> String {
     let mut source = format!(

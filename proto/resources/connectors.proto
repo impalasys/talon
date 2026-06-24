@@ -6,24 +6,43 @@ import "proto/config.proto";
 import "proto/resources/common.proto";
 
 message ConnectorClassRuntimeSpec {
+  // Runtime implementation type, for example an HTTP connector service.
   string kind = 1;
+
+  // Base URL for the connector service that implements the Talon connector
+  // protocol for this class.
   string endpoint = 2;
 }
 
 message ConnectorClassAuthSpec {
+  // Authentication scheme Talon uses when calling the connector service.
   string kind = 1;
+
+  // API key or secret reference used to authenticate this Talon cluster to the
+  // connector service.
   talon.config.Secret api_key = 2;
 }
 
 message ConnectorMatchIndex {
+  // Connector-service-defined index name, stable within the ConnectorClass.
   string name = 1;
+
+  // Match field names, in priority order, used to compile routing keys.
   repeated string fields = 2;
 }
 
 message ConnectorClassSpec {
+  // External messaging platform implemented by this class, such as slack or
+  // imessage.
   string platform = 1;
+
+  // How Talon reaches the connector service.
   ConnectorClassRuntimeSpec runtime = 2;
+
+  // How Talon authenticates requests to the connector service.
   ConnectorClassAuthSpec auth = 3;
+
+  // Provider-specific match indexes supported by this connector service.
   repeated ConnectorMatchIndex match_indexes = 4;
 }
 
@@ -31,21 +50,63 @@ message ConnectorClassStatus {
   uint64 observed_generation = 1;
   string phase = 2;
   repeated ResourceCondition conditions = 3;
+
+  // Registration identifier assigned by the connector service. Incoming
+  // connector webhooks include this value so Talon can route within the correct
+  // ConnectorClass registration.
   string registration_id = 4;
 }
 
-message ConnectorTarget {
-  string surface = 1;
+message ConnectorSessionTarget {
+  // Talon Agent name that receives matching connector messages.
+  string agent = 1;
+
+  // Session continuity policy. "reuse" reuses the Connector's session pointer
+  // for the external conversation/thread; any other value creates a new
+  // Session for each message.
+  string continuity = 2;
+}
+
+message ConnectorChannelTarget {
+  // Talon Channel name that receives matching connector messages.
+  string channel = 1;
+
+  // Talon Agent name to route the channel message to after it is persisted.
   string agent = 2;
-  string channel = 3;
-  string continuity = 4;
-  string reply_policy = 5;
+
+  // Channel routing continuity policy. This is reserved for channel dispatch
+  // policies that create agent runtime context per message or thread.
+  string continuity = 3;
+
+  // Reply behavior requested from the connector-aware channel router, such as
+  // replying in the provider thread instead of the root conversation.
+  string reply_policy = 4;
+}
+
+message ConnectorTarget {
+  oneof destination {
+    // Deliver matching connector messages directly to a Talon Session.
+    ConnectorSessionTarget session = 1;
+
+    // Persist matching connector messages into a Talon Channel, then route the
+    // message to the configured Agent.
+    ConnectorChannelTarget channel = 2;
+  }
 }
 
 message ConnectorSpec {
+  // ConnectorClass that owns the platform adapter and match index definitions.
   ResourceRef class_ref = 1;
+
+  // Disabled Connectors are not indexed for incoming message routing.
   bool enabled = 2;
+
+  // Provider-specific route fields, such as Slack team/channel IDs or an
+  // iMessage profile identifier. Talon treats these as opaque keys described by
+  // the ConnectorClass match indexes.
   map<string, string> match_fields = 3;
+
+  // Single Talon destination for messages that match this Connector.
   ConnectorTarget target = 4;
 }
 
@@ -53,6 +114,9 @@ message ConnectorStatus {
   uint64 observed_generation = 1;
   string phase = 2;
   repeated ResourceCondition conditions = 3;
+
+  // Materialized KV routing keys generated from match_fields and the owning
+  // ConnectorClass match indexes.
   repeated string compiled_match_keys = 4;
 }
 
@@ -74,5 +138,8 @@ message ConnectorMatchEntry {
   string connector_name = 3;
   string class_name = 4;
   uint64 generation = 5;
+
+  // Snapshot of the Connector target stored in the route index so ingest can
+  // dispatch without re-reading the full Connector resource.
   ConnectorTarget target = 6;
 }

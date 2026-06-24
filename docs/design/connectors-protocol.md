@@ -239,11 +239,11 @@ spec:
     teamId: T123
     enterpriseId: E456
   target:
-    agent: marketing-agent
-    surface: channel
-    channel: campaigns
-    continuity: reuse
-    replyPolicy: thread
+    channel:
+      channel: campaigns
+      agent: marketing-agent
+      continuity: reuse
+      replyPolicy: thread
 status:
   displayName: Acme Slack
   provider:
@@ -463,9 +463,9 @@ spec:
   matchFields:
     teamId: T123
   target:
-    agent: marketing-agent
-    surface: session
-    continuity: reuse
+    session:
+      agent: marketing-agent
+      continuity: reuse
 status:
   displayName: Acme Slack
   provider:
@@ -712,21 +712,19 @@ Example target:
 
 ```yaml
 target:
-  agent: marketing-agent
-  surface: session
-  continuity: reuse
-  sessionKey:
-    from: externalConversationId
+  session:
+    agent: marketing-agent
+    continuity: reuse
 ```
 
 Example Channel target:
 
 ```yaml
 target:
-  agent: marketing-agent
-  surface: channel
-  channel: campaigns
-  continuity: newPerMessage
+  channel:
+    channel: campaigns
+    agent: marketing-agent
+    continuity: newPerMessage
 ```
 
 `continuity` should be explicit. It controls whether Talon reuses an existing

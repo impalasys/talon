@@ -13,11 +13,16 @@ import { ResourceCondition, ResourceMeta, ResourceRef } from "./common_pb.js";
  */
 export class ConnectorClassRuntimeSpec extends Message<ConnectorClassRuntimeSpec> {
   /**
+   * Runtime implementation type, for example an HTTP connector service.
+   *
    * @generated from field: string kind = 1;
    */
   kind = "";
 
   /**
+   * Base URL for the connector service that implements the Talon connector
+   * protocol for this class.
+   *
    * @generated from field: string endpoint = 2;
    */
   endpoint = "";
@@ -56,11 +61,16 @@ export class ConnectorClassRuntimeSpec extends Message<ConnectorClassRuntimeSpec
  */
 export class ConnectorClassAuthSpec extends Message<ConnectorClassAuthSpec> {
   /**
+   * Authentication scheme Talon uses when calling the connector service.
+   *
    * @generated from field: string kind = 1;
    */
   kind = "";
 
   /**
+   * API key or secret reference used to authenticate this Talon cluster to the
+   * connector service.
+   *
    * @generated from field: talon.config.Secret api_key = 2;
    */
   apiKey?: Secret;
@@ -99,11 +109,15 @@ export class ConnectorClassAuthSpec extends Message<ConnectorClassAuthSpec> {
  */
 export class ConnectorMatchIndex extends Message<ConnectorMatchIndex> {
   /**
+   * Connector-service-defined index name, stable within the ConnectorClass.
+   *
    * @generated from field: string name = 1;
    */
   name = "";
 
   /**
+   * Match field names, in priority order, used to compile routing keys.
+   *
    * @generated from field: repeated string fields = 2;
    */
   fields: string[] = [];
@@ -142,21 +156,30 @@ export class ConnectorMatchIndex extends Message<ConnectorMatchIndex> {
  */
 export class ConnectorClassSpec extends Message<ConnectorClassSpec> {
   /**
+   * External messaging platform implemented by this class, such as slack or
+   * imessage.
+   *
    * @generated from field: string platform = 1;
    */
   platform = "";
 
   /**
+   * How Talon reaches the connector service.
+   *
    * @generated from field: talon.resources.ConnectorClassRuntimeSpec runtime = 2;
    */
   runtime?: ConnectorClassRuntimeSpec;
 
   /**
+   * How Talon authenticates requests to the connector service.
+   *
    * @generated from field: talon.resources.ConnectorClassAuthSpec auth = 3;
    */
   auth?: ConnectorClassAuthSpec;
 
   /**
+   * Provider-specific match indexes supported by this connector service.
+   *
    * @generated from field: repeated talon.resources.ConnectorMatchIndex match_indexes = 4;
    */
   matchIndexes: ConnectorMatchIndex[] = [];
@@ -212,6 +235,10 @@ export class ConnectorClassStatus extends Message<ConnectorClassStatus> {
   conditions: ResourceCondition[] = [];
 
   /**
+   * Registration identifier assigned by the connector service. Incoming
+   * connector webhooks include this value so Talon can route within the correct
+   * ConnectorClass registration.
+   *
    * @generated from field: string registration_id = 4;
    */
   registrationId = "";
@@ -248,33 +275,144 @@ export class ConnectorClassStatus extends Message<ConnectorClassStatus> {
 }
 
 /**
- * @generated from message talon.resources.ConnectorTarget
+ * @generated from message talon.resources.ConnectorSessionTarget
  */
-export class ConnectorTarget extends Message<ConnectorTarget> {
+export class ConnectorSessionTarget extends Message<ConnectorSessionTarget> {
   /**
-   * @generated from field: string surface = 1;
+   * Talon Agent name that receives matching connector messages.
+   *
+   * @generated from field: string agent = 1;
    */
-  surface = "";
+  agent = "";
 
   /**
+   * Session continuity policy. "reuse" reuses the Connector's session pointer
+   * for the external conversation/thread; any other value creates a new
+   * Session for each message.
+   *
+   * @generated from field: string continuity = 2;
+   */
+  continuity = "";
+
+  constructor(data?: PartialMessage<ConnectorSessionTarget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.ConnectorSessionTarget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "continuity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorSessionTarget {
+    return new ConnectorSessionTarget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectorSessionTarget {
+    return new ConnectorSessionTarget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectorSessionTarget {
+    return new ConnectorSessionTarget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ConnectorSessionTarget | PlainMessage<ConnectorSessionTarget> | undefined, b: ConnectorSessionTarget | PlainMessage<ConnectorSessionTarget> | undefined): boolean {
+    return proto3.util.equals(ConnectorSessionTarget, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.ConnectorChannelTarget
+ */
+export class ConnectorChannelTarget extends Message<ConnectorChannelTarget> {
+  /**
+   * Talon Channel name that receives matching connector messages.
+   *
+   * @generated from field: string channel = 1;
+   */
+  channel = "";
+
+  /**
+   * Talon Agent name to route the channel message to after it is persisted.
+   *
    * @generated from field: string agent = 2;
    */
   agent = "";
 
   /**
-   * @generated from field: string channel = 3;
-   */
-  channel = "";
-
-  /**
-   * @generated from field: string continuity = 4;
+   * Channel routing continuity policy. This is reserved for channel dispatch
+   * policies that create agent runtime context per message or thread.
+   *
+   * @generated from field: string continuity = 3;
    */
   continuity = "";
 
   /**
-   * @generated from field: string reply_policy = 5;
+   * Reply behavior requested from the connector-aware channel router, such as
+   * replying in the provider thread instead of the root conversation.
+   *
+   * @generated from field: string reply_policy = 4;
    */
   replyPolicy = "";
+
+  constructor(data?: PartialMessage<ConnectorChannelTarget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.ConnectorChannelTarget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "continuity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "reply_policy", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorChannelTarget {
+    return new ConnectorChannelTarget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectorChannelTarget {
+    return new ConnectorChannelTarget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectorChannelTarget {
+    return new ConnectorChannelTarget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ConnectorChannelTarget | PlainMessage<ConnectorChannelTarget> | undefined, b: ConnectorChannelTarget | PlainMessage<ConnectorChannelTarget> | undefined): boolean {
+    return proto3.util.equals(ConnectorChannelTarget, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.ConnectorTarget
+ */
+export class ConnectorTarget extends Message<ConnectorTarget> {
+  /**
+   * @generated from oneof talon.resources.ConnectorTarget.destination
+   */
+  destination: {
+    /**
+     * Deliver matching connector messages directly to a Talon Session.
+     *
+     * @generated from field: talon.resources.ConnectorSessionTarget session = 1;
+     */
+    value: ConnectorSessionTarget;
+    case: "session";
+  } | {
+    /**
+     * Persist matching connector messages into a Talon Channel, then route the
+     * message to the configured Agent.
+     *
+     * @generated from field: talon.resources.ConnectorChannelTarget channel = 2;
+     */
+    value: ConnectorChannelTarget;
+    case: "channel";
+  } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ConnectorTarget>) {
     super();
@@ -284,11 +422,8 @@ export class ConnectorTarget extends Message<ConnectorTarget> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.resources.ConnectorTarget";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "surface", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "continuity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "reply_policy", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "session", kind: "message", T: ConnectorSessionTarget, oneof: "destination" },
+    { no: 2, name: "channel", kind: "message", T: ConnectorChannelTarget, oneof: "destination" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorTarget {
@@ -313,21 +448,31 @@ export class ConnectorTarget extends Message<ConnectorTarget> {
  */
 export class ConnectorSpec extends Message<ConnectorSpec> {
   /**
+   * ConnectorClass that owns the platform adapter and match index definitions.
+   *
    * @generated from field: talon.resources.ResourceRef class_ref = 1;
    */
   classRef?: ResourceRef;
 
   /**
+   * Disabled Connectors are not indexed for incoming message routing.
+   *
    * @generated from field: bool enabled = 2;
    */
   enabled = false;
 
   /**
+   * Provider-specific route fields, such as Slack team/channel IDs or an
+   * iMessage profile identifier. Talon treats these as opaque keys described by
+   * the ConnectorClass match indexes.
+   *
    * @generated from field: map<string, string> match_fields = 3;
    */
   matchFields: { [key: string]: string } = {};
 
   /**
+   * Single Talon destination for messages that match this Connector.
+   *
    * @generated from field: talon.resources.ConnectorTarget target = 4;
    */
   target?: ConnectorTarget;
@@ -383,6 +528,9 @@ export class ConnectorStatus extends Message<ConnectorStatus> {
   conditions: ResourceCondition[] = [];
 
   /**
+   * Materialized KV routing keys generated from match_fields and the owning
+   * ConnectorClass match indexes.
+   *
    * @generated from field: repeated string compiled_match_keys = 4;
    */
   compiledMatchKeys: string[] = [];
@@ -546,6 +694,9 @@ export class ConnectorMatchEntry extends Message<ConnectorMatchEntry> {
   generation = protoInt64.zero;
 
   /**
+   * Snapshot of the Connector target stored in the route index so ingest can
+   * dispatch without re-reading the full Connector resource.
+   *
    * @generated from field: talon.resources.ConnectorTarget target = 6;
    */
   target?: ConnectorTarget;

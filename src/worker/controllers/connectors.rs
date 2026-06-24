@@ -413,21 +413,21 @@ fn connector_references_class(resource: &resources_proto::Resource, class_name: 
 
 fn validate_target(target: Option<&resources_proto::ConnectorTarget>) -> Result<()> {
     let target = target.ok_or_else(|| anyhow!("Connector spec.target is required"))?;
-    match target.surface.as_str() {
-        "session" => {
-            if target.agent.trim().is_empty() {
+    match target.destination.as_ref() {
+        Some(resources_proto::connector_target::Destination::Session(session)) => {
+            if session.agent.trim().is_empty() {
                 bail!("Connector session target requires agent");
             }
         }
-        "channel" => {
-            if target.channel.trim().is_empty() {
+        Some(resources_proto::connector_target::Destination::Channel(channel)) => {
+            if channel.channel.trim().is_empty() {
                 bail!("Connector channel target requires channel");
             }
-            if target.agent.trim().is_empty() {
+            if channel.agent.trim().is_empty() {
                 bail!("Connector channel target requires agent");
             }
         }
-        other => bail!("Connector target surface must be session or channel, got '{other}'"),
+        None => bail!("Connector target destination is required"),
     }
     Ok(())
 }

@@ -1048,33 +1048,46 @@ pub struct Worker {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorClassRuntimeSpec {
+    /// Runtime implementation type, for example an HTTP connector service.
     #[prost(string, tag = "1")]
     pub kind: ::prost::alloc::string::String,
+    /// Base URL for the connector service that implements the Talon connector
+    /// protocol for this class.
     #[prost(string, tag = "2")]
     pub endpoint: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorClassAuthSpec {
+    /// Authentication scheme Talon uses when calling the connector service.
     #[prost(string, tag = "1")]
     pub kind: ::prost::alloc::string::String,
+    /// API key or secret reference used to authenticate this Talon cluster to the
+    /// connector service.
     #[prost(message, optional, tag = "2")]
     pub api_key: ::core::option::Option<super::config::Secret>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorMatchIndex {
+    /// Connector-service-defined index name, stable within the ConnectorClass.
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
+    /// Match field names, in priority order, used to compile routing keys.
     #[prost(string, repeated, tag = "2")]
     pub fields: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorClassSpec {
+    /// External messaging platform implemented by this class, such as slack or
+    /// imessage.
     #[prost(string, tag = "1")]
     pub platform: ::prost::alloc::string::String,
+    /// How Talon reaches the connector service.
     #[prost(message, optional, tag = "2")]
     pub runtime: ::core::option::Option<ConnectorClassRuntimeSpec>,
+    /// How Talon authenticates requests to the connector service.
     #[prost(message, optional, tag = "3")]
     pub auth: ::core::option::Option<ConnectorClassAuthSpec>,
+    /// Provider-specific match indexes supported by this connector service.
     #[prost(message, repeated, tag = "4")]
     pub match_indexes: ::prost::alloc::vec::Vec<ConnectorMatchIndex>,
 }
@@ -1086,33 +1099,75 @@ pub struct ConnectorClassStatus {
     pub phase: ::prost::alloc::string::String,
     #[prost(message, repeated, tag = "3")]
     pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    /// Registration identifier assigned by the connector service. Incoming
+    /// connector webhooks include this value so Talon can route within the correct
+    /// ConnectorClass registration.
     #[prost(string, tag = "4")]
     pub registration_id: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ConnectorTarget {
+pub struct ConnectorSessionTarget {
+    /// Talon Agent name that receives matching connector messages.
     #[prost(string, tag = "1")]
-    pub surface: ::prost::alloc::string::String,
+    pub agent: ::prost::alloc::string::String,
+    /// Session continuity policy. "reuse" reuses the Connector's session pointer
+    /// for the external conversation/thread; any other value creates a new
+    /// Session for each message.
+    #[prost(string, tag = "2")]
+    pub continuity: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorChannelTarget {
+    /// Talon Channel name that receives matching connector messages.
+    #[prost(string, tag = "1")]
+    pub channel: ::prost::alloc::string::String,
+    /// Talon Agent name to route the channel message to after it is persisted.
     #[prost(string, tag = "2")]
     pub agent: ::prost::alloc::string::String,
+    /// Channel routing continuity policy. This is reserved for channel dispatch
+    /// policies that create agent runtime context per message or thread.
     #[prost(string, tag = "3")]
-    pub channel: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
     pub continuity: ::prost::alloc::string::String,
-    #[prost(string, tag = "5")]
+    /// Reply behavior requested from the connector-aware channel router, such as
+    /// replying in the provider thread instead of the root conversation.
+    #[prost(string, tag = "4")]
     pub reply_policy: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorTarget {
+    #[prost(oneof = "connector_target::Destination", tags = "1, 2")]
+    pub destination: ::core::option::Option<connector_target::Destination>,
+}
+/// Nested message and enum types in `ConnectorTarget`.
+pub mod connector_target {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Destination {
+        /// Deliver matching connector messages directly to a Talon Session.
+        #[prost(message, tag = "1")]
+        Session(super::ConnectorSessionTarget),
+        /// Persist matching connector messages into a Talon Channel, then route the
+        /// message to the configured Agent.
+        #[prost(message, tag = "2")]
+        Channel(super::ConnectorChannelTarget),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorSpec {
+    /// ConnectorClass that owns the platform adapter and match index definitions.
     #[prost(message, optional, tag = "1")]
     pub class_ref: ::core::option::Option<ResourceRef>,
+    /// Disabled Connectors are not indexed for incoming message routing.
     #[prost(bool, tag = "2")]
     pub enabled: bool,
+    /// Provider-specific route fields, such as Slack team/channel IDs or an
+    /// iMessage profile identifier. Talon treats these as opaque keys described by
+    /// the ConnectorClass match indexes.
     #[prost(map = "string, string", tag = "3")]
     pub match_fields: ::std::collections::HashMap<
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+    /// Single Talon destination for messages that match this Connector.
     #[prost(message, optional, tag = "4")]
     pub target: ::core::option::Option<ConnectorTarget>,
 }
@@ -1124,6 +1179,8 @@ pub struct ConnectorStatus {
     pub phase: ::prost::alloc::string::String,
     #[prost(message, repeated, tag = "3")]
     pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    /// Materialized KV routing keys generated from match_fields and the owning
+    /// ConnectorClass match indexes.
     #[prost(string, repeated, tag = "4")]
     pub compiled_match_keys: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
@@ -1157,6 +1214,8 @@ pub struct ConnectorMatchEntry {
     pub class_name: ::prost::alloc::string::String,
     #[prost(uint64, tag = "5")]
     pub generation: u64,
+    /// Snapshot of the Connector target stored in the route index so ingest can
+    /// dispatch without re-reading the full Connector resource.
     #[prost(message, optional, tag = "6")]
     pub target: ::core::option::Option<ConnectorTarget>,
 }
