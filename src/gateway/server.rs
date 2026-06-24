@@ -68,6 +68,20 @@ impl Gateway {
         }
     }
 
+    pub fn from_control_plane(
+        auth_config: Option<AuthConfig>,
+        control_plane: ControlPlane,
+    ) -> Self {
+        Self::new(
+            auth_config,
+            control_plane.kv,
+            control_plane.pubsub,
+            control_plane.scheduler,
+            control_plane.objects,
+            control_plane.documents,
+        )
+    }
+
     pub(crate) fn clone_internal(&self) -> Self {
         Self {
             auth_config: self.auth_config.clone(),

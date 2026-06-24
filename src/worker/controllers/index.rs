@@ -119,13 +119,11 @@ mod tests {
         kv: Arc<MockKvStore>,
         documents: Arc<dyn DocumentStore + Send + Sync>,
     ) -> Arc<ControlPlane> {
-        Arc::new(ControlPlane {
-            kv,
-            pubsub: Arc::new(EmptyPubSub),
-            scheduler: Arc::new(crate::control::scheduler::NoopSchedulerBackend),
-            objects: crate::control::object_store::default_object_store(),
-            documents,
-        })
+        Arc::new(
+            ControlPlane::builder(kv, Arc::new(EmptyPubSub))
+                .documents(documents)
+                .build(),
+        )
     }
 
     #[tokio::test]

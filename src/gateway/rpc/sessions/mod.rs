@@ -1362,7 +1362,7 @@ fn map_session_submit_error(err: anyhow::Error) -> tonic::Status {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::scheduler::NoopSchedulerBackend;
+    use crate::control::ControlPlane;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::gateway::rpc::resources_proto;
     use crate::gateway::Gateway;
@@ -1370,15 +1370,9 @@ mod tests {
     use std::sync::Arc;
 
     fn handler(kv: Arc<MockKvStore>, pubsub: Arc<RecordingPubSub>) -> GrpcGatewayHandler {
+        let control_plane = ControlPlane::builder(kv, pubsub).build();
         GrpcGatewayHandler {
-            gateway: Arc::new(Gateway::new(
-                None,
-                kv,
-                pubsub,
-                Arc::new(NoopSchedulerBackend),
-                crate::control::object_store::default_object_store(),
-                crate::control::search::ephemeral_document_store(),
-            )),
+            gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
         }
     }
 

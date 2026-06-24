@@ -588,7 +588,6 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::scheduler::NoopSchedulerBackend;
     use crate::gateway::server::Gateway;
     use crate::test_support::{EmptyPubSub, MockKvStore};
     use axum::{
@@ -605,14 +604,12 @@ mod tests {
     use tower::ServiceExt;
 
     fn gateway_with_auth(auth_config: Option<AuthConfig>) -> Arc<Gateway> {
-        Arc::new(Gateway::new(
-            auth_config,
+        let control_plane = crate::control::ControlPlane::builder(
             Arc::new(MockKvStore::default()),
             Arc::new(EmptyPubSub),
-            Arc::new(NoopSchedulerBackend),
-            crate::control::object_store::default_object_store(),
-            crate::control::search::ephemeral_document_store(),
-        ))
+        )
+        .build();
+        Arc::new(Gateway::from_control_plane(auth_config, control_plane))
     }
 
     #[test]

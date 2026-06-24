@@ -308,7 +308,7 @@ mod tests {
     use crate::control::keys::{self, ResourceKey, ResourceList};
     use crate::control::KeyValueStore;
     use crate::gateway::rpc::{proto, GrpcGatewayHandler};
-    use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
+    use crate::gateway::server::Gateway;
     use async_trait::async_trait;
     use futures::stream;
     use std::collections::HashMap;
@@ -387,7 +387,11 @@ mod tests {
     }
 
     fn handler(kv: Arc<MockKvStore>) -> GrpcGatewayHandler {
-        handler_with_documents(kv, crate::control::search::ephemeral_document_store())
+        let pubsub = Arc::new(MockPubSub);
+        let control_plane = crate::control::ControlPlane::builder(kv, pubsub).build();
+        GrpcGatewayHandler {
+            gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
+        }
     }
 
     fn handler_with_documents(
@@ -395,17 +399,11 @@ mod tests {
         documents: Arc<dyn crate::control::search::DocumentStore + Send + Sync>,
     ) -> GrpcGatewayHandler {
         let pubsub = Arc::new(MockPubSub);
+        let control_plane = crate::control::ControlPlane::builder(kv, pubsub)
+            .documents(documents)
+            .build();
         GrpcGatewayHandler {
-            gateway: Arc::new(Gateway {
-                auth_config: None,
-                trust_config: None,
-                kv,
-                pubsub: pubsub.clone(),
-                scheduler: Arc::new(crate::control::scheduler::NoopSchedulerBackend),
-                objects: crate::control::object_store::default_object_store(),
-                documents,
-                session_streams: Arc::new(SessionStreamHub::new(pubsub)),
-            }),
+            gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
         }
     }
 
