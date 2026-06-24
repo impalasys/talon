@@ -26,8 +26,18 @@ const (
 // ConnectorServiceClient is the client API for ConnectorService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// ConnectorService is implemented by Talon's gateway for callbacks from an
+// external connector service. The connector service owns provider-specific
+// webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+// Channels after a normalized event is accepted here.
 type ConnectorServiceClient interface {
+	// IngestMessageEvent delivers one normalized provider message event to Talon.
+	// Talon deduplicates by registration_id + event_id, resolves a Connector by
+	// match_fields, and dispatches the message to the resolved Connector target.
 	IngestMessageEvent(ctx context.Context, in *ConnectorMessageEvent, opts ...grpc.CallOption) (*ConnectorMessageEventResponse, error)
+	// ReportStatus lets the connector service report registration or provider
+	// connection health without sending a message event.
 	ReportStatus(ctx context.Context, in *ConnectorStatusEvent, opts ...grpc.CallOption) (*ConnectorAckResponse, error)
 }
 
@@ -62,8 +72,18 @@ func (c *connectorServiceClient) ReportStatus(ctx context.Context, in *Connector
 // ConnectorServiceServer is the server API for ConnectorService service.
 // All implementations must embed UnimplementedConnectorServiceServer
 // for forward compatibility.
+//
+// ConnectorService is implemented by Talon's gateway for callbacks from an
+// external connector service. The connector service owns provider-specific
+// webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+// Channels after a normalized event is accepted here.
 type ConnectorServiceServer interface {
+	// IngestMessageEvent delivers one normalized provider message event to Talon.
+	// Talon deduplicates by registration_id + event_id, resolves a Connector by
+	// match_fields, and dispatches the message to the resolved Connector target.
 	IngestMessageEvent(context.Context, *ConnectorMessageEvent) (*ConnectorMessageEventResponse, error)
+	// ReportStatus lets the connector service report registration or provider
+	// connection health without sending a message event.
 	ReportStatus(context.Context, *ConnectorStatusEvent) (*ConnectorAckResponse, error)
 	mustEmbedUnimplementedConnectorServiceServer()
 }

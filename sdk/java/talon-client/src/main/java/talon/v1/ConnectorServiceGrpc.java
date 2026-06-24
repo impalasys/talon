@@ -3,6 +3,12 @@ package talon.v1;
 import static io.grpc.MethodDescriptor.generateFullMethodName;
 
 /**
+ * <pre>
+ * ConnectorService is implemented by Talon's gateway for callbacks from an
+ * external connector service. The connector service owns provider-specific
+ * webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+ * Channels after a normalized event is accepted here.
+ * </pre>
  */
 @io.grpc.stub.annotations.GrpcGenerated
 public final class ConnectorServiceGrpc {
@@ -134,10 +140,21 @@ public final class ConnectorServiceGrpc {
   }
 
   /**
+   * <pre>
+   * ConnectorService is implemented by Talon's gateway for callbacks from an
+   * external connector service. The connector service owns provider-specific
+   * webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+   * Channels after a normalized event is accepted here.
+   * </pre>
    */
   public interface AsyncService {
 
     /**
+     * <pre>
+     * IngestMessageEvent delivers one normalized provider message event to Talon.
+     * Talon deduplicates by registration_id + event_id, resolves a Connector by
+     * match_fields, and dispatches the message to the resolved Connector target.
+     * </pre>
      */
     default void ingestMessageEvent(talon.v1.Connectors.ConnectorMessageEvent request,
         io.grpc.stub.StreamObserver<talon.v1.Connectors.ConnectorMessageEventResponse> responseObserver) {
@@ -145,6 +162,10 @@ public final class ConnectorServiceGrpc {
     }
 
     /**
+     * <pre>
+     * ReportStatus lets the connector service report registration or provider
+     * connection health without sending a message event.
+     * </pre>
      */
     default void reportStatus(talon.v1.Connectors.ConnectorStatusEvent request,
         io.grpc.stub.StreamObserver<talon.v1.Connectors.ConnectorAckResponse> responseObserver) {
@@ -154,6 +175,12 @@ public final class ConnectorServiceGrpc {
 
   /**
    * Base class for the server implementation of the service ConnectorService.
+   * <pre>
+   * ConnectorService is implemented by Talon's gateway for callbacks from an
+   * external connector service. The connector service owns provider-specific
+   * webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+   * Channels after a normalized event is accepted here.
+   * </pre>
    */
   public static abstract class ConnectorServiceImplBase
       implements io.grpc.BindableService, AsyncService {
@@ -165,6 +192,12 @@ public final class ConnectorServiceGrpc {
 
   /**
    * A stub to allow clients to do asynchronous rpc calls to service ConnectorService.
+   * <pre>
+   * ConnectorService is implemented by Talon's gateway for callbacks from an
+   * external connector service. The connector service owns provider-specific
+   * webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+   * Channels after a normalized event is accepted here.
+   * </pre>
    */
   public static final class ConnectorServiceStub
       extends io.grpc.stub.AbstractAsyncStub<ConnectorServiceStub> {
@@ -180,6 +213,11 @@ public final class ConnectorServiceGrpc {
     }
 
     /**
+     * <pre>
+     * IngestMessageEvent delivers one normalized provider message event to Talon.
+     * Talon deduplicates by registration_id + event_id, resolves a Connector by
+     * match_fields, and dispatches the message to the resolved Connector target.
+     * </pre>
      */
     public void ingestMessageEvent(talon.v1.Connectors.ConnectorMessageEvent request,
         io.grpc.stub.StreamObserver<talon.v1.Connectors.ConnectorMessageEventResponse> responseObserver) {
@@ -188,6 +226,10 @@ public final class ConnectorServiceGrpc {
     }
 
     /**
+     * <pre>
+     * ReportStatus lets the connector service report registration or provider
+     * connection health without sending a message event.
+     * </pre>
      */
     public void reportStatus(talon.v1.Connectors.ConnectorStatusEvent request,
         io.grpc.stub.StreamObserver<talon.v1.Connectors.ConnectorAckResponse> responseObserver) {
@@ -198,6 +240,12 @@ public final class ConnectorServiceGrpc {
 
   /**
    * A stub to allow clients to do synchronous rpc calls to service ConnectorService.
+   * <pre>
+   * ConnectorService is implemented by Talon's gateway for callbacks from an
+   * external connector service. The connector service owns provider-specific
+   * webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+   * Channels after a normalized event is accepted here.
+   * </pre>
    */
   public static final class ConnectorServiceBlockingV2Stub
       extends io.grpc.stub.AbstractBlockingStub<ConnectorServiceBlockingV2Stub> {
@@ -213,6 +261,11 @@ public final class ConnectorServiceGrpc {
     }
 
     /**
+     * <pre>
+     * IngestMessageEvent delivers one normalized provider message event to Talon.
+     * Talon deduplicates by registration_id + event_id, resolves a Connector by
+     * match_fields, and dispatches the message to the resolved Connector target.
+     * </pre>
      */
     public talon.v1.Connectors.ConnectorMessageEventResponse ingestMessageEvent(talon.v1.Connectors.ConnectorMessageEvent request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
@@ -220,6 +273,10 @@ public final class ConnectorServiceGrpc {
     }
 
     /**
+     * <pre>
+     * ReportStatus lets the connector service report registration or provider
+     * connection health without sending a message event.
+     * </pre>
      */
     public talon.v1.Connectors.ConnectorAckResponse reportStatus(talon.v1.Connectors.ConnectorStatusEvent request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
@@ -229,6 +286,12 @@ public final class ConnectorServiceGrpc {
 
   /**
    * A stub to allow clients to do limited synchronous rpc calls to service ConnectorService.
+   * <pre>
+   * ConnectorService is implemented by Talon's gateway for callbacks from an
+   * external connector service. The connector service owns provider-specific
+   * webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+   * Channels after a normalized event is accepted here.
+   * </pre>
    */
   public static final class ConnectorServiceBlockingStub
       extends io.grpc.stub.AbstractBlockingStub<ConnectorServiceBlockingStub> {
@@ -244,6 +307,11 @@ public final class ConnectorServiceGrpc {
     }
 
     /**
+     * <pre>
+     * IngestMessageEvent delivers one normalized provider message event to Talon.
+     * Talon deduplicates by registration_id + event_id, resolves a Connector by
+     * match_fields, and dispatches the message to the resolved Connector target.
+     * </pre>
      */
     public talon.v1.Connectors.ConnectorMessageEventResponse ingestMessageEvent(talon.v1.Connectors.ConnectorMessageEvent request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
@@ -251,6 +319,10 @@ public final class ConnectorServiceGrpc {
     }
 
     /**
+     * <pre>
+     * ReportStatus lets the connector service report registration or provider
+     * connection health without sending a message event.
+     * </pre>
      */
     public talon.v1.Connectors.ConnectorAckResponse reportStatus(talon.v1.Connectors.ConnectorStatusEvent request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
@@ -260,6 +332,12 @@ public final class ConnectorServiceGrpc {
 
   /**
    * A stub to allow clients to do ListenableFuture-style rpc calls to service ConnectorService.
+   * <pre>
+   * ConnectorService is implemented by Talon's gateway for callbacks from an
+   * external connector service. The connector service owns provider-specific
+   * webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+   * Channels after a normalized event is accepted here.
+   * </pre>
    */
   public static final class ConnectorServiceFutureStub
       extends io.grpc.stub.AbstractFutureStub<ConnectorServiceFutureStub> {
@@ -275,6 +353,11 @@ public final class ConnectorServiceGrpc {
     }
 
     /**
+     * <pre>
+     * IngestMessageEvent delivers one normalized provider message event to Talon.
+     * Talon deduplicates by registration_id + event_id, resolves a Connector by
+     * match_fields, and dispatches the message to the resolved Connector target.
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<talon.v1.Connectors.ConnectorMessageEventResponse> ingestMessageEvent(
         talon.v1.Connectors.ConnectorMessageEvent request) {
@@ -283,6 +366,10 @@ public final class ConnectorServiceGrpc {
     }
 
     /**
+     * <pre>
+     * ReportStatus lets the connector service report registration or provider
+     * connection health without sending a message event.
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<talon.v1.Connectors.ConnectorAckResponse> reportStatus(
         talon.v1.Connectors.ConnectorStatusEvent request) {

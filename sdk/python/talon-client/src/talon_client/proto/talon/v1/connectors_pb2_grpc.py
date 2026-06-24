@@ -26,7 +26,11 @@ if _version_not_supported:
 
 
 class ConnectorServiceStub(object):
-    """Missing associated documentation comment in .proto file."""
+    """ConnectorService is implemented by Talon's gateway for callbacks from an
+    external connector service. The connector service owns provider-specific
+    webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+    Channels after a normalized event is accepted here.
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -47,16 +51,25 @@ class ConnectorServiceStub(object):
 
 
 class ConnectorServiceServicer(object):
-    """Missing associated documentation comment in .proto file."""
+    """ConnectorService is implemented by Talon's gateway for callbacks from an
+    external connector service. The connector service owns provider-specific
+    webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+    Channels after a normalized event is accepted here.
+    """
 
     def IngestMessageEvent(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """IngestMessageEvent delivers one normalized provider message event to Talon.
+        Talon deduplicates by registration_id + event_id, resolves a Connector by
+        match_fields, and dispatches the message to the resolved Connector target.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def ReportStatus(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """ReportStatus lets the connector service report registration or provider
+        connection health without sending a message event.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -83,7 +96,11 @@ def add_ConnectorServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class ConnectorService(object):
-    """Missing associated documentation comment in .proto file."""
+    """ConnectorService is implemented by Talon's gateway for callbacks from an
+    external connector service. The connector service owns provider-specific
+    webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+    Channels after a normalized event is accepted here.
+    """
 
     @staticmethod
     def IngestMessageEvent(request,

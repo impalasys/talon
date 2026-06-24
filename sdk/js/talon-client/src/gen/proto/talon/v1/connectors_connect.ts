@@ -7,12 +7,21 @@ import { ConnectorAckResponse, ConnectorMessageEvent, ConnectorMessageEventRespo
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
+ * ConnectorService is implemented by Talon's gateway for callbacks from an
+ * external connector service. The connector service owns provider-specific
+ * webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+ * Channels after a normalized event is accepted here.
+ *
  * @generated from service talon.v1.ConnectorService
  */
 export const ConnectorService = {
   typeName: "talon.v1.ConnectorService",
   methods: {
     /**
+     * IngestMessageEvent delivers one normalized provider message event to Talon.
+     * Talon deduplicates by registration_id + event_id, resolves a Connector by
+     * match_fields, and dispatches the message to the resolved Connector target.
+     *
      * @generated from rpc talon.v1.ConnectorService.IngestMessageEvent
      */
     ingestMessageEvent: {
@@ -22,6 +31,9 @@ export const ConnectorService = {
       kind: MethodKind.Unary,
     },
     /**
+     * ReportStatus lets the connector service report registration or provider
+     * connection health without sending a message event.
+     *
      * @generated from rpc talon.v1.ConnectorService.ReportStatus
      */
     reportStatus: {

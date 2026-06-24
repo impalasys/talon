@@ -12,21 +12,30 @@ import { ConnectorTarget } from "../../resources/connectors_pb.js";
  */
 export class ConnectorActor extends Message<ConnectorActor> {
   /**
+   * Provider-native user/account identifier, such as a Slack user ID.
+   *
    * @generated from field: string external_user_id = 1;
    */
   externalUserId = "";
 
   /**
+   * Human-addressable provider identity when available, such as an email,
+   * phone number, or iMessage handle.
+   *
    * @generated from field: string external_address = 2;
    */
   externalAddress = "";
 
   /**
+   * Display name captured from the provider at event time.
+   *
    * @generated from field: string display_name = 3;
    */
   displayName = "";
 
   /**
+   * Normalized actor kind, such as user, bot, app, or system.
+   *
    * @generated from field: string kind = 4;
    */
   kind = "";
@@ -67,41 +76,60 @@ export class ConnectorActor extends Message<ConnectorActor> {
  */
 export class ConnectorAttachment extends Message<ConnectorAttachment> {
   /**
+   * Connector-service or provider attachment identifier used for correlation.
+   *
    * @generated from field: string id = 1;
    */
   id = "";
 
   /**
+   * Normalized attachment kind, such as file, image, audio, or video.
+   *
    * @generated from field: string kind = 2;
    */
   kind = "";
 
   /**
+   * MIME media type when known.
+   *
    * @generated from field: string media_type = 3;
    */
   mediaType = "";
 
   /**
+   * Original provider filename when available.
+   *
    * @generated from field: string filename = 4;
    */
   filename = "";
 
   /**
+   * Attachment size in bytes when known.
+   *
    * @generated from field: uint64 size_bytes = 5;
    */
   sizeBytes = protoInt64.zero;
 
   /**
+   * Talon object-store key when the connector service has uploaded the
+   * attachment into Talon-managed storage.
+   *
    * @generated from field: string object_key = 6;
    */
   objectKey = "";
 
   /**
+   * Provider or connector-service URL for lazy retrieval when object_key is not
+   * populated.
+   *
    * @generated from field: string external_url = 7;
    */
   externalUrl = "";
 
   /**
+   * Unix timestamp in milliseconds when external_url expires. Zero means the
+   * connector service did not provide an expiration.
+   *
    * @generated from field: int64 expires_at = 8;
    */
   expiresAt = protoInt64.zero;
@@ -146,71 +174,109 @@ export class ConnectorAttachment extends Message<ConnectorAttachment> {
  */
 export class ConnectorMessageEvent extends Message<ConnectorMessageEvent> {
   /**
+   * Connector-service idempotency key for this normalized event.
+   *
    * @generated from field: string event_id = 1;
    */
   eventId = "";
 
   /**
+   * Normalized event kind, such as message_created, message_updated, or
+   * message_deleted. V1 dispatch primarily handles message_created.
+   *
    * @generated from field: string event_kind = 2;
    */
   eventKind = "";
 
   /**
+   * Registration identifier assigned to the ConnectorClass by the connector
+   * service. This scopes webhook delivery to one Talon cluster registration.
+   *
    * @generated from field: string registration_id = 3;
    */
   registrationId = "";
 
   /**
+   * ConnectorClass name expected by the connector service. Talon uses this as a
+   * defensive consistency check when resolving the registration.
+   *
    * @generated from field: string connector_class = 4;
    */
   connectorClass = "";
 
   /**
+   * Provider-specific routing keys normalized by the connector service. Talon
+   * treats these as opaque values and matches them against Connector resources.
+   *
    * @generated from field: map<string, string> match_fields = 5;
    */
   matchFields: { [key: string]: string } = {};
 
   /**
+   * Stable provider conversation identifier, such as a Slack channel/DM ID or
+   * iMessage chat GUID.
+   *
    * @generated from field: string external_conversation_id = 6;
    */
   externalConversationId = "";
 
   /**
+   * Stable provider thread identifier when the platform has threads. Omitted
+   * for platforms or conversations without a thread concept.
+   *
    * @generated from field: optional string external_thread_id = 7;
    */
   externalThreadId?: string;
 
   /**
+   * Provider-native message identifier for delivery correlation, replies,
+   * edits, deletes, and deduplication diagnostics.
+   *
    * @generated from field: string external_message_id = 8;
    */
   externalMessageId = "";
 
   /**
+   * Normalized conversation shape, such as dm, group, channel, or
+   * channel_thread.
+   *
    * @generated from field: string conversation_type = 9;
    */
   conversationType = "";
 
   /**
+   * Normalized sender identity.
+   *
    * @generated from field: talon.v1.ConnectorActor sender = 10;
    */
   sender?: ConnectorActor;
 
   /**
+   * Plain text projection of the provider message.
+   *
    * @generated from field: string text = 11;
    */
   text = "";
 
   /**
+   * Normalized attachments associated with the provider message.
+   *
    * @generated from field: repeated talon.v1.ConnectorAttachment attachments = 12;
    */
   attachments: ConnectorAttachment[] = [];
 
   /**
+   * Provider event timestamp in Unix milliseconds. Connector services should
+   * preserve provider time when available.
+   *
    * @generated from field: int64 event_time_ms = 13;
    */
   eventTimeMs = protoInt64.zero;
 
   /**
+   * Connector-service-defined labels for diagnostics or provider-specific
+   * routing hints that do not justify a first-class protocol field.
+   *
    * @generated from field: map<string, string> labels = 14;
    */
   labels: { [key: string]: string } = {};
@@ -261,31 +327,47 @@ export class ConnectorMessageEvent extends Message<ConnectorMessageEvent> {
  */
 export class ConnectorMessageEventResponse extends Message<ConnectorMessageEventResponse> {
   /**
+   * True when Talon accepted responsibility for the event, including duplicate
+   * events that were already handled.
+   *
    * @generated from field: bool accepted = 1;
    */
   accepted = false;
 
   /**
+   * True when Talon had already seen registration_id + event_id.
+   *
    * @generated from field: bool duplicate = 2;
    */
   duplicate = false;
 
   /**
+   * Machine-readable outcome, such as dispatched, duplicate, or unmatched.
+   *
    * @generated from field: string disposition = 3;
    */
   disposition = "";
 
   /**
+   * Namespace of the Connector that matched the event. Empty when unmatched or
+   * duplicate without a fresh route lookup.
+   *
    * @generated from field: string namespace = 4;
    */
   namespace = "";
 
   /**
+   * Name of the Connector that matched the event. Empty when unmatched or
+   * duplicate without a fresh route lookup.
+   *
    * @generated from field: string connector_name = 5;
    */
   connectorName = "";
 
   /**
+   * Target snapshot used for dispatch. Returned for observability so connector
+   * services can log which Talon destination accepted the event.
+   *
    * @generated from field: talon.resources.ConnectorTarget target = 6;
    */
   target?: ConnectorTarget;
@@ -328,61 +410,86 @@ export class ConnectorMessageEventResponse extends Message<ConnectorMessageEvent
  */
 export class ConnectorDeliveryRequest extends Message<ConnectorDeliveryRequest> {
   /**
+   * Talon-generated idempotency key for this outbound delivery request.
+   *
    * @generated from field: string delivery_id = 1;
    */
   deliveryId = "";
 
   /**
+   * Registration identifier for the connector service that should perform
+   * provider delivery.
+   *
    * @generated from field: string registration_id = 2;
    */
   registrationId = "";
 
   /**
+   * ConnectorClass name associated with the outbound route.
+   *
    * @generated from field: string connector_class = 3;
    */
   connectorClass = "";
 
   /**
+   * Talon namespace that produced the outbound message.
+   *
    * @generated from field: string namespace = 4;
    */
   namespace = "";
 
   /**
+   * Connector resource name that provides provider routing context.
+   *
    * @generated from field: string connector_name = 5;
    */
   connectorName = "";
 
   /**
+   * Provider-specific route fields copied from the matched Connector/event.
+   *
    * @generated from field: map<string, string> match_fields = 6;
    */
   matchFields: { [key: string]: string } = {};
 
   /**
+   * Provider conversation identifier to deliver into.
+   *
    * @generated from field: string external_conversation_id = 7;
    */
   externalConversationId = "";
 
   /**
+   * Provider thread identifier to deliver into when replying in a thread.
+   *
    * @generated from field: optional string external_thread_id = 8;
    */
   externalThreadId?: string;
 
   /**
+   * Provider message identifier this delivery should reply to, when applicable.
+   *
    * @generated from field: optional string reply_to_external_message_id = 9;
    */
   replyToExternalMessageId?: string;
 
   /**
+   * Plain text body produced by Talon.
+   *
    * @generated from field: string text = 10;
    */
   text = "";
 
   /**
+   * Attachments Talon wants the connector service to deliver to the provider.
+   *
    * @generated from field: repeated talon.v1.ConnectorAttachment attachments = 11;
    */
   attachments: ConnectorAttachment[] = [];
 
   /**
+   * Talon-defined delivery labels for diagnostics and provider-specific hints.
+   *
    * @generated from field: map<string, string> labels = 12;
    */
   labels: { [key: string]: string } = {};
@@ -431,16 +538,24 @@ export class ConnectorDeliveryRequest extends Message<ConnectorDeliveryRequest> 
  */
 export class ConnectorDeliveryResponse extends Message<ConnectorDeliveryResponse> {
   /**
+   * True when the connector service has accepted responsibility for provider
+   * delivery. After this point, provider retries/rate limits are connector
+   * service responsibilities.
+   *
    * @generated from field: bool accepted = 1;
    */
   accepted = false;
 
   /**
+   * Machine-readable handoff outcome, such as accepted, duplicate, or rejected.
+   *
    * @generated from field: string disposition = 2;
    */
   disposition = "";
 
   /**
+   * Diagnostic error string when accepted is false.
+   *
    * @generated from field: string error = 3;
    */
   error = "";
@@ -480,21 +595,31 @@ export class ConnectorDeliveryResponse extends Message<ConnectorDeliveryResponse
  */
 export class ConnectorStatusEvent extends Message<ConnectorStatusEvent> {
   /**
+   * Registration identifier whose health is being reported.
+   *
    * @generated from field: string registration_id = 1;
    */
   registrationId = "";
 
   /**
+   * Optional provider-specific route fields identifying the affected Connector
+   * or provider account.
+   *
    * @generated from field: map<string, string> match_fields = 2;
    */
   matchFields: { [key: string]: string } = {};
 
   /**
+   * Connector-service-reported health, such as connected, degraded, disabled,
+   * or revoked.
+   *
    * @generated from field: string status = 3;
    */
   status = "";
 
   /**
+   * Machine-readable diagnostic reason, such as provider_token_revoked.
+   *
    * @generated from field: string reason = 4;
    */
   reason = "";
@@ -535,11 +660,15 @@ export class ConnectorStatusEvent extends Message<ConnectorStatusEvent> {
  */
 export class ConnectorAckResponse extends Message<ConnectorAckResponse> {
   /**
+   * True when Talon accepted the status/report request.
+   *
    * @generated from field: bool accepted = 1;
    */
   accepted = false;
 
   /**
+   * Machine-readable acknowledgement outcome.
+   *
    * @generated from field: string disposition = 2;
    */
   disposition = "";

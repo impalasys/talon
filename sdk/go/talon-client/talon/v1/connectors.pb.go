@@ -23,13 +23,18 @@ const (
 )
 
 type ConnectorActor struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	ExternalUserId  string                 `protobuf:"bytes,1,opt,name=external_user_id,json=externalUserId,proto3" json:"external_user_id,omitempty"`
-	ExternalAddress string                 `protobuf:"bytes,2,opt,name=external_address,json=externalAddress,proto3" json:"external_address,omitempty"`
-	DisplayName     string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	Kind            string                 `protobuf:"bytes,4,opt,name=kind,proto3" json:"kind,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Provider-native user/account identifier, such as a Slack user ID.
+	ExternalUserId string `protobuf:"bytes,1,opt,name=external_user_id,json=externalUserId,proto3" json:"external_user_id,omitempty"`
+	// Human-addressable provider identity when available, such as an email,
+	// phone number, or iMessage handle.
+	ExternalAddress string `protobuf:"bytes,2,opt,name=external_address,json=externalAddress,proto3" json:"external_address,omitempty"`
+	// Display name captured from the provider at event time.
+	DisplayName string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// Normalized actor kind, such as user, bot, app, or system.
+	Kind          string `protobuf:"bytes,4,opt,name=kind,proto3" json:"kind,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ConnectorActor) Reset() {
@@ -91,15 +96,26 @@ func (x *ConnectorActor) GetKind() string {
 }
 
 type ConnectorAttachment struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
-	MediaType     string                 `protobuf:"bytes,3,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
-	Filename      string                 `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`
-	SizeBytes     uint64                 `protobuf:"varint,5,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
-	ObjectKey     string                 `protobuf:"bytes,6,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
-	ExternalUrl   string                 `protobuf:"bytes,7,opt,name=external_url,json=externalUrl,proto3" json:"external_url,omitempty"`
-	ExpiresAt     int64                  `protobuf:"varint,8,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Connector-service or provider attachment identifier used for correlation.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Normalized attachment kind, such as file, image, audio, or video.
+	Kind string `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
+	// MIME media type when known.
+	MediaType string `protobuf:"bytes,3,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
+	// Original provider filename when available.
+	Filename string `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`
+	// Attachment size in bytes when known.
+	SizeBytes uint64 `protobuf:"varint,5,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
+	// Talon object-store key when the connector service has uploaded the
+	// attachment into Talon-managed storage.
+	ObjectKey string `protobuf:"bytes,6,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
+	// Provider or connector-service URL for lazy retrieval when object_key is not
+	// populated.
+	ExternalUrl string `protobuf:"bytes,7,opt,name=external_url,json=externalUrl,proto3" json:"external_url,omitempty"`
+	// Unix timestamp in milliseconds when external_url expires. Zero means the
+	// connector service did not provide an expiration.
+	ExpiresAt     int64 `protobuf:"varint,8,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -191,23 +207,47 @@ func (x *ConnectorAttachment) GetExpiresAt() int64 {
 }
 
 type ConnectorMessageEvent struct {
-	state                  protoimpl.MessageState `protogen:"open.v1"`
-	EventId                string                 `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
-	EventKind              string                 `protobuf:"bytes,2,opt,name=event_kind,json=eventKind,proto3" json:"event_kind,omitempty"`
-	RegistrationId         string                 `protobuf:"bytes,3,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
-	ConnectorClass         string                 `protobuf:"bytes,4,opt,name=connector_class,json=connectorClass,proto3" json:"connector_class,omitempty"`
-	MatchFields            map[string]string      `protobuf:"bytes,5,rep,name=match_fields,json=matchFields,proto3" json:"match_fields,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	ExternalConversationId string                 `protobuf:"bytes,6,opt,name=external_conversation_id,json=externalConversationId,proto3" json:"external_conversation_id,omitempty"`
-	ExternalThreadId       *string                `protobuf:"bytes,7,opt,name=external_thread_id,json=externalThreadId,proto3,oneof" json:"external_thread_id,omitempty"`
-	ExternalMessageId      string                 `protobuf:"bytes,8,opt,name=external_message_id,json=externalMessageId,proto3" json:"external_message_id,omitempty"`
-	ConversationType       string                 `protobuf:"bytes,9,opt,name=conversation_type,json=conversationType,proto3" json:"conversation_type,omitempty"`
-	Sender                 *ConnectorActor        `protobuf:"bytes,10,opt,name=sender,proto3" json:"sender,omitempty"`
-	Text                   string                 `protobuf:"bytes,11,opt,name=text,proto3" json:"text,omitempty"`
-	Attachments            []*ConnectorAttachment `protobuf:"bytes,12,rep,name=attachments,proto3" json:"attachments,omitempty"`
-	EventTimeMs            int64                  `protobuf:"varint,13,opt,name=event_time_ms,json=eventTimeMs,proto3" json:"event_time_ms,omitempty"`
-	Labels                 map[string]string      `protobuf:"bytes,14,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Connector-service idempotency key for this normalized event.
+	EventId string `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
+	// Normalized event kind, such as message_created, message_updated, or
+	// message_deleted. V1 dispatch primarily handles message_created.
+	EventKind string `protobuf:"bytes,2,opt,name=event_kind,json=eventKind,proto3" json:"event_kind,omitempty"`
+	// Registration identifier assigned to the ConnectorClass by the connector
+	// service. This scopes webhook delivery to one Talon cluster registration.
+	RegistrationId string `protobuf:"bytes,3,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
+	// ConnectorClass name expected by the connector service. Talon uses this as a
+	// defensive consistency check when resolving the registration.
+	ConnectorClass string `protobuf:"bytes,4,opt,name=connector_class,json=connectorClass,proto3" json:"connector_class,omitempty"`
+	// Provider-specific routing keys normalized by the connector service. Talon
+	// treats these as opaque values and matches them against Connector resources.
+	MatchFields map[string]string `protobuf:"bytes,5,rep,name=match_fields,json=matchFields,proto3" json:"match_fields,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Stable provider conversation identifier, such as a Slack channel/DM ID or
+	// iMessage chat GUID.
+	ExternalConversationId string `protobuf:"bytes,6,opt,name=external_conversation_id,json=externalConversationId,proto3" json:"external_conversation_id,omitempty"`
+	// Stable provider thread identifier when the platform has threads. Omitted
+	// for platforms or conversations without a thread concept.
+	ExternalThreadId *string `protobuf:"bytes,7,opt,name=external_thread_id,json=externalThreadId,proto3,oneof" json:"external_thread_id,omitempty"`
+	// Provider-native message identifier for delivery correlation, replies,
+	// edits, deletes, and deduplication diagnostics.
+	ExternalMessageId string `protobuf:"bytes,8,opt,name=external_message_id,json=externalMessageId,proto3" json:"external_message_id,omitempty"`
+	// Normalized conversation shape, such as dm, group, channel, or
+	// channel_thread.
+	ConversationType string `protobuf:"bytes,9,opt,name=conversation_type,json=conversationType,proto3" json:"conversation_type,omitempty"`
+	// Normalized sender identity.
+	Sender *ConnectorActor `protobuf:"bytes,10,opt,name=sender,proto3" json:"sender,omitempty"`
+	// Plain text projection of the provider message.
+	Text string `protobuf:"bytes,11,opt,name=text,proto3" json:"text,omitempty"`
+	// Normalized attachments associated with the provider message.
+	Attachments []*ConnectorAttachment `protobuf:"bytes,12,rep,name=attachments,proto3" json:"attachments,omitempty"`
+	// Provider event timestamp in Unix milliseconds. Connector services should
+	// preserve provider time when available.
+	EventTimeMs int64 `protobuf:"varint,13,opt,name=event_time_ms,json=eventTimeMs,proto3" json:"event_time_ms,omitempty"`
+	// Connector-service-defined labels for diagnostics or provider-specific
+	// routing hints that do not justify a first-class protocol field.
+	Labels        map[string]string `protobuf:"bytes,14,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ConnectorMessageEvent) Reset() {
@@ -339,12 +379,22 @@ func (x *ConnectorMessageEvent) GetLabels() map[string]string {
 }
 
 type ConnectorMessageEventResponse struct {
-	state         protoimpl.MessageState     `protogen:"open.v1"`
-	Accepted      bool                       `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
-	Duplicate     bool                       `protobuf:"varint,2,opt,name=duplicate,proto3" json:"duplicate,omitempty"`
-	Disposition   string                     `protobuf:"bytes,3,opt,name=disposition,proto3" json:"disposition,omitempty"`
-	Namespace     string                     `protobuf:"bytes,4,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	ConnectorName string                     `protobuf:"bytes,5,opt,name=connector_name,json=connectorName,proto3" json:"connector_name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// True when Talon accepted responsibility for the event, including duplicate
+	// events that were already handled.
+	Accepted bool `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
+	// True when Talon had already seen registration_id + event_id.
+	Duplicate bool `protobuf:"varint,2,opt,name=duplicate,proto3" json:"duplicate,omitempty"`
+	// Machine-readable outcome, such as dispatched, duplicate, or unmatched.
+	Disposition string `protobuf:"bytes,3,opt,name=disposition,proto3" json:"disposition,omitempty"`
+	// Namespace of the Connector that matched the event. Empty when unmatched or
+	// duplicate without a fresh route lookup.
+	Namespace string `protobuf:"bytes,4,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// Name of the Connector that matched the event. Empty when unmatched or
+	// duplicate without a fresh route lookup.
+	ConnectorName string `protobuf:"bytes,5,opt,name=connector_name,json=connectorName,proto3" json:"connector_name,omitempty"`
+	// Target snapshot used for dispatch. Returned for observability so connector
+	// services can log which Talon destination accepted the event.
 	Target        *resources.ConnectorTarget `protobuf:"bytes,6,opt,name=target,proto3" json:"target,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -423,21 +473,34 @@ func (x *ConnectorMessageEventResponse) GetTarget() *resources.ConnectorTarget {
 }
 
 type ConnectorDeliveryRequest struct {
-	state                    protoimpl.MessageState `protogen:"open.v1"`
-	DeliveryId               string                 `protobuf:"bytes,1,opt,name=delivery_id,json=deliveryId,proto3" json:"delivery_id,omitempty"`
-	RegistrationId           string                 `protobuf:"bytes,2,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
-	ConnectorClass           string                 `protobuf:"bytes,3,opt,name=connector_class,json=connectorClass,proto3" json:"connector_class,omitempty"`
-	Namespace                string                 `protobuf:"bytes,4,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	ConnectorName            string                 `protobuf:"bytes,5,opt,name=connector_name,json=connectorName,proto3" json:"connector_name,omitempty"`
-	MatchFields              map[string]string      `protobuf:"bytes,6,rep,name=match_fields,json=matchFields,proto3" json:"match_fields,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	ExternalConversationId   string                 `protobuf:"bytes,7,opt,name=external_conversation_id,json=externalConversationId,proto3" json:"external_conversation_id,omitempty"`
-	ExternalThreadId         *string                `protobuf:"bytes,8,opt,name=external_thread_id,json=externalThreadId,proto3,oneof" json:"external_thread_id,omitempty"`
-	ReplyToExternalMessageId *string                `protobuf:"bytes,9,opt,name=reply_to_external_message_id,json=replyToExternalMessageId,proto3,oneof" json:"reply_to_external_message_id,omitempty"`
-	Text                     string                 `protobuf:"bytes,10,opt,name=text,proto3" json:"text,omitempty"`
-	Attachments              []*ConnectorAttachment `protobuf:"bytes,11,rep,name=attachments,proto3" json:"attachments,omitempty"`
-	Labels                   map[string]string      `protobuf:"bytes,12,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Talon-generated idempotency key for this outbound delivery request.
+	DeliveryId string `protobuf:"bytes,1,opt,name=delivery_id,json=deliveryId,proto3" json:"delivery_id,omitempty"`
+	// Registration identifier for the connector service that should perform
+	// provider delivery.
+	RegistrationId string `protobuf:"bytes,2,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
+	// ConnectorClass name associated with the outbound route.
+	ConnectorClass string `protobuf:"bytes,3,opt,name=connector_class,json=connectorClass,proto3" json:"connector_class,omitempty"`
+	// Talon namespace that produced the outbound message.
+	Namespace string `protobuf:"bytes,4,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// Connector resource name that provides provider routing context.
+	ConnectorName string `protobuf:"bytes,5,opt,name=connector_name,json=connectorName,proto3" json:"connector_name,omitempty"`
+	// Provider-specific route fields copied from the matched Connector/event.
+	MatchFields map[string]string `protobuf:"bytes,6,rep,name=match_fields,json=matchFields,proto3" json:"match_fields,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Provider conversation identifier to deliver into.
+	ExternalConversationId string `protobuf:"bytes,7,opt,name=external_conversation_id,json=externalConversationId,proto3" json:"external_conversation_id,omitempty"`
+	// Provider thread identifier to deliver into when replying in a thread.
+	ExternalThreadId *string `protobuf:"bytes,8,opt,name=external_thread_id,json=externalThreadId,proto3,oneof" json:"external_thread_id,omitempty"`
+	// Provider message identifier this delivery should reply to, when applicable.
+	ReplyToExternalMessageId *string `protobuf:"bytes,9,opt,name=reply_to_external_message_id,json=replyToExternalMessageId,proto3,oneof" json:"reply_to_external_message_id,omitempty"`
+	// Plain text body produced by Talon.
+	Text string `protobuf:"bytes,10,opt,name=text,proto3" json:"text,omitempty"`
+	// Attachments Talon wants the connector service to deliver to the provider.
+	Attachments []*ConnectorAttachment `protobuf:"bytes,11,rep,name=attachments,proto3" json:"attachments,omitempty"`
+	// Talon-defined delivery labels for diagnostics and provider-specific hints.
+	Labels        map[string]string `protobuf:"bytes,12,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ConnectorDeliveryRequest) Reset() {
@@ -555,10 +618,15 @@ func (x *ConnectorDeliveryRequest) GetLabels() map[string]string {
 }
 
 type ConnectorDeliveryResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Accepted      bool                   `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
-	Disposition   string                 `protobuf:"bytes,2,opt,name=disposition,proto3" json:"disposition,omitempty"`
-	Error         string                 `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// True when the connector service has accepted responsibility for provider
+	// delivery. After this point, provider retries/rate limits are connector
+	// service responsibilities.
+	Accepted bool `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
+	// Machine-readable handoff outcome, such as accepted, duplicate, or rejected.
+	Disposition string `protobuf:"bytes,2,opt,name=disposition,proto3" json:"disposition,omitempty"`
+	// Diagnostic error string when accepted is false.
+	Error         string `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -615,13 +683,19 @@ func (x *ConnectorDeliveryResponse) GetError() string {
 }
 
 type ConnectorStatusEvent struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	RegistrationId string                 `protobuf:"bytes,1,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
-	MatchFields    map[string]string      `protobuf:"bytes,2,rep,name=match_fields,json=matchFields,proto3" json:"match_fields,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Status         string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
-	Reason         string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Registration identifier whose health is being reported.
+	RegistrationId string `protobuf:"bytes,1,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
+	// Optional provider-specific route fields identifying the affected Connector
+	// or provider account.
+	MatchFields map[string]string `protobuf:"bytes,2,rep,name=match_fields,json=matchFields,proto3" json:"match_fields,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Connector-service-reported health, such as connected, degraded, disabled,
+	// or revoked.
+	Status string `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	// Machine-readable diagnostic reason, such as provider_token_revoked.
+	Reason        string `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ConnectorStatusEvent) Reset() {
@@ -683,9 +757,11 @@ func (x *ConnectorStatusEvent) GetReason() string {
 }
 
 type ConnectorAckResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Accepted      bool                   `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
-	Disposition   string                 `protobuf:"bytes,2,opt,name=disposition,proto3" json:"disposition,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// True when Talon accepted the status/report request.
+	Accepted bool `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
+	// Machine-readable acknowledgement outcome.
+	Disposition   string `protobuf:"bytes,2,opt,name=disposition,proto3" json:"disposition,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

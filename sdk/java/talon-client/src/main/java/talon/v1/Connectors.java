@@ -31,11 +31,19 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Provider-native user/account identifier, such as a Slack user ID.
+     * </pre>
+     *
      * <code>string external_user_id = 1;</code>
      * @return The externalUserId.
      */
     java.lang.String getExternalUserId();
     /**
+     * <pre>
+     * Provider-native user/account identifier, such as a Slack user ID.
+     * </pre>
+     *
      * <code>string external_user_id = 1;</code>
      * @return The bytes for externalUserId.
      */
@@ -43,11 +51,21 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getExternalUserIdBytes();
 
     /**
+     * <pre>
+     * Human-addressable provider identity when available, such as an email,
+     * phone number, or iMessage handle.
+     * </pre>
+     *
      * <code>string external_address = 2;</code>
      * @return The externalAddress.
      */
     java.lang.String getExternalAddress();
     /**
+     * <pre>
+     * Human-addressable provider identity when available, such as an email,
+     * phone number, or iMessage handle.
+     * </pre>
+     *
      * <code>string external_address = 2;</code>
      * @return The bytes for externalAddress.
      */
@@ -55,11 +73,19 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getExternalAddressBytes();
 
     /**
+     * <pre>
+     * Display name captured from the provider at event time.
+     * </pre>
+     *
      * <code>string display_name = 3;</code>
      * @return The displayName.
      */
     java.lang.String getDisplayName();
     /**
+     * <pre>
+     * Display name captured from the provider at event time.
+     * </pre>
+     *
      * <code>string display_name = 3;</code>
      * @return The bytes for displayName.
      */
@@ -67,11 +93,19 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getDisplayNameBytes();
 
     /**
+     * <pre>
+     * Normalized actor kind, such as user, bot, app, or system.
+     * </pre>
+     *
      * <code>string kind = 4;</code>
      * @return The kind.
      */
     java.lang.String getKind();
     /**
+     * <pre>
+     * Normalized actor kind, such as user, bot, app, or system.
+     * </pre>
+     *
      * <code>string kind = 4;</code>
      * @return The bytes for kind.
      */
@@ -128,6 +162,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object externalUserId_ = "";
     /**
+     * <pre>
+     * Provider-native user/account identifier, such as a Slack user ID.
+     * </pre>
+     *
      * <code>string external_user_id = 1;</code>
      * @return The externalUserId.
      */
@@ -145,6 +183,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Provider-native user/account identifier, such as a Slack user ID.
+     * </pre>
+     *
      * <code>string external_user_id = 1;</code>
      * @return The bytes for externalUserId.
      */
@@ -167,6 +209,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object externalAddress_ = "";
     /**
+     * <pre>
+     * Human-addressable provider identity when available, such as an email,
+     * phone number, or iMessage handle.
+     * </pre>
+     *
      * <code>string external_address = 2;</code>
      * @return The externalAddress.
      */
@@ -184,6 +231,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Human-addressable provider identity when available, such as an email,
+     * phone number, or iMessage handle.
+     * </pre>
+     *
      * <code>string external_address = 2;</code>
      * @return The bytes for externalAddress.
      */
@@ -206,6 +258,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object displayName_ = "";
     /**
+     * <pre>
+     * Display name captured from the provider at event time.
+     * </pre>
+     *
      * <code>string display_name = 3;</code>
      * @return The displayName.
      */
@@ -223,6 +279,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Display name captured from the provider at event time.
+     * </pre>
+     *
      * <code>string display_name = 3;</code>
      * @return The bytes for displayName.
      */
@@ -245,6 +305,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object kind_ = "";
     /**
+     * <pre>
+     * Normalized actor kind, such as user, bot, app, or system.
+     * </pre>
+     *
      * <code>string kind = 4;</code>
      * @return The kind.
      */
@@ -262,6 +326,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Normalized actor kind, such as user, bot, app, or system.
+     * </pre>
+     *
      * <code>string kind = 4;</code>
      * @return The bytes for kind.
      */
@@ -648,6 +716,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object externalUserId_ = "";
       /**
+       * <pre>
+       * Provider-native user/account identifier, such as a Slack user ID.
+       * </pre>
+       *
        * <code>string external_user_id = 1;</code>
        * @return The externalUserId.
        */
@@ -664,6 +736,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Provider-native user/account identifier, such as a Slack user ID.
+       * </pre>
+       *
        * <code>string external_user_id = 1;</code>
        * @return The bytes for externalUserId.
        */
@@ -681,6 +757,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Provider-native user/account identifier, such as a Slack user ID.
+       * </pre>
+       *
        * <code>string external_user_id = 1;</code>
        * @param value The externalUserId to set.
        * @return This builder for chaining.
@@ -694,6 +774,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Provider-native user/account identifier, such as a Slack user ID.
+       * </pre>
+       *
        * <code>string external_user_id = 1;</code>
        * @return This builder for chaining.
        */
@@ -704,6 +788,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Provider-native user/account identifier, such as a Slack user ID.
+       * </pre>
+       *
        * <code>string external_user_id = 1;</code>
        * @param value The bytes for externalUserId to set.
        * @return This builder for chaining.
@@ -720,6 +808,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object externalAddress_ = "";
       /**
+       * <pre>
+       * Human-addressable provider identity when available, such as an email,
+       * phone number, or iMessage handle.
+       * </pre>
+       *
        * <code>string external_address = 2;</code>
        * @return The externalAddress.
        */
@@ -736,6 +829,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Human-addressable provider identity when available, such as an email,
+       * phone number, or iMessage handle.
+       * </pre>
+       *
        * <code>string external_address = 2;</code>
        * @return The bytes for externalAddress.
        */
@@ -753,6 +851,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Human-addressable provider identity when available, such as an email,
+       * phone number, or iMessage handle.
+       * </pre>
+       *
        * <code>string external_address = 2;</code>
        * @param value The externalAddress to set.
        * @return This builder for chaining.
@@ -766,6 +869,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Human-addressable provider identity when available, such as an email,
+       * phone number, or iMessage handle.
+       * </pre>
+       *
        * <code>string external_address = 2;</code>
        * @return This builder for chaining.
        */
@@ -776,6 +884,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Human-addressable provider identity when available, such as an email,
+       * phone number, or iMessage handle.
+       * </pre>
+       *
        * <code>string external_address = 2;</code>
        * @param value The bytes for externalAddress to set.
        * @return This builder for chaining.
@@ -792,6 +905,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object displayName_ = "";
       /**
+       * <pre>
+       * Display name captured from the provider at event time.
+       * </pre>
+       *
        * <code>string display_name = 3;</code>
        * @return The displayName.
        */
@@ -808,6 +925,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Display name captured from the provider at event time.
+       * </pre>
+       *
        * <code>string display_name = 3;</code>
        * @return The bytes for displayName.
        */
@@ -825,6 +946,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Display name captured from the provider at event time.
+       * </pre>
+       *
        * <code>string display_name = 3;</code>
        * @param value The displayName to set.
        * @return This builder for chaining.
@@ -838,6 +963,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Display name captured from the provider at event time.
+       * </pre>
+       *
        * <code>string display_name = 3;</code>
        * @return This builder for chaining.
        */
@@ -848,6 +977,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Display name captured from the provider at event time.
+       * </pre>
+       *
        * <code>string display_name = 3;</code>
        * @param value The bytes for displayName to set.
        * @return This builder for chaining.
@@ -864,6 +997,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object kind_ = "";
       /**
+       * <pre>
+       * Normalized actor kind, such as user, bot, app, or system.
+       * </pre>
+       *
        * <code>string kind = 4;</code>
        * @return The kind.
        */
@@ -880,6 +1017,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Normalized actor kind, such as user, bot, app, or system.
+       * </pre>
+       *
        * <code>string kind = 4;</code>
        * @return The bytes for kind.
        */
@@ -897,6 +1038,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Normalized actor kind, such as user, bot, app, or system.
+       * </pre>
+       *
        * <code>string kind = 4;</code>
        * @param value The kind to set.
        * @return This builder for chaining.
@@ -910,6 +1055,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Normalized actor kind, such as user, bot, app, or system.
+       * </pre>
+       *
        * <code>string kind = 4;</code>
        * @return This builder for chaining.
        */
@@ -920,6 +1069,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Normalized actor kind, such as user, bot, app, or system.
+       * </pre>
+       *
        * <code>string kind = 4;</code>
        * @param value The bytes for kind to set.
        * @return This builder for chaining.
@@ -990,11 +1143,19 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Connector-service or provider attachment identifier used for correlation.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The id.
      */
     java.lang.String getId();
     /**
+     * <pre>
+     * Connector-service or provider attachment identifier used for correlation.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The bytes for id.
      */
@@ -1002,11 +1163,19 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getIdBytes();
 
     /**
+     * <pre>
+     * Normalized attachment kind, such as file, image, audio, or video.
+     * </pre>
+     *
      * <code>string kind = 2;</code>
      * @return The kind.
      */
     java.lang.String getKind();
     /**
+     * <pre>
+     * Normalized attachment kind, such as file, image, audio, or video.
+     * </pre>
+     *
      * <code>string kind = 2;</code>
      * @return The bytes for kind.
      */
@@ -1014,11 +1183,19 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getKindBytes();
 
     /**
+     * <pre>
+     * MIME media type when known.
+     * </pre>
+     *
      * <code>string media_type = 3;</code>
      * @return The mediaType.
      */
     java.lang.String getMediaType();
     /**
+     * <pre>
+     * MIME media type when known.
+     * </pre>
+     *
      * <code>string media_type = 3;</code>
      * @return The bytes for mediaType.
      */
@@ -1026,11 +1203,19 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getMediaTypeBytes();
 
     /**
+     * <pre>
+     * Original provider filename when available.
+     * </pre>
+     *
      * <code>string filename = 4;</code>
      * @return The filename.
      */
     java.lang.String getFilename();
     /**
+     * <pre>
+     * Original provider filename when available.
+     * </pre>
+     *
      * <code>string filename = 4;</code>
      * @return The bytes for filename.
      */
@@ -1038,17 +1223,31 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getFilenameBytes();
 
     /**
+     * <pre>
+     * Attachment size in bytes when known.
+     * </pre>
+     *
      * <code>uint64 size_bytes = 5;</code>
      * @return The sizeBytes.
      */
     long getSizeBytes();
 
     /**
+     * <pre>
+     * Talon object-store key when the connector service has uploaded the
+     * attachment into Talon-managed storage.
+     * </pre>
+     *
      * <code>string object_key = 6;</code>
      * @return The objectKey.
      */
     java.lang.String getObjectKey();
     /**
+     * <pre>
+     * Talon object-store key when the connector service has uploaded the
+     * attachment into Talon-managed storage.
+     * </pre>
+     *
      * <code>string object_key = 6;</code>
      * @return The bytes for objectKey.
      */
@@ -1056,11 +1255,21 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getObjectKeyBytes();
 
     /**
+     * <pre>
+     * Provider or connector-service URL for lazy retrieval when object_key is not
+     * populated.
+     * </pre>
+     *
      * <code>string external_url = 7;</code>
      * @return The externalUrl.
      */
     java.lang.String getExternalUrl();
     /**
+     * <pre>
+     * Provider or connector-service URL for lazy retrieval when object_key is not
+     * populated.
+     * </pre>
+     *
      * <code>string external_url = 7;</code>
      * @return The bytes for externalUrl.
      */
@@ -1068,6 +1277,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getExternalUrlBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in milliseconds when external_url expires. Zero means the
+     * connector service did not provide an expiration.
+     * </pre>
+     *
      * <code>int64 expires_at = 8;</code>
      * @return The expiresAt.
      */
@@ -1125,6 +1339,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object id_ = "";
     /**
+     * <pre>
+     * Connector-service or provider attachment identifier used for correlation.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The id.
      */
@@ -1142,6 +1360,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Connector-service or provider attachment identifier used for correlation.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The bytes for id.
      */
@@ -1164,6 +1386,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object kind_ = "";
     /**
+     * <pre>
+     * Normalized attachment kind, such as file, image, audio, or video.
+     * </pre>
+     *
      * <code>string kind = 2;</code>
      * @return The kind.
      */
@@ -1181,6 +1407,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Normalized attachment kind, such as file, image, audio, or video.
+     * </pre>
+     *
      * <code>string kind = 2;</code>
      * @return The bytes for kind.
      */
@@ -1203,6 +1433,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object mediaType_ = "";
     /**
+     * <pre>
+     * MIME media type when known.
+     * </pre>
+     *
      * <code>string media_type = 3;</code>
      * @return The mediaType.
      */
@@ -1220,6 +1454,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * MIME media type when known.
+     * </pre>
+     *
      * <code>string media_type = 3;</code>
      * @return The bytes for mediaType.
      */
@@ -1242,6 +1480,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object filename_ = "";
     /**
+     * <pre>
+     * Original provider filename when available.
+     * </pre>
+     *
      * <code>string filename = 4;</code>
      * @return The filename.
      */
@@ -1259,6 +1501,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Original provider filename when available.
+     * </pre>
+     *
      * <code>string filename = 4;</code>
      * @return The bytes for filename.
      */
@@ -1280,6 +1526,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     public static final int SIZE_BYTES_FIELD_NUMBER = 5;
     private long sizeBytes_ = 0L;
     /**
+     * <pre>
+     * Attachment size in bytes when known.
+     * </pre>
+     *
      * <code>uint64 size_bytes = 5;</code>
      * @return The sizeBytes.
      */
@@ -1292,6 +1542,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object objectKey_ = "";
     /**
+     * <pre>
+     * Talon object-store key when the connector service has uploaded the
+     * attachment into Talon-managed storage.
+     * </pre>
+     *
      * <code>string object_key = 6;</code>
      * @return The objectKey.
      */
@@ -1309,6 +1564,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Talon object-store key when the connector service has uploaded the
+     * attachment into Talon-managed storage.
+     * </pre>
+     *
      * <code>string object_key = 6;</code>
      * @return The bytes for objectKey.
      */
@@ -1331,6 +1591,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object externalUrl_ = "";
     /**
+     * <pre>
+     * Provider or connector-service URL for lazy retrieval when object_key is not
+     * populated.
+     * </pre>
+     *
      * <code>string external_url = 7;</code>
      * @return The externalUrl.
      */
@@ -1348,6 +1613,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Provider or connector-service URL for lazy retrieval when object_key is not
+     * populated.
+     * </pre>
+     *
      * <code>string external_url = 7;</code>
      * @return The bytes for externalUrl.
      */
@@ -1369,6 +1639,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     public static final int EXPIRES_AT_FIELD_NUMBER = 8;
     private long expiresAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in milliseconds when external_url expires. Zero means the
+     * connector service did not provide an expiration.
+     * </pre>
+     *
      * <code>int64 expires_at = 8;</code>
      * @return The expiresAt.
      */
@@ -1841,6 +2116,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object id_ = "";
       /**
+       * <pre>
+       * Connector-service or provider attachment identifier used for correlation.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @return The id.
        */
@@ -1857,6 +2136,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Connector-service or provider attachment identifier used for correlation.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @return The bytes for id.
        */
@@ -1874,6 +2157,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Connector-service or provider attachment identifier used for correlation.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @param value The id to set.
        * @return This builder for chaining.
@@ -1887,6 +2174,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Connector-service or provider attachment identifier used for correlation.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @return This builder for chaining.
        */
@@ -1897,6 +2188,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Connector-service or provider attachment identifier used for correlation.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @param value The bytes for id to set.
        * @return This builder for chaining.
@@ -1913,6 +2208,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object kind_ = "";
       /**
+       * <pre>
+       * Normalized attachment kind, such as file, image, audio, or video.
+       * </pre>
+       *
        * <code>string kind = 2;</code>
        * @return The kind.
        */
@@ -1929,6 +2228,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Normalized attachment kind, such as file, image, audio, or video.
+       * </pre>
+       *
        * <code>string kind = 2;</code>
        * @return The bytes for kind.
        */
@@ -1946,6 +2249,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Normalized attachment kind, such as file, image, audio, or video.
+       * </pre>
+       *
        * <code>string kind = 2;</code>
        * @param value The kind to set.
        * @return This builder for chaining.
@@ -1959,6 +2266,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Normalized attachment kind, such as file, image, audio, or video.
+       * </pre>
+       *
        * <code>string kind = 2;</code>
        * @return This builder for chaining.
        */
@@ -1969,6 +2280,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Normalized attachment kind, such as file, image, audio, or video.
+       * </pre>
+       *
        * <code>string kind = 2;</code>
        * @param value The bytes for kind to set.
        * @return This builder for chaining.
@@ -1985,6 +2300,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object mediaType_ = "";
       /**
+       * <pre>
+       * MIME media type when known.
+       * </pre>
+       *
        * <code>string media_type = 3;</code>
        * @return The mediaType.
        */
@@ -2001,6 +2320,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * MIME media type when known.
+       * </pre>
+       *
        * <code>string media_type = 3;</code>
        * @return The bytes for mediaType.
        */
@@ -2018,6 +2341,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * MIME media type when known.
+       * </pre>
+       *
        * <code>string media_type = 3;</code>
        * @param value The mediaType to set.
        * @return This builder for chaining.
@@ -2031,6 +2358,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * MIME media type when known.
+       * </pre>
+       *
        * <code>string media_type = 3;</code>
        * @return This builder for chaining.
        */
@@ -2041,6 +2372,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * MIME media type when known.
+       * </pre>
+       *
        * <code>string media_type = 3;</code>
        * @param value The bytes for mediaType to set.
        * @return This builder for chaining.
@@ -2057,6 +2392,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object filename_ = "";
       /**
+       * <pre>
+       * Original provider filename when available.
+       * </pre>
+       *
        * <code>string filename = 4;</code>
        * @return The filename.
        */
@@ -2073,6 +2412,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Original provider filename when available.
+       * </pre>
+       *
        * <code>string filename = 4;</code>
        * @return The bytes for filename.
        */
@@ -2090,6 +2433,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Original provider filename when available.
+       * </pre>
+       *
        * <code>string filename = 4;</code>
        * @param value The filename to set.
        * @return This builder for chaining.
@@ -2103,6 +2450,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Original provider filename when available.
+       * </pre>
+       *
        * <code>string filename = 4;</code>
        * @return This builder for chaining.
        */
@@ -2113,6 +2464,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Original provider filename when available.
+       * </pre>
+       *
        * <code>string filename = 4;</code>
        * @param value The bytes for filename to set.
        * @return This builder for chaining.
@@ -2129,6 +2484,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private long sizeBytes_ ;
       /**
+       * <pre>
+       * Attachment size in bytes when known.
+       * </pre>
+       *
        * <code>uint64 size_bytes = 5;</code>
        * @return The sizeBytes.
        */
@@ -2137,6 +2496,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return sizeBytes_;
       }
       /**
+       * <pre>
+       * Attachment size in bytes when known.
+       * </pre>
+       *
        * <code>uint64 size_bytes = 5;</code>
        * @param value The sizeBytes to set.
        * @return This builder for chaining.
@@ -2149,6 +2512,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Attachment size in bytes when known.
+       * </pre>
+       *
        * <code>uint64 size_bytes = 5;</code>
        * @return This builder for chaining.
        */
@@ -2161,6 +2528,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object objectKey_ = "";
       /**
+       * <pre>
+       * Talon object-store key when the connector service has uploaded the
+       * attachment into Talon-managed storage.
+       * </pre>
+       *
        * <code>string object_key = 6;</code>
        * @return The objectKey.
        */
@@ -2177,6 +2549,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Talon object-store key when the connector service has uploaded the
+       * attachment into Talon-managed storage.
+       * </pre>
+       *
        * <code>string object_key = 6;</code>
        * @return The bytes for objectKey.
        */
@@ -2194,6 +2571,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Talon object-store key when the connector service has uploaded the
+       * attachment into Talon-managed storage.
+       * </pre>
+       *
        * <code>string object_key = 6;</code>
        * @param value The objectKey to set.
        * @return This builder for chaining.
@@ -2207,6 +2589,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Talon object-store key when the connector service has uploaded the
+       * attachment into Talon-managed storage.
+       * </pre>
+       *
        * <code>string object_key = 6;</code>
        * @return This builder for chaining.
        */
@@ -2217,6 +2604,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Talon object-store key when the connector service has uploaded the
+       * attachment into Talon-managed storage.
+       * </pre>
+       *
        * <code>string object_key = 6;</code>
        * @param value The bytes for objectKey to set.
        * @return This builder for chaining.
@@ -2233,6 +2625,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object externalUrl_ = "";
       /**
+       * <pre>
+       * Provider or connector-service URL for lazy retrieval when object_key is not
+       * populated.
+       * </pre>
+       *
        * <code>string external_url = 7;</code>
        * @return The externalUrl.
        */
@@ -2249,6 +2646,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Provider or connector-service URL for lazy retrieval when object_key is not
+       * populated.
+       * </pre>
+       *
        * <code>string external_url = 7;</code>
        * @return The bytes for externalUrl.
        */
@@ -2266,6 +2668,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Provider or connector-service URL for lazy retrieval when object_key is not
+       * populated.
+       * </pre>
+       *
        * <code>string external_url = 7;</code>
        * @param value The externalUrl to set.
        * @return This builder for chaining.
@@ -2279,6 +2686,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Provider or connector-service URL for lazy retrieval when object_key is not
+       * populated.
+       * </pre>
+       *
        * <code>string external_url = 7;</code>
        * @return This builder for chaining.
        */
@@ -2289,6 +2701,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Provider or connector-service URL for lazy retrieval when object_key is not
+       * populated.
+       * </pre>
+       *
        * <code>string external_url = 7;</code>
        * @param value The bytes for externalUrl to set.
        * @return This builder for chaining.
@@ -2305,6 +2722,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private long expiresAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in milliseconds when external_url expires. Zero means the
+       * connector service did not provide an expiration.
+       * </pre>
+       *
        * <code>int64 expires_at = 8;</code>
        * @return The expiresAt.
        */
@@ -2313,6 +2735,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return expiresAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in milliseconds when external_url expires. Zero means the
+       * connector service did not provide an expiration.
+       * </pre>
+       *
        * <code>int64 expires_at = 8;</code>
        * @param value The expiresAt to set.
        * @return This builder for chaining.
@@ -2325,6 +2752,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in milliseconds when external_url expires. Zero means the
+       * connector service did not provide an expiration.
+       * </pre>
+       *
        * <code>int64 expires_at = 8;</code>
        * @return This builder for chaining.
        */
@@ -2391,11 +2823,19 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Connector-service idempotency key for this normalized event.
+     * </pre>
+     *
      * <code>string event_id = 1;</code>
      * @return The eventId.
      */
     java.lang.String getEventId();
     /**
+     * <pre>
+     * Connector-service idempotency key for this normalized event.
+     * </pre>
+     *
      * <code>string event_id = 1;</code>
      * @return The bytes for eventId.
      */
@@ -2403,11 +2843,21 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getEventIdBytes();
 
     /**
+     * <pre>
+     * Normalized event kind, such as message_created, message_updated, or
+     * message_deleted. V1 dispatch primarily handles message_created.
+     * </pre>
+     *
      * <code>string event_kind = 2;</code>
      * @return The eventKind.
      */
     java.lang.String getEventKind();
     /**
+     * <pre>
+     * Normalized event kind, such as message_created, message_updated, or
+     * message_deleted. V1 dispatch primarily handles message_created.
+     * </pre>
+     *
      * <code>string event_kind = 2;</code>
      * @return The bytes for eventKind.
      */
@@ -2415,11 +2865,21 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getEventKindBytes();
 
     /**
+     * <pre>
+     * Registration identifier assigned to the ConnectorClass by the connector
+     * service. This scopes webhook delivery to one Talon cluster registration.
+     * </pre>
+     *
      * <code>string registration_id = 3;</code>
      * @return The registrationId.
      */
     java.lang.String getRegistrationId();
     /**
+     * <pre>
+     * Registration identifier assigned to the ConnectorClass by the connector
+     * service. This scopes webhook delivery to one Talon cluster registration.
+     * </pre>
+     *
      * <code>string registration_id = 3;</code>
      * @return The bytes for registrationId.
      */
@@ -2427,11 +2887,21 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getRegistrationIdBytes();
 
     /**
+     * <pre>
+     * ConnectorClass name expected by the connector service. Talon uses this as a
+     * defensive consistency check when resolving the registration.
+     * </pre>
+     *
      * <code>string connector_class = 4;</code>
      * @return The connectorClass.
      */
     java.lang.String getConnectorClass();
     /**
+     * <pre>
+     * ConnectorClass name expected by the connector service. Talon uses this as a
+     * defensive consistency check when resolving the registration.
+     * </pre>
+     *
      * <code>string connector_class = 4;</code>
      * @return The bytes for connectorClass.
      */
@@ -2439,10 +2909,20 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getConnectorClassBytes();
 
     /**
+     * <pre>
+     * Provider-specific routing keys normalized by the connector service. Talon
+     * treats these as opaque values and matches them against Connector resources.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 5;</code>
      */
     int getMatchFieldsCount();
     /**
+     * <pre>
+     * Provider-specific routing keys normalized by the connector service. Talon
+     * treats these as opaque values and matches them against Connector resources.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 5;</code>
      */
     boolean containsMatchFields(
@@ -2454,11 +2934,21 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     java.util.Map<java.lang.String, java.lang.String>
     getMatchFields();
     /**
+     * <pre>
+     * Provider-specific routing keys normalized by the connector service. Talon
+     * treats these as opaque values and matches them against Connector resources.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 5;</code>
      */
     java.util.Map<java.lang.String, java.lang.String>
     getMatchFieldsMap();
     /**
+     * <pre>
+     * Provider-specific routing keys normalized by the connector service. Talon
+     * treats these as opaque values and matches them against Connector resources.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 5;</code>
      */
     /* nullable */
@@ -2467,17 +2957,32 @@ java.lang.String getMatchFieldsOrDefault(
         /* nullable */
 java.lang.String defaultValue);
     /**
+     * <pre>
+     * Provider-specific routing keys normalized by the connector service. Talon
+     * treats these as opaque values and matches them against Connector resources.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 5;</code>
      */
     java.lang.String getMatchFieldsOrThrow(
         java.lang.String key);
 
     /**
+     * <pre>
+     * Stable provider conversation identifier, such as a Slack channel/DM ID or
+     * iMessage chat GUID.
+     * </pre>
+     *
      * <code>string external_conversation_id = 6;</code>
      * @return The externalConversationId.
      */
     java.lang.String getExternalConversationId();
     /**
+     * <pre>
+     * Stable provider conversation identifier, such as a Slack channel/DM ID or
+     * iMessage chat GUID.
+     * </pre>
+     *
      * <code>string external_conversation_id = 6;</code>
      * @return The bytes for externalConversationId.
      */
@@ -2485,16 +2990,31 @@ java.lang.String defaultValue);
         getExternalConversationIdBytes();
 
     /**
+     * <pre>
+     * Stable provider thread identifier when the platform has threads. Omitted
+     * for platforms or conversations without a thread concept.
+     * </pre>
+     *
      * <code>optional string external_thread_id = 7;</code>
      * @return Whether the externalThreadId field is set.
      */
     boolean hasExternalThreadId();
     /**
+     * <pre>
+     * Stable provider thread identifier when the platform has threads. Omitted
+     * for platforms or conversations without a thread concept.
+     * </pre>
+     *
      * <code>optional string external_thread_id = 7;</code>
      * @return The externalThreadId.
      */
     java.lang.String getExternalThreadId();
     /**
+     * <pre>
+     * Stable provider thread identifier when the platform has threads. Omitted
+     * for platforms or conversations without a thread concept.
+     * </pre>
+     *
      * <code>optional string external_thread_id = 7;</code>
      * @return The bytes for externalThreadId.
      */
@@ -2502,11 +3022,21 @@ java.lang.String defaultValue);
         getExternalThreadIdBytes();
 
     /**
+     * <pre>
+     * Provider-native message identifier for delivery correlation, replies,
+     * edits, deletes, and deduplication diagnostics.
+     * </pre>
+     *
      * <code>string external_message_id = 8;</code>
      * @return The externalMessageId.
      */
     java.lang.String getExternalMessageId();
     /**
+     * <pre>
+     * Provider-native message identifier for delivery correlation, replies,
+     * edits, deletes, and deduplication diagnostics.
+     * </pre>
+     *
      * <code>string external_message_id = 8;</code>
      * @return The bytes for externalMessageId.
      */
@@ -2514,11 +3044,21 @@ java.lang.String defaultValue);
         getExternalMessageIdBytes();
 
     /**
+     * <pre>
+     * Normalized conversation shape, such as dm, group, channel, or
+     * channel_thread.
+     * </pre>
+     *
      * <code>string conversation_type = 9;</code>
      * @return The conversationType.
      */
     java.lang.String getConversationType();
     /**
+     * <pre>
+     * Normalized conversation shape, such as dm, group, channel, or
+     * channel_thread.
+     * </pre>
+     *
      * <code>string conversation_type = 9;</code>
      * @return The bytes for conversationType.
      */
@@ -2526,26 +3066,46 @@ java.lang.String defaultValue);
         getConversationTypeBytes();
 
     /**
+     * <pre>
+     * Normalized sender identity.
+     * </pre>
+     *
      * <code>.talon.v1.ConnectorActor sender = 10;</code>
      * @return Whether the sender field is set.
      */
     boolean hasSender();
     /**
+     * <pre>
+     * Normalized sender identity.
+     * </pre>
+     *
      * <code>.talon.v1.ConnectorActor sender = 10;</code>
      * @return The sender.
      */
     talon.v1.Connectors.ConnectorActor getSender();
     /**
+     * <pre>
+     * Normalized sender identity.
+     * </pre>
+     *
      * <code>.talon.v1.ConnectorActor sender = 10;</code>
      */
     talon.v1.Connectors.ConnectorActorOrBuilder getSenderOrBuilder();
 
     /**
+     * <pre>
+     * Plain text projection of the provider message.
+     * </pre>
+     *
      * <code>string text = 11;</code>
      * @return The text.
      */
     java.lang.String getText();
     /**
+     * <pre>
+     * Plain text projection of the provider message.
+     * </pre>
+     *
      * <code>string text = 11;</code>
      * @return The bytes for text.
      */
@@ -2553,40 +3113,75 @@ java.lang.String defaultValue);
         getTextBytes();
 
     /**
+     * <pre>
+     * Normalized attachments associated with the provider message.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
      */
     java.util.List<talon.v1.Connectors.ConnectorAttachment>
         getAttachmentsList();
     /**
+     * <pre>
+     * Normalized attachments associated with the provider message.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
      */
     talon.v1.Connectors.ConnectorAttachment getAttachments(int index);
     /**
+     * <pre>
+     * Normalized attachments associated with the provider message.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
      */
     int getAttachmentsCount();
     /**
+     * <pre>
+     * Normalized attachments associated with the provider message.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
      */
     java.util.List<? extends talon.v1.Connectors.ConnectorAttachmentOrBuilder>
         getAttachmentsOrBuilderList();
     /**
+     * <pre>
+     * Normalized attachments associated with the provider message.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
      */
     talon.v1.Connectors.ConnectorAttachmentOrBuilder getAttachmentsOrBuilder(
         int index);
 
     /**
+     * <pre>
+     * Provider event timestamp in Unix milliseconds. Connector services should
+     * preserve provider time when available.
+     * </pre>
+     *
      * <code>int64 event_time_ms = 13;</code>
      * @return The eventTimeMs.
      */
     long getEventTimeMs();
 
     /**
+     * <pre>
+     * Connector-service-defined labels for diagnostics or provider-specific
+     * routing hints that do not justify a first-class protocol field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 14;</code>
      */
     int getLabelsCount();
     /**
+     * <pre>
+     * Connector-service-defined labels for diagnostics or provider-specific
+     * routing hints that do not justify a first-class protocol field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 14;</code>
      */
     boolean containsLabels(
@@ -2598,11 +3193,21 @@ java.lang.String defaultValue);
     java.util.Map<java.lang.String, java.lang.String>
     getLabels();
     /**
+     * <pre>
+     * Connector-service-defined labels for diagnostics or provider-specific
+     * routing hints that do not justify a first-class protocol field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 14;</code>
      */
     java.util.Map<java.lang.String, java.lang.String>
     getLabelsMap();
     /**
+     * <pre>
+     * Connector-service-defined labels for diagnostics or provider-specific
+     * routing hints that do not justify a first-class protocol field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 14;</code>
      */
     /* nullable */
@@ -2611,6 +3216,11 @@ java.lang.String getLabelsOrDefault(
         /* nullable */
 java.lang.String defaultValue);
     /**
+     * <pre>
+     * Connector-service-defined labels for diagnostics or provider-specific
+     * routing hints that do not justify a first-class protocol field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 14;</code>
      */
     java.lang.String getLabelsOrThrow(
@@ -2687,6 +3297,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object eventId_ = "";
     /**
+     * <pre>
+     * Connector-service idempotency key for this normalized event.
+     * </pre>
+     *
      * <code>string event_id = 1;</code>
      * @return The eventId.
      */
@@ -2704,6 +3318,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Connector-service idempotency key for this normalized event.
+     * </pre>
+     *
      * <code>string event_id = 1;</code>
      * @return The bytes for eventId.
      */
@@ -2726,6 +3344,11 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object eventKind_ = "";
     /**
+     * <pre>
+     * Normalized event kind, such as message_created, message_updated, or
+     * message_deleted. V1 dispatch primarily handles message_created.
+     * </pre>
+     *
      * <code>string event_kind = 2;</code>
      * @return The eventKind.
      */
@@ -2743,6 +3366,11 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Normalized event kind, such as message_created, message_updated, or
+     * message_deleted. V1 dispatch primarily handles message_created.
+     * </pre>
+     *
      * <code>string event_kind = 2;</code>
      * @return The bytes for eventKind.
      */
@@ -2765,6 +3393,11 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object registrationId_ = "";
     /**
+     * <pre>
+     * Registration identifier assigned to the ConnectorClass by the connector
+     * service. This scopes webhook delivery to one Talon cluster registration.
+     * </pre>
+     *
      * <code>string registration_id = 3;</code>
      * @return The registrationId.
      */
@@ -2782,6 +3415,11 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Registration identifier assigned to the ConnectorClass by the connector
+     * service. This scopes webhook delivery to one Talon cluster registration.
+     * </pre>
+     *
      * <code>string registration_id = 3;</code>
      * @return The bytes for registrationId.
      */
@@ -2804,6 +3442,11 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object connectorClass_ = "";
     /**
+     * <pre>
+     * ConnectorClass name expected by the connector service. Talon uses this as a
+     * defensive consistency check when resolving the registration.
+     * </pre>
+     *
      * <code>string connector_class = 4;</code>
      * @return The connectorClass.
      */
@@ -2821,6 +3464,11 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * ConnectorClass name expected by the connector service. Talon uses this as a
+     * defensive consistency check when resolving the registration.
+     * </pre>
+     *
      * <code>string connector_class = 4;</code>
      * @return The bytes for connectorClass.
      */
@@ -2866,6 +3514,11 @@ java.lang.String defaultValue);
       return internalGetMatchFields().getMap().size();
     }
     /**
+     * <pre>
+     * Provider-specific routing keys normalized by the connector service. Talon
+     * treats these as opaque values and matches them against Connector resources.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 5;</code>
      */
     @java.lang.Override
@@ -2883,6 +3536,11 @@ java.lang.String defaultValue);
       return getMatchFieldsMap();
     }
     /**
+     * <pre>
+     * Provider-specific routing keys normalized by the connector service. Talon
+     * treats these as opaque values and matches them against Connector resources.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 5;</code>
      */
     @java.lang.Override
@@ -2890,6 +3548,11 @@ java.lang.String defaultValue);
       return internalGetMatchFields().getMap();
     }
     /**
+     * <pre>
+     * Provider-specific routing keys normalized by the connector service. Talon
+     * treats these as opaque values and matches them against Connector resources.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 5;</code>
      */
     @java.lang.Override
@@ -2904,6 +3567,11 @@ java.lang.String defaultValue) {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
+     * <pre>
+     * Provider-specific routing keys normalized by the connector service. Talon
+     * treats these as opaque values and matches them against Connector resources.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 5;</code>
      */
     @java.lang.Override
@@ -2922,6 +3590,11 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object externalConversationId_ = "";
     /**
+     * <pre>
+     * Stable provider conversation identifier, such as a Slack channel/DM ID or
+     * iMessage chat GUID.
+     * </pre>
+     *
      * <code>string external_conversation_id = 6;</code>
      * @return The externalConversationId.
      */
@@ -2939,6 +3612,11 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Stable provider conversation identifier, such as a Slack channel/DM ID or
+     * iMessage chat GUID.
+     * </pre>
+     *
      * <code>string external_conversation_id = 6;</code>
      * @return The bytes for externalConversationId.
      */
@@ -2961,6 +3639,11 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object externalThreadId_ = "";
     /**
+     * <pre>
+     * Stable provider thread identifier when the platform has threads. Omitted
+     * for platforms or conversations without a thread concept.
+     * </pre>
+     *
      * <code>optional string external_thread_id = 7;</code>
      * @return Whether the externalThreadId field is set.
      */
@@ -2969,6 +3652,11 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
+     * <pre>
+     * Stable provider thread identifier when the platform has threads. Omitted
+     * for platforms or conversations without a thread concept.
+     * </pre>
+     *
      * <code>optional string external_thread_id = 7;</code>
      * @return The externalThreadId.
      */
@@ -2986,6 +3674,11 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Stable provider thread identifier when the platform has threads. Omitted
+     * for platforms or conversations without a thread concept.
+     * </pre>
+     *
      * <code>optional string external_thread_id = 7;</code>
      * @return The bytes for externalThreadId.
      */
@@ -3008,6 +3701,11 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object externalMessageId_ = "";
     /**
+     * <pre>
+     * Provider-native message identifier for delivery correlation, replies,
+     * edits, deletes, and deduplication diagnostics.
+     * </pre>
+     *
      * <code>string external_message_id = 8;</code>
      * @return The externalMessageId.
      */
@@ -3025,6 +3723,11 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Provider-native message identifier for delivery correlation, replies,
+     * edits, deletes, and deduplication diagnostics.
+     * </pre>
+     *
      * <code>string external_message_id = 8;</code>
      * @return The bytes for externalMessageId.
      */
@@ -3047,6 +3750,11 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object conversationType_ = "";
     /**
+     * <pre>
+     * Normalized conversation shape, such as dm, group, channel, or
+     * channel_thread.
+     * </pre>
+     *
      * <code>string conversation_type = 9;</code>
      * @return The conversationType.
      */
@@ -3064,6 +3772,11 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Normalized conversation shape, such as dm, group, channel, or
+     * channel_thread.
+     * </pre>
+     *
      * <code>string conversation_type = 9;</code>
      * @return The bytes for conversationType.
      */
@@ -3085,6 +3798,10 @@ java.lang.String defaultValue) {
     public static final int SENDER_FIELD_NUMBER = 10;
     private talon.v1.Connectors.ConnectorActor sender_;
     /**
+     * <pre>
+     * Normalized sender identity.
+     * </pre>
+     *
      * <code>.talon.v1.ConnectorActor sender = 10;</code>
      * @return Whether the sender field is set.
      */
@@ -3093,6 +3810,10 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
+     * <pre>
+     * Normalized sender identity.
+     * </pre>
+     *
      * <code>.talon.v1.ConnectorActor sender = 10;</code>
      * @return The sender.
      */
@@ -3101,6 +3822,10 @@ java.lang.String defaultValue) {
       return sender_ == null ? talon.v1.Connectors.ConnectorActor.getDefaultInstance() : sender_;
     }
     /**
+     * <pre>
+     * Normalized sender identity.
+     * </pre>
+     *
      * <code>.talon.v1.ConnectorActor sender = 10;</code>
      */
     @java.lang.Override
@@ -3112,6 +3837,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object text_ = "";
     /**
+     * <pre>
+     * Plain text projection of the provider message.
+     * </pre>
+     *
      * <code>string text = 11;</code>
      * @return The text.
      */
@@ -3129,6 +3858,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Plain text projection of the provider message.
+     * </pre>
+     *
      * <code>string text = 11;</code>
      * @return The bytes for text.
      */
@@ -3151,6 +3884,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private java.util.List<talon.v1.Connectors.ConnectorAttachment> attachments_;
     /**
+     * <pre>
+     * Normalized attachments associated with the provider message.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
      */
     @java.lang.Override
@@ -3158,6 +3895,10 @@ java.lang.String defaultValue) {
       return attachments_;
     }
     /**
+     * <pre>
+     * Normalized attachments associated with the provider message.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
      */
     @java.lang.Override
@@ -3166,6 +3907,10 @@ java.lang.String defaultValue) {
       return attachments_;
     }
     /**
+     * <pre>
+     * Normalized attachments associated with the provider message.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
      */
     @java.lang.Override
@@ -3173,6 +3918,10 @@ java.lang.String defaultValue) {
       return attachments_.size();
     }
     /**
+     * <pre>
+     * Normalized attachments associated with the provider message.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
      */
     @java.lang.Override
@@ -3180,6 +3929,10 @@ java.lang.String defaultValue) {
       return attachments_.get(index);
     }
     /**
+     * <pre>
+     * Normalized attachments associated with the provider message.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
      */
     @java.lang.Override
@@ -3191,6 +3944,11 @@ java.lang.String defaultValue) {
     public static final int EVENT_TIME_MS_FIELD_NUMBER = 13;
     private long eventTimeMs_ = 0L;
     /**
+     * <pre>
+     * Provider event timestamp in Unix milliseconds. Connector services should
+     * preserve provider time when available.
+     * </pre>
+     *
      * <code>int64 event_time_ms = 13;</code>
      * @return The eventTimeMs.
      */
@@ -3226,6 +3984,11 @@ java.lang.String defaultValue) {
       return internalGetLabels().getMap().size();
     }
     /**
+     * <pre>
+     * Connector-service-defined labels for diagnostics or provider-specific
+     * routing hints that do not justify a first-class protocol field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 14;</code>
      */
     @java.lang.Override
@@ -3243,6 +4006,11 @@ java.lang.String defaultValue) {
       return getLabelsMap();
     }
     /**
+     * <pre>
+     * Connector-service-defined labels for diagnostics or provider-specific
+     * routing hints that do not justify a first-class protocol field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 14;</code>
      */
     @java.lang.Override
@@ -3250,6 +4018,11 @@ java.lang.String defaultValue) {
       return internalGetLabels().getMap();
     }
     /**
+     * <pre>
+     * Connector-service-defined labels for diagnostics or provider-specific
+     * routing hints that do not justify a first-class protocol field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 14;</code>
      */
     @java.lang.Override
@@ -3264,6 +4037,11 @@ java.lang.String defaultValue) {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
+     * <pre>
+     * Connector-service-defined labels for diagnostics or provider-specific
+     * routing hints that do not justify a first-class protocol field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 14;</code>
      */
     @java.lang.Override
@@ -4023,6 +4801,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object eventId_ = "";
       /**
+       * <pre>
+       * Connector-service idempotency key for this normalized event.
+       * </pre>
+       *
        * <code>string event_id = 1;</code>
        * @return The eventId.
        */
@@ -4039,6 +4821,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Connector-service idempotency key for this normalized event.
+       * </pre>
+       *
        * <code>string event_id = 1;</code>
        * @return The bytes for eventId.
        */
@@ -4056,6 +4842,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Connector-service idempotency key for this normalized event.
+       * </pre>
+       *
        * <code>string event_id = 1;</code>
        * @param value The eventId to set.
        * @return This builder for chaining.
@@ -4069,6 +4859,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Connector-service idempotency key for this normalized event.
+       * </pre>
+       *
        * <code>string event_id = 1;</code>
        * @return This builder for chaining.
        */
@@ -4079,6 +4873,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Connector-service idempotency key for this normalized event.
+       * </pre>
+       *
        * <code>string event_id = 1;</code>
        * @param value The bytes for eventId to set.
        * @return This builder for chaining.
@@ -4095,6 +4893,11 @@ java.lang.String defaultValue) {
 
       private java.lang.Object eventKind_ = "";
       /**
+       * <pre>
+       * Normalized event kind, such as message_created, message_updated, or
+       * message_deleted. V1 dispatch primarily handles message_created.
+       * </pre>
+       *
        * <code>string event_kind = 2;</code>
        * @return The eventKind.
        */
@@ -4111,6 +4914,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Normalized event kind, such as message_created, message_updated, or
+       * message_deleted. V1 dispatch primarily handles message_created.
+       * </pre>
+       *
        * <code>string event_kind = 2;</code>
        * @return The bytes for eventKind.
        */
@@ -4128,6 +4936,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Normalized event kind, such as message_created, message_updated, or
+       * message_deleted. V1 dispatch primarily handles message_created.
+       * </pre>
+       *
        * <code>string event_kind = 2;</code>
        * @param value The eventKind to set.
        * @return This builder for chaining.
@@ -4141,6 +4954,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized event kind, such as message_created, message_updated, or
+       * message_deleted. V1 dispatch primarily handles message_created.
+       * </pre>
+       *
        * <code>string event_kind = 2;</code>
        * @return This builder for chaining.
        */
@@ -4151,6 +4969,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized event kind, such as message_created, message_updated, or
+       * message_deleted. V1 dispatch primarily handles message_created.
+       * </pre>
+       *
        * <code>string event_kind = 2;</code>
        * @param value The bytes for eventKind to set.
        * @return This builder for chaining.
@@ -4167,6 +4990,11 @@ java.lang.String defaultValue) {
 
       private java.lang.Object registrationId_ = "";
       /**
+       * <pre>
+       * Registration identifier assigned to the ConnectorClass by the connector
+       * service. This scopes webhook delivery to one Talon cluster registration.
+       * </pre>
+       *
        * <code>string registration_id = 3;</code>
        * @return The registrationId.
        */
@@ -4183,6 +5011,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Registration identifier assigned to the ConnectorClass by the connector
+       * service. This scopes webhook delivery to one Talon cluster registration.
+       * </pre>
+       *
        * <code>string registration_id = 3;</code>
        * @return The bytes for registrationId.
        */
@@ -4200,6 +5033,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Registration identifier assigned to the ConnectorClass by the connector
+       * service. This scopes webhook delivery to one Talon cluster registration.
+       * </pre>
+       *
        * <code>string registration_id = 3;</code>
        * @param value The registrationId to set.
        * @return This builder for chaining.
@@ -4213,6 +5051,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Registration identifier assigned to the ConnectorClass by the connector
+       * service. This scopes webhook delivery to one Talon cluster registration.
+       * </pre>
+       *
        * <code>string registration_id = 3;</code>
        * @return This builder for chaining.
        */
@@ -4223,6 +5066,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Registration identifier assigned to the ConnectorClass by the connector
+       * service. This scopes webhook delivery to one Talon cluster registration.
+       * </pre>
+       *
        * <code>string registration_id = 3;</code>
        * @param value The bytes for registrationId to set.
        * @return This builder for chaining.
@@ -4239,6 +5087,11 @@ java.lang.String defaultValue) {
 
       private java.lang.Object connectorClass_ = "";
       /**
+       * <pre>
+       * ConnectorClass name expected by the connector service. Talon uses this as a
+       * defensive consistency check when resolving the registration.
+       * </pre>
+       *
        * <code>string connector_class = 4;</code>
        * @return The connectorClass.
        */
@@ -4255,6 +5108,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * ConnectorClass name expected by the connector service. Talon uses this as a
+       * defensive consistency check when resolving the registration.
+       * </pre>
+       *
        * <code>string connector_class = 4;</code>
        * @return The bytes for connectorClass.
        */
@@ -4272,6 +5130,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * ConnectorClass name expected by the connector service. Talon uses this as a
+       * defensive consistency check when resolving the registration.
+       * </pre>
+       *
        * <code>string connector_class = 4;</code>
        * @param value The connectorClass to set.
        * @return This builder for chaining.
@@ -4285,6 +5148,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * ConnectorClass name expected by the connector service. Talon uses this as a
+       * defensive consistency check when resolving the registration.
+       * </pre>
+       *
        * <code>string connector_class = 4;</code>
        * @return This builder for chaining.
        */
@@ -4295,6 +5163,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * ConnectorClass name expected by the connector service. Talon uses this as a
+       * defensive consistency check when resolving the registration.
+       * </pre>
+       *
        * <code>string connector_class = 4;</code>
        * @param value The bytes for connectorClass to set.
        * @return This builder for chaining.
@@ -4336,6 +5209,11 @@ java.lang.String defaultValue) {
         return internalGetMatchFields().getMap().size();
       }
       /**
+       * <pre>
+       * Provider-specific routing keys normalized by the connector service. Talon
+       * treats these as opaque values and matches them against Connector resources.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 5;</code>
        */
       @java.lang.Override
@@ -4353,6 +5231,11 @@ java.lang.String defaultValue) {
         return getMatchFieldsMap();
       }
       /**
+       * <pre>
+       * Provider-specific routing keys normalized by the connector service. Talon
+       * treats these as opaque values and matches them against Connector resources.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 5;</code>
        */
       @java.lang.Override
@@ -4360,6 +5243,11 @@ java.lang.String defaultValue) {
         return internalGetMatchFields().getMap();
       }
       /**
+       * <pre>
+       * Provider-specific routing keys normalized by the connector service. Talon
+       * treats these as opaque values and matches them against Connector resources.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 5;</code>
        */
       @java.lang.Override
@@ -4374,6 +5262,11 @@ java.lang.String defaultValue) {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
+       * <pre>
+       * Provider-specific routing keys normalized by the connector service. Talon
+       * treats these as opaque values and matches them against Connector resources.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 5;</code>
        */
       @java.lang.Override
@@ -4394,6 +5287,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Provider-specific routing keys normalized by the connector service. Talon
+       * treats these as opaque values and matches them against Connector resources.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 5;</code>
        */
       public Builder removeMatchFields(
@@ -4413,6 +5311,11 @@ java.lang.String defaultValue) {
         return internalGetMutableMatchFields().getMutableMap();
       }
       /**
+       * <pre>
+       * Provider-specific routing keys normalized by the connector service. Talon
+       * treats these as opaque values and matches them against Connector resources.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 5;</code>
        */
       public Builder putMatchFields(
@@ -4426,6 +5329,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Provider-specific routing keys normalized by the connector service. Talon
+       * treats these as opaque values and matches them against Connector resources.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 5;</code>
        */
       public Builder putAllMatchFields(
@@ -4438,6 +5346,11 @@ java.lang.String defaultValue) {
 
       private java.lang.Object externalConversationId_ = "";
       /**
+       * <pre>
+       * Stable provider conversation identifier, such as a Slack channel/DM ID or
+       * iMessage chat GUID.
+       * </pre>
+       *
        * <code>string external_conversation_id = 6;</code>
        * @return The externalConversationId.
        */
@@ -4454,6 +5367,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Stable provider conversation identifier, such as a Slack channel/DM ID or
+       * iMessage chat GUID.
+       * </pre>
+       *
        * <code>string external_conversation_id = 6;</code>
        * @return The bytes for externalConversationId.
        */
@@ -4471,6 +5389,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Stable provider conversation identifier, such as a Slack channel/DM ID or
+       * iMessage chat GUID.
+       * </pre>
+       *
        * <code>string external_conversation_id = 6;</code>
        * @param value The externalConversationId to set.
        * @return This builder for chaining.
@@ -4484,6 +5407,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Stable provider conversation identifier, such as a Slack channel/DM ID or
+       * iMessage chat GUID.
+       * </pre>
+       *
        * <code>string external_conversation_id = 6;</code>
        * @return This builder for chaining.
        */
@@ -4494,6 +5422,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Stable provider conversation identifier, such as a Slack channel/DM ID or
+       * iMessage chat GUID.
+       * </pre>
+       *
        * <code>string external_conversation_id = 6;</code>
        * @param value The bytes for externalConversationId to set.
        * @return This builder for chaining.
@@ -4510,6 +5443,11 @@ java.lang.String defaultValue) {
 
       private java.lang.Object externalThreadId_ = "";
       /**
+       * <pre>
+       * Stable provider thread identifier when the platform has threads. Omitted
+       * for platforms or conversations without a thread concept.
+       * </pre>
+       *
        * <code>optional string external_thread_id = 7;</code>
        * @return Whether the externalThreadId field is set.
        */
@@ -4517,6 +5455,11 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00000040) != 0);
       }
       /**
+       * <pre>
+       * Stable provider thread identifier when the platform has threads. Omitted
+       * for platforms or conversations without a thread concept.
+       * </pre>
+       *
        * <code>optional string external_thread_id = 7;</code>
        * @return The externalThreadId.
        */
@@ -4533,6 +5476,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Stable provider thread identifier when the platform has threads. Omitted
+       * for platforms or conversations without a thread concept.
+       * </pre>
+       *
        * <code>optional string external_thread_id = 7;</code>
        * @return The bytes for externalThreadId.
        */
@@ -4550,6 +5498,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Stable provider thread identifier when the platform has threads. Omitted
+       * for platforms or conversations without a thread concept.
+       * </pre>
+       *
        * <code>optional string external_thread_id = 7;</code>
        * @param value The externalThreadId to set.
        * @return This builder for chaining.
@@ -4563,6 +5516,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Stable provider thread identifier when the platform has threads. Omitted
+       * for platforms or conversations without a thread concept.
+       * </pre>
+       *
        * <code>optional string external_thread_id = 7;</code>
        * @return This builder for chaining.
        */
@@ -4573,6 +5531,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Stable provider thread identifier when the platform has threads. Omitted
+       * for platforms or conversations without a thread concept.
+       * </pre>
+       *
        * <code>optional string external_thread_id = 7;</code>
        * @param value The bytes for externalThreadId to set.
        * @return This builder for chaining.
@@ -4589,6 +5552,11 @@ java.lang.String defaultValue) {
 
       private java.lang.Object externalMessageId_ = "";
       /**
+       * <pre>
+       * Provider-native message identifier for delivery correlation, replies,
+       * edits, deletes, and deduplication diagnostics.
+       * </pre>
+       *
        * <code>string external_message_id = 8;</code>
        * @return The externalMessageId.
        */
@@ -4605,6 +5573,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Provider-native message identifier for delivery correlation, replies,
+       * edits, deletes, and deduplication diagnostics.
+       * </pre>
+       *
        * <code>string external_message_id = 8;</code>
        * @return The bytes for externalMessageId.
        */
@@ -4622,6 +5595,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Provider-native message identifier for delivery correlation, replies,
+       * edits, deletes, and deduplication diagnostics.
+       * </pre>
+       *
        * <code>string external_message_id = 8;</code>
        * @param value The externalMessageId to set.
        * @return This builder for chaining.
@@ -4635,6 +5613,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Provider-native message identifier for delivery correlation, replies,
+       * edits, deletes, and deduplication diagnostics.
+       * </pre>
+       *
        * <code>string external_message_id = 8;</code>
        * @return This builder for chaining.
        */
@@ -4645,6 +5628,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Provider-native message identifier for delivery correlation, replies,
+       * edits, deletes, and deduplication diagnostics.
+       * </pre>
+       *
        * <code>string external_message_id = 8;</code>
        * @param value The bytes for externalMessageId to set.
        * @return This builder for chaining.
@@ -4661,6 +5649,11 @@ java.lang.String defaultValue) {
 
       private java.lang.Object conversationType_ = "";
       /**
+       * <pre>
+       * Normalized conversation shape, such as dm, group, channel, or
+       * channel_thread.
+       * </pre>
+       *
        * <code>string conversation_type = 9;</code>
        * @return The conversationType.
        */
@@ -4677,6 +5670,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Normalized conversation shape, such as dm, group, channel, or
+       * channel_thread.
+       * </pre>
+       *
        * <code>string conversation_type = 9;</code>
        * @return The bytes for conversationType.
        */
@@ -4694,6 +5692,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Normalized conversation shape, such as dm, group, channel, or
+       * channel_thread.
+       * </pre>
+       *
        * <code>string conversation_type = 9;</code>
        * @param value The conversationType to set.
        * @return This builder for chaining.
@@ -4707,6 +5710,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized conversation shape, such as dm, group, channel, or
+       * channel_thread.
+       * </pre>
+       *
        * <code>string conversation_type = 9;</code>
        * @return This builder for chaining.
        */
@@ -4717,6 +5725,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized conversation shape, such as dm, group, channel, or
+       * channel_thread.
+       * </pre>
+       *
        * <code>string conversation_type = 9;</code>
        * @param value The bytes for conversationType to set.
        * @return This builder for chaining.
@@ -4735,6 +5748,10 @@ java.lang.String defaultValue) {
       private com.google.protobuf.SingleFieldBuilder<
           talon.v1.Connectors.ConnectorActor, talon.v1.Connectors.ConnectorActor.Builder, talon.v1.Connectors.ConnectorActorOrBuilder> senderBuilder_;
       /**
+       * <pre>
+       * Normalized sender identity.
+       * </pre>
+       *
        * <code>.talon.v1.ConnectorActor sender = 10;</code>
        * @return Whether the sender field is set.
        */
@@ -4742,6 +5759,10 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00000200) != 0);
       }
       /**
+       * <pre>
+       * Normalized sender identity.
+       * </pre>
+       *
        * <code>.talon.v1.ConnectorActor sender = 10;</code>
        * @return The sender.
        */
@@ -4753,6 +5774,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Normalized sender identity.
+       * </pre>
+       *
        * <code>.talon.v1.ConnectorActor sender = 10;</code>
        */
       public Builder setSender(talon.v1.Connectors.ConnectorActor value) {
@@ -4769,6 +5794,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized sender identity.
+       * </pre>
+       *
        * <code>.talon.v1.ConnectorActor sender = 10;</code>
        */
       public Builder setSender(
@@ -4783,6 +5812,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized sender identity.
+       * </pre>
+       *
        * <code>.talon.v1.ConnectorActor sender = 10;</code>
        */
       public Builder mergeSender(talon.v1.Connectors.ConnectorActor value) {
@@ -4804,6 +5837,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized sender identity.
+       * </pre>
+       *
        * <code>.talon.v1.ConnectorActor sender = 10;</code>
        */
       public Builder clearSender() {
@@ -4817,6 +5854,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized sender identity.
+       * </pre>
+       *
        * <code>.talon.v1.ConnectorActor sender = 10;</code>
        */
       public talon.v1.Connectors.ConnectorActor.Builder getSenderBuilder() {
@@ -4825,6 +5866,10 @@ java.lang.String defaultValue) {
         return internalGetSenderFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Normalized sender identity.
+       * </pre>
+       *
        * <code>.talon.v1.ConnectorActor sender = 10;</code>
        */
       public talon.v1.Connectors.ConnectorActorOrBuilder getSenderOrBuilder() {
@@ -4836,6 +5881,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Normalized sender identity.
+       * </pre>
+       *
        * <code>.talon.v1.ConnectorActor sender = 10;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -4854,6 +5903,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object text_ = "";
       /**
+       * <pre>
+       * Plain text projection of the provider message.
+       * </pre>
+       *
        * <code>string text = 11;</code>
        * @return The text.
        */
@@ -4870,6 +5923,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Plain text projection of the provider message.
+       * </pre>
+       *
        * <code>string text = 11;</code>
        * @return The bytes for text.
        */
@@ -4887,6 +5944,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Plain text projection of the provider message.
+       * </pre>
+       *
        * <code>string text = 11;</code>
        * @param value The text to set.
        * @return This builder for chaining.
@@ -4900,6 +5961,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Plain text projection of the provider message.
+       * </pre>
+       *
        * <code>string text = 11;</code>
        * @return This builder for chaining.
        */
@@ -4910,6 +5975,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Plain text projection of the provider message.
+       * </pre>
+       *
        * <code>string text = 11;</code>
        * @param value The bytes for text to set.
        * @return This builder for chaining.
@@ -4937,6 +6006,10 @@ java.lang.String defaultValue) {
           talon.v1.Connectors.ConnectorAttachment, talon.v1.Connectors.ConnectorAttachment.Builder, talon.v1.Connectors.ConnectorAttachmentOrBuilder> attachmentsBuilder_;
 
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public java.util.List<talon.v1.Connectors.ConnectorAttachment> getAttachmentsList() {
@@ -4947,6 +6020,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public int getAttachmentsCount() {
@@ -4957,6 +6034,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public talon.v1.Connectors.ConnectorAttachment getAttachments(int index) {
@@ -4967,6 +6048,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public Builder setAttachments(
@@ -4984,6 +6069,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public Builder setAttachments(
@@ -4998,6 +6087,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public Builder addAttachments(talon.v1.Connectors.ConnectorAttachment value) {
@@ -5014,6 +6107,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public Builder addAttachments(
@@ -5031,6 +6128,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public Builder addAttachments(
@@ -5045,6 +6146,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public Builder addAttachments(
@@ -5059,6 +6164,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public Builder addAllAttachments(
@@ -5074,6 +6183,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public Builder clearAttachments() {
@@ -5087,6 +6200,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public Builder removeAttachments(int index) {
@@ -5100,6 +6217,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public talon.v1.Connectors.ConnectorAttachment.Builder getAttachmentsBuilder(
@@ -5107,6 +6228,10 @@ java.lang.String defaultValue) {
         return internalGetAttachmentsFieldBuilder().getBuilder(index);
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public talon.v1.Connectors.ConnectorAttachmentOrBuilder getAttachmentsOrBuilder(
@@ -5117,6 +6242,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public java.util.List<? extends talon.v1.Connectors.ConnectorAttachmentOrBuilder>
@@ -5128,6 +6257,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public talon.v1.Connectors.ConnectorAttachment.Builder addAttachmentsBuilder() {
@@ -5135,6 +6268,10 @@ java.lang.String defaultValue) {
             talon.v1.Connectors.ConnectorAttachment.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public talon.v1.Connectors.ConnectorAttachment.Builder addAttachmentsBuilder(
@@ -5143,6 +6280,10 @@ java.lang.String defaultValue) {
             index, talon.v1.Connectors.ConnectorAttachment.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Normalized attachments associated with the provider message.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 12;</code>
        */
       public java.util.List<talon.v1.Connectors.ConnectorAttachment.Builder>
@@ -5166,6 +6307,11 @@ java.lang.String defaultValue) {
 
       private long eventTimeMs_ ;
       /**
+       * <pre>
+       * Provider event timestamp in Unix milliseconds. Connector services should
+       * preserve provider time when available.
+       * </pre>
+       *
        * <code>int64 event_time_ms = 13;</code>
        * @return The eventTimeMs.
        */
@@ -5174,6 +6320,11 @@ java.lang.String defaultValue) {
         return eventTimeMs_;
       }
       /**
+       * <pre>
+       * Provider event timestamp in Unix milliseconds. Connector services should
+       * preserve provider time when available.
+       * </pre>
+       *
        * <code>int64 event_time_ms = 13;</code>
        * @param value The eventTimeMs to set.
        * @return This builder for chaining.
@@ -5186,6 +6337,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Provider event timestamp in Unix milliseconds. Connector services should
+       * preserve provider time when available.
+       * </pre>
+       *
        * <code>int64 event_time_ms = 13;</code>
        * @return This builder for chaining.
        */
@@ -5223,6 +6379,11 @@ java.lang.String defaultValue) {
         return internalGetLabels().getMap().size();
       }
       /**
+       * <pre>
+       * Connector-service-defined labels for diagnostics or provider-specific
+       * routing hints that do not justify a first-class protocol field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 14;</code>
        */
       @java.lang.Override
@@ -5240,6 +6401,11 @@ java.lang.String defaultValue) {
         return getLabelsMap();
       }
       /**
+       * <pre>
+       * Connector-service-defined labels for diagnostics or provider-specific
+       * routing hints that do not justify a first-class protocol field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 14;</code>
        */
       @java.lang.Override
@@ -5247,6 +6413,11 @@ java.lang.String defaultValue) {
         return internalGetLabels().getMap();
       }
       /**
+       * <pre>
+       * Connector-service-defined labels for diagnostics or provider-specific
+       * routing hints that do not justify a first-class protocol field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 14;</code>
        */
       @java.lang.Override
@@ -5261,6 +6432,11 @@ java.lang.String defaultValue) {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
+       * <pre>
+       * Connector-service-defined labels for diagnostics or provider-specific
+       * routing hints that do not justify a first-class protocol field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 14;</code>
        */
       @java.lang.Override
@@ -5281,6 +6457,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Connector-service-defined labels for diagnostics or provider-specific
+       * routing hints that do not justify a first-class protocol field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 14;</code>
        */
       public Builder removeLabels(
@@ -5300,6 +6481,11 @@ java.lang.String defaultValue) {
         return internalGetMutableLabels().getMutableMap();
       }
       /**
+       * <pre>
+       * Connector-service-defined labels for diagnostics or provider-specific
+       * routing hints that do not justify a first-class protocol field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 14;</code>
        */
       public Builder putLabels(
@@ -5313,6 +6499,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Connector-service-defined labels for diagnostics or provider-specific
+       * routing hints that do not justify a first-class protocol field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 14;</code>
        */
       public Builder putAllLabels(
@@ -5379,23 +6570,40 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * True when Talon accepted responsibility for the event, including duplicate
+     * events that were already handled.
+     * </pre>
+     *
      * <code>bool accepted = 1;</code>
      * @return The accepted.
      */
     boolean getAccepted();
 
     /**
+     * <pre>
+     * True when Talon had already seen registration_id + event_id.
+     * </pre>
+     *
      * <code>bool duplicate = 2;</code>
      * @return The duplicate.
      */
     boolean getDuplicate();
 
     /**
+     * <pre>
+     * Machine-readable outcome, such as dispatched, duplicate, or unmatched.
+     * </pre>
+     *
      * <code>string disposition = 3;</code>
      * @return The disposition.
      */
     java.lang.String getDisposition();
     /**
+     * <pre>
+     * Machine-readable outcome, such as dispatched, duplicate, or unmatched.
+     * </pre>
+     *
      * <code>string disposition = 3;</code>
      * @return The bytes for disposition.
      */
@@ -5403,11 +6611,21 @@ java.lang.String defaultValue) {
         getDispositionBytes();
 
     /**
+     * <pre>
+     * Namespace of the Connector that matched the event. Empty when unmatched or
+     * duplicate without a fresh route lookup.
+     * </pre>
+     *
      * <code>string namespace = 4;</code>
      * @return The namespace.
      */
     java.lang.String getNamespace();
     /**
+     * <pre>
+     * Namespace of the Connector that matched the event. Empty when unmatched or
+     * duplicate without a fresh route lookup.
+     * </pre>
+     *
      * <code>string namespace = 4;</code>
      * @return The bytes for namespace.
      */
@@ -5415,11 +6633,21 @@ java.lang.String defaultValue) {
         getNamespaceBytes();
 
     /**
+     * <pre>
+     * Name of the Connector that matched the event. Empty when unmatched or
+     * duplicate without a fresh route lookup.
+     * </pre>
+     *
      * <code>string connector_name = 5;</code>
      * @return The connectorName.
      */
     java.lang.String getConnectorName();
     /**
+     * <pre>
+     * Name of the Connector that matched the event. Empty when unmatched or
+     * duplicate without a fresh route lookup.
+     * </pre>
+     *
      * <code>string connector_name = 5;</code>
      * @return The bytes for connectorName.
      */
@@ -5427,16 +6655,31 @@ java.lang.String defaultValue) {
         getConnectorNameBytes();
 
     /**
+     * <pre>
+     * Target snapshot used for dispatch. Returned for observability so connector
+     * services can log which Talon destination accepted the event.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorTarget target = 6;</code>
      * @return Whether the target field is set.
      */
     boolean hasTarget();
     /**
+     * <pre>
+     * Target snapshot used for dispatch. Returned for observability so connector
+     * services can log which Talon destination accepted the event.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorTarget target = 6;</code>
      * @return The target.
      */
     talon.resources.Connectors.ConnectorTarget getTarget();
     /**
+     * <pre>
+     * Target snapshot used for dispatch. Returned for observability so connector
+     * services can log which Talon destination accepted the event.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorTarget target = 6;</code>
      */
     talon.resources.Connectors.ConnectorTargetOrBuilder getTargetOrBuilder();
@@ -5490,6 +6733,11 @@ java.lang.String defaultValue) {
     public static final int ACCEPTED_FIELD_NUMBER = 1;
     private boolean accepted_ = false;
     /**
+     * <pre>
+     * True when Talon accepted responsibility for the event, including duplicate
+     * events that were already handled.
+     * </pre>
+     *
      * <code>bool accepted = 1;</code>
      * @return The accepted.
      */
@@ -5501,6 +6749,10 @@ java.lang.String defaultValue) {
     public static final int DUPLICATE_FIELD_NUMBER = 2;
     private boolean duplicate_ = false;
     /**
+     * <pre>
+     * True when Talon had already seen registration_id + event_id.
+     * </pre>
+     *
      * <code>bool duplicate = 2;</code>
      * @return The duplicate.
      */
@@ -5513,6 +6765,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object disposition_ = "";
     /**
+     * <pre>
+     * Machine-readable outcome, such as dispatched, duplicate, or unmatched.
+     * </pre>
+     *
      * <code>string disposition = 3;</code>
      * @return The disposition.
      */
@@ -5530,6 +6786,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Machine-readable outcome, such as dispatched, duplicate, or unmatched.
+     * </pre>
+     *
      * <code>string disposition = 3;</code>
      * @return The bytes for disposition.
      */
@@ -5552,6 +6812,11 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object namespace_ = "";
     /**
+     * <pre>
+     * Namespace of the Connector that matched the event. Empty when unmatched or
+     * duplicate without a fresh route lookup.
+     * </pre>
+     *
      * <code>string namespace = 4;</code>
      * @return The namespace.
      */
@@ -5569,6 +6834,11 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Namespace of the Connector that matched the event. Empty when unmatched or
+     * duplicate without a fresh route lookup.
+     * </pre>
+     *
      * <code>string namespace = 4;</code>
      * @return The bytes for namespace.
      */
@@ -5591,6 +6861,11 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object connectorName_ = "";
     /**
+     * <pre>
+     * Name of the Connector that matched the event. Empty when unmatched or
+     * duplicate without a fresh route lookup.
+     * </pre>
+     *
      * <code>string connector_name = 5;</code>
      * @return The connectorName.
      */
@@ -5608,6 +6883,11 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Name of the Connector that matched the event. Empty when unmatched or
+     * duplicate without a fresh route lookup.
+     * </pre>
+     *
      * <code>string connector_name = 5;</code>
      * @return The bytes for connectorName.
      */
@@ -5629,6 +6909,11 @@ java.lang.String defaultValue) {
     public static final int TARGET_FIELD_NUMBER = 6;
     private talon.resources.Connectors.ConnectorTarget target_;
     /**
+     * <pre>
+     * Target snapshot used for dispatch. Returned for observability so connector
+     * services can log which Talon destination accepted the event.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorTarget target = 6;</code>
      * @return Whether the target field is set.
      */
@@ -5637,6 +6922,11 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
+     * <pre>
+     * Target snapshot used for dispatch. Returned for observability so connector
+     * services can log which Talon destination accepted the event.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorTarget target = 6;</code>
      * @return The target.
      */
@@ -5645,6 +6935,11 @@ java.lang.String defaultValue) {
       return target_ == null ? talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
     }
     /**
+     * <pre>
+     * Target snapshot used for dispatch. Returned for observability so connector
+     * services can log which Talon destination accepted the event.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorTarget target = 6;</code>
      */
     @java.lang.Override
@@ -6089,6 +7384,11 @@ java.lang.String defaultValue) {
 
       private boolean accepted_ ;
       /**
+       * <pre>
+       * True when Talon accepted responsibility for the event, including duplicate
+       * events that were already handled.
+       * </pre>
+       *
        * <code>bool accepted = 1;</code>
        * @return The accepted.
        */
@@ -6097,6 +7397,11 @@ java.lang.String defaultValue) {
         return accepted_;
       }
       /**
+       * <pre>
+       * True when Talon accepted responsibility for the event, including duplicate
+       * events that were already handled.
+       * </pre>
+       *
        * <code>bool accepted = 1;</code>
        * @param value The accepted to set.
        * @return This builder for chaining.
@@ -6109,6 +7414,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * True when Talon accepted responsibility for the event, including duplicate
+       * events that were already handled.
+       * </pre>
+       *
        * <code>bool accepted = 1;</code>
        * @return This builder for chaining.
        */
@@ -6121,6 +7431,10 @@ java.lang.String defaultValue) {
 
       private boolean duplicate_ ;
       /**
+       * <pre>
+       * True when Talon had already seen registration_id + event_id.
+       * </pre>
+       *
        * <code>bool duplicate = 2;</code>
        * @return The duplicate.
        */
@@ -6129,6 +7443,10 @@ java.lang.String defaultValue) {
         return duplicate_;
       }
       /**
+       * <pre>
+       * True when Talon had already seen registration_id + event_id.
+       * </pre>
+       *
        * <code>bool duplicate = 2;</code>
        * @param value The duplicate to set.
        * @return This builder for chaining.
@@ -6141,6 +7459,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * True when Talon had already seen registration_id + event_id.
+       * </pre>
+       *
        * <code>bool duplicate = 2;</code>
        * @return This builder for chaining.
        */
@@ -6153,6 +7475,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object disposition_ = "";
       /**
+       * <pre>
+       * Machine-readable outcome, such as dispatched, duplicate, or unmatched.
+       * </pre>
+       *
        * <code>string disposition = 3;</code>
        * @return The disposition.
        */
@@ -6169,6 +7495,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Machine-readable outcome, such as dispatched, duplicate, or unmatched.
+       * </pre>
+       *
        * <code>string disposition = 3;</code>
        * @return The bytes for disposition.
        */
@@ -6186,6 +7516,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Machine-readable outcome, such as dispatched, duplicate, or unmatched.
+       * </pre>
+       *
        * <code>string disposition = 3;</code>
        * @param value The disposition to set.
        * @return This builder for chaining.
@@ -6199,6 +7533,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Machine-readable outcome, such as dispatched, duplicate, or unmatched.
+       * </pre>
+       *
        * <code>string disposition = 3;</code>
        * @return This builder for chaining.
        */
@@ -6209,6 +7547,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Machine-readable outcome, such as dispatched, duplicate, or unmatched.
+       * </pre>
+       *
        * <code>string disposition = 3;</code>
        * @param value The bytes for disposition to set.
        * @return This builder for chaining.
@@ -6225,6 +7567,11 @@ java.lang.String defaultValue) {
 
       private java.lang.Object namespace_ = "";
       /**
+       * <pre>
+       * Namespace of the Connector that matched the event. Empty when unmatched or
+       * duplicate without a fresh route lookup.
+       * </pre>
+       *
        * <code>string namespace = 4;</code>
        * @return The namespace.
        */
@@ -6241,6 +7588,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Namespace of the Connector that matched the event. Empty when unmatched or
+       * duplicate without a fresh route lookup.
+       * </pre>
+       *
        * <code>string namespace = 4;</code>
        * @return The bytes for namespace.
        */
@@ -6258,6 +7610,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Namespace of the Connector that matched the event. Empty when unmatched or
+       * duplicate without a fresh route lookup.
+       * </pre>
+       *
        * <code>string namespace = 4;</code>
        * @param value The namespace to set.
        * @return This builder for chaining.
@@ -6271,6 +7628,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Namespace of the Connector that matched the event. Empty when unmatched or
+       * duplicate without a fresh route lookup.
+       * </pre>
+       *
        * <code>string namespace = 4;</code>
        * @return This builder for chaining.
        */
@@ -6281,6 +7643,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Namespace of the Connector that matched the event. Empty when unmatched or
+       * duplicate without a fresh route lookup.
+       * </pre>
+       *
        * <code>string namespace = 4;</code>
        * @param value The bytes for namespace to set.
        * @return This builder for chaining.
@@ -6297,6 +7664,11 @@ java.lang.String defaultValue) {
 
       private java.lang.Object connectorName_ = "";
       /**
+       * <pre>
+       * Name of the Connector that matched the event. Empty when unmatched or
+       * duplicate without a fresh route lookup.
+       * </pre>
+       *
        * <code>string connector_name = 5;</code>
        * @return The connectorName.
        */
@@ -6313,6 +7685,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Name of the Connector that matched the event. Empty when unmatched or
+       * duplicate without a fresh route lookup.
+       * </pre>
+       *
        * <code>string connector_name = 5;</code>
        * @return The bytes for connectorName.
        */
@@ -6330,6 +7707,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Name of the Connector that matched the event. Empty when unmatched or
+       * duplicate without a fresh route lookup.
+       * </pre>
+       *
        * <code>string connector_name = 5;</code>
        * @param value The connectorName to set.
        * @return This builder for chaining.
@@ -6343,6 +7725,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Name of the Connector that matched the event. Empty when unmatched or
+       * duplicate without a fresh route lookup.
+       * </pre>
+       *
        * <code>string connector_name = 5;</code>
        * @return This builder for chaining.
        */
@@ -6353,6 +7740,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Name of the Connector that matched the event. Empty when unmatched or
+       * duplicate without a fresh route lookup.
+       * </pre>
+       *
        * <code>string connector_name = 5;</code>
        * @param value The bytes for connectorName to set.
        * @return This builder for chaining.
@@ -6371,6 +7763,11 @@ java.lang.String defaultValue) {
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Connectors.ConnectorTarget, talon.resources.Connectors.ConnectorTarget.Builder, talon.resources.Connectors.ConnectorTargetOrBuilder> targetBuilder_;
       /**
+       * <pre>
+       * Target snapshot used for dispatch. Returned for observability so connector
+       * services can log which Talon destination accepted the event.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorTarget target = 6;</code>
        * @return Whether the target field is set.
        */
@@ -6378,6 +7775,11 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00000020) != 0);
       }
       /**
+       * <pre>
+       * Target snapshot used for dispatch. Returned for observability so connector
+       * services can log which Talon destination accepted the event.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorTarget target = 6;</code>
        * @return The target.
        */
@@ -6389,6 +7791,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Target snapshot used for dispatch. Returned for observability so connector
+       * services can log which Talon destination accepted the event.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorTarget target = 6;</code>
        */
       public Builder setTarget(talon.resources.Connectors.ConnectorTarget value) {
@@ -6405,6 +7812,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Target snapshot used for dispatch. Returned for observability so connector
+       * services can log which Talon destination accepted the event.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorTarget target = 6;</code>
        */
       public Builder setTarget(
@@ -6419,6 +7831,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Target snapshot used for dispatch. Returned for observability so connector
+       * services can log which Talon destination accepted the event.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorTarget target = 6;</code>
        */
       public Builder mergeTarget(talon.resources.Connectors.ConnectorTarget value) {
@@ -6440,6 +7857,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Target snapshot used for dispatch. Returned for observability so connector
+       * services can log which Talon destination accepted the event.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorTarget target = 6;</code>
        */
       public Builder clearTarget() {
@@ -6453,6 +7875,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Target snapshot used for dispatch. Returned for observability so connector
+       * services can log which Talon destination accepted the event.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorTarget target = 6;</code>
        */
       public talon.resources.Connectors.ConnectorTarget.Builder getTargetBuilder() {
@@ -6461,6 +7888,11 @@ java.lang.String defaultValue) {
         return internalGetTargetFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Target snapshot used for dispatch. Returned for observability so connector
+       * services can log which Talon destination accepted the event.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorTarget target = 6;</code>
        */
       public talon.resources.Connectors.ConnectorTargetOrBuilder getTargetOrBuilder() {
@@ -6472,6 +7904,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Target snapshot used for dispatch. Returned for observability so connector
+       * services can log which Talon destination accepted the event.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorTarget target = 6;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -6544,11 +7981,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Talon-generated idempotency key for this outbound delivery request.
+     * </pre>
+     *
      * <code>string delivery_id = 1;</code>
      * @return The deliveryId.
      */
     java.lang.String getDeliveryId();
     /**
+     * <pre>
+     * Talon-generated idempotency key for this outbound delivery request.
+     * </pre>
+     *
      * <code>string delivery_id = 1;</code>
      * @return The bytes for deliveryId.
      */
@@ -6556,11 +8001,21 @@ java.lang.String defaultValue) {
         getDeliveryIdBytes();
 
     /**
+     * <pre>
+     * Registration identifier for the connector service that should perform
+     * provider delivery.
+     * </pre>
+     *
      * <code>string registration_id = 2;</code>
      * @return The registrationId.
      */
     java.lang.String getRegistrationId();
     /**
+     * <pre>
+     * Registration identifier for the connector service that should perform
+     * provider delivery.
+     * </pre>
+     *
      * <code>string registration_id = 2;</code>
      * @return The bytes for registrationId.
      */
@@ -6568,11 +8023,19 @@ java.lang.String defaultValue) {
         getRegistrationIdBytes();
 
     /**
+     * <pre>
+     * ConnectorClass name associated with the outbound route.
+     * </pre>
+     *
      * <code>string connector_class = 3;</code>
      * @return The connectorClass.
      */
     java.lang.String getConnectorClass();
     /**
+     * <pre>
+     * ConnectorClass name associated with the outbound route.
+     * </pre>
+     *
      * <code>string connector_class = 3;</code>
      * @return The bytes for connectorClass.
      */
@@ -6580,11 +8043,19 @@ java.lang.String defaultValue) {
         getConnectorClassBytes();
 
     /**
+     * <pre>
+     * Talon namespace that produced the outbound message.
+     * </pre>
+     *
      * <code>string namespace = 4;</code>
      * @return The namespace.
      */
     java.lang.String getNamespace();
     /**
+     * <pre>
+     * Talon namespace that produced the outbound message.
+     * </pre>
+     *
      * <code>string namespace = 4;</code>
      * @return The bytes for namespace.
      */
@@ -6592,11 +8063,19 @@ java.lang.String defaultValue) {
         getNamespaceBytes();
 
     /**
+     * <pre>
+     * Connector resource name that provides provider routing context.
+     * </pre>
+     *
      * <code>string connector_name = 5;</code>
      * @return The connectorName.
      */
     java.lang.String getConnectorName();
     /**
+     * <pre>
+     * Connector resource name that provides provider routing context.
+     * </pre>
+     *
      * <code>string connector_name = 5;</code>
      * @return The bytes for connectorName.
      */
@@ -6604,10 +8083,18 @@ java.lang.String defaultValue) {
         getConnectorNameBytes();
 
     /**
+     * <pre>
+     * Provider-specific route fields copied from the matched Connector/event.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 6;</code>
      */
     int getMatchFieldsCount();
     /**
+     * <pre>
+     * Provider-specific route fields copied from the matched Connector/event.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 6;</code>
      */
     boolean containsMatchFields(
@@ -6619,11 +8106,19 @@ java.lang.String defaultValue) {
     java.util.Map<java.lang.String, java.lang.String>
     getMatchFields();
     /**
+     * <pre>
+     * Provider-specific route fields copied from the matched Connector/event.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 6;</code>
      */
     java.util.Map<java.lang.String, java.lang.String>
     getMatchFieldsMap();
     /**
+     * <pre>
+     * Provider-specific route fields copied from the matched Connector/event.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 6;</code>
      */
     /* nullable */
@@ -6632,17 +8127,29 @@ java.lang.String getMatchFieldsOrDefault(
         /* nullable */
 java.lang.String defaultValue);
     /**
+     * <pre>
+     * Provider-specific route fields copied from the matched Connector/event.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 6;</code>
      */
     java.lang.String getMatchFieldsOrThrow(
         java.lang.String key);
 
     /**
+     * <pre>
+     * Provider conversation identifier to deliver into.
+     * </pre>
+     *
      * <code>string external_conversation_id = 7;</code>
      * @return The externalConversationId.
      */
     java.lang.String getExternalConversationId();
     /**
+     * <pre>
+     * Provider conversation identifier to deliver into.
+     * </pre>
+     *
      * <code>string external_conversation_id = 7;</code>
      * @return The bytes for externalConversationId.
      */
@@ -6650,16 +8157,28 @@ java.lang.String defaultValue);
         getExternalConversationIdBytes();
 
     /**
+     * <pre>
+     * Provider thread identifier to deliver into when replying in a thread.
+     * </pre>
+     *
      * <code>optional string external_thread_id = 8;</code>
      * @return Whether the externalThreadId field is set.
      */
     boolean hasExternalThreadId();
     /**
+     * <pre>
+     * Provider thread identifier to deliver into when replying in a thread.
+     * </pre>
+     *
      * <code>optional string external_thread_id = 8;</code>
      * @return The externalThreadId.
      */
     java.lang.String getExternalThreadId();
     /**
+     * <pre>
+     * Provider thread identifier to deliver into when replying in a thread.
+     * </pre>
+     *
      * <code>optional string external_thread_id = 8;</code>
      * @return The bytes for externalThreadId.
      */
@@ -6667,16 +8186,28 @@ java.lang.String defaultValue);
         getExternalThreadIdBytes();
 
     /**
+     * <pre>
+     * Provider message identifier this delivery should reply to, when applicable.
+     * </pre>
+     *
      * <code>optional string reply_to_external_message_id = 9;</code>
      * @return Whether the replyToExternalMessageId field is set.
      */
     boolean hasReplyToExternalMessageId();
     /**
+     * <pre>
+     * Provider message identifier this delivery should reply to, when applicable.
+     * </pre>
+     *
      * <code>optional string reply_to_external_message_id = 9;</code>
      * @return The replyToExternalMessageId.
      */
     java.lang.String getReplyToExternalMessageId();
     /**
+     * <pre>
+     * Provider message identifier this delivery should reply to, when applicable.
+     * </pre>
+     *
      * <code>optional string reply_to_external_message_id = 9;</code>
      * @return The bytes for replyToExternalMessageId.
      */
@@ -6684,11 +8215,19 @@ java.lang.String defaultValue);
         getReplyToExternalMessageIdBytes();
 
     /**
+     * <pre>
+     * Plain text body produced by Talon.
+     * </pre>
+     *
      * <code>string text = 10;</code>
      * @return The text.
      */
     java.lang.String getText();
     /**
+     * <pre>
+     * Plain text body produced by Talon.
+     * </pre>
+     *
      * <code>string text = 10;</code>
      * @return The bytes for text.
      */
@@ -6696,34 +8235,62 @@ java.lang.String defaultValue);
         getTextBytes();
 
     /**
+     * <pre>
+     * Attachments Talon wants the connector service to deliver to the provider.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
      */
     java.util.List<talon.v1.Connectors.ConnectorAttachment>
         getAttachmentsList();
     /**
+     * <pre>
+     * Attachments Talon wants the connector service to deliver to the provider.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
      */
     talon.v1.Connectors.ConnectorAttachment getAttachments(int index);
     /**
+     * <pre>
+     * Attachments Talon wants the connector service to deliver to the provider.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
      */
     int getAttachmentsCount();
     /**
+     * <pre>
+     * Attachments Talon wants the connector service to deliver to the provider.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
      */
     java.util.List<? extends talon.v1.Connectors.ConnectorAttachmentOrBuilder>
         getAttachmentsOrBuilderList();
     /**
+     * <pre>
+     * Attachments Talon wants the connector service to deliver to the provider.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
      */
     talon.v1.Connectors.ConnectorAttachmentOrBuilder getAttachmentsOrBuilder(
         int index);
 
     /**
+     * <pre>
+     * Talon-defined delivery labels for diagnostics and provider-specific hints.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 12;</code>
      */
     int getLabelsCount();
     /**
+     * <pre>
+     * Talon-defined delivery labels for diagnostics and provider-specific hints.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 12;</code>
      */
     boolean containsLabels(
@@ -6735,11 +8302,19 @@ java.lang.String defaultValue);
     java.util.Map<java.lang.String, java.lang.String>
     getLabels();
     /**
+     * <pre>
+     * Talon-defined delivery labels for diagnostics and provider-specific hints.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 12;</code>
      */
     java.util.Map<java.lang.String, java.lang.String>
     getLabelsMap();
     /**
+     * <pre>
+     * Talon-defined delivery labels for diagnostics and provider-specific hints.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 12;</code>
      */
     /* nullable */
@@ -6748,6 +8323,10 @@ java.lang.String getLabelsOrDefault(
         /* nullable */
 java.lang.String defaultValue);
     /**
+     * <pre>
+     * Talon-defined delivery labels for diagnostics and provider-specific hints.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 12;</code>
      */
     java.lang.String getLabelsOrThrow(
@@ -6824,6 +8403,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object deliveryId_ = "";
     /**
+     * <pre>
+     * Talon-generated idempotency key for this outbound delivery request.
+     * </pre>
+     *
      * <code>string delivery_id = 1;</code>
      * @return The deliveryId.
      */
@@ -6841,6 +8424,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Talon-generated idempotency key for this outbound delivery request.
+     * </pre>
+     *
      * <code>string delivery_id = 1;</code>
      * @return The bytes for deliveryId.
      */
@@ -6863,6 +8450,11 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object registrationId_ = "";
     /**
+     * <pre>
+     * Registration identifier for the connector service that should perform
+     * provider delivery.
+     * </pre>
+     *
      * <code>string registration_id = 2;</code>
      * @return The registrationId.
      */
@@ -6880,6 +8472,11 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Registration identifier for the connector service that should perform
+     * provider delivery.
+     * </pre>
+     *
      * <code>string registration_id = 2;</code>
      * @return The bytes for registrationId.
      */
@@ -6902,6 +8499,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object connectorClass_ = "";
     /**
+     * <pre>
+     * ConnectorClass name associated with the outbound route.
+     * </pre>
+     *
      * <code>string connector_class = 3;</code>
      * @return The connectorClass.
      */
@@ -6919,6 +8520,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * ConnectorClass name associated with the outbound route.
+     * </pre>
+     *
      * <code>string connector_class = 3;</code>
      * @return The bytes for connectorClass.
      */
@@ -6941,6 +8546,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object namespace_ = "";
     /**
+     * <pre>
+     * Talon namespace that produced the outbound message.
+     * </pre>
+     *
      * <code>string namespace = 4;</code>
      * @return The namespace.
      */
@@ -6958,6 +8567,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Talon namespace that produced the outbound message.
+     * </pre>
+     *
      * <code>string namespace = 4;</code>
      * @return The bytes for namespace.
      */
@@ -6980,6 +8593,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object connectorName_ = "";
     /**
+     * <pre>
+     * Connector resource name that provides provider routing context.
+     * </pre>
+     *
      * <code>string connector_name = 5;</code>
      * @return The connectorName.
      */
@@ -6997,6 +8614,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Connector resource name that provides provider routing context.
+     * </pre>
+     *
      * <code>string connector_name = 5;</code>
      * @return The bytes for connectorName.
      */
@@ -7042,6 +8663,10 @@ java.lang.String defaultValue);
       return internalGetMatchFields().getMap().size();
     }
     /**
+     * <pre>
+     * Provider-specific route fields copied from the matched Connector/event.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 6;</code>
      */
     @java.lang.Override
@@ -7059,6 +8684,10 @@ java.lang.String defaultValue);
       return getMatchFieldsMap();
     }
     /**
+     * <pre>
+     * Provider-specific route fields copied from the matched Connector/event.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 6;</code>
      */
     @java.lang.Override
@@ -7066,6 +8695,10 @@ java.lang.String defaultValue);
       return internalGetMatchFields().getMap();
     }
     /**
+     * <pre>
+     * Provider-specific route fields copied from the matched Connector/event.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 6;</code>
      */
     @java.lang.Override
@@ -7080,6 +8713,10 @@ java.lang.String defaultValue) {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
+     * <pre>
+     * Provider-specific route fields copied from the matched Connector/event.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 6;</code>
      */
     @java.lang.Override
@@ -7098,6 +8735,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object externalConversationId_ = "";
     /**
+     * <pre>
+     * Provider conversation identifier to deliver into.
+     * </pre>
+     *
      * <code>string external_conversation_id = 7;</code>
      * @return The externalConversationId.
      */
@@ -7115,6 +8756,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Provider conversation identifier to deliver into.
+     * </pre>
+     *
      * <code>string external_conversation_id = 7;</code>
      * @return The bytes for externalConversationId.
      */
@@ -7137,6 +8782,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object externalThreadId_ = "";
     /**
+     * <pre>
+     * Provider thread identifier to deliver into when replying in a thread.
+     * </pre>
+     *
      * <code>optional string external_thread_id = 8;</code>
      * @return Whether the externalThreadId field is set.
      */
@@ -7145,6 +8794,10 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
+     * <pre>
+     * Provider thread identifier to deliver into when replying in a thread.
+     * </pre>
+     *
      * <code>optional string external_thread_id = 8;</code>
      * @return The externalThreadId.
      */
@@ -7162,6 +8815,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Provider thread identifier to deliver into when replying in a thread.
+     * </pre>
+     *
      * <code>optional string external_thread_id = 8;</code>
      * @return The bytes for externalThreadId.
      */
@@ -7184,6 +8841,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object replyToExternalMessageId_ = "";
     /**
+     * <pre>
+     * Provider message identifier this delivery should reply to, when applicable.
+     * </pre>
+     *
      * <code>optional string reply_to_external_message_id = 9;</code>
      * @return Whether the replyToExternalMessageId field is set.
      */
@@ -7192,6 +8853,10 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
+     * <pre>
+     * Provider message identifier this delivery should reply to, when applicable.
+     * </pre>
+     *
      * <code>optional string reply_to_external_message_id = 9;</code>
      * @return The replyToExternalMessageId.
      */
@@ -7209,6 +8874,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Provider message identifier this delivery should reply to, when applicable.
+     * </pre>
+     *
      * <code>optional string reply_to_external_message_id = 9;</code>
      * @return The bytes for replyToExternalMessageId.
      */
@@ -7231,6 +8900,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object text_ = "";
     /**
+     * <pre>
+     * Plain text body produced by Talon.
+     * </pre>
+     *
      * <code>string text = 10;</code>
      * @return The text.
      */
@@ -7248,6 +8921,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Plain text body produced by Talon.
+     * </pre>
+     *
      * <code>string text = 10;</code>
      * @return The bytes for text.
      */
@@ -7270,6 +8947,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private java.util.List<talon.v1.Connectors.ConnectorAttachment> attachments_;
     /**
+     * <pre>
+     * Attachments Talon wants the connector service to deliver to the provider.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
      */
     @java.lang.Override
@@ -7277,6 +8958,10 @@ java.lang.String defaultValue) {
       return attachments_;
     }
     /**
+     * <pre>
+     * Attachments Talon wants the connector service to deliver to the provider.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
      */
     @java.lang.Override
@@ -7285,6 +8970,10 @@ java.lang.String defaultValue) {
       return attachments_;
     }
     /**
+     * <pre>
+     * Attachments Talon wants the connector service to deliver to the provider.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
      */
     @java.lang.Override
@@ -7292,6 +8981,10 @@ java.lang.String defaultValue) {
       return attachments_.size();
     }
     /**
+     * <pre>
+     * Attachments Talon wants the connector service to deliver to the provider.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
      */
     @java.lang.Override
@@ -7299,6 +8992,10 @@ java.lang.String defaultValue) {
       return attachments_.get(index);
     }
     /**
+     * <pre>
+     * Attachments Talon wants the connector service to deliver to the provider.
+     * </pre>
+     *
      * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
      */
     @java.lang.Override
@@ -7334,6 +9031,10 @@ java.lang.String defaultValue) {
       return internalGetLabels().getMap().size();
     }
     /**
+     * <pre>
+     * Talon-defined delivery labels for diagnostics and provider-specific hints.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 12;</code>
      */
     @java.lang.Override
@@ -7351,6 +9052,10 @@ java.lang.String defaultValue) {
       return getLabelsMap();
     }
     /**
+     * <pre>
+     * Talon-defined delivery labels for diagnostics and provider-specific hints.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 12;</code>
      */
     @java.lang.Override
@@ -7358,6 +9063,10 @@ java.lang.String defaultValue) {
       return internalGetLabels().getMap();
     }
     /**
+     * <pre>
+     * Talon-defined delivery labels for diagnostics and provider-specific hints.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 12;</code>
      */
     @java.lang.Override
@@ -7372,6 +9081,10 @@ java.lang.String defaultValue) {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
+     * <pre>
+     * Talon-defined delivery labels for diagnostics and provider-specific hints.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 12;</code>
      */
     @java.lang.Override
@@ -8069,6 +9782,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object deliveryId_ = "";
       /**
+       * <pre>
+       * Talon-generated idempotency key for this outbound delivery request.
+       * </pre>
+       *
        * <code>string delivery_id = 1;</code>
        * @return The deliveryId.
        */
@@ -8085,6 +9802,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Talon-generated idempotency key for this outbound delivery request.
+       * </pre>
+       *
        * <code>string delivery_id = 1;</code>
        * @return The bytes for deliveryId.
        */
@@ -8102,6 +9823,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Talon-generated idempotency key for this outbound delivery request.
+       * </pre>
+       *
        * <code>string delivery_id = 1;</code>
        * @param value The deliveryId to set.
        * @return This builder for chaining.
@@ -8115,6 +9840,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Talon-generated idempotency key for this outbound delivery request.
+       * </pre>
+       *
        * <code>string delivery_id = 1;</code>
        * @return This builder for chaining.
        */
@@ -8125,6 +9854,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Talon-generated idempotency key for this outbound delivery request.
+       * </pre>
+       *
        * <code>string delivery_id = 1;</code>
        * @param value The bytes for deliveryId to set.
        * @return This builder for chaining.
@@ -8141,6 +9874,11 @@ java.lang.String defaultValue) {
 
       private java.lang.Object registrationId_ = "";
       /**
+       * <pre>
+       * Registration identifier for the connector service that should perform
+       * provider delivery.
+       * </pre>
+       *
        * <code>string registration_id = 2;</code>
        * @return The registrationId.
        */
@@ -8157,6 +9895,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Registration identifier for the connector service that should perform
+       * provider delivery.
+       * </pre>
+       *
        * <code>string registration_id = 2;</code>
        * @return The bytes for registrationId.
        */
@@ -8174,6 +9917,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Registration identifier for the connector service that should perform
+       * provider delivery.
+       * </pre>
+       *
        * <code>string registration_id = 2;</code>
        * @param value The registrationId to set.
        * @return This builder for chaining.
@@ -8187,6 +9935,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Registration identifier for the connector service that should perform
+       * provider delivery.
+       * </pre>
+       *
        * <code>string registration_id = 2;</code>
        * @return This builder for chaining.
        */
@@ -8197,6 +9950,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Registration identifier for the connector service that should perform
+       * provider delivery.
+       * </pre>
+       *
        * <code>string registration_id = 2;</code>
        * @param value The bytes for registrationId to set.
        * @return This builder for chaining.
@@ -8213,6 +9971,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object connectorClass_ = "";
       /**
+       * <pre>
+       * ConnectorClass name associated with the outbound route.
+       * </pre>
+       *
        * <code>string connector_class = 3;</code>
        * @return The connectorClass.
        */
@@ -8229,6 +9991,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * ConnectorClass name associated with the outbound route.
+       * </pre>
+       *
        * <code>string connector_class = 3;</code>
        * @return The bytes for connectorClass.
        */
@@ -8246,6 +10012,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * ConnectorClass name associated with the outbound route.
+       * </pre>
+       *
        * <code>string connector_class = 3;</code>
        * @param value The connectorClass to set.
        * @return This builder for chaining.
@@ -8259,6 +10029,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * ConnectorClass name associated with the outbound route.
+       * </pre>
+       *
        * <code>string connector_class = 3;</code>
        * @return This builder for chaining.
        */
@@ -8269,6 +10043,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * ConnectorClass name associated with the outbound route.
+       * </pre>
+       *
        * <code>string connector_class = 3;</code>
        * @param value The bytes for connectorClass to set.
        * @return This builder for chaining.
@@ -8285,6 +10063,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object namespace_ = "";
       /**
+       * <pre>
+       * Talon namespace that produced the outbound message.
+       * </pre>
+       *
        * <code>string namespace = 4;</code>
        * @return The namespace.
        */
@@ -8301,6 +10083,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Talon namespace that produced the outbound message.
+       * </pre>
+       *
        * <code>string namespace = 4;</code>
        * @return The bytes for namespace.
        */
@@ -8318,6 +10104,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Talon namespace that produced the outbound message.
+       * </pre>
+       *
        * <code>string namespace = 4;</code>
        * @param value The namespace to set.
        * @return This builder for chaining.
@@ -8331,6 +10121,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Talon namespace that produced the outbound message.
+       * </pre>
+       *
        * <code>string namespace = 4;</code>
        * @return This builder for chaining.
        */
@@ -8341,6 +10135,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Talon namespace that produced the outbound message.
+       * </pre>
+       *
        * <code>string namespace = 4;</code>
        * @param value The bytes for namespace to set.
        * @return This builder for chaining.
@@ -8357,6 +10155,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object connectorName_ = "";
       /**
+       * <pre>
+       * Connector resource name that provides provider routing context.
+       * </pre>
+       *
        * <code>string connector_name = 5;</code>
        * @return The connectorName.
        */
@@ -8373,6 +10175,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Connector resource name that provides provider routing context.
+       * </pre>
+       *
        * <code>string connector_name = 5;</code>
        * @return The bytes for connectorName.
        */
@@ -8390,6 +10196,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Connector resource name that provides provider routing context.
+       * </pre>
+       *
        * <code>string connector_name = 5;</code>
        * @param value The connectorName to set.
        * @return This builder for chaining.
@@ -8403,6 +10213,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Connector resource name that provides provider routing context.
+       * </pre>
+       *
        * <code>string connector_name = 5;</code>
        * @return This builder for chaining.
        */
@@ -8413,6 +10227,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Connector resource name that provides provider routing context.
+       * </pre>
+       *
        * <code>string connector_name = 5;</code>
        * @param value The bytes for connectorName to set.
        * @return This builder for chaining.
@@ -8454,6 +10272,10 @@ java.lang.String defaultValue) {
         return internalGetMatchFields().getMap().size();
       }
       /**
+       * <pre>
+       * Provider-specific route fields copied from the matched Connector/event.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 6;</code>
        */
       @java.lang.Override
@@ -8471,6 +10293,10 @@ java.lang.String defaultValue) {
         return getMatchFieldsMap();
       }
       /**
+       * <pre>
+       * Provider-specific route fields copied from the matched Connector/event.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 6;</code>
        */
       @java.lang.Override
@@ -8478,6 +10304,10 @@ java.lang.String defaultValue) {
         return internalGetMatchFields().getMap();
       }
       /**
+       * <pre>
+       * Provider-specific route fields copied from the matched Connector/event.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 6;</code>
        */
       @java.lang.Override
@@ -8492,6 +10322,10 @@ java.lang.String defaultValue) {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
+       * <pre>
+       * Provider-specific route fields copied from the matched Connector/event.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 6;</code>
        */
       @java.lang.Override
@@ -8512,6 +10346,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Provider-specific route fields copied from the matched Connector/event.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 6;</code>
        */
       public Builder removeMatchFields(
@@ -8531,6 +10369,10 @@ java.lang.String defaultValue) {
         return internalGetMutableMatchFields().getMutableMap();
       }
       /**
+       * <pre>
+       * Provider-specific route fields copied from the matched Connector/event.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 6;</code>
        */
       public Builder putMatchFields(
@@ -8544,6 +10386,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Provider-specific route fields copied from the matched Connector/event.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 6;</code>
        */
       public Builder putAllMatchFields(
@@ -8556,6 +10402,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object externalConversationId_ = "";
       /**
+       * <pre>
+       * Provider conversation identifier to deliver into.
+       * </pre>
+       *
        * <code>string external_conversation_id = 7;</code>
        * @return The externalConversationId.
        */
@@ -8572,6 +10422,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Provider conversation identifier to deliver into.
+       * </pre>
+       *
        * <code>string external_conversation_id = 7;</code>
        * @return The bytes for externalConversationId.
        */
@@ -8589,6 +10443,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Provider conversation identifier to deliver into.
+       * </pre>
+       *
        * <code>string external_conversation_id = 7;</code>
        * @param value The externalConversationId to set.
        * @return This builder for chaining.
@@ -8602,6 +10460,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Provider conversation identifier to deliver into.
+       * </pre>
+       *
        * <code>string external_conversation_id = 7;</code>
        * @return This builder for chaining.
        */
@@ -8612,6 +10474,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Provider conversation identifier to deliver into.
+       * </pre>
+       *
        * <code>string external_conversation_id = 7;</code>
        * @param value The bytes for externalConversationId to set.
        * @return This builder for chaining.
@@ -8628,6 +10494,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object externalThreadId_ = "";
       /**
+       * <pre>
+       * Provider thread identifier to deliver into when replying in a thread.
+       * </pre>
+       *
        * <code>optional string external_thread_id = 8;</code>
        * @return Whether the externalThreadId field is set.
        */
@@ -8635,6 +10505,10 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00000080) != 0);
       }
       /**
+       * <pre>
+       * Provider thread identifier to deliver into when replying in a thread.
+       * </pre>
+       *
        * <code>optional string external_thread_id = 8;</code>
        * @return The externalThreadId.
        */
@@ -8651,6 +10525,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Provider thread identifier to deliver into when replying in a thread.
+       * </pre>
+       *
        * <code>optional string external_thread_id = 8;</code>
        * @return The bytes for externalThreadId.
        */
@@ -8668,6 +10546,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Provider thread identifier to deliver into when replying in a thread.
+       * </pre>
+       *
        * <code>optional string external_thread_id = 8;</code>
        * @param value The externalThreadId to set.
        * @return This builder for chaining.
@@ -8681,6 +10563,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Provider thread identifier to deliver into when replying in a thread.
+       * </pre>
+       *
        * <code>optional string external_thread_id = 8;</code>
        * @return This builder for chaining.
        */
@@ -8691,6 +10577,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Provider thread identifier to deliver into when replying in a thread.
+       * </pre>
+       *
        * <code>optional string external_thread_id = 8;</code>
        * @param value The bytes for externalThreadId to set.
        * @return This builder for chaining.
@@ -8707,6 +10597,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object replyToExternalMessageId_ = "";
       /**
+       * <pre>
+       * Provider message identifier this delivery should reply to, when applicable.
+       * </pre>
+       *
        * <code>optional string reply_to_external_message_id = 9;</code>
        * @return Whether the replyToExternalMessageId field is set.
        */
@@ -8714,6 +10608,10 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00000100) != 0);
       }
       /**
+       * <pre>
+       * Provider message identifier this delivery should reply to, when applicable.
+       * </pre>
+       *
        * <code>optional string reply_to_external_message_id = 9;</code>
        * @return The replyToExternalMessageId.
        */
@@ -8730,6 +10628,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Provider message identifier this delivery should reply to, when applicable.
+       * </pre>
+       *
        * <code>optional string reply_to_external_message_id = 9;</code>
        * @return The bytes for replyToExternalMessageId.
        */
@@ -8747,6 +10649,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Provider message identifier this delivery should reply to, when applicable.
+       * </pre>
+       *
        * <code>optional string reply_to_external_message_id = 9;</code>
        * @param value The replyToExternalMessageId to set.
        * @return This builder for chaining.
@@ -8760,6 +10666,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Provider message identifier this delivery should reply to, when applicable.
+       * </pre>
+       *
        * <code>optional string reply_to_external_message_id = 9;</code>
        * @return This builder for chaining.
        */
@@ -8770,6 +10680,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Provider message identifier this delivery should reply to, when applicable.
+       * </pre>
+       *
        * <code>optional string reply_to_external_message_id = 9;</code>
        * @param value The bytes for replyToExternalMessageId to set.
        * @return This builder for chaining.
@@ -8786,6 +10700,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object text_ = "";
       /**
+       * <pre>
+       * Plain text body produced by Talon.
+       * </pre>
+       *
        * <code>string text = 10;</code>
        * @return The text.
        */
@@ -8802,6 +10720,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Plain text body produced by Talon.
+       * </pre>
+       *
        * <code>string text = 10;</code>
        * @return The bytes for text.
        */
@@ -8819,6 +10741,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Plain text body produced by Talon.
+       * </pre>
+       *
        * <code>string text = 10;</code>
        * @param value The text to set.
        * @return This builder for chaining.
@@ -8832,6 +10758,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Plain text body produced by Talon.
+       * </pre>
+       *
        * <code>string text = 10;</code>
        * @return This builder for chaining.
        */
@@ -8842,6 +10772,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Plain text body produced by Talon.
+       * </pre>
+       *
        * <code>string text = 10;</code>
        * @param value The bytes for text to set.
        * @return This builder for chaining.
@@ -8869,6 +10803,10 @@ java.lang.String defaultValue) {
           talon.v1.Connectors.ConnectorAttachment, talon.v1.Connectors.ConnectorAttachment.Builder, talon.v1.Connectors.ConnectorAttachmentOrBuilder> attachmentsBuilder_;
 
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public java.util.List<talon.v1.Connectors.ConnectorAttachment> getAttachmentsList() {
@@ -8879,6 +10817,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public int getAttachmentsCount() {
@@ -8889,6 +10831,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public talon.v1.Connectors.ConnectorAttachment getAttachments(int index) {
@@ -8899,6 +10845,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public Builder setAttachments(
@@ -8916,6 +10866,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public Builder setAttachments(
@@ -8930,6 +10884,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public Builder addAttachments(talon.v1.Connectors.ConnectorAttachment value) {
@@ -8946,6 +10904,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public Builder addAttachments(
@@ -8963,6 +10925,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public Builder addAttachments(
@@ -8977,6 +10943,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public Builder addAttachments(
@@ -8991,6 +10961,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public Builder addAllAttachments(
@@ -9006,6 +10980,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public Builder clearAttachments() {
@@ -9019,6 +10997,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public Builder removeAttachments(int index) {
@@ -9032,6 +11014,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public talon.v1.Connectors.ConnectorAttachment.Builder getAttachmentsBuilder(
@@ -9039,6 +11025,10 @@ java.lang.String defaultValue) {
         return internalGetAttachmentsFieldBuilder().getBuilder(index);
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public talon.v1.Connectors.ConnectorAttachmentOrBuilder getAttachmentsOrBuilder(
@@ -9049,6 +11039,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public java.util.List<? extends talon.v1.Connectors.ConnectorAttachmentOrBuilder>
@@ -9060,6 +11054,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public talon.v1.Connectors.ConnectorAttachment.Builder addAttachmentsBuilder() {
@@ -9067,6 +11065,10 @@ java.lang.String defaultValue) {
             talon.v1.Connectors.ConnectorAttachment.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public talon.v1.Connectors.ConnectorAttachment.Builder addAttachmentsBuilder(
@@ -9075,6 +11077,10 @@ java.lang.String defaultValue) {
             index, talon.v1.Connectors.ConnectorAttachment.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Attachments Talon wants the connector service to deliver to the provider.
+       * </pre>
+       *
        * <code>repeated .talon.v1.ConnectorAttachment attachments = 11;</code>
        */
       public java.util.List<talon.v1.Connectors.ConnectorAttachment.Builder>
@@ -9123,6 +11129,10 @@ java.lang.String defaultValue) {
         return internalGetLabels().getMap().size();
       }
       /**
+       * <pre>
+       * Talon-defined delivery labels for diagnostics and provider-specific hints.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 12;</code>
        */
       @java.lang.Override
@@ -9140,6 +11150,10 @@ java.lang.String defaultValue) {
         return getLabelsMap();
       }
       /**
+       * <pre>
+       * Talon-defined delivery labels for diagnostics and provider-specific hints.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 12;</code>
        */
       @java.lang.Override
@@ -9147,6 +11161,10 @@ java.lang.String defaultValue) {
         return internalGetLabels().getMap();
       }
       /**
+       * <pre>
+       * Talon-defined delivery labels for diagnostics and provider-specific hints.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 12;</code>
        */
       @java.lang.Override
@@ -9161,6 +11179,10 @@ java.lang.String defaultValue) {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
+       * <pre>
+       * Talon-defined delivery labels for diagnostics and provider-specific hints.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 12;</code>
        */
       @java.lang.Override
@@ -9181,6 +11203,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Talon-defined delivery labels for diagnostics and provider-specific hints.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 12;</code>
        */
       public Builder removeLabels(
@@ -9200,6 +11226,10 @@ java.lang.String defaultValue) {
         return internalGetMutableLabels().getMutableMap();
       }
       /**
+       * <pre>
+       * Talon-defined delivery labels for diagnostics and provider-specific hints.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 12;</code>
        */
       public Builder putLabels(
@@ -9213,6 +11243,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Talon-defined delivery labels for diagnostics and provider-specific hints.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 12;</code>
        */
       public Builder putAllLabels(
@@ -9279,17 +11313,31 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * True when the connector service has accepted responsibility for provider
+     * delivery. After this point, provider retries/rate limits are connector
+     * service responsibilities.
+     * </pre>
+     *
      * <code>bool accepted = 1;</code>
      * @return The accepted.
      */
     boolean getAccepted();
 
     /**
+     * <pre>
+     * Machine-readable handoff outcome, such as accepted, duplicate, or rejected.
+     * </pre>
+     *
      * <code>string disposition = 2;</code>
      * @return The disposition.
      */
     java.lang.String getDisposition();
     /**
+     * <pre>
+     * Machine-readable handoff outcome, such as accepted, duplicate, or rejected.
+     * </pre>
+     *
      * <code>string disposition = 2;</code>
      * @return The bytes for disposition.
      */
@@ -9297,11 +11345,19 @@ java.lang.String defaultValue) {
         getDispositionBytes();
 
     /**
+     * <pre>
+     * Diagnostic error string when accepted is false.
+     * </pre>
+     *
      * <code>string error = 3;</code>
      * @return The error.
      */
     java.lang.String getError();
     /**
+     * <pre>
+     * Diagnostic error string when accepted is false.
+     * </pre>
+     *
      * <code>string error = 3;</code>
      * @return The bytes for error.
      */
@@ -9355,6 +11411,12 @@ java.lang.String defaultValue) {
     public static final int ACCEPTED_FIELD_NUMBER = 1;
     private boolean accepted_ = false;
     /**
+     * <pre>
+     * True when the connector service has accepted responsibility for provider
+     * delivery. After this point, provider retries/rate limits are connector
+     * service responsibilities.
+     * </pre>
+     *
      * <code>bool accepted = 1;</code>
      * @return The accepted.
      */
@@ -9367,6 +11429,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object disposition_ = "";
     /**
+     * <pre>
+     * Machine-readable handoff outcome, such as accepted, duplicate, or rejected.
+     * </pre>
+     *
      * <code>string disposition = 2;</code>
      * @return The disposition.
      */
@@ -9384,6 +11450,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Machine-readable handoff outcome, such as accepted, duplicate, or rejected.
+     * </pre>
+     *
      * <code>string disposition = 2;</code>
      * @return The bytes for disposition.
      */
@@ -9406,6 +11476,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object error_ = "";
     /**
+     * <pre>
+     * Diagnostic error string when accepted is false.
+     * </pre>
+     *
      * <code>string error = 3;</code>
      * @return The error.
      */
@@ -9423,6 +11497,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Diagnostic error string when accepted is false.
+     * </pre>
+     *
      * <code>string error = 3;</code>
      * @return The bytes for error.
      */
@@ -9785,6 +11863,12 @@ java.lang.String defaultValue) {
 
       private boolean accepted_ ;
       /**
+       * <pre>
+       * True when the connector service has accepted responsibility for provider
+       * delivery. After this point, provider retries/rate limits are connector
+       * service responsibilities.
+       * </pre>
+       *
        * <code>bool accepted = 1;</code>
        * @return The accepted.
        */
@@ -9793,6 +11877,12 @@ java.lang.String defaultValue) {
         return accepted_;
       }
       /**
+       * <pre>
+       * True when the connector service has accepted responsibility for provider
+       * delivery. After this point, provider retries/rate limits are connector
+       * service responsibilities.
+       * </pre>
+       *
        * <code>bool accepted = 1;</code>
        * @param value The accepted to set.
        * @return This builder for chaining.
@@ -9805,6 +11895,12 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * True when the connector service has accepted responsibility for provider
+       * delivery. After this point, provider retries/rate limits are connector
+       * service responsibilities.
+       * </pre>
+       *
        * <code>bool accepted = 1;</code>
        * @return This builder for chaining.
        */
@@ -9817,6 +11913,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object disposition_ = "";
       /**
+       * <pre>
+       * Machine-readable handoff outcome, such as accepted, duplicate, or rejected.
+       * </pre>
+       *
        * <code>string disposition = 2;</code>
        * @return The disposition.
        */
@@ -9833,6 +11933,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Machine-readable handoff outcome, such as accepted, duplicate, or rejected.
+       * </pre>
+       *
        * <code>string disposition = 2;</code>
        * @return The bytes for disposition.
        */
@@ -9850,6 +11954,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Machine-readable handoff outcome, such as accepted, duplicate, or rejected.
+       * </pre>
+       *
        * <code>string disposition = 2;</code>
        * @param value The disposition to set.
        * @return This builder for chaining.
@@ -9863,6 +11971,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Machine-readable handoff outcome, such as accepted, duplicate, or rejected.
+       * </pre>
+       *
        * <code>string disposition = 2;</code>
        * @return This builder for chaining.
        */
@@ -9873,6 +11985,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Machine-readable handoff outcome, such as accepted, duplicate, or rejected.
+       * </pre>
+       *
        * <code>string disposition = 2;</code>
        * @param value The bytes for disposition to set.
        * @return This builder for chaining.
@@ -9889,6 +12005,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object error_ = "";
       /**
+       * <pre>
+       * Diagnostic error string when accepted is false.
+       * </pre>
+       *
        * <code>string error = 3;</code>
        * @return The error.
        */
@@ -9905,6 +12025,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Diagnostic error string when accepted is false.
+       * </pre>
+       *
        * <code>string error = 3;</code>
        * @return The bytes for error.
        */
@@ -9922,6 +12046,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Diagnostic error string when accepted is false.
+       * </pre>
+       *
        * <code>string error = 3;</code>
        * @param value The error to set.
        * @return This builder for chaining.
@@ -9935,6 +12063,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Diagnostic error string when accepted is false.
+       * </pre>
+       *
        * <code>string error = 3;</code>
        * @return This builder for chaining.
        */
@@ -9945,6 +12077,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Diagnostic error string when accepted is false.
+       * </pre>
+       *
        * <code>string error = 3;</code>
        * @param value The bytes for error to set.
        * @return This builder for chaining.
@@ -10015,11 +12151,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Registration identifier whose health is being reported.
+     * </pre>
+     *
      * <code>string registration_id = 1;</code>
      * @return The registrationId.
      */
     java.lang.String getRegistrationId();
     /**
+     * <pre>
+     * Registration identifier whose health is being reported.
+     * </pre>
+     *
      * <code>string registration_id = 1;</code>
      * @return The bytes for registrationId.
      */
@@ -10027,10 +12171,20 @@ java.lang.String defaultValue) {
         getRegistrationIdBytes();
 
     /**
+     * <pre>
+     * Optional provider-specific route fields identifying the affected Connector
+     * or provider account.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 2;</code>
      */
     int getMatchFieldsCount();
     /**
+     * <pre>
+     * Optional provider-specific route fields identifying the affected Connector
+     * or provider account.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 2;</code>
      */
     boolean containsMatchFields(
@@ -10042,11 +12196,21 @@ java.lang.String defaultValue) {
     java.util.Map<java.lang.String, java.lang.String>
     getMatchFields();
     /**
+     * <pre>
+     * Optional provider-specific route fields identifying the affected Connector
+     * or provider account.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 2;</code>
      */
     java.util.Map<java.lang.String, java.lang.String>
     getMatchFieldsMap();
     /**
+     * <pre>
+     * Optional provider-specific route fields identifying the affected Connector
+     * or provider account.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 2;</code>
      */
     /* nullable */
@@ -10055,17 +12219,32 @@ java.lang.String getMatchFieldsOrDefault(
         /* nullable */
 java.lang.String defaultValue);
     /**
+     * <pre>
+     * Optional provider-specific route fields identifying the affected Connector
+     * or provider account.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 2;</code>
      */
     java.lang.String getMatchFieldsOrThrow(
         java.lang.String key);
 
     /**
+     * <pre>
+     * Connector-service-reported health, such as connected, degraded, disabled,
+     * or revoked.
+     * </pre>
+     *
      * <code>string status = 3;</code>
      * @return The status.
      */
     java.lang.String getStatus();
     /**
+     * <pre>
+     * Connector-service-reported health, such as connected, degraded, disabled,
+     * or revoked.
+     * </pre>
+     *
      * <code>string status = 3;</code>
      * @return The bytes for status.
      */
@@ -10073,11 +12252,19 @@ java.lang.String defaultValue);
         getStatusBytes();
 
     /**
+     * <pre>
+     * Machine-readable diagnostic reason, such as provider_token_revoked.
+     * </pre>
+     *
      * <code>string reason = 4;</code>
      * @return The reason.
      */
     java.lang.String getReason();
     /**
+     * <pre>
+     * Machine-readable diagnostic reason, such as provider_token_revoked.
+     * </pre>
+     *
      * <code>string reason = 4;</code>
      * @return The bytes for reason.
      */
@@ -10145,6 +12332,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object registrationId_ = "";
     /**
+     * <pre>
+     * Registration identifier whose health is being reported.
+     * </pre>
+     *
      * <code>string registration_id = 1;</code>
      * @return The registrationId.
      */
@@ -10162,6 +12353,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Registration identifier whose health is being reported.
+     * </pre>
+     *
      * <code>string registration_id = 1;</code>
      * @return The bytes for registrationId.
      */
@@ -10207,6 +12402,11 @@ java.lang.String defaultValue);
       return internalGetMatchFields().getMap().size();
     }
     /**
+     * <pre>
+     * Optional provider-specific route fields identifying the affected Connector
+     * or provider account.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 2;</code>
      */
     @java.lang.Override
@@ -10224,6 +12424,11 @@ java.lang.String defaultValue);
       return getMatchFieldsMap();
     }
     /**
+     * <pre>
+     * Optional provider-specific route fields identifying the affected Connector
+     * or provider account.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 2;</code>
      */
     @java.lang.Override
@@ -10231,6 +12436,11 @@ java.lang.String defaultValue);
       return internalGetMatchFields().getMap();
     }
     /**
+     * <pre>
+     * Optional provider-specific route fields identifying the affected Connector
+     * or provider account.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 2;</code>
      */
     @java.lang.Override
@@ -10245,6 +12455,11 @@ java.lang.String defaultValue) {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
+     * <pre>
+     * Optional provider-specific route fields identifying the affected Connector
+     * or provider account.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; match_fields = 2;</code>
      */
     @java.lang.Override
@@ -10263,6 +12478,11 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object status_ = "";
     /**
+     * <pre>
+     * Connector-service-reported health, such as connected, degraded, disabled,
+     * or revoked.
+     * </pre>
+     *
      * <code>string status = 3;</code>
      * @return The status.
      */
@@ -10280,6 +12500,11 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Connector-service-reported health, such as connected, degraded, disabled,
+     * or revoked.
+     * </pre>
+     *
      * <code>string status = 3;</code>
      * @return The bytes for status.
      */
@@ -10302,6 +12527,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object reason_ = "";
     /**
+     * <pre>
+     * Machine-readable diagnostic reason, such as provider_token_revoked.
+     * </pre>
+     *
      * <code>string reason = 4;</code>
      * @return The reason.
      */
@@ -10319,6 +12548,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Machine-readable diagnostic reason, such as provider_token_revoked.
+     * </pre>
+     *
      * <code>string reason = 4;</code>
      * @return The bytes for reason.
      */
@@ -10742,6 +12975,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object registrationId_ = "";
       /**
+       * <pre>
+       * Registration identifier whose health is being reported.
+       * </pre>
+       *
        * <code>string registration_id = 1;</code>
        * @return The registrationId.
        */
@@ -10758,6 +12995,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Registration identifier whose health is being reported.
+       * </pre>
+       *
        * <code>string registration_id = 1;</code>
        * @return The bytes for registrationId.
        */
@@ -10775,6 +13016,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Registration identifier whose health is being reported.
+       * </pre>
+       *
        * <code>string registration_id = 1;</code>
        * @param value The registrationId to set.
        * @return This builder for chaining.
@@ -10788,6 +13033,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Registration identifier whose health is being reported.
+       * </pre>
+       *
        * <code>string registration_id = 1;</code>
        * @return This builder for chaining.
        */
@@ -10798,6 +13047,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Registration identifier whose health is being reported.
+       * </pre>
+       *
        * <code>string registration_id = 1;</code>
        * @param value The bytes for registrationId to set.
        * @return This builder for chaining.
@@ -10839,6 +13092,11 @@ java.lang.String defaultValue) {
         return internalGetMatchFields().getMap().size();
       }
       /**
+       * <pre>
+       * Optional provider-specific route fields identifying the affected Connector
+       * or provider account.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 2;</code>
        */
       @java.lang.Override
@@ -10856,6 +13114,11 @@ java.lang.String defaultValue) {
         return getMatchFieldsMap();
       }
       /**
+       * <pre>
+       * Optional provider-specific route fields identifying the affected Connector
+       * or provider account.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 2;</code>
        */
       @java.lang.Override
@@ -10863,6 +13126,11 @@ java.lang.String defaultValue) {
         return internalGetMatchFields().getMap();
       }
       /**
+       * <pre>
+       * Optional provider-specific route fields identifying the affected Connector
+       * or provider account.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 2;</code>
        */
       @java.lang.Override
@@ -10877,6 +13145,11 @@ java.lang.String defaultValue) {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
+       * <pre>
+       * Optional provider-specific route fields identifying the affected Connector
+       * or provider account.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 2;</code>
        */
       @java.lang.Override
@@ -10897,6 +13170,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Optional provider-specific route fields identifying the affected Connector
+       * or provider account.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 2;</code>
        */
       public Builder removeMatchFields(
@@ -10916,6 +13194,11 @@ java.lang.String defaultValue) {
         return internalGetMutableMatchFields().getMutableMap();
       }
       /**
+       * <pre>
+       * Optional provider-specific route fields identifying the affected Connector
+       * or provider account.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 2;</code>
        */
       public Builder putMatchFields(
@@ -10929,6 +13212,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Optional provider-specific route fields identifying the affected Connector
+       * or provider account.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; match_fields = 2;</code>
        */
       public Builder putAllMatchFields(
@@ -10941,6 +13229,11 @@ java.lang.String defaultValue) {
 
       private java.lang.Object status_ = "";
       /**
+       * <pre>
+       * Connector-service-reported health, such as connected, degraded, disabled,
+       * or revoked.
+       * </pre>
+       *
        * <code>string status = 3;</code>
        * @return The status.
        */
@@ -10957,6 +13250,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Connector-service-reported health, such as connected, degraded, disabled,
+       * or revoked.
+       * </pre>
+       *
        * <code>string status = 3;</code>
        * @return The bytes for status.
        */
@@ -10974,6 +13272,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Connector-service-reported health, such as connected, degraded, disabled,
+       * or revoked.
+       * </pre>
+       *
        * <code>string status = 3;</code>
        * @param value The status to set.
        * @return This builder for chaining.
@@ -10987,6 +13290,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Connector-service-reported health, such as connected, degraded, disabled,
+       * or revoked.
+       * </pre>
+       *
        * <code>string status = 3;</code>
        * @return This builder for chaining.
        */
@@ -10997,6 +13305,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Connector-service-reported health, such as connected, degraded, disabled,
+       * or revoked.
+       * </pre>
+       *
        * <code>string status = 3;</code>
        * @param value The bytes for status to set.
        * @return This builder for chaining.
@@ -11013,6 +13326,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object reason_ = "";
       /**
+       * <pre>
+       * Machine-readable diagnostic reason, such as provider_token_revoked.
+       * </pre>
+       *
        * <code>string reason = 4;</code>
        * @return The reason.
        */
@@ -11029,6 +13346,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Machine-readable diagnostic reason, such as provider_token_revoked.
+       * </pre>
+       *
        * <code>string reason = 4;</code>
        * @return The bytes for reason.
        */
@@ -11046,6 +13367,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Machine-readable diagnostic reason, such as provider_token_revoked.
+       * </pre>
+       *
        * <code>string reason = 4;</code>
        * @param value The reason to set.
        * @return This builder for chaining.
@@ -11059,6 +13384,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Machine-readable diagnostic reason, such as provider_token_revoked.
+       * </pre>
+       *
        * <code>string reason = 4;</code>
        * @return This builder for chaining.
        */
@@ -11069,6 +13398,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Machine-readable diagnostic reason, such as provider_token_revoked.
+       * </pre>
+       *
        * <code>string reason = 4;</code>
        * @param value The bytes for reason to set.
        * @return This builder for chaining.
@@ -11139,17 +13472,29 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * True when Talon accepted the status/report request.
+     * </pre>
+     *
      * <code>bool accepted = 1;</code>
      * @return The accepted.
      */
     boolean getAccepted();
 
     /**
+     * <pre>
+     * Machine-readable acknowledgement outcome.
+     * </pre>
+     *
      * <code>string disposition = 2;</code>
      * @return The disposition.
      */
     java.lang.String getDisposition();
     /**
+     * <pre>
+     * Machine-readable acknowledgement outcome.
+     * </pre>
+     *
      * <code>string disposition = 2;</code>
      * @return The bytes for disposition.
      */
@@ -11202,6 +13547,10 @@ java.lang.String defaultValue) {
     public static final int ACCEPTED_FIELD_NUMBER = 1;
     private boolean accepted_ = false;
     /**
+     * <pre>
+     * True when Talon accepted the status/report request.
+     * </pre>
+     *
      * <code>bool accepted = 1;</code>
      * @return The accepted.
      */
@@ -11214,6 +13563,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object disposition_ = "";
     /**
+     * <pre>
+     * Machine-readable acknowledgement outcome.
+     * </pre>
+     *
      * <code>string disposition = 2;</code>
      * @return The disposition.
      */
@@ -11231,6 +13584,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Machine-readable acknowledgement outcome.
+     * </pre>
+     *
      * <code>string disposition = 2;</code>
      * @return The bytes for disposition.
      */
@@ -11569,6 +13926,10 @@ java.lang.String defaultValue) {
 
       private boolean accepted_ ;
       /**
+       * <pre>
+       * True when Talon accepted the status/report request.
+       * </pre>
+       *
        * <code>bool accepted = 1;</code>
        * @return The accepted.
        */
@@ -11577,6 +13938,10 @@ java.lang.String defaultValue) {
         return accepted_;
       }
       /**
+       * <pre>
+       * True when Talon accepted the status/report request.
+       * </pre>
+       *
        * <code>bool accepted = 1;</code>
        * @param value The accepted to set.
        * @return This builder for chaining.
@@ -11589,6 +13954,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * True when Talon accepted the status/report request.
+       * </pre>
+       *
        * <code>bool accepted = 1;</code>
        * @return This builder for chaining.
        */
@@ -11601,6 +13970,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object disposition_ = "";
       /**
+       * <pre>
+       * Machine-readable acknowledgement outcome.
+       * </pre>
+       *
        * <code>string disposition = 2;</code>
        * @return The disposition.
        */
@@ -11617,6 +13990,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Machine-readable acknowledgement outcome.
+       * </pre>
+       *
        * <code>string disposition = 2;</code>
        * @return The bytes for disposition.
        */
@@ -11634,6 +14011,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Machine-readable acknowledgement outcome.
+       * </pre>
+       *
        * <code>string disposition = 2;</code>
        * @param value The disposition to set.
        * @return This builder for chaining.
@@ -11647,6 +14028,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Machine-readable acknowledgement outcome.
+       * </pre>
+       *
        * <code>string disposition = 2;</code>
        * @return This builder for chaining.
        */
@@ -11657,6 +14042,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Machine-readable acknowledgement outcome.
+       * </pre>
+       *
        * <code>string disposition = 2;</code>
        * @param value The bytes for disposition to set.
        * @return This builder for chaining.
