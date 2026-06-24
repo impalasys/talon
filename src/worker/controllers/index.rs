@@ -2,23 +2,22 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::events::{IndexEvent, IndexOperation};
-use crate::control::resources::ResourceStore;
-use crate::control::search::{mapper, DeleteScope, Document, DocumentStore, KIND_SESSION_MESSAGE};
+use crate::control::search::{mapper, DeleteScope, DocumentStore, KIND_SESSION_MESSAGE};
 use crate::control::{keys, ns, ControlPlane};
 use anyhow::Result;
 use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct IndexController {
-    cp: Arc<ControlPlane>,
     documents: Arc<dyn DocumentStore + Send + Sync>,
+    mapper: mapper::DocumentMapper,
 }
 
 impl IndexController {
     pub fn new(cp: Arc<ControlPlane>) -> Self {
         Self {
             documents: cp.documents.clone(),
-            cp,
+            mapper: mapper::DocumentMapper::new(cp.clone()),
         }
     }
 
@@ -38,9 +37,8 @@ impl IndexController {
                 }
             }
             IndexOperation::Unspecified | IndexOperation::Upsert => {
-                let documents = self
-                    .extract_documents_for_key(&key, event.generation)
-                    .await?;
+                let now = chrono::Utc::now().timestamp_micros();
+                let documents = self.mapper.map_key(&key, event.generation, now).await?;
                 if !documents.is_empty() {
                     self.documents
                         .delete(&replace_scope_for_key(&key, event.generation)?)
@@ -50,57 +48,6 @@ impl IndexController {
             }
         }
         Ok(())
-    }
-
-    async fn extract_documents_for_key(
-        &self,
-        key: &keys::ResourceKey,
-        generation: u64,
-    ) -> Result<Vec<Document>> {
-        let now = chrono::Utc::now().timestamp_micros();
-        match key.kind.as_str() {
-            "SessionMessage" => {
-                let Some(bytes) = self.cp.kv.get(key).await? else {
-                    return Ok(Vec::new());
-                };
-                let message = mapper::decode_session_message(bytes.as_slice())?;
-                Ok(mapper::map_session_message(key, message, generation, now))
-            }
-            "Session" => {
-                anyhow::bail!("session index key cannot be upserted")
-            }
-            _ => {
-                let store = ResourceStore::new(self.cp.kv.clone(), self.cp.pubsub.clone());
-                let Some(resource) = store.get(&key.namespace, &key.kind, &key.name).await? else {
-                    return Ok(Vec::new());
-                };
-                let current_generation = resource
-                    .metadata
-                    .as_ref()
-                    .map(|metadata| metadata.generation)
-                    .unwrap_or_default();
-                if generation > 0 {
-                    if current_generation > generation {
-                        tracing::debug!(
-                            resource_key = key.canonical(),
-                            event_generation = generation,
-                            current_generation,
-                            "skipping stale resource index event"
-                        );
-                        return Ok(Vec::new());
-                    }
-                    if current_generation < generation {
-                        anyhow::bail!(
-                            "resource {} generation {} is behind index event generation {}",
-                            key.canonical(),
-                            current_generation,
-                            generation
-                        );
-                    }
-                }
-                mapper::map_control_plane_resource(key, &resource, now)
-            }
-        }
     }
 }
 
@@ -162,7 +109,8 @@ fn parent_segment(key: &keys::ResourceKey, kind: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::search;
+    use crate::control::resources::ResourceStore;
+    use crate::control::search::{self, Document};
     use crate::control::ProtoKeyValueStoreExt;
     use crate::gateway::rpc::data_proto;
     use crate::test_support::{EmptyPubSub, MockKvStore};

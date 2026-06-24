@@ -6,60 +6,125 @@ use super::{
     ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_SESSION_ID, DOCUMENT_KIND_CONTENT,
     DOCUMENT_KIND_MESSAGE_PART, DOCUMENT_KIND_METADATA, KIND_SESSION_MESSAGE,
 };
-use crate::control::keys;
+use crate::control::resources::ResourceStore;
+use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{data_proto, resources_proto};
 use anyhow::{anyhow, Result};
-use prost::Message;
 use serde_json::json;
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
-pub fn map_control_plane_resource(
+#[derive(Clone)]
+pub struct DocumentMapper {
+    cp: Arc<ControlPlane>,
+}
+
+// Public entrypoint and source dispatch.
+impl DocumentMapper {
+    pub fn new(cp: Arc<ControlPlane>) -> Self {
+        Self { cp }
+    }
+
+    pub async fn map_key(
+        &self,
+        key: &keys::ResourceKey,
+        generation: u64,
+        indexed_at: i64,
+    ) -> Result<Vec<Document>> {
+        match key.kind.as_str() {
+            "SessionMessage" => {
+                self.map_session_message_key(key, generation, indexed_at)
+                    .await
+            }
+            "Session" => anyhow::bail!("session index key cannot be upserted"),
+            _ => {
+                self.map_control_plane_resource_key(key, generation, indexed_at)
+                    .await
+            }
+        }
+    }
+
+    async fn map_session_message_key(
+        &self,
+        key: &keys::ResourceKey,
+        generation: u64,
+        indexed_at: i64,
+    ) -> Result<Vec<Document>> {
+        let Some(message) = self
+            .cp
+            .kv
+            .get_msg::<data_proto::SessionMessage>(key)
+            .await?
+        else {
+            return Ok(Vec::new());
+        };
+        Ok(map_session_message_parts(
+            key, message, generation, indexed_at,
+        ))
+    }
+
+    async fn map_control_plane_resource_key(
+        &self,
+        key: &keys::ResourceKey,
+        generation: u64,
+        indexed_at: i64,
+    ) -> Result<Vec<Document>> {
+        let store = ResourceStore::new(self.cp.kv.clone(), self.cp.pubsub.clone());
+        let Some(resource) = store.get(&key.namespace, &key.kind, &key.name).await? else {
+            return Ok(Vec::new());
+        };
+        let current_generation = resource
+            .metadata
+            .as_ref()
+            .map(|metadata| metadata.generation)
+            .unwrap_or_default();
+        if generation > 0 {
+            if current_generation > generation {
+                tracing::debug!(
+                    resource_key = key.canonical(),
+                    event_generation = generation,
+                    current_generation,
+                    "skipping stale resource index event"
+                );
+                return Ok(Vec::new());
+            }
+            if current_generation < generation {
+                anyhow::bail!(
+                    "resource {} generation {} is behind index event generation {}",
+                    key.canonical(),
+                    current_generation,
+                    generation
+                );
+            }
+        }
+        map_control_plane_resource(key, &resource, indexed_at)
+    }
+}
+
+// Document builders.
+fn map_control_plane_resource(
     key: &keys::ResourceKey,
     resource: &resources_proto::Resource,
     indexed_at: i64,
 ) -> Result<Vec<Document>> {
-    let meta = resource
-        .metadata
-        .as_ref()
-        .ok_or_else(|| anyhow!("resource metadata is required"))?;
     let source = resource_ref(key, resource);
-    let mut documents = vec![metadata_document(key, resource, &source, indexed_at)?];
+    let mut documents = vec![resource_metadata_document(
+        key, resource, &source, indexed_at,
+    )?];
 
     if let Some(resources_proto::resource_spec::Kind::Knowledge(spec)) =
         resource.spec.as_ref().and_then(|spec| spec.kind.as_ref())
     {
         if !spec.content.trim().is_empty() {
-            documents.push(Document {
-                r#ref: Some(data_proto::DocumentRef {
-                    title: spec.path.clone(),
-                    labels: meta.labels.clone(),
-                    metadata_json: json!({
-                        "documentKind": DOCUMENT_KIND_CONTENT,
-                        "path": spec.path,
-                        "name": meta.name,
-                        "uid": meta.uid,
-                        "resourceVersion": meta.resource_version,
-                    })
-                    .to_string(),
-                    acl_scope_json: acl_scope_json(key, resource),
-                    indexed_at,
-                    generation: meta.generation,
-                    ..document_ref(
-                        document_id(&source.key, DOCUMENT_KIND_CONTENT, ""),
-                        source.clone(),
-                        DOCUMENT_KIND_CONTENT.to_string(),
-                        String::new(),
-                    )
-                }),
-                text: spec.content.clone(),
-            });
+            documents.push(knowledge_content_document(
+                key, resource, &source, spec, indexed_at,
+            )?);
         }
     }
 
     Ok(documents)
 }
 
-pub fn map_session_message(
+fn map_session_message_parts(
     key: &keys::ResourceKey,
     message: data_proto::SessionMessage,
     generation: u64,
@@ -131,7 +196,7 @@ pub fn map_session_message(
     docs
 }
 
-fn metadata_document(
+fn resource_metadata_document(
     key: &keys::ResourceKey,
     resource: &resources_proto::Resource,
     source: &DocumentSource,
@@ -178,6 +243,44 @@ fn metadata_document(
     })
 }
 
+fn knowledge_content_document(
+    key: &keys::ResourceKey,
+    resource: &resources_proto::Resource,
+    source: &DocumentSource,
+    spec: &resources_proto::KnowledgeSpec,
+    indexed_at: i64,
+) -> Result<Document> {
+    let meta = resource
+        .metadata
+        .as_ref()
+        .ok_or_else(|| anyhow!("resource metadata is required"))?;
+    Ok(Document {
+        r#ref: Some(data_proto::DocumentRef {
+            title: spec.path.clone(),
+            labels: meta.labels.clone(),
+            metadata_json: json!({
+                "documentKind": DOCUMENT_KIND_CONTENT,
+                "path": spec.path,
+                "name": meta.name,
+                "uid": meta.uid,
+                "resourceVersion": meta.resource_version,
+            })
+            .to_string(),
+            acl_scope_json: acl_scope_json(key, resource),
+            indexed_at,
+            generation: meta.generation,
+            ..document_ref(
+                document_id(&source.key, DOCUMENT_KIND_CONTENT, ""),
+                source.clone(),
+                DOCUMENT_KIND_CONTENT.to_string(),
+                String::new(),
+            )
+        }),
+        text: spec.content.clone(),
+    })
+}
+
+// Common helpers.
 fn resource_ref(key: &keys::ResourceKey, resource: &resources_proto::Resource) -> DocumentSource {
     let meta = resource.metadata.as_ref();
     let (parent_kind, parent_key) = parent_ref(key);
@@ -423,10 +526,6 @@ fn parent_segment(key: &keys::ResourceKey, kind: &str) -> Option<String> {
         .map(|segment| segment.name)
 }
 
-pub fn decode_session_message(bytes: &[u8]) -> Result<data_proto::SessionMessage> {
-    Ok(data_proto::SessionMessage::decode(bytes)?)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -560,7 +659,7 @@ mod tests {
     #[test]
     fn session_message_emits_one_text_part_document_per_text_part() {
         let key = keys::session_message("acme", "support", "s1", "m1");
-        let documents = map_session_message(
+        let documents = map_session_message_parts(
             &key,
             data_proto::SessionMessage {
                 id: "m1".to_string(),
