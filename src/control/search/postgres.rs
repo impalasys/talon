@@ -5,8 +5,8 @@ use super::store::{sort_results, DocumentStore};
 use super::{
     document_attributes, document_ref, document_source, next_page_token, page_offset, query_terms,
     search_limit, search_mode, search_namespaces, search_sort, snippet, DeleteScope, Document,
-    SearchResponse, SearchResult, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID, ATTR_PART_ID,
-    ATTR_PART_TYPE, ATTR_ROLE, ATTR_RUN_ID, ATTR_SESSION_ID,
+    ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID, ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE,
+    ATTR_RUN_ID, ATTR_SESSION_ID,
 };
 use crate::gateway::rpc::proto;
 use anyhow::Result;
@@ -143,13 +143,13 @@ impl DocumentStore for PostgresDocumentStore {
         Ok(result.rows_affected())
     }
 
-    async fn search(&self, query: &proto::SearchRequest) -> Result<SearchResponse> {
+    async fn search(&self, query: &proto::SearchRequest) -> Result<proto::SearchResponse> {
         self.capabilities().require_mode(search_mode(query))?;
         if search_namespaces(query)
             .iter()
             .all(|namespace| namespace.is_empty())
         {
-            return Ok(SearchResponse::default());
+            return Ok(proto::SearchResponse::default());
         }
         let text_query = prefix_tsquery(&query.query);
         let use_text_query = text_query.is_some();
@@ -190,8 +190,9 @@ impl DocumentStore for PostgresDocumentStore {
             .into_iter()
             .map(|row| {
                 let score = row.try_get::<f32, _>("score").unwrap_or(1.0);
-                Ok(SearchResult {
-                    document: document_from_row(&row)?,
+                let document = document_from_row(&row)?;
+                Ok(proto::SearchResult {
+                    document: document.r#ref,
                     snippet: row.try_get("snippet")?,
                     score,
                 })
@@ -202,7 +203,7 @@ impl DocumentStore for PostgresDocumentStore {
         }
         let token = next_page_token(offset, limit, results.len());
         results.truncate(limit);
-        Ok(SearchResponse {
+        Ok(proto::SearchResponse {
             results,
             next_page_token: token,
         })
@@ -555,11 +556,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(response.results.len(), 1);
-        let document_ref = response.results[0]
-            .document
-            .r#ref
-            .as_ref()
-            .expect("document ref");
+        let document_ref = response.results[0].document.as_ref().expect("document ref");
         assert_eq!(document_ref.id, "doc-1");
         assert_eq!(document_ref.document_kind, DOCUMENT_KIND_CONTENT);
 

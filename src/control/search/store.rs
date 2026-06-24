@@ -4,7 +4,6 @@
 use super::{
     delete_matches, next_page_token, page_offset, query_matches, score_document, search_limit,
     search_mode, search_mode_name, search_namespaces, search_sort, snippet, DeleteScope, Document,
-    SearchResponse, SearchResult,
 };
 use crate::gateway::rpc::proto;
 use anyhow::{anyhow, Result};
@@ -69,7 +68,7 @@ impl Default for DocumentStoreCapabilities {
 pub trait DocumentStore: Send + Sync {
     async fn upsert_documents(&self, documents: &[Document]) -> Result<()>;
     async fn delete(&self, scope: &DeleteScope) -> Result<u64>;
-    async fn search(&self, query: &proto::SearchRequest) -> Result<SearchResponse>;
+    async fn search(&self, query: &proto::SearchRequest) -> Result<proto::SearchResponse>;
     async fn get_document(&self, namespace: &str, id: &str) -> Result<Option<Document>>;
 
     fn capabilities(&self) -> DocumentStoreCapabilities {
@@ -134,7 +133,7 @@ impl DocumentStore for MemoryDocumentStore {
         Ok(before.saturating_sub(stored.len()) as u64)
     }
 
-    async fn search(&self, query: &proto::SearchRequest) -> Result<SearchResponse> {
+    async fn search(&self, query: &proto::SearchRequest) -> Result<proto::SearchResponse> {
         self.capabilities().require_mode(search_mode(query))?;
         let stored = self.documents.read().await;
         let namespaces = search_namespaces(query);
@@ -153,10 +152,10 @@ impl DocumentStore for MemoryDocumentStore {
                     && query_matches(query, document)
             })
             .cloned()
-            .map(|document| SearchResult {
+            .map(|document| proto::SearchResult {
+                document: document.r#ref.clone(),
                 snippet: snippet(&document.text),
                 score: score_document(&query.query, &document),
-                document,
             })
             .collect::<Vec<_>>();
         sort_results(&mut matches, search_sort(query));
@@ -165,7 +164,7 @@ impl DocumentStore for MemoryDocumentStore {
         let fetched = matches.len().saturating_sub(offset);
         let next_page_token = next_page_token(offset, limit, fetched);
         matches = matches.into_iter().skip(offset).take(limit).collect();
-        Ok(SearchResponse {
+        Ok(proto::SearchResponse {
             results: matches,
             next_page_token,
         })
@@ -189,7 +188,7 @@ impl DocumentStore for MemoryDocumentStore {
     }
 }
 
-pub(crate) fn sort_results(results: &mut [SearchResult], sort: proto::SearchSort) {
+pub(crate) fn sort_results(results: &mut [proto::SearchResult], sort: proto::SearchSort) {
     match sort {
         proto::SearchSort::Unspecified | proto::SearchSort::Relevance => {
             results.sort_by(|left, right| {
@@ -198,31 +197,15 @@ pub(crate) fn sort_results(results: &mut [SearchResult], sort: proto::SearchSort
                     .partial_cmp(&left.score)
                     .unwrap_or(std::cmp::Ordering::Equal)
                     .then_with(|| {
-                        let right_ref = right
-                            .document
-                            .r#ref
-                            .as_ref()
-                            .expect("document ref is required");
-                        let left_ref = left
-                            .document
-                            .r#ref
-                            .as_ref()
-                            .expect("document ref is required");
+                        let right_ref = right.document.as_ref().expect("document ref is required");
+                        let left_ref = left.document.as_ref().expect("document ref is required");
                         right_ref.updated_at.cmp(&left_ref.updated_at)
                     })
             })
         }
         proto::SearchSort::Recency => results.sort_by(|left, right| {
-            let right_ref = right
-                .document
-                .r#ref
-                .as_ref()
-                .expect("document ref is required");
-            let left_ref = left
-                .document
-                .r#ref
-                .as_ref()
-                .expect("document ref is required");
+            let right_ref = right.document.as_ref().expect("document ref is required");
+            let left_ref = left.document.as_ref().expect("document ref is required");
             right_ref.updated_at.cmp(&left_ref.updated_at)
         }),
     }

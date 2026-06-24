@@ -29,7 +29,7 @@ impl GrpcGatewayHandler {
             .search(&req)
             .await
             .map_err(search_error)?;
-        Ok(tonic::Response::new(search_response_proto(response)))
+        Ok(tonic::Response::new(response))
     }
 
     pub async fn handle_get_search_result(
@@ -156,21 +156,6 @@ fn apply_claim_scope(
         query.attributes.insert(ATTR_CHANNEL.to_string(), channel);
     }
     Ok(())
-}
-
-pub(crate) fn search_response_proto(response: search::SearchResponse) -> proto::SearchResponse {
-    proto::SearchResponse {
-        results: response
-            .results
-            .into_iter()
-            .map(|result| proto::SearchResult {
-                document: result.document.r#ref,
-                snippet: result.snippet,
-                score: result.score,
-            })
-            .collect(),
-        next_page_token: response.next_page_token,
-    }
 }
 
 pub(crate) fn limit(value: i32) -> usize {

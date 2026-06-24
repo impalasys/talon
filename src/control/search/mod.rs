@@ -130,21 +130,6 @@ pub fn search_sort(query: &proto::SearchRequest) -> proto::SearchSort {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
-pub struct SearchResult {
-    pub document: Document,
-    pub snippet: String,
-    pub score: f32,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(rename_all = "camelCase", default)]
-pub struct SearchResponse {
-    pub results: Vec<SearchResult>,
-    pub next_page_token: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(rename_all = "camelCase", default)]
 pub struct DeleteScope {
     pub namespace: String,
     pub resource_kind: String,
@@ -438,7 +423,6 @@ mod tests {
         assert_eq!(
             response.results[0]
                 .document
-                .r#ref
                 .as_ref()
                 .expect("document ref")
                 .id,

@@ -346,7 +346,7 @@ impl KvKnowledgeBook {
         for result in response.results {
             let score = result.score;
             let document = result.document;
-            let Some(document_ref) = document.r#ref.as_ref() else {
+            let Some(document_ref) = document.as_ref() else {
                 continue;
             };
             let Some(source) = document_ref.source.as_ref() else {

@@ -162,10 +162,9 @@ impl GrpcGatewayHandler {
                 .enumerate()
                 .map(|(index, namespace)| (namespace.clone(), index))
                 .collect::<HashMap<_, _>>();
-            let mut by_path: HashMap<String, (usize, crate::control::search::SearchResult)> =
-                HashMap::new();
+            let mut by_path: HashMap<String, (usize, proto::SearchResult)> = HashMap::new();
             for result in indexed.results {
-                let Some(document_ref) = result.document.r#ref.as_ref() else {
+                let Some(document_ref) = result.document.as_ref() else {
                     continue;
                 };
                 let Some(source) = document_ref.source.as_ref() else {
@@ -199,13 +198,11 @@ impl GrpcGatewayHandler {
                 proto::SearchSort::Recency => search_results.sort_by(|left, right| {
                     let right_updated_at = right
                         .document
-                        .r#ref
                         .as_ref()
                         .map(|document| document.updated_at)
                         .unwrap_or_default();
                     let left_updated_at = left
                         .document
-                        .r#ref
                         .as_ref()
                         .map(|document| document.updated_at)
                         .unwrap_or_default();
@@ -225,13 +222,11 @@ impl GrpcGatewayHandler {
                             .then_with(|| {
                                 let right_updated_at = right
                                     .document
-                                    .r#ref
                                     .as_ref()
                                     .map(|document| document.updated_at)
                                     .unwrap_or_default();
                                 let left_updated_at = left
                                     .document
-                                    .r#ref
                                     .as_ref()
                                     .map(|document| document.updated_at)
                                     .unwrap_or_default();
@@ -247,7 +242,7 @@ impl GrpcGatewayHandler {
                 let legacy_results = search_results
                     .iter()
                     .map(|result| {
-                        let document_ref = result.document.r#ref.as_ref().expect("document ref");
+                        let document_ref = result.document.as_ref().expect("document ref");
                         let source = document_ref.source.as_ref().expect("document source");
                         let path =
                             serde_json::from_str::<serde_json::Value>(&document_ref.metadata_json)
@@ -270,14 +265,7 @@ impl GrpcGatewayHandler {
                     .collect();
                 return Ok(tonic::Response::new(proto::SearchKnowledgeResponse {
                     results: legacy_results,
-                    search_results: search_results
-                        .into_iter()
-                        .map(|result| proto::SearchResult {
-                            document: result.document.r#ref,
-                            snippet: result.snippet,
-                            score: result.score,
-                        })
-                        .collect(),
+                    search_results: search_results.into_iter().collect(),
                     next_page_token: indexed.next_page_token,
                 }));
             }
