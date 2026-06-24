@@ -8,6 +8,7 @@ use std::pin::Pin;
 
 pub mod auth;
 pub mod channels;
+pub mod connectors;
 pub mod knowledge;
 pub mod namespaces;
 pub mod resources;
@@ -17,6 +18,9 @@ pub mod workflows;
 
 #[cfg(not(feature = "bazel"))]
 pub mod generated {
+    pub mod config {
+        tonic::include_proto!("talon.config");
+    }
     pub mod data {
         tonic::include_proto!("talon.data");
     }
@@ -39,6 +43,9 @@ pub mod generated {
 
 #[cfg(feature = "bazel")]
 pub mod generated {
+    pub mod config {
+        pub use talon_config_proto::talon::config::*;
+    }
     pub mod data {
         pub use talon_data_proto::talon::data::*;
     }
@@ -225,6 +232,24 @@ impl proto::resource_service_server::ResourceService for GrpcGatewayHandler {
         req: tonic::Request<proto::DeleteResourceRequest>,
     ) -> std::result::Result<tonic::Response<proto::DeleteResourceResponse>, tonic::Status> {
         self.handle_delete_resource(req).await
+    }
+}
+
+#[tonic::async_trait]
+impl proto::connector_service_server::ConnectorService for GrpcGatewayHandler {
+    async fn ingest_message_event(
+        &self,
+        req: tonic::Request<proto::ConnectorMessageEvent>,
+    ) -> std::result::Result<tonic::Response<proto::ConnectorMessageEventResponse>, tonic::Status>
+    {
+        self.handle_ingest_connector_message_event(req).await
+    }
+
+    async fn report_status(
+        &self,
+        req: tonic::Request<proto::ConnectorStatusEvent>,
+    ) -> std::result::Result<tonic::Response<proto::ConnectorAckResponse>, tonic::Status> {
+        self.handle_report_connector_status(req).await
     }
 }
 

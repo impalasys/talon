@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package talon.v1;
+
+import "proto/resources/connectors.proto";
+
+service ConnectorService {
+  rpc IngestMessageEvent(ConnectorMessageEvent) returns (ConnectorMessageEventResponse);
+  rpc ReportStatus(ConnectorStatusEvent) returns (ConnectorAckResponse);
+}
+
+message ConnectorActor {
+  string external_user_id = 1;
+  string external_address = 2;
+  string display_name = 3;
+  string kind = 4;
+}
+
+message ConnectorAttachment {
+  string id = 1;
+  string kind = 2;
+  string media_type = 3;
+  string filename = 4;
+  uint64 size_bytes = 5;
+  string object_key = 6;
+  string external_url = 7;
+  int64 expires_at = 8;
+}
+
+message ConnectorMessageEvent {
+  string event_id = 1;
+  string event_kind = 2;
+  string registration_id = 3;
+  string connector_class = 4;
+  map<string, string> match_fields = 5;
+  string external_conversation_id = 6;
+  optional string external_thread_id = 7;
+  string external_message_id = 8;
+  string conversation_type = 9;
+  ConnectorActor sender = 10;
+  string text = 11;
+  repeated ConnectorAttachment attachments = 12;
+  int64 event_time_ms = 13;
+  map<string, string> labels = 14;
+}
+
+message ConnectorMessageEventResponse {
+  bool accepted = 1;
+  bool duplicate = 2;
+  string disposition = 3;
+  string namespace = 4;
+  string connector_name = 5;
+  talon.resources.ConnectorTarget target = 6;
+}
+
+message ConnectorDeliveryRequest {
+  string delivery_id = 1;
+  string registration_id = 2;
+  string connector_class = 3;
+  string namespace = 4;
+  string connector_name = 5;
+  map<string, string> match_fields = 6;
+  string external_conversation_id = 7;
+  optional string external_thread_id = 8;
+  optional string reply_to_external_message_id = 9;
+  string text = 10;
+  repeated ConnectorAttachment attachments = 11;
+  map<string, string> labels = 12;
+}
+
+message ConnectorDeliveryResponse {
+  bool accepted = 1;
+  string disposition = 2;
+  string error = 3;
+}
+
+message ConnectorStatusEvent {
+  string registration_id = 1;
+  map<string, string> match_fields = 2;
+  string status = 3;
+  string reason = 4;
+}
+
+message ConnectorAckResponse {
+  bool accepted = 1;
+  string disposition = 2;
+}

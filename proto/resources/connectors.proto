@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/config.proto";
+import "proto/resources/common.proto";
+
+message ConnectorClassRuntimeSpec {
+  string kind = 1;
+  string endpoint = 2;
+}
+
+message ConnectorClassAuthSpec {
+  string kind = 1;
+  talon.config.Secret api_key = 2;
+}
+
+message ConnectorMatchIndex {
+  string name = 1;
+  repeated string fields = 2;
+}
+
+message ConnectorClassSpec {
+  string platform = 1;
+  ConnectorClassRuntimeSpec runtime = 2;
+  ConnectorClassAuthSpec auth = 3;
+  repeated ConnectorMatchIndex match_indexes = 4;
+}
+
+message ConnectorClassStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  string registration_id = 4;
+}
+
+message ConnectorTarget {
+  string surface = 1;
+  string agent = 2;
+  string channel = 3;
+  string continuity = 4;
+  string reply_policy = 5;
+}
+
+message ConnectorSpec {
+  ResourceRef class_ref = 1;
+  bool enabled = 2;
+  map<string, string> match_fields = 3;
+  ConnectorTarget target = 4;
+}
+
+message ConnectorStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  repeated string compiled_match_keys = 4;
+}
+
+message ConnectorClass {
+  ResourceMeta metadata = 1;
+  ConnectorClassSpec spec = 2;
+  ConnectorClassStatus status = 3;
+}
+
+message Connector {
+  ResourceMeta metadata = 1;
+  ConnectorSpec spec = 2;
+  ConnectorStatus status = 3;
+}
+
+message ConnectorMatchEntry {
+  string connector_uid = 1;
+  string namespace = 2;
+  string connector_name = 3;
+  string class_name = 4;
+  uint64 generation = 5;
+  ConnectorTarget target = 6;
+}

@@ -164,7 +164,7 @@ async fn update_channel_timestamp(
     ))
 }
 
-async fn persist_channel_message(
+pub(crate) async fn persist_channel_message(
     cp: &ControlPlane,
     mut message: data_proto::ChannelMessage,
 ) -> anyhow::Result<data_proto::ChannelMessage> {
@@ -748,6 +748,113 @@ async fn route_to_subscription(
         );
     }
     Ok(session_id)
+}
+
+pub(crate) async fn route_connector_channel_message(
+    cp: &ControlPlane,
+    message: &data_proto::ChannelMessage,
+    agent: &str,
+    connector_name: &str,
+    reply_mode: &str,
+) -> anyhow::Result<String> {
+    let reply_mode = if reply_mode.trim().is_empty() {
+        "auto"
+    } else {
+        reply_mode.trim()
+    };
+
+    let mut labels = HashMap::new();
+    labels.insert(LABEL_CHANNEL.to_string(), message.channel.clone());
+    labels.insert(LABEL_CHANNEL_MESSAGE.to_string(), message.id.clone());
+    labels.insert(
+        LABEL_CHANNEL_SUBSCRIPTION.to_string(),
+        connector_name.to_string(),
+    );
+    labels.insert(LABEL_CHANNEL_TRIGGER.to_string(), "connector".to_string());
+    labels.insert(LABEL_CHANNEL_REPLY_MODE.to_string(), reply_mode.to_string());
+    labels.extend(message.labels.clone());
+    labels.insert(LABEL_MESSAGE_SOURCE.to_string(), "connector".to_string());
+
+    let session_id =
+        scheduling::create_session_with_labels(cp, &message.ns, agent, labels.clone()).await?;
+
+    let prompt = format_connector_channel_prompt(message, agent, reply_mode);
+    if let Err(error) = scheduling::send_message(
+        cp.kv.as_ref(),
+        cp.pubsub.as_ref(),
+        &message.ns,
+        agent,
+        &session_id,
+        &prompt,
+        labels,
+        chrono::Utc::now(),
+    )
+    .await
+    {
+        if let Err(cleanup_error) =
+            delete_routed_session(cp.kv.as_ref(), &message.ns, agent, &session_id).await
+        {
+            tracing::warn!(
+                error = %cleanup_error,
+                ns = %message.ns,
+                agent = %agent,
+                session_id = %session_id,
+                "failed to clean up connector-routed channel session after scheduling error"
+            );
+        }
+        return Err(error);
+    }
+
+    if let Err(error) = publish_channel_event(
+        cp.pubsub.as_ref(),
+        events::ChannelEvent {
+            ns: message.ns.clone(),
+            channel: message.channel.clone(),
+            kind: events::ChannelEventKind::SessionRouted as i32,
+            message: None,
+            session_id: session_id.clone(),
+            agent: agent.to_string(),
+            subscription: connector_name.to_string(),
+            error: String::new(),
+            timestamp: chrono::Utc::now().timestamp_micros(),
+        },
+    )
+    .await
+    {
+        tracing::warn!(
+            error = %error,
+            ns = %message.ns,
+            channel = %message.channel,
+            session_id = %session_id,
+            agent = %agent,
+            connector = %connector_name,
+            "failed to publish channel event for connector-routed session"
+        );
+    }
+
+    Ok(session_id)
+}
+
+fn format_connector_channel_prompt(
+    message: &data_proto::ChannelMessage,
+    agent: &str,
+    reply_mode: &str,
+) -> String {
+    let reply_instruction = if reply_mode == "none" {
+        "Normal assistant text stays private in your session and will not be posted to the channel. This connector is configured with replyPolicy none, so no public channel reply is expected."
+    } else {
+        "Normal assistant text stays private in your session and will not be posted to the channel. If a public channel reply is needed, call channel_publish with the response content. If no public reply is needed, call channel_skip_reply."
+    };
+    format!(
+        "You are handling a connector message in Talon channel '{}' as agent '{}'. {}\n\nTriggering channel message id: {}\nTriggering author: {}:{}\nTriggering content:\n{}",
+        message.channel,
+        agent,
+        reply_instruction,
+        message.id,
+        message.author_kind,
+        message.author,
+        message.content,
+    )
 }
 
 async fn delete_routed_session(

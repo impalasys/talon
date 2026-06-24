@@ -3478,6 +3478,36 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Channels.ChannelSubscriptionSpecOrBuilder getChannelSubscriptionOrBuilder();
 
     /**
+     * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+     * @return Whether the connectorClass field is set.
+     */
+    boolean hasConnectorClass();
+    /**
+     * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+     * @return The connectorClass.
+     */
+    talon.resources.Connectors.ConnectorClassSpec getConnectorClass();
+    /**
+     * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+     */
+    talon.resources.Connectors.ConnectorClassSpecOrBuilder getConnectorClassOrBuilder();
+
+    /**
+     * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+     * @return Whether the connector field is set.
+     */
+    boolean hasConnector();
+    /**
+     * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+     * @return The connector.
+     */
+    talon.resources.Connectors.ConnectorSpec getConnector();
+    /**
+     * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+     */
+    talon.resources.Connectors.ConnectorSpecOrBuilder getConnectorOrBuilder();
+
+    /**
      * <code>.talon.resources.McpServerSpec mcp_server = 6;</code>
      * @return Whether the mcpServer field is set.
      */
@@ -3742,6 +3772,8 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       SCHEDULE(3),
       CHANNEL(4),
       CHANNEL_SUBSCRIPTION(5),
+      CONNECTOR_CLASS(12),
+      CONNECTOR(13),
       MCP_SERVER(6),
       KNOWLEDGE(8),
       NAMESPACE(9),
@@ -3778,6 +3810,8 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           case 3: return SCHEDULE;
           case 4: return CHANNEL;
           case 5: return CHANNEL_SUBSCRIPTION;
+          case 12: return CONNECTOR_CLASS;
+          case 13: return CONNECTOR;
           case 6: return MCP_SERVER;
           case 8: return KNOWLEDGE;
           case 9: return NAMESPACE;
@@ -3960,6 +3994,68 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
          return (talon.resources.Channels.ChannelSubscriptionSpec) kind_;
       }
       return talon.resources.Channels.ChannelSubscriptionSpec.getDefaultInstance();
+    }
+
+    public static final int CONNECTOR_CLASS_FIELD_NUMBER = 12;
+    /**
+     * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+     * @return Whether the connectorClass field is set.
+     */
+    @java.lang.Override
+    public boolean hasConnectorClass() {
+      return kindCase_ == 12;
+    }
+    /**
+     * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+     * @return The connectorClass.
+     */
+    @java.lang.Override
+    public talon.resources.Connectors.ConnectorClassSpec getConnectorClass() {
+      if (kindCase_ == 12) {
+         return (talon.resources.Connectors.ConnectorClassSpec) kind_;
+      }
+      return talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Connectors.ConnectorClassSpecOrBuilder getConnectorClassOrBuilder() {
+      if (kindCase_ == 12) {
+         return (talon.resources.Connectors.ConnectorClassSpec) kind_;
+      }
+      return talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance();
+    }
+
+    public static final int CONNECTOR_FIELD_NUMBER = 13;
+    /**
+     * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+     * @return Whether the connector field is set.
+     */
+    @java.lang.Override
+    public boolean hasConnector() {
+      return kindCase_ == 13;
+    }
+    /**
+     * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+     * @return The connector.
+     */
+    @java.lang.Override
+    public talon.resources.Connectors.ConnectorSpec getConnector() {
+      if (kindCase_ == 13) {
+         return (talon.resources.Connectors.ConnectorSpec) kind_;
+      }
+      return talon.resources.Connectors.ConnectorSpec.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Connectors.ConnectorSpecOrBuilder getConnectorOrBuilder() {
+      if (kindCase_ == 13) {
+         return (talon.resources.Connectors.ConnectorSpec) kind_;
+      }
+      return talon.resources.Connectors.ConnectorSpec.getDefaultInstance();
     }
 
     public static final int MCP_SERVER_FIELD_NUMBER = 6;
@@ -4440,6 +4536,12 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 11) {
         output.writeMessage(11, (talon.resources.Skills.SkillSpec) kind_);
       }
+      if (kindCase_ == 12) {
+        output.writeMessage(12, (talon.resources.Connectors.ConnectorClassSpec) kind_);
+      }
+      if (kindCase_ == 13) {
+        output.writeMessage(13, (talon.resources.Connectors.ConnectorSpec) kind_);
+      }
       if (kindCase_ == 20) {
         output.writeMessage(20, (talon.resources.Deployments.TemplateSpec) kind_);
       }
@@ -4516,6 +4618,14 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(11, (talon.resources.Skills.SkillSpec) kind_);
       }
+      if (kindCase_ == 12) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(12, (talon.resources.Connectors.ConnectorClassSpec) kind_);
+      }
+      if (kindCase_ == 13) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(13, (talon.resources.Connectors.ConnectorSpec) kind_);
+      }
       if (kindCase_ == 20) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(20, (talon.resources.Deployments.TemplateSpec) kind_);
@@ -4588,6 +4698,14 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 5:
           if (!getChannelSubscription()
               .equals(other.getChannelSubscription())) return false;
+          break;
+        case 12:
+          if (!getConnectorClass()
+              .equals(other.getConnectorClass())) return false;
+          break;
+        case 13:
+          if (!getConnector()
+              .equals(other.getConnector())) return false;
           break;
         case 6:
           if (!getMcpServer()
@@ -4679,6 +4797,14 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 5:
           hash = (37 * hash) + CHANNEL_SUBSCRIPTION_FIELD_NUMBER;
           hash = (53 * hash) + getChannelSubscription().hashCode();
+          break;
+        case 12:
+          hash = (37 * hash) + CONNECTOR_CLASS_FIELD_NUMBER;
+          hash = (53 * hash) + getConnectorClass().hashCode();
+          break;
+        case 13:
+          hash = (37 * hash) + CONNECTOR_FIELD_NUMBER;
+          hash = (53 * hash) + getConnector().hashCode();
           break;
         case 6:
           hash = (37 * hash) + MCP_SERVER_FIELD_NUMBER;
@@ -4885,6 +5011,12 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (channelSubscriptionBuilder_ != null) {
           channelSubscriptionBuilder_.clear();
         }
+        if (connectorClassBuilder_ != null) {
+          connectorClassBuilder_.clear();
+        }
+        if (connectorBuilder_ != null) {
+          connectorBuilder_.clear();
+        }
         if (mcpServerBuilder_ != null) {
           mcpServerBuilder_.clear();
         }
@@ -4988,6 +5120,14 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             channelSubscriptionBuilder_ != null) {
           result.kind_ = channelSubscriptionBuilder_.build();
         }
+        if (kindCase_ == 12 &&
+            connectorClassBuilder_ != null) {
+          result.kind_ = connectorClassBuilder_.build();
+        }
+        if (kindCase_ == 13 &&
+            connectorBuilder_ != null) {
+          result.kind_ = connectorBuilder_.build();
+        }
         if (kindCase_ == 6 &&
             mcpServerBuilder_ != null) {
           result.kind_ = mcpServerBuilder_.build();
@@ -5077,6 +5217,14 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           }
           case CHANNEL_SUBSCRIPTION: {
             mergeChannelSubscription(other.getChannelSubscription());
+            break;
+          }
+          case CONNECTOR_CLASS: {
+            mergeConnectorClass(other.getConnectorClass());
+            break;
+          }
+          case CONNECTOR: {
+            mergeConnector(other.getConnector());
             break;
           }
           case MCP_SERVER: {
@@ -5235,6 +5383,20 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 11;
                 break;
               } // case 90
+              case 98: {
+                input.readMessage(
+                    internalGetConnectorClassFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                kindCase_ = 12;
+                break;
+              } // case 98
+              case 106: {
+                input.readMessage(
+                    internalGetConnectorFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                kindCase_ = 13;
+                break;
+              } // case 106
               case 162: {
                 input.readMessage(
                     internalGetTemplateFieldBuilder().getBuilder(),
@@ -6038,6 +6200,290 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         kindCase_ = 5;
         onChanged();
         return channelSubscriptionBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Connectors.ConnectorClassSpec, talon.resources.Connectors.ConnectorClassSpec.Builder, talon.resources.Connectors.ConnectorClassSpecOrBuilder> connectorClassBuilder_;
+      /**
+       * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+       * @return Whether the connectorClass field is set.
+       */
+      @java.lang.Override
+      public boolean hasConnectorClass() {
+        return kindCase_ == 12;
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+       * @return The connectorClass.
+       */
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorClassSpec getConnectorClass() {
+        if (connectorClassBuilder_ == null) {
+          if (kindCase_ == 12) {
+            return (talon.resources.Connectors.ConnectorClassSpec) kind_;
+          }
+          return talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance();
+        } else {
+          if (kindCase_ == 12) {
+            return connectorClassBuilder_.getMessage();
+          }
+          return talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+       */
+      public Builder setConnectorClass(talon.resources.Connectors.ConnectorClassSpec value) {
+        if (connectorClassBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          kind_ = value;
+          onChanged();
+        } else {
+          connectorClassBuilder_.setMessage(value);
+        }
+        kindCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+       */
+      public Builder setConnectorClass(
+          talon.resources.Connectors.ConnectorClassSpec.Builder builderForValue) {
+        if (connectorClassBuilder_ == null) {
+          kind_ = builderForValue.build();
+          onChanged();
+        } else {
+          connectorClassBuilder_.setMessage(builderForValue.build());
+        }
+        kindCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+       */
+      public Builder mergeConnectorClass(talon.resources.Connectors.ConnectorClassSpec value) {
+        if (connectorClassBuilder_ == null) {
+          if (kindCase_ == 12 &&
+              kind_ != talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance()) {
+            kind_ = talon.resources.Connectors.ConnectorClassSpec.newBuilder((talon.resources.Connectors.ConnectorClassSpec) kind_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            kind_ = value;
+          }
+          onChanged();
+        } else {
+          if (kindCase_ == 12) {
+            connectorClassBuilder_.mergeFrom(value);
+          } else {
+            connectorClassBuilder_.setMessage(value);
+          }
+        }
+        kindCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+       */
+      public Builder clearConnectorClass() {
+        if (connectorClassBuilder_ == null) {
+          if (kindCase_ == 12) {
+            kindCase_ = 0;
+            kind_ = null;
+            onChanged();
+          }
+        } else {
+          if (kindCase_ == 12) {
+            kindCase_ = 0;
+            kind_ = null;
+          }
+          connectorClassBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+       */
+      public talon.resources.Connectors.ConnectorClassSpec.Builder getConnectorClassBuilder() {
+        return internalGetConnectorClassFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+       */
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorClassSpecOrBuilder getConnectorClassOrBuilder() {
+        if ((kindCase_ == 12) && (connectorClassBuilder_ != null)) {
+          return connectorClassBuilder_.getMessageOrBuilder();
+        } else {
+          if (kindCase_ == 12) {
+            return (talon.resources.Connectors.ConnectorClassSpec) kind_;
+          }
+          return talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassSpec connector_class = 12;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Connectors.ConnectorClassSpec, talon.resources.Connectors.ConnectorClassSpec.Builder, talon.resources.Connectors.ConnectorClassSpecOrBuilder>
+          internalGetConnectorClassFieldBuilder() {
+        if (connectorClassBuilder_ == null) {
+          if (!(kindCase_ == 12)) {
+            kind_ = talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance();
+          }
+          connectorClassBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Connectors.ConnectorClassSpec, talon.resources.Connectors.ConnectorClassSpec.Builder, talon.resources.Connectors.ConnectorClassSpecOrBuilder>(
+                  (talon.resources.Connectors.ConnectorClassSpec) kind_,
+                  getParentForChildren(),
+                  isClean());
+          kind_ = null;
+        }
+        kindCase_ = 12;
+        onChanged();
+        return connectorClassBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Connectors.ConnectorSpec, talon.resources.Connectors.ConnectorSpec.Builder, talon.resources.Connectors.ConnectorSpecOrBuilder> connectorBuilder_;
+      /**
+       * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+       * @return Whether the connector field is set.
+       */
+      @java.lang.Override
+      public boolean hasConnector() {
+        return kindCase_ == 13;
+      }
+      /**
+       * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+       * @return The connector.
+       */
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorSpec getConnector() {
+        if (connectorBuilder_ == null) {
+          if (kindCase_ == 13) {
+            return (talon.resources.Connectors.ConnectorSpec) kind_;
+          }
+          return talon.resources.Connectors.ConnectorSpec.getDefaultInstance();
+        } else {
+          if (kindCase_ == 13) {
+            return connectorBuilder_.getMessage();
+          }
+          return talon.resources.Connectors.ConnectorSpec.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+       */
+      public Builder setConnector(talon.resources.Connectors.ConnectorSpec value) {
+        if (connectorBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          kind_ = value;
+          onChanged();
+        } else {
+          connectorBuilder_.setMessage(value);
+        }
+        kindCase_ = 13;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+       */
+      public Builder setConnector(
+          talon.resources.Connectors.ConnectorSpec.Builder builderForValue) {
+        if (connectorBuilder_ == null) {
+          kind_ = builderForValue.build();
+          onChanged();
+        } else {
+          connectorBuilder_.setMessage(builderForValue.build());
+        }
+        kindCase_ = 13;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+       */
+      public Builder mergeConnector(talon.resources.Connectors.ConnectorSpec value) {
+        if (connectorBuilder_ == null) {
+          if (kindCase_ == 13 &&
+              kind_ != talon.resources.Connectors.ConnectorSpec.getDefaultInstance()) {
+            kind_ = talon.resources.Connectors.ConnectorSpec.newBuilder((talon.resources.Connectors.ConnectorSpec) kind_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            kind_ = value;
+          }
+          onChanged();
+        } else {
+          if (kindCase_ == 13) {
+            connectorBuilder_.mergeFrom(value);
+          } else {
+            connectorBuilder_.setMessage(value);
+          }
+        }
+        kindCase_ = 13;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+       */
+      public Builder clearConnector() {
+        if (connectorBuilder_ == null) {
+          if (kindCase_ == 13) {
+            kindCase_ = 0;
+            kind_ = null;
+            onChanged();
+          }
+        } else {
+          if (kindCase_ == 13) {
+            kindCase_ = 0;
+            kind_ = null;
+          }
+          connectorBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+       */
+      public talon.resources.Connectors.ConnectorSpec.Builder getConnectorBuilder() {
+        return internalGetConnectorFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+       */
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorSpecOrBuilder getConnectorOrBuilder() {
+        if ((kindCase_ == 13) && (connectorBuilder_ != null)) {
+          return connectorBuilder_.getMessageOrBuilder();
+        } else {
+          if (kindCase_ == 13) {
+            return (talon.resources.Connectors.ConnectorSpec) kind_;
+          }
+          return talon.resources.Connectors.ConnectorSpec.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.ConnectorSpec connector = 13;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Connectors.ConnectorSpec, talon.resources.Connectors.ConnectorSpec.Builder, talon.resources.Connectors.ConnectorSpecOrBuilder>
+          internalGetConnectorFieldBuilder() {
+        if (connectorBuilder_ == null) {
+          if (!(kindCase_ == 13)) {
+            kind_ = talon.resources.Connectors.ConnectorSpec.getDefaultInstance();
+          }
+          connectorBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Connectors.ConnectorSpec, talon.resources.Connectors.ConnectorSpec.Builder, talon.resources.Connectors.ConnectorSpecOrBuilder>(
+                  (talon.resources.Connectors.ConnectorSpec) kind_,
+                  getParentForChildren(),
+                  isClean());
+          kind_ = null;
+        }
+        kindCase_ = 13;
+        onChanged();
+        return connectorBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
@@ -8159,6 +8605,36 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Common.CommonResourceStatusOrBuilder getChannelSubscriptionOrBuilder();
 
     /**
+     * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+     * @return Whether the connectorClass field is set.
+     */
+    boolean hasConnectorClass();
+    /**
+     * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+     * @return The connectorClass.
+     */
+    talon.resources.Connectors.ConnectorClassStatus getConnectorClass();
+    /**
+     * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+     */
+    talon.resources.Connectors.ConnectorClassStatusOrBuilder getConnectorClassOrBuilder();
+
+    /**
+     * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+     * @return Whether the connector field is set.
+     */
+    boolean hasConnector();
+    /**
+     * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+     * @return The connector.
+     */
+    talon.resources.Connectors.ConnectorStatus getConnector();
+    /**
+     * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+     */
+    talon.resources.Connectors.ConnectorStatusOrBuilder getConnectorOrBuilder();
+
+    /**
      * <code>.talon.resources.CommonResourceStatus mcp_server = 6;</code>
      * @return Whether the mcpServer field is set.
      */
@@ -8423,6 +8899,8 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       SCHEDULE(3),
       CHANNEL(4),
       CHANNEL_SUBSCRIPTION(5),
+      CONNECTOR_CLASS(12),
+      CONNECTOR(13),
       MCP_SERVER(6),
       KNOWLEDGE(8),
       NAMESPACE(9),
@@ -8459,6 +8937,8 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           case 3: return SCHEDULE;
           case 4: return CHANNEL;
           case 5: return CHANNEL_SUBSCRIPTION;
+          case 12: return CONNECTOR_CLASS;
+          case 13: return CONNECTOR;
           case 6: return MCP_SERVER;
           case 8: return KNOWLEDGE;
           case 9: return NAMESPACE;
@@ -8641,6 +9121,68 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
          return (talon.resources.Common.CommonResourceStatus) kind_;
       }
       return talon.resources.Common.CommonResourceStatus.getDefaultInstance();
+    }
+
+    public static final int CONNECTOR_CLASS_FIELD_NUMBER = 12;
+    /**
+     * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+     * @return Whether the connectorClass field is set.
+     */
+    @java.lang.Override
+    public boolean hasConnectorClass() {
+      return kindCase_ == 12;
+    }
+    /**
+     * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+     * @return The connectorClass.
+     */
+    @java.lang.Override
+    public talon.resources.Connectors.ConnectorClassStatus getConnectorClass() {
+      if (kindCase_ == 12) {
+         return (talon.resources.Connectors.ConnectorClassStatus) kind_;
+      }
+      return talon.resources.Connectors.ConnectorClassStatus.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Connectors.ConnectorClassStatusOrBuilder getConnectorClassOrBuilder() {
+      if (kindCase_ == 12) {
+         return (talon.resources.Connectors.ConnectorClassStatus) kind_;
+      }
+      return talon.resources.Connectors.ConnectorClassStatus.getDefaultInstance();
+    }
+
+    public static final int CONNECTOR_FIELD_NUMBER = 13;
+    /**
+     * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+     * @return Whether the connector field is set.
+     */
+    @java.lang.Override
+    public boolean hasConnector() {
+      return kindCase_ == 13;
+    }
+    /**
+     * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+     * @return The connector.
+     */
+    @java.lang.Override
+    public talon.resources.Connectors.ConnectorStatus getConnector() {
+      if (kindCase_ == 13) {
+         return (talon.resources.Connectors.ConnectorStatus) kind_;
+      }
+      return talon.resources.Connectors.ConnectorStatus.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Connectors.ConnectorStatusOrBuilder getConnectorOrBuilder() {
+      if (kindCase_ == 13) {
+         return (talon.resources.Connectors.ConnectorStatus) kind_;
+      }
+      return talon.resources.Connectors.ConnectorStatus.getDefaultInstance();
     }
 
     public static final int MCP_SERVER_FIELD_NUMBER = 6;
@@ -9121,6 +9663,12 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 11) {
         output.writeMessage(11, (talon.resources.Common.CommonResourceStatus) kind_);
       }
+      if (kindCase_ == 12) {
+        output.writeMessage(12, (talon.resources.Connectors.ConnectorClassStatus) kind_);
+      }
+      if (kindCase_ == 13) {
+        output.writeMessage(13, (talon.resources.Connectors.ConnectorStatus) kind_);
+      }
       if (kindCase_ == 20) {
         output.writeMessage(20, (talon.resources.Common.CommonResourceStatus) kind_);
       }
@@ -9197,6 +9745,14 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(11, (talon.resources.Common.CommonResourceStatus) kind_);
       }
+      if (kindCase_ == 12) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(12, (talon.resources.Connectors.ConnectorClassStatus) kind_);
+      }
+      if (kindCase_ == 13) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(13, (talon.resources.Connectors.ConnectorStatus) kind_);
+      }
       if (kindCase_ == 20) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(20, (talon.resources.Common.CommonResourceStatus) kind_);
@@ -9269,6 +9825,14 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 5:
           if (!getChannelSubscription()
               .equals(other.getChannelSubscription())) return false;
+          break;
+        case 12:
+          if (!getConnectorClass()
+              .equals(other.getConnectorClass())) return false;
+          break;
+        case 13:
+          if (!getConnector()
+              .equals(other.getConnector())) return false;
           break;
         case 6:
           if (!getMcpServer()
@@ -9360,6 +9924,14 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 5:
           hash = (37 * hash) + CHANNEL_SUBSCRIPTION_FIELD_NUMBER;
           hash = (53 * hash) + getChannelSubscription().hashCode();
+          break;
+        case 12:
+          hash = (37 * hash) + CONNECTOR_CLASS_FIELD_NUMBER;
+          hash = (53 * hash) + getConnectorClass().hashCode();
+          break;
+        case 13:
+          hash = (37 * hash) + CONNECTOR_FIELD_NUMBER;
+          hash = (53 * hash) + getConnector().hashCode();
           break;
         case 6:
           hash = (37 * hash) + MCP_SERVER_FIELD_NUMBER;
@@ -9566,6 +10138,12 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (channelSubscriptionBuilder_ != null) {
           channelSubscriptionBuilder_.clear();
         }
+        if (connectorClassBuilder_ != null) {
+          connectorClassBuilder_.clear();
+        }
+        if (connectorBuilder_ != null) {
+          connectorBuilder_.clear();
+        }
         if (mcpServerBuilder_ != null) {
           mcpServerBuilder_.clear();
         }
@@ -9669,6 +10247,14 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             channelSubscriptionBuilder_ != null) {
           result.kind_ = channelSubscriptionBuilder_.build();
         }
+        if (kindCase_ == 12 &&
+            connectorClassBuilder_ != null) {
+          result.kind_ = connectorClassBuilder_.build();
+        }
+        if (kindCase_ == 13 &&
+            connectorBuilder_ != null) {
+          result.kind_ = connectorBuilder_.build();
+        }
         if (kindCase_ == 6 &&
             mcpServerBuilder_ != null) {
           result.kind_ = mcpServerBuilder_.build();
@@ -9758,6 +10344,14 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           }
           case CHANNEL_SUBSCRIPTION: {
             mergeChannelSubscription(other.getChannelSubscription());
+            break;
+          }
+          case CONNECTOR_CLASS: {
+            mergeConnectorClass(other.getConnectorClass());
+            break;
+          }
+          case CONNECTOR: {
+            mergeConnector(other.getConnector());
             break;
           }
           case MCP_SERVER: {
@@ -9916,6 +10510,20 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 11;
                 break;
               } // case 90
+              case 98: {
+                input.readMessage(
+                    internalGetConnectorClassFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                kindCase_ = 12;
+                break;
+              } // case 98
+              case 106: {
+                input.readMessage(
+                    internalGetConnectorFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                kindCase_ = 13;
+                break;
+              } // case 106
               case 162: {
                 input.readMessage(
                     internalGetTemplateFieldBuilder().getBuilder(),
@@ -10719,6 +11327,290 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         kindCase_ = 5;
         onChanged();
         return channelSubscriptionBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Connectors.ConnectorClassStatus, talon.resources.Connectors.ConnectorClassStatus.Builder, talon.resources.Connectors.ConnectorClassStatusOrBuilder> connectorClassBuilder_;
+      /**
+       * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+       * @return Whether the connectorClass field is set.
+       */
+      @java.lang.Override
+      public boolean hasConnectorClass() {
+        return kindCase_ == 12;
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+       * @return The connectorClass.
+       */
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorClassStatus getConnectorClass() {
+        if (connectorClassBuilder_ == null) {
+          if (kindCase_ == 12) {
+            return (talon.resources.Connectors.ConnectorClassStatus) kind_;
+          }
+          return talon.resources.Connectors.ConnectorClassStatus.getDefaultInstance();
+        } else {
+          if (kindCase_ == 12) {
+            return connectorClassBuilder_.getMessage();
+          }
+          return talon.resources.Connectors.ConnectorClassStatus.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+       */
+      public Builder setConnectorClass(talon.resources.Connectors.ConnectorClassStatus value) {
+        if (connectorClassBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          kind_ = value;
+          onChanged();
+        } else {
+          connectorClassBuilder_.setMessage(value);
+        }
+        kindCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+       */
+      public Builder setConnectorClass(
+          talon.resources.Connectors.ConnectorClassStatus.Builder builderForValue) {
+        if (connectorClassBuilder_ == null) {
+          kind_ = builderForValue.build();
+          onChanged();
+        } else {
+          connectorClassBuilder_.setMessage(builderForValue.build());
+        }
+        kindCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+       */
+      public Builder mergeConnectorClass(talon.resources.Connectors.ConnectorClassStatus value) {
+        if (connectorClassBuilder_ == null) {
+          if (kindCase_ == 12 &&
+              kind_ != talon.resources.Connectors.ConnectorClassStatus.getDefaultInstance()) {
+            kind_ = talon.resources.Connectors.ConnectorClassStatus.newBuilder((talon.resources.Connectors.ConnectorClassStatus) kind_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            kind_ = value;
+          }
+          onChanged();
+        } else {
+          if (kindCase_ == 12) {
+            connectorClassBuilder_.mergeFrom(value);
+          } else {
+            connectorClassBuilder_.setMessage(value);
+          }
+        }
+        kindCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+       */
+      public Builder clearConnectorClass() {
+        if (connectorClassBuilder_ == null) {
+          if (kindCase_ == 12) {
+            kindCase_ = 0;
+            kind_ = null;
+            onChanged();
+          }
+        } else {
+          if (kindCase_ == 12) {
+            kindCase_ = 0;
+            kind_ = null;
+          }
+          connectorClassBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+       */
+      public talon.resources.Connectors.ConnectorClassStatus.Builder getConnectorClassBuilder() {
+        return internalGetConnectorClassFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+       */
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorClassStatusOrBuilder getConnectorClassOrBuilder() {
+        if ((kindCase_ == 12) && (connectorClassBuilder_ != null)) {
+          return connectorClassBuilder_.getMessageOrBuilder();
+        } else {
+          if (kindCase_ == 12) {
+            return (talon.resources.Connectors.ConnectorClassStatus) kind_;
+          }
+          return talon.resources.Connectors.ConnectorClassStatus.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.ConnectorClassStatus connector_class = 12;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Connectors.ConnectorClassStatus, talon.resources.Connectors.ConnectorClassStatus.Builder, talon.resources.Connectors.ConnectorClassStatusOrBuilder>
+          internalGetConnectorClassFieldBuilder() {
+        if (connectorClassBuilder_ == null) {
+          if (!(kindCase_ == 12)) {
+            kind_ = talon.resources.Connectors.ConnectorClassStatus.getDefaultInstance();
+          }
+          connectorClassBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Connectors.ConnectorClassStatus, talon.resources.Connectors.ConnectorClassStatus.Builder, talon.resources.Connectors.ConnectorClassStatusOrBuilder>(
+                  (talon.resources.Connectors.ConnectorClassStatus) kind_,
+                  getParentForChildren(),
+                  isClean());
+          kind_ = null;
+        }
+        kindCase_ = 12;
+        onChanged();
+        return connectorClassBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Connectors.ConnectorStatus, talon.resources.Connectors.ConnectorStatus.Builder, talon.resources.Connectors.ConnectorStatusOrBuilder> connectorBuilder_;
+      /**
+       * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+       * @return Whether the connector field is set.
+       */
+      @java.lang.Override
+      public boolean hasConnector() {
+        return kindCase_ == 13;
+      }
+      /**
+       * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+       * @return The connector.
+       */
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorStatus getConnector() {
+        if (connectorBuilder_ == null) {
+          if (kindCase_ == 13) {
+            return (talon.resources.Connectors.ConnectorStatus) kind_;
+          }
+          return talon.resources.Connectors.ConnectorStatus.getDefaultInstance();
+        } else {
+          if (kindCase_ == 13) {
+            return connectorBuilder_.getMessage();
+          }
+          return talon.resources.Connectors.ConnectorStatus.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+       */
+      public Builder setConnector(talon.resources.Connectors.ConnectorStatus value) {
+        if (connectorBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          kind_ = value;
+          onChanged();
+        } else {
+          connectorBuilder_.setMessage(value);
+        }
+        kindCase_ = 13;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+       */
+      public Builder setConnector(
+          talon.resources.Connectors.ConnectorStatus.Builder builderForValue) {
+        if (connectorBuilder_ == null) {
+          kind_ = builderForValue.build();
+          onChanged();
+        } else {
+          connectorBuilder_.setMessage(builderForValue.build());
+        }
+        kindCase_ = 13;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+       */
+      public Builder mergeConnector(talon.resources.Connectors.ConnectorStatus value) {
+        if (connectorBuilder_ == null) {
+          if (kindCase_ == 13 &&
+              kind_ != talon.resources.Connectors.ConnectorStatus.getDefaultInstance()) {
+            kind_ = talon.resources.Connectors.ConnectorStatus.newBuilder((talon.resources.Connectors.ConnectorStatus) kind_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            kind_ = value;
+          }
+          onChanged();
+        } else {
+          if (kindCase_ == 13) {
+            connectorBuilder_.mergeFrom(value);
+          } else {
+            connectorBuilder_.setMessage(value);
+          }
+        }
+        kindCase_ = 13;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+       */
+      public Builder clearConnector() {
+        if (connectorBuilder_ == null) {
+          if (kindCase_ == 13) {
+            kindCase_ = 0;
+            kind_ = null;
+            onChanged();
+          }
+        } else {
+          if (kindCase_ == 13) {
+            kindCase_ = 0;
+            kind_ = null;
+          }
+          connectorBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+       */
+      public talon.resources.Connectors.ConnectorStatus.Builder getConnectorBuilder() {
+        return internalGetConnectorFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+       */
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorStatusOrBuilder getConnectorOrBuilder() {
+        if ((kindCase_ == 13) && (connectorBuilder_ != null)) {
+          return connectorBuilder_.getMessageOrBuilder();
+        } else {
+          if (kindCase_ == 13) {
+            return (talon.resources.Connectors.ConnectorStatus) kind_;
+          }
+          return talon.resources.Connectors.ConnectorStatus.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.ConnectorStatus connector = 13;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Connectors.ConnectorStatus, talon.resources.Connectors.ConnectorStatus.Builder, talon.resources.Connectors.ConnectorStatusOrBuilder>
+          internalGetConnectorFieldBuilder() {
+        if (connectorBuilder_ == null) {
+          if (!(kindCase_ == 13)) {
+            kind_ = talon.resources.Connectors.ConnectorStatus.getDefaultInstance();
+          }
+          connectorBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Connectors.ConnectorStatus, talon.resources.Connectors.ConnectorStatus.Builder, talon.resources.Connectors.ConnectorStatusOrBuilder>(
+                  (talon.resources.Connectors.ConnectorStatus) kind_,
+                  getParentForChildren(),
+                  isClean());
+          kind_ = null;
+        }
+        kindCase_ = 13;
+        onChanged();
+        return connectorBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
@@ -12802,82 +13694,88 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       "\n\036proto/resources/resource.proto\022\017talon." +
       "resources\032\034proto/resources/agents.proto\032" +
       "\036proto/resources/channels.proto\032\034proto/r" +
-      "esources/common.proto\032!proto/resources/d" +
-      "eployments.proto\032\037proto/resources/knowle" +
-      "dge.proto\032\031proto/resources/mcp.proto\032 pr" +
-      "oto/resources/namespaces.proto\032\037proto/re" +
-      "sources/sandboxes.proto\032\037proto/resources" +
-      "/schedules.proto\032\036proto/resources/sessio" +
-      "ns.proto\032\034proto/resources/skills.proto\032\033" +
-      "proto/resources/usage.proto\032\035proto/resou" +
-      "rces/workers.proto\032\037proto/resources/work" +
-      "flows.proto\"\274\001\n\010Resource\022\023\n\013api_version\030" +
-      "\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022/\n\010metadata\030\003 \001(\0132\035." +
-      "talon.resources.ResourceMeta\022+\n\004spec\030\004 \001" +
-      "(\0132\035.talon.resources.ResourceSpec\022/\n\006sta" +
-      "tus\030\005 \001(\0132\037.talon.resources.ResourceStat" +
-      "us\"\223\001\n\020ResourceManifest\022\023\n\013api_version\030\001" +
-      " \001(\t\022\014\n\004kind\030\002 \001(\t\022/\n\010metadata\030\003 \001(\0132\035.t" +
-      "alon.resources.ResourceMeta\022+\n\004spec\030\004 \001(" +
-      "\0132\035.talon.resources.ResourceSpec\"\037\n\017RawR" +
-      "esourceSpec\022\014\n\004json\030\001 \001(\t\"!\n\021RawResource" +
-      "Status\022\014\n\004json\030\001 \001(\t\"\262\010\n\014ResourceSpec\022+\n" +
-      "\005agent\030\001 \001(\0132\032.talon.resources.AgentSpec" +
-      "H\000\0221\n\010workflow\030\002 \001(\0132\035.talon.resources.W" +
-      "orkflowSpecH\000\0221\n\010schedule\030\003 \001(\0132\035.talon." +
-      "resources.ScheduleSpecH\000\022/\n\007channel\030\004 \001(" +
-      "\0132\034.talon.resources.ChannelSpecH\000\022H\n\024cha" +
-      "nnel_subscription\030\005 \001(\0132(.talon.resource" +
-      "s.ChannelSubscriptionSpecH\000\0224\n\nmcp_serve" +
-      "r\030\006 \001(\0132\036.talon.resources.McpServerSpecH" +
-      "\000\0223\n\tknowledge\030\010 \001(\0132\036.talon.resources.K" +
-      "nowledgeSpecH\000\0223\n\tnamespace\030\t \001(\0132\036.talo" +
-      "n.resources.NamespaceSpecH\000\022/\n\007session\030\n" +
-      " \001(\0132\034.talon.resources.SessionSpecH\000\022+\n\005" +
-      "skill\030\013 \001(\0132\032.talon.resources.SkillSpecH" +
-      "\000\0221\n\010template\030\024 \001(\0132\035.talon.resources.Te" +
-      "mplateSpecH\000\0225\n\ndeployment\030\025 \001(\0132\037.talon" +
-      ".resources.DeploymentSpecH\000\022D\n\022deploymen" +
-      "t_replica\030\026 \001(\0132&.talon.resources.Deploy" +
-      "mentReplicaSpecH\000\022:\n\rsandbox_class\030( \001(\013" +
-      "2!.talon.resources.SandboxClassSpecH\000\022<\n" +
-      "\016sandbox_policy\030) \001(\0132\".talon.resources." +
-      "SandboxPolicySpecH\000\022/\n\007sandbox\030* \001(\0132\034.t" +
-      "alon.resources.SandboxSpecH\000\022-\n\006worker\0302" +
-      " \001(\0132\033.talon.resources.WorkerSpecH\000\0228\n\014u" +
-      "sage_policy\030< \001(\0132 .talon.resources.Usag" +
-      "ePolicySpecH\000\0220\n\003raw\030\350\007 \001(\0132 .talon.reso" +
-      "urces.RawResourceSpecH\000B\006\n\004kindJ\004\010\007\020\010R\022m" +
-      "cp_server_binding\"\361\010\n\016ResourceStatus\022-\n\005" +
-      "agent\030\001 \001(\0132\034.talon.resources.AgentStatu" +
-      "sH\000\0223\n\010workflow\030\002 \001(\0132\037.talon.resources." +
-      "WorkflowStatusH\000\0223\n\010schedule\030\003 \001(\0132\037.tal" +
-      "on.resources.ScheduleStatusH\000\0221\n\007channel" +
-      "\030\004 \001(\0132\036.talon.resources.ChannelStatusH\000" +
-      "\022E\n\024channel_subscription\030\005 \001(\0132%.talon.r" +
-      "esources.CommonResourceStatusH\000\022;\n\nmcp_s" +
-      "erver\030\006 \001(\0132%.talon.resources.CommonReso" +
-      "urceStatusH\000\022:\n\tknowledge\030\010 \001(\0132%.talon." +
-      "resources.CommonResourceStatusH\000\0225\n\tname" +
-      "space\030\t \001(\0132 .talon.resources.NamespaceS" +
-      "tatusH\000\0221\n\007session\030\n \001(\0132\036.talon.resourc" +
-      "es.SessionStatusH\000\0226\n\005skill\030\013 \001(\0132%.talo" +
-      "n.resources.CommonResourceStatusH\000\0229\n\010te" +
-      "mplate\030\024 \001(\0132%.talon.resources.CommonRes" +
-      "ourceStatusH\000\0227\n\ndeployment\030\025 \001(\0132!.talo" +
-      "n.resources.DeploymentStatusH\000\022F\n\022deploy" +
-      "ment_replica\030\026 \001(\0132(.talon.resources.Dep" +
-      "loymentReplicaStatusH\000\022>\n\rsandbox_class\030" +
-      "( \001(\0132%.talon.resources.CommonResourceSt" +
-      "atusH\000\022?\n\016sandbox_policy\030) \001(\0132%.talon.r" +
-      "esources.CommonResourceStatusH\000\0221\n\007sandb" +
-      "ox\030* \001(\0132\036.talon.resources.SandboxStatus" +
-      "H\000\022/\n\006worker\0302 \001(\0132\035.talon.resources.Wor" +
-      "kerStatusH\000\022:\n\014usage_policy\030< \001(\0132\".talo" +
-      "n.resources.UsagePolicyStatusH\000\0222\n\003raw\030\350" +
-      "\007 \001(\0132\".talon.resources.RawResourceStatu" +
-      "sH\000B\006\n\004kindJ\004\010\007\020\010R\022mcp_server_bindingb\006p" +
-      "roto3"
+      "esources/common.proto\032 proto/resources/c" +
+      "onnectors.proto\032!proto/resources/deploym" +
+      "ents.proto\032\037proto/resources/knowledge.pr" +
+      "oto\032\031proto/resources/mcp.proto\032 proto/re" +
+      "sources/namespaces.proto\032\037proto/resource" +
+      "s/sandboxes.proto\032\037proto/resources/sched" +
+      "ules.proto\032\036proto/resources/sessions.pro" +
+      "to\032\034proto/resources/skills.proto\032\033proto/" +
+      "resources/usage.proto\032\035proto/resources/w" +
+      "orkers.proto\032\037proto/resources/workflows." +
+      "proto\"\274\001\n\010Resource\022\023\n\013api_version\030\001 \001(\t\022" +
+      "\014\n\004kind\030\002 \001(\t\022/\n\010metadata\030\003 \001(\0132\035.talon." +
+      "resources.ResourceMeta\022+\n\004spec\030\004 \001(\0132\035.t" +
+      "alon.resources.ResourceSpec\022/\n\006status\030\005 " +
+      "\001(\0132\037.talon.resources.ResourceStatus\"\223\001\n" +
+      "\020ResourceManifest\022\023\n\013api_version\030\001 \001(\t\022\014" +
+      "\n\004kind\030\002 \001(\t\022/\n\010metadata\030\003 \001(\0132\035.talon.r" +
+      "esources.ResourceMeta\022+\n\004spec\030\004 \001(\0132\035.ta" +
+      "lon.resources.ResourceSpec\"\037\n\017RawResourc" +
+      "eSpec\022\014\n\004json\030\001 \001(\t\"!\n\021RawResourceStatus" +
+      "\022\014\n\004json\030\001 \001(\t\"\247\t\n\014ResourceSpec\022+\n\005agent" +
+      "\030\001 \001(\0132\032.talon.resources.AgentSpecH\000\0221\n\010" +
+      "workflow\030\002 \001(\0132\035.talon.resources.Workflo" +
+      "wSpecH\000\0221\n\010schedule\030\003 \001(\0132\035.talon.resour" +
+      "ces.ScheduleSpecH\000\022/\n\007channel\030\004 \001(\0132\034.ta" +
+      "lon.resources.ChannelSpecH\000\022H\n\024channel_s" +
+      "ubscription\030\005 \001(\0132(.talon.resources.Chan" +
+      "nelSubscriptionSpecH\000\022>\n\017connector_class" +
+      "\030\014 \001(\0132#.talon.resources.ConnectorClassS" +
+      "pecH\000\0223\n\tconnector\030\r \001(\0132\036.talon.resourc" +
+      "es.ConnectorSpecH\000\0224\n\nmcp_server\030\006 \001(\0132\036" +
+      ".talon.resources.McpServerSpecH\000\0223\n\tknow" +
+      "ledge\030\010 \001(\0132\036.talon.resources.KnowledgeS" +
+      "pecH\000\0223\n\tnamespace\030\t \001(\0132\036.talon.resourc" +
+      "es.NamespaceSpecH\000\022/\n\007session\030\n \001(\0132\034.ta" +
+      "lon.resources.SessionSpecH\000\022+\n\005skill\030\013 \001" +
+      "(\0132\032.talon.resources.SkillSpecH\000\0221\n\010temp" +
+      "late\030\024 \001(\0132\035.talon.resources.TemplateSpe" +
+      "cH\000\0225\n\ndeployment\030\025 \001(\0132\037.talon.resource" +
+      "s.DeploymentSpecH\000\022D\n\022deployment_replica" +
+      "\030\026 \001(\0132&.talon.resources.DeploymentRepli" +
+      "caSpecH\000\022:\n\rsandbox_class\030( \001(\0132!.talon." +
+      "resources.SandboxClassSpecH\000\022<\n\016sandbox_" +
+      "policy\030) \001(\0132\".talon.resources.SandboxPo" +
+      "licySpecH\000\022/\n\007sandbox\030* \001(\0132\034.talon.reso" +
+      "urces.SandboxSpecH\000\022-\n\006worker\0302 \001(\0132\033.ta" +
+      "lon.resources.WorkerSpecH\000\0228\n\014usage_poli" +
+      "cy\030< \001(\0132 .talon.resources.UsagePolicySp" +
+      "ecH\000\0220\n\003raw\030\350\007 \001(\0132 .talon.resources.Raw" +
+      "ResourceSpecH\000B\006\n\004kindJ\004\010\007\020\010R\022mcp_server" +
+      "_binding\"\352\t\n\016ResourceStatus\022-\n\005agent\030\001 \001" +
+      "(\0132\034.talon.resources.AgentStatusH\000\0223\n\010wo" +
+      "rkflow\030\002 \001(\0132\037.talon.resources.WorkflowS" +
+      "tatusH\000\0223\n\010schedule\030\003 \001(\0132\037.talon.resour" +
+      "ces.ScheduleStatusH\000\0221\n\007channel\030\004 \001(\0132\036." +
+      "talon.resources.ChannelStatusH\000\022E\n\024chann" +
+      "el_subscription\030\005 \001(\0132%.talon.resources." +
+      "CommonResourceStatusH\000\022@\n\017connector_clas" +
+      "s\030\014 \001(\0132%.talon.resources.ConnectorClass" +
+      "StatusH\000\0225\n\tconnector\030\r \001(\0132 .talon.reso" +
+      "urces.ConnectorStatusH\000\022;\n\nmcp_server\030\006 " +
+      "\001(\0132%.talon.resources.CommonResourceStat" +
+      "usH\000\022:\n\tknowledge\030\010 \001(\0132%.talon.resource" +
+      "s.CommonResourceStatusH\000\0225\n\tnamespace\030\t " +
+      "\001(\0132 .talon.resources.NamespaceStatusH\000\022" +
+      "1\n\007session\030\n \001(\0132\036.talon.resources.Sessi" +
+      "onStatusH\000\0226\n\005skill\030\013 \001(\0132%.talon.resour" +
+      "ces.CommonResourceStatusH\000\0229\n\010template\030\024" +
+      " \001(\0132%.talon.resources.CommonResourceSta" +
+      "tusH\000\0227\n\ndeployment\030\025 \001(\0132!.talon.resour" +
+      "ces.DeploymentStatusH\000\022F\n\022deployment_rep" +
+      "lica\030\026 \001(\0132(.talon.resources.DeploymentR" +
+      "eplicaStatusH\000\022>\n\rsandbox_class\030( \001(\0132%." +
+      "talon.resources.CommonResourceStatusH\000\022?" +
+      "\n\016sandbox_policy\030) \001(\0132%.talon.resources" +
+      ".CommonResourceStatusH\000\0221\n\007sandbox\030* \001(\013" +
+      "2\036.talon.resources.SandboxStatusH\000\022/\n\006wo" +
+      "rker\0302 \001(\0132\035.talon.resources.WorkerStatu" +
+      "sH\000\022:\n\014usage_policy\030< \001(\0132\".talon.resour" +
+      "ces.UsagePolicyStatusH\000\0222\n\003raw\030\350\007 \001(\0132\"." +
+      "talon.resources.RawResourceStatusH\000B\006\n\004k" +
+      "indJ\004\010\007\020\010R\022mcp_server_bindingb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -12885,6 +13783,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           talon.resources.Agents.getDescriptor(),
           talon.resources.Channels.getDescriptor(),
           talon.resources.Common.getDescriptor(),
+          talon.resources.Connectors.getDescriptor(),
           talon.resources.Deployments.getDescriptor(),
           talon.resources.KnowledgeOuterClass.getDescriptor(),
           talon.resources.Mcp.getDescriptor(),
@@ -12926,17 +13825,18 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     internal_static_talon_resources_ResourceSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ResourceSpec_descriptor,
-        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "Raw", "Kind", });
+        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "ConnectorClass", "Connector", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "Raw", "Kind", });
     internal_static_talon_resources_ResourceStatus_descriptor =
       getDescriptor().getMessageType(5);
     internal_static_talon_resources_ResourceStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ResourceStatus_descriptor,
-        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "Raw", "Kind", });
+        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "ConnectorClass", "Connector", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "Raw", "Kind", });
     descriptor.resolveAllFeaturesImmutable();
     talon.resources.Agents.getDescriptor();
     talon.resources.Channels.getDescriptor();
     talon.resources.Common.getDescriptor();
+    talon.resources.Connectors.getDescriptor();
     talon.resources.Deployments.getDescriptor();
     talon.resources.KnowledgeOuterClass.getDescriptor();
     talon.resources.Mcp.getDescriptor();

@@ -7,6 +7,7 @@ cd "$ROOT"
 V1_PROTO_SRCS=(
   proto/talon/v1/auth.proto
   proto/talon/v1/channels.proto
+  proto/talon/v1/connectors.proto
   proto/talon/v1/knowledge.proto
   proto/talon/v1/namespaces.proto
   proto/talon/v1/resources.proto
@@ -23,6 +24,7 @@ PROTO_SRCS=(
   proto/resources/knowledge.proto
   proto/resources/namespaces.proto
   proto/resources/channels.proto
+  proto/resources/connectors.proto
   proto/resources/schedules.proto
   proto/resources/workflows.proto
   proto/resources/deployments.proto
@@ -87,6 +89,7 @@ GO_OPTS=(
   "--go_opt=Mproto/resources/knowledge.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/namespaces.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/channels.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/connectors.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/schedules.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/workflows.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/deployments.proto=${GO_MODULE}/talon/resources"
@@ -105,6 +108,7 @@ GO_OPTS=(
   "--go_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
   "--go_opt=Mproto/talon/v1/auth.proto=${GO_MODULE}/talon/v1"
   "--go_opt=Mproto/talon/v1/channels.proto=${GO_MODULE}/talon/v1"
+  "--go_opt=Mproto/talon/v1/connectors.proto=${GO_MODULE}/talon/v1"
   "--go_opt=Mproto/talon/v1/knowledge.proto=${GO_MODULE}/talon/v1"
   "--go_opt=Mproto/talon/v1/namespaces.proto=${GO_MODULE}/talon/v1"
   "--go_opt=Mproto/talon/v1/resources.proto=${GO_MODULE}/talon/v1"
@@ -118,6 +122,7 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/resources/knowledge.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/namespaces.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/channels.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/connectors.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/schedules.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/workflows.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/deployments.proto=${GO_MODULE}/talon/resources"
@@ -136,6 +141,7 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
   "--go-grpc_opt=Mproto/talon/v1/auth.proto=${GO_MODULE}/talon/v1"
   "--go-grpc_opt=Mproto/talon/v1/channels.proto=${GO_MODULE}/talon/v1"
+  "--go-grpc_opt=Mproto/talon/v1/connectors.proto=${GO_MODULE}/talon/v1"
   "--go-grpc_opt=Mproto/talon/v1/knowledge.proto=${GO_MODULE}/talon/v1"
   "--go-grpc_opt=Mproto/talon/v1/namespaces.proto=${GO_MODULE}/talon/v1"
   "--go-grpc_opt=Mproto/talon/v1/resources.proto=${GO_MODULE}/talon/v1"

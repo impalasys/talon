@@ -1047,6 +1047,120 @@ pub struct Worker {
     pub status: ::core::option::Option<WorkerStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorClassRuntimeSpec {
+    #[prost(string, tag = "1")]
+    pub kind: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub endpoint: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorClassAuthSpec {
+    #[prost(string, tag = "1")]
+    pub kind: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub api_key: ::core::option::Option<super::config::Secret>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorMatchIndex {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "2")]
+    pub fields: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorClassSpec {
+    #[prost(string, tag = "1")]
+    pub platform: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub runtime: ::core::option::Option<ConnectorClassRuntimeSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub auth: ::core::option::Option<ConnectorClassAuthSpec>,
+    #[prost(message, repeated, tag = "4")]
+    pub match_indexes: ::prost::alloc::vec::Vec<ConnectorMatchIndex>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorClassStatus {
+    #[prost(uint64, tag = "1")]
+    pub observed_generation: u64,
+    #[prost(string, tag = "2")]
+    pub phase: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "3")]
+    pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    #[prost(string, tag = "4")]
+    pub registration_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorTarget {
+    #[prost(string, tag = "1")]
+    pub surface: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub channel: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub continuity: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub reply_policy: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorSpec {
+    #[prost(message, optional, tag = "1")]
+    pub class_ref: ::core::option::Option<ResourceRef>,
+    #[prost(bool, tag = "2")]
+    pub enabled: bool,
+    #[prost(map = "string, string", tag = "3")]
+    pub match_fields: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    #[prost(message, optional, tag = "4")]
+    pub target: ::core::option::Option<ConnectorTarget>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorStatus {
+    #[prost(uint64, tag = "1")]
+    pub observed_generation: u64,
+    #[prost(string, tag = "2")]
+    pub phase: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "3")]
+    pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    #[prost(string, repeated, tag = "4")]
+    pub compiled_match_keys: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorClass {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<ConnectorClassSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<ConnectorClassStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Connector {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<ConnectorSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<ConnectorStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorMatchEntry {
+    #[prost(string, tag = "1")]
+    pub connector_uid: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub connector_name: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub class_name: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "5")]
+    pub generation: u64,
+    #[prost(message, optional, tag = "6")]
+    pub target: ::core::option::Option<ConnectorTarget>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Resource {
     #[prost(string, tag = "1")]
     pub api_version: ::prost::alloc::string::String,
@@ -1084,7 +1198,7 @@ pub struct RawResourceStatus {
 pub struct ResourceSpec {
     #[prost(
         oneof = "resource_spec::Kind",
-        tags = "1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
+        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
     )]
     pub kind: ::core::option::Option<resource_spec::Kind>,
 }
@@ -1102,6 +1216,10 @@ pub mod resource_spec {
         Channel(super::ChannelSpec),
         #[prost(message, tag = "5")]
         ChannelSubscription(super::ChannelSubscriptionSpec),
+        #[prost(message, tag = "12")]
+        ConnectorClass(super::ConnectorClassSpec),
+        #[prost(message, tag = "13")]
+        Connector(super::ConnectorSpec),
         #[prost(message, tag = "6")]
         McpServer(super::McpServerSpec),
         #[prost(message, tag = "8")]
@@ -1136,7 +1254,7 @@ pub mod resource_spec {
 pub struct ResourceStatus {
     #[prost(
         oneof = "resource_status::Kind",
-        tags = "1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
+        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
     )]
     pub kind: ::core::option::Option<resource_status::Kind>,
 }
@@ -1154,6 +1272,10 @@ pub mod resource_status {
         Channel(super::ChannelStatus),
         #[prost(message, tag = "5")]
         ChannelSubscription(super::CommonResourceStatus),
+        #[prost(message, tag = "12")]
+        ConnectorClass(super::ConnectorClassStatus),
+        #[prost(message, tag = "13")]
+        Connector(super::ConnectorStatus),
         #[prost(message, tag = "6")]
         McpServer(super::CommonResourceStatus),
         #[prost(message, tag = "8")]

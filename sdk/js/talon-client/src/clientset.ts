@@ -3,6 +3,7 @@
 import { createPromiseClient, type PromiseClient, type Transport } from "@connectrpc/connect";
 import { AuthService } from "./gen/proto/talon/v1/auth_connect.js";
 import { ChannelService } from "./gen/proto/talon/v1/channels_connect.js";
+import { ConnectorService } from "./gen/proto/talon/v1/connectors_connect.js";
 import { KnowledgeService } from "./gen/proto/talon/v1/knowledge_connect.js";
 import { NamespaceService } from "./gen/proto/talon/v1/namespaces_connect.js";
 import { ResourceService } from "./gen/proto/talon/v1/resources_connect.js";
@@ -13,6 +14,7 @@ import { WorkflowService } from "./gen/proto/talon/v1/workflows_connect.js";
 export type TalonClient = {
   auth: PromiseClient<typeof AuthService>;
   channels: PromiseClient<typeof ChannelService>;
+  connectors: PromiseClient<typeof ConnectorService>;
   knowledge: PromiseClient<typeof KnowledgeService>;
   namespaces: PromiseClient<typeof NamespaceService>;
   resources: PromiseClient<typeof ResourceService>;
@@ -25,6 +27,7 @@ export function createTalonClientset(transport: Transport): TalonClient {
   return {
     auth: createPromiseClient(AuthService, transport),
     channels: createPromiseClient(ChannelService, transport),
+    connectors: createPromiseClient(ConnectorService, transport),
     knowledge: createPromiseClient(KnowledgeService, transport),
     namespaces: createPromiseClient(NamespaceService, transport),
     resources: createPromiseClient(ResourceService, transport),

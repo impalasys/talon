@@ -10,6 +10,7 @@ import { AgentSpec, AgentStatus } from "./agents_pb.js";
 import { WorkflowSpec, WorkflowStatus } from "./workflows_pb.js";
 import { ScheduleSpec, ScheduleStatus } from "./schedules_pb.js";
 import { ChannelSpec, ChannelStatus, ChannelSubscriptionSpec } from "./channels_pb.js";
+import { ConnectorClassSpec, ConnectorClassStatus, ConnectorSpec, ConnectorStatus } from "./connectors_pb.js";
 import { McpServerSpec } from "./mcp_pb.js";
 import { KnowledgeSpec } from "./knowledge_pb.js";
 import { NamespaceSpec, NamespaceStatus } from "./namespaces_pb.js";
@@ -249,6 +250,18 @@ export class ResourceSpec extends Message<ResourceSpec> {
     case: "channelSubscription";
   } | {
     /**
+     * @generated from field: talon.resources.ConnectorClassSpec connector_class = 12;
+     */
+    value: ConnectorClassSpec;
+    case: "connectorClass";
+  } | {
+    /**
+     * @generated from field: talon.resources.ConnectorSpec connector = 13;
+     */
+    value: ConnectorSpec;
+    case: "connector";
+  } | {
+    /**
      * @generated from field: talon.resources.McpServerSpec mcp_server = 6;
      */
     value: McpServerSpec;
@@ -346,6 +359,8 @@ export class ResourceSpec extends Message<ResourceSpec> {
     { no: 3, name: "schedule", kind: "message", T: ScheduleSpec, oneof: "kind" },
     { no: 4, name: "channel", kind: "message", T: ChannelSpec, oneof: "kind" },
     { no: 5, name: "channel_subscription", kind: "message", T: ChannelSubscriptionSpec, oneof: "kind" },
+    { no: 12, name: "connector_class", kind: "message", T: ConnectorClassSpec, oneof: "kind" },
+    { no: 13, name: "connector", kind: "message", T: ConnectorSpec, oneof: "kind" },
     { no: 6, name: "mcp_server", kind: "message", T: McpServerSpec, oneof: "kind" },
     { no: 8, name: "knowledge", kind: "message", T: KnowledgeSpec, oneof: "kind" },
     { no: 9, name: "namespace", kind: "message", T: NamespaceSpec, oneof: "kind" },
@@ -416,6 +431,18 @@ export class ResourceStatus extends Message<ResourceStatus> {
      */
     value: CommonResourceStatus;
     case: "channelSubscription";
+  } | {
+    /**
+     * @generated from field: talon.resources.ConnectorClassStatus connector_class = 12;
+     */
+    value: ConnectorClassStatus;
+    case: "connectorClass";
+  } | {
+    /**
+     * @generated from field: talon.resources.ConnectorStatus connector = 13;
+     */
+    value: ConnectorStatus;
+    case: "connector";
   } | {
     /**
      * @generated from field: talon.resources.CommonResourceStatus mcp_server = 6;
@@ -515,6 +542,8 @@ export class ResourceStatus extends Message<ResourceStatus> {
     { no: 3, name: "schedule", kind: "message", T: ScheduleStatus, oneof: "kind" },
     { no: 4, name: "channel", kind: "message", T: ChannelStatus, oneof: "kind" },
     { no: 5, name: "channel_subscription", kind: "message", T: CommonResourceStatus, oneof: "kind" },
+    { no: 12, name: "connector_class", kind: "message", T: ConnectorClassStatus, oneof: "kind" },
+    { no: 13, name: "connector", kind: "message", T: ConnectorStatus, oneof: "kind" },
     { no: 6, name: "mcp_server", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 8, name: "knowledge", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 9, name: "namespace", kind: "message", T: NamespaceStatus, oneof: "kind" },

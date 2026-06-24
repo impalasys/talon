@@ -266,6 +266,27 @@ pub fn namespace_ref_prefix(parent: Option<&str>) -> ResourceList {
     direct_child_prefix(ref_namespace, &[], Some("NamespaceRef"))
 }
 
+pub fn connector_match(name: &str) -> ResourceKey {
+    resource_key(ns::TALON_SYSTEM, &[], "ConnectorMatch", name)
+}
+
+pub fn connector_match_prefix() -> ResourceList {
+    direct_child_prefix(ns::TALON_SYSTEM, &[], Some("ConnectorMatch"))
+}
+
+pub fn connector_event(registration_id: &str, event_id: &str) -> ResourceKey {
+    resource_key(
+        ns::TALON_SYSTEM,
+        &[],
+        "ConnectorEvent",
+        &format!("{registration_id}/{event_id}"),
+    )
+}
+
+pub fn connector_session(name: &str) -> ResourceKey {
+    resource_key(ns::TALON_SYSTEM, &[], "ConnectorSession", name)
+}
+
 pub fn agent(namespace: &str, id: &str) -> ResourceKey {
     resource_key(namespace, &[], "Agent", id)
 }

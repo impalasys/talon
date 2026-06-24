@@ -398,6 +398,8 @@ fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String>
         | StatusKind::Template(status)
         | StatusKind::SandboxClass(status)
         | StatusKind::SandboxPolicy(status) => Some(status.phase.clone()),
+        StatusKind::ConnectorClass(status) => Some(status.phase.clone()),
+        StatusKind::Connector(status) => Some(status.phase.clone()),
         StatusKind::Worker(status) => Some(status.phase.clone()),
         StatusKind::Namespace(status) => Some(status.phase.clone()),
         StatusKind::Session(status) => Some(status.phase.clone()),

@@ -2,6 +2,7 @@
 
 from talon_client.proto.talon.v1.auth_pb2 import GetSsoConfigRequest, GetSsoConfigResponse, ExchangeOidcTokenRequest, ExchangeOidcTokenResponse, MintAccessTokenRequest, MintAccessTokenResponse, ApiKeyInfo, CreateApiKeyRequest, CreateApiKeyResponse, ListApiKeysRequest, ListApiKeysResponse, RevokeApiKeyRequest, RevokeApiKeyResponse, ExchangeApiKeyRequest, ExchangeApiKeyResponse
 from talon_client.proto.talon.v1.channels_pb2 import PostChannelMessageRequest, RoutedChannelSession, PostChannelMessageResponse, GetChannelMessageRequest, ChannelMessageResponse, ListChannelMessagesRequest, ListChannelMessagesResponse, StreamChannelEventsRequest
+from talon_client.proto.talon.v1.connectors_pb2 import ConnectorActor, ConnectorAttachment, ConnectorMessageEvent, ConnectorMessageEventResponse, ConnectorDeliveryRequest, ConnectorDeliveryResponse, ConnectorStatusEvent, ConnectorAckResponse
 from talon_client.proto.talon.v1.knowledge_pb2 import GetKnowledgeRequest, KnowledgeResponse, SearchKnowledgeRequest, SearchKnowledgeResponse
 from talon_client.proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest, GetNamespaceRequest, DeleteNamespaceRequest, ListNamespacesRequest, NamespaceResponse, ListNamespacesResponse
 from talon_client.proto.talon.v1.resources_pb2 import CreateResourceRequest, GetResourceRequest, ListResourcesRequest, DeleteResourceRequest, ResourceResponse, ListResourcesResponse, DeleteResourceResponse
@@ -33,6 +34,14 @@ __all__ = [
     "ListChannelMessagesRequest",
     "ListChannelMessagesResponse",
     "StreamChannelEventsRequest",
+    "ConnectorActor",
+    "ConnectorAttachment",
+    "ConnectorMessageEvent",
+    "ConnectorMessageEventResponse",
+    "ConnectorDeliveryRequest",
+    "ConnectorDeliveryResponse",
+    "ConnectorStatusEvent",
+    "ConnectorAckResponse",
     "GetKnowledgeRequest",
     "KnowledgeResponse",
     "SearchKnowledgeRequest",
