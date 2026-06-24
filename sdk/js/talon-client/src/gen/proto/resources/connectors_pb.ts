@@ -220,16 +220,24 @@ export class ConnectorClassSpec extends Message<ConnectorClassSpec> {
  */
 export class ConnectorClassStatus extends Message<ConnectorClassStatus> {
   /**
+   * Resource generation last reconciled by the ConnectorController.
+   *
    * @generated from field: uint64 observed_generation = 1;
    */
   observedGeneration = protoInt64.zero;
 
   /**
+   * Current registration phase for this class, such as pending, ready, or
+   * degraded.
+   *
    * @generated from field: string phase = 2;
    */
   phase = "";
 
   /**
+   * Detailed readiness and error conditions from registration with the
+   * connector service.
+   *
    * @generated from field: repeated talon.resources.ResourceCondition conditions = 3;
    */
   conditions: ResourceCondition[] = [];
@@ -513,16 +521,22 @@ export class ConnectorSpec extends Message<ConnectorSpec> {
  */
 export class ConnectorStatus extends Message<ConnectorStatus> {
   /**
+   * Resource generation last reconciled by the ConnectorController.
+   *
    * @generated from field: uint64 observed_generation = 1;
    */
   observedGeneration = protoInt64.zero;
 
   /**
+   * Current route indexing phase for this Connector, such as ready or invalid.
+   *
    * @generated from field: string phase = 2;
    */
   phase = "";
 
   /**
+   * Detailed route-indexing readiness and validation conditions.
+   *
    * @generated from field: repeated talon.resources.ResourceCondition conditions = 3;
    */
   conditions: ResourceCondition[] = [];
@@ -571,16 +585,23 @@ export class ConnectorStatus extends Message<ConnectorStatus> {
  */
 export class ConnectorClass extends Message<ConnectorClass> {
   /**
+   * Standard resource metadata. ConnectorClasses normally live in the Sys
+   * namespace because they describe cluster-level connector services.
+   *
    * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
   metadata?: ResourceMeta;
 
   /**
+   * Desired connector service registration and platform capabilities.
+   *
    * @generated from field: talon.resources.ConnectorClassSpec spec = 2;
    */
   spec?: ConnectorClassSpec;
 
   /**
+   * Observed registration state for this connector service class.
+   *
    * @generated from field: talon.resources.ConnectorClassStatus status = 3;
    */
   status?: ConnectorClassStatus;
@@ -620,16 +641,23 @@ export class ConnectorClass extends Message<ConnectorClass> {
  */
 export class Connector extends Message<Connector> {
   /**
+   * Standard namespaced resource metadata. Each Connector is owned by the
+   * namespace whose messages it routes into Talon.
+   *
    * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
   metadata?: ResourceMeta;
 
   /**
+   * Desired provider match and Talon destination for one route.
+   *
    * @generated from field: talon.resources.ConnectorSpec spec = 2;
    */
   spec?: ConnectorSpec;
 
   /**
+   * Observed route-indexing state for this Connector.
+   *
    * @generated from field: talon.resources.ConnectorStatus status = 3;
    */
   status?: ConnectorStatus;
@@ -669,26 +697,36 @@ export class Connector extends Message<Connector> {
  */
 export class ConnectorMatchEntry extends Message<ConnectorMatchEntry> {
   /**
+   * UID of the Connector resource that produced this compiled route.
+   *
    * @generated from field: string connector_uid = 1;
    */
   connectorUid = "";
 
   /**
+   * Namespace that owns the matching Connector and dispatch target.
+   *
    * @generated from field: string namespace = 2;
    */
   namespace = "";
 
   /**
+   * Name of the Connector resource that produced this compiled route.
+   *
    * @generated from field: string connector_name = 3;
    */
   connectorName = "";
 
   /**
+   * ConnectorClass name used to scope provider match keys.
+   *
    * @generated from field: string class_name = 4;
    */
   className = "";
 
   /**
+   * Connector resource generation captured when this route entry was compiled.
+   *
    * @generated from field: uint64 generation = 5;
    */
   generation = protoInt64.zero;

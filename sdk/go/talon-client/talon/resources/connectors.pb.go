@@ -260,10 +260,15 @@ func (x *ConnectorClassSpec) GetMatchIndexes() []*ConnectorMatchIndex {
 }
 
 type ConnectorClassStatus struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	ObservedGeneration uint64                 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
-	Phase              string                 `protobuf:"bytes,2,opt,name=phase,proto3" json:"phase,omitempty"`
-	Conditions         []*ResourceCondition   `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Resource generation last reconciled by the ConnectorController.
+	ObservedGeneration uint64 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
+	// Current registration phase for this class, such as pending, ready, or
+	// degraded.
+	Phase string `protobuf:"bytes,2,opt,name=phase,proto3" json:"phase,omitempty"`
+	// Detailed readiness and error conditions from registration with the
+	// connector service.
+	Conditions []*ResourceCondition `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
 	// Registration identifier assigned by the connector service. Incoming
 	// connector webhooks include this value so Talon can route within the correct
 	// ConnectorClass registration.
@@ -620,10 +625,13 @@ func (x *ConnectorSpec) GetTarget() *ConnectorTarget {
 }
 
 type ConnectorStatus struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	ObservedGeneration uint64                 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
-	Phase              string                 `protobuf:"bytes,2,opt,name=phase,proto3" json:"phase,omitempty"`
-	Conditions         []*ResourceCondition   `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Resource generation last reconciled by the ConnectorController.
+	ObservedGeneration uint64 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
+	// Current route indexing phase for this Connector, such as ready or invalid.
+	Phase string `protobuf:"bytes,2,opt,name=phase,proto3" json:"phase,omitempty"`
+	// Detailed route-indexing readiness and validation conditions.
+	Conditions []*ResourceCondition `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
 	// Materialized KV routing keys generated from match_fields and the owning
 	// ConnectorClass match indexes.
 	CompiledMatchKeys []string `protobuf:"bytes,4,rep,name=compiled_match_keys,json=compiledMatchKeys,proto3" json:"compiled_match_keys,omitempty"`
@@ -690,10 +698,14 @@ func (x *ConnectorStatus) GetCompiledMatchKeys() []string {
 }
 
 type ConnectorClass struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Spec          *ConnectorClassSpec    `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
-	Status        *ConnectorClassStatus  `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Standard resource metadata. ConnectorClasses normally live in the Sys
+	// namespace because they describe cluster-level connector services.
+	Metadata *ResourceMeta `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// Desired connector service registration and platform capabilities.
+	Spec *ConnectorClassSpec `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	// Observed registration state for this connector service class.
+	Status        *ConnectorClassStatus `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -750,10 +762,14 @@ func (x *ConnectorClass) GetStatus() *ConnectorClassStatus {
 }
 
 type Connector struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Spec          *ConnectorSpec         `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
-	Status        *ConnectorStatus       `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Standard namespaced resource metadata. Each Connector is owned by the
+	// namespace whose messages it routes into Talon.
+	Metadata *ResourceMeta `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// Desired provider match and Talon destination for one route.
+	Spec *ConnectorSpec `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	// Observed route-indexing state for this Connector.
+	Status        *ConnectorStatus `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -810,12 +826,17 @@ func (x *Connector) GetStatus() *ConnectorStatus {
 }
 
 type ConnectorMatchEntry struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ConnectorUid  string                 `protobuf:"bytes,1,opt,name=connector_uid,json=connectorUid,proto3" json:"connector_uid,omitempty"`
-	Namespace     string                 `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	ConnectorName string                 `protobuf:"bytes,3,opt,name=connector_name,json=connectorName,proto3" json:"connector_name,omitempty"`
-	ClassName     string                 `protobuf:"bytes,4,opt,name=class_name,json=className,proto3" json:"class_name,omitempty"`
-	Generation    uint64                 `protobuf:"varint,5,opt,name=generation,proto3" json:"generation,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// UID of the Connector resource that produced this compiled route.
+	ConnectorUid string `protobuf:"bytes,1,opt,name=connector_uid,json=connectorUid,proto3" json:"connector_uid,omitempty"`
+	// Namespace that owns the matching Connector and dispatch target.
+	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// Name of the Connector resource that produced this compiled route.
+	ConnectorName string `protobuf:"bytes,3,opt,name=connector_name,json=connectorName,proto3" json:"connector_name,omitempty"`
+	// ConnectorClass name used to scope provider match keys.
+	ClassName string `protobuf:"bytes,4,opt,name=class_name,json=className,proto3" json:"class_name,omitempty"`
+	// Connector resource generation captured when this route entry was compiled.
+	Generation uint64 `protobuf:"varint,5,opt,name=generation,proto3" json:"generation,omitempty"`
 	// Snapshot of the Connector target stored in the route index so ingest can
 	// dispatch without re-reading the full Connector resource.
 	Target        *ConnectorTarget `protobuf:"bytes,6,opt,name=target,proto3" json:"target,omitempty"`

@@ -1093,10 +1093,15 @@ pub struct ConnectorClassSpec {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorClassStatus {
+    /// Resource generation last reconciled by the ConnectorController.
     #[prost(uint64, tag = "1")]
     pub observed_generation: u64,
+    /// Current registration phase for this class, such as pending, ready, or
+    /// degraded.
     #[prost(string, tag = "2")]
     pub phase: ::prost::alloc::string::String,
+    /// Detailed readiness and error conditions from registration with the
+    /// connector service.
     #[prost(message, repeated, tag = "3")]
     pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
     /// Registration identifier assigned by the connector service. Incoming
@@ -1173,10 +1178,13 @@ pub struct ConnectorSpec {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorStatus {
+    /// Resource generation last reconciled by the ConnectorController.
     #[prost(uint64, tag = "1")]
     pub observed_generation: u64,
+    /// Current route indexing phase for this Connector, such as ready or invalid.
     #[prost(string, tag = "2")]
     pub phase: ::prost::alloc::string::String,
+    /// Detailed route-indexing readiness and validation conditions.
     #[prost(message, repeated, tag = "3")]
     pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
     /// Materialized KV routing keys generated from match_fields and the owning
@@ -1186,32 +1194,45 @@ pub struct ConnectorStatus {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorClass {
+    /// Standard resource metadata. ConnectorClasses normally live in the Sys
+    /// namespace because they describe cluster-level connector services.
     #[prost(message, optional, tag = "1")]
     pub metadata: ::core::option::Option<ResourceMeta>,
+    /// Desired connector service registration and platform capabilities.
     #[prost(message, optional, tag = "2")]
     pub spec: ::core::option::Option<ConnectorClassSpec>,
+    /// Observed registration state for this connector service class.
     #[prost(message, optional, tag = "3")]
     pub status: ::core::option::Option<ConnectorClassStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Connector {
+    /// Standard namespaced resource metadata. Each Connector is owned by the
+    /// namespace whose messages it routes into Talon.
     #[prost(message, optional, tag = "1")]
     pub metadata: ::core::option::Option<ResourceMeta>,
+    /// Desired provider match and Talon destination for one route.
     #[prost(message, optional, tag = "2")]
     pub spec: ::core::option::Option<ConnectorSpec>,
+    /// Observed route-indexing state for this Connector.
     #[prost(message, optional, tag = "3")]
     pub status: ::core::option::Option<ConnectorStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorMatchEntry {
+    /// UID of the Connector resource that produced this compiled route.
     #[prost(string, tag = "1")]
     pub connector_uid: ::prost::alloc::string::String,
+    /// Namespace that owns the matching Connector and dispatch target.
     #[prost(string, tag = "2")]
     pub namespace: ::prost::alloc::string::String,
+    /// Name of the Connector resource that produced this compiled route.
     #[prost(string, tag = "3")]
     pub connector_name: ::prost::alloc::string::String,
+    /// ConnectorClass name used to scope provider match keys.
     #[prost(string, tag = "4")]
     pub class_name: ::prost::alloc::string::String,
+    /// Connector resource generation captured when this route entry was compiled.
     #[prost(uint64, tag = "5")]
     pub generation: u64,
     /// Snapshot of the Connector target stored in the route index so ingest can

@@ -4025,17 +4025,31 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Resource generation last reconciled by the ConnectorController.
+     * </pre>
+     *
      * <code>uint64 observed_generation = 1;</code>
      * @return The observedGeneration.
      */
     long getObservedGeneration();
 
     /**
+     * <pre>
+     * Current registration phase for this class, such as pending, ready, or
+     * degraded.
+     * </pre>
+     *
      * <code>string phase = 2;</code>
      * @return The phase.
      */
     java.lang.String getPhase();
     /**
+     * <pre>
+     * Current registration phase for this class, such as pending, ready, or
+     * degraded.
+     * </pre>
+     *
      * <code>string phase = 2;</code>
      * @return The bytes for phase.
      */
@@ -4043,24 +4057,49 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         getPhaseBytes();
 
     /**
+     * <pre>
+     * Detailed readiness and error conditions from registration with the
+     * connector service.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     java.util.List<talon.resources.Common.ResourceCondition>
         getConditionsList();
     /**
+     * <pre>
+     * Detailed readiness and error conditions from registration with the
+     * connector service.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     talon.resources.Common.ResourceCondition getConditions(int index);
     /**
+     * <pre>
+     * Detailed readiness and error conditions from registration with the
+     * connector service.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     int getConditionsCount();
     /**
+     * <pre>
+     * Detailed readiness and error conditions from registration with the
+     * connector service.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     java.util.List<? extends talon.resources.Common.ResourceConditionOrBuilder>
         getConditionsOrBuilderList();
     /**
+     * <pre>
+     * Detailed readiness and error conditions from registration with the
+     * connector service.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     talon.resources.Common.ResourceConditionOrBuilder getConditionsOrBuilder(
@@ -4138,6 +4177,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     public static final int OBSERVED_GENERATION_FIELD_NUMBER = 1;
     private long observedGeneration_ = 0L;
     /**
+     * <pre>
+     * Resource generation last reconciled by the ConnectorController.
+     * </pre>
+     *
      * <code>uint64 observed_generation = 1;</code>
      * @return The observedGeneration.
      */
@@ -4150,6 +4193,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object phase_ = "";
     /**
+     * <pre>
+     * Current registration phase for this class, such as pending, ready, or
+     * degraded.
+     * </pre>
+     *
      * <code>string phase = 2;</code>
      * @return The phase.
      */
@@ -4167,6 +4215,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Current registration phase for this class, such as pending, ready, or
+     * degraded.
+     * </pre>
+     *
      * <code>string phase = 2;</code>
      * @return The bytes for phase.
      */
@@ -4189,6 +4242,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private java.util.List<talon.resources.Common.ResourceCondition> conditions_;
     /**
+     * <pre>
+     * Detailed readiness and error conditions from registration with the
+     * connector service.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -4196,6 +4254,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       return conditions_;
     }
     /**
+     * <pre>
+     * Detailed readiness and error conditions from registration with the
+     * connector service.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -4204,6 +4267,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       return conditions_;
     }
     /**
+     * <pre>
+     * Detailed readiness and error conditions from registration with the
+     * connector service.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -4211,6 +4279,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       return conditions_.size();
     }
     /**
+     * <pre>
+     * Detailed readiness and error conditions from registration with the
+     * connector service.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -4218,6 +4291,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       return conditions_.get(index);
     }
     /**
+     * <pre>
+     * Detailed readiness and error conditions from registration with the
+     * connector service.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -4698,6 +4776,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private long observedGeneration_ ;
       /**
+       * <pre>
+       * Resource generation last reconciled by the ConnectorController.
+       * </pre>
+       *
        * <code>uint64 observed_generation = 1;</code>
        * @return The observedGeneration.
        */
@@ -4706,6 +4788,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return observedGeneration_;
       }
       /**
+       * <pre>
+       * Resource generation last reconciled by the ConnectorController.
+       * </pre>
+       *
        * <code>uint64 observed_generation = 1;</code>
        * @param value The observedGeneration to set.
        * @return This builder for chaining.
@@ -4718,6 +4804,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Resource generation last reconciled by the ConnectorController.
+       * </pre>
+       *
        * <code>uint64 observed_generation = 1;</code>
        * @return This builder for chaining.
        */
@@ -4730,6 +4820,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object phase_ = "";
       /**
+       * <pre>
+       * Current registration phase for this class, such as pending, ready, or
+       * degraded.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @return The phase.
        */
@@ -4746,6 +4841,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Current registration phase for this class, such as pending, ready, or
+       * degraded.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @return The bytes for phase.
        */
@@ -4763,6 +4863,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Current registration phase for this class, such as pending, ready, or
+       * degraded.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @param value The phase to set.
        * @return This builder for chaining.
@@ -4776,6 +4881,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Current registration phase for this class, such as pending, ready, or
+       * degraded.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @return This builder for chaining.
        */
@@ -4786,6 +4896,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Current registration phase for this class, such as pending, ready, or
+       * degraded.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @param value The bytes for phase to set.
        * @return This builder for chaining.
@@ -4813,6 +4928,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
           talon.resources.Common.ResourceCondition, talon.resources.Common.ResourceCondition.Builder, talon.resources.Common.ResourceConditionOrBuilder> conditionsBuilder_;
 
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public java.util.List<talon.resources.Common.ResourceCondition> getConditionsList() {
@@ -4823,6 +4943,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public int getConditionsCount() {
@@ -4833,6 +4958,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceCondition getConditions(int index) {
@@ -4843,6 +4973,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder setConditions(
@@ -4860,6 +4995,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder setConditions(
@@ -4874,6 +5014,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addConditions(talon.resources.Common.ResourceCondition value) {
@@ -4890,6 +5035,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addConditions(
@@ -4907,6 +5057,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addConditions(
@@ -4921,6 +5076,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addConditions(
@@ -4935,6 +5095,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addAllConditions(
@@ -4950,6 +5115,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder clearConditions() {
@@ -4963,6 +5133,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder removeConditions(int index) {
@@ -4976,6 +5151,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceCondition.Builder getConditionsBuilder(
@@ -4983,6 +5163,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return internalGetConditionsFieldBuilder().getBuilder(index);
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceConditionOrBuilder getConditionsOrBuilder(
@@ -4993,6 +5178,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public java.util.List<? extends talon.resources.Common.ResourceConditionOrBuilder>
@@ -5004,6 +5194,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceCondition.Builder addConditionsBuilder() {
@@ -5011,6 +5206,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
             talon.resources.Common.ResourceCondition.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceCondition.Builder addConditionsBuilder(
@@ -5019,6 +5219,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
             index, talon.resources.Common.ResourceCondition.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Detailed readiness and error conditions from registration with the
+       * connector service.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public java.util.List<talon.resources.Common.ResourceCondition.Builder>
@@ -9494,17 +9699,29 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Resource generation last reconciled by the ConnectorController.
+     * </pre>
+     *
      * <code>uint64 observed_generation = 1;</code>
      * @return The observedGeneration.
      */
     long getObservedGeneration();
 
     /**
+     * <pre>
+     * Current route indexing phase for this Connector, such as ready or invalid.
+     * </pre>
+     *
      * <code>string phase = 2;</code>
      * @return The phase.
      */
     java.lang.String getPhase();
     /**
+     * <pre>
+     * Current route indexing phase for this Connector, such as ready or invalid.
+     * </pre>
+     *
      * <code>string phase = 2;</code>
      * @return The bytes for phase.
      */
@@ -9512,24 +9729,44 @@ java.lang.String defaultValue) {
         getPhaseBytes();
 
     /**
+     * <pre>
+     * Detailed route-indexing readiness and validation conditions.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     java.util.List<talon.resources.Common.ResourceCondition>
         getConditionsList();
     /**
+     * <pre>
+     * Detailed route-indexing readiness and validation conditions.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     talon.resources.Common.ResourceCondition getConditions(int index);
     /**
+     * <pre>
+     * Detailed route-indexing readiness and validation conditions.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     int getConditionsCount();
     /**
+     * <pre>
+     * Detailed route-indexing readiness and validation conditions.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     java.util.List<? extends talon.resources.Common.ResourceConditionOrBuilder>
         getConditionsOrBuilderList();
     /**
+     * <pre>
+     * Detailed route-indexing readiness and validation conditions.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     talon.resources.Common.ResourceConditionOrBuilder getConditionsOrBuilder(
@@ -9629,6 +9866,10 @@ java.lang.String defaultValue) {
     public static final int OBSERVED_GENERATION_FIELD_NUMBER = 1;
     private long observedGeneration_ = 0L;
     /**
+     * <pre>
+     * Resource generation last reconciled by the ConnectorController.
+     * </pre>
+     *
      * <code>uint64 observed_generation = 1;</code>
      * @return The observedGeneration.
      */
@@ -9641,6 +9882,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object phase_ = "";
     /**
+     * <pre>
+     * Current route indexing phase for this Connector, such as ready or invalid.
+     * </pre>
+     *
      * <code>string phase = 2;</code>
      * @return The phase.
      */
@@ -9658,6 +9903,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Current route indexing phase for this Connector, such as ready or invalid.
+     * </pre>
+     *
      * <code>string phase = 2;</code>
      * @return The bytes for phase.
      */
@@ -9680,6 +9929,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private java.util.List<talon.resources.Common.ResourceCondition> conditions_;
     /**
+     * <pre>
+     * Detailed route-indexing readiness and validation conditions.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -9687,6 +9940,10 @@ java.lang.String defaultValue) {
       return conditions_;
     }
     /**
+     * <pre>
+     * Detailed route-indexing readiness and validation conditions.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -9695,6 +9952,10 @@ java.lang.String defaultValue) {
       return conditions_;
     }
     /**
+     * <pre>
+     * Detailed route-indexing readiness and validation conditions.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -9702,6 +9963,10 @@ java.lang.String defaultValue) {
       return conditions_.size();
     }
     /**
+     * <pre>
+     * Detailed route-indexing readiness and validation conditions.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -9709,6 +9974,10 @@ java.lang.String defaultValue) {
       return conditions_.get(index);
     }
     /**
+     * <pre>
+     * Detailed route-indexing readiness and validation conditions.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -10209,6 +10478,10 @@ java.lang.String defaultValue) {
 
       private long observedGeneration_ ;
       /**
+       * <pre>
+       * Resource generation last reconciled by the ConnectorController.
+       * </pre>
+       *
        * <code>uint64 observed_generation = 1;</code>
        * @return The observedGeneration.
        */
@@ -10217,6 +10490,10 @@ java.lang.String defaultValue) {
         return observedGeneration_;
       }
       /**
+       * <pre>
+       * Resource generation last reconciled by the ConnectorController.
+       * </pre>
+       *
        * <code>uint64 observed_generation = 1;</code>
        * @param value The observedGeneration to set.
        * @return This builder for chaining.
@@ -10229,6 +10506,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Resource generation last reconciled by the ConnectorController.
+       * </pre>
+       *
        * <code>uint64 observed_generation = 1;</code>
        * @return This builder for chaining.
        */
@@ -10241,6 +10522,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object phase_ = "";
       /**
+       * <pre>
+       * Current route indexing phase for this Connector, such as ready or invalid.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @return The phase.
        */
@@ -10257,6 +10542,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Current route indexing phase for this Connector, such as ready or invalid.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @return The bytes for phase.
        */
@@ -10274,6 +10563,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Current route indexing phase for this Connector, such as ready or invalid.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @param value The phase to set.
        * @return This builder for chaining.
@@ -10287,6 +10580,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Current route indexing phase for this Connector, such as ready or invalid.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @return This builder for chaining.
        */
@@ -10297,6 +10594,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Current route indexing phase for this Connector, such as ready or invalid.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @param value The bytes for phase to set.
        * @return This builder for chaining.
@@ -10324,6 +10625,10 @@ java.lang.String defaultValue) {
           talon.resources.Common.ResourceCondition, talon.resources.Common.ResourceCondition.Builder, talon.resources.Common.ResourceConditionOrBuilder> conditionsBuilder_;
 
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public java.util.List<talon.resources.Common.ResourceCondition> getConditionsList() {
@@ -10334,6 +10639,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public int getConditionsCount() {
@@ -10344,6 +10653,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceCondition getConditions(int index) {
@@ -10354,6 +10667,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder setConditions(
@@ -10371,6 +10688,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder setConditions(
@@ -10385,6 +10706,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addConditions(talon.resources.Common.ResourceCondition value) {
@@ -10401,6 +10726,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addConditions(
@@ -10418,6 +10747,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addConditions(
@@ -10432,6 +10765,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addConditions(
@@ -10446,6 +10783,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addAllConditions(
@@ -10461,6 +10802,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder clearConditions() {
@@ -10474,6 +10819,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder removeConditions(int index) {
@@ -10487,6 +10836,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceCondition.Builder getConditionsBuilder(
@@ -10494,6 +10847,10 @@ java.lang.String defaultValue) {
         return internalGetConditionsFieldBuilder().getBuilder(index);
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceConditionOrBuilder getConditionsOrBuilder(
@@ -10504,6 +10861,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public java.util.List<? extends talon.resources.Common.ResourceConditionOrBuilder>
@@ -10515,6 +10876,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceCondition.Builder addConditionsBuilder() {
@@ -10522,6 +10887,10 @@ java.lang.String defaultValue) {
             talon.resources.Common.ResourceCondition.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceCondition.Builder addConditionsBuilder(
@@ -10530,6 +10899,10 @@ java.lang.String defaultValue) {
             index, talon.resources.Common.ResourceCondition.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Detailed route-indexing readiness and validation conditions.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public java.util.List<talon.resources.Common.ResourceCondition.Builder>
@@ -10763,46 +11136,85 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Standard resource metadata. ConnectorClasses normally live in the Sys
+     * namespace because they describe cluster-level connector services.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return Whether the metadata field is set.
      */
     boolean hasMetadata();
     /**
+     * <pre>
+     * Standard resource metadata. ConnectorClasses normally live in the Sys
+     * namespace because they describe cluster-level connector services.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return The metadata.
      */
     talon.resources.Common.ResourceMeta getMetadata();
     /**
+     * <pre>
+     * Standard resource metadata. ConnectorClasses normally live in the Sys
+     * namespace because they describe cluster-level connector services.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      */
     talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
 
     /**
+     * <pre>
+     * Desired connector service registration and platform capabilities.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
      * @return Whether the spec field is set.
      */
     boolean hasSpec();
     /**
+     * <pre>
+     * Desired connector service registration and platform capabilities.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
      * @return The spec.
      */
     talon.resources.Connectors.ConnectorClassSpec getSpec();
     /**
+     * <pre>
+     * Desired connector service registration and platform capabilities.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
      */
     talon.resources.Connectors.ConnectorClassSpecOrBuilder getSpecOrBuilder();
 
     /**
+     * <pre>
+     * Observed registration state for this connector service class.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
      * @return Whether the status field is set.
      */
     boolean hasStatus();
     /**
+     * <pre>
+     * Observed registration state for this connector service class.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
      * @return The status.
      */
     talon.resources.Connectors.ConnectorClassStatus getStatus();
     /**
+     * <pre>
+     * Observed registration state for this connector service class.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
      */
     talon.resources.Connectors.ConnectorClassStatusOrBuilder getStatusOrBuilder();
@@ -10853,6 +11265,11 @@ java.lang.String defaultValue) {
     public static final int METADATA_FIELD_NUMBER = 1;
     private talon.resources.Common.ResourceMeta metadata_;
     /**
+     * <pre>
+     * Standard resource metadata. ConnectorClasses normally live in the Sys
+     * namespace because they describe cluster-level connector services.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return Whether the metadata field is set.
      */
@@ -10861,6 +11278,11 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
+     * <pre>
+     * Standard resource metadata. ConnectorClasses normally live in the Sys
+     * namespace because they describe cluster-level connector services.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return The metadata.
      */
@@ -10869,6 +11291,11 @@ java.lang.String defaultValue) {
       return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
     }
     /**
+     * <pre>
+     * Standard resource metadata. ConnectorClasses normally live in the Sys
+     * namespace because they describe cluster-level connector services.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      */
     @java.lang.Override
@@ -10879,6 +11306,10 @@ java.lang.String defaultValue) {
     public static final int SPEC_FIELD_NUMBER = 2;
     private talon.resources.Connectors.ConnectorClassSpec spec_;
     /**
+     * <pre>
+     * Desired connector service registration and platform capabilities.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
      * @return Whether the spec field is set.
      */
@@ -10887,6 +11318,10 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
+     * <pre>
+     * Desired connector service registration and platform capabilities.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
      * @return The spec.
      */
@@ -10895,6 +11330,10 @@ java.lang.String defaultValue) {
       return spec_ == null ? talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance() : spec_;
     }
     /**
+     * <pre>
+     * Desired connector service registration and platform capabilities.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
      */
     @java.lang.Override
@@ -10905,6 +11344,10 @@ java.lang.String defaultValue) {
     public static final int STATUS_FIELD_NUMBER = 3;
     private talon.resources.Connectors.ConnectorClassStatus status_;
     /**
+     * <pre>
+     * Observed registration state for this connector service class.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
      * @return Whether the status field is set.
      */
@@ -10913,6 +11356,10 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000004) != 0);
     }
     /**
+     * <pre>
+     * Observed registration state for this connector service class.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
      * @return The status.
      */
@@ -10921,6 +11368,10 @@ java.lang.String defaultValue) {
       return status_ == null ? talon.resources.Connectors.ConnectorClassStatus.getDefaultInstance() : status_;
     }
     /**
+     * <pre>
+     * Observed registration state for this connector service class.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
      */
     @java.lang.Override
@@ -11323,6 +11774,11 @@ java.lang.String defaultValue) {
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
       /**
+       * <pre>
+       * Standard resource metadata. ConnectorClasses normally live in the Sys
+       * namespace because they describe cluster-level connector services.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        * @return Whether the metadata field is set.
        */
@@ -11330,6 +11786,11 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
+       * <pre>
+       * Standard resource metadata. ConnectorClasses normally live in the Sys
+       * namespace because they describe cluster-level connector services.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        * @return The metadata.
        */
@@ -11341,6 +11802,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Standard resource metadata. ConnectorClasses normally live in the Sys
+       * namespace because they describe cluster-level connector services.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder setMetadata(talon.resources.Common.ResourceMeta value) {
@@ -11357,6 +11823,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Standard resource metadata. ConnectorClasses normally live in the Sys
+       * namespace because they describe cluster-level connector services.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder setMetadata(
@@ -11371,6 +11842,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Standard resource metadata. ConnectorClasses normally live in the Sys
+       * namespace because they describe cluster-level connector services.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder mergeMetadata(talon.resources.Common.ResourceMeta value) {
@@ -11392,6 +11868,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Standard resource metadata. ConnectorClasses normally live in the Sys
+       * namespace because they describe cluster-level connector services.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder clearMetadata() {
@@ -11405,6 +11886,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Standard resource metadata. ConnectorClasses normally live in the Sys
+       * namespace because they describe cluster-level connector services.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public talon.resources.Common.ResourceMeta.Builder getMetadataBuilder() {
@@ -11413,6 +11899,11 @@ java.lang.String defaultValue) {
         return internalGetMetadataFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Standard resource metadata. ConnectorClasses normally live in the Sys
+       * namespace because they describe cluster-level connector services.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
@@ -11424,6 +11915,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Standard resource metadata. ConnectorClasses normally live in the Sys
+       * namespace because they describe cluster-level connector services.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -11444,6 +11940,10 @@ java.lang.String defaultValue) {
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Connectors.ConnectorClassSpec, talon.resources.Connectors.ConnectorClassSpec.Builder, talon.resources.Connectors.ConnectorClassSpecOrBuilder> specBuilder_;
       /**
+       * <pre>
+       * Desired connector service registration and platform capabilities.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
        * @return Whether the spec field is set.
        */
@@ -11451,6 +11951,10 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00000002) != 0);
       }
       /**
+       * <pre>
+       * Desired connector service registration and platform capabilities.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
        * @return The spec.
        */
@@ -11462,6 +11966,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Desired connector service registration and platform capabilities.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
        */
       public Builder setSpec(talon.resources.Connectors.ConnectorClassSpec value) {
@@ -11478,6 +11986,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Desired connector service registration and platform capabilities.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
        */
       public Builder setSpec(
@@ -11492,6 +12004,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Desired connector service registration and platform capabilities.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
        */
       public Builder mergeSpec(talon.resources.Connectors.ConnectorClassSpec value) {
@@ -11513,6 +12029,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Desired connector service registration and platform capabilities.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
        */
       public Builder clearSpec() {
@@ -11526,6 +12046,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Desired connector service registration and platform capabilities.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
        */
       public talon.resources.Connectors.ConnectorClassSpec.Builder getSpecBuilder() {
@@ -11534,6 +12058,10 @@ java.lang.String defaultValue) {
         return internalGetSpecFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Desired connector service registration and platform capabilities.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
        */
       public talon.resources.Connectors.ConnectorClassSpecOrBuilder getSpecOrBuilder() {
@@ -11545,6 +12073,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Desired connector service registration and platform capabilities.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassSpec spec = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -11565,6 +12097,10 @@ java.lang.String defaultValue) {
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Connectors.ConnectorClassStatus, talon.resources.Connectors.ConnectorClassStatus.Builder, talon.resources.Connectors.ConnectorClassStatusOrBuilder> statusBuilder_;
       /**
+       * <pre>
+       * Observed registration state for this connector service class.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
        * @return Whether the status field is set.
        */
@@ -11572,6 +12108,10 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00000004) != 0);
       }
       /**
+       * <pre>
+       * Observed registration state for this connector service class.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
        * @return The status.
        */
@@ -11583,6 +12123,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Observed registration state for this connector service class.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
        */
       public Builder setStatus(talon.resources.Connectors.ConnectorClassStatus value) {
@@ -11599,6 +12143,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Observed registration state for this connector service class.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
        */
       public Builder setStatus(
@@ -11613,6 +12161,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Observed registration state for this connector service class.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
        */
       public Builder mergeStatus(talon.resources.Connectors.ConnectorClassStatus value) {
@@ -11634,6 +12186,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Observed registration state for this connector service class.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
        */
       public Builder clearStatus() {
@@ -11647,6 +12203,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Observed registration state for this connector service class.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
        */
       public talon.resources.Connectors.ConnectorClassStatus.Builder getStatusBuilder() {
@@ -11655,6 +12215,10 @@ java.lang.String defaultValue) {
         return internalGetStatusFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Observed registration state for this connector service class.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
        */
       public talon.resources.Connectors.ConnectorClassStatusOrBuilder getStatusOrBuilder() {
@@ -11666,6 +12230,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Observed registration state for this connector service class.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorClassStatus status = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -11738,46 +12306,85 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Standard namespaced resource metadata. Each Connector is owned by the
+     * namespace whose messages it routes into Talon.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return Whether the metadata field is set.
      */
     boolean hasMetadata();
     /**
+     * <pre>
+     * Standard namespaced resource metadata. Each Connector is owned by the
+     * namespace whose messages it routes into Talon.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return The metadata.
      */
     talon.resources.Common.ResourceMeta getMetadata();
     /**
+     * <pre>
+     * Standard namespaced resource metadata. Each Connector is owned by the
+     * namespace whose messages it routes into Talon.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      */
     talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
 
     /**
+     * <pre>
+     * Desired provider match and Talon destination for one route.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorSpec spec = 2;</code>
      * @return Whether the spec field is set.
      */
     boolean hasSpec();
     /**
+     * <pre>
+     * Desired provider match and Talon destination for one route.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorSpec spec = 2;</code>
      * @return The spec.
      */
     talon.resources.Connectors.ConnectorSpec getSpec();
     /**
+     * <pre>
+     * Desired provider match and Talon destination for one route.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorSpec spec = 2;</code>
      */
     talon.resources.Connectors.ConnectorSpecOrBuilder getSpecOrBuilder();
 
     /**
+     * <pre>
+     * Observed route-indexing state for this Connector.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorStatus status = 3;</code>
      * @return Whether the status field is set.
      */
     boolean hasStatus();
     /**
+     * <pre>
+     * Observed route-indexing state for this Connector.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorStatus status = 3;</code>
      * @return The status.
      */
     talon.resources.Connectors.ConnectorStatus getStatus();
     /**
+     * <pre>
+     * Observed route-indexing state for this Connector.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorStatus status = 3;</code>
      */
     talon.resources.Connectors.ConnectorStatusOrBuilder getStatusOrBuilder();
@@ -11828,6 +12435,11 @@ java.lang.String defaultValue) {
     public static final int METADATA_FIELD_NUMBER = 1;
     private talon.resources.Common.ResourceMeta metadata_;
     /**
+     * <pre>
+     * Standard namespaced resource metadata. Each Connector is owned by the
+     * namespace whose messages it routes into Talon.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return Whether the metadata field is set.
      */
@@ -11836,6 +12448,11 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
+     * <pre>
+     * Standard namespaced resource metadata. Each Connector is owned by the
+     * namespace whose messages it routes into Talon.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return The metadata.
      */
@@ -11844,6 +12461,11 @@ java.lang.String defaultValue) {
       return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
     }
     /**
+     * <pre>
+     * Standard namespaced resource metadata. Each Connector is owned by the
+     * namespace whose messages it routes into Talon.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      */
     @java.lang.Override
@@ -11854,6 +12476,10 @@ java.lang.String defaultValue) {
     public static final int SPEC_FIELD_NUMBER = 2;
     private talon.resources.Connectors.ConnectorSpec spec_;
     /**
+     * <pre>
+     * Desired provider match and Talon destination for one route.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorSpec spec = 2;</code>
      * @return Whether the spec field is set.
      */
@@ -11862,6 +12488,10 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
+     * <pre>
+     * Desired provider match and Talon destination for one route.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorSpec spec = 2;</code>
      * @return The spec.
      */
@@ -11870,6 +12500,10 @@ java.lang.String defaultValue) {
       return spec_ == null ? talon.resources.Connectors.ConnectorSpec.getDefaultInstance() : spec_;
     }
     /**
+     * <pre>
+     * Desired provider match and Talon destination for one route.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorSpec spec = 2;</code>
      */
     @java.lang.Override
@@ -11880,6 +12514,10 @@ java.lang.String defaultValue) {
     public static final int STATUS_FIELD_NUMBER = 3;
     private talon.resources.Connectors.ConnectorStatus status_;
     /**
+     * <pre>
+     * Observed route-indexing state for this Connector.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorStatus status = 3;</code>
      * @return Whether the status field is set.
      */
@@ -11888,6 +12526,10 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000004) != 0);
     }
     /**
+     * <pre>
+     * Observed route-indexing state for this Connector.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorStatus status = 3;</code>
      * @return The status.
      */
@@ -11896,6 +12538,10 @@ java.lang.String defaultValue) {
       return status_ == null ? talon.resources.Connectors.ConnectorStatus.getDefaultInstance() : status_;
     }
     /**
+     * <pre>
+     * Observed route-indexing state for this Connector.
+     * </pre>
+     *
      * <code>.talon.resources.ConnectorStatus status = 3;</code>
      */
     @java.lang.Override
@@ -12298,6 +12944,11 @@ java.lang.String defaultValue) {
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
       /**
+       * <pre>
+       * Standard namespaced resource metadata. Each Connector is owned by the
+       * namespace whose messages it routes into Talon.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        * @return Whether the metadata field is set.
        */
@@ -12305,6 +12956,11 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
+       * <pre>
+       * Standard namespaced resource metadata. Each Connector is owned by the
+       * namespace whose messages it routes into Talon.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        * @return The metadata.
        */
@@ -12316,6 +12972,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Standard namespaced resource metadata. Each Connector is owned by the
+       * namespace whose messages it routes into Talon.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder setMetadata(talon.resources.Common.ResourceMeta value) {
@@ -12332,6 +12993,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Standard namespaced resource metadata. Each Connector is owned by the
+       * namespace whose messages it routes into Talon.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder setMetadata(
@@ -12346,6 +13012,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Standard namespaced resource metadata. Each Connector is owned by the
+       * namespace whose messages it routes into Talon.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder mergeMetadata(talon.resources.Common.ResourceMeta value) {
@@ -12367,6 +13038,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Standard namespaced resource metadata. Each Connector is owned by the
+       * namespace whose messages it routes into Talon.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder clearMetadata() {
@@ -12380,6 +13056,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Standard namespaced resource metadata. Each Connector is owned by the
+       * namespace whose messages it routes into Talon.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public talon.resources.Common.ResourceMeta.Builder getMetadataBuilder() {
@@ -12388,6 +13069,11 @@ java.lang.String defaultValue) {
         return internalGetMetadataFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Standard namespaced resource metadata. Each Connector is owned by the
+       * namespace whose messages it routes into Talon.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
@@ -12399,6 +13085,11 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Standard namespaced resource metadata. Each Connector is owned by the
+       * namespace whose messages it routes into Talon.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -12419,6 +13110,10 @@ java.lang.String defaultValue) {
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Connectors.ConnectorSpec, talon.resources.Connectors.ConnectorSpec.Builder, talon.resources.Connectors.ConnectorSpecOrBuilder> specBuilder_;
       /**
+       * <pre>
+       * Desired provider match and Talon destination for one route.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
        * @return Whether the spec field is set.
        */
@@ -12426,6 +13121,10 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00000002) != 0);
       }
       /**
+       * <pre>
+       * Desired provider match and Talon destination for one route.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
        * @return The spec.
        */
@@ -12437,6 +13136,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Desired provider match and Talon destination for one route.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
        */
       public Builder setSpec(talon.resources.Connectors.ConnectorSpec value) {
@@ -12453,6 +13156,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Desired provider match and Talon destination for one route.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
        */
       public Builder setSpec(
@@ -12467,6 +13174,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Desired provider match and Talon destination for one route.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
        */
       public Builder mergeSpec(talon.resources.Connectors.ConnectorSpec value) {
@@ -12488,6 +13199,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Desired provider match and Talon destination for one route.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
        */
       public Builder clearSpec() {
@@ -12501,6 +13216,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Desired provider match and Talon destination for one route.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
        */
       public talon.resources.Connectors.ConnectorSpec.Builder getSpecBuilder() {
@@ -12509,6 +13228,10 @@ java.lang.String defaultValue) {
         return internalGetSpecFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Desired provider match and Talon destination for one route.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
        */
       public talon.resources.Connectors.ConnectorSpecOrBuilder getSpecOrBuilder() {
@@ -12520,6 +13243,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Desired provider match and Talon destination for one route.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -12540,6 +13267,10 @@ java.lang.String defaultValue) {
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Connectors.ConnectorStatus, talon.resources.Connectors.ConnectorStatus.Builder, talon.resources.Connectors.ConnectorStatusOrBuilder> statusBuilder_;
       /**
+       * <pre>
+       * Observed route-indexing state for this Connector.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorStatus status = 3;</code>
        * @return Whether the status field is set.
        */
@@ -12547,6 +13278,10 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00000004) != 0);
       }
       /**
+       * <pre>
+       * Observed route-indexing state for this Connector.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorStatus status = 3;</code>
        * @return The status.
        */
@@ -12558,6 +13293,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Observed route-indexing state for this Connector.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorStatus status = 3;</code>
        */
       public Builder setStatus(talon.resources.Connectors.ConnectorStatus value) {
@@ -12574,6 +13313,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Observed route-indexing state for this Connector.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorStatus status = 3;</code>
        */
       public Builder setStatus(
@@ -12588,6 +13331,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Observed route-indexing state for this Connector.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorStatus status = 3;</code>
        */
       public Builder mergeStatus(talon.resources.Connectors.ConnectorStatus value) {
@@ -12609,6 +13356,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Observed route-indexing state for this Connector.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorStatus status = 3;</code>
        */
       public Builder clearStatus() {
@@ -12622,6 +13373,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Observed route-indexing state for this Connector.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorStatus status = 3;</code>
        */
       public talon.resources.Connectors.ConnectorStatus.Builder getStatusBuilder() {
@@ -12630,6 +13385,10 @@ java.lang.String defaultValue) {
         return internalGetStatusFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Observed route-indexing state for this Connector.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorStatus status = 3;</code>
        */
       public talon.resources.Connectors.ConnectorStatusOrBuilder getStatusOrBuilder() {
@@ -12641,6 +13400,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Observed route-indexing state for this Connector.
+       * </pre>
+       *
        * <code>.talon.resources.ConnectorStatus status = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -12713,11 +13476,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * UID of the Connector resource that produced this compiled route.
+     * </pre>
+     *
      * <code>string connector_uid = 1;</code>
      * @return The connectorUid.
      */
     java.lang.String getConnectorUid();
     /**
+     * <pre>
+     * UID of the Connector resource that produced this compiled route.
+     * </pre>
+     *
      * <code>string connector_uid = 1;</code>
      * @return The bytes for connectorUid.
      */
@@ -12725,11 +13496,19 @@ java.lang.String defaultValue) {
         getConnectorUidBytes();
 
     /**
+     * <pre>
+     * Namespace that owns the matching Connector and dispatch target.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The namespace.
      */
     java.lang.String getNamespace();
     /**
+     * <pre>
+     * Namespace that owns the matching Connector and dispatch target.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The bytes for namespace.
      */
@@ -12737,11 +13516,19 @@ java.lang.String defaultValue) {
         getNamespaceBytes();
 
     /**
+     * <pre>
+     * Name of the Connector resource that produced this compiled route.
+     * </pre>
+     *
      * <code>string connector_name = 3;</code>
      * @return The connectorName.
      */
     java.lang.String getConnectorName();
     /**
+     * <pre>
+     * Name of the Connector resource that produced this compiled route.
+     * </pre>
+     *
      * <code>string connector_name = 3;</code>
      * @return The bytes for connectorName.
      */
@@ -12749,11 +13536,19 @@ java.lang.String defaultValue) {
         getConnectorNameBytes();
 
     /**
+     * <pre>
+     * ConnectorClass name used to scope provider match keys.
+     * </pre>
+     *
      * <code>string class_name = 4;</code>
      * @return The className.
      */
     java.lang.String getClassName();
     /**
+     * <pre>
+     * ConnectorClass name used to scope provider match keys.
+     * </pre>
+     *
      * <code>string class_name = 4;</code>
      * @return The bytes for className.
      */
@@ -12761,6 +13556,10 @@ java.lang.String defaultValue) {
         getClassNameBytes();
 
     /**
+     * <pre>
+     * Connector resource generation captured when this route entry was compiled.
+     * </pre>
+     *
      * <code>uint64 generation = 5;</code>
      * @return The generation.
      */
@@ -12847,6 +13646,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object connectorUid_ = "";
     /**
+     * <pre>
+     * UID of the Connector resource that produced this compiled route.
+     * </pre>
+     *
      * <code>string connector_uid = 1;</code>
      * @return The connectorUid.
      */
@@ -12864,6 +13667,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * UID of the Connector resource that produced this compiled route.
+     * </pre>
+     *
      * <code>string connector_uid = 1;</code>
      * @return The bytes for connectorUid.
      */
@@ -12886,6 +13693,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object namespace_ = "";
     /**
+     * <pre>
+     * Namespace that owns the matching Connector and dispatch target.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The namespace.
      */
@@ -12903,6 +13714,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Namespace that owns the matching Connector and dispatch target.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The bytes for namespace.
      */
@@ -12925,6 +13740,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object connectorName_ = "";
     /**
+     * <pre>
+     * Name of the Connector resource that produced this compiled route.
+     * </pre>
+     *
      * <code>string connector_name = 3;</code>
      * @return The connectorName.
      */
@@ -12942,6 +13761,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Name of the Connector resource that produced this compiled route.
+     * </pre>
+     *
      * <code>string connector_name = 3;</code>
      * @return The bytes for connectorName.
      */
@@ -12964,6 +13787,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object className_ = "";
     /**
+     * <pre>
+     * ConnectorClass name used to scope provider match keys.
+     * </pre>
+     *
      * <code>string class_name = 4;</code>
      * @return The className.
      */
@@ -12981,6 +13808,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * ConnectorClass name used to scope provider match keys.
+     * </pre>
+     *
      * <code>string class_name = 4;</code>
      * @return The bytes for className.
      */
@@ -13002,6 +13833,10 @@ java.lang.String defaultValue) {
     public static final int GENERATION_FIELD_NUMBER = 5;
     private long generation_ = 0L;
     /**
+     * <pre>
+     * Connector resource generation captured when this route entry was compiled.
+     * </pre>
+     *
      * <code>uint64 generation = 5;</code>
      * @return The generation.
      */
@@ -13488,6 +14323,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object connectorUid_ = "";
       /**
+       * <pre>
+       * UID of the Connector resource that produced this compiled route.
+       * </pre>
+       *
        * <code>string connector_uid = 1;</code>
        * @return The connectorUid.
        */
@@ -13504,6 +14343,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * UID of the Connector resource that produced this compiled route.
+       * </pre>
+       *
        * <code>string connector_uid = 1;</code>
        * @return The bytes for connectorUid.
        */
@@ -13521,6 +14364,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * UID of the Connector resource that produced this compiled route.
+       * </pre>
+       *
        * <code>string connector_uid = 1;</code>
        * @param value The connectorUid to set.
        * @return This builder for chaining.
@@ -13534,6 +14381,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * UID of the Connector resource that produced this compiled route.
+       * </pre>
+       *
        * <code>string connector_uid = 1;</code>
        * @return This builder for chaining.
        */
@@ -13544,6 +14395,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * UID of the Connector resource that produced this compiled route.
+       * </pre>
+       *
        * <code>string connector_uid = 1;</code>
        * @param value The bytes for connectorUid to set.
        * @return This builder for chaining.
@@ -13560,6 +14415,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object namespace_ = "";
       /**
+       * <pre>
+       * Namespace that owns the matching Connector and dispatch target.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @return The namespace.
        */
@@ -13576,6 +14435,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Namespace that owns the matching Connector and dispatch target.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @return The bytes for namespace.
        */
@@ -13593,6 +14456,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Namespace that owns the matching Connector and dispatch target.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @param value The namespace to set.
        * @return This builder for chaining.
@@ -13606,6 +14473,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Namespace that owns the matching Connector and dispatch target.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @return This builder for chaining.
        */
@@ -13616,6 +14487,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Namespace that owns the matching Connector and dispatch target.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @param value The bytes for namespace to set.
        * @return This builder for chaining.
@@ -13632,6 +14507,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object connectorName_ = "";
       /**
+       * <pre>
+       * Name of the Connector resource that produced this compiled route.
+       * </pre>
+       *
        * <code>string connector_name = 3;</code>
        * @return The connectorName.
        */
@@ -13648,6 +14527,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Name of the Connector resource that produced this compiled route.
+       * </pre>
+       *
        * <code>string connector_name = 3;</code>
        * @return The bytes for connectorName.
        */
@@ -13665,6 +14548,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Name of the Connector resource that produced this compiled route.
+       * </pre>
+       *
        * <code>string connector_name = 3;</code>
        * @param value The connectorName to set.
        * @return This builder for chaining.
@@ -13678,6 +14565,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Name of the Connector resource that produced this compiled route.
+       * </pre>
+       *
        * <code>string connector_name = 3;</code>
        * @return This builder for chaining.
        */
@@ -13688,6 +14579,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Name of the Connector resource that produced this compiled route.
+       * </pre>
+       *
        * <code>string connector_name = 3;</code>
        * @param value The bytes for connectorName to set.
        * @return This builder for chaining.
@@ -13704,6 +14599,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object className_ = "";
       /**
+       * <pre>
+       * ConnectorClass name used to scope provider match keys.
+       * </pre>
+       *
        * <code>string class_name = 4;</code>
        * @return The className.
        */
@@ -13720,6 +14619,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * ConnectorClass name used to scope provider match keys.
+       * </pre>
+       *
        * <code>string class_name = 4;</code>
        * @return The bytes for className.
        */
@@ -13737,6 +14640,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * ConnectorClass name used to scope provider match keys.
+       * </pre>
+       *
        * <code>string class_name = 4;</code>
        * @param value The className to set.
        * @return This builder for chaining.
@@ -13750,6 +14657,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * ConnectorClass name used to scope provider match keys.
+       * </pre>
+       *
        * <code>string class_name = 4;</code>
        * @return This builder for chaining.
        */
@@ -13760,6 +14671,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * ConnectorClass name used to scope provider match keys.
+       * </pre>
+       *
        * <code>string class_name = 4;</code>
        * @param value The bytes for className to set.
        * @return This builder for chaining.
@@ -13776,6 +14691,10 @@ java.lang.String defaultValue) {
 
       private long generation_ ;
       /**
+       * <pre>
+       * Connector resource generation captured when this route entry was compiled.
+       * </pre>
+       *
        * <code>uint64 generation = 5;</code>
        * @return The generation.
        */
@@ -13784,6 +14703,10 @@ java.lang.String defaultValue) {
         return generation_;
       }
       /**
+       * <pre>
+       * Connector resource generation captured when this route entry was compiled.
+       * </pre>
+       *
        * <code>uint64 generation = 5;</code>
        * @param value The generation to set.
        * @return This builder for chaining.
@@ -13796,6 +14719,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Connector resource generation captured when this route entry was compiled.
+       * </pre>
+       *
        * <code>uint64 generation = 5;</code>
        * @return This builder for chaining.
        */

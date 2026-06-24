@@ -47,8 +47,15 @@ message ConnectorClassSpec {
 }
 
 message ConnectorClassStatus {
+  // Resource generation last reconciled by the ConnectorController.
   uint64 observed_generation = 1;
+
+  // Current registration phase for this class, such as pending, ready, or
+  // degraded.
   string phase = 2;
+
+  // Detailed readiness and error conditions from registration with the
+  // connector service.
   repeated ResourceCondition conditions = 3;
 
   // Registration identifier assigned by the connector service. Incoming
@@ -111,8 +118,13 @@ message ConnectorSpec {
 }
 
 message ConnectorStatus {
+  // Resource generation last reconciled by the ConnectorController.
   uint64 observed_generation = 1;
+
+  // Current route indexing phase for this Connector, such as ready or invalid.
   string phase = 2;
+
+  // Detailed route-indexing readiness and validation conditions.
   repeated ResourceCondition conditions = 3;
 
   // Materialized KV routing keys generated from match_fields and the owning
@@ -121,22 +133,43 @@ message ConnectorStatus {
 }
 
 message ConnectorClass {
+  // Standard resource metadata. ConnectorClasses normally live in the Sys
+  // namespace because they describe cluster-level connector services.
   ResourceMeta metadata = 1;
+
+  // Desired connector service registration and platform capabilities.
   ConnectorClassSpec spec = 2;
+
+  // Observed registration state for this connector service class.
   ConnectorClassStatus status = 3;
 }
 
 message Connector {
+  // Standard namespaced resource metadata. Each Connector is owned by the
+  // namespace whose messages it routes into Talon.
   ResourceMeta metadata = 1;
+
+  // Desired provider match and Talon destination for one route.
   ConnectorSpec spec = 2;
+
+  // Observed route-indexing state for this Connector.
   ConnectorStatus status = 3;
 }
 
 message ConnectorMatchEntry {
+  // UID of the Connector resource that produced this compiled route.
   string connector_uid = 1;
+
+  // Namespace that owns the matching Connector and dispatch target.
   string namespace = 2;
+
+  // Name of the Connector resource that produced this compiled route.
   string connector_name = 3;
+
+  // ConnectorClass name used to scope provider match keys.
   string class_name = 4;
+
+  // Connector resource generation captured when this route entry was compiled.
   uint64 generation = 5;
 
   // Snapshot of the Connector target stored in the route index so ingest can
