@@ -28,26 +28,9 @@ struct SessionMessageSource {
     message: data_proto::SessionMessage,
 }
 
-impl MappableSource for SessionMessageSource {
-    fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>> {
-        Ok(map_session_message_parts(
-            &self.key,
-            self.message,
-            generation,
-            indexed_at,
-        ))
-    }
-}
-
 struct ControlPlaneResourceSource {
     key: keys::ResourceKey,
     resource: resources_proto::Resource,
-}
-
-impl MappableSource for ControlPlaneResourceSource {
-    fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>> {
-        map_control_plane_resource(&self.key, self.resource, generation, indexed_at)
-    }
 }
 
 // Public entrypoint and source dispatch.
@@ -78,23 +61,41 @@ impl DocumentMapper {
         let Some(bytes) = self.cp.kv.get(key).await? else {
             return Ok(None);
         };
-        Ok(Some(mappable_source_for_key(key, bytes.as_slice())?))
+        Ok(Some(self.mappable_source_for_key(key, bytes.as_slice())?))
+    }
+
+    fn mappable_source_for_key(
+        &self,
+        key: &keys::ResourceKey,
+        bytes: &[u8],
+    ) -> Result<Box<dyn MappableSource>> {
+        match key.kind.as_str() {
+            "SessionMessage" => Ok(Box::new(SessionMessageSource {
+                key: key.clone(),
+                message: data_proto::SessionMessage::decode(bytes)?,
+            })),
+            _ => Ok(Box::new(ControlPlaneResourceSource {
+                key: key.clone(),
+                resource: ResourceStore::decode_stored_resource(&key.kind, bytes)?,
+            })),
+        }
     }
 }
 
-fn mappable_source_for_key(
-    key: &keys::ResourceKey,
-    bytes: &[u8],
-) -> Result<Box<dyn MappableSource>> {
-    match key.kind.as_str() {
-        "SessionMessage" => Ok(Box::new(SessionMessageSource {
-            key: key.clone(),
-            message: data_proto::SessionMessage::decode(bytes)?,
-        })),
-        _ => Ok(Box::new(ControlPlaneResourceSource {
-            key: key.clone(),
-            resource: ResourceStore::decode_stored_resource(&key.kind, bytes)?,
-        })),
+impl MappableSource for SessionMessageSource {
+    fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>> {
+        Ok(map_session_message_parts(
+            &self.key,
+            self.message,
+            generation,
+            indexed_at,
+        ))
+    }
+}
+
+impl MappableSource for ControlPlaneResourceSource {
+    fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>> {
+        map_control_plane_resource(&self.key, self.resource, generation, indexed_at)
     }
 }
 
