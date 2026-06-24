@@ -7,15 +7,39 @@ use super::{
     DOCUMENT_KIND_MESSAGE_PART, DOCUMENT_KIND_METADATA, KIND_SESSION_MESSAGE,
 };
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
+use crate::control::{keys, ControlPlane};
 use crate::gateway::rpc::{data_proto, resources_proto};
 use anyhow::{anyhow, Result};
+use prost::Message;
 use serde_json::json;
 use std::{collections::HashMap, sync::Arc};
 
 #[derive(Clone)]
 pub struct DocumentMapper {
     cp: Arc<ControlPlane>,
+}
+
+enum MappableSource {
+    SessionMessage(data_proto::SessionMessage),
+    Resource(resources_proto::Resource),
+}
+
+impl MappableSource {
+    fn map(
+        self,
+        key: &keys::ResourceKey,
+        generation: u64,
+        indexed_at: i64,
+    ) -> Result<Vec<Document>> {
+        match self {
+            Self::SessionMessage(message) => Ok(map_session_message_parts(
+                key, message, generation, indexed_at,
+            )),
+            Self::Resource(resource) => {
+                map_control_plane_resource(key, resource, generation, indexed_at)
+            }
+        }
+    }
 }
 
 // Public entrypoint and source dispatch.
@@ -30,78 +54,69 @@ impl DocumentMapper {
         generation: u64,
         indexed_at: i64,
     ) -> Result<Vec<Document>> {
-        match key.kind.as_str() {
-            "SessionMessage" => {
-                self.map_session_message_key(key, generation, indexed_at)
-                    .await
-            }
-            "Session" => anyhow::bail!("session index key cannot be upserted"),
-            _ => {
-                self.map_control_plane_resource_key(key, generation, indexed_at)
-                    .await
-            }
-        }
-    }
-
-    async fn map_session_message_key(
-        &self,
-        key: &keys::ResourceKey,
-        generation: u64,
-        indexed_at: i64,
-    ) -> Result<Vec<Document>> {
-        let Some(message) = self
-            .cp
-            .kv
-            .get_msg::<data_proto::SessionMessage>(key)
+        self.load_source(key)
             .await?
-        else {
-            return Ok(Vec::new());
-        };
-        Ok(map_session_message_parts(
-            key, message, generation, indexed_at,
-        ))
+            .map(|source| source.map(key, generation, indexed_at))
+            .unwrap_or_else(|| Ok(Vec::new()))
     }
 
-    async fn map_control_plane_resource_key(
-        &self,
-        key: &keys::ResourceKey,
-        generation: u64,
-        indexed_at: i64,
-    ) -> Result<Vec<Document>> {
-        let store = ResourceStore::new(self.cp.kv.clone(), self.cp.pubsub.clone());
-        let Some(resource) = store.get(&key.namespace, &key.kind, &key.name).await? else {
-            return Ok(Vec::new());
-        };
-        let current_generation = resource
-            .metadata
-            .as_ref()
-            .map(|metadata| metadata.generation)
-            .unwrap_or_default();
-        if generation > 0 {
-            if current_generation > generation {
-                tracing::debug!(
-                    resource_key = key.canonical(),
-                    event_generation = generation,
-                    current_generation,
-                    "skipping stale resource index event"
-                );
-                return Ok(Vec::new());
-            }
-            if current_generation < generation {
-                anyhow::bail!(
-                    "resource {} generation {} is behind index event generation {}",
-                    key.canonical(),
-                    current_generation,
-                    generation
-                );
-            }
+    async fn load_source(&self, key: &keys::ResourceKey) -> Result<Option<MappableSource>> {
+        if key.kind == "Session" {
+            anyhow::bail!("session index key cannot be upserted");
         }
-        map_control_plane_resource(key, &resource, indexed_at)
+        let Some(bytes) = self.cp.kv.get(key).await? else {
+            return Ok(None);
+        };
+        Ok(Some(mappable_source_for_key(key, bytes.as_slice())?))
     }
 }
 
-// Document builders.
+fn mappable_source_for_key(key: &keys::ResourceKey, bytes: &[u8]) -> Result<MappableSource> {
+    match key.kind.as_str() {
+        "SessionMessage" => Ok(MappableSource::SessionMessage(
+            data_proto::SessionMessage::decode(bytes)?,
+        )),
+        _ => Ok(MappableSource::Resource(
+            ResourceStore::decode_stored_resource(&key.kind, bytes)?,
+        )),
+    }
+}
+
 fn map_control_plane_resource(
+    key: &keys::ResourceKey,
+    resource: resources_proto::Resource,
+    generation: u64,
+    indexed_at: i64,
+) -> Result<Vec<Document>> {
+    let current_generation = resource
+        .metadata
+        .as_ref()
+        .map(|metadata| metadata.generation)
+        .unwrap_or_default();
+    if generation > 0 {
+        if current_generation > generation {
+            tracing::debug!(
+                resource_key = key.canonical(),
+                event_generation = generation,
+                current_generation,
+                "skipping stale resource index event"
+            );
+            return Ok(Vec::new());
+        }
+        if current_generation < generation {
+            anyhow::bail!(
+                "resource {} generation {} is behind index event generation {}",
+                key.canonical(),
+                current_generation,
+                generation
+            );
+        }
+    }
+    map_control_plane_resource_documents(key, &resource, indexed_at)
+}
+
+// Document builders.
+fn map_control_plane_resource_documents(
     key: &keys::ResourceKey,
     resource: &resources_proto::Resource,
     indexed_at: i64,
@@ -563,7 +578,7 @@ mod tests {
             }),
         };
 
-        let documents = map_control_plane_resource(&key, &resource, 10).unwrap();
+        let documents = map_control_plane_resource_documents(&key, &resource, 10).unwrap();
         assert_eq!(documents.len(), 1);
         let document_ref = documents[0].r#ref.as_ref().expect("document ref");
         let source = document_ref.source.as_ref().expect("document source");
@@ -597,7 +612,7 @@ mod tests {
             ..Default::default()
         };
 
-        let documents = map_control_plane_resource(&key, &resource, 10).unwrap();
+        let documents = map_control_plane_resource_documents(&key, &resource, 10).unwrap();
         assert_eq!(documents.len(), 2);
         assert_eq!(
             documents[0]
@@ -642,7 +657,7 @@ mod tests {
             ..Default::default()
         };
 
-        let documents = map_control_plane_resource(&key, &resource, 10).unwrap();
+        let documents = map_control_plane_resource_documents(&key, &resource, 10).unwrap();
         assert_eq!(documents.len(), 1);
         assert_eq!(
             documents[0]

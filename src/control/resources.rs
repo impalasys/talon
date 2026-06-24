@@ -10,6 +10,13 @@ use std::sync::Arc;
 
 const API_VERSION: &str = "talon.impalasys.com/v1";
 
+/// Canonical control-plane resource facade.
+///
+/// Resource storage normalizes typed resource protos such as `Agent`,
+/// `Workflow`, and `Knowledge` into the generic `Resource` envelope with a
+/// `ResourceSpec`/`ResourceStatus` union. Callers that only need to read an
+/// already-known KV key may decode the stored bytes directly with
+/// `ResourceStore::decode_stored_resource` and avoid constructing this store.
 #[derive(Clone)]
 pub struct ResourceStore {
     kv: Arc<dyn KeyValueStore + Send + Sync>,
@@ -22,6 +29,132 @@ impl ResourceStore {
         pubsub: Arc<dyn MessagePublisher + Send + Sync>,
     ) -> Self {
         Self { kv, pubsub }
+    }
+
+    pub fn decode_stored_resource(kind: &str, bytes: &[u8]) -> Result<resources_proto::Resource> {
+        match kind {
+            "Agent" => decode_typed_resource::<resources_proto::Agent, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Agent,
+                resources_proto::resource_status::Kind::Agent,
+            ),
+            "Workflow" => decode_typed_resource::<resources_proto::Workflow, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Workflow,
+                resources_proto::resource_status::Kind::Workflow,
+            ),
+            "Schedule" => decode_typed_resource::<resources_proto::Schedule, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Schedule,
+                resources_proto::resource_status::Kind::Schedule,
+            ),
+            "Channel" => decode_typed_resource::<resources_proto::Channel, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Channel,
+                resources_proto::resource_status::Kind::Channel,
+            ),
+            "ChannelSubscription" => {
+                decode_typed_resource::<resources_proto::ChannelSubscription, _, _, _, _>(
+                    kind,
+                    bytes,
+                    resources_proto::resource_spec::Kind::ChannelSubscription,
+                    resources_proto::resource_status::Kind::ChannelSubscription,
+                )
+            }
+            "McpServer" => decode_typed_resource::<resources_proto::McpServer, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::McpServer,
+                resources_proto::resource_status::Kind::McpServer,
+            ),
+            "McpServerBinding" => {
+                decode_typed_resource::<resources_proto::McpServerBinding, _, _, _, _>(
+                    kind,
+                    bytes,
+                    resources_proto::resource_spec::Kind::McpServerBinding,
+                    resources_proto::resource_status::Kind::McpServerBinding,
+                )
+            }
+            "Knowledge" => decode_typed_resource::<resources_proto::Knowledge, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Knowledge,
+                resources_proto::resource_status::Kind::Knowledge,
+            ),
+            "Namespace" => decode_typed_resource::<resources_proto::Namespace, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Namespace,
+                resources_proto::resource_status::Kind::Namespace,
+            ),
+            "Session" => decode_typed_resource::<resources_proto::Session, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Session,
+                resources_proto::resource_status::Kind::Session,
+            ),
+            "Skill" => decode_typed_resource::<resources_proto::Skill, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Skill,
+                resources_proto::resource_status::Kind::Skill,
+            ),
+            "Template" => decode_typed_resource::<resources_proto::Template, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Template,
+                resources_proto::resource_status::Kind::Template,
+            ),
+            "Deployment" => decode_typed_resource::<resources_proto::Deployment, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Deployment,
+                resources_proto::resource_status::Kind::Deployment,
+            ),
+            "DeploymentReplica" => {
+                decode_typed_resource::<resources_proto::DeploymentReplica, _, _, _, _>(
+                    kind,
+                    bytes,
+                    resources_proto::resource_spec::Kind::DeploymentReplica,
+                    resources_proto::resource_status::Kind::DeploymentReplica,
+                )
+            }
+            "SandboxClass" => decode_typed_resource::<resources_proto::SandboxClass, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::SandboxClass,
+                resources_proto::resource_status::Kind::SandboxClass,
+            ),
+            "SandboxPolicy" => decode_typed_resource::<resources_proto::SandboxPolicy, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::SandboxPolicy,
+                resources_proto::resource_status::Kind::SandboxPolicy,
+            ),
+            "Sandbox" => decode_typed_resource::<resources_proto::Sandbox, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Sandbox,
+                resources_proto::resource_status::Kind::Sandbox,
+            ),
+            "Worker" => decode_typed_resource::<resources_proto::Worker, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Worker,
+                resources_proto::resource_status::Kind::Worker,
+            ),
+            "UsagePolicy" => decode_typed_resource::<resources_proto::UsagePolicy, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::UsagePolicy,
+                resources_proto::resource_status::Kind::UsagePolicy,
+            ),
+            _ => resources_proto::Resource::decode(bytes).map_err(Into::into),
+        }
     }
 
     pub async fn upsert(
@@ -57,7 +190,7 @@ impl ResourceStore {
         let key = resource_key(&resource);
         validate_resource_kind(&resource)?;
         let existing = match self.kv.get(&key).await? {
-            Some(bytes) => match decode_stored_resource(&key.kind, bytes.as_slice()) {
+            Some(bytes) => match Self::decode_stored_resource(&key.kind, bytes.as_slice()) {
                 Ok(resource) => Some(resource),
                 Err(err) => {
                     tracing::warn!(
@@ -175,7 +308,7 @@ impl ResourceStore {
             let current = self.kv.get(&key).await?.ok_or_else(|| {
                 anyhow!("{} '{}' not found in namespace '{}'", kind, name, namespace)
             })?;
-            let mut resource = decode_stored_resource(kind, current.as_slice())?;
+            let mut resource = Self::decode_stored_resource(kind, current.as_slice())?;
             if let Some(expected) = expected_resource_version {
                 let actual = resource
                     .metadata
@@ -247,7 +380,7 @@ impl ResourceStore {
             .await?;
         let mut status_fetches = Vec::with_capacity(entries.len());
         for (key, value) in entries {
-            if let Ok(mut resource) = decode_stored_resource(&key.kind, value.as_slice()) {
+            if let Ok(mut resource) = Self::decode_stored_resource(&key.kind, value.as_slice()) {
                 status_fetches.push(async move {
                     self.populate_computed_status(&key, &mut resource).await?;
                     Ok::<_, anyhow::Error>(resource)
@@ -382,7 +515,7 @@ impl ResourceStore {
             .get(key)
             .await?
             .map(|bytes| {
-                decode_stored_resource(&key.kind, bytes.as_slice()).with_context(|| {
+                Self::decode_stored_resource(&key.kind, bytes.as_slice()).with_context(|| {
                     format!(
                         "failed to decode stored {} resource {}/{}/{}",
                         key.kind, key.namespace, key.parent_path, key.name
@@ -447,132 +580,6 @@ pub fn agent_from_resource(resource: resources_proto::Resource) -> Result<resour
         spec: Some(spec),
         status: Some(status),
     })
-}
-
-fn decode_stored_resource(kind: &str, bytes: &[u8]) -> Result<resources_proto::Resource> {
-    match kind {
-        "Agent" => decode_typed_resource::<resources_proto::Agent, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::Agent,
-            resources_proto::resource_status::Kind::Agent,
-        ),
-        "Workflow" => decode_typed_resource::<resources_proto::Workflow, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::Workflow,
-            resources_proto::resource_status::Kind::Workflow,
-        ),
-        "Schedule" => decode_typed_resource::<resources_proto::Schedule, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::Schedule,
-            resources_proto::resource_status::Kind::Schedule,
-        ),
-        "Channel" => decode_typed_resource::<resources_proto::Channel, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::Channel,
-            resources_proto::resource_status::Kind::Channel,
-        ),
-        "ChannelSubscription" => {
-            decode_typed_resource::<resources_proto::ChannelSubscription, _, _, _, _>(
-                kind,
-                bytes,
-                resources_proto::resource_spec::Kind::ChannelSubscription,
-                resources_proto::resource_status::Kind::ChannelSubscription,
-            )
-        }
-        "McpServer" => decode_typed_resource::<resources_proto::McpServer, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::McpServer,
-            resources_proto::resource_status::Kind::McpServer,
-        ),
-        "McpServerBinding" => {
-            decode_typed_resource::<resources_proto::McpServerBinding, _, _, _, _>(
-                kind,
-                bytes,
-                resources_proto::resource_spec::Kind::McpServerBinding,
-                resources_proto::resource_status::Kind::McpServerBinding,
-            )
-        }
-        "Knowledge" => decode_typed_resource::<resources_proto::Knowledge, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::Knowledge,
-            resources_proto::resource_status::Kind::Knowledge,
-        ),
-        "Namespace" => decode_typed_resource::<resources_proto::Namespace, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::Namespace,
-            resources_proto::resource_status::Kind::Namespace,
-        ),
-        "Session" => decode_typed_resource::<resources_proto::Session, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::Session,
-            resources_proto::resource_status::Kind::Session,
-        ),
-        "Skill" => decode_typed_resource::<resources_proto::Skill, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::Skill,
-            resources_proto::resource_status::Kind::Skill,
-        ),
-        "Template" => decode_typed_resource::<resources_proto::Template, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::Template,
-            resources_proto::resource_status::Kind::Template,
-        ),
-        "Deployment" => decode_typed_resource::<resources_proto::Deployment, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::Deployment,
-            resources_proto::resource_status::Kind::Deployment,
-        ),
-        "DeploymentReplica" => {
-            decode_typed_resource::<resources_proto::DeploymentReplica, _, _, _, _>(
-                kind,
-                bytes,
-                resources_proto::resource_spec::Kind::DeploymentReplica,
-                resources_proto::resource_status::Kind::DeploymentReplica,
-            )
-        }
-        "SandboxClass" => decode_typed_resource::<resources_proto::SandboxClass, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::SandboxClass,
-            resources_proto::resource_status::Kind::SandboxClass,
-        ),
-        "SandboxPolicy" => decode_typed_resource::<resources_proto::SandboxPolicy, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::SandboxPolicy,
-            resources_proto::resource_status::Kind::SandboxPolicy,
-        ),
-        "Sandbox" => decode_typed_resource::<resources_proto::Sandbox, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::Sandbox,
-            resources_proto::resource_status::Kind::Sandbox,
-        ),
-        "Worker" => decode_typed_resource::<resources_proto::Worker, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::Worker,
-            resources_proto::resource_status::Kind::Worker,
-        ),
-        "UsagePolicy" => decode_typed_resource::<resources_proto::UsagePolicy, _, _, _, _>(
-            kind,
-            bytes,
-            resources_proto::resource_spec::Kind::UsagePolicy,
-            resources_proto::resource_status::Kind::UsagePolicy,
-        ),
-        _ => resources_proto::Resource::decode(bytes).map_err(Into::into),
-    }
 }
 
 trait StoredTypedResource<S, T>: prost::Message + Default {
