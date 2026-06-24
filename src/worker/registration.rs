@@ -162,16 +162,10 @@ async fn patch_ready_with_registration_retry(cp: &ControlPlane, registration: &W
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::{object_store, scheduler::NoopSchedulerBackend};
     use crate::test_support::{EmptyPubSub, MockKvStore};
 
     fn control_plane() -> ControlPlane {
-        ControlPlane {
-            kv: Arc::new(MockKvStore::default()),
-            pubsub: Arc::new(EmptyPubSub),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: object_store::default_object_store(),
-        }
+        ControlPlane::builder(Arc::new(MockKvStore::default()), Arc::new(EmptyPubSub)).build()
     }
 
     #[test]

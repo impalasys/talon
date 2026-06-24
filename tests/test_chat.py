@@ -296,13 +296,23 @@ def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
     assert modules.modules[0].path == "guide.md"
     assert "guide documents" in modules.modules[0].content
 
-    search = stub.knowledge.Search(SearchKnowledgeRequest(
-        ns=namespace,
-        agent=agent_name,
-        query="runtime facts",
-    ))
+    search = None
+    for _ in range(30):
+        search = stub.knowledge.Search(SearchKnowledgeRequest(
+            ns=namespace,
+            agent=agent_name,
+            query="runtime facts",
+            limit=10,
+        ), timeout=10)
+        if search.search_results:
+            break
+        time.sleep(1)
+
+    assert search is not None
     assert len(search.results) >= 1
     assert search.results[0].path == "guide.md"
+    assert len(search.search_results) >= 1
+    assert search.search_results[0].document.source.kind == "Knowledge"
 
     deleted = stub.resources.Delete(DeleteResourceRequest(
         ns=namespace,

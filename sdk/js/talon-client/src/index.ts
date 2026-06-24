@@ -5,6 +5,7 @@ import {
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
 import * as config from "./gen/proto/config_pb.js";
 import * as data from "./gen/proto/data/data_pb.js";
+import * as dataSearch from "./gen/proto/data/search_pb.js";
 import * as events from "./gen/proto/events_pb.js";
 import * as agents from "./gen/proto/resources/agents_pb.js";
 import * as channels from "./gen/proto/resources/channels_pb.js";
@@ -30,6 +31,8 @@ import * as v1Namespaces from "./gen/proto/talon/v1/namespaces_pb.js";
 import * as v1NamespacesConnect from "./gen/proto/talon/v1/namespaces_connect.js";
 import * as v1Resources from "./gen/proto/talon/v1/resources_pb.js";
 import * as v1ResourcesConnect from "./gen/proto/talon/v1/resources_connect.js";
+import * as v1Search from "./gen/proto/talon/v1/search_pb.js";
+import * as v1SearchConnect from "./gen/proto/talon/v1/search_connect.js";
 import * as v1Sessions from "./gen/proto/talon/v1/sessions_pb.js";
 import * as v1SessionsConnect from "./gen/proto/talon/v1/sessions_connect.js";
 import * as v1Workflows from "./gen/proto/talon/v1/workflows_pb.js";
@@ -39,6 +42,7 @@ import { createTalonClientset, type TalonClient } from "./clientset.js";
 export {
   config,
   data,
+  dataSearch,
   events,
   agents,
   channels,
@@ -64,6 +68,8 @@ export {
   v1NamespacesConnect,
   v1Resources,
   v1ResourcesConnect,
+  v1Search,
+  v1SearchConnect,
   v1Sessions,
   v1SessionsConnect,
   v1Workflows,

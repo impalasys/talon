@@ -8,6 +8,7 @@ services:
       - RUST_LOG=${RUST_LOG:-info}
       - TALON_CONTROL_DATABASE_URL=postgres://talon:password@postgres:5432/talon
       - TALON_DATA_DATABASE_URL=postgres://talon:password@postgres:5432/talon
+      - TALON_DOCUMENT_DATABASE_URL=postgres://talon:password@postgres:5432/talon
       - GCP_PROJECT_ID=talon-local
       - PUBSUB_EMULATOR_HOST=pubsub:8085
       - TALON_SCHEDULER_DRIVER=local_postgres
@@ -50,6 +51,7 @@ services:
       - RUST_LOG=${RUST_LOG:-info}
       - TALON_CONTROL_DATABASE_URL=postgres://talon:password@postgres:5432/talon
       - TALON_DATA_DATABASE_URL=postgres://talon:password@postgres:5432/talon
+      - TALON_DOCUMENT_DATABASE_URL=postgres://talon:password@postgres:5432/talon
       - GCP_PROJECT_ID=talon-local
       - PUBSUB_EMULATOR_HOST=pubsub:8085
       - TALON_SCHEDULER_DRIVER=local_postgres

@@ -5,8 +5,10 @@ use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::control::keys;
 use crate::control::ns;
 use crate::control::resources::ResourceStore;
+use crate::control::search::{DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
 use crate::gateway::rpc::resources_proto;
 use crate::harness::knowledge::KnowledgeEntry;
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::sync::Arc;
 
@@ -127,6 +129,147 @@ impl GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::SearchKnowledgeResponse>, tonic::Status> {
         crate::require_auth!(read, self, req, &req.get_ref().ns, &req.get_ref().agent);
         let req = req.into_inner();
+        let mode = super::search::mode(req.mode)?;
+        let sort = super::search::sort(req.sort);
+        let namespaces = super::search::knowledge_namespaces(&req.ns);
+        let indexed = if self.gateway.documents.is_enabled() {
+            Some(
+                self.gateway
+                    .documents
+                    .search(&proto::SearchRequest {
+                        query: req.query.clone(),
+                        source: Some(proto::SearchSourceFilter {
+                            namespaces: namespaces.clone(),
+                            kinds: vec![KIND_KNOWLEDGE.to_string()],
+                            ..Default::default()
+                        }),
+                        limit: super::search::limit(req.limit)
+                            .saturating_mul(namespaces.len().max(1))
+                            as i32,
+                        mode: mode as i32,
+                        sort: sort as i32,
+                        ..Default::default()
+                    })
+                    .await
+                    .map_err(super::search::search_error)?,
+            )
+        } else {
+            None
+        };
+        if let Some(indexed) = indexed.filter(|indexed| !indexed.results.is_empty()) {
+            let namespace_rank = namespaces
+                .iter()
+                .enumerate()
+                .map(|(index, namespace)| (namespace.clone(), index))
+                .collect::<HashMap<_, _>>();
+            let mut by_path: HashMap<String, (usize, proto::SearchResult)> = HashMap::new();
+            for result in indexed.results {
+                let Some(document_ref) = result.document.as_ref() else {
+                    continue;
+                };
+                let Some(source) = document_ref.source.as_ref() else {
+                    continue;
+                };
+                if document_ref.document_kind != DOCUMENT_KIND_CONTENT {
+                    continue;
+                }
+                let path = serde_json::from_str::<serde_json::Value>(&document_ref.metadata_json)
+                    .ok()
+                    .and_then(|value| {
+                        value
+                            .get("path")
+                            .and_then(|path| path.as_str())
+                            .map(str::to_string)
+                    })
+                    .unwrap_or_else(|| document_ref.title.clone());
+                let rank = *namespace_rank.get(&source.namespace).unwrap_or(&usize::MAX);
+                match by_path.get(&path) {
+                    Some((current_rank, _)) if *current_rank <= rank => {}
+                    _ => {
+                        by_path.insert(path, (rank, result));
+                    }
+                }
+            }
+            let mut search_results = by_path
+                .into_values()
+                .map(|(_, result)| result)
+                .collect::<Vec<_>>();
+            match sort {
+                proto::SearchSort::Recency => search_results.sort_by(|left, right| {
+                    let right_updated_at = right
+                        .document
+                        .as_ref()
+                        .map(|document| document.updated_at)
+                        .unwrap_or_default();
+                    let left_updated_at = left
+                        .document
+                        .as_ref()
+                        .map(|document| document.updated_at)
+                        .unwrap_or_default();
+                    right_updated_at.cmp(&left_updated_at).then_with(|| {
+                        right
+                            .score
+                            .partial_cmp(&left.score)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    })
+                }),
+                proto::SearchSort::Unspecified | proto::SearchSort::Relevance => search_results
+                    .sort_by(|left, right| {
+                        right
+                            .score
+                            .partial_cmp(&left.score)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                            .then_with(|| {
+                                let right_updated_at = right
+                                    .document
+                                    .as_ref()
+                                    .map(|document| document.updated_at)
+                                    .unwrap_or_default();
+                                let left_updated_at = left
+                                    .document
+                                    .as_ref()
+                                    .map(|document| document.updated_at)
+                                    .unwrap_or_default();
+                                right_updated_at.cmp(&left_updated_at)
+                            })
+                    }),
+            }
+            search_results.truncate(super::search::limit(req.limit));
+            if search_results.is_empty() {
+                // Metadata documents make workspace search richer, but the legacy
+                // knowledge endpoint should return knowledge content only.
+            } else {
+                let legacy_results = search_results
+                    .iter()
+                    .map(|result| {
+                        let document_ref = result.document.as_ref().expect("document ref");
+                        let source = document_ref.source.as_ref().expect("document source");
+                        let path =
+                            serde_json::from_str::<serde_json::Value>(&document_ref.metadata_json)
+                                .ok()
+                                .and_then(|value| {
+                                    value
+                                        .get("path")
+                                        .and_then(|path| path.as_str())
+                                        .map(str::to_string)
+                                })
+                                .unwrap_or_else(|| document_ref.title.clone());
+                        data_proto::KnowledgeSearchResult {
+                            namespace: source.namespace.clone(),
+                            path,
+                            snippet: result.snippet.clone(),
+                            score: result.score,
+                            timestamp: document_ref.updated_at,
+                        }
+                    })
+                    .collect();
+                return Ok(tonic::Response::new(proto::SearchKnowledgeResponse {
+                    results: legacy_results,
+                    search_results: search_results.into_iter().collect(),
+                    next_page_token: indexed.next_page_token,
+                }));
+            }
+        }
         let modules = list_namespace_knowledge(
             self.gateway.kv.clone(),
             self.gateway.pubsub.clone(),
@@ -141,7 +284,7 @@ impl GrpcGatewayHandler {
                     || module.path.to_lowercase().contains(&query)
                     || module.content.to_lowercase().contains(&query)
             })
-            .take(5)
+            .take(super::search::limit(req.limit))
             .map(|module| data_proto::KnowledgeSearchResult {
                 namespace: module.namespace,
                 path: module.path,
@@ -153,6 +296,8 @@ impl GrpcGatewayHandler {
 
         Ok(tonic::Response::new(proto::SearchKnowledgeResponse {
             results,
+            search_results: Vec::new(),
+            next_page_token: String::new(),
         }))
     }
 }
@@ -163,7 +308,7 @@ mod tests {
     use crate::control::keys::{self, ResourceKey, ResourceList};
     use crate::control::KeyValueStore;
     use crate::gateway::rpc::{proto, GrpcGatewayHandler};
-    use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
+    use crate::gateway::server::Gateway;
     use async_trait::async_trait;
     use futures::stream;
     use std::collections::HashMap;
@@ -243,16 +388,22 @@ mod tests {
 
     fn handler(kv: Arc<MockKvStore>) -> GrpcGatewayHandler {
         let pubsub = Arc::new(MockPubSub);
+        let control_plane = crate::control::ControlPlane::builder(kv, pubsub).build();
         GrpcGatewayHandler {
-            gateway: Arc::new(Gateway {
-                auth_config: None,
-                trust_config: None,
-                kv,
-                pubsub: pubsub.clone(),
-                scheduler: Arc::new(crate::control::scheduler::NoopSchedulerBackend),
-                objects: crate::control::object_store::default_object_store(),
-                session_streams: Arc::new(SessionStreamHub::new(pubsub)),
-            }),
+            gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
+        }
+    }
+
+    fn handler_with_documents(
+        kv: Arc<MockKvStore>,
+        documents: Arc<dyn crate::control::search::DocumentStore + Send + Sync>,
+    ) -> GrpcGatewayHandler {
+        let pubsub = Arc::new(MockPubSub);
+        let control_plane = crate::control::ControlPlane::builder(kv, pubsub)
+            .documents(documents)
+            .build();
+        GrpcGatewayHandler {
+            gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
         }
     }
 
@@ -356,6 +507,9 @@ mod tests {
                 agent: "agent".to_string(),
                 ns: "acme".to_string(),
                 query: "scheduling".to_string(),
+                limit: 0,
+                mode: proto::SearchMode::Keyword as i32,
+                sort: proto::SearchSort::Relevance as i32,
             }))
             .await
             .unwrap()
@@ -364,5 +518,41 @@ mod tests {
         assert_eq!(response.results.len(), 1);
         assert_eq!(response.results[0].path, "guide.md");
         assert_eq!(response.results[0].namespace, "acme");
+    }
+
+    #[tokio::test]
+    async fn handle_search_knowledge_falls_back_when_document_store_is_disabled() {
+        let kv = Arc::new(MockKvStore::default());
+        let entry = crate::harness::knowledge::KnowledgeEntry {
+            namespace: "acme".to_string(),
+            name: "guide.md".to_string(),
+            path: "guide.md".to_string(),
+            content: "Rust scheduling notes".to_string(),
+            updated_at: 7,
+        };
+        kv.set(
+            &keys::knowledge("acme", "guide.md"),
+            &serde_json::to_vec(&entry).unwrap(),
+        )
+        .await
+        .unwrap();
+
+        let response =
+            handler_with_documents(kv, crate::control::search::disabled_document_store())
+                .handle_search_knowledge(tonic::Request::new(proto::SearchKnowledgeRequest {
+                    agent: "agent".to_string(),
+                    ns: "acme".to_string(),
+                    query: "scheduling".to_string(),
+                    limit: 0,
+                    mode: proto::SearchMode::Keyword as i32,
+                    sort: proto::SearchSort::Relevance as i32,
+                }))
+                .await
+                .unwrap()
+                .into_inner();
+
+        assert_eq!(response.results.len(), 1);
+        assert_eq!(response.results[0].path, "guide.md");
+        assert!(response.search_results.is_empty());
     }
 }

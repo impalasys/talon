@@ -276,16 +276,18 @@ class SchedulerConfig(_message.Message):
     def __init__(self, cloud_tasks: _Optional[_Union[CloudTasksSchedulerConfig, _Mapping]] = ...) -> None: ...
 
 class ControlPlaneConfig(_message.Message):
-    __slots__ = ("database", "message_broker", "scheduler", "object_store")
+    __slots__ = ("database", "message_broker", "scheduler", "object_store", "documents")
     DATABASE_FIELD_NUMBER: _ClassVar[int]
     MESSAGE_BROKER_FIELD_NUMBER: _ClassVar[int]
     SCHEDULER_FIELD_NUMBER: _ClassVar[int]
     OBJECT_STORE_FIELD_NUMBER: _ClassVar[int]
+    DOCUMENTS_FIELD_NUMBER: _ClassVar[int]
     database: DatabaseConfig
     message_broker: MessageBrokerConfig
     scheduler: SchedulerConfig
     object_store: ObjectStoreConfig
-    def __init__(self, database: _Optional[_Union[DatabaseConfig, _Mapping]] = ..., message_broker: _Optional[_Union[MessageBrokerConfig, _Mapping]] = ..., scheduler: _Optional[_Union[SchedulerConfig, _Mapping]] = ..., object_store: _Optional[_Union[ObjectStoreConfig, _Mapping]] = ...) -> None: ...
+    documents: DatabaseConfig
+    def __init__(self, database: _Optional[_Union[DatabaseConfig, _Mapping]] = ..., message_broker: _Optional[_Union[MessageBrokerConfig, _Mapping]] = ..., scheduler: _Optional[_Union[SchedulerConfig, _Mapping]] = ..., object_store: _Optional[_Union[ObjectStoreConfig, _Mapping]] = ..., documents: _Optional[_Union[DatabaseConfig, _Mapping]] = ...) -> None: ...
 
 class ServerConfig(_message.Message):
     __slots__ = ("host", "port")

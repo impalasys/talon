@@ -15,6 +15,7 @@ pub mod resource_model;
 pub mod resources;
 pub mod scheduler;
 pub mod scheduling;
+pub mod search;
 pub mod security;
 pub mod telemetry;
 pub mod topics;
@@ -174,12 +175,14 @@ pub struct ControlPlane {
     pub pubsub: SharedMessagePublisher,
     pub scheduler: SharedSchedulerBackend,
     pub objects: SharedObjectStore,
+    pub documents: SharedDocumentStore,
 }
 
 pub type SharedKeyValueStore = Arc<dyn KeyValueStore + Send + Sync>;
 pub type SharedMessagePublisher = Arc<dyn MessagePublisher + Send + Sync>;
 pub type SharedSchedulerBackend = Arc<dyn scheduler::SchedulerBackend + Send + Sync>;
 pub type SharedObjectStore = Arc<dyn object_store::ObjectStore + Send + Sync>;
+pub type SharedDocumentStore = Arc<dyn search::DocumentStore + Send + Sync>;
 
 impl ControlPlane {
     pub fn new(
@@ -187,12 +190,14 @@ impl ControlPlane {
         pubsub: SharedMessagePublisher,
         scheduler: SharedSchedulerBackend,
         objects: SharedObjectStore,
+        documents: SharedDocumentStore,
     ) -> Self {
         Self {
             kv,
             pubsub,
             scheduler,
             objects,
+            documents,
         }
     }
 
@@ -208,6 +213,7 @@ impl ControlPlane {
             pubsub,
             scheduler: Arc::new(scheduler::NoopSchedulerBackend),
             objects: object_store::default_object_store(),
+            documents: search::ephemeral_document_store(),
         }
     }
 
@@ -224,6 +230,7 @@ pub struct ControlPlaneBuilder {
     pubsub: SharedMessagePublisher,
     scheduler: SharedSchedulerBackend,
     objects: SharedObjectStore,
+    documents: SharedDocumentStore,
 }
 
 impl ControlPlaneBuilder {
@@ -237,8 +244,19 @@ impl ControlPlaneBuilder {
         self
     }
 
+    pub fn documents(mut self, documents: SharedDocumentStore) -> Self {
+        self.documents = documents;
+        self
+    }
+
     pub fn build(self) -> ControlPlane {
-        ControlPlane::new(self.kv, self.pubsub, self.scheduler, self.objects)
+        ControlPlane::new(
+            self.kv,
+            self.pubsub,
+            self.scheduler,
+            self.objects,
+            self.documents,
+        )
     }
 }
 
@@ -373,7 +391,7 @@ pub async fn build_control_plane(
                 .as_ref()
                 .ok_or_else(|| anyhow::anyhow!("Database URL secret is missing"))?;
             let pg_url: String = url_secret.resolve().await?;
-            println!("Connecting to PostgresKvStore at {}...", pg_url);
+            println!("Connecting to PostgresKvStore...");
             kv = Arc::new(kv::PostgresKvStore::new(&pg_url, "talon_kv_store").await?);
             scheduler_database_url = Some(pg_url);
         }
@@ -385,9 +403,9 @@ pub async fn build_control_plane(
         }
         "d1" => {
             println!("Connecting to D1KvStore...");
-            let store = kv::D1KvStore::from_env();
-            store.init().await?;
-            kv = Arc::new(store);
+            let kv_store = kv::D1KvStore::from_env();
+            kv_store.init().await?;
+            kv = Arc::new(kv_store);
             scheduler_database_url = None;
         }
         #[cfg(feature = "rocksdb")]
@@ -410,6 +428,9 @@ pub async fn build_control_plane(
             return Err(anyhow::anyhow!("Unsupported database driver: {}", other));
         }
     }
+
+    let document_db_config = cp.documents.as_ref().unwrap_or(db_config);
+    let documents = configured_document_store(document_db_config).await?;
 
     ensure_builtin_namespaces(kv.as_ref()).await?;
 
@@ -518,7 +539,7 @@ pub async fn build_control_plane(
         object_store::object_store_from_config(cp.object_store.as_ref(), &config.workspace_dir)
             .await?;
 
-    Ok(ControlPlane::new(kv, pubsub, scheduler, objects))
+    Ok(ControlPlane::new(kv, pubsub, scheduler, objects, documents))
 }
 
 fn configured_scheduler(
@@ -578,6 +599,46 @@ async fn sqlite_database_url(
         tokio::fs::create_dir_all(parent).await?;
     }
     Ok(kv::sqlite_url_for_path(&db_path))
+}
+
+async fn configured_document_store(
+    db_config: &crate::control::config::proto::DatabaseConfig,
+) -> anyhow::Result<SharedDocumentStore> {
+    use crate::control::config::SecretExt;
+
+    match db_config.driver.as_str() {
+        "postgres" => {
+            let url_secret = db_config
+                .url
+                .as_ref()
+                .ok_or_else(|| anyhow::anyhow!("Document database URL secret is missing"))?;
+            let pg_url: String = url_secret.resolve().await?;
+            println!("Connecting to PostgresDocumentStore...");
+            Ok(Arc::new(search::PostgresDocumentStore::new(&pg_url).await?))
+        }
+        "sqlite" => {
+            let sqlite_url = sqlite_database_url(db_config).await?;
+            println!("Connecting to SqliteDocumentStore at {}...", sqlite_url);
+            Ok(Arc::new(
+                search::SqliteDocumentStore::new(&sqlite_url).await?,
+            ))
+        }
+        "d1" => {
+            println!("Connecting to D1DocumentStore...");
+            let document_store = search::D1DocumentStore::from_env();
+            document_store.init().await?;
+            Ok(Arc::new(document_store))
+        }
+        "disabled" => Ok(search::disabled_document_store()),
+        #[cfg(feature = "rocksdb")]
+        "rocksdb" => Ok(search::disabled_document_store()),
+        #[cfg(not(feature = "rocksdb"))]
+        "rocksdb" => Ok(search::disabled_document_store()),
+        other => Err(anyhow::anyhow!(
+            "Unsupported document database driver: {}",
+            other
+        )),
+    }
 }
 
 #[cfg(feature = "rocksdb")]
@@ -938,6 +999,7 @@ mod tests {
                 }),
                 scheduler: None,
                 object_store: None,
+                documents: None,
             }),
             ..Default::default()
         };
@@ -958,6 +1020,7 @@ mod tests {
             message_broker: None,
             scheduler: None,
             object_store: None,
+            documents: None,
         };
         let err = match message_broker_config(&cp) {
             Ok(_) => panic!("expected missing message broker error"),
@@ -995,6 +1058,7 @@ mod tests {
                     )),
                 }),
                 object_store: None,
+                documents: None,
             }),
             ..Default::default()
         };
@@ -1023,6 +1087,7 @@ mod tests {
                 }),
                 scheduler: None,
                 object_store: None,
+                documents: None,
             }),
             ..Default::default()
         };
@@ -1047,6 +1112,7 @@ mod tests {
                 }),
                 scheduler: None,
                 object_store: None,
+                documents: None,
             }),
             ..Default::default()
         };
@@ -1064,6 +1130,7 @@ mod tests {
             }),
             scheduler: None,
             object_store: None,
+            documents: None,
         };
 
         let err = match message_broker_config(&unsupported_message_broker) {
@@ -1081,6 +1148,7 @@ mod tests {
             }),
             scheduler: None,
             object_store: None,
+            documents: None,
         };
         assert!(message_broker_config(&local_socket_message_broker).is_ok());
     }

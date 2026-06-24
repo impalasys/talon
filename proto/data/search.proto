@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package talon.data;
+
+message DocumentSource {
+  string namespace = 1;
+  string key = 2;
+  string kind = 3;
+  string name = 4;
+  string parent_kind = 5;
+  string parent_key = 6;
+  string uid = 7;
+  uint64 generation = 8;
+  string resource_version = 9;
+}
+
+message DocumentRef {
+  string id = 1;
+  DocumentSource source = 2;
+  string document_kind = 3;
+  string subdocument_id = 4;
+  map<string, string> attributes = 5;
+  string title = 6;
+  map<string, string> labels = 7;
+  string metadata_json = 8;
+  string acl_scope_json = 9;
+  int64 created_at = 10;
+  int64 updated_at = 11;
+  int64 indexed_at = 12;
+  // Canonical source generation that produced this disposable document projection.
+  uint64 generation = 13;
+  string embedding_ref = 14;
+}
+
+message Document {
+  DocumentRef ref = 1;
+  string text = 2;
+}

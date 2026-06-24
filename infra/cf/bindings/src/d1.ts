@@ -58,7 +58,7 @@ function encodeRow(row: Record<string, unknown>): Record<string, D1Cell> {
 }
 
 /**
- * Handles the internal D1 SQL bridge used by Rust `D1KvStore`.
+ * Handles the internal D1 SQL bridge used by Rust D1-backed stores.
  *
  * Contract:
  * - `POST /execute`

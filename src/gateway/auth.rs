@@ -188,6 +188,40 @@ pub fn check_auth_for_operation(
     check_auth_header_for_operation(auth_header, auth_config, operation, ns, agent, session)
 }
 
+/// Verify and return bearer JWT claims for callers that need to derive an
+/// effective read scope from the token after normal authorization succeeds.
+///
+/// This helper is intentionally not an authorization check by itself. Use
+/// `check_auth_for_operation` or `check_channel_auth_for_operation` first, then
+/// call this when the caller needs claim details such as `talon:ns`, scoped
+/// agent/session/channel values, or `talon:grants`. Search uses this to narrow a
+/// broad query to the caller's authorized source filters before querying the
+/// `DocumentStore`.
+///
+/// Returns `Ok(None)` for non-JWT auth modes and for JWT mode's basic-password
+/// fallback, because there are no bearer JWT claims to inspect in those cases.
+pub fn jwt_claims_from_metadata(
+    metadata: &MetadataMap,
+    auth_config: &AuthConfig,
+) -> Result<Option<Claims>, Status> {
+    if auth_config.mode != AuthMode::Jwt {
+        return Ok(None);
+    }
+    let auth_header = metadata
+        .get("authorization")
+        .and_then(|v| v.to_str().ok())
+        .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
+    if check_basic_password(auth_header, auth_config.jwt_secret.as_ref())? {
+        return Ok(None);
+    }
+    let token = bearer_token(auth_header)?;
+    let secret = auth_config
+        .jwt_secret
+        .as_ref()
+        .ok_or_else(|| Status::internal("JWT secret not configured"))?;
+    verify_jwt(token, secret).map(Some)
+}
+
 pub fn check_auth_header(
     auth_header: Option<&str>,
     auth_config: &AuthConfig,
@@ -566,7 +600,6 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::scheduler::NoopSchedulerBackend;
     use crate::gateway::server::Gateway;
     use crate::test_support::{EmptyPubSub, MockKvStore};
     use axum::{
@@ -583,13 +616,12 @@ mod tests {
     use tower::ServiceExt;
 
     fn gateway_with_auth(auth_config: Option<AuthConfig>) -> Arc<Gateway> {
-        Arc::new(Gateway::new(
-            auth_config,
+        let control_plane = crate::control::ControlPlane::builder(
             Arc::new(MockKvStore::default()),
             Arc::new(EmptyPubSub),
-            Arc::new(NoopSchedulerBackend),
-            crate::control::object_store::default_object_store(),
-        ))
+        )
+        .build();
+        Arc::new(Gateway::from_control_plane(auth_config, control_plane))
     }
 
     #[test]

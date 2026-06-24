@@ -285,6 +285,52 @@ def test_cli_chat_sqlite_local_socket(sqlite_test_grpc_port, mock_llm_server):
     assert completed["state"] == "IDLE"
 
 
+def test_cli_filtered_search_sqlite_local_socket(sqlite_test_grpc_port, mock_llm_server):
+    cli = cli_for_grpc_port(sqlite_test_grpc_port)
+    suffix = uuid.uuid4().hex[:8]
+    namespace = f"talon-cli-search-{suffix}"
+    agent = "cli-search-agent"
+    token = f"clisearchtoken{suffix}"
+    e2e.apply(
+        cli,
+        e2e.MANIFEST_ROOT / "chat" / "agent.yaml",
+        {
+            "namespace": namespace,
+            "agent": agent,
+            "system_prompt": "You are a helpful search CLI E2E test assistant.",
+        },
+    )
+    session_id = e2e.session_create(cli, namespace, agent)
+    e2e.session_send(
+        cli,
+        namespace,
+        agent,
+        session_id,
+        f"Please index {token} for CLI search.",
+    )
+
+    last_output = ""
+    for _ in range(30):
+        result = cli.run(
+            "search",
+            "sessions",
+            "--namespace",
+            namespace,
+            "--agent",
+            agent,
+            token,
+        )
+        last_output = result.stdout
+        if token in last_output:
+            break
+        time.sleep(1)
+
+    assert token in last_output
+    assert namespace in last_output
+    assert "SessionMessage" in last_output
+    assert "part" in last_output
+
+
 def test_cli_streaming_chat_sqlite_local_socket(sqlite_test_grpc_port, mock_llm_server):
     cli = cli_for_grpc_port(sqlite_test_grpc_port)
     suffix = uuid.uuid4().hex[:8]

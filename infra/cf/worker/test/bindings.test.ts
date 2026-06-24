@@ -108,6 +108,7 @@ function baseEnv(overrides: Record<string, unknown> = {}) {
     SESSION_DISPATCH_QUEUE: noopQueue,
     RESOURCE_LIFECYCLE_QUEUE: noopQueue,
     SESSION_CONTROL_QUEUE: noopQueue,
+    INDEX_EVENTS_QUEUE: noopQueue,
     SESSION_STREAMS: new MockDurableObjectNamespace(),
     TALON_SCHEDULER_AUTH_TOKEN: "test-scheduler-token",
     ...overrides,
@@ -263,13 +264,15 @@ test("Queue bridge maps Rust topics onto Cloudflare queue messages", async () =>
   const sessionDispatch = new MockQueue();
   const resourceLifecycle = new MockQueue();
   const sessionControl = new MockQueue();
+  const indexEvents = new MockQueue();
   const env = baseEnv({
     SESSION_DISPATCH_QUEUE: sessionDispatch,
     RESOURCE_LIFECYCLE_QUEUE: resourceLifecycle,
     SESSION_CONTROL_QUEUE: sessionControl,
+    INDEX_EVENTS_QUEUE: indexEvents,
   });
 
-  for (const topic of [TOPICS.sessionDispatch, TOPICS.resourceLifecycle, TOPICS.sessionControl]) {
+  for (const topic of [TOPICS.sessionDispatch, TOPICS.resourceLifecycle, TOPICS.sessionControl, TOPICS.indexEvents]) {
     const response = await handleQueues(
       new Request("http://talon-queues.internal/publish", {
         method: "POST",
@@ -290,6 +293,10 @@ test("Queue bridge maps Rust topics onto Cloudflare queue messages", async () =>
   }]);
   assert.deepEqual(sessionControl.messages, [{
     eventType: "session_control",
+    payloadBase64: "eyJvayI6dHJ1ZX0=",
+  }]);
+  assert.deepEqual(indexEvents.messages, [{
+    eventType: "index",
     payloadBase64: "eyJvayI6dHJ1ZX0=",
   }]);
 });

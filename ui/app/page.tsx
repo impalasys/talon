@@ -35,6 +35,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { TalonChannel, TalonCopilot, type TalonChatObjectRef, type TalonImageUploadContext } from '@impalasys/talon-chat';
 import { NamespaceExplorer, type Selection } from '../components/Namespaces/NamespaceExplorer';
+import { WorkspaceCommandPalette } from '../components/Search/WorkspaceCommandPalette';
 import {
   getDefaultGatewayUrl,
   getGatewayClient,
@@ -64,6 +65,7 @@ const RESOURCE_KIND_BY_SELECTION: Partial<Record<Selection['type'], string>> = {
   agent: 'Agent',
   channel: 'Channel',
   'channel-subscription': 'ChannelSubscription',
+  workflow: 'Workflow',
   schedule: 'Schedule',
   template: 'Template',
   deployment: 'Deployment',
@@ -269,6 +271,7 @@ function selectionFromSearchParams(searchParams: URLSearchParams): Selection | n
   if (
     (
       type === 'deployment' ||
+      type === 'workflow' ||
       type === 'deployment-replica' ||
       type === 'sandbox-class' ||
       type === 'sandbox-policy' ||
@@ -347,6 +350,7 @@ function getSelectionSubtitle(selection: Selection | null) {
   if (selection.type === 'session') return `${selection.ns} / ${selection.agent}`;
   if (selection.type === 'channel') return `${selection.ns} / Channel`;
   if (selection.type === 'channel-subscription') return `${selection.ns} / ${selection.channel} / ChannelSubscription`;
+  if (selection.type === 'workflow') return `${selection.ns} / Workflow`;
   if (selection.type === 'schedule') return `${selection.ns} / Schedule`;
   if (selection.type === 'mcp-binding') return `${selection.ns} / MCP Binding`;
   if (selection.type === 'knowledge') return `${selection.ns} / Knowledge`;
@@ -373,6 +377,7 @@ function selectionIcon(selection: Selection | null) {
   if (selection.type === 'session') return <MessageSquare className="w-4 h-4 text-blue-500" />;
   if (selection.type === 'channel') return <Hash className="w-4 h-4 text-cyan-400" />;
   if (selection.type === 'channel-subscription') return <Radio className="w-4 h-4 text-cyan-300" />;
+  if (selection.type === 'workflow') return <Activity className="w-4 h-4 text-purple-400" />;
   if (selection.type === 'schedule') return <Clock3 className="w-4 h-4 text-amber-500" />;
   if (selection.type === 'mcp-binding') return <Plug className="w-4 h-4 text-blue-500" />;
   if (selection.type === 'knowledge') return <FileText className="w-4 h-4 text-violet-400" />;
@@ -1184,6 +1189,7 @@ function DebuggerPageContent() {
             })).resource || {}) as ResourceEnvelope);
             break;
           case 'template':
+          case 'workflow':
           case 'deployment':
           case 'deployment-replica':
           case 'sandbox-class':
@@ -1329,6 +1335,11 @@ function DebuggerPageContent() {
           </div>
 
           <div className="flex items-center gap-4">
+            <WorkspaceCommandPalette
+              isConnected={isConnected}
+              selectedNamespace={selectedNamespace}
+              onSelect={setSelectedNamespace}
+            />
             {isConnected ? (
               <div 
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[13px] font-medium transition-all bg-emerald-500/9 text-emerald-300 border border-emerald-500/16 cursor-pointer hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/16"

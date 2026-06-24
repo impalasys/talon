@@ -27,8 +27,8 @@ server:
   port: 50051
 
 storage:
-  # The compose stack uses one local Postgres instance for both control-plane
-  # metadata and session/data storage.
+  # The compose stack uses one local Postgres instance for control-plane
+  # metadata, session/data storage, and search document projections.
   control:
     driver: postgres
     url:
@@ -39,6 +39,11 @@ storage:
     url:
       source: env
       key: TALON_DATA_DATABASE_URL
+  documents:
+    driver: postgres
+    url:
+      source: env
+      key: TALON_DOCUMENT_DATABASE_URL
   objects:
     # This path is mounted as the talon-objects Docker volume.
     driver: local

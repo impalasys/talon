@@ -134,7 +134,7 @@ Request:
 
 ```json
 {
-  "topic": "talon.session.dispatch | talon.resource.lifecycle | talon.session.control",
+  "topic": "talon.session.dispatch | talon.resource.lifecycle | talon.session.control | talon.index.events",
   "payloadBase64": "..."
 }
 ```
@@ -143,7 +143,7 @@ The Worker maps Talon topic names to the configured Cloudflare Queue bindings an
 
 ```json
 {
-  "eventType": "session_dispatch | resource_lifecycle | session_control",
+  "eventType": "session_dispatch | resource_lifecycle | session_control | index",
   "payloadBase64": "..."
 }
 ```

@@ -21833,6 +21833,21 @@ talon.config.Config.ControllerConfig defaultValue) {
      * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
      */
     talon.config.Config.ObjectStoreConfigOrBuilder getObjectStoreOrBuilder();
+
+    /**
+     * <code>.talon.config.DatabaseConfig documents = 5;</code>
+     * @return Whether the documents field is set.
+     */
+    boolean hasDocuments();
+    /**
+     * <code>.talon.config.DatabaseConfig documents = 5;</code>
+     * @return The documents.
+     */
+    talon.config.Config.DatabaseConfig getDocuments();
+    /**
+     * <code>.talon.config.DatabaseConfig documents = 5;</code>
+     */
+    talon.config.Config.DatabaseConfigOrBuilder getDocumentsOrBuilder();
   }
   /**
    * Protobuf type {@code talon.config.ControlPlaneConfig}
@@ -21981,6 +21996,32 @@ talon.config.Config.ControllerConfig defaultValue) {
       return objectStore_ == null ? talon.config.Config.ObjectStoreConfig.getDefaultInstance() : objectStore_;
     }
 
+    public static final int DOCUMENTS_FIELD_NUMBER = 5;
+    private talon.config.Config.DatabaseConfig documents_;
+    /**
+     * <code>.talon.config.DatabaseConfig documents = 5;</code>
+     * @return Whether the documents field is set.
+     */
+    @java.lang.Override
+    public boolean hasDocuments() {
+      return ((bitField0_ & 0x00000010) != 0);
+    }
+    /**
+     * <code>.talon.config.DatabaseConfig documents = 5;</code>
+     * @return The documents.
+     */
+    @java.lang.Override
+    public talon.config.Config.DatabaseConfig getDocuments() {
+      return documents_ == null ? talon.config.Config.DatabaseConfig.getDefaultInstance() : documents_;
+    }
+    /**
+     * <code>.talon.config.DatabaseConfig documents = 5;</code>
+     */
+    @java.lang.Override
+    public talon.config.Config.DatabaseConfigOrBuilder getDocumentsOrBuilder() {
+      return documents_ == null ? talon.config.Config.DatabaseConfig.getDefaultInstance() : documents_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -22007,6 +22048,9 @@ talon.config.Config.ControllerConfig defaultValue) {
       if (((bitField0_ & 0x00000008) != 0)) {
         output.writeMessage(4, getObjectStore());
       }
+      if (((bitField0_ & 0x00000010) != 0)) {
+        output.writeMessage(5, getDocuments());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -22031,6 +22075,10 @@ talon.config.Config.ControllerConfig defaultValue) {
       if (((bitField0_ & 0x00000008) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, getObjectStore());
+      }
+      if (((bitField0_ & 0x00000010) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, getDocuments());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -22067,6 +22115,11 @@ talon.config.Config.ControllerConfig defaultValue) {
         if (!getObjectStore()
             .equals(other.getObjectStore())) return false;
       }
+      if (hasDocuments() != other.hasDocuments()) return false;
+      if (hasDocuments()) {
+        if (!getDocuments()
+            .equals(other.getDocuments())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -22093,6 +22146,10 @@ talon.config.Config.ControllerConfig defaultValue) {
       if (hasObjectStore()) {
         hash = (37 * hash) + OBJECT_STORE_FIELD_NUMBER;
         hash = (53 * hash) + getObjectStore().hashCode();
+      }
+      if (hasDocuments()) {
+        hash = (37 * hash) + DOCUMENTS_FIELD_NUMBER;
+        hash = (53 * hash) + getDocuments().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -22228,6 +22285,7 @@ talon.config.Config.ControllerConfig defaultValue) {
           internalGetMessageBrokerFieldBuilder();
           internalGetSchedulerFieldBuilder();
           internalGetObjectStoreFieldBuilder();
+          internalGetDocumentsFieldBuilder();
         }
       }
       @java.lang.Override
@@ -22253,6 +22311,11 @@ talon.config.Config.ControllerConfig defaultValue) {
         if (objectStoreBuilder_ != null) {
           objectStoreBuilder_.dispose();
           objectStoreBuilder_ = null;
+        }
+        documents_ = null;
+        if (documentsBuilder_ != null) {
+          documentsBuilder_.dispose();
+          documentsBuilder_ = null;
         }
         return this;
       }
@@ -22312,6 +22375,12 @@ talon.config.Config.ControllerConfig defaultValue) {
               : objectStoreBuilder_.build();
           to_bitField0_ |= 0x00000008;
         }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.documents_ = documentsBuilder_ == null
+              ? documents_
+              : documentsBuilder_.build();
+          to_bitField0_ |= 0x00000010;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -22338,6 +22407,9 @@ talon.config.Config.ControllerConfig defaultValue) {
         }
         if (other.hasObjectStore()) {
           mergeObjectStore(other.getObjectStore());
+        }
+        if (other.hasDocuments()) {
+          mergeDocuments(other.getDocuments());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -22393,6 +22465,13 @@ talon.config.Config.ControllerConfig defaultValue) {
                 bitField0_ |= 0x00000008;
                 break;
               } // case 34
+              case 42: {
+                input.readMessage(
+                    internalGetDocumentsFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -22892,6 +22971,127 @@ talon.config.Config.ControllerConfig defaultValue) {
           objectStore_ = null;
         }
         return objectStoreBuilder_;
+      }
+
+      private talon.config.Config.DatabaseConfig documents_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.DatabaseConfig, talon.config.Config.DatabaseConfig.Builder, talon.config.Config.DatabaseConfigOrBuilder> documentsBuilder_;
+      /**
+       * <code>.talon.config.DatabaseConfig documents = 5;</code>
+       * @return Whether the documents field is set.
+       */
+      public boolean hasDocuments() {
+        return ((bitField0_ & 0x00000010) != 0);
+      }
+      /**
+       * <code>.talon.config.DatabaseConfig documents = 5;</code>
+       * @return The documents.
+       */
+      public talon.config.Config.DatabaseConfig getDocuments() {
+        if (documentsBuilder_ == null) {
+          return documents_ == null ? talon.config.Config.DatabaseConfig.getDefaultInstance() : documents_;
+        } else {
+          return documentsBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.config.DatabaseConfig documents = 5;</code>
+       */
+      public Builder setDocuments(talon.config.Config.DatabaseConfig value) {
+        if (documentsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          documents_ = value;
+        } else {
+          documentsBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.config.DatabaseConfig documents = 5;</code>
+       */
+      public Builder setDocuments(
+          talon.config.Config.DatabaseConfig.Builder builderForValue) {
+        if (documentsBuilder_ == null) {
+          documents_ = builderForValue.build();
+        } else {
+          documentsBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.config.DatabaseConfig documents = 5;</code>
+       */
+      public Builder mergeDocuments(talon.config.Config.DatabaseConfig value) {
+        if (documentsBuilder_ == null) {
+          if (((bitField0_ & 0x00000010) != 0) &&
+            documents_ != null &&
+            documents_ != talon.config.Config.DatabaseConfig.getDefaultInstance()) {
+            getDocumentsBuilder().mergeFrom(value);
+          } else {
+            documents_ = value;
+          }
+        } else {
+          documentsBuilder_.mergeFrom(value);
+        }
+        if (documents_ != null) {
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.config.DatabaseConfig documents = 5;</code>
+       */
+      public Builder clearDocuments() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        documents_ = null;
+        if (documentsBuilder_ != null) {
+          documentsBuilder_.dispose();
+          documentsBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.config.DatabaseConfig documents = 5;</code>
+       */
+      public talon.config.Config.DatabaseConfig.Builder getDocumentsBuilder() {
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return internalGetDocumentsFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.config.DatabaseConfig documents = 5;</code>
+       */
+      public talon.config.Config.DatabaseConfigOrBuilder getDocumentsOrBuilder() {
+        if (documentsBuilder_ != null) {
+          return documentsBuilder_.getMessageOrBuilder();
+        } else {
+          return documents_ == null ?
+              talon.config.Config.DatabaseConfig.getDefaultInstance() : documents_;
+        }
+      }
+      /**
+       * <code>.talon.config.DatabaseConfig documents = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.DatabaseConfig, talon.config.Config.DatabaseConfig.Builder, talon.config.Config.DatabaseConfigOrBuilder>
+          internalGetDocumentsFieldBuilder() {
+        if (documentsBuilder_ == null) {
+          documentsBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.config.Config.DatabaseConfig, talon.config.Config.DatabaseConfig.Builder, talon.config.Config.DatabaseConfigOrBuilder>(
+                  getDocuments(),
+                  getParentForChildren(),
+                  isClean());
+          documents_ = null;
+        }
+        return documentsBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.config.ControlPlaneConfig)
@@ -23751,14 +23951,15 @@ talon.config.Config.ControllerConfig defaultValue) {
       "g.SchedulerCallbackAuthConfig\"\\\n\017Schedul" +
       "erConfig\022>\n\013cloud_tasks\030\001 \001(\0132\'.talon.co" +
       "nfig.CloudTasksSchedulerConfigH\000B\t\n\007back" +
-      "end\"\350\001\n\022ControlPlaneConfig\022.\n\010database\030\001" +
+      "end\"\231\002\n\022ControlPlaneConfig\022.\n\010database\030\001" +
       " \001(\0132\034.talon.config.DatabaseConfig\0229\n\016me" +
       "ssage_broker\030\002 \001(\0132!.talon.config.Messag" +
       "eBrokerConfig\0220\n\tscheduler\030\003 \001(\0132\035.talon" +
       ".config.SchedulerConfig\0225\n\014object_store\030" +
-      "\004 \001(\0132\037.talon.config.ObjectStoreConfig\"*" +
-      "\n\014ServerConfig\022\014\n\004host\030\001 \001(\t\022\014\n\004port\030\002 \001" +
-      "(\rb\006proto3"
+      "\004 \001(\0132\037.talon.config.ObjectStoreConfig\022/" +
+      "\n\tdocuments\030\005 \001(\0132\034.talon.config.Databas" +
+      "eConfig\"*\n\014ServerConfig\022\014\n\004host\030\001 \001(\t\022\014\n" +
+      "\004port\030\002 \001(\rb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -23919,7 +24120,7 @@ talon.config.Config.ControllerConfig defaultValue) {
     internal_static_talon_config_ControlPlaneConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ControlPlaneConfig_descriptor,
-        new java.lang.String[] { "Database", "MessageBroker", "Scheduler", "ObjectStore", });
+        new java.lang.String[] { "Database", "MessageBroker", "Scheduler", "ObjectStore", "Documents", });
     internal_static_talon_config_ServerConfig_descriptor =
       getDescriptor().getMessageType(24);
     internal_static_talon_config_ServerConfig_fieldAccessorTable = new

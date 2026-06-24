@@ -48,6 +48,12 @@ impl WorkerEventHandler {
                 let event = crate::control::events::WorkflowDispatchEvent::decode(payload)?;
                 self.handle_workflow_dispatch(event).await
             }
+            Some("index") => {
+                let event = crate::control::events::IndexEvent::decode(payload)?;
+                let controller =
+                    crate::worker::controllers::index::IndexController::new(self.cp.clone());
+                controller.handle_event(event).await
+            }
             Some("resource_lifecycle") => {
                 if let Ok(event) = crate::control::events::ResourceChangedEvent::decode(payload) {
                     return self.handle_resource_changed_event(event).await;
@@ -67,6 +73,12 @@ impl WorkerEventHandler {
 
                 if let Ok(event) = crate::control::events::WorkflowDispatchEvent::decode(payload) {
                     return self.handle_workflow_dispatch(event).await;
+                }
+
+                if let Ok(event) = crate::control::events::IndexEvent::decode(payload) {
+                    let controller =
+                        crate::worker::controllers::index::IndexController::new(self.cp.clone());
+                    return controller.handle_event(event).await;
                 }
 
                 if let Ok(event) = crate::control::events::ResourceChangedEvent::decode(payload) {
@@ -317,6 +329,8 @@ impl WorkerEventHandler {
             Some("session_control")
         } else if subscription.contains(topics::WORKFLOW_DISPATCH_TOPIC) {
             Some("workflow_dispatch")
+        } else if subscription.contains(topics::INDEX_EVENTS_TOPIC) {
+            Some("index")
         } else if subscription.contains(topics::RESOURCE_LIFECYCLE_TOPIC) {
             Some("resource_lifecycle")
         } else {
@@ -544,6 +558,20 @@ mod tests {
         assert_eq!(
             WorkerEventHandler::event_type_for_subscription(&format!(
                 "projects/test/subscriptions/{}",
+                topics::WORKFLOW_DISPATCH_TOPIC
+            )),
+            Some("workflow_dispatch")
+        );
+        assert_eq!(
+            WorkerEventHandler::event_type_for_subscription(&format!(
+                "projects/test/subscriptions/{}",
+                topics::INDEX_EVENTS_TOPIC
+            )),
+            Some("index")
+        );
+        assert_eq!(
+            WorkerEventHandler::event_type_for_subscription(&format!(
+                "projects/test/subscriptions/{}",
                 topics::RESOURCE_LIFECYCLE_TOPIC
             )),
             Some("resource_lifecycle")
@@ -576,6 +604,24 @@ mod tests {
         assert!(unknown_payload
             .to_string()
             .contains("Received unknown event payload"));
+    }
+
+    #[tokio::test]
+    async fn dispatch_accepts_typed_index_events() {
+        let handler = handler(
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockPubSub::default()),
+        );
+        let event = crate::control::events::IndexEvent {
+            id: "event-1".to_string(),
+            key: crate::control::keys::session_message("acme", "support", "s1", "m1").canonical(),
+            ..Default::default()
+        };
+
+        handler
+            .dispatch(Some("index"), &event.encode_to_vec())
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
@@ -732,9 +778,28 @@ mod tests {
         assert_eq!(message_keys.len(), 1);
 
         let published = pubsub.published.lock().await;
-        assert_eq!(published.len(), 1);
-        assert_eq!(published[0].0, topics::SESSION_DISPATCH_TOPIC);
-        let event = SessionMessageEvent::decode(published[0].1.as_slice()).unwrap();
+        let index_event = published
+            .iter()
+            .find_map(|(topic, payload)| {
+                (topic == topics::INDEX_EVENTS_TOPIC)
+                    .then(|| crate::control::events::IndexEvent::decode(payload.as_slice()).ok())
+                    .flatten()
+            })
+            .expect("scheduled message should publish a search index event");
+        assert_eq!(
+            index_event.operation,
+            crate::control::events::IndexOperation::Upsert as i32
+        );
+        assert_eq!(index_event.key, message_keys[0].canonical());
+
+        let event = published
+            .iter()
+            .find_map(|(topic, payload)| {
+                (topic == topics::SESSION_DISPATCH_TOPIC)
+                    .then(|| SessionMessageEvent::decode(payload.as_slice()).ok())
+                    .flatten()
+            })
+            .expect("scheduled message should publish a dispatch event");
         assert_eq!(event.direction, MessageDirection::Inbound as i32);
         assert_eq!(event.agent, "assistant");
         assert_eq!(event.session_id, "session-1");

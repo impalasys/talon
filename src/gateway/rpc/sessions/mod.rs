@@ -761,6 +761,24 @@ impl GrpcGatewayHandler {
             .delete(&session_db_key)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to delete session: {}", e)))?;
+        if let Err(error) = crate::control::search::publish_index_event(
+            self.gateway.pubsub.as_ref(),
+            crate::control::events::IndexEvent {
+                operation: crate::control::events::IndexOperation::Delete as i32,
+                key: session_db_key.canonical(),
+                ..Default::default()
+            },
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %error,
+                namespace = %req.ns,
+                agent = %req.agent,
+                session_id = %req.session_id,
+                "failed to publish search delete event for deleted session"
+            );
+        }
 
         let event = events::LifecycleEvent {
             resource_type: "Session".to_string(),
@@ -820,6 +838,24 @@ impl GrpcGatewayHandler {
         }
 
         release_clear_session_lock(self.gateway.kv.as_ref(), &session_db_key, now_micros).await?;
+        if let Err(error) = crate::control::search::publish_index_event(
+            self.gateway.pubsub.as_ref(),
+            crate::control::events::IndexEvent {
+                operation: crate::control::events::IndexOperation::Delete as i32,
+                key: session_db_key.canonical(),
+                ..Default::default()
+            },
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %error,
+                namespace = %req.ns,
+                agent = %req.agent,
+                session_id = %req.session_id,
+                "failed to publish search delete event for cleared session"
+            );
+        }
 
         Ok(tonic::Response::new(proto::ClearSessionResponse {
             success: true,
@@ -931,6 +967,25 @@ impl GrpcGatewayHandler {
             .set_msg(&session_db_key, session)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to update session: {}", e)))?;
+        if let Err(error) = crate::control::search::publish_index_event(
+            self.gateway.pubsub.as_ref(),
+            crate::control::events::IndexEvent {
+                operation: crate::control::events::IndexOperation::Upsert as i32,
+                key: message_key.canonical(),
+                ..Default::default()
+            },
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %error,
+                namespace = %req.ns,
+                agent = %req.agent,
+                session_id = %req.session_id,
+                message_id = %message.id,
+                "failed to publish search index event for appended session message"
+            );
+        }
 
         Ok(tonic::Response::new(proto::AppendSessionMessageResponse {
             session_id: req.session_id,
@@ -1307,7 +1362,7 @@ fn map_session_submit_error(err: anyhow::Error) -> tonic::Status {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::scheduler::NoopSchedulerBackend;
+    use crate::control::ControlPlane;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::gateway::rpc::resources_proto;
     use crate::gateway::Gateway;
@@ -1315,14 +1370,9 @@ mod tests {
     use std::sync::Arc;
 
     fn handler(kv: Arc<MockKvStore>, pubsub: Arc<RecordingPubSub>) -> GrpcGatewayHandler {
+        let control_plane = ControlPlane::builder(kv, pubsub).build();
         GrpcGatewayHandler {
-            gateway: Arc::new(Gateway::new(
-                None,
-                kv,
-                pubsub,
-                Arc::new(NoopSchedulerBackend),
-                crate::control::object_store::default_object_store(),
-            )),
+            gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
         }
     }
 

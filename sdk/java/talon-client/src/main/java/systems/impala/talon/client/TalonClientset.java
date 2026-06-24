@@ -8,6 +8,7 @@ import talon.v1.ChannelServiceGrpc;
 import talon.v1.KnowledgeServiceGrpc;
 import talon.v1.NamespaceServiceGrpc;
 import talon.v1.ResourceServiceGrpc;
+import talon.v1.SearchServiceGrpc;
 import talon.v1.SessionServiceGrpc;
 import talon.v1.WorkflowServiceGrpc;
 
@@ -28,6 +29,9 @@ public final class TalonClientset {
     private final ResourceServiceGrpc.ResourceServiceBlockingStub resources;
     private final ResourceServiceGrpc.ResourceServiceStub resourcesAsync;
     private final ResourceServiceGrpc.ResourceServiceFutureStub resourcesFuture;
+    private final SearchServiceGrpc.SearchServiceBlockingStub searches;
+    private final SearchServiceGrpc.SearchServiceStub searchesAsync;
+    private final SearchServiceGrpc.SearchServiceFutureStub searchesFuture;
     private final SessionServiceGrpc.SessionServiceBlockingStub sessions;
     private final SessionServiceGrpc.SessionServiceStub sessionsAsync;
     private final SessionServiceGrpc.SessionServiceFutureStub sessionsFuture;
@@ -56,6 +60,9 @@ public final class TalonClientset {
         this.resources = ResourceServiceGrpc.newBlockingStub(channel);
         this.resourcesAsync = ResourceServiceGrpc.newStub(channel);
         this.resourcesFuture = ResourceServiceGrpc.newFutureStub(channel);
+        this.searches = SearchServiceGrpc.newBlockingStub(channel);
+        this.searchesAsync = SearchServiceGrpc.newStub(channel);
+        this.searchesFuture = SearchServiceGrpc.newFutureStub(channel);
         this.sessions = SessionServiceGrpc.newBlockingStub(channel);
         this.sessionsAsync = SessionServiceGrpc.newStub(channel);
         this.sessionsFuture = SessionServiceGrpc.newFutureStub(channel);
@@ -126,6 +133,18 @@ public final class TalonClientset {
 
     public ResourceServiceGrpc.ResourceServiceFutureStub resourcesFuture() {
         return resourcesFuture;
+    }
+
+    public SearchServiceGrpc.SearchServiceBlockingStub searches() {
+        return searches;
+    }
+
+    public SearchServiceGrpc.SearchServiceStub searchesAsync() {
+        return searchesAsync;
+    }
+
+    public SearchServiceGrpc.SearchServiceFutureStub searchesFuture() {
+        return searchesFuture;
     }
 
     public SessionServiceGrpc.SessionServiceBlockingStub sessions() {

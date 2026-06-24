@@ -44,6 +44,12 @@ class ResourceChangeType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     RESOURCE_CHANGE_TYPE_CREATED: _ClassVar[ResourceChangeType]
     RESOURCE_CHANGE_TYPE_UPDATED: _ClassVar[ResourceChangeType]
     RESOURCE_CHANGE_TYPE_DELETED: _ClassVar[ResourceChangeType]
+
+class IndexOperation(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    INDEX_OPERATION_UNSPECIFIED: _ClassVar[IndexOperation]
+    INDEX_OPERATION_UPSERT: _ClassVar[IndexOperation]
+    INDEX_OPERATION_DELETE: _ClassVar[IndexOperation]
 SYSTEM_ACTION_UNSPECIFIED: SystemAction
 SYSTEM_ACTION_CREATE: SystemAction
 SYSTEM_ACTION_UPDATE: SystemAction
@@ -66,6 +72,9 @@ RESOURCE_CHANGE_TYPE_UNSPECIFIED: ResourceChangeType
 RESOURCE_CHANGE_TYPE_CREATED: ResourceChangeType
 RESOURCE_CHANGE_TYPE_UPDATED: ResourceChangeType
 RESOURCE_CHANGE_TYPE_DELETED: ResourceChangeType
+INDEX_OPERATION_UNSPECIFIED: IndexOperation
+INDEX_OPERATION_UPSERT: IndexOperation
+INDEX_OPERATION_DELETE: IndexOperation
 
 class LifecycleEvent(_message.Message):
     __slots__ = ("resource_type", "name", "ns", "action", "timestamp")
@@ -194,3 +203,21 @@ class ResourceChangedEvent(_message.Message):
     changed_sections: _containers.RepeatedScalarFieldContainer[str]
     timestamp: int
     def __init__(self, namespace: _Optional[str] = ..., resource_kind: _Optional[str] = ..., name: _Optional[str] = ..., uid: _Optional[str] = ..., resource_version: _Optional[str] = ..., generation: _Optional[int] = ..., change_type: _Optional[_Union[ResourceChangeType, str]] = ..., changed_sections: _Optional[_Iterable[str]] = ..., timestamp: _Optional[int] = ...) -> None: ...
+
+class IndexEvent(_message.Message):
+    __slots__ = ("id", "operation", "created_at", "updated_at", "key", "prefix", "generation")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    OPERATION_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
+    KEY_FIELD_NUMBER: _ClassVar[int]
+    PREFIX_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    operation: IndexOperation
+    created_at: int
+    updated_at: int
+    key: str
+    prefix: bool
+    generation: int
+    def __init__(self, id: _Optional[str] = ..., operation: _Optional[_Union[IndexOperation, str]] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., key: _Optional[str] = ..., prefix: bool = ..., generation: _Optional[int] = ...) -> None: ...

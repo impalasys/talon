@@ -180,6 +180,32 @@ proto3.util.setEnumType(ResourceChangeType, "talon.events.ResourceChangeType", [
 ]);
 
 /**
+ * @generated from enum talon.events.IndexOperation
+ */
+export enum IndexOperation {
+  /**
+   * @generated from enum value: INDEX_OPERATION_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: INDEX_OPERATION_UPSERT = 1;
+   */
+  UPSERT = 1,
+
+  /**
+   * @generated from enum value: INDEX_OPERATION_DELETE = 2;
+   */
+  DELETE = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(IndexOperation)
+proto3.util.setEnumType(IndexOperation, "talon.events.IndexOperation", [
+  { no: 0, name: "INDEX_OPERATION_UNSPECIFIED" },
+  { no: 1, name: "INDEX_OPERATION_UPSERT" },
+  { no: 2, name: "INDEX_OPERATION_DELETE" },
+]);
+
+/**
  * @generated from message talon.events.LifecycleEvent
  */
 export class LifecycleEvent extends Message<LifecycleEvent> {
@@ -693,5 +719,87 @@ export class ResourceChangedEvent extends Message<ResourceChangedEvent> {
 
   static equals(a: ResourceChangedEvent | PlainMessage<ResourceChangedEvent> | undefined, b: ResourceChangedEvent | PlainMessage<ResourceChangedEvent> | undefined): boolean {
     return proto3.util.equals(ResourceChangedEvent, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.events.IndexEvent
+ */
+export class IndexEvent extends Message<IndexEvent> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: talon.events.IndexOperation operation = 2;
+   */
+  operation = IndexOperation.UNSPECIFIED;
+
+  /**
+   * @generated from field: int64 created_at = 3;
+   */
+  createdAt = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 updated_at = 4;
+   */
+  updatedAt = protoInt64.zero;
+
+  /**
+   * Canonical source key for the changed record. The index controller parses
+   * this key to load the canonical source and derive the Document projection.
+   *
+   * @generated from field: string key = 10;
+   */
+  key = "";
+
+  /**
+   * Reserved for future scoped invalidation. MVP publishers keep this false.
+   *
+   * @generated from field: bool prefix = 11;
+   */
+  prefix = false;
+
+  /**
+   * Canonical source generation observed when the event was published. When
+   * set, the index controller uses this to skip stale events and avoid
+   * deleting newer document projections with older delete events.
+   *
+   * @generated from field: uint64 generation = 12;
+   */
+  generation = protoInt64.zero;
+
+  constructor(data?: PartialMessage<IndexEvent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.events.IndexEvent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "operation", kind: "enum", T: proto3.getEnumType(IndexOperation) },
+    { no: 3, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 4, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 10, name: "key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 11, name: "prefix", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 12, name: "generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IndexEvent {
+    return new IndexEvent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IndexEvent {
+    return new IndexEvent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IndexEvent {
+    return new IndexEvent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: IndexEvent | PlainMessage<IndexEvent> | undefined, b: IndexEvent | PlainMessage<IndexEvent> | undefined): boolean {
+    return proto3.util.equals(IndexEvent, a, b);
   }
 }

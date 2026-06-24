@@ -2,6 +2,13 @@ import json
 import time
 from pathlib import Path
 
+from talon_client import (
+    SEARCH_MODE_KEYWORD,
+    SEARCH_SORT_RELEVANCE,
+    SearchRequest,
+    SearchSourceFilter,
+)
+
 
 MANIFEST_ROOT = Path(__file__).resolve().parent / "manifests"
 
@@ -225,6 +232,185 @@ def wait_for_session_part(
         time.sleep(delay)
     raise AssertionError(
         f"Timed out waiting for session part {part_type!r}; saw {last_part_types}"
+    )
+
+
+def document_summary(result):
+    document = result.document
+    return {
+        "id": document.id,
+        "namespace": document.source.namespace,
+        "resourceKind": document.source.kind,
+        "documentKind": document.document_kind,
+        "agent": document.attributes.get("agent", ""),
+        "sessionId": document.attributes.get("session_id", ""),
+        "partType": document.attributes.get("part_type", ""),
+        "snippet": result.snippet,
+        "score": result.score,
+    }
+
+
+def search_result_summaries(response):
+    return [document_summary(result) for result in response.results]
+
+
+def search_call(stub, request, **kwargs):
+    if hasattr(stub, "Search"):
+        return stub.Search(request, **kwargs)
+    return stub.searches.Search(request, **kwargs)
+
+
+def wait_for_session_search(
+    stub,
+    namespace,
+    agent,
+    query,
+    predicate,
+    *,
+    session_id="",
+    role="",
+    part_type="",
+    labels=None,
+    limit=10,
+    attempts=30,
+    delay=1,
+):
+    last_summaries = []
+    for _ in range(attempts):
+        response = search_call(
+            stub,
+            SearchRequest(
+                query=query,
+                source=SearchSourceFilter(
+                    namespaces=[namespace],
+                    kinds=["SessionMessage"],
+                ),
+                attributes={
+                    key: value
+                    for key, value in {
+                        "agent": agent,
+                        "session_id": session_id,
+                        "role": role,
+                        "part_type": part_type,
+                    }.items()
+                    if value
+                },
+                labels=labels or {},
+                limit=limit,
+                mode=SEARCH_MODE_KEYWORD,
+                sort=SEARCH_SORT_RELEVANCE,
+            ),
+            timeout=5,
+        )
+        last_summaries = search_result_summaries(response)
+        for result in response.results:
+            if predicate(result):
+                return result, response
+        time.sleep(delay)
+    raise AssertionError(
+        f"Timed out waiting for session search result for {query!r}; "
+        f"last_results={pretty(last_summaries)}"
+    )
+
+
+def wait_for_search(
+    stub,
+    namespace,
+    query,
+    predicate,
+    *,
+    resource_kinds=None,
+    agent="",
+    session_id="",
+    channel="",
+    role="",
+    part_type="",
+    labels=None,
+    limit=10,
+    attempts=30,
+    delay=1,
+):
+    last_summaries = []
+    for _ in range(attempts):
+        response = search_call(
+            stub,
+            SearchRequest(
+                query=query,
+                source=SearchSourceFilter(
+                    namespaces=[namespace],
+                    kinds=resource_kinds or [],
+                ),
+                attributes={
+                    key: value
+                    for key, value in {
+                        "agent": agent,
+                        "session_id": session_id,
+                        "channel": channel,
+                        "role": role,
+                        "part_type": part_type,
+                    }.items()
+                    if value
+                },
+                labels=labels or {},
+                limit=limit,
+                mode=SEARCH_MODE_KEYWORD,
+                sort=SEARCH_SORT_RELEVANCE,
+            ),
+            timeout=5,
+        )
+        last_summaries = search_result_summaries(response)
+        for result in response.results:
+            if predicate(result):
+                return result, response
+        time.sleep(delay)
+    raise AssertionError(
+        f"Timed out waiting for workspace search result for {query!r}; "
+        f"last_results={pretty(last_summaries)}"
+    )
+
+
+def wait_for_no_session_search_results(
+    stub,
+    namespace,
+    agent,
+    query,
+    *,
+    session_id="",
+    limit=10,
+    attempts=30,
+    delay=1,
+):
+    last_summaries = []
+    for _ in range(attempts):
+        response = search_call(
+            stub,
+            SearchRequest(
+                query=query,
+                source=SearchSourceFilter(
+                    namespaces=[namespace],
+                    kinds=["SessionMessage"],
+                ),
+                attributes={
+                    key: value
+                    for key, value in {
+                        "agent": agent,
+                        "session_id": session_id,
+                    }.items()
+                    if value
+                },
+                limit=limit,
+                mode=SEARCH_MODE_KEYWORD,
+                sort=SEARCH_SORT_RELEVANCE,
+            ),
+            timeout=5,
+        )
+        last_summaries = search_result_summaries(response)
+        if not response.results:
+            return response
+        time.sleep(delay)
+    raise AssertionError(
+        f"Timed out waiting for session search result removal for {query!r}; "
+        f"last_results={pretty(last_summaries)}"
     )
 
 

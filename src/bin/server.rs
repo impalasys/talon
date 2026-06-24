@@ -51,6 +51,7 @@ fn build_gateway(
         cp.pubsub,
         cp.scheduler,
         cp.objects,
+        cp.documents,
     )
 }
 

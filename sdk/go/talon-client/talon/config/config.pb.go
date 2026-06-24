@@ -1701,6 +1701,7 @@ type ControlPlaneConfig struct {
 	MessageBroker *MessageBrokerConfig   `protobuf:"bytes,2,opt,name=message_broker,json=messageBroker,proto3" json:"message_broker,omitempty"`
 	Scheduler     *SchedulerConfig       `protobuf:"bytes,3,opt,name=scheduler,proto3" json:"scheduler,omitempty"`
 	ObjectStore   *ObjectStoreConfig     `protobuf:"bytes,4,opt,name=object_store,json=objectStore,proto3" json:"object_store,omitempty"`
+	Documents     *DatabaseConfig        `protobuf:"bytes,5,opt,name=documents,proto3" json:"documents,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1759,6 +1760,13 @@ func (x *ControlPlaneConfig) GetScheduler() *SchedulerConfig {
 func (x *ControlPlaneConfig) GetObjectStore() *ObjectStoreConfig {
 	if x != nil {
 		return x.ObjectStore
+	}
+	return nil
+}
+
+func (x *ControlPlaneConfig) GetDocuments() *DatabaseConfig {
+	if x != nil {
+		return x.Documents
 	}
 	return nil
 }
@@ -1939,12 +1947,13 @@ const file_proto_config_proto_rawDesc = "" +
 	"\x0fSchedulerConfig\x12J\n" +
 	"\vcloud_tasks\x18\x01 \x01(\v2'.talon.config.CloudTasksSchedulerConfigH\x00R\n" +
 	"cloudTasksB\t\n" +
-	"\abackend\"\x99\x02\n" +
+	"\abackend\"\xd5\x02\n" +
 	"\x12ControlPlaneConfig\x128\n" +
 	"\bdatabase\x18\x01 \x01(\v2\x1c.talon.config.DatabaseConfigR\bdatabase\x12H\n" +
 	"\x0emessage_broker\x18\x02 \x01(\v2!.talon.config.MessageBrokerConfigR\rmessageBroker\x12;\n" +
 	"\tscheduler\x18\x03 \x01(\v2\x1d.talon.config.SchedulerConfigR\tscheduler\x12B\n" +
-	"\fobject_store\x18\x04 \x01(\v2\x1f.talon.config.ObjectStoreConfigR\vobjectStore\"6\n" +
+	"\fobject_store\x18\x04 \x01(\v2\x1f.talon.config.ObjectStoreConfigR\vobjectStore\x12:\n" +
+	"\tdocuments\x18\x05 \x01(\v2\x1c.talon.config.DatabaseConfigR\tdocuments\"6\n" +
 	"\fServerConfig\x12\x12\n" +
 	"\x04host\x18\x01 \x01(\tR\x04host\x12\x12\n" +
 	"\x04port\x18\x02 \x01(\rR\x04portb\x06proto3"
@@ -2027,13 +2036,14 @@ var file_proto_config_proto_depIdxs = []int32{
 	15, // 29: talon.config.ControlPlaneConfig.message_broker:type_name -> talon.config.MessageBrokerConfig
 	24, // 30: talon.config.ControlPlaneConfig.scheduler:type_name -> talon.config.SchedulerConfig
 	20, // 31: talon.config.ControlPlaneConfig.object_store:type_name -> talon.config.ObjectStoreConfig
-	7,  // 32: talon.config.TalonConfig.ProvidersEntry.value:type_name -> talon.config.LlmProviderConfig
-	6,  // 33: talon.config.TalonConfig.ControllersEntry.value:type_name -> talon.config.ControllerConfig
-	34, // [34:34] is the sub-list for method output_type
-	34, // [34:34] is the sub-list for method input_type
-	34, // [34:34] is the sub-list for extension type_name
-	34, // [34:34] is the sub-list for extension extendee
-	0,  // [0:34] is the sub-list for field type_name
+	14, // 32: talon.config.ControlPlaneConfig.documents:type_name -> talon.config.DatabaseConfig
+	7,  // 33: talon.config.TalonConfig.ProvidersEntry.value:type_name -> talon.config.LlmProviderConfig
+	6,  // 34: talon.config.TalonConfig.ControllersEntry.value:type_name -> talon.config.ControllerConfig
+	35, // [35:35] is the sub-list for method output_type
+	35, // [35:35] is the sub-list for method input_type
+	35, // [35:35] is the sub-list for extension type_name
+	35, // [35:35] is the sub-list for extension extendee
+	0,  // [0:35] is the sub-list for field type_name
 }
 
 func init() { file_proto_config_proto_init() }

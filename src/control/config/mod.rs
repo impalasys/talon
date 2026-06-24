@@ -107,12 +107,14 @@ pub struct ControlPlaneConfigWrapper {
     pub message_broker: MessageBrokerConfigWrapper,
     pub scheduler: Option<SchedulerConfigWrapper>,
     pub object_store: Option<ObjectStoreConfigWrapper>,
+    pub documents: Option<DatabaseConfigWrapper>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct StorageConfigWrapper {
     pub control: DatabaseConfigWrapper,
     pub data: Option<DatabaseConfigWrapper>,
+    pub documents: Option<DatabaseConfigWrapper>,
     pub objects: Option<ObjectStoreConfigWrapper>,
 }
 
@@ -287,6 +289,7 @@ impl From<SerdeConfig> for Config {
                 message_broker: pubsub,
                 scheduler: None,
                 object_store: storage.objects,
+                documents: storage.documents,
             }),
             (None, Some(storage), None) => Some(ControlPlaneConfigWrapper {
                 database: storage.control,
@@ -296,6 +299,7 @@ impl From<SerdeConfig> for Config {
                 },
                 scheduler: None,
                 object_store: storage.objects,
+                documents: storage.documents,
             }),
             (None, None, _) => None,
         };
@@ -324,6 +328,11 @@ impl From<SerdeConfig> for Config {
                 }),
                 scheduler: cp.scheduler.map(Into::into),
                 object_store: cp.object_store.map(Into::into),
+                documents: cp.documents.map(|db| proto::DatabaseConfig {
+                    data_dir: db.data_dir.unwrap_or_default(),
+                    driver: db.driver.unwrap_or_default(),
+                    url: db.url.map(Into::into),
+                }),
             }),
             controllers: s
                 .controllers
@@ -417,6 +426,9 @@ fn resolve_config_relative_paths(path: &Path, config: &mut SerdeConfig) {
 
     if let Some(control_plane) = config.control_plane.as_mut() {
         resolve_config_relative_data_dir(path, &mut control_plane.database.data_dir);
+        if let Some(documents) = control_plane.documents.as_mut() {
+            resolve_config_relative_data_dir(path, &mut documents.data_dir);
+        }
         if let Some(ObjectStoreConfigWrapper::Local { path: object_path }) =
             control_plane.object_store.as_mut()
         {
@@ -427,6 +439,9 @@ fn resolve_config_relative_paths(path: &Path, config: &mut SerdeConfig) {
         resolve_config_relative_data_dir(path, &mut storage.control.data_dir);
         if let Some(data) = storage.data.as_mut() {
             resolve_config_relative_data_dir(path, &mut data.data_dir);
+        }
+        if let Some(documents) = storage.documents.as_mut() {
+            resolve_config_relative_data_dir(path, &mut documents.data_dir);
         }
         if let Some(ObjectStoreConfigWrapper::Local { path: object_path }) =
             storage.objects.as_mut()

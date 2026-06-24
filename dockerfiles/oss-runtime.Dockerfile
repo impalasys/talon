@@ -56,8 +56,15 @@ FROM debian:trixie-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
+    python3 \
+    python3-venv \
     libssl3 \
     && rm -rf /var/lib/apt/lists/*
+
+COPY tests/requirements.txt /tmp/talon-e2e-requirements.txt
+RUN python3 -m venv /opt/talon-e2e-venv && \
+    /opt/talon-e2e-venv/bin/pip install --no-cache-dir -r /tmp/talon-e2e-requirements.txt && \
+    rm -f /tmp/talon-e2e-requirements.txt
 
 COPY --from=builder /usr/src/talon/dist/talon-server /usr/local/bin/talon-server
 COPY --from=builder /usr/src/talon/dist/talon-worker /usr/local/bin/talon-worker

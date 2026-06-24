@@ -359,10 +359,9 @@ mod tests {
     use super::*;
     use crate::control::{
         keys::{ResourceKey, ResourceList},
-        scheduler::NoopSchedulerBackend,
-        KeyValueStore, MessagePublisher,
+        ControlPlane, KeyValueStore, MessagePublisher,
     };
-    use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
+    use crate::gateway::server::Gateway;
     use std::collections::HashMap;
     use std::sync::Arc;
     use tokio::sync::Mutex;
@@ -447,15 +446,8 @@ mod tests {
 
     fn setup_mock_gateway_handler() -> GrpcGatewayHandler {
         let pubsub = Arc::new(MockPubSub);
-        let gateway = Arc::new(Gateway {
-            auth_config: None,
-            trust_config: None,
-            kv: Arc::new(MockKvStore::new()),
-            pubsub: pubsub.clone(),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            objects: crate::control::object_store::default_object_store(),
-            session_streams: Arc::new(SessionStreamHub::new(pubsub)),
-        });
+        let control_plane = ControlPlane::builder(Arc::new(MockKvStore::new()), pubsub).build();
+        let gateway = Arc::new(Gateway::from_control_plane(None, control_plane));
         GrpcGatewayHandler { gateway }
     }
 

@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package talon.v1;
+
+import "proto/data/search.proto";
+
+service SearchService {
+  rpc Search(SearchRequest) returns (SearchResponse);
+  rpc GetResult(GetSearchResultRequest) returns (GetSearchResultResponse);
+}
+
+enum SearchMode {
+  SEARCH_MODE_UNSPECIFIED = 0;
+  SEARCH_MODE_KEYWORD = 1;
+  SEARCH_MODE_SEMANTIC = 2;
+  SEARCH_MODE_HYBRID = 3;
+}
+
+enum SearchSort {
+  SEARCH_SORT_UNSPECIFIED = 0;
+  SEARCH_SORT_RELEVANCE = 1;
+  SEARCH_SORT_RECENCY = 2;
+}
+
+message SearchRequest {
+  string query = 1;
+  SearchSourceFilter source = 2;
+  map<string, string> attributes = 3;
+  map<string, string> labels = 4;
+  optional int64 start_time = 5;
+  optional int64 end_time = 6;
+  int32 limit = 7;
+  string page_token = 8;
+  SearchMode mode = 9;
+  SearchSort sort = 10;
+}
+
+message SearchSourceFilter {
+  reserved 1;
+  reserved "namespace";
+  string key = 2;
+  string key_prefix = 3;
+  repeated string kinds = 4;
+  string parent_key = 5;
+  repeated string namespaces = 6;
+}
+
+message SearchResult {
+  talon.data.DocumentRef document = 1;
+  string snippet = 2;
+  float score = 3;
+}
+
+message SearchResponse {
+  repeated SearchResult results = 1;
+  string next_page_token = 2;
+}
+
+message GetSearchResultRequest {
+  string ns = 1;
+  string document_id = 2;
+}
+
+message GetSearchResultResponse {
+  talon.data.Document document = 1;
+  string content = 2;
+}

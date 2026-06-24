@@ -13,6 +13,7 @@ type Clientset struct {
 	knowledge  talonv1.KnowledgeServiceClient
 	namespaces talonv1.NamespaceServiceClient
 	resources  talonv1.ResourceServiceClient
+	searches   talonv1.SearchServiceClient
 	sessions   talonv1.SessionServiceClient
 	workflows  talonv1.WorkflowServiceClient
 	close      func() error
@@ -38,6 +39,10 @@ func (c *Clientset) Resources() talonv1.ResourceServiceClient {
 	return c.resources
 }
 
+func (c *Clientset) Searches() talonv1.SearchServiceClient {
+	return c.searches
+}
+
 func (c *Clientset) Sessions() talonv1.SessionServiceClient {
 	return c.sessions
 }
@@ -53,6 +58,7 @@ func newClientset(conn grpc.ClientConnInterface, close func() error) *Clientset 
 		knowledge:  talonv1.NewKnowledgeServiceClient(conn),
 		namespaces: talonv1.NewNamespaceServiceClient(conn),
 		resources:  talonv1.NewResourceServiceClient(conn),
+		searches:   talonv1.NewSearchServiceClient(conn),
 		sessions:   talonv1.NewSessionServiceClient(conn),
 		workflows:  talonv1.NewWorkflowServiceClient(conn),
 		close:      close,

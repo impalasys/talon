@@ -11,6 +11,7 @@ pub mod channels;
 pub mod knowledge;
 pub mod namespaces;
 pub mod resources;
+pub mod search;
 pub mod sessions;
 pub mod workflows;
 
@@ -380,6 +381,23 @@ impl proto::knowledge_service_server::KnowledgeService for GrpcGatewayHandler {
         req: tonic::Request<proto::SearchKnowledgeRequest>,
     ) -> std::result::Result<tonic::Response<proto::SearchKnowledgeResponse>, tonic::Status> {
         self.handle_search_knowledge(req).await
+    }
+}
+
+#[tonic::async_trait]
+impl proto::search_service_server::SearchService for GrpcGatewayHandler {
+    async fn search(
+        &self,
+        req: tonic::Request<proto::SearchRequest>,
+    ) -> std::result::Result<tonic::Response<proto::SearchResponse>, tonic::Status> {
+        self.handle_search(req).await
+    }
+
+    async fn get_result(
+        &self,
+        req: tonic::Request<proto::GetSearchResultRequest>,
+    ) -> std::result::Result<tonic::Response<proto::GetSearchResultResponse>, tonic::Status> {
+        self.handle_get_search_result(req).await
     }
 }
 

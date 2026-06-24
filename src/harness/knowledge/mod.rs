@@ -5,6 +5,11 @@ use anyhow::Result;
 use serde_json::{json, Value};
 use std::sync::Arc;
 
+use crate::control::resources::ResourceStore;
+use crate::control::search::{DocumentStore, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
+use crate::control::MessagePublisher;
+use crate::gateway::rpc::{proto, resources_proto};
+
 #[derive(Default, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 pub struct KnowledgeEntry {
@@ -205,11 +210,29 @@ pub async fn execute_tool(
 /// KV-backed implementation of KnowledgeBook.
 pub struct KvKnowledgeBook {
     pub kv: Arc<dyn crate::control::KeyValueStore>,
+    pub pubsub: Option<Arc<dyn MessagePublisher + Send + Sync>>,
+    pub documents: Option<Arc<dyn DocumentStore + Send + Sync>>,
 }
 
 impl KvKnowledgeBook {
     pub fn new(kv: Arc<dyn crate::control::KeyValueStore>) -> Self {
-        Self { kv }
+        Self {
+            kv,
+            pubsub: None,
+            documents: None,
+        }
+    }
+
+    pub fn with_documents(
+        kv: Arc<dyn crate::control::KeyValueStore>,
+        pubsub: Arc<dyn MessagePublisher + Send + Sync>,
+        documents: Arc<dyn DocumentStore + Send + Sync>,
+    ) -> Self {
+        Self {
+            kv,
+            pubsub: Some(pubsub),
+            documents: Some(documents),
+        }
     }
 
     pub(crate) fn normalize_entry(namespace: &str, path: &str, bytes: &[u8]) -> KnowledgeEntry {
@@ -220,6 +243,14 @@ impl KvKnowledgeBook {
             content: String::from_utf8_lossy(bytes).to_string(),
             updated_at: 0,
         })
+    }
+
+    pub(crate) fn resource_name_for_path(path: &str) -> String {
+        let normalized = path.trim_matches('/');
+        if normalized.is_empty() {
+            return "untitled.md".to_string();
+        }
+        urlencoding::encode(normalized).into_owned()
     }
 
     async fn find_entry(&self, ns: &str, path: &str) -> Result<Option<KnowledgeEntry>> {
@@ -279,6 +310,83 @@ impl KvKnowledgeBook {
 
         recursive || !remainder.contains('/')
     }
+
+    async fn search_documents(
+        &self,
+        ns: &str,
+        query: &str,
+        limit: usize,
+    ) -> Result<Option<Vec<KnowledgeResult>>> {
+        let Some(documents) = &self.documents else {
+            return Ok(None);
+        };
+        if !documents.is_enabled() {
+            return Ok(None);
+        }
+
+        let namespaces = crate::control::ns::ancestry(ns);
+        let response = documents
+            .search(&proto::SearchRequest {
+                query: query.to_string(),
+                source: Some(proto::SearchSourceFilter {
+                    namespaces: namespaces.clone(),
+                    kinds: vec![KIND_KNOWLEDGE.to_string()],
+                    ..Default::default()
+                }),
+                limit: limit.saturating_mul(namespaces.len().max(1)) as i32,
+                ..Default::default()
+            })
+            .await?;
+        let namespace_rank = namespaces
+            .iter()
+            .enumerate()
+            .map(|(index, namespace)| (namespace.clone(), index))
+            .collect::<std::collections::HashMap<_, _>>();
+        let mut by_path = std::collections::HashMap::<String, (usize, f32, KnowledgeResult)>::new();
+        for result in response.results {
+            let score = result.score;
+            let document = result.document;
+            let Some(document_ref) = document.as_ref() else {
+                continue;
+            };
+            let Some(source) = document_ref.source.as_ref() else {
+                continue;
+            };
+            if document_ref.document_kind != DOCUMENT_KIND_CONTENT {
+                continue;
+            }
+            let path = knowledge_path_from_metadata(&document_ref.metadata_json)
+                .unwrap_or_else(|| document_ref.title.clone());
+            let rank = *namespace_rank.get(&source.namespace).unwrap_or(&usize::MAX);
+            let entry = KnowledgeResult {
+                namespace: source.namespace.clone(),
+                path: path.clone(),
+                excerpt: result.snippet,
+                updated_at: document_ref.updated_at,
+            };
+            match by_path.get(&path) {
+                Some((current_rank, _, _)) if *current_rank <= rank => {}
+                _ => {
+                    by_path.insert(path, (rank, score, entry));
+                }
+            }
+        }
+        let mut results = by_path.into_values().collect::<Vec<_>>();
+        results.sort_by(|left, right| {
+            right
+                .1
+                .partial_cmp(&left.1)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| right.2.updated_at.cmp(&left.2.updated_at))
+                .then_with(|| left.2.path.cmp(&right.2.path))
+        });
+        let mut results = results
+            .into_iter()
+            .map(|(_, _, result)| result)
+            .collect::<Vec<_>>();
+        results.truncate(limit);
+        Ok(Some(results))
+    }
 }
 
 #[async_trait::async_trait]
@@ -306,10 +414,53 @@ impl KnowledgeBook for KvKnowledgeBook {
         };
         let bytes = serde_json::to_vec(&entry)?;
         self.kv.set(&key, &bytes).await?;
+        if self
+            .documents
+            .as_ref()
+            .map(|documents| documents.is_enabled())
+            .unwrap_or(false)
+        {
+            if let Some(pubsub) = &self.pubsub {
+                let store = ResourceStore::new(self.kv.clone(), pubsub.clone());
+                store
+                    .upsert(
+                        ns,
+                        resources_proto::Resource {
+                            kind: KIND_KNOWLEDGE.to_string(),
+                            metadata: Some(resources_proto::ResourceMeta {
+                                name: Self::resource_name_for_path(path),
+                                namespace: ns.to_string(),
+                                ..Default::default()
+                            }),
+                            spec: Some(resources_proto::ResourceSpec {
+                                kind: Some(resources_proto::resource_spec::Kind::Knowledge(
+                                    resources_proto::KnowledgeSpec {
+                                        path: path.to_string(),
+                                        content: content.to_string(),
+                                    },
+                                )),
+                            }),
+                            ..Default::default()
+                        },
+                    )
+                    .await?;
+            }
+        }
         Ok(())
     }
 
     async fn search(&self, ns: &str, query: &str, limit: usize) -> Result<Vec<KnowledgeResult>> {
+        if let Some(results) = self.search_documents(ns, query, limit).await? {
+            if !results.is_empty() {
+                return Ok(results);
+            }
+            tracing::debug!(
+                namespace = %ns,
+                query = %query,
+                "knowledge document search returned no results; falling back to canonical scan"
+            );
+        }
+
         let query_lower = query.to_lowercase();
         let mut scored_results: Vec<(i32, usize, KnowledgeResult)> = Vec::new();
         let mut seen_paths = std::collections::HashSet::new();
@@ -439,6 +590,17 @@ impl KnowledgeBook for KvKnowledgeBook {
     }
 }
 
+fn knowledge_path_from_metadata(metadata_json: &str) -> Option<String> {
+    serde_json::from_str::<serde_json::Value>(metadata_json)
+        .ok()
+        .and_then(|value| {
+            value
+                .get("path")
+                .and_then(|path| path.as_str())
+                .map(str::to_string)
+        })
+}
+
 impl KnowledgeEntry {
     pub fn path(&self) -> String {
         if self.path.is_empty() {
@@ -457,6 +619,10 @@ mod tests {
     };
     use crate::control::{
         keys::{ResourceKey, ResourceList},
+        search::{
+            document_ref, document_source, ephemeral_document_store, Document, DocumentRef,
+            DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE,
+        },
         KeyValueStore,
     };
     use async_trait::async_trait;
@@ -467,6 +633,36 @@ mod tests {
 
     struct MockKvStore {
         store: Mutex<HashMap<ResourceKey, Vec<u8>>>,
+    }
+
+    fn knowledge_document(
+        id: &str,
+        namespace: &str,
+        key: &str,
+        title: &str,
+        text: &str,
+        updated_at: i64,
+    ) -> Document {
+        Document {
+            r#ref: Some(DocumentRef {
+                title: title.to_string(),
+                metadata_json: r#"{"path":"docs.md"}"#.to_string(),
+                updated_at,
+                ..document_ref(
+                    id.to_string(),
+                    document_source(
+                        namespace.to_string(),
+                        KIND_KNOWLEDGE.to_string(),
+                        key.to_string(),
+                        String::new(),
+                        String::new(),
+                    ),
+                    DOCUMENT_KIND_CONTENT.to_string(),
+                    String::new(),
+                )
+            }),
+            text: text.to_string(),
+        }
     }
 
     #[tokio::test]
@@ -615,6 +811,89 @@ mod tests {
         assert_eq!(results.len(), 1);
         assert!(results[0].excerpt.contains("café"));
         assert_eq!(results[0].namespace, "conic");
+    }
+
+    #[tokio::test]
+    async fn search_uses_document_store_when_enabled() {
+        let kv = Arc::new(MockKvStore::new());
+        let documents = ephemeral_document_store();
+        documents
+            .upsert_documents(&[knowledge_document(
+                "@Namespace/conic/@/Knowledge/docs:content",
+                "conic",
+                "@Namespace/conic/@/Knowledge/docs",
+                "docs.md",
+                "Document-store knowledge result",
+                42,
+            )])
+            .await
+            .unwrap();
+        let book = KvKnowledgeBook::with_documents(
+            kv,
+            Arc::new(crate::test_support::EmptyPubSub),
+            documents,
+        );
+
+        let results = book.search("conic", "document-store", 5).await.unwrap();
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].namespace, "conic");
+        assert_eq!(results[0].path, "docs.md");
+        assert_eq!(results[0].excerpt, "Document-store knowledge result");
+        assert_eq!(results[0].updated_at, 42);
+    }
+
+    #[test]
+    fn knowledge_resource_names_are_stable_and_path_safe() {
+        let name = KvKnowledgeBook::resource_name_for_path("/docs/hello world.md");
+
+        assert_eq!(name, "docs%2Fhello%20world.md");
+        assert!(!name.contains('/'));
+        let key = crate::control::keys::ResourceKey::new("conic", &[], KIND_KNOWLEDGE, &name);
+        let parsed = crate::control::keys::ResourceKey::parse_canonical(&key.canonical()).unwrap();
+        assert_eq!(parsed.name, name);
+    }
+
+    #[tokio::test]
+    async fn document_store_search_prefers_child_namespace_for_shadowed_paths() {
+        let kv = Arc::new(MockKvStore::new());
+        let documents = ephemeral_document_store();
+        documents
+            .upsert_documents(&[
+                knowledge_document(
+                    "@Namespace/conic/@/Knowledge/docs:content",
+                    "conic",
+                    "@Namespace/conic/@/Knowledge/docs",
+                    "docs.md",
+                    "root document-store result",
+                    42,
+                ),
+                knowledge_document(
+                    "@Namespace/conic:wks:13/@/Knowledge/docs:content",
+                    "conic:wks:13",
+                    "@Namespace/conic:wks:13/@/Knowledge/docs",
+                    "docs.md",
+                    "child document-store result",
+                    41,
+                ),
+            ])
+            .await
+            .unwrap();
+        let book = KvKnowledgeBook::with_documents(
+            kv,
+            Arc::new(crate::test_support::EmptyPubSub),
+            documents,
+        );
+
+        let results = book
+            .search("conic:wks:13", "document-store", 5)
+            .await
+            .unwrap();
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].namespace, "conic:wks:13");
+        assert_eq!(results[0].path, "docs.md");
+        assert!(results[0].excerpt.contains("child"));
     }
 
     #[tokio::test]

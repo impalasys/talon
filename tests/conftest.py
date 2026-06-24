@@ -31,6 +31,7 @@ import shutil
 SESSION_DISPATCH_TOPIC = "talon.session.dispatch"
 RESOURCE_LIFECYCLE_TOPIC = "talon.resource.lifecycle"
 WORKFLOW_DISPATCH_TOPIC = "talon.workflow.dispatch"
+INDEX_EVENTS_TOPIC = "talon.index.events"
 MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
 def load_repo_dotenv_values():
     dotenv_path = REPO_ROOT / ".env"
@@ -189,6 +190,7 @@ def talon_infrastructure():
             (SESSION_DISPATCH_TOPIC, "talon-session-dispatch-sub"),
             (RESOURCE_LIFECYCLE_TOPIC, "talon-resource-lifecycle-sub"),
             (WORKFLOW_DISPATCH_TOPIC, "talon-workflow-dispatch-sub"),
+            (INDEX_EVENTS_TOPIC, "talon-index-events-sub"),
         ]:
             requests.put(
                 f"http://{pubsub_host}/v1/projects/talon-local/topics/{topic}",

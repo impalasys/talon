@@ -9,6 +9,7 @@ pub const SESSION_DISPATCH_TOPIC: &str = "talon.session.dispatch";
 pub const SESSION_CONTROL_TOPIC: &str = "talon.session.control";
 pub const WORKFLOW_DISPATCH_TOPIC: &str = "talon.workflow.dispatch";
 pub const RESOURCE_LIFECYCLE_TOPIC: &str = "talon.resource.lifecycle";
+pub const INDEX_EVENTS_TOPIC: &str = "talon.index.events";
 pub const SESSION_PARTS_TOPIC_PREFIX: &str = "talon.session.parts";
 pub const CHANNEL_EVENTS_TOPIC_PREFIX: &str = "talon.channel.events";
 pub const WORKFLOW_EVENTS_TOPIC_PREFIX: &str = "talon.workflow.events";

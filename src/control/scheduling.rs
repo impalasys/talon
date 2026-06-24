@@ -699,13 +699,8 @@ pub async fn send_session_message(
         }
     }
 
-    if let Err(err) = kv
-        .set_msg(
-            &keys::session_message(ns, agent, session_id, &user_msg.id),
-            &user_msg,
-        )
-        .await
-    {
+    let message_key = keys::session_message(ns, agent, session_id, &user_msg.id);
+    if let Err(err) = kv.set_msg(&message_key, &user_msg).await {
         log_session_release_failure(
             try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
             ns,
@@ -715,6 +710,26 @@ pub async fn send_session_message(
     }
 
     let message_id = user_msg.id.clone();
+    if let Err(error) = crate::control::search::publish_index_event(
+        pubsub,
+        events::IndexEvent {
+            operation: events::IndexOperation::Upsert as i32,
+            key: message_key.canonical(),
+            ..Default::default()
+        },
+    )
+    .await
+    {
+        tracing::warn!(
+            error = %error,
+            namespace = %ns,
+            agent = %agent,
+            session_id = %session_id,
+            message_id = %message_id,
+            "failed to publish search index event for sent session message"
+        );
+    }
+
     let submission_id = message_id.clone();
     let submission = crate::harness::sessions::pending_submission(
         submission_id.clone(),
@@ -1026,12 +1041,14 @@ mod tests {
 
     #[derive(Default)]
     struct MockPubSub {
+        topics: Mutex<Vec<String>>,
         messages: Mutex<Vec<Vec<u8>>>,
     }
 
     #[async_trait::async_trait]
     impl MessagePublisher for MockPubSub {
-        async fn publish(&self, _topic: &str, message: &[u8]) -> anyhow::Result<()> {
+        async fn publish(&self, topic: &str, message: &[u8]) -> anyhow::Result<()> {
+            self.topics.lock().await.push(topic.to_string());
             self.messages.lock().await.push(message.to_vec());
             Ok(())
         }
@@ -1329,9 +1346,34 @@ mod tests {
         .await
         .unwrap();
 
-        let dispatches = pubsub.messages.lock().await.clone();
-        let dispatch = events::SessionMessageEvent::decode(dispatches[0].as_slice()).unwrap();
+        let topics = pubsub.topics.lock().await.clone();
+        let messages = pubsub.messages.lock().await.clone();
+        let index_event = topics
+            .iter()
+            .zip(messages.iter())
+            .find_map(|(topic, message)| {
+                (topic == crate::control::topics::INDEX_EVENTS_TOPIC)
+                    .then(|| events::IndexEvent::decode(message.as_slice()).ok())
+                    .flatten()
+            })
+            .expect("search index event should be published");
+        assert_eq!(index_event.operation, events::IndexOperation::Upsert as i32);
+
+        let dispatch = topics
+            .iter()
+            .zip(messages.iter())
+            .find_map(|(topic, message)| {
+                (topic == crate::control::topics::SESSION_DISPATCH_TOPIC)
+                    .then(|| events::SessionMessageEvent::decode(message.as_slice()).ok())
+                    .flatten()
+            })
+            .expect("session dispatch event should be published");
         assert_eq!(dispatch.submission_id, dispatch.message_id);
+        assert_eq!(
+            index_event.key,
+            keys::session_message("conic:test", "assistant", "session-1", &dispatch.message_id)
+                .canonical()
+        );
         let submission = cp
             .kv
             .get_msg::<crate::harness::sessions::SessionSubmission>(&keys::session_submission(
@@ -1610,7 +1652,11 @@ mod tests {
             .session_id = session_id.clone();
         let dispatched_session = dispatch_schedule(&cp, &scheduled, now).await.unwrap();
         assert_eq!(dispatched_session, session_id);
-        assert_eq!(pubsub.messages.lock().await.len(), 2);
+        let topics = pubsub.topics.lock().await.clone();
+        assert_eq!(topics.len(), 3);
+        assert!(topics
+            .iter()
+            .any(|topic| topic == crate::control::topics::INDEX_EVENTS_TOPIC));
     }
 
     #[tokio::test]

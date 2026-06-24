@@ -5,6 +5,7 @@ from talon_client.proto.talon.v1.channels_pb2 import PostChannelMessageRequest, 
 from talon_client.proto.talon.v1.knowledge_pb2 import GetKnowledgeRequest, KnowledgeResponse, SearchKnowledgeRequest, SearchKnowledgeResponse
 from talon_client.proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest, GetNamespaceRequest, DeleteNamespaceRequest, ListNamespacesRequest, NamespaceResponse, ListNamespacesResponse
 from talon_client.proto.talon.v1.resources_pb2 import CreateResourceRequest, GetResourceRequest, ListResourcesRequest, DeleteResourceRequest, ResourceResponse, ListResourcesResponse, DeleteResourceResponse
+from talon_client.proto.talon.v1.search_pb2 import SearchMode, SEARCH_MODE_UNSPECIFIED, SEARCH_MODE_KEYWORD, SEARCH_MODE_SEMANTIC, SEARCH_MODE_HYBRID, SearchSort, SEARCH_SORT_UNSPECIFIED, SEARCH_SORT_RELEVANCE, SEARCH_SORT_RECENCY, SearchRequest, SearchSourceFilter, SearchResult, SearchResponse, GetSearchResultRequest, GetSearchResultResponse
 from talon_client.proto.talon.v1.sessions_pb2 import CreateSessionRequest, GetSessionRequest, ListSessionMessagesRequest, ListSessionMessagesResponseItem, ListSessionMessagesResponse, ListSessionsRequest, SessionListItem, ListSessionsResponse, SessionResponse, DeleteSessionRequest, DeleteSessionResponse, ClearSessionRequest, ClearSessionResponse, SubmitSessionTurnRequest, SendMessageRequest, SendMessageResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, AnswerSessionPermissionRequest, AnswerSessionPermissionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamSessionPartsRequest, StreamSessionPartsBatchRequest
 from talon_client.proto.talon.v1.workflows_pb2 import CreateWorkflowRunRequest, GetWorkflowRunRequest, ListWorkflowRunsRequest, ResumeWorkflowRunRequest, CancelWorkflowRunRequest, StreamWorkflowEventsRequest, WorkflowRunResponse, ListWorkflowRunsResponse
 
@@ -38,6 +39,21 @@ __all__ = [
     "ResourceResponse",
     "ListResourcesResponse",
     "DeleteResourceResponse",
+    "SearchMode",
+    "SEARCH_MODE_UNSPECIFIED",
+    "SEARCH_MODE_KEYWORD",
+    "SEARCH_MODE_SEMANTIC",
+    "SEARCH_MODE_HYBRID",
+    "SearchSort",
+    "SEARCH_SORT_UNSPECIFIED",
+    "SEARCH_SORT_RELEVANCE",
+    "SEARCH_SORT_RECENCY",
+    "SearchRequest",
+    "SearchSourceFilter",
+    "SearchResult",
+    "SearchResponse",
+    "GetSearchResultRequest",
+    "GetSearchResultResponse",
     "CreateSessionRequest",
     "GetSessionRequest",
     "ListSessionMessagesRequest",

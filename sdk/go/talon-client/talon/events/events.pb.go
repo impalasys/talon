@@ -288,6 +288,55 @@ func (ResourceChangeType) EnumDescriptor() ([]byte, []int) {
 	return file_proto_events_proto_rawDescGZIP(), []int{4}
 }
 
+type IndexOperation int32
+
+const (
+	IndexOperation_INDEX_OPERATION_UNSPECIFIED IndexOperation = 0
+	IndexOperation_INDEX_OPERATION_UPSERT      IndexOperation = 1
+	IndexOperation_INDEX_OPERATION_DELETE      IndexOperation = 2
+)
+
+// Enum value maps for IndexOperation.
+var (
+	IndexOperation_name = map[int32]string{
+		0: "INDEX_OPERATION_UNSPECIFIED",
+		1: "INDEX_OPERATION_UPSERT",
+		2: "INDEX_OPERATION_DELETE",
+	}
+	IndexOperation_value = map[string]int32{
+		"INDEX_OPERATION_UNSPECIFIED": 0,
+		"INDEX_OPERATION_UPSERT":      1,
+		"INDEX_OPERATION_DELETE":      2,
+	}
+)
+
+func (x IndexOperation) Enum() *IndexOperation {
+	p := new(IndexOperation)
+	*p = x
+	return p
+}
+
+func (x IndexOperation) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (IndexOperation) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_events_proto_enumTypes[5].Descriptor()
+}
+
+func (IndexOperation) Type() protoreflect.EnumType {
+	return &file_proto_events_proto_enumTypes[5]
+}
+
+func (x IndexOperation) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use IndexOperation.Descriptor instead.
+func (IndexOperation) EnumDescriptor() ([]byte, []int) {
+	return file_proto_events_proto_rawDescGZIP(), []int{5}
+}
+
 type LifecycleEvent struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ResourceType  string                 `protobuf:"bytes,1,opt,name=resource_type,json=resourceType,proto3" json:"resource_type,omitempty"`
@@ -940,6 +989,104 @@ func (x *ResourceChangedEvent) GetTimestamp() int64 {
 	return 0
 }
 
+type IndexEvent struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Operation IndexOperation         `protobuf:"varint,2,opt,name=operation,proto3,enum=talon.events.IndexOperation" json:"operation,omitempty"`
+	CreatedAt int64                  `protobuf:"varint,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt int64                  `protobuf:"varint,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// Canonical source key for the changed record. The index controller parses
+	// this key to load the canonical source and derive the Document projection.
+	Key string `protobuf:"bytes,10,opt,name=key,proto3" json:"key,omitempty"`
+	// Reserved for future scoped invalidation. MVP publishers keep this false.
+	Prefix bool `protobuf:"varint,11,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	// Canonical source generation observed when the event was published. When
+	// set, the index controller uses this to skip stale events and avoid
+	// deleting newer document projections with older delete events.
+	Generation    uint64 `protobuf:"varint,12,opt,name=generation,proto3" json:"generation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IndexEvent) Reset() {
+	*x = IndexEvent{}
+	mi := &file_proto_events_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IndexEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IndexEvent) ProtoMessage() {}
+
+func (x *IndexEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_events_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IndexEvent.ProtoReflect.Descriptor instead.
+func (*IndexEvent) Descriptor() ([]byte, []int) {
+	return file_proto_events_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *IndexEvent) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *IndexEvent) GetOperation() IndexOperation {
+	if x != nil {
+		return x.Operation
+	}
+	return IndexOperation_INDEX_OPERATION_UNSPECIFIED
+}
+
+func (x *IndexEvent) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *IndexEvent) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+func (x *IndexEvent) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *IndexEvent) GetPrefix() bool {
+	if x != nil {
+		return x.Prefix
+	}
+	return false
+}
+
+func (x *IndexEvent) GetGeneration() uint64 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
 var File_proto_events_proto protoreflect.FileDescriptor
 
 const file_proto_events_proto_rawDesc = "" +
@@ -1010,7 +1157,21 @@ const file_proto_events_proto_rawDesc = "" +
 	"\vchange_type\x18\a \x01(\x0e2 .talon.events.ResourceChangeTypeR\n" +
 	"changeType\x12)\n" +
 	"\x10changed_sections\x18\b \x03(\tR\x0fchangedSections\x12\x1c\n" +
-	"\ttimestamp\x18\t \x01(\x03R\ttimestamp*\xb0\x01\n" +
+	"\ttimestamp\x18\t \x01(\x03R\ttimestamp\"\xe0\x01\n" +
+	"\n" +
+	"IndexEvent\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12:\n" +
+	"\toperation\x18\x02 \x01(\x0e2\x1c.talon.events.IndexOperationR\toperation\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x03 \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\x12\x10\n" +
+	"\x03key\x18\n" +
+	" \x01(\tR\x03key\x12\x16\n" +
+	"\x06prefix\x18\v \x01(\bR\x06prefix\x12\x1e\n" +
+	"\n" +
+	"generation\x18\f \x01(\x04R\n" +
+	"generation*\xb0\x01\n" +
 	"\fSystemAction\x12\x1d\n" +
 	"\x19SYSTEM_ACTION_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14SYSTEM_ACTION_CREATE\x10\x01\x12\x18\n" +
@@ -1037,7 +1198,11 @@ const file_proto_events_proto_rawDesc = "" +
 	" RESOURCE_CHANGE_TYPE_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cRESOURCE_CHANGE_TYPE_CREATED\x10\x01\x12 \n" +
 	"\x1cRESOURCE_CHANGE_TYPE_UPDATED\x10\x02\x12 \n" +
-	"\x1cRESOURCE_CHANGE_TYPE_DELETED\x10\x03b\x06proto3"
+	"\x1cRESOURCE_CHANGE_TYPE_DELETED\x10\x03*i\n" +
+	"\x0eIndexOperation\x12\x1f\n" +
+	"\x1bINDEX_OPERATION_UNSPECIFIED\x10\x00\x12\x1a\n" +
+	"\x16INDEX_OPERATION_UPSERT\x10\x01\x12\x1a\n" +
+	"\x16INDEX_OPERATION_DELETE\x10\x02b\x06proto3"
 
 var (
 	file_proto_events_proto_rawDescOnce sync.Once
@@ -1051,37 +1216,40 @@ func file_proto_events_proto_rawDescGZIP() []byte {
 	return file_proto_events_proto_rawDescData
 }
 
-var file_proto_events_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_proto_events_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_events_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_proto_events_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_proto_events_proto_goTypes = []any{
 	(SystemAction)(0),                // 0: talon.events.SystemAction
 	(MessageDirection)(0),            // 1: talon.events.MessageDirection
 	(SessionMessagePartEventKind)(0), // 2: talon.events.SessionMessagePartEventKind
 	(ChannelEventKind)(0),            // 3: talon.events.ChannelEventKind
 	(ResourceChangeType)(0),          // 4: talon.events.ResourceChangeType
-	(*LifecycleEvent)(nil),           // 5: talon.events.LifecycleEvent
-	(*SessionMessageEvent)(nil),      // 6: talon.events.SessionMessageEvent
-	(*SessionControlEvent)(nil),      // 7: talon.events.SessionControlEvent
-	(*SessionMessagePartEvent)(nil),  // 8: talon.events.SessionMessagePartEvent
-	(*ChannelEvent)(nil),             // 9: talon.events.ChannelEvent
-	(*WorkflowDispatchEvent)(nil),    // 10: talon.events.WorkflowDispatchEvent
-	(*ResourceChangedEvent)(nil),     // 11: talon.events.ResourceChangedEvent
-	(*data.SessionMessagePart)(nil),  // 12: talon.data.SessionMessagePart
-	(*data.ChannelMessage)(nil),      // 13: talon.data.ChannelMessage
+	(IndexOperation)(0),              // 5: talon.events.IndexOperation
+	(*LifecycleEvent)(nil),           // 6: talon.events.LifecycleEvent
+	(*SessionMessageEvent)(nil),      // 7: talon.events.SessionMessageEvent
+	(*SessionControlEvent)(nil),      // 8: talon.events.SessionControlEvent
+	(*SessionMessagePartEvent)(nil),  // 9: talon.events.SessionMessagePartEvent
+	(*ChannelEvent)(nil),             // 10: talon.events.ChannelEvent
+	(*WorkflowDispatchEvent)(nil),    // 11: talon.events.WorkflowDispatchEvent
+	(*ResourceChangedEvent)(nil),     // 12: talon.events.ResourceChangedEvent
+	(*IndexEvent)(nil),               // 13: talon.events.IndexEvent
+	(*data.SessionMessagePart)(nil),  // 14: talon.data.SessionMessagePart
+	(*data.ChannelMessage)(nil),      // 15: talon.data.ChannelMessage
 }
 var file_proto_events_proto_depIdxs = []int32{
 	0,  // 0: talon.events.LifecycleEvent.action:type_name -> talon.events.SystemAction
 	1,  // 1: talon.events.SessionMessageEvent.direction:type_name -> talon.events.MessageDirection
 	2,  // 2: talon.events.SessionMessagePartEvent.kind:type_name -> talon.events.SessionMessagePartEventKind
-	12, // 3: talon.events.SessionMessagePartEvent.part:type_name -> talon.data.SessionMessagePart
+	14, // 3: talon.events.SessionMessagePartEvent.part:type_name -> talon.data.SessionMessagePart
 	3,  // 4: talon.events.ChannelEvent.kind:type_name -> talon.events.ChannelEventKind
-	13, // 5: talon.events.ChannelEvent.message:type_name -> talon.data.ChannelMessage
+	15, // 5: talon.events.ChannelEvent.message:type_name -> talon.data.ChannelMessage
 	4,  // 6: talon.events.ResourceChangedEvent.change_type:type_name -> talon.events.ResourceChangeType
-	7,  // [7:7] is the sub-list for method output_type
-	7,  // [7:7] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	5,  // 7: talon.events.IndexEvent.operation:type_name -> talon.events.IndexOperation
+	8,  // [8:8] is the sub-list for method output_type
+	8,  // [8:8] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_proto_events_proto_init() }
@@ -1094,8 +1262,8 @@ func file_proto_events_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_events_proto_rawDesc), len(file_proto_events_proto_rawDesc)),
-			NumEnums:      5,
-			NumMessages:   7,
+			NumEnums:      6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

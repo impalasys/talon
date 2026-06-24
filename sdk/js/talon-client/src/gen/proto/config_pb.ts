@@ -1271,6 +1271,11 @@ export class ControlPlaneConfig extends Message<ControlPlaneConfig> {
    */
   objectStore?: ObjectStoreConfig;
 
+  /**
+   * @generated from field: talon.config.DatabaseConfig documents = 5;
+   */
+  documents?: DatabaseConfig;
+
   constructor(data?: PartialMessage<ControlPlaneConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1283,6 +1288,7 @@ export class ControlPlaneConfig extends Message<ControlPlaneConfig> {
     { no: 2, name: "message_broker", kind: "message", T: MessageBrokerConfig },
     { no: 3, name: "scheduler", kind: "message", T: SchedulerConfig },
     { no: 4, name: "object_store", kind: "message", T: ObjectStoreConfig },
+    { no: 5, name: "documents", kind: "message", T: DatabaseConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ControlPlaneConfig {

@@ -250,6 +250,10 @@ fn is_allowed_capability_action(capability: &str, action: &str) -> bool {
                 | "create:named"
         ),
         "sessions" => matches!(action, "inspect" | "read:messages" | "send_message"),
+        "search" => matches!(
+            action,
+            "workspace" | "sessions" | "knowledge" | "open_result"
+        ),
         _ => false,
     }
 }

@@ -111,3 +111,26 @@ message ResourceChangedEvent {
     repeated string changed_sections = 8;
     int64 timestamp = 9;
 }
+
+enum IndexOperation {
+    INDEX_OPERATION_UNSPECIFIED = 0;
+    INDEX_OPERATION_UPSERT = 1;
+    INDEX_OPERATION_DELETE = 2;
+}
+
+message IndexEvent {
+    string id = 1;
+    IndexOperation operation = 2;
+    int64 created_at = 3;
+    int64 updated_at = 4;
+
+    // Canonical source key for the changed record. The index controller parses
+    // this key to load the canonical source and derive the Document projection.
+    string key = 10;
+    // Reserved for future scoped invalidation. MVP publishers keep this false.
+    bool prefix = 11;
+    // Canonical source generation observed when the event was published. When
+    // set, the index controller uses this to skip stale events and avoid
+    // deleting newer document projections with older delete events.
+    uint64 generation = 12;
+}

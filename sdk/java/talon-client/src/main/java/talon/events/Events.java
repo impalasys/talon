@@ -719,6 +719,132 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     // @@protoc_insertion_point(enum_scope:talon.events.ResourceChangeType)
   }
 
+  /**
+   * Protobuf enum {@code talon.events.IndexOperation}
+   */
+  public enum IndexOperation
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>INDEX_OPERATION_UNSPECIFIED = 0;</code>
+     */
+    INDEX_OPERATION_UNSPECIFIED(0),
+    /**
+     * <code>INDEX_OPERATION_UPSERT = 1;</code>
+     */
+    INDEX_OPERATION_UPSERT(1),
+    /**
+     * <code>INDEX_OPERATION_DELETE = 2;</code>
+     */
+    INDEX_OPERATION_DELETE(2),
+    UNRECOGNIZED(-1),
+    ;
+
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "IndexOperation");
+    }
+    /**
+     * <code>INDEX_OPERATION_UNSPECIFIED = 0;</code>
+     */
+    public static final int INDEX_OPERATION_UNSPECIFIED_VALUE = 0;
+    /**
+     * <code>INDEX_OPERATION_UPSERT = 1;</code>
+     */
+    public static final int INDEX_OPERATION_UPSERT_VALUE = 1;
+    /**
+     * <code>INDEX_OPERATION_DELETE = 2;</code>
+     */
+    public static final int INDEX_OPERATION_DELETE_VALUE = 2;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static IndexOperation valueOf(int value) {
+      return forNumber(value);
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
+    public static IndexOperation forNumber(int value) {
+      switch (value) {
+        case 0: return INDEX_OPERATION_UNSPECIFIED;
+        case 1: return INDEX_OPERATION_UPSERT;
+        case 2: return INDEX_OPERATION_DELETE;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<IndexOperation>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        IndexOperation> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<IndexOperation>() {
+            public IndexOperation findValueByNumber(int number) {
+              return IndexOperation.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
+      return getDescriptor().getValue(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return talon.events.Events.getDescriptor().getEnumType(5);
+    }
+
+    private static final IndexOperation[] VALUES = values();
+
+    public static IndexOperation valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private IndexOperation(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:talon.events.IndexOperation)
+  }
+
   public interface LifecycleEventOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.events.LifecycleEvent)
       com.google.protobuf.MessageOrBuilder {
@@ -10053,6 +10179,1160 @@ public final class Events extends com.google.protobuf.GeneratedFile {
 
   }
 
+  public interface IndexEventOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.events.IndexEvent)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    java.lang.String getId();
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    /**
+     * <code>.talon.events.IndexOperation operation = 2;</code>
+     * @return The enum numeric value on the wire for operation.
+     */
+    int getOperationValue();
+    /**
+     * <code>.talon.events.IndexOperation operation = 2;</code>
+     * @return The operation.
+     */
+    talon.events.Events.IndexOperation getOperation();
+
+    /**
+     * <code>int64 created_at = 3;</code>
+     * @return The createdAt.
+     */
+    long getCreatedAt();
+
+    /**
+     * <code>int64 updated_at = 4;</code>
+     * @return The updatedAt.
+     */
+    long getUpdatedAt();
+
+    /**
+     * <pre>
+     * Canonical source key for the changed record. The index controller parses
+     * this key to load the canonical source and derive the Document projection.
+     * </pre>
+     *
+     * <code>string key = 10;</code>
+     * @return The key.
+     */
+    java.lang.String getKey();
+    /**
+     * <pre>
+     * Canonical source key for the changed record. The index controller parses
+     * this key to load the canonical source and derive the Document projection.
+     * </pre>
+     *
+     * <code>string key = 10;</code>
+     * @return The bytes for key.
+     */
+    com.google.protobuf.ByteString
+        getKeyBytes();
+
+    /**
+     * <pre>
+     * Reserved for future scoped invalidation. MVP publishers keep this false.
+     * </pre>
+     *
+     * <code>bool prefix = 11;</code>
+     * @return The prefix.
+     */
+    boolean getPrefix();
+
+    /**
+     * <pre>
+     * Canonical source generation observed when the event was published. When
+     * set, the index controller uses this to skip stale events and avoid
+     * deleting newer document projections with older delete events.
+     * </pre>
+     *
+     * <code>uint64 generation = 12;</code>
+     * @return The generation.
+     */
+    long getGeneration();
+  }
+  /**
+   * Protobuf type {@code talon.events.IndexEvent}
+   */
+  public static final class IndexEvent extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.events.IndexEvent)
+      IndexEventOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "IndexEvent");
+    }
+    // Use IndexEvent.newBuilder() to construct.
+    private IndexEvent(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private IndexEvent() {
+      id_ = "";
+      operation_ = 0;
+      key_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.events.Events.internal_static_talon_events_IndexEvent_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.events.Events.internal_static_talon_events_IndexEvent_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.events.Events.internal_static_talon_events_IndexEvent_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.events.Events.IndexEvent.class, talon.events.Events.IndexEvent.Builder.class);
+    }
+
+    public static final int ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object id_ = "";
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OPERATION_FIELD_NUMBER = 2;
+    private int operation_ = 0;
+    /**
+     * <code>.talon.events.IndexOperation operation = 2;</code>
+     * @return The enum numeric value on the wire for operation.
+     */
+    @java.lang.Override public int getOperationValue() {
+      return operation_;
+    }
+    /**
+     * <code>.talon.events.IndexOperation operation = 2;</code>
+     * @return The operation.
+     */
+    @java.lang.Override public talon.events.Events.IndexOperation getOperation() {
+      talon.events.Events.IndexOperation result = talon.events.Events.IndexOperation.forNumber(operation_);
+      return result == null ? talon.events.Events.IndexOperation.UNRECOGNIZED : result;
+    }
+
+    public static final int CREATED_AT_FIELD_NUMBER = 3;
+    private long createdAt_ = 0L;
+    /**
+     * <code>int64 created_at = 3;</code>
+     * @return The createdAt.
+     */
+    @java.lang.Override
+    public long getCreatedAt() {
+      return createdAt_;
+    }
+
+    public static final int UPDATED_AT_FIELD_NUMBER = 4;
+    private long updatedAt_ = 0L;
+    /**
+     * <code>int64 updated_at = 4;</code>
+     * @return The updatedAt.
+     */
+    @java.lang.Override
+    public long getUpdatedAt() {
+      return updatedAt_;
+    }
+
+    public static final int KEY_FIELD_NUMBER = 10;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object key_ = "";
+    /**
+     * <pre>
+     * Canonical source key for the changed record. The index controller parses
+     * this key to load the canonical source and derive the Document projection.
+     * </pre>
+     *
+     * <code>string key = 10;</code>
+     * @return The key.
+     */
+    @java.lang.Override
+    public java.lang.String getKey() {
+      java.lang.Object ref = key_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        key_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Canonical source key for the changed record. The index controller parses
+     * this key to load the canonical source and derive the Document projection.
+     * </pre>
+     *
+     * <code>string key = 10;</code>
+     * @return The bytes for key.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getKeyBytes() {
+      java.lang.Object ref = key_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        key_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PREFIX_FIELD_NUMBER = 11;
+    private boolean prefix_ = false;
+    /**
+     * <pre>
+     * Reserved for future scoped invalidation. MVP publishers keep this false.
+     * </pre>
+     *
+     * <code>bool prefix = 11;</code>
+     * @return The prefix.
+     */
+    @java.lang.Override
+    public boolean getPrefix() {
+      return prefix_;
+    }
+
+    public static final int GENERATION_FIELD_NUMBER = 12;
+    private long generation_ = 0L;
+    /**
+     * <pre>
+     * Canonical source generation observed when the event was published. When
+     * set, the index controller uses this to skip stale events and avoid
+     * deleting newer document projections with older delete events.
+     * </pre>
+     *
+     * <code>uint64 generation = 12;</code>
+     * @return The generation.
+     */
+    @java.lang.Override
+    public long getGeneration() {
+      return generation_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      }
+      if (operation_ != talon.events.Events.IndexOperation.INDEX_OPERATION_UNSPECIFIED.getNumber()) {
+        output.writeEnum(2, operation_);
+      }
+      if (createdAt_ != 0L) {
+        output.writeInt64(3, createdAt_);
+      }
+      if (updatedAt_ != 0L) {
+        output.writeInt64(4, updatedAt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(key_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 10, key_);
+      }
+      if (prefix_ != false) {
+        output.writeBool(11, prefix_);
+      }
+      if (generation_ != 0L) {
+        output.writeUInt64(12, generation_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      }
+      if (operation_ != talon.events.Events.IndexOperation.INDEX_OPERATION_UNSPECIFIED.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(2, operation_);
+      }
+      if (createdAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, createdAt_);
+      }
+      if (updatedAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, updatedAt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(key_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(10, key_);
+      }
+      if (prefix_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(11, prefix_);
+      }
+      if (generation_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(12, generation_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.events.Events.IndexEvent)) {
+        return super.equals(obj);
+      }
+      talon.events.Events.IndexEvent other = (talon.events.Events.IndexEvent) obj;
+
+      if (!getId()
+          .equals(other.getId())) return false;
+      if (operation_ != other.operation_) return false;
+      if (getCreatedAt()
+          != other.getCreatedAt()) return false;
+      if (getUpdatedAt()
+          != other.getUpdatedAt()) return false;
+      if (!getKey()
+          .equals(other.getKey())) return false;
+      if (getPrefix()
+          != other.getPrefix()) return false;
+      if (getGeneration()
+          != other.getGeneration()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + OPERATION_FIELD_NUMBER;
+      hash = (53 * hash) + operation_;
+      hash = (37 * hash) + CREATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCreatedAt());
+      hash = (37 * hash) + UPDATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getUpdatedAt());
+      hash = (37 * hash) + KEY_FIELD_NUMBER;
+      hash = (53 * hash) + getKey().hashCode();
+      hash = (37 * hash) + PREFIX_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getPrefix());
+      hash = (37 * hash) + GENERATION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getGeneration());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.events.Events.IndexEvent parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.events.Events.IndexEvent parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.events.Events.IndexEvent parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.IndexEvent parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.events.Events.IndexEvent prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.events.IndexEvent}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.events.IndexEvent)
+        talon.events.Events.IndexEventOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.events.Events.internal_static_talon_events_IndexEvent_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.events.Events.internal_static_talon_events_IndexEvent_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.events.Events.IndexEvent.class, talon.events.Events.IndexEvent.Builder.class);
+      }
+
+      // Construct using talon.events.Events.IndexEvent.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        id_ = "";
+        operation_ = 0;
+        createdAt_ = 0L;
+        updatedAt_ = 0L;
+        key_ = "";
+        prefix_ = false;
+        generation_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.events.Events.internal_static_talon_events_IndexEvent_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexEvent getDefaultInstanceForType() {
+        return talon.events.Events.IndexEvent.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexEvent build() {
+        talon.events.Events.IndexEvent result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.IndexEvent buildPartial() {
+        talon.events.Events.IndexEvent result = new talon.events.Events.IndexEvent(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.events.Events.IndexEvent result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.id_ = id_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.operation_ = operation_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.createdAt_ = createdAt_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.updatedAt_ = updatedAt_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.key_ = key_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.prefix_ = prefix_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.generation_ = generation_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.events.Events.IndexEvent) {
+          return mergeFrom((talon.events.Events.IndexEvent)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.events.Events.IndexEvent other) {
+        if (other == talon.events.Events.IndexEvent.getDefaultInstance()) return this;
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (other.operation_ != 0) {
+          setOperationValue(other.getOperationValue());
+        }
+        if (other.getCreatedAt() != 0L) {
+          setCreatedAt(other.getCreatedAt());
+        }
+        if (other.getUpdatedAt() != 0L) {
+          setUpdatedAt(other.getUpdatedAt());
+        }
+        if (!other.getKey().isEmpty()) {
+          key_ = other.key_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (other.getPrefix() != false) {
+          setPrefix(other.getPrefix());
+        }
+        if (other.getGeneration() != 0L) {
+          setGeneration(other.getGeneration());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 16: {
+                operation_ = input.readEnum();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              case 24: {
+                createdAt_ = input.readInt64();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              case 32: {
+                updatedAt_ = input.readInt64();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+              case 82: {
+                key_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 82
+              case 88: {
+                prefix_ = input.readBool();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 88
+              case 96: {
+                generation_ = input.readUInt64();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 96
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object id_ = "";
+      /**
+       * <code>string id = 1;</code>
+       * @return The id.
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearId() {
+        id_ = getDefaultInstance().getId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private int operation_ = 0;
+      /**
+       * <code>.talon.events.IndexOperation operation = 2;</code>
+       * @return The enum numeric value on the wire for operation.
+       */
+      @java.lang.Override public int getOperationValue() {
+        return operation_;
+      }
+      /**
+       * <code>.talon.events.IndexOperation operation = 2;</code>
+       * @param value The enum numeric value on the wire for operation to set.
+       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * @return This builder for chaining.
+       */
+      public Builder setOperationValue(int value) {
+        operation_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexOperation operation = 2;</code>
+       * @return The operation.
+       */
+      @java.lang.Override
+      public talon.events.Events.IndexOperation getOperation() {
+        talon.events.Events.IndexOperation result = talon.events.Events.IndexOperation.forNumber(operation_);
+        return result == null ? talon.events.Events.IndexOperation.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.talon.events.IndexOperation operation = 2;</code>
+       * @param value The operation to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOperation(talon.events.Events.IndexOperation value) {
+        if (value == null) { throw new NullPointerException(); }
+        bitField0_ |= 0x00000002;
+        operation_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.events.IndexOperation operation = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOperation() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        operation_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private long createdAt_ ;
+      /**
+       * <code>int64 created_at = 3;</code>
+       * @return The createdAt.
+       */
+      @java.lang.Override
+      public long getCreatedAt() {
+        return createdAt_;
+      }
+      /**
+       * <code>int64 created_at = 3;</code>
+       * @param value The createdAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedAt(long value) {
+
+        createdAt_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 created_at = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCreatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        createdAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long updatedAt_ ;
+      /**
+       * <code>int64 updated_at = 4;</code>
+       * @return The updatedAt.
+       */
+      @java.lang.Override
+      public long getUpdatedAt() {
+        return updatedAt_;
+      }
+      /**
+       * <code>int64 updated_at = 4;</code>
+       * @param value The updatedAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUpdatedAt(long value) {
+
+        updatedAt_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 updated_at = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUpdatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        updatedAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object key_ = "";
+      /**
+       * <pre>
+       * Canonical source key for the changed record. The index controller parses
+       * this key to load the canonical source and derive the Document projection.
+       * </pre>
+       *
+       * <code>string key = 10;</code>
+       * @return The key.
+       */
+      public java.lang.String getKey() {
+        java.lang.Object ref = key_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          key_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Canonical source key for the changed record. The index controller parses
+       * this key to load the canonical source and derive the Document projection.
+       * </pre>
+       *
+       * <code>string key = 10;</code>
+       * @return The bytes for key.
+       */
+      public com.google.protobuf.ByteString
+          getKeyBytes() {
+        java.lang.Object ref = key_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          key_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Canonical source key for the changed record. The index controller parses
+       * this key to load the canonical source and derive the Document projection.
+       * </pre>
+       *
+       * <code>string key = 10;</code>
+       * @param value The key to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKey(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        key_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Canonical source key for the changed record. The index controller parses
+       * this key to load the canonical source and derive the Document projection.
+       * </pre>
+       *
+       * <code>string key = 10;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearKey() {
+        key_ = getDefaultInstance().getKey();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Canonical source key for the changed record. The index controller parses
+       * this key to load the canonical source and derive the Document projection.
+       * </pre>
+       *
+       * <code>string key = 10;</code>
+       * @param value The bytes for key to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKeyBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        key_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private boolean prefix_ ;
+      /**
+       * <pre>
+       * Reserved for future scoped invalidation. MVP publishers keep this false.
+       * </pre>
+       *
+       * <code>bool prefix = 11;</code>
+       * @return The prefix.
+       */
+      @java.lang.Override
+      public boolean getPrefix() {
+        return prefix_;
+      }
+      /**
+       * <pre>
+       * Reserved for future scoped invalidation. MVP publishers keep this false.
+       * </pre>
+       *
+       * <code>bool prefix = 11;</code>
+       * @param value The prefix to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPrefix(boolean value) {
+
+        prefix_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Reserved for future scoped invalidation. MVP publishers keep this false.
+       * </pre>
+       *
+       * <code>bool prefix = 11;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPrefix() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        prefix_ = false;
+        onChanged();
+        return this;
+      }
+
+      private long generation_ ;
+      /**
+       * <pre>
+       * Canonical source generation observed when the event was published. When
+       * set, the index controller uses this to skip stale events and avoid
+       * deleting newer document projections with older delete events.
+       * </pre>
+       *
+       * <code>uint64 generation = 12;</code>
+       * @return The generation.
+       */
+      @java.lang.Override
+      public long getGeneration() {
+        return generation_;
+      }
+      /**
+       * <pre>
+       * Canonical source generation observed when the event was published. When
+       * set, the index controller uses this to skip stale events and avoid
+       * deleting newer document projections with older delete events.
+       * </pre>
+       *
+       * <code>uint64 generation = 12;</code>
+       * @param value The generation to set.
+       * @return This builder for chaining.
+       */
+      public Builder setGeneration(long value) {
+
+        generation_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Canonical source generation observed when the event was published. When
+       * set, the index controller uses this to skip stale events and avoid
+       * deleting newer document projections with older delete events.
+       * </pre>
+       *
+       * <code>uint64 generation = 12;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearGeneration() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        generation_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.events.IndexEvent)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.events.IndexEvent)
+    private static final talon.events.Events.IndexEvent DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.events.Events.IndexEvent();
+    }
+
+    public static talon.events.Events.IndexEvent getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<IndexEvent>
+        PARSER = new com.google.protobuf.AbstractParser<IndexEvent>() {
+      @java.lang.Override
+      public IndexEvent parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<IndexEvent> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<IndexEvent> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.events.Events.IndexEvent getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_events_LifecycleEvent_descriptor;
   private static final
@@ -10088,6 +11368,11 @@ public final class Events extends com.google.protobuf.GeneratedFile {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_events_ResourceChangedEvent_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_events_IndexEvent_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_events_IndexEvent_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -10130,29 +11415,36 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       "ion\030\005 \001(\t\022\022\n\ngeneration\030\006 \001(\004\0225\n\013change_" +
       "type\030\007 \001(\0162 .talon.events.ResourceChange" +
       "Type\022\030\n\020changed_sections\030\010 \003(\t\022\021\n\ttimest" +
-      "amp\030\t \001(\003*\260\001\n\014SystemAction\022\035\n\031SYSTEM_ACT" +
-      "ION_UNSPECIFIED\020\000\022\030\n\024SYSTEM_ACTION_CREAT" +
-      "E\020\001\022\030\n\024SYSTEM_ACTION_UPDATE\020\002\022\030\n\024SYSTEM_" +
-      "ACTION_DELETE\020\003\022\031\n\025SYSTEM_ACTION_SUSPEND" +
-      "\020\004\022\030\n\024SYSTEM_ACTION_RESUME\020\005*t\n\020MessageD" +
-      "irection\022!\n\035MESSAGE_DIRECTION_UNSPECIFIE" +
-      "D\020\000\022\035\n\031MESSAGE_DIRECTION_INBOUND\020\001\022\036\n\032ME" +
-      "SSAGE_DIRECTION_OUTBOUND\020\002*\316\001\n\033SessionMe" +
-      "ssagePartEventKind\022/\n+SESSION_MESSAGE_PA" +
-      "RT_EVENT_KIND_UNSPECIFIED\020\000\022)\n%SESSION_M" +
-      "ESSAGE_PART_EVENT_KIND_DELTA\020\001\022(\n$SESSIO" +
-      "N_MESSAGE_PART_EVENT_KIND_DONE\020\002\022)\n%SESS" +
-      "ION_MESSAGE_PART_EVENT_KIND_ERROR\020\003*\313\001\n\020" +
-      "ChannelEventKind\022\"\n\036CHANNEL_EVENT_KIND_U" +
-      "NSPECIFIED\020\000\022&\n\"CHANNEL_EVENT_KIND_MESSA" +
-      "GE_CREATED\020\001\022%\n!CHANNEL_EVENT_KIND_SESSI" +
-      "ON_ROUTED\020\002\022&\n\"CHANNEL_EVENT_KIND_PUBLIS" +
-      "H_SKIPPED\020\003\022\034\n\030CHANNEL_EVENT_KIND_ERROR\020" +
-      "\004*\240\001\n\022ResourceChangeType\022$\n RESOURCE_CHA" +
-      "NGE_TYPE_UNSPECIFIED\020\000\022 \n\034RESOURCE_CHANG" +
-      "E_TYPE_CREATED\020\001\022 \n\034RESOURCE_CHANGE_TYPE" +
-      "_UPDATED\020\002\022 \n\034RESOURCE_CHANGE_TYPE_DELET" +
-      "ED\020\003b\006proto3"
+      "amp\030\t \001(\003\"\242\001\n\nIndexEvent\022\n\n\002id\030\001 \001(\t\022/\n\t" +
+      "operation\030\002 \001(\0162\034.talon.events.IndexOper" +
+      "ation\022\022\n\ncreated_at\030\003 \001(\003\022\022\n\nupdated_at\030" +
+      "\004 \001(\003\022\013\n\003key\030\n \001(\t\022\016\n\006prefix\030\013 \001(\010\022\022\n\nge" +
+      "neration\030\014 \001(\004*\260\001\n\014SystemAction\022\035\n\031SYSTE" +
+      "M_ACTION_UNSPECIFIED\020\000\022\030\n\024SYSTEM_ACTION_" +
+      "CREATE\020\001\022\030\n\024SYSTEM_ACTION_UPDATE\020\002\022\030\n\024SY" +
+      "STEM_ACTION_DELETE\020\003\022\031\n\025SYSTEM_ACTION_SU" +
+      "SPEND\020\004\022\030\n\024SYSTEM_ACTION_RESUME\020\005*t\n\020Mes" +
+      "sageDirection\022!\n\035MESSAGE_DIRECTION_UNSPE" +
+      "CIFIED\020\000\022\035\n\031MESSAGE_DIRECTION_INBOUND\020\001\022" +
+      "\036\n\032MESSAGE_DIRECTION_OUTBOUND\020\002*\316\001\n\033Sess" +
+      "ionMessagePartEventKind\022/\n+SESSION_MESSA" +
+      "GE_PART_EVENT_KIND_UNSPECIFIED\020\000\022)\n%SESS" +
+      "ION_MESSAGE_PART_EVENT_KIND_DELTA\020\001\022(\n$S" +
+      "ESSION_MESSAGE_PART_EVENT_KIND_DONE\020\002\022)\n" +
+      "%SESSION_MESSAGE_PART_EVENT_KIND_ERROR\020\003" +
+      "*\313\001\n\020ChannelEventKind\022\"\n\036CHANNEL_EVENT_K" +
+      "IND_UNSPECIFIED\020\000\022&\n\"CHANNEL_EVENT_KIND_" +
+      "MESSAGE_CREATED\020\001\022%\n!CHANNEL_EVENT_KIND_" +
+      "SESSION_ROUTED\020\002\022&\n\"CHANNEL_EVENT_KIND_P" +
+      "UBLISH_SKIPPED\020\003\022\034\n\030CHANNEL_EVENT_KIND_E" +
+      "RROR\020\004*\240\001\n\022ResourceChangeType\022$\n RESOURC" +
+      "E_CHANGE_TYPE_UNSPECIFIED\020\000\022 \n\034RESOURCE_" +
+      "CHANGE_TYPE_CREATED\020\001\022 \n\034RESOURCE_CHANGE" +
+      "_TYPE_UPDATED\020\002\022 \n\034RESOURCE_CHANGE_TYPE_" +
+      "DELETED\020\003*i\n\016IndexOperation\022\037\n\033INDEX_OPE" +
+      "RATION_UNSPECIFIED\020\000\022\032\n\026INDEX_OPERATION_" +
+      "UPSERT\020\001\022\032\n\026INDEX_OPERATION_DELETE\020\002b\006pr" +
+      "oto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -10201,6 +11493,12 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_events_ResourceChangedEvent_descriptor,
         new java.lang.String[] { "Namespace", "ResourceKind", "Name", "Uid", "ResourceVersion", "Generation", "ChangeType", "ChangedSections", "Timestamp", });
+    internal_static_talon_events_IndexEvent_descriptor =
+      getDescriptor().getMessageType(7);
+    internal_static_talon_events_IndexEvent_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_events_IndexEvent_descriptor,
+        new java.lang.String[] { "Id", "Operation", "CreatedAt", "UpdatedAt", "Key", "Prefix", "Generation", });
     descriptor.resolveAllFeaturesImmutable();
     talon.data.Data.getDescriptor();
   }

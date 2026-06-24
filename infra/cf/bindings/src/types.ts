@@ -15,6 +15,7 @@ export type TalonCfBindingsEnv = {
   SESSION_DISPATCH_QUEUE: Queue;
   RESOURCE_LIFECYCLE_QUEUE: Queue;
   SESSION_CONTROL_QUEUE: Queue;
+  INDEX_EVENTS_QUEUE: Queue;
   WORKER_CONTAINER: ContainerNamespace;
   SCHEDULE_SHARD: DurableObjectNamespace;
   SESSION_STREAMS: DurableObjectNamespace;

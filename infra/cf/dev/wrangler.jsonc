@@ -43,6 +43,10 @@
       {
         "binding": "SESSION_CONTROL_QUEUE",
         "queue": "talon-session-control"
+      },
+      {
+        "binding": "INDEX_EVENTS_QUEUE",
+        "queue": "talon-index-events"
       }
     ],
     "consumers": [
@@ -56,6 +60,10 @@
       },
       {
         "queue": "talon-session-control",
+        "max_batch_size": 10
+      },
+      {
+        "queue": "talon-index-events",
         "max_batch_size": 10
       }
     ]

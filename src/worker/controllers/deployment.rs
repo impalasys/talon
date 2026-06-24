@@ -574,7 +574,8 @@ impl DeploymentController {
                 schedule.status.clone().unwrap_or_default(),
             )),
         };
-        self.store
+        let patch_result = self
+            .store
             .patch_status(
                 namespace,
                 "Schedule",
@@ -582,7 +583,27 @@ impl DeploymentController {
                 expected_resource_version.as_deref(),
                 status,
             )
-            .await
+            .await;
+        match patch_result {
+            Ok(resource) => Ok(resource),
+            Err(err) => {
+                if let Some(handle) = schedule
+                    .status
+                    .as_ref()
+                    .and_then(|status| status.backend_handle.as_deref())
+                {
+                    if let Err(cancel_err) = cp.scheduler.cancel(handle).await {
+                        tracing::warn!(
+                            schedule = %schedule_name,
+                            handle,
+                            error = %cancel_err,
+                            "failed to cancel newly armed schedule after status patch failure"
+                        );
+                    }
+                }
+                Err(err)
+            }
+        }
     }
 }
 

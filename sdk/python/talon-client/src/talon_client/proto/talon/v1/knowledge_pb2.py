@@ -23,23 +23,24 @@ _sym_db = _symbol_database.Default()
 
 
 from talon_client.proto.data import data_pb2 as proto_dot_data_dot_data__pb2
+from talon_client.proto.talon.v1 import search_pb2 as proto_dot_talon_dot_v1_dot_search__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1eproto/talon/v1/knowledge.proto\x12\x08talon.v1\x1a\x15proto/data/data.proto\"L\n\x13GetKnowledgeRequest\x12\r\n\x05\x61gent\x18\x01 \x01(\t\x12\n\n\x02ns\x18\x02 \x01(\t\x12\x11\n\x04path\x18\x03 \x01(\tH\x00\x88\x01\x01\x42\x07\n\x05_path\";\n\x11KnowledgeResponse\x12&\n\x07modules\x18\x01 \x03(\x0b\x32\x15.talon.data.Knowledge\"B\n\x16SearchKnowledgeRequest\x12\r\n\x05\x61gent\x18\x01 \x01(\t\x12\n\n\x02ns\x18\x02 \x01(\t\x12\r\n\x05query\x18\x03 \x01(\t\"M\n\x17SearchKnowledgeResponse\x12\x32\n\x07results\x18\x01 \x03(\x0b\x32!.talon.data.KnowledgeSearchResult2\xa4\x01\n\x10KnowledgeService\x12\x41\n\x03Get\x12\x1d.talon.v1.GetKnowledgeRequest\x1a\x1b.talon.v1.KnowledgeResponse\x12M\n\x06Search\x12 .talon.v1.SearchKnowledgeRequest\x1a!.talon.v1.SearchKnowledgeResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1eproto/talon/v1/knowledge.proto\x12\x08talon.v1\x1a\x15proto/data/data.proto\x1a\x1bproto/talon/v1/search.proto\"L\n\x13GetKnowledgeRequest\x12\r\n\x05\x61gent\x18\x01 \x01(\t\x12\n\n\x02ns\x18\x02 \x01(\t\x12\x11\n\x04path\x18\x03 \x01(\tH\x00\x88\x01\x01\x42\x07\n\x05_path\";\n\x11KnowledgeResponse\x12&\n\x07modules\x18\x01 \x03(\x0b\x32\x15.talon.data.Knowledge\"\x99\x01\n\x16SearchKnowledgeRequest\x12\r\n\x05\x61gent\x18\x01 \x01(\t\x12\n\n\x02ns\x18\x02 \x01(\t\x12\r\n\x05query\x18\x03 \x01(\t\x12\r\n\x05limit\x18\x04 \x01(\x05\x12\"\n\x04mode\x18\x05 \x01(\x0e\x32\x14.talon.v1.SearchMode\x12\"\n\x04sort\x18\x06 \x01(\x0e\x32\x14.talon.v1.SearchSort\"\x96\x01\n\x17SearchKnowledgeResponse\x12\x32\n\x07results\x18\x01 \x03(\x0b\x32!.talon.data.KnowledgeSearchResult\x12.\n\x0esearch_results\x18\x02 \x03(\x0b\x32\x16.talon.v1.SearchResult\x12\x17\n\x0fnext_page_token\x18\x03 \x01(\t2\xa4\x01\n\x10KnowledgeService\x12\x41\n\x03Get\x12\x1d.talon.v1.GetKnowledgeRequest\x1a\x1b.talon.v1.KnowledgeResponse\x12M\n\x06Search\x12 .talon.v1.SearchKnowledgeRequest\x1a!.talon.v1.SearchKnowledgeResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.talon.v1.knowledge_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_GETKNOWLEDGEREQUEST']._serialized_start=67
-  _globals['_GETKNOWLEDGEREQUEST']._serialized_end=143
-  _globals['_KNOWLEDGERESPONSE']._serialized_start=145
-  _globals['_KNOWLEDGERESPONSE']._serialized_end=204
-  _globals['_SEARCHKNOWLEDGEREQUEST']._serialized_start=206
-  _globals['_SEARCHKNOWLEDGEREQUEST']._serialized_end=272
-  _globals['_SEARCHKNOWLEDGERESPONSE']._serialized_start=274
-  _globals['_SEARCHKNOWLEDGERESPONSE']._serialized_end=351
-  _globals['_KNOWLEDGESERVICE']._serialized_start=354
-  _globals['_KNOWLEDGESERVICE']._serialized_end=518
+  _globals['_GETKNOWLEDGEREQUEST']._serialized_start=96
+  _globals['_GETKNOWLEDGEREQUEST']._serialized_end=172
+  _globals['_KNOWLEDGERESPONSE']._serialized_start=174
+  _globals['_KNOWLEDGERESPONSE']._serialized_end=233
+  _globals['_SEARCHKNOWLEDGEREQUEST']._serialized_start=236
+  _globals['_SEARCHKNOWLEDGEREQUEST']._serialized_end=389
+  _globals['_SEARCHKNOWLEDGERESPONSE']._serialized_start=392
+  _globals['_SEARCHKNOWLEDGERESPONSE']._serialized_end=542
+  _globals['_KNOWLEDGESERVICE']._serialized_start=545
+  _globals['_KNOWLEDGESERVICE']._serialized_end=709
 # @@protoc_insertion_point(module_scope)

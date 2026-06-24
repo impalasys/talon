@@ -67,6 +67,7 @@ export type SelectionType =
   | 'session'
   | 'channel'
   | 'channel-subscription'
+  | 'workflow'
   | 'schedule'
   | 'template'
   | 'deployment'
@@ -187,6 +188,7 @@ const RESOURCE_KIND_BY_SELECTION: Partial<Record<SelectionType, string>> = {
   agent: 'Agent',
   channel: 'Channel',
   'channel-subscription': 'ChannelSubscription',
+  workflow: 'Workflow',
   schedule: 'Schedule',
   template: 'Template',
   deployment: 'Deployment',
@@ -610,6 +612,7 @@ function NamespaceNode({
     'knowledge',
     'mcp-binding',
     'channel-subscription',
+    'workflow',
     'template',
     'deployment-replica',
     'sandbox-class',
@@ -680,6 +683,7 @@ function NamespaceNode({
          {node.selection.type === 'session' && <MessageSquare className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-blue-500")} />}
          {node.selection.type === 'channel' && <Hash className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-cyan-400")} />}
          {node.selection.type === 'channel-subscription' && <Radio className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-cyan-300")} />}
+         {node.selection.type === 'workflow' && <Activity className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-purple-400")} />}
          {node.selection.type === 'schedule' && <Clock3 className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-amber-500")} />}
          {node.selection.type === 'template' && <FileText className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-emerald-400")} />}
          {node.selection.type === 'deployment' && <Layers3 className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-indigo-400")} />}

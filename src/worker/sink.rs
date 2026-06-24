@@ -686,6 +686,30 @@ impl PubSubSessionSink {
                 "Failed to persist durable message: {}",
                 e
             );
+            return;
+        }
+        self.publish_reply_index_event().await;
+    }
+
+    async fn publish_reply_index_event(&self) {
+        if let Err(error) = crate::control::search::publish_index_event(
+            self.pubsub.as_ref(),
+            crate::control::events::IndexEvent {
+                operation: crate::control::events::IndexOperation::Upsert as i32,
+                key: self.reply_msg_key.canonical(),
+                ..Default::default()
+            },
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %error,
+                namespace = %self.ns,
+                agent = %self.agent_id,
+                session_id = %self.session_id,
+                message_id = %self.reply_msg_id,
+                "failed to publish search index event for durable assistant message"
+            );
         }
     }
 
@@ -955,14 +979,17 @@ impl ExecutionSink for PubSubSessionSink {
                             .projection_labels(sessions::SESSION_PROJECTION_STATE_COMMITTED),
                         ..msg
                     };
-                    let _guard = self.persist_lock.lock().await;
-                    if let Err(err) = crate::control::ProtoKeyValueStoreExt::set_msg(
-                        self.kv.as_ref(),
-                        &self.reply_msg_key,
-                        &committed_msg,
-                    )
-                    .await
-                    {
+                    let commit_result = async {
+                        let _guard = self.persist_lock.lock().await;
+                        crate::control::ProtoKeyValueStoreExt::set_msg(
+                            self.kv.as_ref(),
+                            &self.reply_msg_key,
+                            &committed_msg,
+                        )
+                        .await
+                    }
+                    .await;
+                    if let Err(err) = commit_result {
                         tracing::error!(error = %err, "Failed to persist committed projection");
                         self.publish_event(AgentEvent::Error(
                             "Error: failed to persist committed assistant message".to_string(),
@@ -970,6 +997,7 @@ impl ExecutionSink for PubSubSessionSink {
                         .await;
                         return;
                     }
+                    self.publish_reply_index_event().await;
                     self.publish_event(AgentEvent::Done(reply_for_event)).await;
                 } else {
                     self.publish_event(AgentEvent::Error(
@@ -1026,6 +1054,7 @@ impl ExecutionSink for PubSubSessionSink {
             Ok(()) => {
                 self.mark_terminal(SessionSubmissionStatus::Failed as i32)
                     .await;
+                self.publish_reply_index_event().await;
                 self.publish_event(AgentEvent::Error(err.to_string())).await;
             }
             Err(e) => {
@@ -1051,7 +1080,9 @@ fn token_publish_interval() -> Duration {
 #[cfg(test)]
 mod tests {
     use super::{token_publish_interval, PubSubSessionSink};
-    use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
+    use crate::control::events::{
+        IndexEvent, SessionMessagePartEvent, SessionMessagePartEventKind,
+    };
     use crate::control::keys::{self, ResourceKey, ResourceList};
     use crate::control::{KeyValueStore, MessagePublisher};
     use crate::gateway::rpc::data_proto;
@@ -1132,15 +1163,42 @@ mod tests {
         events: Arc<Mutex<Vec<SessionMessagePartEvent>>>,
     }
 
+    #[derive(Default)]
+    struct RecordingPubSub {
+        published: Arc<Mutex<Vec<(String, Vec<u8>)>>>,
+    }
+
     fn event_part(event: &SessionMessagePartEvent) -> &data_proto::SessionMessagePart {
         event.part.as_ref().expect("event part")
     }
 
     #[async_trait]
     impl MessagePublisher for MockPubSub {
-        async fn publish(&self, _topic: &str, message: &[u8]) -> anyhow::Result<()> {
+        async fn publish(&self, topic: &str, message: &[u8]) -> anyhow::Result<()> {
+            if topic == crate::control::topics::INDEX_EVENTS_TOPIC {
+                return Ok(());
+            }
             let event = SessionMessagePartEvent::decode(message)?;
             self.events.lock().await.push(event);
+            Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            _topic: &str,
+        ) -> anyhow::Result<std::pin::Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>>
+        {
+            Ok(Box::pin(futures::stream::empty()))
+        }
+    }
+
+    #[async_trait]
+    impl MessagePublisher for RecordingPubSub {
+        async fn publish(&self, topic: &str, message: &[u8]) -> anyhow::Result<()> {
+            self.published
+                .lock()
+                .await
+                .push((topic.to_string(), message.to_vec()));
             Ok(())
         }
 
@@ -1225,6 +1283,48 @@ mod tests {
             .map(|part| part.content.as_str())
             .collect::<String>();
         assert_eq!(reply_text, "The answer is 12.");
+    }
+
+    #[tokio::test]
+    async fn final_assistant_message_publishes_search_index_event() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        crate::control::ProtoKeyValueStoreExt::set_msg(
+            kv.as_ref(),
+            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &submission,
+        )
+        .await
+        .unwrap();
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv,
+            pubsub.clone(),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        sink.on_done("assistant searchable reply").await;
+
+        let published = pubsub.published.lock().await.clone();
+        let index_event = published
+            .iter()
+            .find_map(|(topic, payload)| {
+                (topic == crate::control::topics::INDEX_EVENTS_TOPIC)
+                    .then(|| IndexEvent::decode(payload.as_slice()).ok())
+                    .flatten()
+            })
+            .expect("assistant reply should publish a search index event");
+        assert_eq!(index_event.key, reply_key().canonical());
     }
 
     #[tokio::test]

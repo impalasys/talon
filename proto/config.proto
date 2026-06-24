@@ -170,6 +170,7 @@ message ControlPlaneConfig {
   MessageBrokerConfig message_broker = 2;
   SchedulerConfig scheduler = 3;
   ObjectStoreConfig object_store = 4;
+  DatabaseConfig documents = 5;
 }
 
 message ServerConfig {
