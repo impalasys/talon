@@ -188,6 +188,18 @@ pub fn check_auth_for_operation(
     check_auth_header_for_operation(auth_header, auth_config, operation, ns, agent, session)
 }
 
+/// Verify and return bearer JWT claims for callers that need to derive an
+/// effective read scope from the token after normal authorization succeeds.
+///
+/// This helper is intentionally not an authorization check by itself. Use
+/// `check_auth_for_operation` or `check_channel_auth_for_operation` first, then
+/// call this when the caller needs claim details such as `talon:ns`, scoped
+/// agent/session/channel values, or `talon:grants`. Search uses this to narrow a
+/// broad query to the caller's authorized source filters before querying the
+/// `DocumentStore`.
+///
+/// Returns `Ok(None)` for non-JWT auth modes and for JWT mode's basic-password
+/// fallback, because there are no bearer JWT claims to inspect in those cases.
 pub fn jwt_claims_from_metadata(
     metadata: &MetadataMap,
     auth_config: &AuthConfig,
