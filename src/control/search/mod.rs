@@ -3,6 +3,7 @@
 
 pub mod d1;
 pub mod disabled;
+pub mod ephemeral;
 mod events;
 pub mod mapper;
 pub mod postgres;
@@ -17,12 +18,14 @@ use crate::gateway::rpc::{data_proto, proto};
 
 pub use d1::D1DocumentStore;
 pub use disabled::{disabled_document_store, DisabledDocumentStore};
+pub use ephemeral::{
+    ephemeral_document_store, ephemeral_document_store as memory_document_store,
+    EphemeralDocumentStore,
+};
 pub(crate) use events::publish_index_event;
 pub use postgres::PostgresDocumentStore;
 pub use sqlite::SqliteDocumentStore;
-pub use store::{
-    memory_document_store, DocumentStore, DocumentStoreCapabilities, MemoryDocumentStore,
-};
+pub use store::{DocumentStore, DocumentStoreCapabilities};
 
 pub const KIND_SESSION_MESSAGE: &str = "SessionMessage";
 pub const KIND_KNOWLEDGE: &str = "Knowledge";
@@ -237,24 +240,6 @@ pub(crate) fn delete_matches(scope: &DeleteScope, document: &Document) -> bool {
     true
 }
 
-pub(crate) fn score_document(query: &str, document: &Document) -> f32 {
-    let document_ref = document.r#ref.as_ref().expect("document ref is required");
-    let terms = query_terms(query);
-    if terms.is_empty() {
-        return 1.0;
-    }
-    let title = document_ref.title.to_lowercase();
-    let text = document.text.to_lowercase();
-    let mut score = 0.0;
-    for term in terms {
-        if title.contains(&term) {
-            score += 3.0;
-        }
-        score += text.matches(&term).count() as f32;
-    }
-    score.max(0.1)
-}
-
 pub(crate) fn query_terms(query: &str) -> Vec<String> {
     query
         .split(|ch: char| !ch.is_alphanumeric())
@@ -381,8 +366,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn memory_document_store_searches_and_deletes_documents() {
-        let backend = memory_document_store();
+    async fn ephemeral_document_store_searches_and_deletes_documents() {
+        let backend = ephemeral_document_store();
         let mut document = test_document(
             "doc-1".to_string(),
             document_source(
@@ -456,8 +441,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn memory_document_store_paginates_and_respects_delete_generation() {
-        let backend = memory_document_store();
+    async fn ephemeral_document_store_paginates_and_respects_delete_generation() {
+        let backend = ephemeral_document_store();
         let documents = (0..3)
             .map(|index| {
                 let mut document = test_document(
@@ -536,8 +521,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn memory_document_store_rejects_vector_modes_without_capability() {
-        let backend = memory_document_store();
+    async fn ephemeral_document_store_rejects_vector_modes_without_capability() {
+        let backend = ephemeral_document_store();
         let error = backend
             .search(&proto::SearchRequest {
                 query: "refund".to_string(),
