@@ -500,19 +500,19 @@ pub fn workflow_run_event_prefix(namespace: &str, workflow: &str, run_id: &str) 
 }
 
 pub fn mcp_server(name: &str) -> ResourceKey {
-    resource_key(ns::TALON_SYSTEM, &[], "MCPServer", name)
+    resource_key(ns::TALON_SYSTEM, &[], "McpServer", name)
 }
 
 pub fn mcp_server_prefix() -> ResourceList {
-    direct_child_prefix(ns::TALON_SYSTEM, &[], Some("MCPServer"))
+    direct_child_prefix(ns::TALON_SYSTEM, &[], Some("McpServer"))
 }
 
 pub fn mcp_server_binding(namespace: &str, name: &str) -> ResourceKey {
-    resource_key(namespace, &[], "MCPServerBinding", name)
+    resource_key(namespace, &[], "McpServerBinding", name)
 }
 
 pub fn mcp_server_binding_prefix(namespace: &str) -> ResourceList {
-    direct_child_prefix(namespace, &[], Some("MCPServerBinding"))
+    direct_child_prefix(namespace, &[], Some("McpServerBinding"))
 }
 
 pub fn agent_memory(namespace: &str, agent: &str, path: &str) -> ResourceKey {
@@ -632,6 +632,26 @@ mod tests {
                 &knowledge("quickstart", "docs/hello world.md")
             ),
             Some("docs/hello world.md".to_string())
+        );
+    }
+
+    #[test]
+    fn mcp_keys_use_resource_store_kinds() {
+        assert_eq!(
+            mcp_server("conic").canonical(),
+            "@Namespace/Sys/@/McpServer/conic"
+        );
+        assert_eq!(
+            mcp_server_prefix().canonical_prefix(),
+            "@Namespace/Sys/@/McpServer/"
+        );
+        assert_eq!(
+            mcp_server_binding("Conic:Customers:13", "conic").canonical(),
+            "@Namespace/Conic:Customers:13/@/McpServerBinding/conic"
+        );
+        assert_eq!(
+            mcp_server_binding_prefix("Conic:Customers:13").canonical_prefix(),
+            "@Namespace/Conic:Customers:13/@/McpServerBinding/"
         );
     }
 
