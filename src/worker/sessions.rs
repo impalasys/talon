@@ -22,7 +22,26 @@ use tracing::Instrument;
 
 const MAX_SESSION_RELEASE_CAS_RETRIES: usize = 8;
 const SESSION_RELEASE_CAS_BACKOFF_MS: u64 = 10;
-const FANOUT_SUBSCRIBER_GRACE_MS: u64 = 500;
+const DEFAULT_FANOUT_SUBSCRIBER_GRACE_MS: u64 = 100;
+
+fn fanout_subscriber_grace() -> std::time::Duration {
+    let millis = match std::env::var("TALON_WORKER_FANOUT_SUBSCRIBER_GRACE_MS") {
+        Ok(raw) => match raw.trim().parse::<u64>() {
+            Ok(value) => value,
+            Err(error) => {
+                tracing::warn!(
+                    value = %raw,
+                    error = %error,
+                    default_ms = DEFAULT_FANOUT_SUBSCRIBER_GRACE_MS,
+                    "Ignoring invalid TALON_WORKER_FANOUT_SUBSCRIBER_GRACE_MS"
+                );
+                DEFAULT_FANOUT_SUBSCRIBER_GRACE_MS
+            }
+        },
+        Err(_) => DEFAULT_FANOUT_SUBSCRIBER_GRACE_MS,
+    };
+    std::time::Duration::from_millis(millis)
+}
 
 async fn execute_with_panic_boundary<F>(
     future: F,
@@ -377,10 +396,7 @@ impl WorkerEventHandler {
             .create_session_attempt(fanout_key.clone())
             .await;
         self.fanout_hub
-            .wait_for_subscriber(
-                &fanout_key,
-                std::time::Duration::from_millis(FANOUT_SUBSCRIBER_GRACE_MS),
-            )
+            .wait_for_subscriber(&fanout_key, fanout_subscriber_grace())
             .await;
 
         // Build the deterministic assistant reply sink. The sink owns live UI

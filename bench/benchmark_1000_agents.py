@@ -504,6 +504,7 @@ services:
       PORT: "8081"
       TALON_TOKEN_BATCH_MS: "10000"
       TALON_WORKER_SESSION_CONCURRENCY: "{worker_concurrency}"
+      TALON_WORKER_FANOUT_SUBSCRIBER_GRACE_MS: "500"
       TALON_LOCAL_SOCKET_SUBSCRIBER_BUFFER_SIZE: "{local_socket_buffer_size}"
       TALON_SQLITE_MAX_CONNECTIONS: "{sqlite_pool_size}"
       TALON_SQLITE_BUSY_TIMEOUT_MS: "{sqlite_busy_timeout_ms}"
