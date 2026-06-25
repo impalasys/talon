@@ -44,6 +44,11 @@ message SessionSubmission {
   // workers cannot move the submission pointer backward.
   string attempt_id = 5;
 
+  // Worker that owns the current claim. Gateways use this to connect to the
+  // exact worker process that can stream in-process session parts for the
+  // attempt.
+  string claim_worker_id = 14;
+
   // Number of successful claims/reclaims for this submission.
   uint32 attempt_count = 6;
 

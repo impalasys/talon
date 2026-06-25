@@ -11,6 +11,7 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
+use futures::StreamExt;
 use serde_json::{json, Value};
 use tonic::Code;
 use uuid::Uuid;
@@ -24,6 +25,7 @@ use crate::control::{
 use crate::gateway::auth::{self, AuthConfig};
 use crate::gateway::rpc::data_proto;
 use crate::gateway::server::Gateway;
+use crate::gateway::session_streams::SessionStreamTarget;
 
 use super::card::{
     agent_card_json, external_host_from_headers, resolve_agent_card_route, scheme_from_headers,
@@ -160,21 +162,6 @@ async fn stream_message(
         return response;
     }
 
-    let mut receiver = match gateway
-        .session_streams
-        .subscribe(&route.ns, &route.agent, &context_id)
-        .await
-    {
-        Ok(receiver) => receiver,
-        Err(err) => {
-            tracing::error!(%err, "Failed to subscribe to A2A stream");
-            return a2a_error(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "failed to subscribe to task stream",
-            );
-        }
-    };
-
     if let Err(err) = scheduling::send_session_message(
         gateway.kv.as_ref(),
         gateway.pubsub.as_ref(),
@@ -188,6 +175,16 @@ async fn stream_message(
     {
         return scheduling_error_response(err);
     }
+
+    let mut receiver = crate::gateway::rpc::sessions::watcher::session_parts_event_stream(
+        vec![SessionStreamTarget::new(
+            route.ns.clone(),
+            route.agent.clone(),
+            context_id.clone(),
+        )],
+        gateway.kv.clone(),
+        gateway.pubsub.clone(),
+    );
 
     let stream_gateway = gateway.clone();
     let stream_route = route.clone();
@@ -246,7 +243,7 @@ async fn stream_message(
                     })));
                     return;
                 }
-                event_result = receiver.recv() => {
+                event_result = receiver.next() => {
                     timeout.as_mut().reset(tokio::time::Instant::now() + A2A_STREAM_IDLE_TIMEOUT);
                     let Some(event_result) = event_result else {
                         break;

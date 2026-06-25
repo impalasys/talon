@@ -11,6 +11,7 @@ use prost::Message;
 use std::sync::Arc;
 
 pub mod controllers;
+pub mod fanout;
 pub mod mcp_registry;
 pub mod registration;
 pub mod runtime;
@@ -28,6 +29,8 @@ pub struct WorkerEventHandler {
     pub config: Arc<Config>,
     pub mcp_registry: Arc<mcp_registry::McpRegistry>,
     pub scheduler_authenticator: Arc<scheduler_auth::SchedulerRequestAuthenticator>,
+    pub worker_id: String,
+    pub fanout_hub: Arc<fanout::FanoutHub>,
     pub session_cancellations: Arc<
         tokio::sync::Mutex<std::collections::HashMap<String, tokio_util::sync::CancellationToken>>,
     >,
@@ -467,6 +470,8 @@ mod tests {
             config: Arc::new(Config::default()),
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
+            worker_id: "test-worker".to_string(),
+            fanout_hub: Arc::new(crate::worker::fanout::FanoutHub::new()),
             session_cancellations: Arc::new(Mutex::new(HashMap::new())),
         }
     }

@@ -67,6 +67,8 @@ services:
       TALON_SCHEDULER_DRIVER: cf_alarms
       TALON_SCHEDULER_AUTH_TOKEN: cloudflare-local-scheduler-token
       MOCK_LLM_API_KEY: local-cloudflare-e2e
+      TALON_WORKER_ENDPOINT_URL: http://worker:8081
+      TALON_WORKER_ENDPOINT_PROTOCOL: grpc
     volumes:
       - ../../..:/repo:ro
     depends_on:

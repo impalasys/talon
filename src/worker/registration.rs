@@ -4,8 +4,10 @@
 use crate::control::{ns, ControlPlane};
 use crate::gateway::rpc::resources_proto;
 use anyhow::{Context, Result};
+use serde_json::Value;
 use std::sync::{Arc, OnceLock};
 use tokio_util::sync::CancellationToken;
+use url::Url;
 
 pub const HEARTBEAT_INTERVAL: std::time::Duration = std::time::Duration::from_secs(10);
 pub const HEARTBEAT_TTL: chrono::Duration = chrono::Duration::seconds(30);
@@ -17,6 +19,7 @@ pub struct WorkerRegistration {
     pub worker_id: String,
     pub started_at: i64,
     pub version: String,
+    pub endpoints: Vec<resources_proto::WorkerEndpoint>,
 }
 
 impl WorkerRegistration {
@@ -25,7 +28,13 @@ impl WorkerRegistration {
             worker_id: worker_id.into(),
             started_at: chrono::Utc::now().timestamp_micros(),
             version: version.into(),
+            endpoints: Vec::new(),
         }
+    }
+
+    pub fn with_endpoints(mut self, endpoints: Vec<resources_proto::WorkerEndpoint>) -> Self {
+        self.endpoints = endpoints;
+        self
     }
 }
 
@@ -97,8 +106,100 @@ pub fn worker_status(
         heartbeat_at: now.timestamp_micros(),
         expires_at: (now + HEARTBEAT_TTL).timestamp_micros(),
         version: registration.version.clone(),
-        endpoints: Vec::new(),
+        endpoints: if phase == "ready" {
+            registration.endpoints.clone()
+        } else {
+            Vec::new()
+        },
     }
+}
+
+pub async fn discover_worker_endpoints<F>(
+    get: F,
+    port: &str,
+) -> Vec<resources_proto::WorkerEndpoint>
+where
+    F: Fn(&str) -> Option<String>,
+{
+    if let Some(endpoint) = explicit_worker_endpoint(&get) {
+        return vec![endpoint];
+    }
+
+    if let Some(endpoint) = ecs_worker_endpoint(&get, port).await {
+        return vec![endpoint];
+    }
+
+    Vec::new()
+}
+
+fn explicit_worker_endpoint<F>(get: &F) -> Option<resources_proto::WorkerEndpoint>
+where
+    F: Fn(&str) -> Option<String>,
+{
+    [
+        "TALON_WORKER_ENDPOINT_URL",
+        "TALON_WORKER_PUBLIC_URL",
+        "TALON_WORKER_URL",
+        "CLOUD_RUN_SERVICE_URL",
+    ]
+    .into_iter()
+    .find_map(|name| get(name))
+    .and_then(|url| worker_endpoint_from_url(&url, get))
+}
+
+fn worker_endpoint_from_url<F>(raw_url: &str, get: &F) -> Option<resources_proto::WorkerEndpoint>
+where
+    F: Fn(&str) -> Option<String>,
+{
+    let url = raw_url.trim().trim_end_matches('/');
+    if url.is_empty() || Url::parse(url).is_err() {
+        return None;
+    }
+    Some(resources_proto::WorkerEndpoint {
+        url: url.to_string(),
+        protocol: get("TALON_WORKER_ENDPOINT_PROTOCOL")
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or_else(|| "http".to_string()),
+        audience: get("TALON_WORKER_ENDPOINT_AUDIENCE").unwrap_or_default(),
+    })
+}
+
+async fn ecs_worker_endpoint<F>(get: &F, port: &str) -> Option<resources_proto::WorkerEndpoint>
+where
+    F: Fn(&str) -> Option<String>,
+{
+    let metadata_uri = get("ECS_CONTAINER_METADATA_URI_V4")?;
+    let metadata = fetch_json_metadata(&metadata_uri).await?;
+    let address = first_ecs_ipv4_address(&metadata)?;
+    worker_endpoint_from_url(&format!("http://{}:{}", address, port), get)
+}
+
+async fn fetch_json_metadata(url: &str) -> Option<Value> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_millis(750))
+        .build()
+        .ok()?;
+    let response = client.get(url).send().await.ok()?;
+    if !response.status().is_success() {
+        return None;
+    }
+    response.json::<Value>().await.ok()
+}
+
+fn first_ecs_ipv4_address(metadata: &Value) -> Option<&str> {
+    metadata
+        .get("Networks")?
+        .as_array()?
+        .iter()
+        .flat_map(|network| {
+            network
+                .get("IPv4Addresses")
+                .and_then(|addresses| addresses.as_array())
+                .into_iter()
+                .flatten()
+        })
+        .filter_map(|address| address.as_str())
+        .find(|address| !address.trim().is_empty())
 }
 
 pub fn worker_is_live(status: &resources_proto::WorkerStatus, now_micros: i64) -> bool {
@@ -209,12 +310,65 @@ mod tests {
 
     #[test]
     fn draining_status_clears_endpoints() {
-        let registration = WorkerRegistration::new("worker-a", "1.2.3");
+        let registration = WorkerRegistration::new("worker-a", "1.2.3").with_endpoints(vec![
+            resources_proto::WorkerEndpoint {
+                url: "https://worker.example.com".to_string(),
+                protocol: "http".to_string(),
+                audience: "talon".to_string(),
+            },
+        ]);
         let ready = worker_status(&registration, "ready");
-        assert!(ready.endpoints.is_empty());
+        assert_eq!(ready.endpoints.len(), 1);
         let draining = worker_status(&registration, "draining");
         assert_eq!(draining.phase, "draining");
         assert!(draining.endpoints.is_empty());
+    }
+
+    #[tokio::test]
+    async fn worker_endpoint_discovery_prefers_explicit_url() {
+        let endpoints = discover_worker_endpoints(
+            |name| match name {
+                "TALON_WORKER_ENDPOINT_URL" => Some("https://worker.example.com/".to_string()),
+                "TALON_WORKER_ENDPOINT_AUDIENCE" => Some("scheduler".to_string()),
+                _ => None,
+            },
+            "8081",
+        )
+        .await;
+
+        assert_eq!(endpoints.len(), 1);
+        assert_eq!(endpoints[0].url, "https://worker.example.com");
+        assert_eq!(endpoints[0].protocol, "http");
+        assert_eq!(endpoints[0].audience, "scheduler");
+    }
+
+    #[tokio::test]
+    async fn worker_endpoint_discovery_ignores_cloud_run_worker_pool_without_url() {
+        let endpoints = discover_worker_endpoints(
+            |name| match name {
+                "K_CONFIGURATION" => Some("worker-pool-a".to_string()),
+                "K_REVISION" => Some("worker-pool-a-00001".to_string()),
+                _ => None,
+            },
+            "8081",
+        )
+        .await;
+
+        assert!(endpoints.is_empty());
+    }
+
+    #[test]
+    fn first_ecs_ipv4_address_reads_container_metadata() {
+        let metadata = serde_json::json!({
+            "Networks": [
+                {
+                    "NetworkMode": "awsvpc",
+                    "IPv4Addresses": ["10.0.12.34"]
+                }
+            ]
+        });
+
+        assert_eq!(first_ecs_ipv4_address(&metadata), Some("10.0.12.34"));
     }
 
     #[tokio::test]

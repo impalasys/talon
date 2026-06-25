@@ -92,7 +92,7 @@ function gatewayContainerStartProfile(env: Env): ContainerStartProfile {
   };
 }
 
-function workerContainerStartProfile(env: Env): ContainerStartProfile {
+function workerContainerStartProfile(env: Env, instance: string): ContainerStartProfile {
   return {
     ports: WORKER_CONTAINER_PORTS,
     startOptions: {
@@ -101,6 +101,8 @@ function workerContainerStartProfile(env: Env): ContainerStartProfile {
       envVars: {
         ...forwardedWorkerEnv(env),
         PORT: "8081",
+        TALON_CLOUDFLARE_CONTAINER_NAME: instance,
+        TALON_WORKER_ENDPOINT_URL: workerContainerInternalUrl(instance),
         ...(env.TALON_CONFIG_INLINE_YAML ? { TALON_CONFIG_INLINE_YAML: env.TALON_CONFIG_INLINE_YAML } : {}),
         TALON_SCHEDULER_DRIVER: "cf_alarms",
         ...(env.TALON_SCHEDULER_AUTH_TOKEN ? { TALON_SCHEDULER_AUTH_TOKEN: env.TALON_SCHEDULER_AUTH_TOKEN } : {}),
@@ -147,23 +149,46 @@ function instanceName(prefix: string, count: number, key?: string): string {
 
 function containerFor(
   namespace: WorkerContainerNamespace,
-  prefix: string,
-  count: number,
-  key?: string,
+  name: string,
 ): DurableObjectStub<Container<Env>> {
-  return namespace.get(namespace.idFromName(instanceName(prefix, count, key)));
+  return namespace.get(namespace.idFromName(name));
 }
 
 function gatewayContainer(env: Env, key?: string) {
-  return containerFor(env.GATEWAY_CONTAINER, "gateway", configuredCount(env.TALON_GATEWAY_CONTAINER_COUNT), key);
+  return containerFor(env.GATEWAY_CONTAINER, instanceName("gateway", configuredCount(env.TALON_GATEWAY_CONTAINER_COUNT), key));
+}
+
+function workerContainerName(env: Env, key?: string): string {
+  return instanceName("worker", configuredCount(env.TALON_WORKER_CONTAINER_COUNT), key);
+}
+
+function workerContainerByName(env: Env, name: string) {
+  return containerFor(env.WORKER_CONTAINER, name);
+}
+
+function workerContainerRef(env: Env, key?: string): { name: string; container: DurableObjectStub<Container<Env>> } {
+  const name = workerContainerName(env, key);
+  return { name, container: workerContainerByName(env, name) };
 }
 
 function workerContainer(env: Env, key?: string) {
-  return containerFor(env.WORKER_CONTAINER, "worker", configuredCount(env.TALON_WORKER_CONTAINER_COUNT), key);
+  return workerContainerRef(env, key).container;
 }
 
 function externalContainersEnabled(env: Env): boolean {
   return env.TALON_CF_DEV_EXTERNAL_CONTAINERS === "true";
+}
+
+function workerContainerInternalUrl(instance: string): string {
+  return `http://${instance}.worker.internal`;
+}
+
+function workerInstanceFromHost(hostname: string): string | undefined {
+  const suffix = ".worker.internal";
+  if (!hostname.endsWith(suffix)) return undefined;
+  const instance = hostname.slice(0, -suffix.length);
+  if (instance === "default" || /^worker-\d+$/.test(instance)) return instance;
+  return undefined;
 }
 
 function requestToOrigin(request: Request, origin: string): Request {
@@ -250,6 +275,14 @@ async function fetchGateway(env: Env, request: Request): Promise<Response> {
   );
 }
 
+async function fetchWorkerInstance(env: Env, instance: string, request: Request): Promise<Response> {
+  return fetchStartedContainer(
+    workerContainerByName(env, instance),
+    switchPort(request, WORKER_CONTAINER_PORTS[0]),
+    workerContainerStartProfile(env, instance),
+  );
+}
+
 const CORS_ALLOW_METHODS = "GET,PUT,DELETE,POST,OPTIONS";
 const CORS_ALLOW_HEADERS =
   "keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout,connect-protocol-version,connect-timeout-ms,authorization";
@@ -279,7 +312,7 @@ function withCors(response: Response, request: Request): Response {
   });
 }
 
-const outboundByHost = {
+const outboundByHost: Record<string, (request: Request, env: Env) => Promise<Response> | Response> = {
   "talon-d1.internal": (request: Request, env: Env) => handleD1(request, env),
   "talon-r2.internal": (request: Request, env: Env) => handleR2(request, env),
   "talon-queues.internal": (request: Request, env: Env) => handleQueues(request, env),
@@ -300,6 +333,11 @@ const outboundByHost = {
     );
   },
 };
+
+for (const instance of ["default", ...Array.from({ length: 128 }, (_, index) => `worker-${index}`)]) {
+  outboundByHost[`${instance}.worker.internal`] = (request: Request, env: Env) =>
+    fetchWorkerInstance(env, instance, request);
+}
 
 export class GatewayContainer extends Container<Env> {
   defaultPort = 50051;
@@ -333,6 +371,10 @@ export default {
     const outboundHandler = outboundByHost[url.hostname as keyof typeof outboundByHost];
     if (outboundHandler) {
       return withCors(await outboundHandler(request, env), request);
+    }
+    const workerInstance = workerInstanceFromHost(url.hostname);
+    if (workerInstance) {
+      return withCors(await fetchWorkerInstance(env, workerInstance, request), request);
     }
 
     if (url.pathname === "/healthz") {
@@ -368,16 +410,19 @@ export default {
           new Request("https://talon-health.internal/"),
           gatewayContainerStartProfile(env),
         ),
-        containerReady(
-          "worker",
-          workerContainer(env),
-          new Request("https://talon-health.internal/cloudflare/queues/dispatch", {
-            method: "POST",
-            headers: TEXT_JSON,
-            body: "{}",
-          }),
-          workerContainerStartProfile(env),
-        ),
+        (() => {
+          const worker = workerContainerRef(env);
+          return containerReady(
+            "worker",
+            worker.container,
+            new Request("https://talon-health.internal/cloudflare/queues/dispatch", {
+              method: "POST",
+              headers: TEXT_JSON,
+              body: "{}",
+            }),
+            workerContainerStartProfile(env, worker.name),
+          );
+        })(),
       ]);
       const ok = gateway.ready && worker.ready;
       return withCors(
@@ -415,13 +460,13 @@ export default {
       if (externalContainersEnabled(env)) {
         return fetcherForOrigin(env.TALON_CF_DEV_WORKER_URL ?? "http://worker:8081");
       }
-      const container = workerContainer(env, message.id);
+      const { name, container } = workerContainerRef(env, message.id);
       return {
         fetch(input: RequestInfo | URL, init?: RequestInit) {
           return fetchStartedContainer(
             container,
             new Request(input, init),
-            workerContainerStartProfile(env),
+            workerContainerStartProfile(env, name),
           );
         },
       };

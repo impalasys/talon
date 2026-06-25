@@ -298,6 +298,7 @@ impl WorkerEventHandler {
             &event.session_id,
             submission_id,
             &event.message_id,
+            &self.worker_id,
             now_micros,
             crate::control::scheduling::session_processing_timeout_micros(),
         )
@@ -364,12 +365,24 @@ impl WorkerEventHandler {
             &event.session_id,
             &reply_msg_id,
         );
+        let fanout_key = crate::worker::fanout::SessionFanoutKey::new(
+            event.ns.clone(),
+            event.agent.clone(),
+            event.session_id.clone(),
+            submission.submission_id.clone(),
+            submission.attempt_id.clone(),
+        );
+        self.fanout_hub
+            .create_session_attempt(fanout_key.clone())
+            .await;
 
         // Build the deterministic assistant reply sink. The sink owns live UI
         // fanout plus mutable SessionMessage projection writes for this attempt.
-        let sink = PubSubSessionSink::new(
+        let sink = PubSubSessionSink::new_with_fanout(
             self.cp.kv.clone(),
             self.cp.pubsub.clone(),
+            self.fanout_hub.clone(),
+            fanout_key,
             event.ns.clone(),
             event.session_id.clone(),
             event.agent.clone(),
@@ -1067,6 +1080,8 @@ mod tests {
             config: Arc::new(config),
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
+            worker_id: "test-worker".to_string(),
+            fanout_hub: Arc::new(crate::worker::fanout::FanoutHub::new()),
             session_cancellations: Arc::new(AsyncMutex::new(HashMap::new())),
         }
     }

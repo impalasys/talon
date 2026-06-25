@@ -141,6 +141,11 @@ def start_talon_server_and_worker(env, grpc_port, worker_pull_mode=False):
     worker_env = env.copy()
     if worker_pull_mode:
         worker_env["PULL_MODE"] = "1"
+    worker_env.setdefault(
+        "TALON_WORKER_ENDPOINT_URL",
+        f"http://127.0.0.1:{worker_env.get('PORT', '8081')}",
+    )
+    worker_env.setdefault("TALON_WORKER_ENDPOINT_PROTOCOL", "grpc")
 
     worker_proc = subprocess.Popen(
         [worker_bin],

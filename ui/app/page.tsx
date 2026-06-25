@@ -1125,6 +1125,12 @@ function DebuggerPageContent() {
   useEffect(() => {
     if (!storageHydrated) return;
 
+    const wantsConnected = searchParams.get('connected') === 'true';
+    const queryHasSelection = searchParams.has('ns');
+    if ((wantsConnected && !isConnected) || (queryHasSelection && !selectedNamespace)) {
+      return;
+    }
+
     const nextQuery = buildSearchParams(isConnected, selectedNamespace, searchParams).toString();
     if (nextQuery === lastSyncedQueryRef.current) return;
 

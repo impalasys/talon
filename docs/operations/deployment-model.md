@@ -17,6 +17,18 @@ The runtime is centered on:
 - the worker
 - the control plane backing services
 
+## Worker endpoint registration
+
+Workers publish a `Worker` resource in the Talon system namespace and refresh its status on a heartbeat. When the worker has an address that another Talon component can call, it includes that address in `status.endpoints`.
+
+Endpoint discovery is override-first. Set `TALON_WORKER_ENDPOINT_URL` only when it names the specific worker instance that is registering. Optional `TALON_WORKER_ENDPOINT_AUDIENCE` and `TALON_WORKER_ENDPOINT_PROTOCOL` values are copied into the registered endpoint.
+
+Platform behavior:
+
+- AWS ECS tasks with `ECS_CONTAINER_METADATA_URI_V4` register the task's first IPv4 address and the worker `PORT`.
+- Cloudflare Containers receive a per-instance internal endpoint from the Worker wrapper, such as `http://default.worker.internal` or `http://worker-7.worker.internal`.
+- Cloud Run worker pools do not have a load-balanced endpoint. Use `TALON_WORKER_ENDPOINT_URL` only when you intentionally front the worker with another reachable service.
+
 ## Local deployment shape
 
 The local stack in this repo uses Docker Compose to start:

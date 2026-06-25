@@ -32,6 +32,9 @@ pub mod generated {
     pub mod proto {
         tonic::include_proto!("talon.v1");
     }
+    pub mod worker_proto {
+        tonic::include_proto!("talon.worker.v1");
+    }
 }
 
 #[cfg(feature = "bazel")]
@@ -47,6 +50,9 @@ pub mod generated {
     }
     pub mod proto {
         pub use talon_api_proto::talon::v1::*;
+    }
+    pub mod worker_proto {
+        pub use talon_api_proto::talon::worker::v1::*;
     }
 }
 
@@ -64,6 +70,10 @@ pub mod harness_proto {
 
 pub mod resources_proto {
     pub use super::generated::resources::*;
+}
+
+pub mod worker_proto {
+    pub use super::generated::worker_proto::*;
 }
 
 pub mod manifests {

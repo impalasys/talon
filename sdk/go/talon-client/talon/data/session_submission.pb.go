@@ -101,6 +101,10 @@ type SessionSubmission struct {
 	// Current lease owner. Journal appends are fenced by this value so stale
 	// workers cannot move the submission pointer backward.
 	AttemptId string `protobuf:"bytes,5,opt,name=attempt_id,json=attemptId,proto3" json:"attempt_id,omitempty"`
+	// Worker that owns the current claim. Gateways use this to connect to the
+	// exact worker process that can stream in-process session parts for the
+	// attempt.
+	ClaimWorkerId string `protobuf:"bytes,14,opt,name=claim_worker_id,json=claimWorkerId,proto3" json:"claim_worker_id,omitempty"`
 	// Number of successful claims/reclaims for this submission.
 	AttemptCount uint32 `protobuf:"varint,6,opt,name=attempt_count,json=attemptCount,proto3" json:"attempt_count,omitempty"`
 	// Lease expiration for the current claim. Cleared when the submission becomes
@@ -193,6 +197,13 @@ func (x *SessionSubmission) GetAttemptId() string {
 	return ""
 }
 
+func (x *SessionSubmission) GetClaimWorkerId() string {
+	if x != nil {
+		return x.ClaimWorkerId
+	}
+	return ""
+}
+
 func (x *SessionSubmission) GetAttemptCount() uint32 {
 	if x != nil {
 		return x.AttemptCount
@@ -254,7 +265,7 @@ var File_proto_data_session_submission_proto protoreflect.FileDescriptor
 const file_proto_data_session_submission_proto_rawDesc = "" +
 	"\n" +
 	"#proto/data/session_submission.proto\x12\n" +
-	"talon.data\x1a&proto/data/session_journal_entry.proto\"\xae\x05\n" +
+	"talon.data\x1a&proto/data/session_journal_entry.proto\"\xd6\x05\n" +
 	"\x11SessionSubmission\x12#\n" +
 	"\rsubmission_id\x18\x01 \x01(\tR\fsubmissionId\x12\x1d\n" +
 	"\n" +
@@ -262,7 +273,8 @@ const file_proto_data_session_submission_proto_rawDesc = "" +
 	"\x0fuser_message_id\x18\x03 \x01(\tR\ruserMessageId\x12;\n" +
 	"\x06status\x18\x04 \x01(\x0e2#.talon.data.SessionSubmissionStatusR\x06status\x12\x1d\n" +
 	"\n" +
-	"attempt_id\x18\x05 \x01(\tR\tattemptId\x12#\n" +
+	"attempt_id\x18\x05 \x01(\tR\tattemptId\x12&\n" +
+	"\x0fclaim_worker_id\x18\x0e \x01(\tR\rclaimWorkerId\x12#\n" +
 	"\rattempt_count\x18\x06 \x01(\rR\fattemptCount\x12-\n" +
 	"\x10claim_expires_at\x18\a \x01(\x03H\x00R\x0eclaimExpiresAt\x88\x01\x01\x12\x1d\n" +
 	"\n" +

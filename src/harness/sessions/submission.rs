@@ -35,6 +35,7 @@ pub fn pending_submission(
         user_message_id: user_message_id.into(),
         status: SessionSubmissionStatus::Pending as i32,
         attempt_id: String::new(),
+        claim_worker_id: String::new(),
         attempt_count: 0,
         claim_expires_at: None,
         created_at: now_micros,
@@ -80,6 +81,7 @@ pub async fn claim_submission(
     session_id: &str,
     submission_id: &str,
     user_message_id: &str,
+    worker_id: &str,
     now_micros: i64,
     claim_ttl_micros: i64,
 ) -> Result<ClaimOutcome> {
@@ -105,6 +107,7 @@ pub async fn claim_submission(
 
         submission.status = SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = uuid::Uuid::now_v7().to_string();
+        submission.claim_worker_id = worker_id.to_string();
         submission.attempt_count = submission.attempt_count.saturating_add(1);
         submission.claim_expires_at = Some(now_micros.saturating_add(claim_ttl_micros));
         submission.updated_at = now_micros;
@@ -272,4 +275,32 @@ pub(super) async fn update_submission_from_entry(
 
 fn journal_entry_order(journal_entry_id: &str) -> u64 {
     journal_entry_id.parse::<u64>().unwrap_or(0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_support::MockKvStore;
+
+    #[tokio::test]
+    async fn claim_submission_records_claim_worker_id() {
+        let kv = MockKvStore::default();
+        let outcome = claim_submission(
+            &kv,
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "user-1",
+            "worker-1",
+            1_000,
+            10_000,
+        )
+        .await
+        .unwrap();
+        let ClaimOutcome::Claimed(submission) = outcome else {
+            panic!("expected claim");
+        };
+        assert_eq!(submission.claim_worker_id, "worker-1");
+    }
 }

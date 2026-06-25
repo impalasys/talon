@@ -452,6 +452,11 @@ pub struct SessionSubmission {
     /// workers cannot move the submission pointer backward.
     #[prost(string, tag = "5")]
     pub attempt_id: ::prost::alloc::string::String,
+    /// Worker that owns the current claim. Gateways use this to connect to the
+    /// exact worker process that can stream in-process session parts for the
+    /// attempt.
+    #[prost(string, tag = "14")]
+    pub claim_worker_id: ::prost::alloc::string::String,
     /// Number of successful claims/reclaims for this submission.
     #[prost(uint32, tag = "6")]
     pub attempt_count: u32,

@@ -167,7 +167,7 @@ class DurableSessionKvProbe:
                 (
                     "Sys",
                     "",
-                    "MCPServer",
+                    "McpServer",
                     BLOCKING_MCP_SERVER,
                     server.SerializeToString(),
                 ),

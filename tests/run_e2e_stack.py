@@ -174,6 +174,8 @@ control_plane:
     time.sleep(3)
     env_worker = env.copy()
     env_worker["PULL_MODE"] = "1"
+    env_worker["TALON_WORKER_ENDPOINT_URL"] = "http://127.0.0.1:8081"
+    env_worker["TALON_WORKER_ENDPOINT_PROTOCOL"] = "grpc"
     worker_proc = subprocess.Popen([worker_bin], env=env_worker, stdout=sys.stdout, stderr=sys.stderr)
 
     print("--- E2E STACK READY ---")

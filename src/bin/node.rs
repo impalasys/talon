@@ -58,6 +58,8 @@ fn worker_handler(
         config,
         mcp_registry: Arc::new(McpRegistry::new()),
         scheduler_authenticator,
+        worker_id: talon::worker::registration::worker_id(),
+        fanout_hub: Arc::new(talon::worker::fanout::FanoutHub::new()),
         session_cancellations: Arc::new(tokio::sync::Mutex::new(std::collections::HashMap::new())),
     }
 }

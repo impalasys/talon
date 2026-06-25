@@ -334,6 +334,30 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
 
     /**
      * <pre>
+     * Worker that owns the current claim. Gateways use this to connect to the
+     * exact worker process that can stream in-process session parts for the
+     * attempt.
+     * </pre>
+     *
+     * <code>string claim_worker_id = 14;</code>
+     * @return The claimWorkerId.
+     */
+    java.lang.String getClaimWorkerId();
+    /**
+     * <pre>
+     * Worker that owns the current claim. Gateways use this to connect to the
+     * exact worker process that can stream in-process session parts for the
+     * attempt.
+     * </pre>
+     *
+     * <code>string claim_worker_id = 14;</code>
+     * @return The bytes for claimWorkerId.
+     */
+    com.google.protobuf.ByteString
+        getClaimWorkerIdBytes();
+
+    /**
+     * <pre>
      * Number of successful claims/reclaims for this submission.
      * </pre>
      *
@@ -521,6 +545,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       userMessageId_ = "";
       status_ = 0;
       attemptId_ = "";
+      claimWorkerId_ = "";
       committedMessageId_ = "";
       currentPhase_ = 0;
       currentJournalEntryId_ = "";
@@ -747,6 +772,57 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         attemptId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CLAIM_WORKER_ID_FIELD_NUMBER = 14;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object claimWorkerId_ = "";
+    /**
+     * <pre>
+     * Worker that owns the current claim. Gateways use this to connect to the
+     * exact worker process that can stream in-process session parts for the
+     * attempt.
+     * </pre>
+     *
+     * <code>string claim_worker_id = 14;</code>
+     * @return The claimWorkerId.
+     */
+    @java.lang.Override
+    public java.lang.String getClaimWorkerId() {
+      java.lang.Object ref = claimWorkerId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        claimWorkerId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Worker that owns the current claim. Gateways use this to connect to the
+     * exact worker process that can stream in-process session parts for the
+     * attempt.
+     * </pre>
+     *
+     * <code>string claim_worker_id = 14;</code>
+     * @return The bytes for claimWorkerId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getClaimWorkerIdBytes() {
+      java.lang.Object ref = claimWorkerId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        claimWorkerId_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -1066,6 +1142,9 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       if (((bitField0_ & 0x00000008) != 0)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 13, currentJournalEntryId_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(claimWorkerId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 14, claimWorkerId_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -1121,6 +1200,9 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       if (((bitField0_ & 0x00000008) != 0)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(13, currentJournalEntryId_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(claimWorkerId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(14, claimWorkerId_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -1145,6 +1227,8 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       if (status_ != other.status_) return false;
       if (!getAttemptId()
           .equals(other.getAttemptId())) return false;
+      if (!getClaimWorkerId()
+          .equals(other.getClaimWorkerId())) return false;
       if (getAttemptCount()
           != other.getAttemptCount()) return false;
       if (hasClaimExpiresAt() != other.hasClaimExpiresAt()) return false;
@@ -1193,6 +1277,8 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       hash = (53 * hash) + status_;
       hash = (37 * hash) + ATTEMPT_ID_FIELD_NUMBER;
       hash = (53 * hash) + getAttemptId().hashCode();
+      hash = (37 * hash) + CLAIM_WORKER_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getClaimWorkerId().hashCode();
       hash = (37 * hash) + ATTEMPT_COUNT_FIELD_NUMBER;
       hash = (53 * hash) + getAttemptCount();
       if (hasClaimExpiresAt()) {
@@ -1357,6 +1443,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
         userMessageId_ = "";
         status_ = 0;
         attemptId_ = "";
+        claimWorkerId_ = "";
         attemptCount_ = 0;
         claimExpiresAt_ = 0L;
         createdAt_ = 0L;
@@ -1414,31 +1501,34 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
           result.attemptId_ = attemptId_;
         }
         if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.claimWorkerId_ = claimWorkerId_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
           result.attemptCount_ = attemptCount_;
         }
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000040) != 0)) {
+        if (((from_bitField0_ & 0x00000080) != 0)) {
           result.claimExpiresAt_ = claimExpiresAt_;
           to_bitField0_ |= 0x00000001;
         }
-        if (((from_bitField0_ & 0x00000080) != 0)) {
+        if (((from_bitField0_ & 0x00000100) != 0)) {
           result.createdAt_ = createdAt_;
         }
-        if (((from_bitField0_ & 0x00000100) != 0)) {
+        if (((from_bitField0_ & 0x00000200) != 0)) {
           result.updatedAt_ = updatedAt_;
         }
-        if (((from_bitField0_ & 0x00000200) != 0)) {
+        if (((from_bitField0_ & 0x00000400) != 0)) {
           result.completedAt_ = completedAt_;
           to_bitField0_ |= 0x00000002;
         }
-        if (((from_bitField0_ & 0x00000400) != 0)) {
+        if (((from_bitField0_ & 0x00000800) != 0)) {
           result.committedMessageId_ = committedMessageId_;
           to_bitField0_ |= 0x00000004;
         }
-        if (((from_bitField0_ & 0x00000800) != 0)) {
+        if (((from_bitField0_ & 0x00001000) != 0)) {
           result.currentPhase_ = currentPhase_;
         }
-        if (((from_bitField0_ & 0x00001000) != 0)) {
+        if (((from_bitField0_ & 0x00002000) != 0)) {
           result.currentJournalEntryId_ = currentJournalEntryId_;
           to_bitField0_ |= 0x00000008;
         }
@@ -1480,6 +1570,11 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
           bitField0_ |= 0x00000010;
           onChanged();
         }
+        if (!other.getClaimWorkerId().isEmpty()) {
+          claimWorkerId_ = other.claimWorkerId_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
         if (other.getAttemptCount() != 0) {
           setAttemptCount(other.getAttemptCount());
         }
@@ -1497,7 +1592,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
         }
         if (other.hasCommittedMessageId()) {
           committedMessageId_ = other.committedMessageId_;
-          bitField0_ |= 0x00000400;
+          bitField0_ |= 0x00000800;
           onChanged();
         }
         if (other.currentPhase_ != 0) {
@@ -1505,7 +1600,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
         }
         if (other.hasCurrentJournalEntryId()) {
           currentJournalEntryId_ = other.currentJournalEntryId_;
-          bitField0_ |= 0x00001000;
+          bitField0_ |= 0x00002000;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -1561,44 +1656,49 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
               } // case 42
               case 48: {
                 attemptCount_ = input.readUInt32();
-                bitField0_ |= 0x00000020;
+                bitField0_ |= 0x00000040;
                 break;
               } // case 48
               case 56: {
                 claimExpiresAt_ = input.readInt64();
-                bitField0_ |= 0x00000040;
+                bitField0_ |= 0x00000080;
                 break;
               } // case 56
               case 64: {
                 createdAt_ = input.readInt64();
-                bitField0_ |= 0x00000080;
+                bitField0_ |= 0x00000100;
                 break;
               } // case 64
               case 72: {
                 updatedAt_ = input.readInt64();
-                bitField0_ |= 0x00000100;
+                bitField0_ |= 0x00000200;
                 break;
               } // case 72
               case 80: {
                 completedAt_ = input.readInt64();
-                bitField0_ |= 0x00000200;
+                bitField0_ |= 0x00000400;
                 break;
               } // case 80
               case 90: {
                 committedMessageId_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000400;
+                bitField0_ |= 0x00000800;
                 break;
               } // case 90
               case 96: {
                 currentPhase_ = input.readEnum();
-                bitField0_ |= 0x00000800;
+                bitField0_ |= 0x00001000;
                 break;
               } // case 96
               case 106: {
                 currentJournalEntryId_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00001000;
+                bitField0_ |= 0x00002000;
                 break;
               } // case 106
+              case 114: {
+                claimWorkerId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 114
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -2041,6 +2141,108 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
         return this;
       }
 
+      private java.lang.Object claimWorkerId_ = "";
+      /**
+       * <pre>
+       * Worker that owns the current claim. Gateways use this to connect to the
+       * exact worker process that can stream in-process session parts for the
+       * attempt.
+       * </pre>
+       *
+       * <code>string claim_worker_id = 14;</code>
+       * @return The claimWorkerId.
+       */
+      public java.lang.String getClaimWorkerId() {
+        java.lang.Object ref = claimWorkerId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          claimWorkerId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Worker that owns the current claim. Gateways use this to connect to the
+       * exact worker process that can stream in-process session parts for the
+       * attempt.
+       * </pre>
+       *
+       * <code>string claim_worker_id = 14;</code>
+       * @return The bytes for claimWorkerId.
+       */
+      public com.google.protobuf.ByteString
+          getClaimWorkerIdBytes() {
+        java.lang.Object ref = claimWorkerId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          claimWorkerId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Worker that owns the current claim. Gateways use this to connect to the
+       * exact worker process that can stream in-process session parts for the
+       * attempt.
+       * </pre>
+       *
+       * <code>string claim_worker_id = 14;</code>
+       * @param value The claimWorkerId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setClaimWorkerId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        claimWorkerId_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Worker that owns the current claim. Gateways use this to connect to the
+       * exact worker process that can stream in-process session parts for the
+       * attempt.
+       * </pre>
+       *
+       * <code>string claim_worker_id = 14;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearClaimWorkerId() {
+        claimWorkerId_ = getDefaultInstance().getClaimWorkerId();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Worker that owns the current claim. Gateways use this to connect to the
+       * exact worker process that can stream in-process session parts for the
+       * attempt.
+       * </pre>
+       *
+       * <code>string claim_worker_id = 14;</code>
+       * @param value The bytes for claimWorkerId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setClaimWorkerIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        claimWorkerId_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
       private int attemptCount_ ;
       /**
        * <pre>
@@ -2066,7 +2268,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       public Builder setAttemptCount(int value) {
 
         attemptCount_ = value;
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000040;
         onChanged();
         return this;
       }
@@ -2079,7 +2281,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        * @return This builder for chaining.
        */
       public Builder clearAttemptCount() {
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000040);
         attemptCount_ = 0;
         onChanged();
         return this;
@@ -2098,7 +2300,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        */
       @java.lang.Override
       public boolean hasClaimExpiresAt() {
-        return ((bitField0_ & 0x00000040) != 0);
+        return ((bitField0_ & 0x00000080) != 0);
       }
       /**
        * <pre>
@@ -2128,7 +2330,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       public Builder setClaimExpiresAt(long value) {
 
         claimExpiresAt_ = value;
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000080;
         onChanged();
         return this;
       }
@@ -2143,7 +2345,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        * @return This builder for chaining.
        */
       public Builder clearClaimExpiresAt() {
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000080);
         claimExpiresAt_ = 0L;
         onChanged();
         return this;
@@ -2174,7 +2376,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       public Builder setCreatedAt(long value) {
 
         createdAt_ = value;
-        bitField0_ |= 0x00000080;
+        bitField0_ |= 0x00000100;
         onChanged();
         return this;
       }
@@ -2187,7 +2389,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        * @return This builder for chaining.
        */
       public Builder clearCreatedAt() {
-        bitField0_ = (bitField0_ & ~0x00000080);
+        bitField0_ = (bitField0_ & ~0x00000100);
         createdAt_ = 0L;
         onChanged();
         return this;
@@ -2218,7 +2420,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       public Builder setUpdatedAt(long value) {
 
         updatedAt_ = value;
-        bitField0_ |= 0x00000100;
+        bitField0_ |= 0x00000200;
         onChanged();
         return this;
       }
@@ -2231,7 +2433,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        * @return This builder for chaining.
        */
       public Builder clearUpdatedAt() {
-        bitField0_ = (bitField0_ & ~0x00000100);
+        bitField0_ = (bitField0_ & ~0x00000200);
         updatedAt_ = 0L;
         onChanged();
         return this;
@@ -2249,7 +2451,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        */
       @java.lang.Override
       public boolean hasCompletedAt() {
-        return ((bitField0_ & 0x00000200) != 0);
+        return ((bitField0_ & 0x00000400) != 0);
       }
       /**
        * <pre>
@@ -2277,7 +2479,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       public Builder setCompletedAt(long value) {
 
         completedAt_ = value;
-        bitField0_ |= 0x00000200;
+        bitField0_ |= 0x00000400;
         onChanged();
         return this;
       }
@@ -2291,7 +2493,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        * @return This builder for chaining.
        */
       public Builder clearCompletedAt() {
-        bitField0_ = (bitField0_ & ~0x00000200);
+        bitField0_ = (bitField0_ & ~0x00000400);
         completedAt_ = 0L;
         onChanged();
         return this;
@@ -2308,7 +2510,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        * @return Whether the committedMessageId field is set.
        */
       public boolean hasCommittedMessageId() {
-        return ((bitField0_ & 0x00000400) != 0);
+        return ((bitField0_ & 0x00000800) != 0);
       }
       /**
        * <pre>
@@ -2367,7 +2569,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         committedMessageId_ = value;
-        bitField0_ |= 0x00000400;
+        bitField0_ |= 0x00000800;
         onChanged();
         return this;
       }
@@ -2382,7 +2584,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        */
       public Builder clearCommittedMessageId() {
         committedMessageId_ = getDefaultInstance().getCommittedMessageId();
-        bitField0_ = (bitField0_ & ~0x00000400);
+        bitField0_ = (bitField0_ & ~0x00000800);
         onChanged();
         return this;
       }
@@ -2401,7 +2603,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         committedMessageId_ = value;
-        bitField0_ |= 0x00000400;
+        bitField0_ |= 0x00000800;
         onChanged();
         return this;
       }
@@ -2432,7 +2634,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        */
       public Builder setCurrentPhaseValue(int value) {
         currentPhase_ = value;
-        bitField0_ |= 0x00000800;
+        bitField0_ |= 0x00001000;
         onChanged();
         return this;
       }
@@ -2462,7 +2664,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        */
       public Builder setCurrentPhase(talon.data.SessionJournalEntryOuterClass.SessionExecutionPhase value) {
         if (value == null) { throw new NullPointerException(); }
-        bitField0_ |= 0x00000800;
+        bitField0_ |= 0x00001000;
         currentPhase_ = value.getNumber();
         onChanged();
         return this;
@@ -2477,7 +2679,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        * @return This builder for chaining.
        */
       public Builder clearCurrentPhase() {
-        bitField0_ = (bitField0_ & ~0x00000800);
+        bitField0_ = (bitField0_ & ~0x00001000);
         currentPhase_ = 0;
         onChanged();
         return this;
@@ -2495,7 +2697,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        * @return Whether the currentJournalEntryId field is set.
        */
       public boolean hasCurrentJournalEntryId() {
-        return ((bitField0_ & 0x00001000) != 0);
+        return ((bitField0_ & 0x00002000) != 0);
       }
       /**
        * <pre>
@@ -2557,7 +2759,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         currentJournalEntryId_ = value;
-        bitField0_ |= 0x00001000;
+        bitField0_ |= 0x00002000;
         onChanged();
         return this;
       }
@@ -2573,7 +2775,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
        */
       public Builder clearCurrentJournalEntryId() {
         currentJournalEntryId_ = getDefaultInstance().getCurrentJournalEntryId();
-        bitField0_ = (bitField0_ & ~0x00001000);
+        bitField0_ = (bitField0_ & ~0x00002000);
         onChanged();
         return this;
       }
@@ -2593,7 +2795,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         currentJournalEntryId_ = value;
-        bitField0_ |= 0x00001000;
+        bitField0_ |= 0x00002000;
         onChanged();
         return this;
       }
@@ -2665,26 +2867,27 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
     java.lang.String[] descriptorData = {
       "\n#proto/data/session_submission.proto\022\nt" +
       "alon.data\032&proto/data/session_journal_en" +
-      "try.proto\"\371\003\n\021SessionSubmission\022\025\n\rsubmi" +
+      "try.proto\"\222\004\n\021SessionSubmission\022\025\n\rsubmi" +
       "ssion_id\030\001 \001(\t\022\022\n\nsession_id\030\002 \001(\t\022\027\n\017us" +
       "er_message_id\030\003 \001(\t\0223\n\006status\030\004 \001(\0162#.ta" +
       "lon.data.SessionSubmissionStatus\022\022\n\natte" +
-      "mpt_id\030\005 \001(\t\022\025\n\rattempt_count\030\006 \001(\r\022\035\n\020c" +
-      "laim_expires_at\030\007 \001(\003H\000\210\001\001\022\022\n\ncreated_at" +
-      "\030\010 \001(\003\022\022\n\nupdated_at\030\t \001(\003\022\031\n\014completed_" +
-      "at\030\n \001(\003H\001\210\001\001\022!\n\024committed_message_id\030\013 " +
-      "\001(\tH\002\210\001\001\0228\n\rcurrent_phase\030\014 \001(\0162!.talon." +
-      "data.SessionExecutionPhase\022%\n\030current_jo" +
-      "urnal_entry_id\030\r \001(\tH\003\210\001\001B\023\n\021_claim_expi" +
-      "res_atB\017\n\r_completed_atB\027\n\025_committed_me" +
-      "ssage_idB\033\n\031_current_journal_entry_id*\214\002" +
-      "\n\027SessionSubmissionStatus\022)\n%SESSION_SUB" +
-      "MISSION_STATUS_UNSPECIFIED\020\000\022%\n!SESSION_" +
-      "SUBMISSION_STATUS_PENDING\020\001\022%\n!SESSION_S" +
-      "UBMISSION_STATUS_CLAIMED\020\002\022\'\n#SESSION_SU" +
-      "BMISSION_STATUS_COMMITTED\020\003\022$\n SESSION_S" +
-      "UBMISSION_STATUS_FAILED\020\004\022)\n%SESSION_SUB" +
-      "MISSION_STATUS_INTERRUPTED\020\005b\006proto3"
+      "mpt_id\030\005 \001(\t\022\027\n\017claim_worker_id\030\016 \001(\t\022\025\n" +
+      "\rattempt_count\030\006 \001(\r\022\035\n\020claim_expires_at" +
+      "\030\007 \001(\003H\000\210\001\001\022\022\n\ncreated_at\030\010 \001(\003\022\022\n\nupdat" +
+      "ed_at\030\t \001(\003\022\031\n\014completed_at\030\n \001(\003H\001\210\001\001\022!" +
+      "\n\024committed_message_id\030\013 \001(\tH\002\210\001\001\0228\n\rcur" +
+      "rent_phase\030\014 \001(\0162!.talon.data.SessionExe" +
+      "cutionPhase\022%\n\030current_journal_entry_id\030" +
+      "\r \001(\tH\003\210\001\001B\023\n\021_claim_expires_atB\017\n\r_comp" +
+      "leted_atB\027\n\025_committed_message_idB\033\n\031_cu" +
+      "rrent_journal_entry_id*\214\002\n\027SessionSubmis" +
+      "sionStatus\022)\n%SESSION_SUBMISSION_STATUS_" +
+      "UNSPECIFIED\020\000\022%\n!SESSION_SUBMISSION_STAT" +
+      "US_PENDING\020\001\022%\n!SESSION_SUBMISSION_STATU" +
+      "S_CLAIMED\020\002\022\'\n#SESSION_SUBMISSION_STATUS" +
+      "_COMMITTED\020\003\022$\n SESSION_SUBMISSION_STATU" +
+      "S_FAILED\020\004\022)\n%SESSION_SUBMISSION_STATUS_" +
+      "INTERRUPTED\020\005b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -2696,7 +2899,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
     internal_static_talon_data_SessionSubmission_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionSubmission_descriptor,
-        new java.lang.String[] { "SubmissionId", "SessionId", "UserMessageId", "Status", "AttemptId", "AttemptCount", "ClaimExpiresAt", "CreatedAt", "UpdatedAt", "CompletedAt", "CommittedMessageId", "CurrentPhase", "CurrentJournalEntryId", });
+        new java.lang.String[] { "SubmissionId", "SessionId", "UserMessageId", "Status", "AttemptId", "ClaimWorkerId", "AttemptCount", "ClaimExpiresAt", "CreatedAt", "UpdatedAt", "CompletedAt", "CommittedMessageId", "CurrentPhase", "CurrentJournalEntryId", });
     descriptor.resolveAllFeaturesImmutable();
     talon.data.SessionJournalEntryOuterClass.getDescriptor();
   }

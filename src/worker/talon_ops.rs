@@ -1710,6 +1710,8 @@ mod tests {
             config: Arc::new(Config::default()),
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
+            worker_id: "test-worker".to_string(),
+            fanout_hub: Arc::new(crate::worker::fanout::FanoutHub::new()),
             session_cancellations: Arc::new(AsyncMutex::new(HashMap::new())),
         }
     }

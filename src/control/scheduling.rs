@@ -631,7 +631,9 @@ pub async fn send_message(
         }],
     };
 
-    send_session_message(kv, pubsub, ns, agent, session_id, user_msg, now).await
+    send_session_message(kv, pubsub, ns, agent, session_id, user_msg, now)
+        .await
+        .map(|_| ())
 }
 
 pub async fn send_session_message(
@@ -642,7 +644,7 @@ pub async fn send_session_message(
     session_id: &str,
     mut user_msg: data_proto::SessionMessage,
     now: DateTime<Utc>,
-) -> Result<()> {
+) -> Result<String> {
     if user_msg.parts.is_empty() {
         return Err(EmptyMessageError.into());
     }
@@ -786,7 +788,7 @@ pub async fn send_session_message(
         message_id = %message_id,
         "Queued scheduled message for session dispatch"
     );
-    Ok(())
+    Ok(message_id)
 }
 
 pub(crate) fn session_message_text_projection(message: &data_proto::SessionMessage) -> String {

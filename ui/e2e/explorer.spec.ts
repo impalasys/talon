@@ -50,6 +50,10 @@ test.describe('Explorer navigation', () => {
       session: sessionRes.sessionId,
     });
 
+    await page.addInitScript((url) => {
+      localStorage.setItem('talon_gateway_url', url);
+    }, gatewayUrl);
+
     await page.goto(`/?${params.toString()}`);
 
     await expect(page.locator('text=Connected')).toBeVisible({ timeout: 15000 });
