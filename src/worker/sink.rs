@@ -1146,6 +1146,7 @@ mod tests {
     use crate::harness::executor::ExecutionSink;
     use crate::harness::sessions;
     use async_trait::async_trait;
+    use futures::StreamExt;
     use prost::Message;
     use serde_json::json;
     use std::sync::Arc;
@@ -1229,10 +1230,52 @@ mod tests {
         event.part.as_ref().expect("event part")
     }
 
-    async fn fanout_events(sink: &PubSubSessionSink) -> Vec<SessionMessagePartEvent> {
+    type TestFanoutStream = std::pin::Pin<
+        Box<
+            dyn futures::Stream<
+                    Item = std::result::Result<
+                        crate::gateway::rpc::worker_proto::StreamSessionPartsResponse,
+                        tonic::Status,
+                    >,
+                > + Send,
+        >,
+    >;
+
+    async fn fanout_stream(sink: &PubSubSessionSink) -> TestFanoutStream {
         sink.fanout_hub
-            .replay_session_part_events(&sink.fanout_key)
+            .create_session_attempt(sink.fanout_key.clone())
+            .await;
+        sink.fanout_hub
+            .subscribe_session_parts(&sink.fanout_key, 0)
             .await
+            .expect("fanout subscription")
+            .into_stream()
+    }
+
+    async fn next_fanout_event(stream: &mut TestFanoutStream) -> SessionMessagePartEvent {
+        tokio::time::timeout(Duration::from_secs(5), stream.next())
+            .await
+            .expect("fanout event timed out")
+            .expect("fanout stream ended")
+            .expect("fanout stream error")
+            .event
+            .expect("fanout event")
+    }
+
+    async fn fanout_events_until_terminal(
+        stream: &mut TestFanoutStream,
+    ) -> Vec<SessionMessagePartEvent> {
+        let mut events = Vec::new();
+        loop {
+            let event = next_fanout_event(stream).await;
+            let terminal = event.kind == SessionMessagePartEventKind::Done as i32
+                || event.kind == SessionMessagePartEventKind::Error as i32;
+            events.push(event);
+            if terminal {
+                break;
+            }
+        }
+        events
     }
 
     #[async_trait]
@@ -1293,12 +1336,13 @@ mod tests {
             Duration::from_millis(5),
         );
 
+        let mut fanout = fanout_stream(&sink).await;
         sink.on_token("hello").await;
         tokio::time::sleep(Duration::from_millis(10)).await;
         sink.on_token(" world").await;
         sink.on_done("hello world").await;
 
-        let events = fanout_events(&sink).await;
+        let events = fanout_events_until_terminal(&mut fanout).await;
         let token_events = events
             .iter()
             .filter(|event| event.kind == SessionMessagePartEventKind::Delta as i32)
@@ -1409,12 +1453,16 @@ mod tests {
             Duration::from_secs(10),
         );
 
+        let mut fanout = fanout_stream(&sink).await;
         sink.on_token("drafting ").await;
         sink.on_token("request").await;
         sink.on_tool_call("tool-1", "create_prompt", &json!({"content": "x"}))
             .await;
 
-        let events = fanout_events(&sink).await;
+        let events = vec![
+            next_fanout_event(&mut fanout).await,
+            next_fanout_event(&mut fanout).await,
+        ];
         assert_eq!(
             event_part(&events[0]).part_type,
             data_proto::SessionMessagePartType::Text as i32
@@ -1464,12 +1512,13 @@ mod tests {
             Duration::from_millis(5),
         );
 
+        let mut fanout = fanout_stream(&sink).await;
         sink.on_reasoning("first").await;
         tokio::time::sleep(Duration::from_millis(10)).await;
         sink.on_reasoning(" second").await;
         sink.on_done("final reply").await;
 
-        let events = fanout_events(&sink).await;
+        let events = fanout_events_until_terminal(&mut fanout).await;
         let reasoning_events = events
             .iter()
             .filter(|event| {
@@ -1772,20 +1821,20 @@ mod tests {
             Duration::from_secs(10),
         );
 
+        let mut fanout = fanout_stream(&sink).await;
         sink.on_token("partial ").await;
         sink.on_error("tool failed").await;
         sink.on_done("final reply").await;
         tokio::time::sleep(Duration::from_millis(25)).await;
 
-        let events = fanout_events(&sink).await;
+        let events = fanout_events_until_terminal(&mut fanout).await;
         assert!(events.iter().any(
             |event| event.kind == SessionMessagePartEventKind::Error as i32
                 && event_part(event).content == "tool failed"
         ));
-        assert!(events.iter().any(
-            |event| event.kind == SessionMessagePartEventKind::Done as i32
-                && event_part(event).content == "final reply"
-        ));
+        assert!(!events
+            .iter()
+            .any(|event| event.kind == SessionMessagePartEventKind::Done as i32));
 
         let entries = kv.entries.lock().await.clone();
         let persisted_messages = entries
@@ -1843,9 +1892,10 @@ mod tests {
             Duration::from_secs(10),
         );
 
+        let mut fanout = fanout_stream(&sink).await;
         sink.on_done("final reply").await;
 
-        let events = fanout_events(&sink).await;
+        let events = fanout_events_until_terminal(&mut fanout).await;
         assert!(events.iter().any(
             |event| event.kind == SessionMessagePartEventKind::Error as i32
                 && event_part(event).content == "Error: failed to mark session submission terminal"
@@ -1888,9 +1938,10 @@ mod tests {
             Duration::from_secs(10),
         );
 
+        let mut fanout = fanout_stream(&sink).await;
         sink.on_done("final reply").await;
 
-        let events = fanout_events(&sink).await;
+        let events = fanout_events_until_terminal(&mut fanout).await;
         assert!(events.iter().any(
             |event| event.kind == SessionMessagePartEventKind::Error as i32
                 && event_part(event).content

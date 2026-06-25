@@ -6,15 +6,17 @@ use crate::gateway::rpc::worker_proto::{
     fanout_service_server::FanoutService, StreamSessionPartsBatchRequest,
     StreamSessionPartsRequest, StreamSessionPartsResponse,
 };
-use futures::stream::SelectAll;
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::Arc;
-use tokio::sync::{broadcast, Mutex};
+use tokio::sync::{
+    mpsc::{self, error::TrySendError},
+    Mutex,
+};
 use tonic::{Request, Response, Status};
 
-const DEFAULT_REPLAY_CAPACITY: usize = 256;
-const DEFAULT_BROADCAST_CAPACITY: usize = 512;
+const MAX_SUBSCRIBER_QUEUE_CAPACITY: usize = 1_048_576;
+const SUBSCRIBER_QUEUE_EVENTS_PER_STREAM: usize = 96;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct SessionFanoutKey {
@@ -46,78 +48,37 @@ impl SessionFanoutKey {
 #[derive(Debug)]
 pub enum FanoutSubscribeError {
     NotFound,
-    ReplayGap,
 }
 
-pub struct FanoutSubscription {
-    replay: Vec<StreamSessionPartsResponse>,
-    receiver: broadcast::Receiver<StreamSessionPartsResponse>,
-}
-
-impl FanoutSubscription {
-    pub fn into_stream(
-        mut self,
-    ) -> Pin<
-        Box<
-            dyn futures::Stream<Item = std::result::Result<StreamSessionPartsResponse, Status>>
-                + Send,
-        >,
-    > {
-        Box::pin(async_stream::stream! {
-            for event in self.replay {
-                let terminal = event
-                    .event
-                    .as_ref()
-                    .is_some_and(session_part_event_is_terminal);
-                yield Ok(event);
-                if terminal {
-                    return;
-                }
-            }
-
-            loop {
-                match self.receiver.recv().await {
-                    Ok(event) => {
-                        let terminal = event
-                            .event
-                            .as_ref()
-                            .is_some_and(session_part_event_is_terminal);
-                        yield Ok(event);
-                        if terminal {
-                            break;
-                        }
-                    }
-                    Err(broadcast::error::RecvError::Lagged(_)) => {
-                        yield Err(Status::out_of_range("session fanout replay gap"));
-                        break;
-                    }
-                    Err(broadcast::error::RecvError::Closed) => break,
-                }
-            }
-        })
-    }
+struct FanoutSubscriber {
+    keys: Vec<SessionFanoutKey>,
+    sender: mpsc::Sender<StreamSessionPartsResponse>,
 }
 
 struct SessionAttemptFanout {
-    sender: broadcast::Sender<StreamSessionPartsResponse>,
-    replay: VecDeque<StreamSessionPartsResponse>,
+    subscribers: Vec<u64>,
     next_sequence: u64,
 }
 
 impl SessionAttemptFanout {
     fn new() -> Self {
-        let (sender, _) = broadcast::channel(DEFAULT_BROADCAST_CAPACITY);
         Self {
-            sender,
-            replay: VecDeque::with_capacity(DEFAULT_REPLAY_CAPACITY),
+            subscribers: Vec::new(),
             next_sequence: 1,
         }
     }
 }
 
 #[derive(Default)]
+struct FanoutState {
+    attempts: HashMap<SessionFanoutKey, SessionAttemptFanout>,
+    subscribers: HashMap<u64, FanoutSubscriber>,
+    next_subscriber_id: u64,
+}
+
+#[derive(Clone, Default)]
 pub struct FanoutHub {
-    sessions: Mutex<HashMap<SessionFanoutKey, SessionAttemptFanout>>,
+    state: Arc<Mutex<FanoutState>>,
 }
 
 impl FanoutHub {
@@ -126,8 +87,9 @@ impl FanoutHub {
     }
 
     pub async fn create_session_attempt(&self, key: SessionFanoutKey) {
-        let mut sessions = self.sessions.lock().await;
-        sessions
+        let mut state = self.state.lock().await;
+        state
+            .attempts
             .entry(key)
             .or_insert_with(SessionAttemptFanout::new);
     }
@@ -137,20 +99,60 @@ impl FanoutHub {
         key: &SessionFanoutKey,
         event: SessionMessagePartEvent,
     ) {
-        let mut sessions = self.sessions.lock().await;
-        let fanout = sessions
-            .entry(key.clone())
-            .or_insert_with(SessionAttemptFanout::new);
-        let response = StreamSessionPartsResponse {
-            sequence: fanout.next_sequence,
-            event: Some(event),
+        let terminal = session_part_event_is_terminal(&event);
+        let (response, subscribers) = {
+            let mut state = self.state.lock().await;
+            let fanout = state
+                .attempts
+                .entry(key.clone())
+                .or_insert_with(SessionAttemptFanout::new);
+            let response = StreamSessionPartsResponse {
+                sequence: fanout.next_sequence,
+                event: Some(event),
+            };
+            fanout.next_sequence = fanout.next_sequence.saturating_add(1);
+
+            let subscriber_ids = fanout.subscribers.clone();
+            let subscribers = subscriber_ids
+                .into_iter()
+                .filter_map(|subscriber_id| {
+                    state
+                        .subscribers
+                        .get(&subscriber_id)
+                        .map(|subscriber| (subscriber_id, subscriber.sender.clone()))
+                })
+                .collect::<Vec<_>>();
+            (response, subscribers)
         };
-        fanout.next_sequence = fanout.next_sequence.saturating_add(1);
-        fanout.replay.push_back(response.clone());
-        while fanout.replay.len() > DEFAULT_REPLAY_CAPACITY {
-            fanout.replay.pop_front();
+
+        let mut stale_subscribers = Vec::new();
+        for (subscriber_id, sender) in subscribers {
+            match sender.try_send(response.clone()) {
+                Ok(()) => {}
+                Err(TrySendError::Full(response)) => {
+                    if sender.send(response).await.is_err() {
+                        stale_subscribers.push(subscriber_id);
+                    }
+                }
+                Err(TrySendError::Closed(_)) => stale_subscribers.push(subscriber_id),
+            }
         }
-        let _ = fanout.sender.send(response);
+
+        let mut state = self.state.lock().await;
+        for subscriber_id in stale_subscribers {
+            remove_subscriber(&mut state, subscriber_id);
+        }
+        if terminal {
+            for subscriber_id in state
+                .attempts
+                .get(key)
+                .map(|fanout| fanout.subscribers.clone())
+                .unwrap_or_default()
+            {
+                remove_subscriber_from_key(&mut state, subscriber_id, key);
+            }
+            state.attempts.remove(key);
+        }
     }
 
     pub async fn subscribe_session_parts(
@@ -158,48 +160,133 @@ impl FanoutHub {
         key: &SessionFanoutKey,
         after_sequence: u64,
     ) -> std::result::Result<FanoutSubscription, FanoutSubscribeError> {
-        let sessions = self.sessions.lock().await;
-        let Some(fanout) = sessions.get(key) else {
-            return Err(FanoutSubscribeError::NotFound);
-        };
+        self.subscribe_session_parts_batch(vec![(key.clone(), after_sequence)])
+            .await
+    }
 
-        if after_sequence > 0 {
-            if let Some(first) = fanout.replay.front() {
-                if first.sequence > after_sequence.saturating_add(1) {
-                    return Err(FanoutSubscribeError::ReplayGap);
-                }
+    pub async fn subscribe_session_parts_batch(
+        &self,
+        streams: Vec<(SessionFanoutKey, u64)>,
+    ) -> std::result::Result<FanoutSubscription, FanoutSubscribeError> {
+        let mut state = self.state.lock().await;
+        for (key, _) in &streams {
+            if !state.attempts.contains_key(key) {
+                return Err(FanoutSubscribeError::NotFound);
             }
         }
 
-        let replay = fanout
-            .replay
-            .iter()
-            .filter(|event| event.sequence > after_sequence)
-            .cloned()
-            .collect();
+        let subscriber_id = state.next_subscriber_id;
+        state.next_subscriber_id = state.next_subscriber_id.saturating_add(1);
+        let keys = streams
+            .into_iter()
+            .map(|(key, _after_sequence)| key)
+            .collect::<Vec<_>>();
+        let (sender, receiver) = mpsc::channel(subscriber_queue_capacity(keys.len()));
+        for key in &keys {
+            if let Some(fanout) = state.attempts.get_mut(key) {
+                fanout.subscribers.push(subscriber_id);
+            }
+        }
+        state
+            .subscribers
+            .insert(subscriber_id, FanoutSubscriber { keys, sender });
+
         Ok(FanoutSubscription {
-            replay,
-            receiver: fanout.sender.subscribe(),
+            receiver,
+            cleanup: FanoutSubscriptionCleanup {
+                state: Some(self.state.clone()),
+                subscriber_id,
+            },
         })
     }
 
     #[cfg(test)]
-    pub async fn replay_session_part_events(
-        &self,
-        key: &SessionFanoutKey,
-    ) -> Vec<SessionMessagePartEvent> {
-        self.sessions
-            .lock()
-            .await
-            .get(key)
-            .map(|fanout| {
-                fanout
-                    .replay
-                    .iter()
-                    .filter_map(|response| response.event.clone())
-                    .collect()
-            })
-            .unwrap_or_default()
+    pub async fn attempt_count(&self) -> usize {
+        self.state.lock().await.attempts.len()
+    }
+
+    #[cfg(test)]
+    pub async fn subscriber_count(&self) -> usize {
+        self.state.lock().await.subscribers.len()
+    }
+}
+
+fn subscriber_queue_capacity(stream_count: usize) -> usize {
+    stream_count
+        .saturating_mul(SUBSCRIBER_QUEUE_EVENTS_PER_STREAM)
+        .max(2)
+        .min(MAX_SUBSCRIBER_QUEUE_CAPACITY)
+}
+
+fn remove_subscriber(state: &mut FanoutState, subscriber_id: u64) {
+    let Some(subscriber) = state.subscribers.remove(&subscriber_id) else {
+        return;
+    };
+    for key in subscriber.keys {
+        if let Some(fanout) = state.attempts.get_mut(&key) {
+            fanout
+                .subscribers
+                .retain(|existing_id| *existing_id != subscriber_id);
+        }
+    }
+}
+
+fn remove_subscriber_from_key(state: &mut FanoutState, subscriber_id: u64, key: &SessionFanoutKey) {
+    if let Some(fanout) = state.attempts.get_mut(key) {
+        fanout
+            .subscribers
+            .retain(|existing_id| *existing_id != subscriber_id);
+    }
+
+    let Some(subscriber) = state.subscribers.get_mut(&subscriber_id) else {
+        return;
+    };
+    subscriber.keys.retain(|existing_key| existing_key != key);
+    if subscriber.keys.is_empty() {
+        state.subscribers.remove(&subscriber_id);
+    }
+}
+
+pub struct FanoutSubscription {
+    receiver: mpsc::Receiver<StreamSessionPartsResponse>,
+    cleanup: FanoutSubscriptionCleanup,
+}
+
+impl FanoutSubscription {
+    pub fn into_stream(
+        self,
+    ) -> Pin<
+        Box<
+            dyn futures::Stream<Item = std::result::Result<StreamSessionPartsResponse, Status>>
+                + Send,
+        >,
+    > {
+        let mut receiver = self.receiver;
+        let cleanup = self.cleanup;
+        Box::pin(async_stream::stream! {
+            let _cleanup = cleanup;
+            while let Some(event) = receiver.recv().await {
+                yield Ok(event);
+            }
+        })
+    }
+}
+
+struct FanoutSubscriptionCleanup {
+    state: Option<Arc<Mutex<FanoutState>>>,
+    subscriber_id: u64,
+}
+
+impl Drop for FanoutSubscriptionCleanup {
+    fn drop(&mut self) {
+        let Some(state) = self.state.take() else {
+            return;
+        };
+        let subscriber_id = self.subscriber_id;
+        tokio::spawn(async move {
+            let mut state = state.lock().await;
+            remove_subscriber(&mut state, subscriber_id);
+        });
     }
 }
 
@@ -247,9 +334,6 @@ impl FanoutService for FanoutServiceImpl {
             .await
             .map_err(|err| match err {
                 FanoutSubscribeError::NotFound => Status::not_found("session attempt not found"),
-                FanoutSubscribeError::ReplayGap => {
-                    Status::out_of_range("session fanout replay gap")
-                }
             })?;
         Ok(Response::new(subscription.into_stream()))
     }
@@ -265,31 +349,30 @@ impl FanoutService for FanoutServiceImpl {
             ));
         }
 
-        let mut streams: SelectAll<Self::StreamSessionPartsBatchStream> = SelectAll::new();
-        for request in request.streams {
-            let key = SessionFanoutKey::new(
-                request.ns,
-                request.agent,
-                request.session_id,
-                request.submission_id,
-                request.attempt_id,
-            );
-            let subscription = self
-                .hub
-                .subscribe_session_parts(&key, request.after_sequence)
-                .await
-                .map_err(|err| match err {
-                    FanoutSubscribeError::NotFound => {
-                        Status::not_found("session attempt not found")
-                    }
-                    FanoutSubscribeError::ReplayGap => {
-                        Status::out_of_range("session fanout replay gap")
-                    }
-                })?;
-            streams.push(subscription.into_stream());
-        }
-
-        Ok(Response::new(Box::pin(streams)))
+        let streams = request
+            .streams
+            .into_iter()
+            .map(|request| {
+                (
+                    SessionFanoutKey::new(
+                        request.ns,
+                        request.agent,
+                        request.session_id,
+                        request.submission_id,
+                        request.attempt_id,
+                    ),
+                    request.after_sequence,
+                )
+            })
+            .collect();
+        let subscription = self
+            .hub
+            .subscribe_session_parts_batch(streams)
+            .await
+            .map_err(|err| match err {
+                FanoutSubscribeError::NotFound => Status::not_found("session attempt not found"),
+            })?;
+        Ok(Response::new(subscription.into_stream()))
     }
 }
 
@@ -336,18 +419,28 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn fanout_replays_events_after_sequence() {
+    async fn fanout_streams_live_events_without_replay() {
         let hub = FanoutHub::new();
         let key = key();
         hub.create_session_attempt(key.clone()).await;
-        hub.publish_session_part(&key, event(SessionMessagePartEventKind::Delta, "one"))
-            .await;
-        hub.publish_session_part(&key, event(SessionMessagePartEventKind::Delta, "two"))
+        hub.publish_session_part(&key, event(SessionMessagePartEventKind::Delta, "missed"))
             .await;
 
-        let subscription = hub.subscribe_session_parts(&key, 1).await.unwrap();
-        assert_eq!(subscription.replay.len(), 1);
-        assert_eq!(subscription.replay[0].sequence, 2);
+        let mut subscription = hub
+            .subscribe_session_parts(&key, 0)
+            .await
+            .unwrap()
+            .into_stream();
+        hub.publish_session_part(&key, event(SessionMessagePartEventKind::Delta, "live"))
+            .await;
+
+        let response = tokio::time::timeout(std::time::Duration::from_secs(5), subscription.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert_eq!(response.sequence, 2);
+        assert_eq!(response.event.unwrap().part.unwrap().content, "live");
     }
 
     #[tokio::test]
@@ -415,5 +508,72 @@ mod tests {
         }
         contents.sort();
         assert_eq!(contents, ["one", "two"]);
+    }
+
+    #[tokio::test]
+    async fn batch_subscription_survives_one_attempt_terminal_event() {
+        let hub = FanoutHub::new();
+        let key_one = key_for_session("session-1");
+        let key_two = key_for_session("session-2");
+        hub.create_session_attempt(key_one.clone()).await;
+        hub.create_session_attempt(key_two.clone()).await;
+
+        let mut stream = hub
+            .subscribe_session_parts_batch(vec![(key_one.clone(), 0), (key_two.clone(), 0)])
+            .await
+            .unwrap()
+            .into_stream();
+
+        hub.publish_session_part(
+            &key_one,
+            event_for_session("session-1", SessionMessagePartEventKind::Done, "one"),
+        )
+        .await;
+        hub.publish_session_part(
+            &key_two,
+            event_for_session("session-2", SessionMessagePartEventKind::Delta, "two-delta"),
+        )
+        .await;
+        hub.publish_session_part(
+            &key_two,
+            event_for_session("session-2", SessionMessagePartEventKind::Done, "two-done"),
+        )
+        .await;
+
+        let mut contents = Vec::new();
+        for _ in 0..3 {
+            let response = tokio::time::timeout(std::time::Duration::from_secs(5), stream.next())
+                .await
+                .unwrap()
+                .unwrap()
+                .unwrap();
+            contents.push(response.event.unwrap().part.unwrap().content);
+        }
+        assert_eq!(contents, ["one", "two-delta", "two-done"]);
+        assert!(stream.next().await.is_none());
+    }
+
+    #[tokio::test]
+    async fn terminal_event_removes_attempt_and_subscriber() {
+        let hub = FanoutHub::new();
+        let key = key();
+        hub.create_session_attempt(key.clone()).await;
+        let mut stream = hub
+            .subscribe_session_parts(&key, 0)
+            .await
+            .unwrap()
+            .into_stream();
+
+        hub.publish_session_part(&key, event(SessionMessagePartEventKind::Done, "done"))
+            .await;
+        let response = tokio::time::timeout(std::time::Duration::from_secs(5), stream.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert_eq!(response.event.unwrap().part.unwrap().content, "done");
+        assert!(stream.next().await.is_none());
+        assert_eq!(hub.attempt_count().await, 0);
+        assert_eq!(hub.subscriber_count().await, 0);
     }
 }

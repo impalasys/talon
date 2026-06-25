@@ -89,7 +89,7 @@ fn single_session_parts_event_stream(
             tick.tick().await;
             let Some(submission) = (match submission_id.as_deref() {
                 Some(submission_id) => load_session_submission(kv.as_ref(), &target, submission_id).await?,
-                None => latest_nonterminal_submission(kv.as_ref(), &target).await?,
+                None => latest_submission(kv.as_ref(), &target).await?,
             }) else {
                 continue;
             };
@@ -101,21 +101,24 @@ fn single_session_parts_event_stream(
 
             let now_micros = chrono::Utc::now().timestamp_micros();
             let terminal = crate::harness::sessions::submission_is_terminal(&submission);
-            if !terminal {
-                if submission.status != data_proto::SessionSubmissionStatus::Claimed as i32
-                    || submission
-                        .claim_expires_at
-                        .is_some_and(|expires_at| expires_at <= now_micros)
-                {
-                    redispatch_expired_session_lease(
-                        kv.as_ref(),
-                        pubsub.as_ref(),
-                        &target,
-                        now_micros,
-                    )
-                    .await?;
-                    continue;
-                }
+            if terminal {
+                yield Ok(terminal_event_from_submission(&target, &submission));
+                break 'outer;
+            }
+
+            if submission.status != data_proto::SessionSubmissionStatus::Claimed as i32
+                || submission
+                    .claim_expires_at
+                    .is_some_and(|expires_at| expires_at <= now_micros)
+            {
+                redispatch_expired_session_lease(
+                    kv.as_ref(),
+                    pubsub.as_ref(),
+                    &target,
+                    now_micros,
+                )
+                .await?;
+                continue;
             }
 
             if submission.claim_worker_id.is_empty() {
@@ -156,10 +159,6 @@ fn single_session_parts_event_stream(
                     if status.code() == tonic::Code::NotFound
                         || status.code() == tonic::Code::Unavailable =>
                 {
-                    if terminal {
-                        yield Err(status);
-                        break;
-                    }
                     tokio::time::sleep(WORKER_FANOUT_NOT_FOUND_RETRY_DELAY).await;
                 }
                 Err(status) => {
@@ -240,7 +239,7 @@ fn batch_session_parts_event_stream(
                     continue;
                 }
 
-                let Some(submission) = latest_nonterminal_submission(kv.as_ref(), &state.target).await? else {
+                let Some(submission) = latest_submission(kv.as_ref(), &state.target).await? else {
                     continue;
                 };
 
@@ -250,21 +249,25 @@ fn batch_session_parts_event_stream(
                 }
 
                 let terminal = crate::harness::sessions::submission_is_terminal(&submission);
-                if !terminal {
-                    if submission.status != data_proto::SessionSubmissionStatus::Claimed as i32
-                        || submission
-                            .claim_expires_at
-                            .is_some_and(|expires_at| expires_at <= now_micros)
-                    {
-                        redispatch_expired_session_lease(
-                            kv.as_ref(),
-                            pubsub.as_ref(),
-                            &state.target,
-                            now_micros,
-                        )
-                        .await?;
-                        continue;
-                    }
+                if terminal {
+                    state.done = true;
+                    yield Ok(terminal_event_from_submission(&state.target, &submission));
+                    continue;
+                }
+
+                if submission.status != data_proto::SessionSubmissionStatus::Claimed as i32
+                    || submission
+                        .claim_expires_at
+                        .is_some_and(|expires_at| expires_at <= now_micros)
+                {
+                    redispatch_expired_session_lease(
+                        kv.as_ref(),
+                        pubsub.as_ref(),
+                        &state.target,
+                        now_micros,
+                    )
+                    .await?;
+                    continue;
                 }
 
                 if submission.claim_worker_id.is_empty() {
@@ -679,6 +682,56 @@ async fn latest_nonterminal_submission(
     Ok(submissions
         .into_iter()
         .max_by_key(|submission| (submission.created_at, submission.updated_at)))
+}
+
+async fn latest_submission(
+    kv: &dyn KeyValueStore,
+    target: &SessionStreamTarget,
+) -> std::result::Result<Option<data_proto::SessionSubmission>, tonic::Status> {
+    let prefix = keys::session_submission_prefix(&target.ns, &target.agent, &target.session_id);
+    let entries = kv
+        .list_entries(&prefix)
+        .await
+        .map_err(|err| tonic::Status::internal(format!("Failed to list submissions: {err}")))?;
+    let mut submissions = Vec::new();
+    for (_key, bytes) in entries {
+        let submission =
+            data_proto::SessionSubmission::decode(bytes.as_slice()).map_err(|err| {
+                tonic::Status::internal(format!("Failed to decode submission: {err}"))
+            })?;
+        submissions.push(submission);
+    }
+    Ok(submissions
+        .into_iter()
+        .max_by_key(|submission| (submission.created_at, submission.updated_at)))
+}
+
+fn terminal_event_from_submission(
+    target: &SessionStreamTarget,
+    submission: &data_proto::SessionSubmission,
+) -> events::SessionMessagePartEvent {
+    let failed = submission.status == data_proto::SessionSubmissionStatus::Failed as i32
+        || submission.status == data_proto::SessionSubmissionStatus::Interrupted as i32;
+    events::SessionMessagePartEvent {
+        session_id: target.session_id.clone(),
+        kind: if failed {
+            events::SessionMessagePartEventKind::Error as i32
+        } else {
+            events::SessionMessagePartEventKind::Done as i32
+        },
+        part: Some(data_proto::SessionMessagePart {
+            part_type: if failed {
+                data_proto::SessionMessagePartType::Error as i32
+            } else {
+                data_proto::SessionMessagePartType::Text as i32
+            },
+            ..Default::default()
+        }),
+        timestamp: submission.updated_at,
+        agent: target.agent.clone(),
+        ns: target.ns.clone(),
+        message_id: String::new(),
+    }
 }
 
 #[cfg(test)]
