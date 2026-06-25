@@ -22,6 +22,7 @@ use tracing::Instrument;
 
 const MAX_SESSION_RELEASE_CAS_RETRIES: usize = 8;
 const SESSION_RELEASE_CAS_BACKOFF_MS: u64 = 10;
+const FANOUT_SUBSCRIBER_GRACE_MS: u64 = 500;
 
 async fn execute_with_panic_boundary<F>(
     future: F,
@@ -374,6 +375,12 @@ impl WorkerEventHandler {
         );
         self.fanout_hub
             .create_session_attempt(fanout_key.clone())
+            .await;
+        self.fanout_hub
+            .wait_for_subscriber(
+                &fanout_key,
+                std::time::Duration::from_millis(FANOUT_SUBSCRIBER_GRACE_MS),
+            )
             .await;
 
         // Build the deterministic assistant reply sink. The sink owns live UI

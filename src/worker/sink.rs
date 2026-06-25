@@ -996,8 +996,11 @@ impl ExecutionSink for PubSubSessionSink {
         self.flush_token_event_buffer().await;
         self.flush_reasoning_part_and_event().await;
         // Final KV write (complete message)
-        let reply = if reply.is_empty() {
-            self.accumulated.lock().unwrap().clone()
+        let accumulated = self.accumulated.lock().unwrap().clone();
+        let reply = if accumulated.is_empty() {
+            reply.to_string()
+        } else if reply.is_empty() || accumulated.ends_with(reply) {
+            accumulated
         } else {
             reply.to_string()
         };
@@ -1390,6 +1393,46 @@ mod tests {
             .map(|part| part.content.as_str())
             .collect::<String>();
         assert_eq!(reply_text, "The answer is 12.");
+    }
+
+    #[tokio::test]
+    async fn final_message_persists_accumulated_streamed_text_when_done_reply_is_tail() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        sink.on_token("Hello! I am a mock LLM. How can ").await;
+        sink.on_token("I assist you today?").await;
+        sink.on_done("I assist you today?").await;
+
+        let entries = kv.entries.lock().await.clone();
+        let reply = entries
+            .iter()
+            .rev()
+            .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
+            .find(|message| message.id == "reply-1")
+            .expect("reply message should be persisted");
+        let reply_text = reply
+            .parts
+            .iter()
+            .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .map(|part| part.content.as_str())
+            .collect::<String>();
+        assert_eq!(
+            reply_text,
+            "Hello! I am a mock LLM. How can I assist you today?"
+        );
     }
 
     #[tokio::test]

@@ -33,7 +33,7 @@ pub(crate) type SessionPartEventStream = Pin<
 
 fn stream_session_lease_check_interval() -> Duration {
     let ttl_micros = scheduling::session_processing_timeout_micros().max(1) as u64;
-    Duration::from_micros((ttl_micros / 10).clamp(
+    Duration::from_micros((ttl_micros / 100).clamp(
         SESSION_STREAM_LEASE_CHECK_MIN_MICROS,
         SESSION_STREAM_LEASE_CHECK_MAX_MICROS,
     ))

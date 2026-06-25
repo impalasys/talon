@@ -11,7 +11,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::{
     mpsc::{self, error::TrySendError},
-    Mutex,
+    Mutex, Notify,
 };
 use tonic::{Request, Response, Status};
 
@@ -58,6 +58,7 @@ struct FanoutSubscriber {
 struct SessionAttemptFanout {
     subscribers: Vec<u64>,
     next_sequence: u64,
+    subscriber_notify: Arc<Notify>,
 }
 
 impl SessionAttemptFanout {
@@ -65,6 +66,7 @@ impl SessionAttemptFanout {
         Self {
             subscribers: Vec::new(),
             next_sequence: 1,
+            subscriber_notify: Arc::new(Notify::new()),
         }
     }
 }
@@ -92,6 +94,32 @@ impl FanoutHub {
             .attempts
             .entry(key)
             .or_insert_with(SessionAttemptFanout::new);
+    }
+
+    pub async fn wait_for_subscriber(
+        &self,
+        key: &SessionFanoutKey,
+        timeout: std::time::Duration,
+    ) -> bool {
+        loop {
+            let notify = {
+                let state = self.state.lock().await;
+                let Some(fanout) = state.attempts.get(key) else {
+                    return false;
+                };
+                if !fanout.subscribers.is_empty() {
+                    return true;
+                }
+                fanout.subscriber_notify.clone()
+            };
+
+            if tokio::time::timeout(timeout, notify.notified())
+                .await
+                .is_err()
+            {
+                return false;
+            }
+        }
     }
 
     pub async fn publish_session_part(
@@ -182,14 +210,19 @@ impl FanoutHub {
             .map(|(key, _after_sequence)| key)
             .collect::<Vec<_>>();
         let (sender, receiver) = mpsc::channel(subscriber_queue_capacity(keys.len()));
+        let mut subscriber_notifies = Vec::new();
         for key in &keys {
             if let Some(fanout) = state.attempts.get_mut(key) {
                 fanout.subscribers.push(subscriber_id);
+                subscriber_notifies.push(fanout.subscriber_notify.clone());
             }
         }
         state
             .subscribers
             .insert(subscriber_id, FanoutSubscriber { keys, sender });
+        for notify in subscriber_notifies {
+            notify.notify_waiters();
+        }
 
         Ok(FanoutSubscription {
             receiver,
@@ -450,6 +483,38 @@ mod tests {
             hub.subscribe_session_parts(&key(), 0).await,
             Err(FanoutSubscribeError::NotFound)
         ));
+    }
+
+    #[tokio::test]
+    async fn wait_for_subscriber_returns_when_stream_attaches() {
+        let hub = Arc::new(FanoutHub::new());
+        let key = key();
+        hub.create_session_attempt(key.clone()).await;
+
+        let waiter = {
+            let hub = hub.clone();
+            let key = key.clone();
+            tokio::spawn(async move {
+                hub.wait_for_subscriber(&key, std::time::Duration::from_secs(5))
+                    .await
+            })
+        };
+
+        assert!(
+            !hub.wait_for_subscriber(&key, std::time::Duration::from_millis(1))
+                .await
+        );
+        let _stream = hub
+            .subscribe_session_parts(&key, 0)
+            .await
+            .unwrap()
+            .into_stream();
+        assert!(
+            tokio::time::timeout(std::time::Duration::from_secs(5), waiter)
+                .await
+                .unwrap()
+                .unwrap()
+        );
     }
 
     #[tokio::test]
