@@ -356,10 +356,11 @@ fn message_broker_config(
         .message_broker
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("control_plane.message_broker configuration is missing"))?;
-    if mb_config.driver != "gcp_pubsub"
-        && mb_config.driver != "local_socket"
-        && mb_config.driver != "cf_queues"
-    {
+    let supported = mb_config.driver == "gcp_pubsub"
+        || mb_config.driver == "local_socket"
+        || mb_config.driver == "cf_queues"
+        || mb_config.driver == "sqs";
+    if !supported {
         return Err(anyhow::anyhow!(
             "Unsupported message broker driver: {}",
             mb_config.driver
@@ -407,6 +408,20 @@ pub async fn build_control_plane(
             kv_store.init().await?;
             kv = Arc::new(kv_store);
             scheduler_database_url = None;
+        }
+        #[cfg(feature = "dynamodb")]
+        "dynamodb" => {
+            let table = dynamodb_table_name(db_config).await?;
+            println!("Connecting to DynamoDbKvStore table {}...", table);
+            let store = kv::DynamoDbKvStore::from_env(table).await?;
+            kv = Arc::new(store);
+            scheduler_database_url = None;
+        }
+        #[cfg(not(feature = "dynamodb"))]
+        "dynamodb" => {
+            return Err(anyhow::anyhow!(
+                "DynamoDB database driver is not enabled in this build"
+            ));
         }
         #[cfg(feature = "rocksdb")]
         "rocksdb" => {
@@ -457,6 +472,17 @@ pub async fn build_control_plane(
         "cf_queues" => {
             println!("Initializing CfQueuesPublisher...");
             Arc::new(pubsub::CfQueuesPublisher::from_env())
+        }
+        #[cfg(feature = "sqs")]
+        "sqs" => {
+            println!("Initializing SqsMessagePublisher...");
+            Arc::new(pubsub::SqsMessagePublisher::from_env().await?)
+        }
+        #[cfg(not(feature = "sqs"))]
+        "sqs" => {
+            return Err(anyhow::anyhow!(
+                "SQS message broker driver is not enabled in this build"
+            ));
         }
         other => {
             return Err(anyhow::anyhow!(
@@ -639,6 +665,29 @@ async fn configured_document_store(
             other
         )),
     }
+}
+
+#[cfg(feature = "dynamodb")]
+async fn dynamodb_table_name(
+    db_config: &crate::control::config::proto::DatabaseConfig,
+) -> anyhow::Result<String> {
+    use crate::control::config::SecretExt;
+
+    if let Some(url_secret) = db_config.url.as_ref() {
+        let table: String = url_secret.resolve().await?;
+        let table = table
+            .strip_prefix("dynamodb://")
+            .unwrap_or(&table)
+            .trim()
+            .to_string();
+        if !table.is_empty() {
+            return Ok(table);
+        }
+    }
+    Ok(std::env::var("TALON_DYNAMODB_TABLE")
+        .ok()
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| "talon_state".to_string()))
 }
 
 #[cfg(feature = "rocksdb")]

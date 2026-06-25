@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 mod d1;
+#[cfg(feature = "dynamodb")]
+mod dynamodb;
 mod legacy;
 mod postgres;
 #[cfg(feature = "rocksdb")]
@@ -11,6 +13,8 @@ mod sqlite;
 mod sqlite_sql;
 
 pub use d1::D1KvStore;
+#[cfg(feature = "dynamodb")]
+pub use dynamodb::DynamoDbKvStore;
 pub use postgres::PostgresKvStore;
 #[cfg(feature = "rocksdb")]
 pub use rocksdb::RocksDbKvStore;
