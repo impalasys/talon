@@ -288,7 +288,7 @@ fn worker_router(handler: WorkerEventHandler) -> Router {
         talon::gateway::rpc::worker_proto::fanout_service_server::FanoutServiceServer::new(
             talon::worker::fanout::FanoutServiceImpl::new(handler.fanout_hub.clone()),
         );
-    let grpc_service = Server::builder()
+    let tonic_service = Server::builder()
         .accept_http1(true)
         .add_service(fanout_service)
         .into_service::<BoxBody>();
@@ -304,11 +304,11 @@ fn worker_router(handler: WorkerEventHandler) -> Router {
             "/mcp/talon-ops",
             talon::worker::talon_ops::talon_ops_router(handler.clone()),
         )
-        .fallback_service(grpc_fallback_service(grpc_service))
+        .fallback_service(grpc_service(tonic_service))
         .with_state(handler)
 }
 
-fn grpc_fallback_service<S>(grpc_service: S) -> axum::routing::RouterIntoService<Body, ()>
+fn grpc_service<S>(service: S) -> axum::routing::RouterIntoService<Body, ()>
 where
     S: Service<Request<BoxBody>, Response = Response<BoxBody>> + Clone + Send + 'static,
     S::Future: Send + 'static,
@@ -316,10 +316,10 @@ where
 {
     Router::new()
         .fallback_service(tower::service_fn(move |request: Request<Body>| {
-            let mut grpc_service = grpc_service.clone();
+            let mut service = service.clone();
             async move {
                 let request = request.map(tonic::body::boxed);
-                let response = match grpc_service.ready().await {
+                let response = match service.ready().await {
                     Ok(ready_service) => ready_service.call(request).await,
                     Err(err) => {
                         tracing::error!(%err, "worker gRPC service was not ready");
