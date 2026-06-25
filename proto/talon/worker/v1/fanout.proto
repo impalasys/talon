@@ -6,6 +6,7 @@ import "proto/events.proto";
 
 service FanoutService {
   rpc StreamSessionParts(StreamSessionPartsRequest) returns (stream StreamSessionPartsResponse);
+  rpc StreamSessionPartsBatch(StreamSessionPartsBatchRequest) returns (stream StreamSessionPartsResponse);
 }
 
 message StreamSessionPartsRequest {
@@ -20,4 +21,8 @@ message StreamSessionPartsRequest {
 message StreamSessionPartsResponse {
   uint64 sequence = 1;
   talon.events.SessionMessagePartEvent event = 2;
+}
+
+message StreamSessionPartsBatchRequest {
+  repeated StreamSessionPartsRequest streams = 1;
 }

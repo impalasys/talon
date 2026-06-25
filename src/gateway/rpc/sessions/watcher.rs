@@ -10,6 +10,7 @@ use crate::gateway::session_streams::SessionStreamTarget;
 use futures::{stream::SelectAll, Stream, StreamExt};
 use hyper_util::rt::TokioIo;
 use prost::Message;
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -47,6 +48,10 @@ pub(crate) fn session_parts_event_stream(
     kv: Arc<dyn KeyValueStore + Send + Sync>,
     pubsub: Arc<dyn MessagePublisher + Send + Sync>,
 ) -> SessionPartEventStream {
+    if targets.len() > 1 {
+        return batch_session_parts_event_stream(targets, kv, pubsub);
+    }
+
     let mut streams: SelectAll<SessionPartEventStream> = SelectAll::new();
     for target in targets {
         streams.push(single_session_parts_event_stream(
@@ -166,6 +171,200 @@ fn single_session_parts_event_stream(
     })
 }
 
+#[derive(Clone)]
+struct BatchSessionState {
+    target: SessionStreamTarget,
+    after_sequence: u64,
+    active_attempt_id: String,
+    done: bool,
+}
+
+#[derive(Clone)]
+struct ClaimedBatchStream {
+    target: SessionStreamTarget,
+    submission: data_proto::SessionSubmission,
+    after_sequence: u64,
+}
+
+type WorkerFanoutStream = Pin<
+    Box<
+        dyn Stream<
+                Item = std::result::Result<worker_proto::StreamSessionPartsResponse, tonic::Status>,
+            > + Send,
+    >,
+>;
+
+fn batch_session_parts_event_stream(
+    targets: Vec<SessionStreamTarget>,
+    kv: Arc<dyn KeyValueStore + Send + Sync>,
+    pubsub: Arc<dyn MessagePublisher + Send + Sync>,
+) -> SessionPartEventStream {
+    Box::pin(async_stream::stream! {
+        let mut states: Vec<BatchSessionState> = targets
+            .into_iter()
+            .map(|target| BatchSessionState {
+                target,
+                after_sequence: 0,
+                active_attempt_id: String::new(),
+                done: false,
+            })
+            .collect();
+        let mut tick = tokio::time::interval(stream_session_lease_check_interval());
+        tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+
+        'outer: loop {
+            if states.iter().all(|state| state.done) {
+                break;
+            }
+
+            tick.tick().await;
+            let now_micros = chrono::Utc::now().timestamp_micros();
+            let mut by_worker: HashMap<String, Vec<ClaimedBatchStream>> = HashMap::new();
+            let target_indexes: HashMap<(String, String, String), usize> = states
+                .iter()
+                .enumerate()
+                .map(|(index, state)| {
+                    (
+                        (
+                            state.target.ns.clone(),
+                            state.target.agent.clone(),
+                            state.target.session_id.clone(),
+                        ),
+                        index,
+                    )
+                })
+                .collect();
+
+            for state in &mut states {
+                if state.done {
+                    continue;
+                }
+
+                let Some(submission) = latest_nonterminal_submission(kv.as_ref(), &state.target).await? else {
+                    continue;
+                };
+
+                if submission.attempt_id != state.active_attempt_id {
+                    state.active_attempt_id = submission.attempt_id.clone();
+                    state.after_sequence = 0;
+                }
+
+                let terminal = crate::harness::sessions::submission_is_terminal(&submission);
+                if !terminal {
+                    if submission.status != data_proto::SessionSubmissionStatus::Claimed as i32
+                        || submission
+                            .claim_expires_at
+                            .is_some_and(|expires_at| expires_at <= now_micros)
+                    {
+                        redispatch_expired_session_lease(
+                            kv.as_ref(),
+                            pubsub.as_ref(),
+                            &state.target,
+                            now_micros,
+                        )
+                        .await?;
+                        continue;
+                    }
+                }
+
+                if submission.claim_worker_id.is_empty() {
+                    continue;
+                }
+
+                by_worker
+                    .entry(submission.claim_worker_id.clone())
+                    .or_default()
+                    .push(ClaimedBatchStream {
+                        target: state.target.clone(),
+                        submission,
+                        after_sequence: state.after_sequence,
+                    });
+            }
+
+            if by_worker.is_empty() {
+                continue;
+            }
+
+            let mut worker_streams: SelectAll<WorkerFanoutStream> = SelectAll::new();
+            for (worker_id, streams) in by_worker {
+                let terminal_batch = streams
+                    .iter()
+                    .all(|stream| crate::harness::sessions::submission_is_terminal(&stream.submission));
+                match connect_worker_batch_stream(
+                    kv.as_ref(),
+                    pubsub.as_ref(),
+                    &worker_id,
+                    &streams,
+                )
+                .await
+                {
+                    Ok(stream) => worker_streams.push(Box::pin(stream)),
+                    Err(status)
+                        if status.code() == tonic::Code::NotFound
+                            || status.code() == tonic::Code::Unavailable =>
+                    {
+                        if terminal_batch {
+                            yield Err(status);
+                            break 'outer;
+                        }
+                        tokio::time::sleep(WORKER_FANOUT_NOT_FOUND_RETRY_DELAY).await;
+                        continue 'outer;
+                    }
+                    Err(status) => {
+                        yield Err(status);
+                        break 'outer;
+                    }
+                }
+            }
+
+            loop {
+                let item = tokio::select! {
+                    item = worker_streams.next() => item,
+                    _ = tick.tick() => break,
+                };
+                let Some(item) = item else {
+                    break;
+                };
+                match item {
+                    Ok(response) => {
+                        let Some(event) = response.event else {
+                            continue;
+                        };
+                        let target_key = (
+                            event.ns.clone(),
+                            event.agent.clone(),
+                            event.session_id.clone(),
+                        );
+                        if let Some(index) = target_indexes.get(&target_key).copied() {
+                            states[index].after_sequence = response.sequence;
+                            let terminal = event.kind
+                                == events::SessionMessagePartEventKind::Done as i32
+                                || event.kind
+                                    == events::SessionMessagePartEventKind::Error as i32;
+                            if terminal {
+                                states[index].done = true;
+                            }
+                        }
+                        yield Ok(event);
+                        if states.iter().all(|state| state.done) {
+                            break 'outer;
+                        }
+                    }
+                    Err(status) => {
+                        if status.code() == tonic::Code::NotFound
+                            || status.code() == tonic::Code::Unavailable
+                        {
+                            break;
+                        }
+                        yield Err(status);
+                        break 'outer;
+                    }
+                }
+            }
+        }
+    })
+}
+
 async fn connect_worker_stream(
     kv: &dyn KeyValueStore,
     pubsub: &dyn MessagePublisher,
@@ -178,6 +377,24 @@ async fn connect_worker_stream(
     let mut last_status = None;
     for endpoint in endpoints {
         match stream_from_endpoint(&endpoint, target, submission, after_sequence).await {
+            Ok(stream) => return Ok(stream),
+            Err(status) => last_status = Some(status),
+        }
+    }
+    Err(last_status.unwrap_or_else(|| tonic::Status::unavailable("worker has no endpoints")))
+}
+
+async fn connect_worker_batch_stream(
+    kv: &dyn KeyValueStore,
+    pubsub: &dyn MessagePublisher,
+    worker_id: &str,
+    streams: &[ClaimedBatchStream],
+) -> std::result::Result<tonic::Streaming<worker_proto::StreamSessionPartsResponse>, tonic::Status>
+{
+    let endpoints = worker_endpoints(kv, pubsub, worker_id).await?;
+    let mut last_status = None;
+    for endpoint in endpoints {
+        match stream_batch_from_endpoint(&endpoint, streams).await {
             Ok(stream) => return Ok(stream),
             Err(status) => last_status = Some(status),
         }
@@ -202,6 +419,31 @@ async fn stream_from_endpoint(
             submission_id: submission.submission_id.clone(),
             attempt_id: submission.attempt_id.clone(),
             after_sequence,
+        })
+        .await?;
+    Ok(response.into_inner())
+}
+
+async fn stream_batch_from_endpoint(
+    endpoint: &resources_proto::WorkerEndpoint,
+    streams: &[ClaimedBatchStream],
+) -> std::result::Result<tonic::Streaming<worker_proto::StreamSessionPartsResponse>, tonic::Status>
+{
+    let channel = worker_endpoint_channel(endpoint).await?;
+    let mut client = worker_proto::fanout_service_client::FanoutServiceClient::new(channel);
+    let response = client
+        .stream_session_parts_batch(worker_proto::StreamSessionPartsBatchRequest {
+            streams: streams
+                .iter()
+                .map(|stream| worker_proto::StreamSessionPartsRequest {
+                    ns: stream.target.ns.clone(),
+                    agent: stream.target.agent.clone(),
+                    session_id: stream.target.session_id.clone(),
+                    submission_id: stream.submission.submission_id.clone(),
+                    attempt_id: stream.submission.attempt_id.clone(),
+                    after_sequence: stream.after_sequence,
+                })
+                .collect(),
         })
         .await?;
     Ok(response.into_inner())

@@ -3,8 +3,10 @@
 
 use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
 use crate::gateway::rpc::worker_proto::{
-    fanout_service_server::FanoutService, StreamSessionPartsRequest, StreamSessionPartsResponse,
+    fanout_service_server::FanoutService, StreamSessionPartsBatchRequest,
+    StreamSessionPartsRequest, StreamSessionPartsResponse,
 };
+use futures::stream::SelectAll;
 use std::collections::{HashMap, VecDeque};
 use std::pin::Pin;
 use std::sync::Arc;
@@ -220,6 +222,12 @@ impl FanoutService for FanoutServiceImpl {
                 + Send,
         >,
     >;
+    type StreamSessionPartsBatchStream = Pin<
+        Box<
+            dyn futures::Stream<Item = std::result::Result<StreamSessionPartsResponse, Status>>
+                + Send,
+        >,
+    >;
 
     async fn stream_session_parts(
         &self,
@@ -245,6 +253,44 @@ impl FanoutService for FanoutServiceImpl {
             })?;
         Ok(Response::new(subscription.into_stream()))
     }
+
+    async fn stream_session_parts_batch(
+        &self,
+        request: Request<StreamSessionPartsBatchRequest>,
+    ) -> std::result::Result<Response<Self::StreamSessionPartsBatchStream>, Status> {
+        let request = request.into_inner();
+        if request.streams.is_empty() {
+            return Err(Status::invalid_argument(
+                "streams must contain at least one session",
+            ));
+        }
+
+        let mut streams: SelectAll<Self::StreamSessionPartsBatchStream> = SelectAll::new();
+        for request in request.streams {
+            let key = SessionFanoutKey::new(
+                request.ns,
+                request.agent,
+                request.session_id,
+                request.submission_id,
+                request.attempt_id,
+            );
+            let subscription = self
+                .hub
+                .subscribe_session_parts(&key, request.after_sequence)
+                .await
+                .map_err(|err| match err {
+                    FanoutSubscribeError::NotFound => {
+                        Status::not_found("session attempt not found")
+                    }
+                    FanoutSubscribeError::ReplayGap => {
+                        Status::out_of_range("session fanout replay gap")
+                    }
+                })?;
+            streams.push(subscription.into_stream());
+        }
+
+        Ok(Response::new(Box::pin(streams)))
+    }
 }
 
 fn session_part_event_is_terminal(event: &SessionMessagePartEvent) -> bool {
@@ -256,10 +302,19 @@ fn session_part_event_is_terminal(event: &SessionMessagePartEvent) -> bool {
 mod tests {
     use super::*;
     use crate::control::events::SessionMessagePartEventKind;
+    use futures::StreamExt;
 
     fn event(kind: SessionMessagePartEventKind, content: &str) -> SessionMessagePartEvent {
+        event_for_session("session-1", kind, content)
+    }
+
+    fn event_for_session(
+        session_id: &str,
+        kind: SessionMessagePartEventKind,
+        content: &str,
+    ) -> SessionMessagePartEvent {
         SessionMessagePartEvent {
-            session_id: "session-1".to_string(),
+            session_id: session_id.to_string(),
             kind: kind as i32,
             part: Some(crate::gateway::rpc::data_proto::SessionMessagePart {
                 content: content.to_string(),
@@ -274,6 +329,10 @@ mod tests {
 
     fn key() -> SessionFanoutKey {
         SessionFanoutKey::new("ns", "agent", "session-1", "submission-1", "attempt-1")
+    }
+
+    fn key_for_session(session_id: &str) -> SessionFanoutKey {
+        SessionFanoutKey::new("ns", "agent", session_id, "submission-1", "attempt-1")
     }
 
     #[tokio::test]
@@ -298,5 +357,63 @@ mod tests {
             hub.subscribe_session_parts(&key(), 0).await,
             Err(FanoutSubscribeError::NotFound)
         ));
+    }
+
+    #[tokio::test]
+    async fn fanout_batch_streams_multiple_attempts() {
+        let hub = Arc::new(FanoutHub::new());
+        let service = FanoutServiceImpl::new(hub.clone());
+        let key_one = key_for_session("session-1");
+        let key_two = key_for_session("session-2");
+        hub.create_session_attempt(key_one.clone()).await;
+        hub.create_session_attempt(key_two.clone()).await;
+
+        let mut stream = service
+            .stream_session_parts_batch(Request::new(StreamSessionPartsBatchRequest {
+                streams: vec![
+                    StreamSessionPartsRequest {
+                        ns: "ns".to_string(),
+                        agent: "agent".to_string(),
+                        session_id: "session-1".to_string(),
+                        submission_id: "submission-1".to_string(),
+                        attempt_id: "attempt-1".to_string(),
+                        after_sequence: 0,
+                    },
+                    StreamSessionPartsRequest {
+                        ns: "ns".to_string(),
+                        agent: "agent".to_string(),
+                        session_id: "session-2".to_string(),
+                        submission_id: "submission-1".to_string(),
+                        attempt_id: "attempt-1".to_string(),
+                        after_sequence: 0,
+                    },
+                ],
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+
+        hub.publish_session_part(
+            &key_one,
+            event_for_session("session-1", SessionMessagePartEventKind::Delta, "one"),
+        )
+        .await;
+        hub.publish_session_part(
+            &key_two,
+            event_for_session("session-2", SessionMessagePartEventKind::Delta, "two"),
+        )
+        .await;
+
+        let mut contents = Vec::new();
+        for _ in 0..2 {
+            let response = tokio::time::timeout(std::time::Duration::from_secs(5), stream.next())
+                .await
+                .unwrap()
+                .unwrap()
+                .unwrap();
+            contents.push(response.event.unwrap().part.unwrap().content);
+        }
+        contents.sort();
+        assert_eq!(contents, ["one", "two"]);
     }
 }
