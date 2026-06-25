@@ -19,9 +19,13 @@ use talon::control::pubsub::{
     configured_local_socket_path, fully_qualified_subscription_name, fully_qualified_topic_name,
     LocalSocketMessagePublisher,
 };
+#[cfg(feature = "sqs")]
+use talon::control::pubsub::{SqsMessagePublisher, TALON_TOPIC_ATTRIBUTE};
 use talon::control::topics;
 use talon::control::ControlPlane;
 use talon::worker::{scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHandler};
+#[cfg(feature = "sqs")]
+use tokio::task::JoinSet;
 use tokio::{signal, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tonic::body::BoxBody;
@@ -36,6 +40,11 @@ static GLOBAL_ALLOCATOR: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemall
 const HEALTHY_PULL_RUNTIME_RESET: std::time::Duration = std::time::Duration::from_millis(50);
 #[cfg(not(test))]
 const HEALTHY_PULL_RUNTIME_RESET: std::time::Duration = std::time::Duration::from_secs(30);
+#[cfg(feature = "sqs")]
+const SQS_RECEIVE_ERROR_INITIAL_BACKOFF: std::time::Duration =
+    std::time::Duration::from_millis(250);
+#[cfg(feature = "sqs")]
+const SQS_RECEIVE_ERROR_MAX_BACKOFF: std::time::Duration = std::time::Duration::from_secs(10);
 
 fn next_pull_error_backoff(
     attempts: &mut u32,
@@ -238,6 +247,14 @@ fn local_socket_subscription_specs() -> Vec<ResolvedPullSubscriptionSpec> {
         .collect()
 }
 
+fn sqs_subscription_specs() -> Vec<ResolvedPullSubscriptionSpec> {
+    vec![ResolvedPullSubscriptionSpec {
+        topic_name: "talon-sqs-worker-queue".to_string(),
+        subscription_name: "talon-sqs-worker".to_string(),
+        event_type: "sqs_worker_queue".to_string(),
+    }]
+}
+
 fn message_broker_driver(config: &Config) -> Option<&str> {
     config
         .control_plane
@@ -337,6 +354,11 @@ struct LocalSocketPullSubscriptionBackend {
     subscription_name: String,
 }
 
+#[cfg(feature = "sqs")]
+struct SqsPullSubscriptionBackend {
+    publisher: SqsMessagePublisher,
+}
+
 impl GcpPullSubscriptionBackend {
     async fn new(
         project_id: String,
@@ -367,6 +389,15 @@ impl LocalSocketPullSubscriptionBackend {
             subscriber: publisher.subscriber(),
             topic_name,
             subscription_name,
+        })
+    }
+}
+
+#[cfg(feature = "sqs")]
+impl SqsPullSubscriptionBackend {
+    async fn new(_topic_name: String, _subscription_name: String) -> Result<Self> {
+        Ok(Self {
+            publisher: SqsMessagePublisher::from_env().await?,
         })
     }
 }
@@ -495,6 +526,270 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
             .await;
         Ok(())
     }
+}
+
+#[cfg(feature = "sqs")]
+#[async_trait::async_trait]
+impl PullSubscriptionBackend for SqsPullSubscriptionBackend {
+    async fn ensure_topic(&self) -> Result<()> {
+        self.publisher.queue_url().await?;
+        Ok(())
+    }
+
+    async fn ensure_subscription(&self) -> Result<()> {
+        Ok(())
+    }
+
+    async fn receive(
+        &self,
+        handler: WorkerEventHandler,
+        _event_type: String,
+        cancellation_token: CancellationToken,
+    ) -> Result<()> {
+        use base64::{engine::general_purpose, Engine as _};
+
+        let client = self.publisher.client();
+        let queue_url = self.publisher.queue_url().await?;
+        let wait_time_seconds = self.publisher.wait_time_seconds();
+        let visibility_timeout_seconds = self.publisher.visibility_timeout_seconds();
+        let concurrency = session_dispatch_concurrency(|name| std::env::var(name).ok());
+        let semaphore = Arc::new(tokio::sync::Semaphore::new(concurrency));
+        let mut in_flight = JoinSet::new();
+        let mut receive_error_backoff = SQS_RECEIVE_ERROR_INITIAL_BACKOFF;
+
+        tracing::info!(concurrency, "Starting SQS pull dispatch");
+        loop {
+            tokio::select! {
+                Some(result) = in_flight.join_next(), if !in_flight.is_empty() => {
+                    if let Err(err) = result {
+                        tracing::warn!(error = %err, "SQS pull dispatch task failed");
+                    }
+                }
+                _ = cancellation_token.cancelled() => break,
+                permit = semaphore.clone().acquire_owned() => {
+                    let permit = permit?;
+                    let receive = client
+                        .receive_message()
+                        .queue_url(&queue_url)
+                        .max_number_of_messages(1)
+                        .message_attribute_names(TALON_TOPIC_ATTRIBUTE)
+                        .wait_time_seconds(wait_time_seconds)
+                        .visibility_timeout(visibility_timeout_seconds)
+                        .send();
+                    let response = tokio::select! {
+                        _ = cancellation_token.cancelled() => {
+                            drop(permit);
+                            break;
+                        }
+                        response = receive => match response {
+                            Ok(response) => {
+                                receive_error_backoff = SQS_RECEIVE_ERROR_INITIAL_BACKOFF;
+                                response
+                            }
+                            Err(err) => {
+                                tracing::warn!(
+                                    backoff_ms = receive_error_backoff.as_millis(),
+                                    error = %err,
+                                    "SQS receive_message failed; backing off before retry"
+                                );
+                                drop(permit);
+                                tokio::select! {
+                                    _ = cancellation_token.cancelled() => break,
+                                    _ = tokio::time::sleep(receive_error_backoff) => {}
+                                }
+                                receive_error_backoff = (receive_error_backoff * 2).min(SQS_RECEIVE_ERROR_MAX_BACKOFF);
+                                continue;
+                            }
+                        }
+                    };
+                    let Some(message) = response.messages().first().cloned() else {
+                        drop(permit);
+                        continue;
+                    };
+                    let Some(receipt_handle) = message.receipt_handle().map(str::to_string) else {
+                        drop(permit);
+                        continue;
+                    };
+                    let topic_name = match sqs_message_topic(&message) {
+                        Some(topic_name) => topic_name,
+                        None => {
+                            tracing::warn!(
+                                attribute = TALON_TOPIC_ATTRIBUTE,
+                                "SQS pull message missing Talon topic attribute; deleting malformed message"
+                            );
+                            let _ = client
+                                .delete_message()
+                                .queue_url(&queue_url)
+                                .receipt_handle(receipt_handle)
+                                .send()
+                                .await;
+                            drop(permit);
+                            continue;
+                        }
+                    };
+                    let Some(event_type) =
+                        WorkerEventHandler::event_type_for_subscription(&topic_name)
+                            .map(str::to_string)
+                    else {
+                        tracing::warn!(
+                            topic = %topic_name,
+                            "SQS pull message targets unsupported Talon topic; deleting message"
+                        );
+                        let _ = client
+                            .delete_message()
+                            .queue_url(&queue_url)
+                            .receipt_handle(receipt_handle)
+                            .send()
+                            .await;
+                        drop(permit);
+                        continue;
+                    };
+                    let body = match message.body() {
+                        Some(body) => body,
+                        None => {
+                            let _ = client
+                                .delete_message()
+                                .queue_url(&queue_url)
+                                .receipt_handle(receipt_handle)
+                                .send()
+                                .await;
+                            drop(permit);
+                            continue;
+                        }
+                    };
+                    let payload = match general_purpose::STANDARD.decode(body) {
+                        Ok(payload) => payload,
+                        Err(err) => {
+                            tracing::warn!(event_type = %event_type, topic = %topic_name, error = %err, "SQS pull message body was not a Talon base64 payload");
+                            let _ = client
+                                .delete_message()
+                                .queue_url(&queue_url)
+                                .receipt_handle(receipt_handle)
+                                .send()
+                                .await;
+                            drop(permit);
+                            continue;
+                        }
+                    };
+                    let handler = handler.clone();
+                    let client = client.clone();
+                    let queue_url = queue_url.clone();
+                    let event_type = event_type.clone();
+                    let cancellation_token = cancellation_token.clone();
+                    in_flight.spawn(async move {
+                        let _permit = permit;
+                        let ack_receipt_handle = receipt_handle.clone();
+                        let heartbeat_receipt_handle = receipt_handle.clone();
+                        let nack_receipt_handle = receipt_handle;
+                        let heartbeat = (visibility_timeout_seconds > 0).then(|| {
+                            spawn_sqs_visibility_heartbeat(
+                                client.clone(),
+                                queue_url.clone(),
+                                heartbeat_receipt_handle,
+                                visibility_timeout_seconds,
+                                event_type.clone(),
+                            )
+                        });
+                        let stop_heartbeat_for_ack =
+                            heartbeat.as_ref().map(|(stop, _)| stop.clone());
+                        let stop_heartbeat_for_nack =
+                            heartbeat.as_ref().map(|(stop, _)| stop.clone());
+                        handle_pull_message(
+                            &event_type,
+                            &cancellation_token,
+                            &cancellation_token,
+                            || handler.dispatch(Some(&event_type), &payload),
+                            || async {
+                                if let Some(stop_heartbeat) = stop_heartbeat_for_ack {
+                                    stop_heartbeat.cancel();
+                                }
+                                client
+                                    .delete_message()
+                                    .queue_url(&queue_url)
+                                    .receipt_handle(ack_receipt_handle)
+                                    .send()
+                                    .await
+                                    .map(|_| ())
+                            },
+                            || async {
+                                if let Some(stop_heartbeat) = stop_heartbeat_for_nack {
+                                    stop_heartbeat.cancel();
+                                }
+                                client
+                                    .change_message_visibility()
+                                    .queue_url(&queue_url)
+                                    .receipt_handle(nack_receipt_handle)
+                                    .visibility_timeout(0)
+                                    .send()
+                                    .await
+                                    .map(|_| ())
+                            },
+                        )
+                        .await;
+                        if let Some((stop_heartbeat, heartbeat)) = heartbeat {
+                            stop_heartbeat.cancel();
+                            let _ = heartbeat.await;
+                        }
+                    });
+                }
+            }
+        }
+
+        tracing::info!(
+            in_flight = in_flight.len(),
+            "SQS pull dispatch shutting down; waiting for in-flight messages"
+        );
+        while let Some(result) = in_flight.join_next().await {
+            if let Err(err) = result {
+                tracing::warn!(error = %err, "SQS pull dispatch task failed during shutdown");
+            }
+        }
+        Ok(())
+    }
+}
+
+#[cfg(feature = "sqs")]
+fn sqs_message_topic(message: &aws_sdk_sqs::types::Message) -> Option<String> {
+    message
+        .message_attributes()
+        .and_then(|attributes| attributes.get(TALON_TOPIC_ATTRIBUTE))
+        .and_then(|attribute| attribute.string_value())
+        .map(str::to_string)
+}
+
+#[cfg(feature = "sqs")]
+fn spawn_sqs_visibility_heartbeat(
+    client: aws_sdk_sqs::Client,
+    queue_url: String,
+    receipt_handle: String,
+    visibility_timeout_seconds: i32,
+    event_type: String,
+) -> (CancellationToken, JoinHandle<()>) {
+    let stop_token = CancellationToken::new();
+    let task_stop_token = stop_token.clone();
+    let interval = std::time::Duration::from_secs((visibility_timeout_seconds as u64 / 2).max(1));
+    let task = tokio::spawn(async move {
+        loop {
+            tokio::select! {
+                _ = task_stop_token.cancelled() => break,
+                _ = tokio::time::sleep(interval) => {}
+            }
+            if task_stop_token.is_cancelled() {
+                break;
+            }
+            if let Err(err) = client
+                .change_message_visibility()
+                .queue_url(&queue_url)
+                .receipt_handle(&receipt_handle)
+                .visibility_timeout(visibility_timeout_seconds)
+                .send()
+                .await
+            {
+                tracing::warn!(event_type = %event_type, error = %err, "failed to extend SQS message visibility");
+            }
+        }
+    });
+    (stop_token, task)
 }
 
 async fn run_pull_subscription_with_backend(
@@ -628,10 +923,9 @@ fn spawn_pull_subscription_task(
             subscription_name: subscription_name.clone(),
             event_type,
         };
-        let use_local_socket = matches!(
-            message_broker_driver(pull_handler.config.as_ref()),
-            Some("local_socket")
-        );
+        let broker_driver = message_broker_driver(pull_handler.config.as_ref())
+            .unwrap_or("gcp_pubsub")
+            .to_string();
         let config = pull_handler.config.clone();
         run_pull_subscription_loop(
             || {
@@ -639,32 +933,44 @@ fn spawn_pull_subscription_task(
                 let topic_name = topic_name.clone();
                 let subscription_name = subscription_name.clone();
                 let config = config.clone();
+                let broker_driver = broker_driver.clone();
                 async move {
-                    if use_local_socket {
-                        let default_root = config
-                            .control_plane
-                            .as_ref()
-                            .and_then(|cp| cp.database.as_ref())
-                            .filter(|db| db.driver == "sqlite" && !db.data_dir.trim().is_empty())
-                            .map(|db| PathBuf::from(db.data_dir.trim()));
-                        let socket_path = configured_local_socket_path(default_root.as_deref());
-                        Ok::<Box<dyn PullSubscriptionBackend>, anyhow::Error>(Box::new(
-                            LocalSocketPullSubscriptionBackend::new(
-                                socket_path,
-                                topic_name,
-                                subscription_name,
-                            )
-                            .await?,
-                        ))
-                    } else {
-                        Ok::<Box<dyn PullSubscriptionBackend>, anyhow::Error>(Box::new(
+                    match broker_driver.as_str() {
+                        "local_socket" => {
+                            let default_root = config
+                                .control_plane
+                                .as_ref()
+                                .and_then(|cp| cp.database.as_ref())
+                                .filter(|db| {
+                                    db.driver == "sqlite" && !db.data_dir.trim().is_empty()
+                                })
+                                .map(|db| PathBuf::from(db.data_dir.trim()));
+                            let socket_path = configured_local_socket_path(default_root.as_deref());
+                            Ok::<Box<dyn PullSubscriptionBackend>, anyhow::Error>(Box::new(
+                                LocalSocketPullSubscriptionBackend::new(
+                                    socket_path,
+                                    topic_name,
+                                    subscription_name,
+                                )
+                                .await?,
+                            ))
+                        }
+                        #[cfg(feature = "sqs")]
+                        "sqs" => Ok::<Box<dyn PullSubscriptionBackend>, anyhow::Error>(Box::new(
+                            SqsPullSubscriptionBackend::new(topic_name, subscription_name).await?,
+                        )),
+                        #[cfg(not(feature = "sqs"))]
+                        "sqs" => Err(anyhow::anyhow!(
+                            "SQS pull subscriptions are not enabled in this build"
+                        )),
+                        _ => Ok::<Box<dyn PullSubscriptionBackend>, anyhow::Error>(Box::new(
                             GcpPullSubscriptionBackend::new(
                                 project_id,
                                 topic_name,
                                 subscription_name,
                             )
                             .await?,
-                        ))
+                        )),
                     }
                 }
             },
@@ -703,6 +1009,7 @@ where
         message_broker_driver(handler.config.as_ref()),
         Some("cf_queues")
     );
+    let use_sqs = matches!(message_broker_driver(handler.config.as_ref()), Some("sqs"));
     if use_cf_queues {
         tracing::info!(
             transport = "cf_queues",
@@ -713,17 +1020,21 @@ where
     tracing::info!(
         transport = if use_local_socket {
             "local_socket"
+        } else if use_sqs {
+            "sqs"
         } else {
             "gcp_pubsub"
         },
         "Starting worker background subscriptions"
     );
-    let mut tasks = Vec::new();
-    let specs = if use_local_socket {
+    let specs = if use_sqs {
+        sqs_subscription_specs()
+    } else if use_local_socket {
         local_socket_subscription_specs()
     } else {
         resolved_pull_subscription_specs(&project_id)
     };
+    let mut tasks = Vec::new();
     for spec in specs {
         tasks.push(spawn(
             handler.clone(),
@@ -1485,6 +1796,54 @@ mod tests {
         assert_eq!(spawned[0].2, "talon-session-dispatch-sub");
         assert_eq!(spawned[4].1, topics::INDEX_EVENTS_TOPIC);
         assert_eq!(spawned[4].2, "talon-index-events-sub");
+    }
+
+    #[tokio::test]
+    async fn maybe_spawn_pull_subscriptions_uses_sqs_specs_when_configured() {
+        let mut config = Config::default();
+        config.control_plane = Some(talon::control::config::proto::ControlPlaneConfig {
+            database: Some(talon::control::config::proto::DatabaseConfig {
+                data_dir: String::new(),
+                driver: "dynamodb".to_string(),
+                url: None,
+            }),
+            message_broker: Some(talon::control::config::proto::MessageBrokerConfig {
+                driver: "sqs".to_string(),
+            }),
+            scheduler: None,
+            object_store: None,
+            documents: None,
+        });
+        let handler = WorkerEventHandler {
+            cp: Arc::new(ControlPlane::noop()),
+            config: Arc::new(config),
+            mcp_registry: Arc::new(McpRegistry::new()),
+            scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
+            worker_id: "test-worker".to_string(),
+            fanout_hub: Arc::new(talon::worker::fanout::FanoutHub::new()),
+            session_cancellations: Arc::new(Mutex::new(HashMap::new())),
+        };
+        let spawned = std::sync::Mutex::new(Vec::<(String, String, String)>::new());
+
+        maybe_spawn_pull_subscriptions(
+            handler,
+            true,
+            "demo".to_string(),
+            CancellationToken::new(),
+            |_h, project_id, spec, _shutdown_token| {
+                spawned.lock().expect("spawned lock poisoned").push((
+                    project_id,
+                    spec.topic_name,
+                    spec.subscription_name,
+                ));
+                tokio::spawn(async {})
+            },
+        );
+        let spawned = spawned.lock().expect("spawned lock poisoned");
+        assert_eq!(spawned.len(), 1);
+        assert_eq!(spawned[0].0, "demo");
+        assert_eq!(spawned[0].1, "talon-sqs-worker-queue");
+        assert_eq!(spawned[0].2, "talon-sqs-worker");
     }
 
     #[tokio::test]

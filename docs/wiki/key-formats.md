@@ -93,6 +93,39 @@ kind = SessionMessage
 
 Recursive operations walk direct children in application code. Talon does not maintain a second recursive index in the SQL storage layer.
 
+## DynamoDB single-table layout
+
+The DynamoDB backend stores the same structured key in one shared on-demand table with only `PK` and `SK` in the key schema. The key strings are a DynamoDB-optimized projection of Talon's canonical `ResourceKey`, not a separate logical identity:
+
+```text
+PK = Namespace/<percent-encoded namespace>/Resource/<parent_path>
+SK = <kind>/<name>
+```
+
+The namespace is Talon's current isolation boundary. Every item for a namespace has that namespace embedded in `PK`, so ordinary reads and queries cannot cross namespace partitions. Talon reconstructs the structured `ResourceKey` from `PK` and `SK`; the protobuf payload is stored as binary `Value`.
+
+For session state this gives the following concrete shapes:
+
+```text
+Session:
+PK = Namespace/<namespace>/Resource/Agent/<agent_id>
+SK = Session/<session_id>
+
+Submission / lease record:
+PK = Namespace/<namespace>/Resource/Agent/<agent_id>/Session/<session_id>
+SK = SessionSubmission/<submission_id>
+
+Journal entry:
+PK = Namespace/<namespace>/Resource/Agent/<agent_id>/Session/<session_id>/SessionSubmission/<submission_id>
+SK = SessionJournalEntry/<sequence_number>
+```
+
+Leases are stored on the `SessionSubmission` record. Claim acquisition reads the current protobuf value and writes the updated submission with a DynamoDB conditional write: new submissions use `attribute_not_exists(PK)`, and existing submissions use `Value = :expected`. The submission contains a UUIDv7 `attempt_id`, `attempt_count`, and `claim_expires_at`; journal appends are fenced by checking that the active submission still has the same `attempt_id` before writing `SessionJournalEntry` items. Lease renewal uses the same expected-value condition, so a stale worker cannot renew or append after another worker has claimed a newer UUIDv7 attempt.
+
+Tables are shared across namespaces by default. New namespace onboarding does not need table creation. Production deployments should provision the shared table in infra, while local/E2E tests create their emulator table during test setup. Local development can keep using `sqlite` or filesystem-backed object storage while production sets `control_plane.database.driver: dynamodb`.
+
+The Rust backend is async and uses the official AWS SDK client directly. The SDK client is cheap to clone, internally shared, and non-blocking under Tokio, so Talon should keep one `DynamoDbKvStore` per control plane and share it behind the existing `Arc<dyn KeyValueStore + Send + Sync>` boundary instead of creating per-request clients.
+
 ## Namespace hierarchy
 
 Namespace hierarchies are not represented in the ordinary resource hierarchy. A separate `NamespaceRef` resource defines each child namespace edge:
