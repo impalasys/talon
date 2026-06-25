@@ -8,11 +8,16 @@ use crate::control::{events, keys, ns, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::{data_proto, resources_proto, worker_proto};
 use crate::gateway::session_streams::SessionStreamTarget;
 use futures::{stream::SelectAll, Stream, StreamExt};
+use hyper_util::rt::TokioIo;
 use prost::Message;
+use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
-use tonic::transport::Channel;
+use tokio::net::UnixStream;
+use tonic::transport::{Channel, Endpoint, Uri};
+use tower::service_fn;
+use url::Url;
 
 const SESSION_STREAM_LEASE_CHECK_MAX_MICROS: u64 = 5_000_000;
 const SESSION_STREAM_LEASE_CHECK_MIN_MICROS: u64 = 100_000;
@@ -187,11 +192,7 @@ async fn stream_from_endpoint(
     after_sequence: u64,
 ) -> std::result::Result<tonic::Streaming<worker_proto::StreamSessionPartsResponse>, tonic::Status>
 {
-    let channel = Channel::from_shared(endpoint.url.clone())
-        .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?
-        .connect()
-        .await
-        .map_err(|err| tonic::Status::unavailable(format!("failed to connect to worker: {err}")))?;
+    let channel = worker_endpoint_channel(endpoint).await?;
     let mut client = worker_proto::fanout_service_client::FanoutServiceClient::new(channel);
     let response = client
         .stream_session_parts(worker_proto::StreamSessionPartsRequest {
@@ -204,6 +205,47 @@ async fn stream_from_endpoint(
         })
         .await?;
     Ok(response.into_inner())
+}
+
+async fn worker_endpoint_channel(
+    endpoint: &resources_proto::WorkerEndpoint,
+) -> std::result::Result<Channel, tonic::Status> {
+    if let Some(path) = unix_endpoint_path(&endpoint.url)? {
+        let path = Arc::new(path);
+        return Endpoint::try_from("http://[::]:50051")
+            .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?
+            .connect_with_connector(service_fn(move |_uri: Uri| {
+                let path = path.clone();
+                async move { UnixStream::connect(path.as_ref()).await.map(TokioIo::new) }
+            }))
+            .await
+            .map_err(|err| {
+                tonic::Status::unavailable(format!("failed to connect to worker: {err}"))
+            });
+    }
+
+    Channel::from_shared(endpoint.url.clone())
+        .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?
+        .connect()
+        .await
+        .map_err(|err| tonic::Status::unavailable(format!("failed to connect to worker: {err}")))
+}
+
+fn unix_endpoint_path(url: &str) -> std::result::Result<Option<PathBuf>, tonic::Status> {
+    let parsed = Url::parse(url)
+        .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?;
+    if parsed.scheme() != "unix" {
+        return Ok(None);
+    }
+    if parsed.path().is_empty() {
+        return Err(tonic::Status::unavailable(
+            "unix worker endpoint is missing a socket path",
+        ));
+    }
+    let path = urlencoding::decode(parsed.path()).map_err(|err| {
+        tonic::Status::unavailable(format!("invalid unix worker endpoint path: {err}"))
+    })?;
+    Ok(Some(PathBuf::from(path.into_owned())))
 }
 
 async fn worker_endpoints(
@@ -395,4 +437,97 @@ async fn latest_nonterminal_submission(
     Ok(submissions
         .into_iter()
         .max_by_key(|submission| (submission.created_at, submission.updated_at)))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::control::events::SessionMessagePartEventKind;
+    use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
+    use tempfile::tempdir;
+    use tokio::net::UnixListener;
+    use tokio_stream::wrappers::UnixListenerStream;
+    use tokio_util::sync::CancellationToken;
+    use tonic::transport::Server;
+
+    fn part_event(
+        kind: SessionMessagePartEventKind,
+        content: &str,
+    ) -> events::SessionMessagePartEvent {
+        events::SessionMessagePartEvent {
+            session_id: "session-1".to_string(),
+            kind: kind as i32,
+            part: Some(data_proto::SessionMessagePart {
+                content: content.to_string(),
+                ..Default::default()
+            }),
+            timestamp: 1,
+            agent: "agent".to_string(),
+            ns: "ns".to_string(),
+            message_id: "message-1".to_string(),
+        }
+    }
+
+    #[tokio::test]
+    async fn stream_from_endpoint_connects_to_unix_fanout_service() {
+        let dir = tempdir().unwrap();
+        let socket_path = dir.path().join("fanout.sock");
+        let listener = UnixListener::bind(&socket_path).unwrap();
+        let shutdown = CancellationToken::new();
+        let hub = Arc::new(FanoutHub::new());
+        let service = worker_proto::fanout_service_server::FanoutServiceServer::new(
+            crate::worker::fanout::FanoutServiceImpl::new(hub.clone()),
+        );
+        let server = tokio::spawn(
+            Server::builder()
+                .add_service(service)
+                .serve_with_incoming_shutdown(
+                    UnixListenerStream::new(listener),
+                    shutdown.clone().cancelled_owned(),
+                ),
+        );
+
+        let key = SessionFanoutKey::new("ns", "agent", "session-1", "submission-1", "attempt-1");
+        hub.create_session_attempt(key.clone()).await;
+
+        let endpoint = resources_proto::WorkerEndpoint {
+            url: format!("unix://{}", socket_path.display()),
+            protocol: "grpc".to_string(),
+            audience: String::new(),
+        };
+        let target = SessionStreamTarget::new("ns", "agent", "session-1");
+        let submission = data_proto::SessionSubmission {
+            submission_id: "submission-1".to_string(),
+            attempt_id: "attempt-1".to_string(),
+            ..Default::default()
+        };
+
+        let mut stream = tokio::time::timeout(
+            Duration::from_secs(5),
+            stream_from_endpoint(&endpoint, &target, &submission, 0),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        hub.publish_session_part(
+            &key,
+            part_event(SessionMessagePartEventKind::Delta, "hello"),
+        )
+        .await;
+        let response = tokio::time::timeout(Duration::from_secs(5), stream.message())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert_eq!(response.sequence, 1);
+        assert_eq!(response.event.unwrap().part.unwrap().content, "hello");
+
+        drop(stream);
+        shutdown.cancel();
+        tokio::time::timeout(Duration::from_secs(5), server)
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+    }
 }

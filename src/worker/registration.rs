@@ -152,14 +152,20 @@ where
     F: Fn(&str) -> Option<String>,
 {
     let url = raw_url.trim().trim_end_matches('/');
-    if url.is_empty() || Url::parse(url).is_err() {
+    let parsed = Url::parse(url).ok()?;
+    if url.is_empty() {
         return None;
     }
+    let default_protocol = if parsed.scheme() == "unix" {
+        "grpc"
+    } else {
+        "http"
+    };
     Some(resources_proto::WorkerEndpoint {
         url: url.to_string(),
         protocol: get("TALON_WORKER_ENDPOINT_PROTOCOL")
             .filter(|value| !value.trim().is_empty())
-            .unwrap_or_else(|| "http".to_string()),
+            .unwrap_or_else(|| default_protocol.to_string()),
         audience: get("TALON_WORKER_ENDPOINT_AUDIENCE").unwrap_or_default(),
     })
 }
@@ -340,6 +346,22 @@ mod tests {
         assert_eq!(endpoints[0].url, "https://worker.example.com");
         assert_eq!(endpoints[0].protocol, "http");
         assert_eq!(endpoints[0].audience, "scheduler");
+    }
+
+    #[tokio::test]
+    async fn worker_endpoint_discovery_accepts_unix_socket_urls() {
+        let endpoints = discover_worker_endpoints(
+            |name| match name {
+                "TALON_WORKER_ENDPOINT_URL" => Some("unix:///tmp/talon-worker.sock".to_string()),
+                _ => None,
+            },
+            "8081",
+        )
+        .await;
+
+        assert_eq!(endpoints.len(), 1);
+        assert_eq!(endpoints[0].url, "unix:///tmp/talon-worker.sock");
+        assert_eq!(endpoints[0].protocol, "grpc");
     }
 
     #[tokio::test]

@@ -5687,6 +5687,7 @@ dependencies = [
  "google-cloud-googleapis",
  "google-cloud-pubsub",
  "google-cloud-secretmanager-v1",
+ "hyper-util",
  "jsonwebtoken 10.4.0",
  "minijinja",
  "opentelemetry",

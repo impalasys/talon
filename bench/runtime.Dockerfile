@@ -16,13 +16,16 @@ ARG CARGO_FEATURES="rocksdb"
 COPY Cargo.toml Cargo.lock build.rs ./
 COPY third_party ./third_party
 COPY proto ./proto
+COPY sdk/rust/talon-client ./sdk/rust/talon-client
 COPY src ./src
 COPY talon.yaml ./talon.yaml
 
 RUN if [ -n "$CARGO_FEATURES" ]; then \
-        cargo build --release --locked --bins --features "$CARGO_FEATURES"; \
+        cargo build --release --locked --features "$CARGO_FEATURES" \
+          --bin talon-server --bin talon-worker --bin talon-cli --bin talon-node; \
     else \
-        cargo build --release --locked --bins; \
+        cargo build --release --locked \
+          --bin talon-server --bin talon-worker --bin talon-cli --bin talon-node; \
     fi && \
     mkdir -p /usr/src/talon/dist && \
     cp /usr/src/talon/target/release/talon-server /usr/src/talon/dist/talon-server && \
