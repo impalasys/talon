@@ -221,7 +221,7 @@ impl FanoutHub {
             .subscribers
             .insert(subscriber_id, FanoutSubscriber { keys, sender });
         for notify in subscriber_notifies {
-            notify.notify_waiters();
+            notify.notify_one();
         }
 
         Ok(FanoutSubscription {
