@@ -3,7 +3,6 @@
 
 use anyhow::Result;
 use async_trait::async_trait;
-use prost::Message;
 use serde_json::Value;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -16,7 +15,18 @@ use crate::harness::executor::context_budget::tool_result_preview;
 use crate::harness::executor::{AgentEvent, ExecutionSink};
 use crate::harness::llm::{ChatResponse, ChatUsage};
 use crate::harness::sessions::{self, SessionSubmission};
+use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
 use tracing::Instrument;
+
+fn chat_usage_payload_json(usage: &ChatUsage) -> String {
+    serde_json::to_string(&serde_json::json!({
+        "input_tokens": usage.input_tokens,
+        "output_tokens": usage.output_tokens,
+        "reasoning_tokens": usage.reasoning_tokens,
+        "total_tokens": usage.total_tokens,
+    }))
+    .unwrap_or_else(|_| "{}".to_string())
+}
 
 #[derive(Debug, Clone)]
 pub struct SessionRunSummary {
@@ -44,6 +54,8 @@ pub struct PubSubSessionSink {
     // Shared IO handles and session identity.
     pub kv: Arc<dyn KeyValueStore>,
     pub pubsub: Arc<dyn MessagePublisher>,
+    pub fanout_hub: Arc<FanoutHub>,
+    pub fanout_key: SessionFanoutKey,
     pub ns: String,
     pub session_id: String,
     pub agent_id: String,
@@ -109,6 +121,37 @@ impl PubSubSessionSink {
         Self::new_inner(
             kv,
             pubsub,
+            None,
+            None,
+            ns,
+            session_id,
+            agent_id,
+            reply_msg_id,
+            reply_msg_key,
+            submission_id,
+            attempt_id,
+            token_publish_interval(),
+        )
+    }
+
+    pub fn new_with_fanout(
+        kv: Arc<dyn KeyValueStore>,
+        pubsub: Arc<dyn MessagePublisher>,
+        fanout_hub: Arc<FanoutHub>,
+        fanout_key: SessionFanoutKey,
+        ns: impl Into<String>,
+        session_id: impl Into<String>,
+        agent_id: impl Into<String>,
+        reply_msg_id: impl Into<String>,
+        reply_msg_key: ResourceKey,
+        submission_id: impl Into<String>,
+        attempt_id: impl Into<String>,
+    ) -> Self {
+        Self::new_inner(
+            kv,
+            pubsub,
+            Some(fanout_hub),
+            Some(fanout_key),
             ns,
             session_id,
             agent_id,
@@ -136,6 +179,8 @@ impl PubSubSessionSink {
         Self::new_inner(
             kv,
             pubsub,
+            None,
+            None,
             ns,
             session_id,
             agent_id,
@@ -150,6 +195,8 @@ impl PubSubSessionSink {
     fn new_inner(
         kv: Arc<dyn KeyValueStore>,
         pubsub: Arc<dyn MessagePublisher>,
+        fanout_hub: Option<Arc<FanoutHub>>,
+        fanout_key: Option<SessionFanoutKey>,
         ns: impl Into<String>,
         session_id: impl Into<String>,
         agent_id: impl Into<String>,
@@ -159,18 +206,33 @@ impl PubSubSessionSink {
         attempt_id: impl Into<String>,
         token_publish_interval: Duration,
     ) -> Self {
+        let ns = ns.into();
         let session_id = session_id.into();
+        let agent_id = agent_id.into();
+        let submission_id = submission_id.into();
+        let attempt_id = attempt_id.into();
         let status_topic = topics::session_part_topic_for_session(&session_id);
+        let fanout_key = fanout_key.unwrap_or_else(|| {
+            SessionFanoutKey::new(
+                ns.clone(),
+                agent_id.clone(),
+                session_id.clone(),
+                submission_id.clone(),
+                attempt_id.clone(),
+            )
+        });
         Self {
             kv,
             pubsub,
-            ns: ns.into(),
+            fanout_hub: fanout_hub.unwrap_or_else(|| Arc::new(FanoutHub::new())),
+            fanout_key,
+            ns,
             session_id,
-            agent_id: agent_id.into(),
+            agent_id,
             reply_msg_id: reply_msg_id.into(),
             reply_msg_key,
-            submission_id: submission_id.into(),
-            attempt_id: attempt_id.into(),
+            submission_id,
+            attempt_id,
             status_topic,
             token_publish_interval,
             started_at: Instant::now(),
@@ -468,7 +530,7 @@ impl PubSubSessionSink {
                 data_proto::SessionMessagePartType::Usage,
                 String::new(),
                 String::new(),
-                serde_json::to_string(&usage).unwrap_or_else(|_| "{}".to_string()),
+                chat_usage_payload_json(&usage),
             ),
             AgentEvent::Done(reply) => (
                 SessionMessagePartEventKind::Done,
@@ -503,25 +565,20 @@ impl PubSubSessionSink {
             ns: self.ns.clone(),
             message_id: self.reply_msg_id.clone(),
         };
-        let payload = event.encode_to_vec();
-        if let Err(err) = async { self.pubsub.publish(&self.status_topic, &payload).await }
-            .instrument(tracing::info_span!(
-                "PubSubSessionSink.publish_event",
-                namespace = %self.ns,
-                agent = %self.agent_id,
-                session = %self.session_id,
-                kind = ?kind,
-                part_type = ?part_type,
-                payload_bytes = payload.len(),
-            ))
-            .await
-        {
-            tracing::warn!(
-                error = %err,
-                topic = %self.status_topic,
-                "Failed to publish session stream event"
-            );
+        async {
+            self.fanout_hub
+                .publish_session_part(&self.fanout_key, event)
+                .await
         }
+        .instrument(tracing::info_span!(
+            "PubSubSessionSink.publish_event",
+            namespace = %self.ns,
+            agent = %self.agent_id,
+            session = %self.session_id,
+            kind = ?kind,
+            part_type = ?part_type,
+        ))
+        .await;
     }
 
     fn projection_labels(&self, state: &str) -> std::collections::HashMap<String, String> {
@@ -930,7 +987,7 @@ impl ExecutionSink for PubSubSessionSink {
             data_proto::SessionMessagePartType::Usage,
             String::new(),
             String::new(),
-            serde_json::to_string(usage).unwrap_or_else(|_| "{}".to_string()),
+            chat_usage_payload_json(usage),
         );
         self.publish_event(AgentEvent::Usage(usage.clone())).await;
     }
@@ -939,8 +996,11 @@ impl ExecutionSink for PubSubSessionSink {
         self.flush_token_event_buffer().await;
         self.flush_reasoning_part_and_event().await;
         // Final KV write (complete message)
-        let reply = if reply.is_empty() {
-            self.accumulated.lock().unwrap().clone()
+        let accumulated = self.accumulated.lock().unwrap().clone();
+        let reply = if accumulated.is_empty() {
+            reply.to_string()
+        } else if reply.is_empty() || accumulated.ends_with(reply) {
+            accumulated
         } else {
             reply.to_string()
         };
@@ -1089,6 +1149,7 @@ mod tests {
     use crate::harness::executor::ExecutionSink;
     use crate::harness::sessions;
     use async_trait::async_trait;
+    use futures::StreamExt;
     use prost::Message;
     use serde_json::json;
     use std::sync::Arc;
@@ -1172,6 +1233,54 @@ mod tests {
         event.part.as_ref().expect("event part")
     }
 
+    type TestFanoutStream = std::pin::Pin<
+        Box<
+            dyn futures::Stream<
+                    Item = std::result::Result<
+                        crate::gateway::rpc::worker_proto::StreamSessionPartsResponse,
+                        tonic::Status,
+                    >,
+                > + Send,
+        >,
+    >;
+
+    async fn fanout_stream(sink: &PubSubSessionSink) -> TestFanoutStream {
+        sink.fanout_hub
+            .create_session_attempt(sink.fanout_key.clone())
+            .await;
+        sink.fanout_hub
+            .subscribe_session_parts(&sink.fanout_key, 0)
+            .await
+            .expect("fanout subscription")
+            .into_stream()
+    }
+
+    async fn next_fanout_event(stream: &mut TestFanoutStream) -> SessionMessagePartEvent {
+        tokio::time::timeout(Duration::from_secs(5), stream.next())
+            .await
+            .expect("fanout event timed out")
+            .expect("fanout stream ended")
+            .expect("fanout stream error")
+            .event
+            .expect("fanout event")
+    }
+
+    async fn fanout_events_until_terminal(
+        stream: &mut TestFanoutStream,
+    ) -> Vec<SessionMessagePartEvent> {
+        let mut events = Vec::new();
+        loop {
+            let event = next_fanout_event(stream).await;
+            let terminal = event.kind == SessionMessagePartEventKind::Done as i32
+                || event.kind == SessionMessagePartEventKind::Error as i32;
+            events.push(event);
+            if terminal {
+                break;
+            }
+        }
+        events
+    }
+
     #[async_trait]
     impl MessagePublisher for MockPubSub {
         async fn publish(&self, topic: &str, message: &[u8]) -> anyhow::Result<()> {
@@ -1230,12 +1339,13 @@ mod tests {
             Duration::from_millis(5),
         );
 
+        let mut fanout = fanout_stream(&sink).await;
         sink.on_token("hello").await;
         tokio::time::sleep(Duration::from_millis(10)).await;
         sink.on_token(" world").await;
         sink.on_done("hello world").await;
 
-        let events = events.lock().await.clone();
+        let events = fanout_events_until_terminal(&mut fanout).await;
         let token_events = events
             .iter()
             .filter(|event| event.kind == SessionMessagePartEventKind::Delta as i32)
@@ -1283,6 +1393,46 @@ mod tests {
             .map(|part| part.content.as_str())
             .collect::<String>();
         assert_eq!(reply_text, "The answer is 12.");
+    }
+
+    #[tokio::test]
+    async fn final_message_persists_accumulated_streamed_text_when_done_reply_is_tail() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        sink.on_token("Hello! I am a mock LLM. How can ").await;
+        sink.on_token("I assist you today?").await;
+        sink.on_done("I assist you today?").await;
+
+        let entries = kv.entries.lock().await.clone();
+        let reply = entries
+            .iter()
+            .rev()
+            .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
+            .find(|message| message.id == "reply-1")
+            .expect("reply message should be persisted");
+        let reply_text = reply
+            .parts
+            .iter()
+            .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .map(|part| part.content.as_str())
+            .collect::<String>();
+        assert_eq!(
+            reply_text,
+            "Hello! I am a mock LLM. How can I assist you today?"
+        );
     }
 
     #[tokio::test]
@@ -1346,12 +1496,16 @@ mod tests {
             Duration::from_secs(10),
         );
 
+        let mut fanout = fanout_stream(&sink).await;
         sink.on_token("drafting ").await;
         sink.on_token("request").await;
         sink.on_tool_call("tool-1", "create_prompt", &json!({"content": "x"}))
             .await;
 
-        let events = events.lock().await.clone();
+        let events = vec![
+            next_fanout_event(&mut fanout).await,
+            next_fanout_event(&mut fanout).await,
+        ];
         assert_eq!(
             event_part(&events[0]).part_type,
             data_proto::SessionMessagePartType::Text as i32
@@ -1401,12 +1555,13 @@ mod tests {
             Duration::from_millis(5),
         );
 
+        let mut fanout = fanout_stream(&sink).await;
         sink.on_reasoning("first").await;
         tokio::time::sleep(Duration::from_millis(10)).await;
         sink.on_reasoning(" second").await;
         sink.on_done("final reply").await;
 
-        let events = events.lock().await.clone();
+        let events = fanout_events_until_terminal(&mut fanout).await;
         let reasoning_events = events
             .iter()
             .filter(|event| {
@@ -1709,20 +1864,20 @@ mod tests {
             Duration::from_secs(10),
         );
 
+        let mut fanout = fanout_stream(&sink).await;
         sink.on_token("partial ").await;
         sink.on_error("tool failed").await;
         sink.on_done("final reply").await;
         tokio::time::sleep(Duration::from_millis(25)).await;
 
-        let events = events.lock().await.clone();
+        let events = fanout_events_until_terminal(&mut fanout).await;
         assert!(events.iter().any(
             |event| event.kind == SessionMessagePartEventKind::Error as i32
                 && event_part(event).content == "tool failed"
         ));
-        assert!(events.iter().any(
-            |event| event.kind == SessionMessagePartEventKind::Done as i32
-                && event_part(event).content == "final reply"
-        ));
+        assert!(!events
+            .iter()
+            .any(|event| event.kind == SessionMessagePartEventKind::Done as i32));
 
         let entries = kv.entries.lock().await.clone();
         let persisted_messages = entries
@@ -1780,9 +1935,10 @@ mod tests {
             Duration::from_secs(10),
         );
 
+        let mut fanout = fanout_stream(&sink).await;
         sink.on_done("final reply").await;
 
-        let events = events.lock().await.clone();
+        let events = fanout_events_until_terminal(&mut fanout).await;
         assert!(events.iter().any(
             |event| event.kind == SessionMessagePartEventKind::Error as i32
                 && event_part(event).content == "Error: failed to mark session submission terminal"
@@ -1825,9 +1981,10 @@ mod tests {
             Duration::from_secs(10),
         );
 
+        let mut fanout = fanout_stream(&sink).await;
         sink.on_done("final reply").await;
 
-        let events = events.lock().await.clone();
+        let events = fanout_events_until_terminal(&mut fanout).await;
         assert!(events.iter().any(
             |event| event.kind == SessionMessagePartEventKind::Error as i32
                 && event_part(event).content

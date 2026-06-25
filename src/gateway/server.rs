@@ -7,7 +7,6 @@ use crate::control::{
     ControlPlane, KeyValueStore, MessagePublisher,
 };
 use crate::gateway::auth::AuthConfig;
-use crate::gateway::session_streams::SessionStreamHub;
 use anyhow::Result;
 use axum::{
     body::Body,
@@ -31,7 +30,6 @@ pub struct Gateway {
     pub scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
     pub objects: Arc<dyn ObjectStore + Send + Sync>,
     pub documents: Arc<dyn DocumentStore + Send + Sync>,
-    pub session_streams: Arc<SessionStreamHub>,
 }
 
 impl Gateway {
@@ -55,7 +53,6 @@ impl Gateway {
         objects: Arc<dyn ObjectStore + Send + Sync>,
         documents: Arc<dyn DocumentStore + Send + Sync>,
     ) -> Self {
-        let session_streams = Arc::new(SessionStreamHub::new(pubsub.clone()));
         Self {
             auth_config,
             trust_config,
@@ -64,7 +61,6 @@ impl Gateway {
             scheduler,
             objects,
             documents,
-            session_streams,
         }
     }
 
@@ -91,7 +87,6 @@ impl Gateway {
             scheduler: self.scheduler.clone(),
             objects: self.objects.clone(),
             documents: self.documents.clone(),
-            session_streams: self.session_streams.clone(),
         }
     }
 

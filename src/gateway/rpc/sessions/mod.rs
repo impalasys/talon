@@ -11,9 +11,9 @@ use prost::Message;
 use serde_json::{json, Value};
 use std::sync::OnceLock;
 
-mod watcher;
+pub(crate) mod watcher;
 
-use watcher::session_parts_event_stream;
+use watcher::{session_parts_event_stream, session_submission_event_stream};
 
 const LARGE_SESSION_PAYLOAD_WARNING_BYTES: usize = 128 * 1024;
 const DEFAULT_SESSION_MESSAGES_PAGE_SIZE: usize = 50;
@@ -1198,17 +1198,7 @@ impl GrpcGatewayHandler {
             req.agent.clone(),
             req.session_id.clone(),
         )];
-        let receiver = self
-            .gateway
-            .session_streams
-            .subscribe(&req.ns, &req.agent, &req.session_id)
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to subscribe to session stream: {}", e))
-            })?;
-
         let event_stream = session_parts_event_stream(
-            receiver,
             targets,
             self.gateway.kv.clone(),
             self.gateway.pubsub.clone(),
@@ -1260,17 +1250,7 @@ impl GrpcGatewayHandler {
             }
         }
 
-        let receiver = self
-            .gateway
-            .session_streams
-            .subscribe_many(targets.clone())
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to subscribe to session stream: {}", e))
-            })?;
-
         let event_stream = session_parts_event_stream(
-            receiver,
             targets,
             self.gateway.kv.clone(),
             self.gateway.pubsub.clone(),
@@ -1296,27 +1276,13 @@ impl GrpcGatewayHandler {
             &req.get_ref().session_id
         );
         let req = req.into_inner();
-        let targets = vec![SessionStreamTarget::new(
-            req.ns.clone(),
-            req.agent.clone(),
-            req.session_id.clone(),
-        )];
-        let receiver = self
-            .gateway
-            .session_streams
-            .subscribe(&req.ns, &req.agent, &req.session_id)
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to subscribe to session stream: {}", e))
-            })?;
-
         let mut message = req
             .message
             .ok_or_else(|| tonic::Status::invalid_argument("message is required"))?;
         message.labels.extend(req.labels);
         let message = normalize_appended_session_message(message);
         let now = chrono::Utc::now();
-        scheduling::send_session_message(
+        let submission_id = scheduling::send_session_message(
             self.gateway.kv.as_ref(),
             self.gateway.pubsub.as_ref(),
             &req.ns,
@@ -1327,10 +1293,12 @@ impl GrpcGatewayHandler {
         )
         .await
         .map_err(map_session_submit_error)?;
+        let target =
+            SessionStreamTarget::new(req.ns.clone(), req.agent.clone(), req.session_id.clone());
 
-        let event_stream = session_parts_event_stream(
-            receiver,
-            targets,
+        let event_stream = session_submission_event_stream(
+            target,
+            submission_id,
             self.gateway.kv.clone(),
             self.gateway.pubsub.clone(),
         );

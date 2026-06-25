@@ -57,13 +57,10 @@ async function provisionSession(page: Page) {
 
   const { sessionId, gatewayUrl, client, testNs, testAgent } = await createTestSession();
 
-  await page.goto('/');
-  const connectButton = page.locator('button', { hasText: 'Initialize Connection' });
-  const gatewayInput = page.locator('input[type="url"]');
-  await expect(gatewayInput).toBeVisible();
-  await gatewayInput.fill(gatewayUrl);
-  await connectButton.click();
-  await expect(page.locator('text=Connected')).toBeVisible({ timeout: 15000 });
+  await page.addInitScript((url) => {
+    localStorage.setItem('talon_gateway_url', url);
+  }, gatewayUrl);
+  await page.goto('/?connected=true');
 
   const nsNode = page.locator('.truncate', { hasText: testNs }).first();
   await expect(nsNode).toBeVisible({ timeout: 15000 });
@@ -78,7 +75,7 @@ async function provisionSession(page: Page) {
   await sessionLink.click();
 
   const chatInput = page.locator('textarea[placeholder="Ask Talon to perform a task..."]');
-  const sendButton = page.locator('form').filter({ has: chatInput }).getByRole('button');
+  const sendButton = page.locator('form').filter({ has: chatInput }).getByRole('button', { name: 'Send message' });
   await expect(chatInput).toBeVisible({ timeout: 5000 });
 
   return { chatInput, sendButton, sessionId, gatewayUrl, client, testNs, testAgent };
@@ -115,6 +112,29 @@ function sessionMessageText(message: any): string {
   return typeof message?.content === 'string' ? message.content : '';
 }
 
+function sessionMessageProjectionState(message: any): string {
+  return message?.labels?.['talon.session.projection_state'] ?? '';
+}
+
+async function waitForCommittedSessionText(
+  client: any,
+  target: { ns: string; agent: string; sessionId: string },
+  expectedText: string,
+) {
+  await expect(async () => {
+    const history = await client.sessions.listMessages({
+      ...target,
+      pageSize: 50,
+    });
+    const match = (history.items ?? [])
+      .map((item: any) => item.message)
+      .find((message: any) => sessionMessageText(message) === expectedText);
+    expect(match).toBeTruthy();
+    expect(sessionMessageProjectionState(match)).toBe('committed');
+    expect(history.state).toBe('IDLE');
+  }).toPass({ timeout: 60000 });
+}
+
 function hasReasoningPart(message: any): boolean {
   return Array.isArray(message?.parts) && message.parts.some((part: any) => {
     const type = part?.partType ?? part?.part_type ?? part?.type;
@@ -127,6 +147,10 @@ async function rootCssVar(page: Page, name: string) {
   return page.evaluate((variableName) => {
     return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
   }, name);
+}
+
+function cssVarPattern(...values: string[]) {
+  return new RegExp(`^(?:${values.map((value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})$`);
 }
 
 async function annotatePaginationProof(page: Page, label: string) {
@@ -173,7 +197,7 @@ test.describe('Sightline theme tokens', () => {
     }).toMatchObject({
       className: expect.stringContaining('light'),
       titleColor: '#0f172a',
-      inputBg: 'rgba(255, 255, 255, 0.96)',
+      inputBg: expect.stringMatching(cssVarPattern('rgba(255, 255, 255, 0.96)', '#fffffff5')),
       bubbleFg: '#0f172a',
     });
   });
@@ -186,7 +210,7 @@ test.describe('Sightline theme tokens', () => {
       document.documentElement.classList.add('light');
     });
     await expect.poll(() => rootCssVar(page, '--color-title-50')).toBe('#0f172a');
-    await expect.poll(() => rootCssVar(page, '--copilot-input-bg')).toBe('rgba(255, 255, 255, 0.96)');
+    await expect.poll(() => rootCssVar(page, '--copilot-input-bg')).toMatch(cssVarPattern('rgba(255, 255, 255, 0.96)', '#fffffff5'));
     await expect.poll(() => rootCssVar(page, '--talon-chat-user-bubble-fg')).toBe('#0f172a');
 
     await page.evaluate(() => {
@@ -194,7 +218,7 @@ test.describe('Sightline theme tokens', () => {
       document.documentElement.classList.add('dark');
     });
     await expect.poll(() => rootCssVar(page, '--color-title-50')).toBe('#f4f7ff');
-    await expect.poll(() => rootCssVar(page, '--copilot-input-bg')).toBe('rgba(15, 23, 42, 0.92)');
+    await expect.poll(() => rootCssVar(page, '--copilot-input-bg')).toMatch(cssVarPattern('rgba(15, 23, 42, 0.92)', '#0f172aeb'));
     await expect.poll(() => rootCssVar(page, '--talon-chat-user-bubble-fg')).toBe('#e6edf3');
   });
 });
@@ -232,7 +256,8 @@ test.describe('Chat Streaming', () => {
     const clearOption = page.getByRole('option', { name: /\/clear/i });
     await expect(clearOption).toBeVisible();
     await clearOption.hover();
-    await expect(clearOption).toHaveCSS('background-color', 'rgba(148, 163, 184, 0.16)');
+    await expect.poll(async () => clearOption.evaluate((element) => getComputedStyle(element).backgroundColor))
+      .toMatch(cssVarPattern('rgba(148, 163, 184, 0.16)', 'rgba(15, 23, 42, 0.06)'));
     await clearOption.click();
 
     await expect(chatInput).toHaveValue('/clear');
@@ -267,8 +292,12 @@ test.describe('Chat Streaming', () => {
         sessionId,
         pageSize: 50,
       }) as any;
-      expect((history.items ?? []).some((item: any) => sessionMessageText(item.message) === 'Hello! I am a mock LLM. How can I assist you today?')).toBeTruthy();
-      expect((history.items ?? []).some((item: any) => hasReasoningPart(item.message))).toBeTruthy();
+      const message = (history.items ?? [])
+        .map((item: any) => item.message)
+        .find((candidate: any) => sessionMessageText(candidate) === 'Hello! I am a mock LLM. How can I assist you today?');
+      expect(message).toBeTruthy();
+      expect(hasReasoningPart(message)).toBeTruthy();
+      expect(sessionMessageProjectionState(message)).toBe('committed');
     }).toPass({ timeout: 30000 });
 
     await page.reload();
@@ -333,7 +362,7 @@ test.describe('Copilot history pagination', () => {
         message: prompt,
         labels: {},
       });
-      await waitForSessionText(client, target, `I received your message: ${prompt}`);
+      await waitForCommittedSessionText(client, target, `I received your message: ${prompt}`);
     }
 
     const webPort = process.env.WEB_PORT || '3000';

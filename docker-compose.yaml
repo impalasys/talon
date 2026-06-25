@@ -65,6 +65,8 @@ services:
       - TALON_GOOGLE_WEB_CLIENT_ID
       - PULL_MODE=1
       - TALON_CONFIG_PATH=/data/talon/talon.docker-compose.yaml
+      - TALON_WORKER_ENDPOINT_URL=http://worker:8081
+      - TALON_WORKER_ENDPOINT_PROTOCOL=grpc
     env_file:
       - .env
     volumes:

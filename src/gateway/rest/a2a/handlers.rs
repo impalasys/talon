@@ -11,6 +11,7 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
+use futures::StreamExt;
 use serde_json::{json, Value};
 use tonic::Code;
 use uuid::Uuid;
@@ -24,6 +25,7 @@ use crate::control::{
 use crate::gateway::auth::{self, AuthConfig};
 use crate::gateway::rpc::data_proto;
 use crate::gateway::server::Gateway;
+use crate::gateway::session_streams::SessionStreamTarget;
 
 use super::card::{
     agent_card_json, external_host_from_headers, resolve_agent_card_route, scheme_from_headers,
@@ -160,20 +162,33 @@ async fn stream_message(
         return response;
     }
 
-    let mut receiver = match gateway
-        .session_streams
-        .subscribe(&route.ns, &route.agent, &context_id)
-        .await
-    {
-        Ok(receiver) => receiver,
-        Err(err) => {
-            tracing::error!(%err, "Failed to subscribe to A2A stream");
-            return a2a_error(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "failed to subscribe to task stream",
-            );
+    let mut receiver = crate::gateway::rpc::sessions::watcher::session_parts_event_stream(
+        vec![SessionStreamTarget::new(
+            route.ns.clone(),
+            route.agent.clone(),
+            context_id.clone(),
+        )],
+        gateway.kv.clone(),
+        gateway.pubsub.clone(),
+    );
+    let (event_sender, mut event_receiver) = tokio::sync::mpsc::channel(32);
+    let watcher_cancel = tokio_util::sync::CancellationToken::new();
+    let watcher_cancel_task = watcher_cancel.clone();
+    let _watcher_task = tokio::spawn(async move {
+        loop {
+            tokio::select! {
+                _ = watcher_cancel_task.cancelled() => break,
+                event = receiver.next() => {
+                    let Some(event) = event else {
+                        break;
+                    };
+                    if event_sender.send(event).await.is_err() {
+                        break;
+                    }
+                }
+            }
         }
-    };
+    });
 
     if let Err(err) = scheduling::send_session_message(
         gateway.kv.as_ref(),
@@ -186,6 +201,7 @@ async fn stream_message(
     )
     .await
     {
+        watcher_cancel.cancel();
         return scheduling_error_response(err);
     }
 
@@ -244,9 +260,10 @@ async fn stream_message(
                             "final": true
                         }
                     })));
+                    watcher_cancel.cancel();
                     return;
                 }
-                event_result = receiver.recv() => {
+                event_result = event_receiver.recv() => {
                     timeout.as_mut().reset(tokio::time::Instant::now() + A2A_STREAM_IDLE_TIMEOUT);
                     let Some(event_result) = event_result else {
                         break;
@@ -261,6 +278,7 @@ async fn stream_message(
                                 Some(status.message()),
                                 true,
                             )));
+                            watcher_cancel.cancel();
                             return;
                         }
                     };
@@ -269,6 +287,14 @@ async fn stream_message(
                     let part_type = part.map(|part| part.part_type).unwrap_or_default();
                     let content = part.map(|part| part.content.as_str()).unwrap_or_default();
                     if event.kind == SessionMessagePartEventKind::Done as i32 {
+                        if !stream_artifact_started
+                            && part_type == data_proto::SessionMessagePartType::Text as i32
+                            && !content.is_empty()
+                            && (pending_artifact_text.is_empty()
+                                || content.ends_with(&pending_artifact_text))
+                        {
+                            pending_artifact_text = content.to_string();
+                        }
                         break;
                     } else if event.kind == SessionMessagePartEventKind::Error as i32 {
                         if !pending_artifact_text.is_empty() {
@@ -289,6 +315,7 @@ async fn stream_message(
                             Some(error_text),
                             true,
                         )));
+                        watcher_cancel.cancel();
                         return;
                     } else if part_type == data_proto::SessionMessagePartType::Text as i32 && !content.is_empty() {
                         pending_artifact_text.push_str(content);
@@ -335,6 +362,7 @@ async fn stream_message(
                 "final": true
             }
         })));
+        watcher_cancel.cancel();
     };
 
     (

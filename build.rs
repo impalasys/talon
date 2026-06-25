@@ -188,6 +188,7 @@ fn main() -> std::io::Result<()> {
             "proto/talon/v1/search.proto",
             "proto/talon/v1/sessions.proto",
             "proto/talon/v1/workflows.proto",
+            "proto/talon/worker/v1/fanout.proto",
         ],
         &[".", "third_party/googleapis/"],
     )?;

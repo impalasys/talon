@@ -4,20 +4,27 @@
 use crate::control::scheduling;
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
-use crate::control::{events, keys, KeyValueStore, MessagePublisher};
-use crate::gateway::rpc::data_proto;
-use crate::gateway::session_streams::{SessionStreamReceiver, SessionStreamTarget};
-use futures::{Stream, StreamExt};
+use crate::control::{events, keys, ns, KeyValueStore, MessagePublisher};
+use crate::gateway::rpc::{data_proto, resources_proto, worker_proto};
+use crate::gateway::session_streams::SessionStreamTarget;
+use futures::{stream::SelectAll, Stream, StreamExt};
+use hyper_util::rt::TokioIo;
 use prost::Message;
+use std::collections::HashMap;
+use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::net::UnixStream;
+use tonic::transport::{Channel, Endpoint, Uri};
+use tower::service_fn;
+use url::Url;
 
 const SESSION_STREAM_LEASE_CHECK_MAX_MICROS: u64 = 5_000_000;
-const SESSION_STREAM_LEASE_CHECK_MIN_MICROS: u64 = 1_000_000;
-const SESSION_STREAM_LEASE_CHECK_CONCURRENCY: usize = 16;
+const SESSION_STREAM_LEASE_CHECK_MIN_MICROS: u64 = 100_000;
+const WORKER_FANOUT_NOT_FOUND_RETRY_DELAY: Duration = Duration::from_millis(50);
 
-pub(super) type SessionPartEventStream = Pin<
+pub(crate) type SessionPartEventStream = Pin<
     Box<
         dyn Stream<Item = std::result::Result<events::SessionMessagePartEvent, tonic::Status>>
             + Send,
@@ -26,7 +33,7 @@ pub(super) type SessionPartEventStream = Pin<
 
 fn stream_session_lease_check_interval() -> Duration {
     let ttl_micros = scheduling::session_processing_timeout_micros().max(1) as u64;
-    Duration::from_micros((ttl_micros / 6).clamp(
+    Duration::from_micros((ttl_micros / 100).clamp(
         SESSION_STREAM_LEASE_CHECK_MIN_MICROS,
         SESSION_STREAM_LEASE_CHECK_MAX_MICROS,
     ))
@@ -36,76 +43,486 @@ fn stream_session_redispatch_throttle_micros() -> i64 {
     scheduling::session_processing_timeout_micros().max(1)
 }
 
-pub(super) fn session_parts_event_stream(
-    mut receiver: SessionStreamReceiver,
+pub(crate) fn session_parts_event_stream(
     targets: Vec<SessionStreamTarget>,
     kv: Arc<dyn KeyValueStore + Send + Sync>,
     pubsub: Arc<dyn MessagePublisher + Send + Sync>,
 ) -> SessionPartEventStream {
-    Box::pin(async_stream::stream! {
-        let mut lease_check = tokio::time::interval(stream_session_lease_check_interval());
-        lease_check.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
-        lease_check.tick().await;
-        let mut lease_check_task: Option<tokio::task::JoinHandle<()>> = None;
+    if targets.len() > 1 {
+        return batch_session_parts_event_stream(targets, kv, pubsub);
+    }
 
-        loop {
-            tokio::select! {
-                event = receiver.recv() => {
-                    let Some(event) = event else {
-                        break;
-                    };
-                    yield event;
-                }
-                _ = lease_check.tick() => {
-                    if lease_check_task.as_ref().is_some_and(|task| task.is_finished()) {
-                        lease_check_task = None;
-                    }
-                    if lease_check_task.is_none() {
-                        lease_check_task = Some(tokio::spawn(check_session_leases(
-                            targets.clone(),
-                            kv.clone(),
-                            pubsub.clone(),
-                        )));
-                    }
-                }
-            }
-        }
-        if let Some(task) = lease_check_task {
-            task.abort();
-        }
-    })
+    let mut streams: SelectAll<SessionPartEventStream> = SelectAll::new();
+    for target in targets {
+        streams.push(single_session_parts_event_stream(
+            target,
+            None,
+            kv.clone(),
+            pubsub.clone(),
+        ));
+    }
+    Box::pin(streams)
 }
 
-async fn check_session_leases(
-    targets: Vec<SessionStreamTarget>,
+pub(crate) fn session_submission_event_stream(
+    target: SessionStreamTarget,
+    submission_id: String,
     kv: Arc<dyn KeyValueStore + Send + Sync>,
     pubsub: Arc<dyn MessagePublisher + Send + Sync>,
-) {
-    let now_micros = chrono::Utc::now().timestamp_micros();
-    futures::stream::iter(targets)
-        .for_each_concurrent(SESSION_STREAM_LEASE_CHECK_CONCURRENCY, |target| {
-            let kv = kv.clone();
-            let pubsub = pubsub.clone();
-            async move {
-                if let Err(err) = redispatch_expired_session_lease(
+) -> SessionPartEventStream {
+    single_session_parts_event_stream(target, Some(submission_id), kv, pubsub)
+}
+
+fn single_session_parts_event_stream(
+    target: SessionStreamTarget,
+    submission_id: Option<String>,
+    kv: Arc<dyn KeyValueStore + Send + Sync>,
+    pubsub: Arc<dyn MessagePublisher + Send + Sync>,
+) -> SessionPartEventStream {
+    Box::pin(async_stream::stream! {
+        let mut after_sequence = 0u64;
+        let mut active_attempt_id = String::new();
+        let mut tick = tokio::time::interval(stream_session_lease_check_interval());
+        tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+
+        'outer: loop {
+            tick.tick().await;
+            let Some(submission) = (match submission_id.as_deref() {
+                Some(submission_id) => load_session_submission(kv.as_ref(), &target, submission_id).await?,
+                None => latest_submission(kv.as_ref(), &target).await?,
+            }) else {
+                continue;
+            };
+
+            if submission.attempt_id != active_attempt_id {
+                active_attempt_id = submission.attempt_id.clone();
+                after_sequence = 0;
+            }
+
+            let now_micros = chrono::Utc::now().timestamp_micros();
+            let terminal = crate::harness::sessions::submission_is_terminal(&submission);
+            if terminal {
+                yield Ok(terminal_event_from_submission(&target, &submission));
+                break 'outer;
+            }
+
+            if submission.status != data_proto::SessionSubmissionStatus::Claimed as i32
+                || submission
+                    .claim_expires_at
+                    .is_some_and(|expires_at| expires_at <= now_micros)
+            {
+                redispatch_expired_session_lease(
                     kv.as_ref(),
                     pubsub.as_ref(),
                     &target,
                     now_micros,
                 )
-                .await
+                .await?;
+                continue;
+            }
+
+            if submission.claim_worker_id.is_empty() {
+                continue;
+            }
+
+            match connect_worker_stream(kv.as_ref(), pubsub.as_ref(), &target, &submission, after_sequence).await {
+                Ok(mut stream) => {
+                    while let Some(item) = stream.next().await {
+                        match item {
+                            Ok(response) => {
+                                after_sequence = response.sequence;
+                                let Some(event) = response.event else {
+                                    continue;
+                                };
+                                let terminal = event.kind
+                                    == events::SessionMessagePartEventKind::Done as i32
+                                    || event.kind
+                                        == events::SessionMessagePartEventKind::Error as i32;
+                                yield Ok(event);
+                                if terminal {
+                                    break 'outer;
+                                }
+                            }
+                            Err(status) => {
+                                if status.code() == tonic::Code::NotFound
+                                    || status.code() == tonic::Code::Unavailable
+                                {
+                                    break;
+                                }
+                                yield Err(status);
+                                break;
+                            }
+                        }
+                    }
+                }
+                Err(status)
+                    if status.code() == tonic::Code::NotFound
+                        || status.code() == tonic::Code::Unavailable =>
                 {
-                    tracing::warn!(
-                        namespace = %target.ns,
-                        agent = %target.agent,
-                        session = %target.session_id,
-                        error = %err,
-                        "Failed to check session submission lease while streaming"
-                    );
+                    tokio::time::sleep(WORKER_FANOUT_NOT_FOUND_RETRY_DELAY).await;
+                }
+                Err(status) => {
+                    yield Err(status);
+                    break;
                 }
             }
+        }
+    })
+}
+
+#[derive(Clone)]
+struct BatchSessionState {
+    target: SessionStreamTarget,
+    after_sequence: u64,
+    active_attempt_id: String,
+    done: bool,
+}
+
+#[derive(Clone)]
+struct ClaimedBatchStream {
+    target: SessionStreamTarget,
+    submission: data_proto::SessionSubmission,
+    after_sequence: u64,
+}
+
+type WorkerFanoutStream = Pin<
+    Box<
+        dyn Stream<
+                Item = std::result::Result<worker_proto::StreamSessionPartsResponse, tonic::Status>,
+            > + Send,
+    >,
+>;
+
+fn batch_session_parts_event_stream(
+    targets: Vec<SessionStreamTarget>,
+    kv: Arc<dyn KeyValueStore + Send + Sync>,
+    pubsub: Arc<dyn MessagePublisher + Send + Sync>,
+) -> SessionPartEventStream {
+    Box::pin(async_stream::stream! {
+        let mut states: Vec<BatchSessionState> = targets
+            .into_iter()
+            .map(|target| BatchSessionState {
+                target,
+                after_sequence: 0,
+                active_attempt_id: String::new(),
+                done: false,
+            })
+            .collect();
+        let mut tick = tokio::time::interval(stream_session_lease_check_interval());
+        tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+
+        'outer: loop {
+            if states.iter().all(|state| state.done) {
+                break;
+            }
+
+            tick.tick().await;
+            let now_micros = chrono::Utc::now().timestamp_micros();
+            let mut by_worker: HashMap<String, Vec<ClaimedBatchStream>> = HashMap::new();
+            let target_indexes: HashMap<(String, String, String), usize> = states
+                .iter()
+                .enumerate()
+                .map(|(index, state)| {
+                    (
+                        (
+                            state.target.ns.clone(),
+                            state.target.agent.clone(),
+                            state.target.session_id.clone(),
+                        ),
+                        index,
+                    )
+                })
+                .collect();
+
+            for state in &mut states {
+                if state.done {
+                    continue;
+                }
+
+                let Some(submission) = latest_submission(kv.as_ref(), &state.target).await? else {
+                    continue;
+                };
+
+                if submission.attempt_id != state.active_attempt_id {
+                    state.active_attempt_id = submission.attempt_id.clone();
+                    state.after_sequence = 0;
+                }
+
+                let terminal = crate::harness::sessions::submission_is_terminal(&submission);
+                if terminal {
+                    state.done = true;
+                    yield Ok(terminal_event_from_submission(&state.target, &submission));
+                    continue;
+                }
+
+                if submission.status != data_proto::SessionSubmissionStatus::Claimed as i32
+                    || submission
+                        .claim_expires_at
+                        .is_some_and(|expires_at| expires_at <= now_micros)
+                {
+                    redispatch_expired_session_lease(
+                        kv.as_ref(),
+                        pubsub.as_ref(),
+                        &state.target,
+                        now_micros,
+                    )
+                    .await?;
+                    continue;
+                }
+
+                if submission.claim_worker_id.is_empty() {
+                    continue;
+                }
+
+                by_worker
+                    .entry(submission.claim_worker_id.clone())
+                    .or_default()
+                    .push(ClaimedBatchStream {
+                        target: state.target.clone(),
+                        submission,
+                        after_sequence: state.after_sequence,
+                    });
+            }
+
+            if by_worker.is_empty() {
+                continue;
+            }
+
+            let mut worker_streams: SelectAll<WorkerFanoutStream> = SelectAll::new();
+            for (worker_id, streams) in by_worker {
+                let terminal_batch = streams
+                    .iter()
+                    .all(|stream| crate::harness::sessions::submission_is_terminal(&stream.submission));
+                match connect_worker_batch_stream(
+                    kv.as_ref(),
+                    pubsub.as_ref(),
+                    &worker_id,
+                    &streams,
+                )
+                .await
+                {
+                    Ok(stream) => worker_streams.push(Box::pin(stream)),
+                    Err(status)
+                        if status.code() == tonic::Code::NotFound
+                            || status.code() == tonic::Code::Unavailable =>
+                    {
+                        if terminal_batch {
+                            yield Err(status);
+                            break 'outer;
+                        }
+                        tokio::time::sleep(WORKER_FANOUT_NOT_FOUND_RETRY_DELAY).await;
+                        continue 'outer;
+                    }
+                    Err(status) => {
+                        yield Err(status);
+                        break 'outer;
+                    }
+                }
+            }
+
+            loop {
+                let item = tokio::select! {
+                    item = worker_streams.next() => item,
+                    _ = tick.tick() => break,
+                };
+                let Some(item) = item else {
+                    break;
+                };
+                match item {
+                    Ok(response) => {
+                        let Some(event) = response.event else {
+                            continue;
+                        };
+                        let target_key = (
+                            event.ns.clone(),
+                            event.agent.clone(),
+                            event.session_id.clone(),
+                        );
+                        if let Some(index) = target_indexes.get(&target_key).copied() {
+                            states[index].after_sequence = response.sequence;
+                            let terminal = event.kind
+                                == events::SessionMessagePartEventKind::Done as i32
+                                || event.kind
+                                    == events::SessionMessagePartEventKind::Error as i32;
+                            if terminal {
+                                states[index].done = true;
+                            }
+                        }
+                        yield Ok(event);
+                        if states.iter().all(|state| state.done) {
+                            break 'outer;
+                        }
+                    }
+                    Err(status) => {
+                        if status.code() == tonic::Code::NotFound
+                            || status.code() == tonic::Code::Unavailable
+                        {
+                            break;
+                        }
+                        yield Err(status);
+                        break 'outer;
+                    }
+                }
+            }
+        }
+    })
+}
+
+async fn connect_worker_stream(
+    kv: &dyn KeyValueStore,
+    pubsub: &dyn MessagePublisher,
+    target: &SessionStreamTarget,
+    submission: &data_proto::SessionSubmission,
+    after_sequence: u64,
+) -> std::result::Result<tonic::Streaming<worker_proto::StreamSessionPartsResponse>, tonic::Status>
+{
+    let endpoints = worker_endpoints(kv, pubsub, &submission.claim_worker_id).await?;
+    let mut last_status = None;
+    for endpoint in endpoints {
+        match stream_from_endpoint(&endpoint, target, submission, after_sequence).await {
+            Ok(stream) => return Ok(stream),
+            Err(status) => last_status = Some(status),
+        }
+    }
+    Err(last_status.unwrap_or_else(|| tonic::Status::unavailable("worker has no endpoints")))
+}
+
+async fn connect_worker_batch_stream(
+    kv: &dyn KeyValueStore,
+    pubsub: &dyn MessagePublisher,
+    worker_id: &str,
+    streams: &[ClaimedBatchStream],
+) -> std::result::Result<tonic::Streaming<worker_proto::StreamSessionPartsResponse>, tonic::Status>
+{
+    let endpoints = worker_endpoints(kv, pubsub, worker_id).await?;
+    let mut last_status = None;
+    for endpoint in endpoints {
+        match stream_batch_from_endpoint(&endpoint, streams).await {
+            Ok(stream) => return Ok(stream),
+            Err(status) => last_status = Some(status),
+        }
+    }
+    Err(last_status.unwrap_or_else(|| tonic::Status::unavailable("worker has no endpoints")))
+}
+
+async fn stream_from_endpoint(
+    endpoint: &resources_proto::WorkerEndpoint,
+    target: &SessionStreamTarget,
+    submission: &data_proto::SessionSubmission,
+    after_sequence: u64,
+) -> std::result::Result<tonic::Streaming<worker_proto::StreamSessionPartsResponse>, tonic::Status>
+{
+    let channel = worker_endpoint_channel(endpoint).await?;
+    let mut client = worker_proto::fanout_service_client::FanoutServiceClient::new(channel);
+    let response = client
+        .stream_session_parts(worker_proto::StreamSessionPartsRequest {
+            ns: target.ns.clone(),
+            agent: target.agent.clone(),
+            session_id: target.session_id.clone(),
+            submission_id: submission.submission_id.clone(),
+            attempt_id: submission.attempt_id.clone(),
+            after_sequence,
         })
-        .await;
+        .await?;
+    Ok(response.into_inner())
+}
+
+async fn stream_batch_from_endpoint(
+    endpoint: &resources_proto::WorkerEndpoint,
+    streams: &[ClaimedBatchStream],
+) -> std::result::Result<tonic::Streaming<worker_proto::StreamSessionPartsResponse>, tonic::Status>
+{
+    let channel = worker_endpoint_channel(endpoint).await?;
+    let mut client = worker_proto::fanout_service_client::FanoutServiceClient::new(channel);
+    let response = client
+        .stream_session_parts_batch(worker_proto::StreamSessionPartsBatchRequest {
+            streams: streams
+                .iter()
+                .map(|stream| worker_proto::StreamSessionPartsRequest {
+                    ns: stream.target.ns.clone(),
+                    agent: stream.target.agent.clone(),
+                    session_id: stream.target.session_id.clone(),
+                    submission_id: stream.submission.submission_id.clone(),
+                    attempt_id: stream.submission.attempt_id.clone(),
+                    after_sequence: stream.after_sequence,
+                })
+                .collect(),
+        })
+        .await?;
+    Ok(response.into_inner())
+}
+
+async fn worker_endpoint_channel(
+    endpoint: &resources_proto::WorkerEndpoint,
+) -> std::result::Result<Channel, tonic::Status> {
+    if let Some(path) = unix_endpoint_path(&endpoint.url)? {
+        let path = Arc::new(path);
+        return Endpoint::try_from("http://[::]:50051")
+            .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?
+            .connect_with_connector(service_fn(move |_uri: Uri| {
+                let path = path.clone();
+                async move { UnixStream::connect(path.as_ref()).await.map(TokioIo::new) }
+            }))
+            .await
+            .map_err(|err| {
+                tonic::Status::unavailable(format!("failed to connect to worker: {err}"))
+            });
+    }
+
+    Channel::from_shared(endpoint.url.clone())
+        .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?
+        .connect()
+        .await
+        .map_err(|err| tonic::Status::unavailable(format!("failed to connect to worker: {err}")))
+}
+
+fn unix_endpoint_path(url: &str) -> std::result::Result<Option<PathBuf>, tonic::Status> {
+    let parsed = Url::parse(url)
+        .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?;
+    if parsed.scheme() != "unix" {
+        return Ok(None);
+    }
+    if parsed.path().is_empty() {
+        return Err(tonic::Status::unavailable(
+            "unix worker endpoint is missing a socket path",
+        ));
+    }
+    let path = urlencoding::decode(parsed.path()).map_err(|err| {
+        tonic::Status::unavailable(format!("invalid unix worker endpoint path: {err}"))
+    })?;
+    Ok(Some(PathBuf::from(path.into_owned())))
+}
+
+async fn worker_endpoints(
+    kv: &dyn KeyValueStore,
+    _pubsub: &dyn MessagePublisher,
+    worker_id: &str,
+) -> std::result::Result<Vec<resources_proto::WorkerEndpoint>, tonic::Status> {
+    let key = keys::ResourceKey::new(ns::TALON_SYSTEM, &[], "Worker", worker_id);
+    let Some(bytes) = kv
+        .get(&key)
+        .await
+        .map_err(|err| tonic::Status::internal(format!("Failed to fetch worker: {err}")))?
+    else {
+        return Err(tonic::Status::not_found("claim worker not found"));
+    };
+    let worker = resources_proto::Worker::decode(bytes.as_slice())
+        .map_err(|err| tonic::Status::internal(format!("Failed to decode worker: {err}")))?;
+    let Some(status) = worker.status else {
+        return Err(tonic::Status::unavailable("worker status is missing"));
+    };
+    if status.phase != "ready" {
+        return Err(tonic::Status::unavailable("worker is not ready"));
+    }
+    let endpoints: Vec<_> = status
+        .endpoints
+        .into_iter()
+        .filter(|endpoint| !endpoint.url.trim().is_empty())
+        .collect();
+    if endpoints.is_empty() {
+        return Err(tonic::Status::unavailable("worker has no endpoints"));
+    }
+    Ok(endpoints)
 }
 
 async fn redispatch_expired_session_lease(
@@ -224,6 +641,25 @@ async fn redispatch_expired_session_lease(
     Ok(true)
 }
 
+async fn load_session_submission(
+    kv: &dyn KeyValueStore,
+    target: &SessionStreamTarget,
+    submission_id: &str,
+) -> std::result::Result<Option<data_proto::SessionSubmission>, tonic::Status> {
+    let key =
+        keys::session_submission(&target.ns, &target.agent, &target.session_id, submission_id);
+    let Some(bytes) = kv
+        .get(&key)
+        .await
+        .map_err(|err| tonic::Status::internal(format!("Failed to fetch submission: {err}")))?
+    else {
+        return Ok(None);
+    };
+    data_proto::SessionSubmission::decode(bytes.as_slice())
+        .map(Some)
+        .map_err(|err| tonic::Status::internal(format!("Failed to decode submission: {err}")))
+}
+
 async fn latest_nonterminal_submission(
     kv: &dyn KeyValueStore,
     target: &SessionStreamTarget,
@@ -248,155 +684,145 @@ async fn latest_nonterminal_submission(
         .max_by_key(|submission| (submission.created_at, submission.updated_at)))
 }
 
+async fn latest_submission(
+    kv: &dyn KeyValueStore,
+    target: &SessionStreamTarget,
+) -> std::result::Result<Option<data_proto::SessionSubmission>, tonic::Status> {
+    let prefix = keys::session_submission_prefix(&target.ns, &target.agent, &target.session_id);
+    let entries = kv
+        .list_entries(&prefix)
+        .await
+        .map_err(|err| tonic::Status::internal(format!("Failed to list submissions: {err}")))?;
+    let mut submissions = Vec::new();
+    for (_key, bytes) in entries {
+        let submission =
+            data_proto::SessionSubmission::decode(bytes.as_slice()).map_err(|err| {
+                tonic::Status::internal(format!("Failed to decode submission: {err}"))
+            })?;
+        submissions.push(submission);
+    }
+    Ok(submissions
+        .into_iter()
+        .max_by_key(|submission| (submission.created_at, submission.updated_at)))
+}
+
+fn terminal_event_from_submission(
+    target: &SessionStreamTarget,
+    submission: &data_proto::SessionSubmission,
+) -> events::SessionMessagePartEvent {
+    let failed = submission.status == data_proto::SessionSubmissionStatus::Failed as i32
+        || submission.status == data_proto::SessionSubmissionStatus::Interrupted as i32;
+    events::SessionMessagePartEvent {
+        session_id: target.session_id.clone(),
+        kind: if failed {
+            events::SessionMessagePartEventKind::Error as i32
+        } else {
+            events::SessionMessagePartEventKind::Done as i32
+        },
+        part: Some(data_proto::SessionMessagePart {
+            part_type: if failed {
+                data_proto::SessionMessagePartType::Error as i32
+            } else {
+                data_proto::SessionMessagePartType::Text as i32
+            },
+            ..Default::default()
+        }),
+        timestamp: submission.updated_at,
+        agent: target.agent.clone(),
+        ns: target.ns.clone(),
+        message_id: String::new(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::ProtoKeyValueStoreExt;
-    use crate::test_support::{MockKvStore, RecordingPubSub};
+    use crate::control::events::SessionMessagePartEventKind;
+    use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
+    use tempfile::tempdir;
+    use tokio::net::UnixListener;
+    use tokio_stream::wrappers::UnixListenerStream;
+    use tokio_util::sync::CancellationToken;
+    use tonic::transport::Server;
 
-    #[tokio::test]
-    async fn stream_lease_check_skips_active_submission_lease() {
-        let kv = Arc::new(MockKvStore::default());
-        let pubsub = Arc::new(RecordingPubSub::default());
-        let target = SessionStreamTarget::new("conic", "infra", "session-1");
-        seed_processing_session_with_submission(
-            kv.as_ref(),
-            &target,
-            data_proto::SessionSubmission {
-                submission_id: "submission-1".to_string(),
-                session_id: "session-1".to_string(),
-                user_message_id: "user-1".to_string(),
-                status: data_proto::SessionSubmissionStatus::Claimed as i32,
-                attempt_id: "attempt-1".to_string(),
-                attempt_count: 1,
-                claim_expires_at: Some(30_000_000),
-                created_at: 1,
-                updated_at: 1,
-                completed_at: None,
-                committed_message_id: None,
-                current_phase: data_proto::SessionExecutionPhase::Unspecified as i32,
-                current_journal_entry_id: None,
-            },
-        )
-        .await;
-
-        let redispatched =
-            redispatch_expired_session_lease(kv.as_ref(), pubsub.as_ref(), &target, 20_000_000)
-                .await
-                .unwrap();
-
-        assert!(!redispatched);
-        assert!(pubsub.published.lock().await.is_empty());
+    fn part_event(
+        kind: SessionMessagePartEventKind,
+        content: &str,
+    ) -> events::SessionMessagePartEvent {
+        events::SessionMessagePartEvent {
+            session_id: "session-1".to_string(),
+            kind: kind as i32,
+            part: Some(data_proto::SessionMessagePart {
+                content: content.to_string(),
+                ..Default::default()
+            }),
+            timestamp: 1,
+            agent: "agent".to_string(),
+            ns: "ns".to_string(),
+            message_id: "message-1".to_string(),
+        }
     }
 
     #[tokio::test]
-    async fn stream_lease_check_redispatches_expired_submission_lease() {
-        let kv = Arc::new(MockKvStore::default());
-        let pubsub = Arc::new(RecordingPubSub::default());
-        let target = SessionStreamTarget::new("conic", "infra", "session-1");
-        seed_processing_session_with_submission(
-            kv.as_ref(),
-            &target,
-            data_proto::SessionSubmission {
-                submission_id: "submission-1".to_string(),
-                session_id: "session-1".to_string(),
-                user_message_id: "user-1".to_string(),
-                status: data_proto::SessionSubmissionStatus::Claimed as i32,
-                attempt_id: "attempt-1".to_string(),
-                attempt_count: 1,
-                claim_expires_at: Some(10_000_000),
-                created_at: 1,
-                updated_at: 1,
-                completed_at: None,
-                committed_message_id: None,
-                current_phase: data_proto::SessionExecutionPhase::Unspecified as i32,
-                current_journal_entry_id: None,
-            },
+    async fn stream_from_endpoint_connects_to_unix_fanout_service() {
+        let dir = tempdir().unwrap();
+        let socket_path = dir.path().join("fanout.sock");
+        let listener = UnixListener::bind(&socket_path).unwrap();
+        let shutdown = CancellationToken::new();
+        let hub = Arc::new(FanoutHub::new());
+        let service = worker_proto::fanout_service_server::FanoutServiceServer::new(
+            crate::worker::fanout::FanoutServiceImpl::new(hub.clone()),
+        );
+        let server = tokio::spawn(
+            Server::builder()
+                .add_service(service)
+                .serve_with_incoming_shutdown(
+                    UnixListenerStream::new(listener),
+                    shutdown.clone().cancelled_owned(),
+                ),
+        );
+
+        let key = SessionFanoutKey::new("ns", "agent", "session-1", "submission-1", "attempt-1");
+        hub.create_session_attempt(key.clone()).await;
+
+        let endpoint = resources_proto::WorkerEndpoint {
+            url: format!("unix://{}", socket_path.display()),
+            protocol: "grpc".to_string(),
+            audience: String::new(),
+        };
+        let target = SessionStreamTarget::new("ns", "agent", "session-1");
+        let submission = data_proto::SessionSubmission {
+            submission_id: "submission-1".to_string(),
+            attempt_id: "attempt-1".to_string(),
+            ..Default::default()
+        };
+
+        let mut stream = tokio::time::timeout(
+            Duration::from_secs(5),
+            stream_from_endpoint(&endpoint, &target, &submission, 0),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        hub.publish_session_part(
+            &key,
+            part_event(SessionMessagePartEventKind::Delta, "hello"),
         )
         .await;
-
-        let redispatched =
-            redispatch_expired_session_lease(kv.as_ref(), pubsub.as_ref(), &target, 20_000_000)
-                .await
-                .unwrap();
-
-        assert!(redispatched);
-        let published = pubsub.published.lock().await;
-        assert_eq!(published.len(), 1);
-        assert_eq!(published[0].0, topics::SESSION_DISPATCH_TOPIC);
-        let event = events::SessionMessageEvent::decode(published[0].1.as_slice()).unwrap();
-        assert_eq!(event.ns, "conic");
-        assert_eq!(event.agent, "infra");
-        assert_eq!(event.session_id, "session-1");
-        assert_eq!(event.message_id, "user-1");
-        assert_eq!(event.submission_id, "submission-1");
-        assert_eq!(event.timestamp, 123);
-        assert_eq!(event.message, "please continue");
-        drop(published);
-
-        let submission = kv
-            .get_msg::<data_proto::SessionSubmission>(&keys::session_submission(
-                "conic",
-                "infra",
-                "session-1",
-                "submission-1",
-            ))
+        let response = tokio::time::timeout(Duration::from_secs(5), stream.message())
             .await
             .unwrap()
+            .unwrap()
             .unwrap();
-        assert_eq!(submission.updated_at, 20_000_000);
-    }
+        assert_eq!(response.sequence, 1);
+        assert_eq!(response.event.unwrap().part.unwrap().content, "hello");
 
-    async fn seed_processing_session_with_submission(
-        kv: &MockKvStore,
-        target: &SessionStreamTarget,
-        submission: data_proto::SessionSubmission,
-    ) {
-        kv.set_msg(
-            &keys::session(&target.ns, &target.agent, &target.session_id),
-            &data_proto::Session {
-                id: target.session_id.clone(),
-                agent: target.agent.clone(),
-                ns: target.ns.clone(),
-                status: "PROCESSING".to_string(),
-                created_at: 1,
-                last_active: 123,
-                metadata: std::collections::HashMap::new(),
-                labels: std::collections::HashMap::new(),
-            },
-        )
-        .await
-        .unwrap();
-        kv.set_msg(
-            &keys::session_message(&target.ns, &target.agent, &target.session_id, "user-1"),
-            &data_proto::SessionMessage {
-                id: "user-1".to_string(),
-                role: data_proto::MessageRole::RoleUser as i32,
-                created_at: 1,
-                labels: std::collections::HashMap::new(),
-                parts: vec![data_proto::SessionMessagePart {
-                    id: "000000".to_string(),
-                    part_type: data_proto::SessionMessagePartType::Text as i32,
-                    content: "please continue".to_string(),
-                    name: String::new(),
-                    payload_json: String::new(),
-                    created_at: 1,
-                    object: None,
-                }],
-            },
-        )
-        .await
-        .unwrap();
-        kv.set_msg(
-            &keys::session_submission(
-                &target.ns,
-                &target.agent,
-                &target.session_id,
-                &submission.submission_id,
-            ),
-            &submission,
-        )
-        .await
-        .unwrap();
+        drop(stream);
+        shutdown.cancel();
+        tokio::time::timeout(Duration::from_secs(5), server)
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
     }
 }

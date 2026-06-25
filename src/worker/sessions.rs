@@ -22,6 +22,26 @@ use tracing::Instrument;
 
 const MAX_SESSION_RELEASE_CAS_RETRIES: usize = 8;
 const SESSION_RELEASE_CAS_BACKOFF_MS: u64 = 10;
+const DEFAULT_FANOUT_SUBSCRIBER_GRACE_MS: u64 = 100;
+
+fn fanout_subscriber_grace() -> std::time::Duration {
+    let millis = match std::env::var("TALON_WORKER_FANOUT_SUBSCRIBER_GRACE_MS") {
+        Ok(raw) => match raw.trim().parse::<u64>() {
+            Ok(value) => value,
+            Err(error) => {
+                tracing::warn!(
+                    value = %raw,
+                    error = %error,
+                    default_ms = DEFAULT_FANOUT_SUBSCRIBER_GRACE_MS,
+                    "Ignoring invalid TALON_WORKER_FANOUT_SUBSCRIBER_GRACE_MS"
+                );
+                DEFAULT_FANOUT_SUBSCRIBER_GRACE_MS
+            }
+        },
+        Err(_) => DEFAULT_FANOUT_SUBSCRIBER_GRACE_MS,
+    };
+    std::time::Duration::from_millis(millis)
+}
 
 async fn execute_with_panic_boundary<F>(
     future: F,
@@ -298,6 +318,7 @@ impl WorkerEventHandler {
             &event.session_id,
             submission_id,
             &event.message_id,
+            &self.worker_id,
             now_micros,
             crate::control::scheduling::session_processing_timeout_micros(),
         )
@@ -364,12 +385,27 @@ impl WorkerEventHandler {
             &event.session_id,
             &reply_msg_id,
         );
+        let fanout_key = crate::worker::fanout::SessionFanoutKey::new(
+            event.ns.clone(),
+            event.agent.clone(),
+            event.session_id.clone(),
+            submission.submission_id.clone(),
+            submission.attempt_id.clone(),
+        );
+        self.fanout_hub
+            .create_session_attempt(fanout_key.clone())
+            .await;
+        self.fanout_hub
+            .wait_for_subscriber(&fanout_key, fanout_subscriber_grace())
+            .await;
 
         // Build the deterministic assistant reply sink. The sink owns live UI
         // fanout plus mutable SessionMessage projection writes for this attempt.
-        let sink = PubSubSessionSink::new(
+        let sink = PubSubSessionSink::new_with_fanout(
             self.cp.kv.clone(),
             self.cp.pubsub.clone(),
+            self.fanout_hub.clone(),
+            fanout_key,
             event.ns.clone(),
             event.session_id.clone(),
             event.agent.clone(),
@@ -1067,6 +1103,8 @@ mod tests {
             config: Arc::new(config),
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
+            worker_id: "test-worker".to_string(),
+            fanout_hub: Arc::new(crate::worker::fanout::FanoutHub::new()),
             session_cancellations: Arc::new(AsyncMutex::new(HashMap::new())),
         }
     }

@@ -44,7 +44,8 @@ COPY src ./src
 COPY talon.yaml ./talon.yaml
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release --locked --bins --features rocksdb && \
+    cargo build --release --locked --features rocksdb \
+      --bin talon-server --bin talon-worker --bin talon-cli --bin talon-node && \
     mkdir -p /usr/src/talon/dist && \
     cp /usr/src/talon/target/release/talon-server /usr/src/talon/dist/talon-server && \
     cp /usr/src/talon/target/release/talon-worker /usr/src/talon/dist/talon-worker && \

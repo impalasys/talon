@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package talon.worker.v1;
+
+import "proto/events.proto";
+
+service FanoutService {
+  rpc StreamSessionParts(StreamSessionPartsRequest) returns (stream StreamSessionPartsResponse);
+  rpc StreamSessionPartsBatch(StreamSessionPartsBatchRequest) returns (stream StreamSessionPartsResponse);
+}
+
+message StreamSessionPartsRequest {
+  string ns = 1;
+  string agent = 2;
+  string session_id = 3;
+  string submission_id = 4;
+  string attempt_id = 5;
+  uint64 after_sequence = 6;
+}
+
+message StreamSessionPartsResponse {
+  uint64 sequence = 1;
+  talon.events.SessionMessagePartEvent event = 2;
+}
+
+message StreamSessionPartsBatchRequest {
+  repeated StreamSessionPartsRequest streams = 1;
+}

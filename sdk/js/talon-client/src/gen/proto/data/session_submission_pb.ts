@@ -106,6 +106,15 @@ export class SessionSubmission extends Message<SessionSubmission> {
   attemptId = "";
 
   /**
+   * Worker that owns the current claim. Gateways use this to connect to the
+   * exact worker process that can stream in-process session parts for the
+   * attempt.
+   *
+   * @generated from field: string claim_worker_id = 14;
+   */
+  claimWorkerId = "";
+
+  /**
    * Number of successful claims/reclaims for this submission.
    *
    * @generated from field: uint32 attempt_count = 6;
@@ -181,6 +190,7 @@ export class SessionSubmission extends Message<SessionSubmission> {
     { no: 3, name: "user_message_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "status", kind: "enum", T: proto3.getEnumType(SessionSubmissionStatus) },
     { no: 5, name: "attempt_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 14, name: "claim_worker_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "attempt_count", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
     { no: 7, name: "claim_expires_at", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
     { no: 8, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },

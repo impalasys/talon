@@ -63,6 +63,32 @@ def create_agent_resource(stub, ns, name, spec):
     ).resource
 
 
+def wait_for_worker_endpoint(stub, expected_url, attempts=30, delay=1):
+    last_urls = []
+    for _ in range(attempts):
+        resources = list(stub.resources.List(ListResourcesRequest(ns="Sys", kind="Worker")).resources)
+        last_urls = [
+            endpoint.url
+            for resource in resources
+            if resource.status and resource.status.worker.phase == "ready"
+            for endpoint in resource.status.worker.endpoints
+        ]
+        if expected_url in last_urls:
+            return
+        time.sleep(delay)
+    raise AssertionError(
+        f"Timed out waiting for worker endpoint {expected_url!r}; saw {last_urls!r}"
+    )
+
+
+def test_worker_registers_sqlite_local_endpoint(
+    gateway_channel_sqlite,
+    talon_infrastructure_sqlite,
+):
+    stub = TalonClient(gateway_channel_sqlite)
+    wait_for_worker_endpoint(stub, "http://127.0.0.1:18082")
+
+
 def test_single_turn_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_server):
     stub = TalonClient(gateway_channel_sqlite)
 

@@ -3,8 +3,12 @@
 
 use anyhow::Result;
 use axum::{
-    body::Bytes, extract::State, http::HeaderMap, response::IntoResponse, routing::post, Json,
-    Router,
+    body::{Body, Bytes},
+    extract::State,
+    http::{HeaderMap, Request, Response, StatusCode},
+    response::IntoResponse,
+    routing::post,
+    Json, Router,
 };
 use serde::Deserialize;
 use std::path::PathBuf;
@@ -24,6 +28,8 @@ use talon::worker::{scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHa
 use tokio::task::JoinSet;
 use tokio::{signal, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
+use tonic::body::BoxBody;
+use tower::{Service, ServiceExt};
 use tracing::Instrument;
 
 #[cfg(feature = "heap-profile")]
@@ -261,17 +267,32 @@ fn build_worker_handler(
     cp: Arc<ControlPlane>,
     config: Arc<Config>,
     scheduler_authenticator: Arc<SchedulerRequestAuthenticator>,
+    worker_id: String,
+    fanout_hub: Arc<talon::worker::fanout::FanoutHub>,
 ) -> WorkerEventHandler {
     WorkerEventHandler {
         cp,
         config,
         mcp_registry: Arc::new(talon::worker::mcp_registry::McpRegistry::new()),
         scheduler_authenticator,
+        worker_id,
+        fanout_hub,
         session_cancellations: Arc::new(tokio::sync::Mutex::new(std::collections::HashMap::new())),
     }
 }
 
 fn worker_router(handler: WorkerEventHandler) -> Router {
+    use tonic::transport::Server;
+
+    let fanout_service =
+        talon::gateway::rpc::worker_proto::fanout_service_server::FanoutServiceServer::new(
+            talon::worker::fanout::FanoutServiceImpl::new(handler.fanout_hub.clone()),
+        );
+    let tonic_service = Server::builder()
+        .accept_http1(true)
+        .add_service(fanout_service)
+        .into_service::<BoxBody>();
+
     Router::new()
         .route("/pubsub/push", post(push_webhook))
         .route(
@@ -283,7 +304,42 @@ fn worker_router(handler: WorkerEventHandler) -> Router {
             "/mcp/talon-ops",
             talon::worker::talon_ops::talon_ops_router(handler.clone()),
         )
+        .fallback_service(grpc_service(tonic_service))
         .with_state(handler)
+}
+
+fn grpc_service<S>(service: S) -> axum::routing::RouterIntoService<Body, ()>
+where
+    S: Service<Request<BoxBody>, Response = Response<BoxBody>> + Clone + Send + 'static,
+    S::Future: Send + 'static,
+    S::Error: std::fmt::Display + Send + Sync + 'static,
+{
+    Router::new()
+        .fallback_service(tower::service_fn(move |request: Request<Body>| {
+            let mut service = service.clone();
+            async move {
+                let request = request.map(tonic::body::boxed);
+                let response = match service.ready().await {
+                    Ok(ready_service) => ready_service.call(request).await,
+                    Err(err) => {
+                        tracing::error!(%err, "worker gRPC service was not ready");
+                        return Ok::<_, std::convert::Infallible>(internal_server_error());
+                    }
+                };
+                match response {
+                    Ok(response) => Ok(response.into_response()),
+                    Err(err) => {
+                        tracing::error!(%err, "worker gRPC service failed");
+                        Ok(internal_server_error())
+                    }
+                }
+            }
+        }))
+        .into_service()
+}
+
+fn internal_server_error() -> axum::response::Response {
+    StatusCode::INTERNAL_SERVER_ERROR.into_response()
 }
 
 struct GcpPullSubscriptionBackend {
@@ -1036,14 +1092,23 @@ where
     Fut: std::future::Future<Output = Result<()>>,
     FShutdown: std::future::Future,
 {
-    let handler = build_worker_handler(cp, config, scheduler_authenticator);
+    let worker_id = talon::worker::registration::worker_id();
+    let fanout_hub = Arc::new(talon::worker::fanout::FanoutHub::new());
+    let handler = build_worker_handler(
+        cp,
+        config,
+        scheduler_authenticator,
+        worker_id.clone(),
+        fanout_hub,
+    );
     let pull_mode = pull_mode_enabled(&env_get);
     let project_id = pubsub_project_id(&env_get);
+    let port = worker_port(&env_get);
+    let endpoints = talon::worker::registration::discover_worker_endpoints(&env_get, &port).await;
     let shutdown_token = CancellationToken::new();
-    let worker_registration = talon::worker::registration::WorkerRegistration::new(
-        talon::worker::registration::worker_id(),
-        env!("CARGO_PKG_VERSION"),
-    );
+    let worker_registration =
+        talon::worker::registration::WorkerRegistration::new(worker_id, env!("CARGO_PKG_VERSION"))
+            .with_endpoints(endpoints);
     let heartbeat_task = tokio::spawn(talon::worker::registration::run_worker_heartbeat(
         handler.cp.clone(),
         worker_registration,
@@ -1056,7 +1121,7 @@ where
         shutdown_token.child_token(),
     );
     tokio::pin!(shutdown);
-    let serve_future = serve(handler, worker_port(env_get), shutdown_token.child_token());
+    let serve_future = serve(handler, port, shutdown_token.child_token());
     tokio::pin!(serve_future);
     let result = tokio::select! {
         res = &mut serve_future => res,
@@ -1338,6 +1403,8 @@ mod tests {
             config: Arc::new(Config::default()),
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(authenticator),
+            worker_id: "test-worker".to_string(),
+            fanout_hub: Arc::new(talon::worker::fanout::FanoutHub::new()),
             session_cancellations: Arc::new(Mutex::new(HashMap::new())),
         }
     }
@@ -1574,10 +1641,19 @@ mod tests {
         let cp = Arc::new(ControlPlane::noop());
         let config = Arc::new(Config::default());
         let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());
-        let handler = build_worker_handler(cp.clone(), config.clone(), auth.clone());
+        let fanout_hub = Arc::new(talon::worker::fanout::FanoutHub::new());
+        let handler = build_worker_handler(
+            cp.clone(),
+            config.clone(),
+            auth.clone(),
+            "worker-test".to_string(),
+            fanout_hub.clone(),
+        );
         assert!(Arc::ptr_eq(&handler.cp, &cp));
         assert!(Arc::ptr_eq(&handler.config, &config));
         assert!(Arc::ptr_eq(&handler.scheduler_authenticator, &auth));
+        assert_eq!(handler.worker_id, "worker-test");
+        assert!(Arc::ptr_eq(&handler.fanout_hub, &fanout_hub));
         assert!(handler.session_cancellations.blocking_lock().is_empty());
     }
 
@@ -1693,6 +1769,8 @@ mod tests {
             config: Arc::new(config),
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
+            worker_id: "test-worker".to_string(),
+            fanout_hub: Arc::new(talon::worker::fanout::FanoutHub::new()),
             session_cancellations: Arc::new(Mutex::new(HashMap::new())),
         };
         let spawned = std::sync::Mutex::new(Vec::<(String, String, String)>::new());
@@ -1741,6 +1819,8 @@ mod tests {
             config: Arc::new(config),
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
+            worker_id: "test-worker".to_string(),
+            fanout_hub: Arc::new(talon::worker::fanout::FanoutHub::new()),
             session_cancellations: Arc::new(Mutex::new(HashMap::new())),
         };
         let spawned = std::sync::Mutex::new(Vec::<(String, String, String)>::new());
@@ -2085,6 +2165,8 @@ mod tests {
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::shared_secret(
                 "secret".to_string(),
             )),
+            worker_id: "test-worker".to_string(),
+            fanout_hub: Arc::new(talon::worker::fanout::FanoutHub::new()),
             session_cancellations: Arc::new(Mutex::new(HashMap::new())),
         };
 

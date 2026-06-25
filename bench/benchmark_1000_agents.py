@@ -504,6 +504,7 @@ services:
       PORT: "8081"
       TALON_TOKEN_BATCH_MS: "10000"
       TALON_WORKER_SESSION_CONCURRENCY: "{worker_concurrency}"
+      TALON_WORKER_FANOUT_SUBSCRIBER_GRACE_MS: "500"
       TALON_LOCAL_SOCKET_SUBSCRIBER_BUFFER_SIZE: "{local_socket_buffer_size}"
       TALON_SQLITE_MAX_CONNECTIONS: "{sqlite_pool_size}"
       TALON_SQLITE_BUSY_TIMEOUT_MS: "{sqlite_busy_timeout_ms}"
@@ -1749,7 +1750,12 @@ async def amain() -> None:
     parser.add_argument("--postgres-cpus", type=float, default=None)
     parser.add_argument("--postgres-memory", default=None)
     parser.add_argument("--rocksdb-disable-wal", action="store_true")
-    parser.add_argument("--rocksdb-compression", choices=("lz4", "none"), default=None)
+    parser.add_argument(
+        "--rocksdb-compression",
+        choices=("lz4", "none"),
+        default="none",
+        help="RocksDB compression setting for benchmark containers.",
+    )
     parser.add_argument("--rocksdb-write-buffer-size-mb", type=int, default=None)
     parser.add_argument("--rocksdb-max-write-buffer-number", type=int, default=None)
     parser.add_argument("--rocksdb-block-cache-size-mb", type=int, default=None)
