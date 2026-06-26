@@ -157,11 +157,7 @@ impl FanoutHub {
         for (subscriber_id, sender) in subscribers {
             match sender.try_send(response.clone()) {
                 Ok(()) => {}
-                Err(TrySendError::Full(response)) => {
-                    if sender.send(response).await.is_err() {
-                        stale_subscribers.push(subscriber_id);
-                    }
-                }
+                Err(TrySendError::Full(_)) => stale_subscribers.push(subscriber_id),
                 Err(TrySendError::Closed(_)) => stale_subscribers.push(subscriber_id),
             }
         }

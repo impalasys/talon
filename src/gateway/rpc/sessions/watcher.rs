@@ -310,8 +310,7 @@ fn batch_session_parts_event_stream(
                             yield Err(status);
                             break 'outer;
                         }
-                        tokio::time::sleep(WORKER_FANOUT_NOT_FOUND_RETRY_DELAY).await;
-                        continue 'outer;
+                        continue;
                     }
                     Err(status) => {
                         yield Err(status);

@@ -52,7 +52,7 @@ pub mod generated {
         pub use talon_api_proto::talon::v1::*;
     }
     pub mod worker_proto {
-        pub use talon_api_proto::talon::worker::v1::*;
+        pub use talon_worker_proto::talon::worker::v1::*;
     }
 }
 
