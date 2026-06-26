@@ -1063,7 +1063,7 @@ impl GrpcGatewayHandler {
             return Err(tonic::Status::not_found("Session not found"));
         }
 
-        let message_id = find_request_permission_message_id(
+        find_request_permission_message_id(
             self.gateway.kv.as_ref(),
             &req.ns,
             &req.agent,
@@ -1117,35 +1117,6 @@ impl GrpcGatewayHandler {
                 "permission request was already answered",
             ));
         }
-
-        let part = data_proto::SessionMessagePart {
-            id: String::new(),
-            part_type: data_proto::SessionMessagePartType::PermissionResult as i32,
-            content: "Permission answered".to_string(),
-            name: String::new(),
-            payload_json: serde_json::to_string(&decision).unwrap_or_default(),
-            created_at: now,
-            object: None,
-        };
-        let event = events::SessionMessagePartEvent {
-            session_id: req.session_id.clone(),
-            kind: events::SessionMessagePartEventKind::Delta as i32,
-            part: Some(part),
-            timestamp: now,
-            agent: req.agent.clone(),
-            ns: req.ns.clone(),
-            message_id,
-        };
-        self.gateway
-            .pubsub
-            .publish(
-                &topics::session_part_topic_for_session(&req.session_id),
-                &event.encode_to_vec(),
-            )
-            .await
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to publish permission decision: {err}"))
-            })?;
 
         Ok(tonic::Response::new(
             proto::AnswerSessionPermissionResponse {
@@ -1452,7 +1423,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn answer_session_permission_records_decision_and_publishes_result() {
+    async fn answer_session_permission_records_decision_without_publishing_result() {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub.clone());
@@ -1530,14 +1501,9 @@ mod tests {
         assert_eq!(decision["outcome"]["optionId"], "approved");
 
         let published = pubsub.published.lock().await;
-        assert_eq!(published.len(), 1);
-        let event = events::SessionMessagePartEvent::decode(published[0].1.as_slice()).unwrap();
-        assert_eq!(event.session_id, session_id);
-        assert_eq!(event.message_id, "message-1");
-        let part = event.part.expect("event should include a part");
-        assert_eq!(
-            part.part_type,
-            data_proto::SessionMessagePartType::PermissionResult as i32
+        assert!(
+            published.is_empty(),
+            "permission answers are gateway-to-worker decisions; the worker emits stream events"
         );
         drop(published);
 
