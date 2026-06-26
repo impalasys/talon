@@ -1001,10 +1001,40 @@ function DebuggerPageContent() {
   useEffect(() => {
     if (!storageHydrated) return;
 
-    const currentQuery = searchParams.toString();
+    const currentParams = new URLSearchParams(searchParams.toString());
+    const talonAuthToken = currentParams.get('talon_auth_token');
+    const talonGatewayUrl = currentParams.get('talon_gateway_url');
+    const talonGatewayHttpUrl = currentParams.get('talon_gateway_http_url');
+    const hasTalonHandoff = Boolean(talonAuthToken || talonGatewayUrl || talonGatewayHttpUrl);
+    if (talonAuthToken) {
+      setAuthToken(talonAuthToken);
+      localStorage.setItem('talon_auth_token', talonAuthToken);
+      currentParams.delete('talon_auth_token');
+    }
+    if (talonGatewayUrl) {
+      setGatewayUrl(talonGatewayUrl);
+      localStorage.setItem('talon_gateway_url', talonGatewayUrl);
+      updateGatewayClient(talonGatewayUrl);
+      setIsConnected(true);
+      currentParams.delete('talon_gateway_url');
+    }
+    if (talonGatewayHttpUrl) {
+      setGatewayHttpUrl(talonGatewayHttpUrl);
+      localStorage.setItem('talon_gateway_http_url', talonGatewayHttpUrl);
+      currentParams.delete('talon_gateway_http_url');
+    }
+    if (hasTalonHandoff) {
+      currentParams.set('connected', 'true');
+      const sanitizedQuery = currentParams.toString();
+      lastSyncedQueryRef.current = sanitizedQuery;
+      router.replace(sanitizedQuery ? `${pathname}?${sanitizedQuery}` : pathname, { scroll: false });
+      return;
+    }
+
+    const currentQuery = currentParams.toString();
     lastSyncedQueryRef.current = currentQuery;
 
-    const nextSelection = selectionFromSearchParams(new URLSearchParams(currentQuery));
+    const nextSelection = selectionFromSearchParams(currentParams);
     setSelectedNamespace(prev => areSelectionsEqual(prev, nextSelection) ? prev : nextSelection);
 
     const wantsConnected = searchParams.get('connected') === 'true';
@@ -1023,7 +1053,7 @@ function DebuggerPageContent() {
     if (!wantsConnected) {
       setIsConnected(false);
     }
-  }, [storageHydrated, searchParams, gatewayUrl]);
+  }, [storageHydrated, searchParams, gatewayUrl, pathname, router]);
 
   const effectiveGatewayHttpUrl = gatewayUrl.trim();
 

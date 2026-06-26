@@ -114,7 +114,7 @@ impl Interceptor for AuthInterceptor {
 }
 
 async fn connect_native(options: GatewayClientOptions) -> Result<NativeTalonClient, BoxError> {
-    let mut endpoint = tonic::transport::Endpoint::from_shared(options.endpoint)?;
+    let mut endpoint = tonic::transport::Endpoint::new(native_endpoint_url(&options.endpoint))?;
     if let Some(timeout) = options.connect_timeout {
         endpoint = endpoint.connect_timeout(timeout);
     }
@@ -127,6 +127,54 @@ async fn connect_native(options: GatewayClientOptions) -> Result<NativeTalonClie
         AuthInterceptor::new(options.authorization)?,
     );
     Ok(TalonClientset::from_service(service))
+}
+
+fn native_endpoint_url(endpoint: &str) -> String {
+    let endpoint = endpoint.trim();
+    if endpoint.starts_with("http://") || endpoint.starts_with("https://") {
+        return endpoint.to_string();
+    }
+    if endpoint.starts_with("localhost:")
+        || endpoint.starts_with("127.")
+        || endpoint.starts_with("0.0.0.0:")
+        || endpoint.starts_with("[::1]:")
+    {
+        return format!("http://{endpoint}");
+    }
+    format!("https://{endpoint}")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::native_endpoint_url;
+
+    #[test]
+    fn native_endpoint_url_defaults_hosted_gateways_to_https() {
+        assert_eq!(
+            native_endpoint_url("talon.impala.systems"),
+            "https://talon.impala.systems"
+        );
+        assert_eq!(
+            native_endpoint_url(" https://talon.impala.systems:443 "),
+            "https://talon.impala.systems:443"
+        );
+    }
+
+    #[test]
+    fn native_endpoint_url_keeps_local_gateways_on_http() {
+        assert_eq!(
+            native_endpoint_url("localhost:50051"),
+            "http://localhost:50051"
+        );
+        assert_eq!(
+            native_endpoint_url("127.0.0.1:50051"),
+            "http://127.0.0.1:50051"
+        );
+        assert_eq!(
+            native_endpoint_url("[::1]:50051"),
+            "http://[::1]:50051"
+        );
+    }
 }
 
 fn connect_grpc_web(options: GatewayClientOptions) -> Result<GrpcWebTalonClient, BoxError> {

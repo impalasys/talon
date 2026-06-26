@@ -43,6 +43,7 @@ rocksdb = { version = "0.24", default-features = false, optional = true }
 reqwest = { version = "0.11", features = ["json", "stream"] }
 rand = "0.8"
 rmcp = { version = "1.4", features = ["client", "server", "macros", "transport-child-process", "transport-streamable-http-client-reqwest", "transport-streamable-http-server"] }
+rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }
 prost = "0.13"
 prost-types = "0.13"
 serde = { version = "1.0", features = ["derive"] }
@@ -55,7 +56,7 @@ tokio-tungstenite = "0.20"
 tracing = "0.1"
 tracing-opentelemetry = "0.32"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tonic = "0.12.3"
+tonic = { version = "0.12.3", features = ["tls-webpki-roots"] }
 tonic-web = "0.12.3"
 axum = { version = "0.7", features = ["ws"] }
 tower = "0.5"

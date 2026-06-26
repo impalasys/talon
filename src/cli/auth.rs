@@ -557,7 +557,8 @@ pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
     options.authorization = resolve_authorization_header(cli)?;
     TalonClient::connect_with_options(options)
         .await
-        .map_err(|err| anyhow::anyhow!("Could not connect to gateway at {}: {}", cli.gateway, err))
+        .map_err(|err| anyhow::anyhow!("{err}"))
+        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))
 }
 
 #[cfg(test)]

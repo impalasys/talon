@@ -3,6 +3,7 @@
 
 pub async fn main() -> Result<()> {
     crate::control::security::install_jwt_crypto_provider();
+    crate::control::security::install_rustls_crypto_provider();
     let mut cli = Cli::parse();
 
     if let Ok(env_gateway) = std::env::var("TALON_GATEWAY") {
