@@ -3,9 +3,8 @@
 
 use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
 use crate::control::resource_model::ChannelResourceExt;
-use crate::control::resources::ResourceStore;
 use crate::control::scheduling;
-use crate::control::{keys, ns, ControlPlane, ProtoKeyValueStoreExt};
+use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
 use crate::worker::controllers::connectors;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
@@ -37,9 +36,8 @@ impl GrpcGatewayHandler {
             return Err(tonic::Status::invalid_argument("event_id is required"));
         }
 
-        let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
         let (class_namespace, class_name, class_spec) = self
-            .class_for_registration(&store, &event.registration_id, &event.connector_class)
+            .class_for_registration(&event.registration_id, &event.connector_class)
             .await?;
 
         let event_key = keys::connector_event(&event.registration_id, &event.event_id);
@@ -140,61 +138,41 @@ impl GrpcGatewayHandler {
 
     async fn class_for_registration(
         &self,
-        store: &ResourceStore,
         registration_id: &str,
         requested_class: &str,
     ) -> Result<(String, String, resources_proto::ConnectorClassSpec), tonic::Status> {
-        let mut namespaces = vec![ns::TALON_SYSTEM.to_string()];
-        for namespace_key in self
+        let entry = self
             .gateway
             .kv
-            .list_keys(&keys::namespace_metadata_prefix())
+            .get_msg::<resources_proto::ConnectorRegistrationEntry>(&keys::connector_registration(
+                registration_id,
+            ))
             .await
             .map_err(internal_error)?
-        {
-            if !namespaces.iter().any(|namespace| namespace == &namespace_key.name) {
-                namespaces.push(namespace_key.name);
-            }
+            .ok_or_else(|| tonic::Status::not_found("ConnectorClass registration not found"))?;
+
+        if entry.registration_id != registration_id {
+            return Err(tonic::Status::failed_precondition(
+                "ConnectorClass registration index is inconsistent",
+            ));
         }
 
-        let mut matched: Option<(String, String, resources_proto::ConnectorClassSpec)> = None;
-        for namespace in namespaces {
-            for class in store
-                .list(&namespace, Some("ConnectorClass"))
-                .await
-                .map_err(internal_error)?
-            {
-                let Some(meta) = class.metadata.as_ref() else {
-                    continue;
-                };
-                if !requested_class.trim().is_empty() && requested_class != meta.name {
-                    continue;
-                }
-                let Some(resources_proto::resource_status::Kind::ConnectorClass(status)) = class
-                    .status
-                    .as_ref()
-                    .and_then(|status| status.kind.as_ref())
-                else {
-                    continue;
-                };
-                if status.registration_id != registration_id {
-                    continue;
-                }
-                let Some(resources_proto::resource_spec::Kind::ConnectorClass(spec)) =
-                    class.spec.and_then(|spec| spec.kind)
-                else {
-                    continue;
-                };
-                let candidate = (meta.namespace.clone(), meta.name.clone(), spec);
-                if matched.is_some() {
-                    return Err(tonic::Status::failed_precondition(
-                        "ConnectorClass registration is ambiguous",
-                    ));
-                }
-                matched = Some(candidate);
-            }
+        if entry.class_namespace.trim().is_empty() || entry.class_name.trim().is_empty() {
+            return Err(tonic::Status::failed_precondition(
+                "ConnectorClass registration index is incomplete",
+            ));
         }
-        matched.ok_or_else(|| tonic::Status::not_found("ConnectorClass registration not found"))
+
+        if !requested_class.trim().is_empty() && requested_class != entry.class_name {
+            return Err(tonic::Status::failed_precondition(
+                "connector_class conflicts with ConnectorClass registration",
+            ));
+        }
+
+        let class_spec = entry.class_spec.ok_or_else(|| {
+            tonic::Status::failed_precondition("ConnectorClass registration missing spec snapshot")
+        })?;
+        Ok((entry.class_namespace, entry.class_name, class_spec))
     }
 }
 

@@ -90,7 +90,11 @@ impl ControllerHost {
                             {
                                 tracing::warn!(error = %err, name = %event.name, "ConnectorClass reconcile failed");
                                 controller
-                                    .reconcile_class_error(&class, err.to_string())
+                                    .reconcile_class_error(
+                                        &class,
+                                        self.cp.as_ref(),
+                                        err.to_string(),
+                                    )
                                     .await?;
                             }
                         }

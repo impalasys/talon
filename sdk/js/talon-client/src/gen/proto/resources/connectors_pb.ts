@@ -458,7 +458,8 @@ export class ConnectorSpec extends Message<ConnectorSpec> {
   /**
    * ConnectorClass that owns the platform adapter and match index definitions.
    * If namespace is empty, Talon resolves the class in the Connector's
-   * namespace.
+   * namespace. In v1, a non-empty namespace must match the Connector namespace;
+   * cross-namespace class references require a future policy/RBAC gate.
    *
    * @generated from field: talon.resources.ResourceRef class_ref = 1;
    */
@@ -692,6 +693,79 @@ export class Connector extends Message<Connector> {
 
   static equals(a: Connector | PlainMessage<Connector> | undefined, b: Connector | PlainMessage<Connector> | undefined): boolean {
     return proto3.util.equals(Connector, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.ConnectorRegistrationEntry
+ */
+export class ConnectorRegistrationEntry extends Message<ConnectorRegistrationEntry> {
+  /**
+   * Registration identifier assigned by the connector service.
+   *
+   * @generated from field: string registration_id = 1;
+   */
+  registrationId = "";
+
+  /**
+   * Namespace that owns the ConnectorClass for this registration.
+   *
+   * @generated from field: string class_namespace = 2;
+   */
+  classNamespace = "";
+
+  /**
+   * ConnectorClass name for this registration.
+   *
+   * @generated from field: string class_name = 3;
+   */
+  className = "";
+
+  /**
+   * ConnectorClass generation captured when this registration index was
+   * written.
+   *
+   * @generated from field: uint64 generation = 4;
+   */
+  generation = protoInt64.zero;
+
+  /**
+   * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+   * hot ingest path resolve provider match keys with one registration lookup.
+   *
+   * @generated from field: talon.resources.ConnectorClassSpec class_spec = 5;
+   */
+  classSpec?: ConnectorClassSpec;
+
+  constructor(data?: PartialMessage<ConnectorRegistrationEntry>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.ConnectorRegistrationEntry";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "registration_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "class_namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "class_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 5, name: "class_spec", kind: "message", T: ConnectorClassSpec },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorRegistrationEntry {
+    return new ConnectorRegistrationEntry().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectorRegistrationEntry {
+    return new ConnectorRegistrationEntry().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectorRegistrationEntry {
+    return new ConnectorRegistrationEntry().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ConnectorRegistrationEntry | PlainMessage<ConnectorRegistrationEntry> | undefined, b: ConnectorRegistrationEntry | PlainMessage<ConnectorRegistrationEntry> | undefined): boolean {
+    return proto3.util.equals(ConnectorRegistrationEntry, a, b);
   }
 }
 

@@ -274,6 +274,19 @@ pub fn connector_match_prefix() -> ResourceList {
     direct_child_prefix(ns::TALON_SYSTEM, &[], Some("ConnectorMatch"))
 }
 
+pub fn connector_registration(registration_id: &str) -> ResourceKey {
+    resource_key(
+        ns::TALON_SYSTEM,
+        &[],
+        "ConnectorRegistration",
+        registration_id,
+    )
+}
+
+pub fn connector_registration_prefix() -> ResourceList {
+    direct_child_prefix(ns::TALON_SYSTEM, &[], Some("ConnectorRegistration"))
+}
+
 pub fn connector_event(registration_id: &str, event_id: &str) -> ResourceKey {
     resource_key(
         ns::TALON_SYSTEM,

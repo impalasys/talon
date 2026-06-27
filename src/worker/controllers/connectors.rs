@@ -17,6 +17,9 @@ const CONNECTOR_INDEX_FIELD_SEP: &str = "\x1f";
 struct RegisterClusterRequest {
     #[serde(rename = "clusterId")]
     cluster_id: String,
+    namespace: String,
+    #[serde(rename = "connectorClass")]
+    connector_class: String,
     #[serde(rename = "callbackBaseUrl")]
     callback_base_url: String,
     #[serde(rename = "protocolVersion")]
@@ -49,7 +52,21 @@ impl ConnectorController {
             .as_ref()
             .ok_or_else(|| anyhow!("ConnectorClass metadata is required"))?;
         let spec = connector_class_spec(class)?;
-        let registration_id = register_connector_class(spec, meta.name.as_str(), config).await?;
+        delete_registration_entries_for_class(cp.kv.as_ref(), &meta.namespace, &meta.name).await?;
+        let registration_id =
+            register_connector_class(spec, &meta.namespace, meta.name.as_str(), config).await?;
+        cp.kv
+            .set_msg(
+                &keys::connector_registration(&registration_id),
+                &resources_proto::ConnectorRegistrationEntry {
+                    registration_id: registration_id.clone(),
+                    class_namespace: meta.namespace.clone(),
+                    class_name: meta.name.clone(),
+                    generation: meta.generation,
+                    class_spec: Some(spec.clone()),
+                },
+            )
+            .await?;
         let status = resources_proto::ConnectorClassStatus {
             observed_generation: meta.generation,
             phase: "Ready".to_string(),
@@ -90,12 +107,14 @@ impl ConnectorController {
     pub async fn reconcile_class_error(
         &self,
         class: &resources_proto::Resource,
+        cp: &ControlPlane,
         message: String,
     ) -> Result<()> {
         let meta = class
             .metadata
             .as_ref()
             .ok_or_else(|| anyhow!("ConnectorClass metadata is required"))?;
+        delete_registration_entries_for_class(cp.kv.as_ref(), &meta.namespace, &meta.name).await?;
         let status = resources_proto::ConnectorClassStatus {
             observed_generation: meta.generation,
             phase: "Error".to_string(),
@@ -160,6 +179,11 @@ impl ConnectorController {
         let class_namespace = if class_ref.namespace.trim().is_empty() {
             meta.namespace.as_str()
         } else {
+            if class_ref.namespace != meta.namespace {
+                bail!(
+                    "Connector spec.classRef.namespace must be empty or match Connector namespace"
+                );
+            }
             class_ref.namespace.as_str()
         };
         let class = self
@@ -307,6 +331,26 @@ pub async fn delete_match_entries_for_uid(
             continue;
         };
         if entry.connector_uid == connector_uid {
+            kv.delete(&key).await?;
+        }
+    }
+    Ok(())
+}
+
+pub async fn delete_registration_entries_for_class(
+    kv: &dyn KeyValueStore,
+    class_namespace: &str,
+    class_name: &str,
+) -> Result<()> {
+    for (key, bytes) in kv
+        .list_entries(&keys::connector_registration_prefix())
+        .await?
+    {
+        let Ok(entry) = resources_proto::ConnectorRegistrationEntry::decode(bytes.as_slice())
+        else {
+            continue;
+        };
+        if entry.class_namespace == class_namespace && entry.class_name == class_name {
             kv.delete(&key).await?;
         }
     }
@@ -462,6 +506,7 @@ fn validate_target(target: Option<&resources_proto::ConnectorTarget>) -> Result<
 
 async fn register_connector_class(
     spec: &resources_proto::ConnectorClassSpec,
+    class_namespace: &str,
     class_name: &str,
     config: &crate::control::config::Config,
 ) -> Result<String> {
@@ -515,6 +560,8 @@ async fn register_connector_class(
         .bearer_auth(api_key)
         .json(&RegisterClusterRequest {
             cluster_id,
+            namespace: class_namespace.to_string(),
+            connector_class: class_name.to_string(),
             callback_base_url,
             protocol_version: "v1".to_string(),
         })
@@ -610,13 +657,14 @@ mod tests {
             ("channelId".to_string(), "C999".to_string()),
         ]);
 
-        let keys = compile_match_keys("reg_1", "customer-acme", "slack", &class_spec, &fields)
-            .unwrap();
+        let keys =
+            compile_match_keys("reg_1", "customer-acme", "slack", &class_spec, &fields).unwrap();
 
         assert_eq!(
             keys,
             vec![
-                "reg_1|customer-acme|slack|slack-channel\u{1f}teamId=T123\u{1f}channelId=C999".to_string(),
+                "reg_1|customer-acme|slack|slack-channel\u{1f}teamId=T123\u{1f}channelId=C999"
+                    .to_string(),
                 "reg_1|customer-acme|slack|slack-team\u{1f}teamId=T123".to_string(),
             ]
         );

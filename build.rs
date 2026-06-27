@@ -31,6 +31,7 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.ConnectorChannelTarget",
         ".talon.resources.ConnectorMatchEntry",
         ".talon.resources.ConnectorMatchIndex",
+        ".talon.resources.ConnectorRegistrationEntry",
         ".talon.resources.ConnectorSessionTarget",
         ".talon.resources.ConnectorSpec",
         ".talon.resources.ConnectorStatus",

@@ -8305,7 +8305,8 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
      * <pre>
      * ConnectorClass that owns the platform adapter and match index definitions.
      * If namespace is empty, Talon resolves the class in the Connector's
-     * namespace.
+     * namespace. In v1, a non-empty namespace must match the Connector namespace;
+     * cross-namespace class references require a future policy/RBAC gate.
      * </pre>
      *
      * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -8316,7 +8317,8 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
      * <pre>
      * ConnectorClass that owns the platform adapter and match index definitions.
      * If namespace is empty, Talon resolves the class in the Connector's
-     * namespace.
+     * namespace. In v1, a non-empty namespace must match the Connector namespace;
+     * cross-namespace class references require a future policy/RBAC gate.
      * </pre>
      *
      * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -8327,7 +8329,8 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
      * <pre>
      * ConnectorClass that owns the platform adapter and match index definitions.
      * If namespace is empty, Talon resolves the class in the Connector's
-     * namespace.
+     * namespace. In v1, a non-empty namespace must match the Connector namespace;
+     * cross-namespace class references require a future policy/RBAC gate.
      * </pre>
      *
      * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -8496,7 +8499,8 @@ java.lang.String defaultValue);
      * <pre>
      * ConnectorClass that owns the platform adapter and match index definitions.
      * If namespace is empty, Talon resolves the class in the Connector's
-     * namespace.
+     * namespace. In v1, a non-empty namespace must match the Connector namespace;
+     * cross-namespace class references require a future policy/RBAC gate.
      * </pre>
      *
      * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -8510,7 +8514,8 @@ java.lang.String defaultValue);
      * <pre>
      * ConnectorClass that owns the platform adapter and match index definitions.
      * If namespace is empty, Talon resolves the class in the Connector's
-     * namespace.
+     * namespace. In v1, a non-empty namespace must match the Connector namespace;
+     * cross-namespace class references require a future policy/RBAC gate.
      * </pre>
      *
      * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -8524,7 +8529,8 @@ java.lang.String defaultValue);
      * <pre>
      * ConnectorClass that owns the platform adapter and match index definitions.
      * If namespace is empty, Talon resolves the class in the Connector's
-     * namespace.
+     * namespace. In v1, a non-empty namespace must match the Connector namespace;
+     * cross-namespace class references require a future policy/RBAC gate.
      * </pre>
      *
      * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9135,7 +9141,8 @@ java.lang.String defaultValue) {
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
        * If namespace is empty, Talon resolves the class in the Connector's
-       * namespace.
+       * namespace. In v1, a non-empty namespace must match the Connector namespace;
+       * cross-namespace class references require a future policy/RBAC gate.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9148,7 +9155,8 @@ java.lang.String defaultValue) {
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
        * If namespace is empty, Talon resolves the class in the Connector's
-       * namespace.
+       * namespace. In v1, a non-empty namespace must match the Connector namespace;
+       * cross-namespace class references require a future policy/RBAC gate.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9165,7 +9173,8 @@ java.lang.String defaultValue) {
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
        * If namespace is empty, Talon resolves the class in the Connector's
-       * namespace.
+       * namespace. In v1, a non-empty namespace must match the Connector namespace;
+       * cross-namespace class references require a future policy/RBAC gate.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9187,7 +9196,8 @@ java.lang.String defaultValue) {
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
        * If namespace is empty, Talon resolves the class in the Connector's
-       * namespace.
+       * namespace. In v1, a non-empty namespace must match the Connector namespace;
+       * cross-namespace class references require a future policy/RBAC gate.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9207,7 +9217,8 @@ java.lang.String defaultValue) {
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
        * If namespace is empty, Talon resolves the class in the Connector's
-       * namespace.
+       * namespace. In v1, a non-empty namespace must match the Connector namespace;
+       * cross-namespace class references require a future policy/RBAC gate.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9234,7 +9245,8 @@ java.lang.String defaultValue) {
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
        * If namespace is empty, Talon resolves the class in the Connector's
-       * namespace.
+       * namespace. In v1, a non-empty namespace must match the Connector namespace;
+       * cross-namespace class references require a future policy/RBAC gate.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9253,7 +9265,8 @@ java.lang.String defaultValue) {
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
        * If namespace is empty, Talon resolves the class in the Connector's
-       * namespace.
+       * namespace. In v1, a non-empty namespace must match the Connector namespace;
+       * cross-namespace class references require a future policy/RBAC gate.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9267,7 +9280,8 @@ java.lang.String defaultValue) {
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
        * If namespace is empty, Talon resolves the class in the Connector's
-       * namespace.
+       * namespace. In v1, a non-empty namespace must match the Connector namespace;
+       * cross-namespace class references require a future policy/RBAC gate.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9284,7 +9298,8 @@ java.lang.String defaultValue) {
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
        * If namespace is empty, Talon resolves the class in the Connector's
-       * namespace.
+       * namespace. In v1, a non-empty namespace must match the Connector namespace;
+       * cross-namespace class references require a future policy/RBAC gate.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -13516,6 +13531,1306 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface ConnectorRegistrationEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.resources.ConnectorRegistrationEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Registration identifier assigned by the connector service.
+     * </pre>
+     *
+     * <code>string registration_id = 1;</code>
+     * @return The registrationId.
+     */
+    java.lang.String getRegistrationId();
+    /**
+     * <pre>
+     * Registration identifier assigned by the connector service.
+     * </pre>
+     *
+     * <code>string registration_id = 1;</code>
+     * @return The bytes for registrationId.
+     */
+    com.google.protobuf.ByteString
+        getRegistrationIdBytes();
+
+    /**
+     * <pre>
+     * Namespace that owns the ConnectorClass for this registration.
+     * </pre>
+     *
+     * <code>string class_namespace = 2;</code>
+     * @return The classNamespace.
+     */
+    java.lang.String getClassNamespace();
+    /**
+     * <pre>
+     * Namespace that owns the ConnectorClass for this registration.
+     * </pre>
+     *
+     * <code>string class_namespace = 2;</code>
+     * @return The bytes for classNamespace.
+     */
+    com.google.protobuf.ByteString
+        getClassNamespaceBytes();
+
+    /**
+     * <pre>
+     * ConnectorClass name for this registration.
+     * </pre>
+     *
+     * <code>string class_name = 3;</code>
+     * @return The className.
+     */
+    java.lang.String getClassName();
+    /**
+     * <pre>
+     * ConnectorClass name for this registration.
+     * </pre>
+     *
+     * <code>string class_name = 3;</code>
+     * @return The bytes for className.
+     */
+    com.google.protobuf.ByteString
+        getClassNameBytes();
+
+    /**
+     * <pre>
+     * ConnectorClass generation captured when this registration index was
+     * written.
+     * </pre>
+     *
+     * <code>uint64 generation = 4;</code>
+     * @return The generation.
+     */
+    long getGeneration();
+
+    /**
+     * <pre>
+     * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+     * hot ingest path resolve provider match keys with one registration lookup.
+     * </pre>
+     *
+     * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+     * @return Whether the classSpec field is set.
+     */
+    boolean hasClassSpec();
+    /**
+     * <pre>
+     * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+     * hot ingest path resolve provider match keys with one registration lookup.
+     * </pre>
+     *
+     * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+     * @return The classSpec.
+     */
+    talon.resources.Connectors.ConnectorClassSpec getClassSpec();
+    /**
+     * <pre>
+     * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+     * hot ingest path resolve provider match keys with one registration lookup.
+     * </pre>
+     *
+     * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+     */
+    talon.resources.Connectors.ConnectorClassSpecOrBuilder getClassSpecOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.resources.ConnectorRegistrationEntry}
+   */
+  public static final class ConnectorRegistrationEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.resources.ConnectorRegistrationEntry)
+      ConnectorRegistrationEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ConnectorRegistrationEntry");
+    }
+    // Use ConnectorRegistrationEntry.newBuilder() to construct.
+    private ConnectorRegistrationEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ConnectorRegistrationEntry() {
+      registrationId_ = "";
+      classNamespace_ = "";
+      className_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.resources.Connectors.internal_static_talon_resources_ConnectorRegistrationEntry_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.resources.Connectors.internal_static_talon_resources_ConnectorRegistrationEntry_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.resources.Connectors.internal_static_talon_resources_ConnectorRegistrationEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.resources.Connectors.ConnectorRegistrationEntry.class, talon.resources.Connectors.ConnectorRegistrationEntry.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int REGISTRATION_ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object registrationId_ = "";
+    /**
+     * <pre>
+     * Registration identifier assigned by the connector service.
+     * </pre>
+     *
+     * <code>string registration_id = 1;</code>
+     * @return The registrationId.
+     */
+    @java.lang.Override
+    public java.lang.String getRegistrationId() {
+      java.lang.Object ref = registrationId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        registrationId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Registration identifier assigned by the connector service.
+     * </pre>
+     *
+     * <code>string registration_id = 1;</code>
+     * @return The bytes for registrationId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getRegistrationIdBytes() {
+      java.lang.Object ref = registrationId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        registrationId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CLASS_NAMESPACE_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object classNamespace_ = "";
+    /**
+     * <pre>
+     * Namespace that owns the ConnectorClass for this registration.
+     * </pre>
+     *
+     * <code>string class_namespace = 2;</code>
+     * @return The classNamespace.
+     */
+    @java.lang.Override
+    public java.lang.String getClassNamespace() {
+      java.lang.Object ref = classNamespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        classNamespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Namespace that owns the ConnectorClass for this registration.
+     * </pre>
+     *
+     * <code>string class_namespace = 2;</code>
+     * @return The bytes for classNamespace.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getClassNamespaceBytes() {
+      java.lang.Object ref = classNamespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        classNamespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CLASS_NAME_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object className_ = "";
+    /**
+     * <pre>
+     * ConnectorClass name for this registration.
+     * </pre>
+     *
+     * <code>string class_name = 3;</code>
+     * @return The className.
+     */
+    @java.lang.Override
+    public java.lang.String getClassName() {
+      java.lang.Object ref = className_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        className_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * ConnectorClass name for this registration.
+     * </pre>
+     *
+     * <code>string class_name = 3;</code>
+     * @return The bytes for className.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getClassNameBytes() {
+      java.lang.Object ref = className_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        className_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int GENERATION_FIELD_NUMBER = 4;
+    private long generation_ = 0L;
+    /**
+     * <pre>
+     * ConnectorClass generation captured when this registration index was
+     * written.
+     * </pre>
+     *
+     * <code>uint64 generation = 4;</code>
+     * @return The generation.
+     */
+    @java.lang.Override
+    public long getGeneration() {
+      return generation_;
+    }
+
+    public static final int CLASS_SPEC_FIELD_NUMBER = 5;
+    private talon.resources.Connectors.ConnectorClassSpec classSpec_;
+    /**
+     * <pre>
+     * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+     * hot ingest path resolve provider match keys with one registration lookup.
+     * </pre>
+     *
+     * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+     * @return Whether the classSpec field is set.
+     */
+    @java.lang.Override
+    public boolean hasClassSpec() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <pre>
+     * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+     * hot ingest path resolve provider match keys with one registration lookup.
+     * </pre>
+     *
+     * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+     * @return The classSpec.
+     */
+    @java.lang.Override
+    public talon.resources.Connectors.ConnectorClassSpec getClassSpec() {
+      return classSpec_ == null ? talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance() : classSpec_;
+    }
+    /**
+     * <pre>
+     * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+     * hot ingest path resolve provider match keys with one registration lookup.
+     * </pre>
+     *
+     * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Connectors.ConnectorClassSpecOrBuilder getClassSpecOrBuilder() {
+      return classSpec_ == null ? talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance() : classSpec_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(registrationId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, registrationId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(classNamespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, classNamespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(className_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, className_);
+      }
+      if (generation_ != 0L) {
+        output.writeUInt64(4, generation_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(5, getClassSpec());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(registrationId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, registrationId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(classNamespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, classNamespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(className_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, className_);
+      }
+      if (generation_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(4, generation_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, getClassSpec());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.resources.Connectors.ConnectorRegistrationEntry)) {
+        return super.equals(obj);
+      }
+      talon.resources.Connectors.ConnectorRegistrationEntry other = (talon.resources.Connectors.ConnectorRegistrationEntry) obj;
+
+      if (!getRegistrationId()
+          .equals(other.getRegistrationId())) return false;
+      if (!getClassNamespace()
+          .equals(other.getClassNamespace())) return false;
+      if (!getClassName()
+          .equals(other.getClassName())) return false;
+      if (getGeneration()
+          != other.getGeneration()) return false;
+      if (hasClassSpec() != other.hasClassSpec()) return false;
+      if (hasClassSpec()) {
+        if (!getClassSpec()
+            .equals(other.getClassSpec())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + REGISTRATION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getRegistrationId().hashCode();
+      hash = (37 * hash) + CLASS_NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getClassNamespace().hashCode();
+      hash = (37 * hash) + CLASS_NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getClassName().hashCode();
+      hash = (37 * hash) + GENERATION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getGeneration());
+      if (hasClassSpec()) {
+        hash = (37 * hash) + CLASS_SPEC_FIELD_NUMBER;
+        hash = (53 * hash) + getClassSpec().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.resources.Connectors.ConnectorRegistrationEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.resources.Connectors.ConnectorRegistrationEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.resources.Connectors.ConnectorRegistrationEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.resources.ConnectorRegistrationEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.resources.ConnectorRegistrationEntry)
+        talon.resources.Connectors.ConnectorRegistrationEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.resources.Connectors.internal_static_talon_resources_ConnectorRegistrationEntry_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.resources.Connectors.internal_static_talon_resources_ConnectorRegistrationEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.resources.Connectors.ConnectorRegistrationEntry.class, talon.resources.Connectors.ConnectorRegistrationEntry.Builder.class);
+      }
+
+      // Construct using talon.resources.Connectors.ConnectorRegistrationEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetClassSpecFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        registrationId_ = "";
+        classNamespace_ = "";
+        className_ = "";
+        generation_ = 0L;
+        classSpec_ = null;
+        if (classSpecBuilder_ != null) {
+          classSpecBuilder_.dispose();
+          classSpecBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.resources.Connectors.internal_static_talon_resources_ConnectorRegistrationEntry_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorRegistrationEntry getDefaultInstanceForType() {
+        return talon.resources.Connectors.ConnectorRegistrationEntry.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorRegistrationEntry build() {
+        talon.resources.Connectors.ConnectorRegistrationEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorRegistrationEntry buildPartial() {
+        talon.resources.Connectors.ConnectorRegistrationEntry result = new talon.resources.Connectors.ConnectorRegistrationEntry(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.resources.Connectors.ConnectorRegistrationEntry result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.registrationId_ = registrationId_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.classNamespace_ = classNamespace_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.className_ = className_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.generation_ = generation_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.classSpec_ = classSpecBuilder_ == null
+              ? classSpec_
+              : classSpecBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.resources.Connectors.ConnectorRegistrationEntry) {
+          return mergeFrom((talon.resources.Connectors.ConnectorRegistrationEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.resources.Connectors.ConnectorRegistrationEntry other) {
+        if (other == talon.resources.Connectors.ConnectorRegistrationEntry.getDefaultInstance()) return this;
+        if (!other.getRegistrationId().isEmpty()) {
+          registrationId_ = other.registrationId_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getClassNamespace().isEmpty()) {
+          classNamespace_ = other.classNamespace_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getClassName().isEmpty()) {
+          className_ = other.className_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (other.getGeneration() != 0L) {
+          setGeneration(other.getGeneration());
+        }
+        if (other.hasClassSpec()) {
+          mergeClassSpec(other.getClassSpec());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                registrationId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                classNamespace_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                className_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 32: {
+                generation_ = input.readUInt64();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+              case 42: {
+                input.readMessage(
+                    internalGetClassSpecFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object registrationId_ = "";
+      /**
+       * <pre>
+       * Registration identifier assigned by the connector service.
+       * </pre>
+       *
+       * <code>string registration_id = 1;</code>
+       * @return The registrationId.
+       */
+      public java.lang.String getRegistrationId() {
+        java.lang.Object ref = registrationId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          registrationId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Registration identifier assigned by the connector service.
+       * </pre>
+       *
+       * <code>string registration_id = 1;</code>
+       * @return The bytes for registrationId.
+       */
+      public com.google.protobuf.ByteString
+          getRegistrationIdBytes() {
+        java.lang.Object ref = registrationId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          registrationId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Registration identifier assigned by the connector service.
+       * </pre>
+       *
+       * <code>string registration_id = 1;</code>
+       * @param value The registrationId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRegistrationId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        registrationId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Registration identifier assigned by the connector service.
+       * </pre>
+       *
+       * <code>string registration_id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRegistrationId() {
+        registrationId_ = getDefaultInstance().getRegistrationId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Registration identifier assigned by the connector service.
+       * </pre>
+       *
+       * <code>string registration_id = 1;</code>
+       * @param value The bytes for registrationId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRegistrationIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        registrationId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object classNamespace_ = "";
+      /**
+       * <pre>
+       * Namespace that owns the ConnectorClass for this registration.
+       * </pre>
+       *
+       * <code>string class_namespace = 2;</code>
+       * @return The classNamespace.
+       */
+      public java.lang.String getClassNamespace() {
+        java.lang.Object ref = classNamespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          classNamespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Namespace that owns the ConnectorClass for this registration.
+       * </pre>
+       *
+       * <code>string class_namespace = 2;</code>
+       * @return The bytes for classNamespace.
+       */
+      public com.google.protobuf.ByteString
+          getClassNamespaceBytes() {
+        java.lang.Object ref = classNamespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          classNamespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Namespace that owns the ConnectorClass for this registration.
+       * </pre>
+       *
+       * <code>string class_namespace = 2;</code>
+       * @param value The classNamespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setClassNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        classNamespace_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Namespace that owns the ConnectorClass for this registration.
+       * </pre>
+       *
+       * <code>string class_namespace = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearClassNamespace() {
+        classNamespace_ = getDefaultInstance().getClassNamespace();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Namespace that owns the ConnectorClass for this registration.
+       * </pre>
+       *
+       * <code>string class_namespace = 2;</code>
+       * @param value The bytes for classNamespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setClassNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        classNamespace_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object className_ = "";
+      /**
+       * <pre>
+       * ConnectorClass name for this registration.
+       * </pre>
+       *
+       * <code>string class_name = 3;</code>
+       * @return The className.
+       */
+      public java.lang.String getClassName() {
+        java.lang.Object ref = className_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          className_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * ConnectorClass name for this registration.
+       * </pre>
+       *
+       * <code>string class_name = 3;</code>
+       * @return The bytes for className.
+       */
+      public com.google.protobuf.ByteString
+          getClassNameBytes() {
+        java.lang.Object ref = className_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          className_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * ConnectorClass name for this registration.
+       * </pre>
+       *
+       * <code>string class_name = 3;</code>
+       * @param value The className to set.
+       * @return This builder for chaining.
+       */
+      public Builder setClassName(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        className_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * ConnectorClass name for this registration.
+       * </pre>
+       *
+       * <code>string class_name = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearClassName() {
+        className_ = getDefaultInstance().getClassName();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * ConnectorClass name for this registration.
+       * </pre>
+       *
+       * <code>string class_name = 3;</code>
+       * @param value The bytes for className to set.
+       * @return This builder for chaining.
+       */
+      public Builder setClassNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        className_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private long generation_ ;
+      /**
+       * <pre>
+       * ConnectorClass generation captured when this registration index was
+       * written.
+       * </pre>
+       *
+       * <code>uint64 generation = 4;</code>
+       * @return The generation.
+       */
+      @java.lang.Override
+      public long getGeneration() {
+        return generation_;
+      }
+      /**
+       * <pre>
+       * ConnectorClass generation captured when this registration index was
+       * written.
+       * </pre>
+       *
+       * <code>uint64 generation = 4;</code>
+       * @param value The generation to set.
+       * @return This builder for chaining.
+       */
+      public Builder setGeneration(long value) {
+
+        generation_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * ConnectorClass generation captured when this registration index was
+       * written.
+       * </pre>
+       *
+       * <code>uint64 generation = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearGeneration() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        generation_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private talon.resources.Connectors.ConnectorClassSpec classSpec_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Connectors.ConnectorClassSpec, talon.resources.Connectors.ConnectorClassSpec.Builder, talon.resources.Connectors.ConnectorClassSpecOrBuilder> classSpecBuilder_;
+      /**
+       * <pre>
+       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+       * hot ingest path resolve provider match keys with one registration lookup.
+       * </pre>
+       *
+       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+       * @return Whether the classSpec field is set.
+       */
+      public boolean hasClassSpec() {
+        return ((bitField0_ & 0x00000010) != 0);
+      }
+      /**
+       * <pre>
+       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+       * hot ingest path resolve provider match keys with one registration lookup.
+       * </pre>
+       *
+       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+       * @return The classSpec.
+       */
+      public talon.resources.Connectors.ConnectorClassSpec getClassSpec() {
+        if (classSpecBuilder_ == null) {
+          return classSpec_ == null ? talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance() : classSpec_;
+        } else {
+          return classSpecBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+       * hot ingest path resolve provider match keys with one registration lookup.
+       * </pre>
+       *
+       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+       */
+      public Builder setClassSpec(talon.resources.Connectors.ConnectorClassSpec value) {
+        if (classSpecBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          classSpec_ = value;
+        } else {
+          classSpecBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+       * hot ingest path resolve provider match keys with one registration lookup.
+       * </pre>
+       *
+       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+       */
+      public Builder setClassSpec(
+          talon.resources.Connectors.ConnectorClassSpec.Builder builderForValue) {
+        if (classSpecBuilder_ == null) {
+          classSpec_ = builderForValue.build();
+        } else {
+          classSpecBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+       * hot ingest path resolve provider match keys with one registration lookup.
+       * </pre>
+       *
+       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+       */
+      public Builder mergeClassSpec(talon.resources.Connectors.ConnectorClassSpec value) {
+        if (classSpecBuilder_ == null) {
+          if (((bitField0_ & 0x00000010) != 0) &&
+            classSpec_ != null &&
+            classSpec_ != talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance()) {
+            getClassSpecBuilder().mergeFrom(value);
+          } else {
+            classSpec_ = value;
+          }
+        } else {
+          classSpecBuilder_.mergeFrom(value);
+        }
+        if (classSpec_ != null) {
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+       * hot ingest path resolve provider match keys with one registration lookup.
+       * </pre>
+       *
+       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+       */
+      public Builder clearClassSpec() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        classSpec_ = null;
+        if (classSpecBuilder_ != null) {
+          classSpecBuilder_.dispose();
+          classSpecBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+       * hot ingest path resolve provider match keys with one registration lookup.
+       * </pre>
+       *
+       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+       */
+      public talon.resources.Connectors.ConnectorClassSpec.Builder getClassSpecBuilder() {
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return internalGetClassSpecFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+       * hot ingest path resolve provider match keys with one registration lookup.
+       * </pre>
+       *
+       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+       */
+      public talon.resources.Connectors.ConnectorClassSpecOrBuilder getClassSpecOrBuilder() {
+        if (classSpecBuilder_ != null) {
+          return classSpecBuilder_.getMessageOrBuilder();
+        } else {
+          return classSpec_ == null ?
+              talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance() : classSpec_;
+        }
+      }
+      /**
+       * <pre>
+       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+       * hot ingest path resolve provider match keys with one registration lookup.
+       * </pre>
+       *
+       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Connectors.ConnectorClassSpec, talon.resources.Connectors.ConnectorClassSpec.Builder, talon.resources.Connectors.ConnectorClassSpecOrBuilder>
+          internalGetClassSpecFieldBuilder() {
+        if (classSpecBuilder_ == null) {
+          classSpecBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Connectors.ConnectorClassSpec, talon.resources.Connectors.ConnectorClassSpec.Builder, talon.resources.Connectors.ConnectorClassSpecOrBuilder>(
+                  getClassSpec(),
+                  getParentForChildren(),
+                  isClean());
+          classSpec_ = null;
+        }
+        return classSpecBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.resources.ConnectorRegistrationEntry)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.resources.ConnectorRegistrationEntry)
+    private static final talon.resources.Connectors.ConnectorRegistrationEntry DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.resources.Connectors.ConnectorRegistrationEntry();
+    }
+
+    public static talon.resources.Connectors.ConnectorRegistrationEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ConnectorRegistrationEntry>
+        PARSER = new com.google.protobuf.AbstractParser<ConnectorRegistrationEntry>() {
+      @java.lang.Override
+      public ConnectorRegistrationEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ConnectorRegistrationEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ConnectorRegistrationEntry> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.resources.Connectors.ConnectorRegistrationEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface ConnectorMatchEntryOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.resources.ConnectorMatchEntry)
       com.google.protobuf.MessageOrBuilder {
@@ -15245,6 +16560,11 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_Connector_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_resources_ConnectorRegistrationEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_resources_ConnectorRegistrationEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_ConnectorMatchEntry_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -15300,13 +16620,17 @@ java.lang.String defaultValue) {
       "\001\n\tConnector\022/\n\010metadata\030\001 \001(\0132\035.talon.r" +
       "esources.ResourceMeta\022,\n\004spec\030\002 \001(\0132\036.ta" +
       "lon.resources.ConnectorSpec\0220\n\006status\030\003 " +
-      "\001(\0132 .talon.resources.ConnectorStatus\"\312\001" +
-      "\n\023ConnectorMatchEntry\022\025\n\rconnector_uid\030\001" +
-      " \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\026\n\016connector_nam" +
-      "e\030\003 \001(\t\022\022\n\nclass_name\030\004 \001(\t\022\022\n\ngeneratio" +
-      "n\030\005 \001(\004\0220\n\006target\030\006 \001(\0132 .talon.resource" +
-      "s.ConnectorTarget\022\027\n\017class_namespace\030\007 \001" +
-      "(\tb\006proto3"
+      "\001(\0132 .talon.resources.ConnectorStatus\"\257\001" +
+      "\n\032ConnectorRegistrationEntry\022\027\n\017registra" +
+      "tion_id\030\001 \001(\t\022\027\n\017class_namespace\030\002 \001(\t\022\022" +
+      "\n\nclass_name\030\003 \001(\t\022\022\n\ngeneration\030\004 \001(\004\0227" +
+      "\n\nclass_spec\030\005 \001(\0132#.talon.resources.Con" +
+      "nectorClassSpec\"\312\001\n\023ConnectorMatchEntry\022" +
+      "\025\n\rconnector_uid\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(" +
+      "\t\022\026\n\016connector_name\030\003 \001(\t\022\022\n\nclass_name\030" +
+      "\004 \001(\t\022\022\n\ngeneration\030\005 \001(\004\0220\n\006target\030\006 \001(" +
+      "\0132 .talon.resources.ConnectorTarget\022\027\n\017c" +
+      "lass_namespace\030\007 \001(\tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -15392,8 +16716,14 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_Connector_descriptor,
         new java.lang.String[] { "Metadata", "Spec", "Status", });
-    internal_static_talon_resources_ConnectorMatchEntry_descriptor =
+    internal_static_talon_resources_ConnectorRegistrationEntry_descriptor =
       getDescriptor().getMessageType(12);
+    internal_static_talon_resources_ConnectorRegistrationEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_resources_ConnectorRegistrationEntry_descriptor,
+        new java.lang.String[] { "RegistrationId", "ClassNamespace", "ClassName", "Generation", "ClassSpec", });
+    internal_static_talon_resources_ConnectorMatchEntry_descriptor =
+      getDescriptor().getMessageType(13);
     internal_static_talon_resources_ConnectorMatchEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectorMatchEntry_descriptor,

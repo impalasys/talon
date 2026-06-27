@@ -104,7 +104,8 @@ message ConnectorTarget {
 message ConnectorSpec {
   // ConnectorClass that owns the platform adapter and match index definitions.
   // If namespace is empty, Talon resolves the class in the Connector's
-  // namespace.
+  // namespace. In v1, a non-empty namespace must match the Connector namespace;
+  // cross-namespace class references require a future policy/RBAC gate.
   ResourceRef class_ref = 1;
 
   // Disabled Connectors are not indexed for incoming message routing.
@@ -157,6 +158,25 @@ message Connector {
 
   // Observed route-indexing state for this Connector.
   ConnectorStatus status = 3;
+}
+
+message ConnectorRegistrationEntry {
+  // Registration identifier assigned by the connector service.
+  string registration_id = 1;
+
+  // Namespace that owns the ConnectorClass for this registration.
+  string class_namespace = 2;
+
+  // ConnectorClass name for this registration.
+  string class_name = 3;
+
+  // ConnectorClass generation captured when this registration index was
+  // written.
+  uint64 generation = 4;
+
+  // Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+  // hot ingest path resolve provider match keys with one registration lookup.
+  ConnectorClassSpec class_spec = 5;
 }
 
 message ConnectorMatchEntry {

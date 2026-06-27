@@ -554,7 +554,8 @@ type ConnectorSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// ConnectorClass that owns the platform adapter and match index definitions.
 	// If namespace is empty, Talon resolves the class in the Connector's
-	// namespace.
+	// namespace. In v1, a non-empty namespace must match the Connector namespace;
+	// cross-namespace class references require a future policy/RBAC gate.
 	ClassRef *ResourceRef `protobuf:"bytes,1,opt,name=class_ref,json=classRef,proto3" json:"class_ref,omitempty"`
 	// Disabled Connectors are not indexed for incoming message routing.
 	Enabled bool `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
@@ -828,6 +829,89 @@ func (x *Connector) GetStatus() *ConnectorStatus {
 	return nil
 }
 
+type ConnectorRegistrationEntry struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Registration identifier assigned by the connector service.
+	RegistrationId string `protobuf:"bytes,1,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
+	// Namespace that owns the ConnectorClass for this registration.
+	ClassNamespace string `protobuf:"bytes,2,opt,name=class_namespace,json=classNamespace,proto3" json:"class_namespace,omitempty"`
+	// ConnectorClass name for this registration.
+	ClassName string `protobuf:"bytes,3,opt,name=class_name,json=className,proto3" json:"class_name,omitempty"`
+	// ConnectorClass generation captured when this registration index was
+	// written.
+	Generation uint64 `protobuf:"varint,4,opt,name=generation,proto3" json:"generation,omitempty"`
+	// Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+	// hot ingest path resolve provider match keys with one registration lookup.
+	ClassSpec     *ConnectorClassSpec `protobuf:"bytes,5,opt,name=class_spec,json=classSpec,proto3" json:"class_spec,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConnectorRegistrationEntry) Reset() {
+	*x = ConnectorRegistrationEntry{}
+	mi := &file_proto_resources_connectors_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConnectorRegistrationEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConnectorRegistrationEntry) ProtoMessage() {}
+
+func (x *ConnectorRegistrationEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_connectors_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConnectorRegistrationEntry.ProtoReflect.Descriptor instead.
+func (*ConnectorRegistrationEntry) Descriptor() ([]byte, []int) {
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ConnectorRegistrationEntry) GetRegistrationId() string {
+	if x != nil {
+		return x.RegistrationId
+	}
+	return ""
+}
+
+func (x *ConnectorRegistrationEntry) GetClassNamespace() string {
+	if x != nil {
+		return x.ClassNamespace
+	}
+	return ""
+}
+
+func (x *ConnectorRegistrationEntry) GetClassName() string {
+	if x != nil {
+		return x.ClassName
+	}
+	return ""
+}
+
+func (x *ConnectorRegistrationEntry) GetGeneration() uint64 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
+func (x *ConnectorRegistrationEntry) GetClassSpec() *ConnectorClassSpec {
+	if x != nil {
+		return x.ClassSpec
+	}
+	return nil
+}
+
 type ConnectorMatchEntry struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// UID of the Connector resource that produced this compiled route.
@@ -851,7 +935,7 @@ type ConnectorMatchEntry struct {
 
 func (x *ConnectorMatchEntry) Reset() {
 	*x = ConnectorMatchEntry{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[12]
+	mi := &file_proto_resources_connectors_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -863,7 +947,7 @@ func (x *ConnectorMatchEntry) String() string {
 func (*ConnectorMatchEntry) ProtoMessage() {}
 
 func (x *ConnectorMatchEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[12]
+	mi := &file_proto_resources_connectors_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -876,7 +960,7 @@ func (x *ConnectorMatchEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectorMatchEntry.ProtoReflect.Descriptor instead.
 func (*ConnectorMatchEntry) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{12}
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ConnectorMatchEntry) GetConnectorUid() string {
@@ -992,7 +1076,17 @@ const file_proto_resources_connectors_proto_rawDesc = "" +
 	"\tConnector\x129\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x122\n" +
 	"\x04spec\x18\x02 \x01(\v2\x1e.talon.resources.ConnectorSpecR\x04spec\x128\n" +
-	"\x06status\x18\x03 \x01(\v2 .talon.resources.ConnectorStatusR\x06status\"\xa1\x02\n" +
+	"\x06status\x18\x03 \x01(\v2 .talon.resources.ConnectorStatusR\x06status\"\xf1\x01\n" +
+	"\x1aConnectorRegistrationEntry\x12'\n" +
+	"\x0fregistration_id\x18\x01 \x01(\tR\x0eregistrationId\x12'\n" +
+	"\x0fclass_namespace\x18\x02 \x01(\tR\x0eclassNamespace\x12\x1d\n" +
+	"\n" +
+	"class_name\x18\x03 \x01(\tR\tclassName\x12\x1e\n" +
+	"\n" +
+	"generation\x18\x04 \x01(\x04R\n" +
+	"generation\x12B\n" +
+	"\n" +
+	"class_spec\x18\x05 \x01(\v2#.talon.resources.ConnectorClassSpecR\tclassSpec\"\xa1\x02\n" +
 	"\x13ConnectorMatchEntry\x12#\n" +
 	"\rconnector_uid\x18\x01 \x01(\tR\fconnectorUid\x12\x1c\n" +
 	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12%\n" +
@@ -1017,51 +1111,53 @@ func file_proto_resources_connectors_proto_rawDescGZIP() []byte {
 	return file_proto_resources_connectors_proto_rawDescData
 }
 
-var file_proto_resources_connectors_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_proto_resources_connectors_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_proto_resources_connectors_proto_goTypes = []any{
-	(*ConnectorClassRuntimeSpec)(nil), // 0: talon.resources.ConnectorClassRuntimeSpec
-	(*ConnectorClassAuthSpec)(nil),    // 1: talon.resources.ConnectorClassAuthSpec
-	(*ConnectorMatchIndex)(nil),       // 2: talon.resources.ConnectorMatchIndex
-	(*ConnectorClassSpec)(nil),        // 3: talon.resources.ConnectorClassSpec
-	(*ConnectorClassStatus)(nil),      // 4: talon.resources.ConnectorClassStatus
-	(*ConnectorSessionTarget)(nil),    // 5: talon.resources.ConnectorSessionTarget
-	(*ConnectorChannelTarget)(nil),    // 6: talon.resources.ConnectorChannelTarget
-	(*ConnectorTarget)(nil),           // 7: talon.resources.ConnectorTarget
-	(*ConnectorSpec)(nil),             // 8: talon.resources.ConnectorSpec
-	(*ConnectorStatus)(nil),           // 9: talon.resources.ConnectorStatus
-	(*ConnectorClass)(nil),            // 10: talon.resources.ConnectorClass
-	(*Connector)(nil),                 // 11: talon.resources.Connector
-	(*ConnectorMatchEntry)(nil),       // 12: talon.resources.ConnectorMatchEntry
-	nil,                               // 13: talon.resources.ConnectorSpec.MatchFieldsEntry
-	(*config.Secret)(nil),             // 14: talon.config.Secret
-	(*ResourceCondition)(nil),         // 15: talon.resources.ResourceCondition
-	(*ResourceRef)(nil),               // 16: talon.resources.ResourceRef
-	(*ResourceMeta)(nil),              // 17: talon.resources.ResourceMeta
+	(*ConnectorClassRuntimeSpec)(nil),  // 0: talon.resources.ConnectorClassRuntimeSpec
+	(*ConnectorClassAuthSpec)(nil),     // 1: talon.resources.ConnectorClassAuthSpec
+	(*ConnectorMatchIndex)(nil),        // 2: talon.resources.ConnectorMatchIndex
+	(*ConnectorClassSpec)(nil),         // 3: talon.resources.ConnectorClassSpec
+	(*ConnectorClassStatus)(nil),       // 4: talon.resources.ConnectorClassStatus
+	(*ConnectorSessionTarget)(nil),     // 5: talon.resources.ConnectorSessionTarget
+	(*ConnectorChannelTarget)(nil),     // 6: talon.resources.ConnectorChannelTarget
+	(*ConnectorTarget)(nil),            // 7: talon.resources.ConnectorTarget
+	(*ConnectorSpec)(nil),              // 8: talon.resources.ConnectorSpec
+	(*ConnectorStatus)(nil),            // 9: talon.resources.ConnectorStatus
+	(*ConnectorClass)(nil),             // 10: talon.resources.ConnectorClass
+	(*Connector)(nil),                  // 11: talon.resources.Connector
+	(*ConnectorRegistrationEntry)(nil), // 12: talon.resources.ConnectorRegistrationEntry
+	(*ConnectorMatchEntry)(nil),        // 13: talon.resources.ConnectorMatchEntry
+	nil,                                // 14: talon.resources.ConnectorSpec.MatchFieldsEntry
+	(*config.Secret)(nil),              // 15: talon.config.Secret
+	(*ResourceCondition)(nil),          // 16: talon.resources.ResourceCondition
+	(*ResourceRef)(nil),                // 17: talon.resources.ResourceRef
+	(*ResourceMeta)(nil),               // 18: talon.resources.ResourceMeta
 }
 var file_proto_resources_connectors_proto_depIdxs = []int32{
-	14, // 0: talon.resources.ConnectorClassAuthSpec.api_key:type_name -> talon.config.Secret
+	15, // 0: talon.resources.ConnectorClassAuthSpec.api_key:type_name -> talon.config.Secret
 	0,  // 1: talon.resources.ConnectorClassSpec.runtime:type_name -> talon.resources.ConnectorClassRuntimeSpec
 	1,  // 2: talon.resources.ConnectorClassSpec.auth:type_name -> talon.resources.ConnectorClassAuthSpec
 	2,  // 3: talon.resources.ConnectorClassSpec.match_indexes:type_name -> talon.resources.ConnectorMatchIndex
-	15, // 4: talon.resources.ConnectorClassStatus.conditions:type_name -> talon.resources.ResourceCondition
+	16, // 4: talon.resources.ConnectorClassStatus.conditions:type_name -> talon.resources.ResourceCondition
 	5,  // 5: talon.resources.ConnectorTarget.session:type_name -> talon.resources.ConnectorSessionTarget
 	6,  // 6: talon.resources.ConnectorTarget.channel:type_name -> talon.resources.ConnectorChannelTarget
-	16, // 7: talon.resources.ConnectorSpec.class_ref:type_name -> talon.resources.ResourceRef
-	13, // 8: talon.resources.ConnectorSpec.match_fields:type_name -> talon.resources.ConnectorSpec.MatchFieldsEntry
+	17, // 7: talon.resources.ConnectorSpec.class_ref:type_name -> talon.resources.ResourceRef
+	14, // 8: talon.resources.ConnectorSpec.match_fields:type_name -> talon.resources.ConnectorSpec.MatchFieldsEntry
 	7,  // 9: talon.resources.ConnectorSpec.target:type_name -> talon.resources.ConnectorTarget
-	15, // 10: talon.resources.ConnectorStatus.conditions:type_name -> talon.resources.ResourceCondition
-	17, // 11: talon.resources.ConnectorClass.metadata:type_name -> talon.resources.ResourceMeta
+	16, // 10: talon.resources.ConnectorStatus.conditions:type_name -> talon.resources.ResourceCondition
+	18, // 11: talon.resources.ConnectorClass.metadata:type_name -> talon.resources.ResourceMeta
 	3,  // 12: talon.resources.ConnectorClass.spec:type_name -> talon.resources.ConnectorClassSpec
 	4,  // 13: talon.resources.ConnectorClass.status:type_name -> talon.resources.ConnectorClassStatus
-	17, // 14: talon.resources.Connector.metadata:type_name -> talon.resources.ResourceMeta
+	18, // 14: talon.resources.Connector.metadata:type_name -> talon.resources.ResourceMeta
 	8,  // 15: talon.resources.Connector.spec:type_name -> talon.resources.ConnectorSpec
 	9,  // 16: talon.resources.Connector.status:type_name -> talon.resources.ConnectorStatus
-	7,  // 17: talon.resources.ConnectorMatchEntry.target:type_name -> talon.resources.ConnectorTarget
-	18, // [18:18] is the sub-list for method output_type
-	18, // [18:18] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	3,  // 17: talon.resources.ConnectorRegistrationEntry.class_spec:type_name -> talon.resources.ConnectorClassSpec
+	7,  // 18: talon.resources.ConnectorMatchEntry.target:type_name -> talon.resources.ConnectorTarget
+	19, // [19:19] is the sub-list for method output_type
+	19, // [19:19] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_connectors_proto_init() }
@@ -1080,7 +1176,7 @@ func file_proto_resources_connectors_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_connectors_proto_rawDesc), len(file_proto_resources_connectors_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

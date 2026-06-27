@@ -135,6 +135,20 @@ class Connector(_message.Message):
     status: ConnectorStatus
     def __init__(self, metadata: _Optional[_Union[_common_pb2.ResourceMeta, _Mapping]] = ..., spec: _Optional[_Union[ConnectorSpec, _Mapping]] = ..., status: _Optional[_Union[ConnectorStatus, _Mapping]] = ...) -> None: ...
 
+class ConnectorRegistrationEntry(_message.Message):
+    __slots__ = ("registration_id", "class_namespace", "class_name", "generation", "class_spec")
+    REGISTRATION_ID_FIELD_NUMBER: _ClassVar[int]
+    CLASS_NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    CLASS_NAME_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_FIELD_NUMBER: _ClassVar[int]
+    CLASS_SPEC_FIELD_NUMBER: _ClassVar[int]
+    registration_id: str
+    class_namespace: str
+    class_name: str
+    generation: int
+    class_spec: ConnectorClassSpec
+    def __init__(self, registration_id: _Optional[str] = ..., class_namespace: _Optional[str] = ..., class_name: _Optional[str] = ..., generation: _Optional[int] = ..., class_spec: _Optional[_Union[ConnectorClassSpec, _Mapping]] = ...) -> None: ...
+
 class ConnectorMatchEntry(_message.Message):
     __slots__ = ("connector_uid", "namespace", "connector_name", "class_name", "generation", "target", "class_namespace")
     CONNECTOR_UID_FIELD_NUMBER: _ClassVar[int]

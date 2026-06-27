@@ -1160,7 +1160,8 @@ pub mod connector_target {
 pub struct ConnectorSpec {
     /// ConnectorClass that owns the platform adapter and match index definitions.
     /// If namespace is empty, Talon resolves the class in the Connector's
-    /// namespace.
+    /// namespace. In v1, a non-empty namespace must match the Connector namespace;
+    /// cross-namespace class references require a future policy/RBAC gate.
     #[prost(message, optional, tag = "1")]
     pub class_ref: ::core::option::Option<ResourceRef>,
     /// Disabled Connectors are not indexed for incoming message routing.
@@ -1220,6 +1221,26 @@ pub struct Connector {
     /// Observed route-indexing state for this Connector.
     #[prost(message, optional, tag = "3")]
     pub status: ::core::option::Option<ConnectorStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorRegistrationEntry {
+    /// Registration identifier assigned by the connector service.
+    #[prost(string, tag = "1")]
+    pub registration_id: ::prost::alloc::string::String,
+    /// Namespace that owns the ConnectorClass for this registration.
+    #[prost(string, tag = "2")]
+    pub class_namespace: ::prost::alloc::string::String,
+    /// ConnectorClass name for this registration.
+    #[prost(string, tag = "3")]
+    pub class_name: ::prost::alloc::string::String,
+    /// ConnectorClass generation captured when this registration index was
+    /// written.
+    #[prost(uint64, tag = "4")]
+    pub generation: u64,
+    /// Snapshot of the ConnectorClass spec used by inbound routing. This lets the
+    /// hot ingest path resolve provider match keys with one registration lookup.
+    #[prost(message, optional, tag = "5")]
+    pub class_spec: ::core::option::Option<ConnectorClassSpec>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorMatchEntry {

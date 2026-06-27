@@ -124,8 +124,8 @@ giving Talon any authority over the provider account.
 `ConnectorClass` is a regular namespace resource that describes a trusted
 connector service endpoint. Operators can define connector classes in the
 namespace that owns the integration, and Connectors in that namespace can refer
-to the class by name. A Connector may still use `classRef.namespace` for an
-explicit cross-namespace reference when policy allows it.
+to the class by name. Talon v1 rejects cross-namespace `classRef.namespace`
+values until there is an explicit reference policy or RBAC check.
 
 It answers:
 
@@ -174,9 +174,9 @@ It answers:
 - Where should the connector service send callbacks?
 - Which signing material should protect callbacks?
 
-Talon stores the returned `registrationId` in `ConnectorClass.status` or in
-controller-managed state. The connector service stores the callback URL and
-callback authentication metadata.
+Talon stores the returned `registrationId` in `ConnectorClass.status` and writes
+a controller-managed `ConnectorRegistration` index in the Sys namespace. The
+connector service stores the callback URL and callback authentication metadata.
 
 ### ProviderAccount
 
@@ -400,6 +400,8 @@ Request:
 ```json
 {
   "clusterId": "talon-agency-prod",
+  "namespace": "customer-acme",
+  "connectorClass": "slack",
   "callbackBaseUrl": "https://talon.example.com/v1/connectors",
   "protocolVersion": "v1"
 }
@@ -423,6 +425,8 @@ Field ownership:
 | Field | Provided by | Why it exists |
 | --- | --- | --- |
 | `clusterId` | Talon | Stable operator-defined cluster identity for connector-service diagnostics and policy. |
+| `namespace` | Talon | Identifies the ConnectorClass namespace for this registration so the connector service does not infer Talon tenant/class from the API key. |
+| `connectorClass` | Talon | Identifies the ConnectorClass name for this registration and gives callbacks a stable consistency check. |
 | `callbackBaseUrl` | Talon | Tells the connector service where to send message and status callbacks. |
 | `protocolVersion` | Talon | Confirms the requested protocol contract. |
 | `registrationId` | Connector service | Stable connector-service handle for this Talon registration. Used on every callback and delivery. |
@@ -658,9 +662,11 @@ optional status callbacks, but they must not be required for correctness.
 
 ## Efficient Inbound Routing In Talon
 
-Talon should not scan all routes for inbound events. In v1, Talon may resolve
-`registrationId` by looking up ConnectorClass registration state; production
-implementations can materialize this as a direct registration index.
+Talon must not scan namespaces or routes for inbound events. In v1,
+`ConnectorController` writes a `ConnectorRegistration` entry in the Sys namespace
+keyed by `registrationId`. The gateway reads that single entry, validates the
+optional `connector_class` consistency field, and then resolves provider match
+fields under the indexed ConnectorClass namespace/name.
 
 Required indexes:
 
@@ -672,7 +678,7 @@ registrationId + eventId -> idempotency record
 
 Inbound flow:
 
-1. Verify `registrationId`.
+1. Read `ConnectorRegistration(registrationId)`.
 2. Verify callback signature and timestamp.
 3. Resolve the event provider fields against Connector match indexes under the
    registration's ConnectorClass.
@@ -910,8 +916,6 @@ Suggested routing defaults:
 
 ## Open Questions
 
-- Where should `registrationId` be persisted: `ConnectorClass.status`, a
-  controller-private store, or both?
 - Should Connector match conflicts be rejected at write time, or should Talon
   support an explicit priority field for overlapping matches?
 - How should Talon represent dead-lettered connector events for operator review?
