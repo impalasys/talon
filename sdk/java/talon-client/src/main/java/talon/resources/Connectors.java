@@ -8304,6 +8304,8 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     /**
      * <pre>
      * ConnectorClass that owns the platform adapter and match index definitions.
+     * If namespace is empty, Talon resolves the class in the Connector's
+     * namespace.
      * </pre>
      *
      * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -8313,6 +8315,8 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     /**
      * <pre>
      * ConnectorClass that owns the platform adapter and match index definitions.
+     * If namespace is empty, Talon resolves the class in the Connector's
+     * namespace.
      * </pre>
      *
      * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -8322,6 +8326,8 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     /**
      * <pre>
      * ConnectorClass that owns the platform adapter and match index definitions.
+     * If namespace is empty, Talon resolves the class in the Connector's
+     * namespace.
      * </pre>
      *
      * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -8489,6 +8495,8 @@ java.lang.String defaultValue);
     /**
      * <pre>
      * ConnectorClass that owns the platform adapter and match index definitions.
+     * If namespace is empty, Talon resolves the class in the Connector's
+     * namespace.
      * </pre>
      *
      * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -8501,6 +8509,8 @@ java.lang.String defaultValue);
     /**
      * <pre>
      * ConnectorClass that owns the platform adapter and match index definitions.
+     * If namespace is empty, Talon resolves the class in the Connector's
+     * namespace.
      * </pre>
      *
      * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -8513,6 +8523,8 @@ java.lang.String defaultValue);
     /**
      * <pre>
      * ConnectorClass that owns the platform adapter and match index definitions.
+     * If namespace is empty, Talon resolves the class in the Connector's
+     * namespace.
      * </pre>
      *
      * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9122,6 +9134,8 @@ java.lang.String defaultValue) {
       /**
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
+       * If namespace is empty, Talon resolves the class in the Connector's
+       * namespace.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9133,6 +9147,8 @@ java.lang.String defaultValue) {
       /**
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
+       * If namespace is empty, Talon resolves the class in the Connector's
+       * namespace.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9148,6 +9164,8 @@ java.lang.String defaultValue) {
       /**
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
+       * If namespace is empty, Talon resolves the class in the Connector's
+       * namespace.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9168,6 +9186,8 @@ java.lang.String defaultValue) {
       /**
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
+       * If namespace is empty, Talon resolves the class in the Connector's
+       * namespace.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9186,6 +9206,8 @@ java.lang.String defaultValue) {
       /**
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
+       * If namespace is empty, Talon resolves the class in the Connector's
+       * namespace.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9211,6 +9233,8 @@ java.lang.String defaultValue) {
       /**
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
+       * If namespace is empty, Talon resolves the class in the Connector's
+       * namespace.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9228,6 +9252,8 @@ java.lang.String defaultValue) {
       /**
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
+       * If namespace is empty, Talon resolves the class in the Connector's
+       * namespace.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9240,6 +9266,8 @@ java.lang.String defaultValue) {
       /**
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
+       * If namespace is empty, Talon resolves the class in the Connector's
+       * namespace.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -9255,6 +9283,8 @@ java.lang.String defaultValue) {
       /**
        * <pre>
        * ConnectorClass that owns the platform adapter and match index definitions.
+       * If namespace is empty, Talon resolves the class in the Connector's
+       * namespace.
        * </pre>
        *
        * <code>.talon.resources.ResourceRef class_ref = 1;</code>
@@ -11137,8 +11167,9 @@ java.lang.String defaultValue) {
 
     /**
      * <pre>
-     * Standard resource metadata. ConnectorClasses normally live in the Sys
-     * namespace because they describe cluster-level connector services.
+     * Standard namespaced resource metadata. ConnectorClasses are regular
+     * namespace resources so each tenant or operator namespace can define its own
+     * trusted connector services.
      * </pre>
      *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11147,8 +11178,9 @@ java.lang.String defaultValue) {
     boolean hasMetadata();
     /**
      * <pre>
-     * Standard resource metadata. ConnectorClasses normally live in the Sys
-     * namespace because they describe cluster-level connector services.
+     * Standard namespaced resource metadata. ConnectorClasses are regular
+     * namespace resources so each tenant or operator namespace can define its own
+     * trusted connector services.
      * </pre>
      *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11157,8 +11189,9 @@ java.lang.String defaultValue) {
     talon.resources.Common.ResourceMeta getMetadata();
     /**
      * <pre>
-     * Standard resource metadata. ConnectorClasses normally live in the Sys
-     * namespace because they describe cluster-level connector services.
+     * Standard namespaced resource metadata. ConnectorClasses are regular
+     * namespace resources so each tenant or operator namespace can define its own
+     * trusted connector services.
      * </pre>
      *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11266,8 +11299,9 @@ java.lang.String defaultValue) {
     private talon.resources.Common.ResourceMeta metadata_;
     /**
      * <pre>
-     * Standard resource metadata. ConnectorClasses normally live in the Sys
-     * namespace because they describe cluster-level connector services.
+     * Standard namespaced resource metadata. ConnectorClasses are regular
+     * namespace resources so each tenant or operator namespace can define its own
+     * trusted connector services.
      * </pre>
      *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11279,8 +11313,9 @@ java.lang.String defaultValue) {
     }
     /**
      * <pre>
-     * Standard resource metadata. ConnectorClasses normally live in the Sys
-     * namespace because they describe cluster-level connector services.
+     * Standard namespaced resource metadata. ConnectorClasses are regular
+     * namespace resources so each tenant or operator namespace can define its own
+     * trusted connector services.
      * </pre>
      *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11292,8 +11327,9 @@ java.lang.String defaultValue) {
     }
     /**
      * <pre>
-     * Standard resource metadata. ConnectorClasses normally live in the Sys
-     * namespace because they describe cluster-level connector services.
+     * Standard namespaced resource metadata. ConnectorClasses are regular
+     * namespace resources so each tenant or operator namespace can define its own
+     * trusted connector services.
      * </pre>
      *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11775,8 +11811,9 @@ java.lang.String defaultValue) {
           talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
       /**
        * <pre>
-       * Standard resource metadata. ConnectorClasses normally live in the Sys
-       * namespace because they describe cluster-level connector services.
+       * Standard namespaced resource metadata. ConnectorClasses are regular
+       * namespace resources so each tenant or operator namespace can define its own
+       * trusted connector services.
        * </pre>
        *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11787,8 +11824,9 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Standard resource metadata. ConnectorClasses normally live in the Sys
-       * namespace because they describe cluster-level connector services.
+       * Standard namespaced resource metadata. ConnectorClasses are regular
+       * namespace resources so each tenant or operator namespace can define its own
+       * trusted connector services.
        * </pre>
        *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11803,8 +11841,9 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Standard resource metadata. ConnectorClasses normally live in the Sys
-       * namespace because they describe cluster-level connector services.
+       * Standard namespaced resource metadata. ConnectorClasses are regular
+       * namespace resources so each tenant or operator namespace can define its own
+       * trusted connector services.
        * </pre>
        *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11824,8 +11863,9 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Standard resource metadata. ConnectorClasses normally live in the Sys
-       * namespace because they describe cluster-level connector services.
+       * Standard namespaced resource metadata. ConnectorClasses are regular
+       * namespace resources so each tenant or operator namespace can define its own
+       * trusted connector services.
        * </pre>
        *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11843,8 +11883,9 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Standard resource metadata. ConnectorClasses normally live in the Sys
-       * namespace because they describe cluster-level connector services.
+       * Standard namespaced resource metadata. ConnectorClasses are regular
+       * namespace resources so each tenant or operator namespace can define its own
+       * trusted connector services.
        * </pre>
        *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11869,8 +11910,9 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Standard resource metadata. ConnectorClasses normally live in the Sys
-       * namespace because they describe cluster-level connector services.
+       * Standard namespaced resource metadata. ConnectorClasses are regular
+       * namespace resources so each tenant or operator namespace can define its own
+       * trusted connector services.
        * </pre>
        *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11887,8 +11929,9 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Standard resource metadata. ConnectorClasses normally live in the Sys
-       * namespace because they describe cluster-level connector services.
+       * Standard namespaced resource metadata. ConnectorClasses are regular
+       * namespace resources so each tenant or operator namespace can define its own
+       * trusted connector services.
        * </pre>
        *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11900,8 +11943,9 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Standard resource metadata. ConnectorClasses normally live in the Sys
-       * namespace because they describe cluster-level connector services.
+       * Standard namespaced resource metadata. ConnectorClasses are regular
+       * namespace resources so each tenant or operator namespace can define its own
+       * trusted connector services.
        * </pre>
        *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -11916,8 +11960,9 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Standard resource metadata. ConnectorClasses normally live in the Sys
-       * namespace because they describe cluster-level connector services.
+       * Standard namespaced resource metadata. ConnectorClasses are regular
+       * namespace resources so each tenant or operator namespace can define its own
+       * trusted connector services.
        * </pre>
        *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
@@ -13537,7 +13582,7 @@ java.lang.String defaultValue) {
 
     /**
      * <pre>
-     * ConnectorClass name used to scope provider match keys.
+     * ConnectorClass name used to compile this route.
      * </pre>
      *
      * <code>string class_name = 4;</code>
@@ -13546,7 +13591,7 @@ java.lang.String defaultValue) {
     java.lang.String getClassName();
     /**
      * <pre>
-     * ConnectorClass name used to scope provider match keys.
+     * ConnectorClass name used to compile this route.
      * </pre>
      *
      * <code>string class_name = 4;</code>
@@ -13594,6 +13639,26 @@ java.lang.String defaultValue) {
      * <code>.talon.resources.ConnectorTarget target = 6;</code>
      */
     talon.resources.Connectors.ConnectorTargetOrBuilder getTargetOrBuilder();
+
+    /**
+     * <pre>
+     * Namespace of the ConnectorClass used to compile this route.
+     * </pre>
+     *
+     * <code>string class_namespace = 7;</code>
+     * @return The classNamespace.
+     */
+    java.lang.String getClassNamespace();
+    /**
+     * <pre>
+     * Namespace of the ConnectorClass used to compile this route.
+     * </pre>
+     *
+     * <code>string class_namespace = 7;</code>
+     * @return The bytes for classNamespace.
+     */
+    com.google.protobuf.ByteString
+        getClassNamespaceBytes();
   }
   /**
    * Protobuf type {@code talon.resources.ConnectorMatchEntry}
@@ -13621,6 +13686,7 @@ java.lang.String defaultValue) {
       namespace_ = "";
       connectorName_ = "";
       className_ = "";
+      classNamespace_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -13788,7 +13854,7 @@ java.lang.String defaultValue) {
     private volatile java.lang.Object className_ = "";
     /**
      * <pre>
-     * ConnectorClass name used to scope provider match keys.
+     * ConnectorClass name used to compile this route.
      * </pre>
      *
      * <code>string class_name = 4;</code>
@@ -13809,7 +13875,7 @@ java.lang.String defaultValue) {
     }
     /**
      * <pre>
-     * ConnectorClass name used to scope provider match keys.
+     * ConnectorClass name used to compile this route.
      * </pre>
      *
      * <code>string class_name = 4;</code>
@@ -13886,6 +13952,53 @@ java.lang.String defaultValue) {
       return target_ == null ? talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
     }
 
+    public static final int CLASS_NAMESPACE_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object classNamespace_ = "";
+    /**
+     * <pre>
+     * Namespace of the ConnectorClass used to compile this route.
+     * </pre>
+     *
+     * <code>string class_namespace = 7;</code>
+     * @return The classNamespace.
+     */
+    @java.lang.Override
+    public java.lang.String getClassNamespace() {
+      java.lang.Object ref = classNamespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        classNamespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Namespace of the ConnectorClass used to compile this route.
+     * </pre>
+     *
+     * <code>string class_namespace = 7;</code>
+     * @return The bytes for classNamespace.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getClassNamespaceBytes() {
+      java.lang.Object ref = classNamespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        classNamespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -13918,6 +14031,9 @@ java.lang.String defaultValue) {
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(6, getTarget());
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(classNamespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, classNamespace_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -13946,6 +14062,9 @@ java.lang.String defaultValue) {
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(6, getTarget());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(classNamespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, classNamespace_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -13977,6 +14096,8 @@ java.lang.String defaultValue) {
         if (!getTarget()
             .equals(other.getTarget())) return false;
       }
+      if (!getClassNamespace()
+          .equals(other.getClassNamespace())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -14003,6 +14124,8 @@ java.lang.String defaultValue) {
         hash = (37 * hash) + TARGET_FIELD_NUMBER;
         hash = (53 * hash) + getTarget().hashCode();
       }
+      hash = (37 * hash) + CLASS_NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getClassNamespace().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -14150,6 +14273,7 @@ java.lang.String defaultValue) {
           targetBuilder_.dispose();
           targetBuilder_ = null;
         }
+        classNamespace_ = "";
         return this;
       }
 
@@ -14205,6 +14329,9 @@ java.lang.String defaultValue) {
               : targetBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.classNamespace_ = classNamespace_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -14245,6 +14372,11 @@ java.lang.String defaultValue) {
         }
         if (other.hasTarget()) {
           mergeTarget(other.getTarget());
+        }
+        if (!other.getClassNamespace().isEmpty()) {
+          classNamespace_ = other.classNamespace_;
+          bitField0_ |= 0x00000040;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -14304,6 +14436,11 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000020;
                 break;
               } // case 50
+              case 58: {
+                classNamespace_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -14600,7 +14737,7 @@ java.lang.String defaultValue) {
       private java.lang.Object className_ = "";
       /**
        * <pre>
-       * ConnectorClass name used to scope provider match keys.
+       * ConnectorClass name used to compile this route.
        * </pre>
        *
        * <code>string class_name = 4;</code>
@@ -14620,7 +14757,7 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * ConnectorClass name used to scope provider match keys.
+       * ConnectorClass name used to compile this route.
        * </pre>
        *
        * <code>string class_name = 4;</code>
@@ -14641,7 +14778,7 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * ConnectorClass name used to scope provider match keys.
+       * ConnectorClass name used to compile this route.
        * </pre>
        *
        * <code>string class_name = 4;</code>
@@ -14658,7 +14795,7 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * ConnectorClass name used to scope provider match keys.
+       * ConnectorClass name used to compile this route.
        * </pre>
        *
        * <code>string class_name = 4;</code>
@@ -14672,7 +14809,7 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * ConnectorClass name used to scope provider match keys.
+       * ConnectorClass name used to compile this route.
        * </pre>
        *
        * <code>string class_name = 4;</code>
@@ -14899,6 +15036,98 @@ java.lang.String defaultValue) {
         return targetBuilder_;
       }
 
+      private java.lang.Object classNamespace_ = "";
+      /**
+       * <pre>
+       * Namespace of the ConnectorClass used to compile this route.
+       * </pre>
+       *
+       * <code>string class_namespace = 7;</code>
+       * @return The classNamespace.
+       */
+      public java.lang.String getClassNamespace() {
+        java.lang.Object ref = classNamespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          classNamespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Namespace of the ConnectorClass used to compile this route.
+       * </pre>
+       *
+       * <code>string class_namespace = 7;</code>
+       * @return The bytes for classNamespace.
+       */
+      public com.google.protobuf.ByteString
+          getClassNamespaceBytes() {
+        java.lang.Object ref = classNamespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          classNamespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Namespace of the ConnectorClass used to compile this route.
+       * </pre>
+       *
+       * <code>string class_namespace = 7;</code>
+       * @param value The classNamespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setClassNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        classNamespace_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Namespace of the ConnectorClass used to compile this route.
+       * </pre>
+       *
+       * <code>string class_namespace = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearClassNamespace() {
+        classNamespace_ = getDefaultInstance().getClassNamespace();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Namespace of the ConnectorClass used to compile this route.
+       * </pre>
+       *
+       * <code>string class_namespace = 7;</code>
+       * @param value The bytes for classNamespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setClassNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        classNamespace_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.resources.ConnectorMatchEntry)
     }
 
@@ -15071,12 +15300,13 @@ java.lang.String defaultValue) {
       "\001\n\tConnector\022/\n\010metadata\030\001 \001(\0132\035.talon.r" +
       "esources.ResourceMeta\022,\n\004spec\030\002 \001(\0132\036.ta" +
       "lon.resources.ConnectorSpec\0220\n\006status\030\003 " +
-      "\001(\0132 .talon.resources.ConnectorStatus\"\261\001" +
+      "\001(\0132 .talon.resources.ConnectorStatus\"\312\001" +
       "\n\023ConnectorMatchEntry\022\025\n\rconnector_uid\030\001" +
       " \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\026\n\016connector_nam" +
       "e\030\003 \001(\t\022\022\n\nclass_name\030\004 \001(\t\022\022\n\ngeneratio" +
       "n\030\005 \001(\004\0220\n\006target\030\006 \001(\0132 .talon.resource" +
-      "s.ConnectorTargetb\006proto3"
+      "s.ConnectorTarget\022\027\n\017class_namespace\030\007 \001" +
+      "(\tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -15167,7 +15397,7 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_ConnectorMatchEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectorMatchEntry_descriptor,
-        new java.lang.String[] { "ConnectorUid", "Namespace", "ConnectorName", "ClassName", "Generation", "Target", });
+        new java.lang.String[] { "ConnectorUid", "Namespace", "ConnectorName", "ClassName", "Generation", "Target", "ClassNamespace", });
     descriptor.resolveAllFeaturesImmutable();
     talon.config.Config.getDescriptor();
     talon.resources.Common.getDescriptor();

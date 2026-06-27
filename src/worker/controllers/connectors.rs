@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, ns, ControlPlane, KeyValueStore, ProtoKeyValueStoreExt};
+use crate::control::{keys, ControlPlane, KeyValueStore, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::resources_proto;
 
 const CONNECTOR_INDEX_NAME_SEP: &str = "|";
@@ -64,7 +64,7 @@ impl ConnectorController {
         };
         self.store
             .patch_status(
-                ns::TALON_SYSTEM,
+                &meta.namespace,
                 "ConnectorClass",
                 &meta.name,
                 None,
@@ -79,7 +79,7 @@ impl ConnectorController {
         for namespace_key in cp.kv.list_keys(&keys::namespace_metadata_prefix()).await? {
             let namespace = namespace_key.name;
             for connector in self.store.list(&namespace, Some("Connector")).await? {
-                if connector_references_class(&connector, &meta.name) {
+                if connector_references_class(&connector, &meta.namespace, &meta.name) {
                     self.reconcile_connector(&connector, cp).await?;
                 }
             }
@@ -110,7 +110,7 @@ impl ConnectorController {
         };
         self.store
             .patch_status(
-                ns::TALON_SYSTEM,
+                &meta.namespace,
                 "ConnectorClass",
                 &meta.name,
                 None,
@@ -158,7 +158,7 @@ impl ConnectorController {
             .as_ref()
             .ok_or_else(|| anyhow!("Connector spec.classRef is required"))?;
         let class_namespace = if class_ref.namespace.trim().is_empty() {
-            ns::TALON_SYSTEM
+            meta.namespace.as_str()
         } else {
             class_ref.namespace.as_str()
         };
@@ -184,6 +184,7 @@ impl ConnectorController {
 
         let compiled = compile_match_keys(
             &class_status.registration_id,
+            class_meta.namespace.as_str(),
             class_meta.name.as_str(),
             class_spec,
             &spec.match_fields,
@@ -199,6 +200,7 @@ impl ConnectorController {
                 connector_uid: meta.uid.clone(),
                 namespace: meta.namespace.clone(),
                 connector_name: meta.name.clone(),
+                class_namespace: class_meta.namespace.clone(),
                 class_name: class_meta.name.clone(),
                 generation: meta.generation,
                 target: spec.target.clone(),
@@ -314,11 +316,18 @@ pub async fn delete_match_entries_for_uid(
 pub async fn resolve_match(
     kv: &dyn KeyValueStore,
     registration_id: &str,
+    class_namespace: &str,
     class_name: &str,
     class_spec: &resources_proto::ConnectorClassSpec,
     fields: &HashMap<String, String>,
 ) -> Result<Option<resources_proto::ConnectorMatchEntry>> {
-    for key_name in compile_match_keys(registration_id, class_name, class_spec, fields)? {
+    for key_name in compile_match_keys(
+        registration_id,
+        class_namespace,
+        class_name,
+        class_spec,
+        fields,
+    )? {
         let key = keys::connector_match(&key_name);
         if let Some(entry) = kv
             .get_msg::<resources_proto::ConnectorMatchEntry>(&key)
@@ -332,6 +341,7 @@ pub async fn resolve_match(
 
 pub fn compile_match_keys(
     registration_id: &str,
+    class_namespace: &str,
     class_name: &str,
     class_spec: &resources_proto::ConnectorClassSpec,
     fields: &HashMap<String, String>,
@@ -355,8 +365,10 @@ pub fn compile_match_keys(
         }
         if complete {
             let key = format!(
-                "{}{}{}{}{}{}{}",
+                "{}{}{}{}{}{}{}{}{}",
                 registration_id,
+                CONNECTOR_INDEX_NAME_SEP,
+                class_namespace,
                 CONNECTOR_INDEX_NAME_SEP,
                 class_name,
                 CONNECTOR_INDEX_NAME_SEP,
@@ -403,11 +415,27 @@ fn connector_class_status(
     }
 }
 
-fn connector_references_class(resource: &resources_proto::Resource, class_name: &str) -> bool {
+fn connector_references_class(
+    resource: &resources_proto::Resource,
+    class_namespace: &str,
+    class_name: &str,
+) -> bool {
+    let connector_namespace = resource
+        .metadata
+        .as_ref()
+        .map(|meta| meta.namespace.as_str())
+        .unwrap_or_default();
     connector_spec(resource)
         .ok()
         .and_then(|spec| spec.class_ref.as_ref())
-        .map(|class_ref| class_ref.name == class_name)
+        .map(|class_ref| {
+            let referenced_namespace = if class_ref.namespace.trim().is_empty() {
+                connector_namespace
+            } else {
+                class_ref.namespace.as_str()
+            };
+            class_ref.name == class_name && referenced_namespace == class_namespace
+        })
         .unwrap_or(false)
 }
 
@@ -582,13 +610,14 @@ mod tests {
             ("channelId".to_string(), "C999".to_string()),
         ]);
 
-        let keys = compile_match_keys("reg_1", "slack", &class_spec, &fields).unwrap();
+        let keys = compile_match_keys("reg_1", "customer-acme", "slack", &class_spec, &fields)
+            .unwrap();
 
         assert_eq!(
             keys,
             vec![
-                "reg_1|slack|slack-channel\u{1f}teamId=T123\u{1f}channelId=C999".to_string(),
-                "reg_1|slack|slack-team\u{1f}teamId=T123".to_string(),
+                "reg_1|customer-acme|slack|slack-channel\u{1f}teamId=T123\u{1f}channelId=C999".to_string(),
+                "reg_1|customer-acme|slack|slack-team\u{1f}teamId=T123".to_string(),
             ]
         );
     }

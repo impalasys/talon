@@ -1159,6 +1159,8 @@ pub mod connector_target {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorSpec {
     /// ConnectorClass that owns the platform adapter and match index definitions.
+    /// If namespace is empty, Talon resolves the class in the Connector's
+    /// namespace.
     #[prost(message, optional, tag = "1")]
     pub class_ref: ::core::option::Option<ResourceRef>,
     /// Disabled Connectors are not indexed for incoming message routing.
@@ -1194,8 +1196,9 @@ pub struct ConnectorStatus {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorClass {
-    /// Standard resource metadata. ConnectorClasses normally live in the Sys
-    /// namespace because they describe cluster-level connector services.
+    /// Standard namespaced resource metadata. ConnectorClasses are regular
+    /// namespace resources so each tenant or operator namespace can define its own
+    /// trusted connector services.
     #[prost(message, optional, tag = "1")]
     pub metadata: ::core::option::Option<ResourceMeta>,
     /// Desired connector service registration and platform capabilities.
@@ -1229,7 +1232,7 @@ pub struct ConnectorMatchEntry {
     /// Name of the Connector resource that produced this compiled route.
     #[prost(string, tag = "3")]
     pub connector_name: ::prost::alloc::string::String,
-    /// ConnectorClass name used to scope provider match keys.
+    /// ConnectorClass name used to compile this route.
     #[prost(string, tag = "4")]
     pub class_name: ::prost::alloc::string::String,
     /// Connector resource generation captured when this route entry was compiled.
@@ -1239,6 +1242,9 @@ pub struct ConnectorMatchEntry {
     /// dispatch without re-reading the full Connector resource.
     #[prost(message, optional, tag = "6")]
     pub target: ::core::option::Option<ConnectorTarget>,
+    /// Namespace of the ConnectorClass used to compile this route.
+    #[prost(string, tag = "7")]
+    pub class_namespace: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Resource {

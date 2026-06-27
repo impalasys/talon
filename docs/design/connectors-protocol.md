@@ -121,8 +121,11 @@ giving Talon any authority over the provider account.
 
 ### ConnectorClass
 
-`ConnectorClass` is a Sys namespace resource that describes a trusted connector
-service endpoint.
+`ConnectorClass` is a regular namespace resource that describes a trusted
+connector service endpoint. Operators can define connector classes in the
+namespace that owns the integration, and Connectors in that namespace can refer
+to the class by name. A Connector may still use `classRef.namespace` for an
+explicit cross-namespace reference when policy allows it.
 
 It answers:
 
@@ -136,7 +139,7 @@ Example:
 ```yaml
 kind: ConnectorClass
 metadata:
-  namespace: Sys
+  namespace: customer-acme
   name: slack
 spec:
   platform: slack
@@ -232,7 +235,6 @@ metadata:
   name: slack-main
 spec:
   classRef:
-    namespace: Sys
     name: slack
   enabled: true
   matchFields:
@@ -264,8 +266,9 @@ The normal flow is:
    `match`, `target`, and display metadata.
 
 Provider-native IDs such as Slack `team_id` are not global authorization
-boundaries. They are match fields scoped by the ConnectorClass registration.
-Talon should index them with the ConnectorClass UID or `registrationId`.
+boundaries. They are match fields scoped by the namespaced ConnectorClass
+registration. Talon should index them with `registrationId` and the
+ConnectorClass namespace/name.
 
 For Slack, route by stable Slack IDs, not mutable names. If a connector is
 channel-specific, prefer `channelId` over channel name. A name may be kept as
@@ -457,7 +460,6 @@ metadata:
   name: slack-main
 spec:
   classRef:
-    namespace: Sys
     name: slack
   enabled: true
   matchFields:
@@ -656,13 +658,15 @@ optional status callbacks, but they must not be required for correctness.
 
 ## Efficient Inbound Routing In Talon
 
-Talon should not scan all namespaces or all routes for inbound events.
+Talon should not scan all routes for inbound events. In v1, Talon may resolve
+`registrationId` by looking up ConnectorClass registration state; production
+implementations can materialize this as a direct registration index.
 
 Required indexes:
 
 ```text
-registrationId -> ConnectorClass registration state
-registrationId + provider match key -> connectorUid, namespace, connectorName, className, enabled
+registrationId -> ConnectorClass namespace/name + registration state
+registrationId + classNamespace + className + provider match key -> connectorUid, namespace, connectorName, classNamespace, className, enabled
 registrationId + eventId -> idempotency record
 ```
 
@@ -846,7 +850,7 @@ Suggested routing defaults:
 
 ## Security Requirements
 
-- `ConnectorClass` API keys authenticate Talon to connector services.
+- Namespaced `ConnectorClass` API keys authenticate Talon to connector services.
 - Connector-to-Talon callbacks must be signed per registration.
 - Callback timestamps must be bounded.
 - Callback nonces or event IDs must be replay-protected.
@@ -873,7 +877,7 @@ Suggested routing defaults:
 3. Wire resources into the resource oneof and generated schemas.
 
 4. Add `ConnectorController`:
-   - watch `ConnectorClass`
+   - watch namespaced `ConnectorClass`
    - discover connector service
    - register cluster
    - maintain readiness/status

@@ -38,7 +38,7 @@ impl GrpcGatewayHandler {
         }
 
         let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
-        let (class_name, class_spec) = self
+        let (class_namespace, class_name, class_spec) = self
             .class_for_registration(&store, &event.registration_id, &event.connector_class)
             .await?;
 
@@ -64,6 +64,7 @@ impl GrpcGatewayHandler {
         let Some(match_entry) = connectors::resolve_match(
             self.gateway.kv.as_ref(),
             &event.registration_id,
+            &class_namespace,
             &class_name,
             &class_spec,
             &event.match_fields,
@@ -142,38 +143,58 @@ impl GrpcGatewayHandler {
         store: &ResourceStore,
         registration_id: &str,
         requested_class: &str,
-    ) -> Result<(String, resources_proto::ConnectorClassSpec), tonic::Status> {
-        for class in store
-            .list(ns::TALON_SYSTEM, Some("ConnectorClass"))
+    ) -> Result<(String, String, resources_proto::ConnectorClassSpec), tonic::Status> {
+        let mut namespaces = vec![ns::TALON_SYSTEM.to_string()];
+        for namespace_key in self
+            .gateway
+            .kv
+            .list_keys(&keys::namespace_metadata_prefix())
             .await
             .map_err(internal_error)?
         {
-            let Some(meta) = class.metadata.as_ref() else {
-                continue;
-            };
-            if !requested_class.trim().is_empty() && requested_class != meta.name {
-                continue;
+            if !namespaces.iter().any(|namespace| namespace == &namespace_key.name) {
+                namespaces.push(namespace_key.name);
             }
-            let Some(resources_proto::resource_status::Kind::ConnectorClass(status)) = class
-                .status
-                .as_ref()
-                .and_then(|status| status.kind.as_ref())
-            else {
-                continue;
-            };
-            if status.registration_id != registration_id {
-                continue;
-            }
-            let Some(resources_proto::resource_spec::Kind::ConnectorClass(spec)) =
-                class.spec.and_then(|spec| spec.kind)
-            else {
-                continue;
-            };
-            return Ok((meta.name.clone(), spec));
         }
-        Err(tonic::Status::not_found(
-            "ConnectorClass registration not found",
-        ))
+
+        let mut matched: Option<(String, String, resources_proto::ConnectorClassSpec)> = None;
+        for namespace in namespaces {
+            for class in store
+                .list(&namespace, Some("ConnectorClass"))
+                .await
+                .map_err(internal_error)?
+            {
+                let Some(meta) = class.metadata.as_ref() else {
+                    continue;
+                };
+                if !requested_class.trim().is_empty() && requested_class != meta.name {
+                    continue;
+                }
+                let Some(resources_proto::resource_status::Kind::ConnectorClass(status)) = class
+                    .status
+                    .as_ref()
+                    .and_then(|status| status.kind.as_ref())
+                else {
+                    continue;
+                };
+                if status.registration_id != registration_id {
+                    continue;
+                }
+                let Some(resources_proto::resource_spec::Kind::ConnectorClass(spec)) =
+                    class.spec.and_then(|spec| spec.kind)
+                else {
+                    continue;
+                };
+                let candidate = (meta.namespace.clone(), meta.name.clone(), spec);
+                if matched.is_some() {
+                    return Err(tonic::Status::failed_precondition(
+                        "ConnectorClass registration is ambiguous",
+                    ));
+                }
+                matched = Some(candidate);
+            }
+        }
+        matched.ok_or_else(|| tonic::Status::not_found("ConnectorClass registration not found"))
     }
 }
 

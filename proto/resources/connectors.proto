@@ -103,6 +103,8 @@ message ConnectorTarget {
 
 message ConnectorSpec {
   // ConnectorClass that owns the platform adapter and match index definitions.
+  // If namespace is empty, Talon resolves the class in the Connector's
+  // namespace.
   ResourceRef class_ref = 1;
 
   // Disabled Connectors are not indexed for incoming message routing.
@@ -133,8 +135,9 @@ message ConnectorStatus {
 }
 
 message ConnectorClass {
-  // Standard resource metadata. ConnectorClasses normally live in the Sys
-  // namespace because they describe cluster-level connector services.
+  // Standard namespaced resource metadata. ConnectorClasses are regular
+  // namespace resources so each tenant or operator namespace can define its own
+  // trusted connector services.
   ResourceMeta metadata = 1;
 
   // Desired connector service registration and platform capabilities.
@@ -166,7 +169,7 @@ message ConnectorMatchEntry {
   // Name of the Connector resource that produced this compiled route.
   string connector_name = 3;
 
-  // ConnectorClass name used to scope provider match keys.
+  // ConnectorClass name used to compile this route.
   string class_name = 4;
 
   // Connector resource generation captured when this route entry was compiled.
@@ -175,4 +178,7 @@ message ConnectorMatchEntry {
   // Snapshot of the Connector target stored in the route index so ingest can
   // dispatch without re-reading the full Connector resource.
   ConnectorTarget target = 6;
+
+  // Namespace of the ConnectorClass used to compile this route.
+  string class_namespace = 7;
 }

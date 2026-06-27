@@ -553,6 +553,8 @@ func (*ConnectorTarget_Channel) isConnectorTarget_Destination() {}
 type ConnectorSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// ConnectorClass that owns the platform adapter and match index definitions.
+	// If namespace is empty, Talon resolves the class in the Connector's
+	// namespace.
 	ClassRef *ResourceRef `protobuf:"bytes,1,opt,name=class_ref,json=classRef,proto3" json:"class_ref,omitempty"`
 	// Disabled Connectors are not indexed for incoming message routing.
 	Enabled bool `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
@@ -699,8 +701,9 @@ func (x *ConnectorStatus) GetCompiledMatchKeys() []string {
 
 type ConnectorClass struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Standard resource metadata. ConnectorClasses normally live in the Sys
-	// namespace because they describe cluster-level connector services.
+	// Standard namespaced resource metadata. ConnectorClasses are regular
+	// namespace resources so each tenant or operator namespace can define its own
+	// trusted connector services.
 	Metadata *ResourceMeta `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// Desired connector service registration and platform capabilities.
 	Spec *ConnectorClassSpec `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
@@ -833,15 +836,17 @@ type ConnectorMatchEntry struct {
 	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	// Name of the Connector resource that produced this compiled route.
 	ConnectorName string `protobuf:"bytes,3,opt,name=connector_name,json=connectorName,proto3" json:"connector_name,omitempty"`
-	// ConnectorClass name used to scope provider match keys.
+	// ConnectorClass name used to compile this route.
 	ClassName string `protobuf:"bytes,4,opt,name=class_name,json=className,proto3" json:"class_name,omitempty"`
 	// Connector resource generation captured when this route entry was compiled.
 	Generation uint64 `protobuf:"varint,5,opt,name=generation,proto3" json:"generation,omitempty"`
 	// Snapshot of the Connector target stored in the route index so ingest can
 	// dispatch without re-reading the full Connector resource.
-	Target        *ConnectorTarget `protobuf:"bytes,6,opt,name=target,proto3" json:"target,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Target *ConnectorTarget `protobuf:"bytes,6,opt,name=target,proto3" json:"target,omitempty"`
+	// Namespace of the ConnectorClass used to compile this route.
+	ClassNamespace string `protobuf:"bytes,7,opt,name=class_namespace,json=classNamespace,proto3" json:"class_namespace,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ConnectorMatchEntry) Reset() {
@@ -916,6 +921,13 @@ func (x *ConnectorMatchEntry) GetTarget() *ConnectorTarget {
 	return nil
 }
 
+func (x *ConnectorMatchEntry) GetClassNamespace() string {
+	if x != nil {
+		return x.ClassNamespace
+	}
+	return ""
+}
+
 var File_proto_resources_connectors_proto protoreflect.FileDescriptor
 
 const file_proto_resources_connectors_proto_rawDesc = "" +
@@ -980,7 +992,7 @@ const file_proto_resources_connectors_proto_rawDesc = "" +
 	"\tConnector\x129\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x122\n" +
 	"\x04spec\x18\x02 \x01(\v2\x1e.talon.resources.ConnectorSpecR\x04spec\x128\n" +
-	"\x06status\x18\x03 \x01(\v2 .talon.resources.ConnectorStatusR\x06status\"\xf8\x01\n" +
+	"\x06status\x18\x03 \x01(\v2 .talon.resources.ConnectorStatusR\x06status\"\xa1\x02\n" +
 	"\x13ConnectorMatchEntry\x12#\n" +
 	"\rconnector_uid\x18\x01 \x01(\tR\fconnectorUid\x12\x1c\n" +
 	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12%\n" +
@@ -990,7 +1002,8 @@ const file_proto_resources_connectors_proto_rawDesc = "" +
 	"\n" +
 	"generation\x18\x05 \x01(\x04R\n" +
 	"generation\x128\n" +
-	"\x06target\x18\x06 \x01(\v2 .talon.resources.ConnectorTargetR\x06targetb\x06proto3"
+	"\x06target\x18\x06 \x01(\v2 .talon.resources.ConnectorTargetR\x06target\x12'\n" +
+	"\x0fclass_namespace\x18\a \x01(\tR\x0eclassNamespaceb\x06proto3"
 
 var (
 	file_proto_resources_connectors_proto_rawDescOnce sync.Once

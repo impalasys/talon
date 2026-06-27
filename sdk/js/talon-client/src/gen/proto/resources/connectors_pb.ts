@@ -457,6 +457,8 @@ export class ConnectorTarget extends Message<ConnectorTarget> {
 export class ConnectorSpec extends Message<ConnectorSpec> {
   /**
    * ConnectorClass that owns the platform adapter and match index definitions.
+   * If namespace is empty, Talon resolves the class in the Connector's
+   * namespace.
    *
    * @generated from field: talon.resources.ResourceRef class_ref = 1;
    */
@@ -585,8 +587,9 @@ export class ConnectorStatus extends Message<ConnectorStatus> {
  */
 export class ConnectorClass extends Message<ConnectorClass> {
   /**
-   * Standard resource metadata. ConnectorClasses normally live in the Sys
-   * namespace because they describe cluster-level connector services.
+   * Standard namespaced resource metadata. ConnectorClasses are regular
+   * namespace resources so each tenant or operator namespace can define its own
+   * trusted connector services.
    *
    * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
@@ -718,7 +721,7 @@ export class ConnectorMatchEntry extends Message<ConnectorMatchEntry> {
   connectorName = "";
 
   /**
-   * ConnectorClass name used to scope provider match keys.
+   * ConnectorClass name used to compile this route.
    *
    * @generated from field: string class_name = 4;
    */
@@ -739,6 +742,13 @@ export class ConnectorMatchEntry extends Message<ConnectorMatchEntry> {
    */
   target?: ConnectorTarget;
 
+  /**
+   * Namespace of the ConnectorClass used to compile this route.
+   *
+   * @generated from field: string class_namespace = 7;
+   */
+  classNamespace = "";
+
   constructor(data?: PartialMessage<ConnectorMatchEntry>) {
     super();
     proto3.util.initPartial(data, this);
@@ -753,6 +763,7 @@ export class ConnectorMatchEntry extends Message<ConnectorMatchEntry> {
     { no: 4, name: "class_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 6, name: "target", kind: "message", T: ConnectorTarget },
+    { no: 7, name: "class_namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorMatchEntry {

@@ -136,17 +136,19 @@ class Connector(_message.Message):
     def __init__(self, metadata: _Optional[_Union[_common_pb2.ResourceMeta, _Mapping]] = ..., spec: _Optional[_Union[ConnectorSpec, _Mapping]] = ..., status: _Optional[_Union[ConnectorStatus, _Mapping]] = ...) -> None: ...
 
 class ConnectorMatchEntry(_message.Message):
-    __slots__ = ("connector_uid", "namespace", "connector_name", "class_name", "generation", "target")
+    __slots__ = ("connector_uid", "namespace", "connector_name", "class_name", "generation", "target", "class_namespace")
     CONNECTOR_UID_FIELD_NUMBER: _ClassVar[int]
     NAMESPACE_FIELD_NUMBER: _ClassVar[int]
     CONNECTOR_NAME_FIELD_NUMBER: _ClassVar[int]
     CLASS_NAME_FIELD_NUMBER: _ClassVar[int]
     GENERATION_FIELD_NUMBER: _ClassVar[int]
     TARGET_FIELD_NUMBER: _ClassVar[int]
+    CLASS_NAMESPACE_FIELD_NUMBER: _ClassVar[int]
     connector_uid: str
     namespace: str
     connector_name: str
     class_name: str
     generation: int
     target: ConnectorTarget
-    def __init__(self, connector_uid: _Optional[str] = ..., namespace: _Optional[str] = ..., connector_name: _Optional[str] = ..., class_name: _Optional[str] = ..., generation: _Optional[int] = ..., target: _Optional[_Union[ConnectorTarget, _Mapping]] = ...) -> None: ...
+    class_namespace: str
+    def __init__(self, connector_uid: _Optional[str] = ..., namespace: _Optional[str] = ..., connector_name: _Optional[str] = ..., class_name: _Optional[str] = ..., generation: _Optional[int] = ..., target: _Optional[_Union[ConnectorTarget, _Mapping]] = ..., class_namespace: _Optional[str] = ...) -> None: ...
