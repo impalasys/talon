@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUp,
   ImagePlus,
@@ -94,10 +94,13 @@ export function ChatInputBox({
   const buttonDisabled = isStopMode ? !resolvedCanStop : !resolvedCanSubmit;
   const buttonIsEnabled = !buttonDisabled;
   const buttonSize = 34;
-  const isSingleLine = rows <= 1;
   const attachments = imageAttachments ?? [];
-  const textareaLineHeight = isSingleLine ? buttonSize : 20;
+  const textareaLineHeight = 20;
   const resolvedTextareaMinHeight = rows > 1 ? textareaMinHeight : buttonSize;
+  const [textareaSize, setTextareaSize] = useState<{ height: number; overflowY: "auto" | "hidden" }>({
+    height: resolvedTextareaMinHeight,
+    overflowY: "hidden",
+  });
   const commandQuery = value.trimStart().startsWith("/") ? value.trimStart().slice(1).toLowerCase() : null;
   const visibleCommandItems = useMemo(() => {
     if (commandQuery === null || !commandMenuItems?.length || isGenerating) return [];
@@ -122,6 +125,59 @@ export function ChatInputBox({
       textareaRef.current?.focus();
     });
   }, [onValueChange]);
+
+  const measureTextarea = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const previousHeight = textarea.style.height;
+    textarea.style.height = "auto";
+    const computedMaxHeight = window.getComputedStyle(textarea).maxHeight;
+    const numericMaxHeight = computedMaxHeight && computedMaxHeight !== "none"
+      ? Number.parseFloat(computedMaxHeight)
+      : Number.NaN;
+    const maxHeight = Number.isFinite(numericMaxHeight) ? numericMaxHeight : Number.POSITIVE_INFINITY;
+    const scrollHeight = textarea.scrollHeight;
+    const nextHeight = Math.ceil(Math.max(resolvedTextareaMinHeight, Math.min(scrollHeight, maxHeight)));
+    const nextOverflowY = scrollHeight > maxHeight + 1 ? "auto" : "hidden";
+    textarea.style.height = previousHeight;
+
+    setTextareaSize((current) => (
+      current.height === nextHeight && current.overflowY === nextOverflowY
+        ? current
+        : { height: nextHeight, overflowY: nextOverflowY }
+    ));
+  }, [resolvedTextareaMinHeight]);
+
+  useEffect(() => {
+    measureTextarea();
+  }, [attachments.length, measureTextarea, rows, value]);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    let frameId = 0;
+    const scheduleMeasure = () => {
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(measureTextarea);
+    };
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", scheduleMeasure);
+      return () => {
+        window.cancelAnimationFrame(frameId);
+        window.removeEventListener("resize", scheduleMeasure);
+      };
+    }
+
+    const observer = new ResizeObserver(scheduleMeasure);
+    observer.observe(textarea);
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      observer.disconnect();
+    };
+  }, [measureTextarea]);
 
   return (
     <>
@@ -463,14 +519,14 @@ export function ChatInputBox({
             outline: "none",
             boxShadow: "none",
             background: "transparent",
-            padding: isSingleLine ? "0 0.4rem" : "0.25rem 0.4rem",
+            padding: "7px 0.4rem",
             maxHeight: textareaMaxHeight,
             minHeight: resolvedTextareaMinHeight,
-            height: isSingleLine ? buttonSize : undefined,
+            height: textareaSize.height,
             fontFamily: "inherit",
             fontSize: 14,
             lineHeight: `${textareaLineHeight}px`,
-            overflowY: isSingleLine ? "hidden" : "auto",
+            overflowY: textareaSize.overflowY,
             color: "inherit",
             appearance: "none",
             WebkitAppearance: "none",
