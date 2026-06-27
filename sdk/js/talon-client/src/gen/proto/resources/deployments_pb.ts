@@ -353,6 +353,11 @@ export class DeploymentStatus extends Message<DeploymentStatus> {
    */
   replicas: ResourceRef[] = [];
 
+  /**
+   * @generated from field: talon.resources.DeploymentReplicaCounts replica_counts = 5;
+   */
+  replicaCounts?: DeploymentReplicaCounts;
+
   constructor(data?: PartialMessage<DeploymentStatus>) {
     super();
     proto3.util.initPartial(data, this);
@@ -365,6 +370,7 @@ export class DeploymentStatus extends Message<DeploymentStatus> {
     { no: 2, name: "phase", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "conditions", kind: "message", T: ResourceCondition, repeated: true },
     { no: 4, name: "replicas", kind: "message", T: ResourceRef, repeated: true },
+    { no: 5, name: "replica_counts", kind: "message", T: DeploymentReplicaCounts },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeploymentStatus {
@@ -381,6 +387,67 @@ export class DeploymentStatus extends Message<DeploymentStatus> {
 
   static equals(a: DeploymentStatus | PlainMessage<DeploymentStatus> | undefined, b: DeploymentStatus | PlainMessage<DeploymentStatus> | undefined): boolean {
     return proto3.util.equals(DeploymentStatus, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.DeploymentReplicaCounts
+ */
+export class DeploymentReplicaCounts extends Message<DeploymentReplicaCounts> {
+  /**
+   * @generated from field: uint64 desired = 1;
+   */
+  desired = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 updated = 2;
+   */
+  updated = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 ready = 3;
+   */
+  ready = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 pending = 4;
+   */
+  pending = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 degraded = 5;
+   */
+  degraded = protoInt64.zero;
+
+  constructor(data?: PartialMessage<DeploymentReplicaCounts>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.DeploymentReplicaCounts";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "desired", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "updated", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "ready", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 4, name: "pending", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 5, name: "degraded", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeploymentReplicaCounts {
+    return new DeploymentReplicaCounts().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeploymentReplicaCounts {
+    return new DeploymentReplicaCounts().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeploymentReplicaCounts {
+    return new DeploymentReplicaCounts().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DeploymentReplicaCounts | PlainMessage<DeploymentReplicaCounts> | undefined, b: DeploymentReplicaCounts | PlainMessage<DeploymentReplicaCounts> | undefined): boolean {
+    return proto3.util.equals(DeploymentReplicaCounts, a, b);
   }
 }
 
