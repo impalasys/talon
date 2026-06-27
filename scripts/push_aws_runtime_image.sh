@@ -134,16 +134,20 @@ docker run --rm \
     cd /workspace
     bazel \
       --output_user_root=/bazel-output-cache \
+      build \
       --repository_cache=/bazel-repository-cache \
-      build "${BAZEL_TARGET}"
+      "${BAZEL_TARGET}"
 
     tarball="$(
       bazel \
         --output_user_root=/bazel-output-cache \
+        cquery \
         --repository_cache=/bazel-repository-cache \
-        cquery --output=files "${BAZEL_TARGET}" |
+        --output=files \
+        "${BAZEL_TARGET}" |
         tail -n 1
     )"
+    rm -f /artifacts/talon-runtime-image.tar
     cp "${tarball}" /artifacts/talon-runtime-image.tar
   '
 

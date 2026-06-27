@@ -72,7 +72,7 @@ fn authorize_search(
     };
     if let Some(claim_namespace) = claims.ns.as_ref().filter(|value| !value.is_empty()) {
         for namespace in namespaces {
-            if !namespace.is_empty() && namespace != claim_namespace {
+            if !namespace.is_empty() && !auth::namespace_scope_allows(claim_namespace, namespace) {
                 return Err(tonic::Status::permission_denied(format!(
                     "Token scope restricted to namespace: {claim_namespace}"
                 )));
@@ -98,7 +98,7 @@ fn authorize_search_namespace(
         return Ok(None);
     };
     if let Some(claim_namespace) = claims.ns.as_ref().filter(|value| !value.is_empty()) {
-        if !namespace.is_empty() && namespace != claim_namespace {
+        if !namespace.is_empty() && !auth::namespace_scope_allows(claim_namespace, namespace) {
             return Err(tonic::Status::permission_denied(format!(
                 "Token scope restricted to namespace: {claim_namespace}"
             )));

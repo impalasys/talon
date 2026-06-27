@@ -34,7 +34,7 @@ futures = "0.3"
 hyper-util = { version = "0.1", features = ["tokio"] }
 opentelemetry = "0.31"
 opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "trace"] }
-opentelemetry_sdk = "0.32"
+opentelemetry_sdk = "0.31"
 pprof = { version = "0.15", features = ["flamegraph"], optional = true }
 tikv-jemallocator = { version = "0.7", optional = true }
 tikv-jemalloc-ctl = { version = "0.7", optional = true }

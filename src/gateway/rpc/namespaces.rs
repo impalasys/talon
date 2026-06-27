@@ -3,7 +3,7 @@
 
 use crate::control::resource_model::{self, NamespaceResourceExt, TypedResource};
 use crate::control::ProtoKeyValueStoreExt;
-use crate::control::{events, keys, ns, topics};
+use crate::control::{events, keys, topics};
 use crate::gateway::rpc::{proto, resources_proto, GrpcGatewayHandler};
 use prost::Message;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -27,10 +27,7 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::CreateNamespaceRequest>,
     ) -> std::result::Result<tonic::Response<proto::NamespaceResponse>, tonic::Status> {
-        // Namespace management is an admin-level operation. Require a valid JWT but
-        // only allow broad (un-scoped) tokens — a token scoped to a specific
-        // namespace cannot create/delete other namespaces.
-        crate::require_auth!(self, req, ns::TALON_SYSTEM);
+        let metadata = req.metadata().clone();
         let req = req.into_inner();
 
         let name = req.name.clone();
@@ -38,6 +35,16 @@ impl GrpcGatewayHandler {
             return Err(tonic::Status::invalid_argument(
                 "Namespace name cannot be empty",
             ));
+        }
+        if let Some(auth_config) = &self.gateway.auth_config {
+            crate::gateway::auth::check_auth_for_operation(
+                &metadata,
+                auth_config,
+                crate::gateway::auth::AuthzOperation::ReadWrite,
+                &name,
+                None,
+                None,
+            )?;
         }
 
         // Deduce parent
@@ -188,10 +195,20 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::GetNamespaceRequest>,
     ) -> std::result::Result<tonic::Response<proto::NamespaceResponse>, tonic::Status> {
-        crate::require_auth!(read, self, req, ns::TALON_SYSTEM);
+        let metadata = req.metadata().clone();
         let req = req.into_inner();
 
         let name = req.name;
+        if let Some(auth_config) = &self.gateway.auth_config {
+            crate::gateway::auth::check_auth_for_operation(
+                &metadata,
+                auth_config,
+                crate::gateway::auth::AuthzOperation::Read,
+                &name,
+                None,
+                None,
+            )?;
+        }
 
         let meta_key = keys::namespace_metadata(&name);
 
@@ -212,10 +229,20 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::DeleteNamespaceRequest>,
     ) -> std::result::Result<tonic::Response<proto::NamespaceResponse>, tonic::Status> {
-        crate::require_auth!(self, req, ns::TALON_SYSTEM);
+        let metadata = req.metadata().clone();
         let req = req.into_inner();
 
         let name = req.name;
+        if let Some(auth_config) = &self.gateway.auth_config {
+            crate::gateway::auth::check_auth_for_operation(
+                &metadata,
+                auth_config,
+                crate::gateway::auth::AuthzOperation::ReadWrite,
+                &name,
+                None,
+                None,
+            )?;
+        }
 
         let meta_key = keys::namespace_metadata(&name);
 
@@ -259,12 +286,22 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::ListNamespacesRequest>,
     ) -> std::result::Result<tonic::Response<proto::ListNamespacesResponse>, tonic::Status> {
-        crate::require_auth!(self, req, ns::TALON_SYSTEM);
+        let metadata = req.metadata().clone();
         let req = req.into_inner();
 
         let mut namespace_names = Vec::new();
 
         let parent = req.parent.unwrap_or_default();
+        if let Some(auth_config) = &self.gateway.auth_config {
+            crate::gateway::auth::check_auth_for_operation(
+                &metadata,
+                auth_config,
+                crate::gateway::auth::AuthzOperation::Read,
+                &parent,
+                None,
+                None,
+            )?;
+        }
         let edge_prefix =
             keys::namespace_ref_prefix((!parent.is_empty()).then_some(parent.as_str()));
 
@@ -361,7 +398,9 @@ mod tests {
         keys::{ResourceKey, ResourceList},
         ControlPlane, KeyValueStore, MessagePublisher,
     };
+    use crate::gateway::auth::{AuthConfig, Claims};
     use crate::gateway::server::Gateway;
+    use jsonwebtoken::{encode, EncodingKey, Header};
     use std::collections::HashMap;
     use std::sync::Arc;
     use tokio::sync::Mutex;
@@ -445,10 +484,40 @@ mod tests {
     }
 
     fn setup_mock_gateway_handler() -> GrpcGatewayHandler {
+        setup_mock_gateway_handler_with_auth(None)
+    }
+
+    fn setup_mock_gateway_handler_with_auth(auth_config: Option<AuthConfig>) -> GrpcGatewayHandler {
         let pubsub = Arc::new(MockPubSub);
         let control_plane = ControlPlane::builder(Arc::new(MockKvStore::new()), pubsub).build();
-        let gateway = Arc::new(Gateway::from_control_plane(None, control_plane));
+        let gateway = Arc::new(Gateway::from_control_plane(auth_config, control_plane));
         GrpcGatewayHandler { gateway }
+    }
+
+    fn scoped_token(secret: &str, ns: &str) -> String {
+        crate::control::security::install_jwt_crypto_provider();
+        let claims = Claims {
+            sub: "tenant-admin".to_string(),
+            aud: "talon".to_string(),
+            exp: 10000000000,
+            ns: Some(ns.to_string()),
+            agent: None,
+            session: None,
+            channel: None,
+            grants: Vec::new(),
+        };
+        encode(
+            &Header::default(),
+            &claims,
+            &EncodingKey::from_secret(secret.as_ref()),
+        )
+        .unwrap()
+    }
+
+    fn with_bearer<T>(mut req: tonic::Request<T>, token: &str) -> tonic::Request<T> {
+        req.metadata_mut()
+            .insert("authorization", format!("Bearer {token}").parse().unwrap());
+        req
     }
 
     #[tokio::test]
@@ -579,6 +648,59 @@ mod tests {
             .into_inner();
         assert_eq!(fetched.labels.get("env").map(String::as_str), Some("dev"));
         assert_eq!(fetched.labels.get("owner").map(String::as_str), Some("ops"));
+    }
+
+    #[tokio::test]
+    async fn test_scoped_jwt_can_manage_descendant_namespaces_only() {
+        let secret = "namespace-secret";
+        let token = scoped_token(secret, "Tenant:conic");
+        let handler =
+            setup_mock_gateway_handler_with_auth(Some(AuthConfig::jwt(secret.to_string())));
+
+        handler
+            .handle_create_namespace(with_bearer(
+                tonic::Request::new(proto::CreateNamespaceRequest {
+                    name: "Tenant:conic:Customers:13".to_string(),
+                    recursive: true,
+                    labels: HashMap::new(),
+                }),
+                &token,
+            ))
+            .await
+            .unwrap();
+
+        handler
+            .handle_get_namespace(with_bearer(
+                tonic::Request::new(proto::GetNamespaceRequest {
+                    name: "Tenant:conic:Customers:13".to_string(),
+                }),
+                &token,
+            ))
+            .await
+            .unwrap();
+
+        handler
+            .handle_list_namespaces(with_bearer(
+                tonic::Request::new(proto::ListNamespacesRequest {
+                    parent: Some("Tenant:conic".to_string()),
+                }),
+                &token,
+            ))
+            .await
+            .unwrap();
+
+        let sibling = handler
+            .handle_create_namespace(with_bearer(
+                tonic::Request::new(proto::CreateNamespaceRequest {
+                    name: "Tenant:conic2".to_string(),
+                    recursive: false,
+                    labels: HashMap::new(),
+                }),
+                &token,
+            ))
+            .await
+            .expect_err("prefix sibling should not be authorized");
+        assert_eq!(sibling.code(), tonic::Code::PermissionDenied);
     }
 
     #[tokio::test]

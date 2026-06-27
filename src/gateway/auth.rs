@@ -370,7 +370,7 @@ fn check_claim_scope(
     }
 
     if let Some(allowed_ns) = &claims.ns {
-        if allowed_ns != ns {
+        if !namespace_scope_allows(allowed_ns, ns) {
             return Err(Status::permission_denied(format!(
                 "Token scope restricted to namespace: {}",
                 allowed_ns
@@ -445,7 +445,7 @@ fn grant_allows(
         _ => return false,
     }
 
-    if !selector_matches(grant.namespace.as_deref(), Some(ns)) {
+    if !namespace_selector_matches(grant.namespace.as_deref(), ns) {
         return false;
     }
     if !selector_matches(grant.agent.as_deref(), agent) {
@@ -466,6 +466,24 @@ fn selector_matches(allowed: Option<&str>, target: Option<&str>) -> bool {
         return true;
     };
     matches!(target, Some(target) if allowed == target)
+}
+
+fn namespace_selector_matches(allowed: Option<&str>, target: &str) -> bool {
+    let Some(allowed) = allowed.map(str::trim).filter(|value| !value.is_empty()) else {
+        return true;
+    };
+    namespace_scope_allows(allowed, target)
+}
+
+pub(crate) fn namespace_scope_allows(allowed: &str, target: &str) -> bool {
+    let allowed = allowed.trim();
+    if allowed.is_empty() {
+        return target.trim().is_empty();
+    }
+    target == allowed
+        || target
+            .strip_prefix(allowed)
+            .is_some_and(|suffix| suffix.starts_with(':'))
 }
 
 /// gRPC Interceptor that extracts and verifies JWTs, attaching claims to the request.
@@ -712,8 +730,12 @@ mod tests {
 
         // Success: matching ns
         assert!(check_auth(&metadata, &config, "my-ns", None, None).is_ok());
+        // Success: descendant namespace
+        assert!(check_auth(&metadata, &config, "my-ns:child", None, None).is_ok());
         // Fail: wrong ns
         assert!(check_auth(&metadata, &config, "other-ns", None, None).is_err());
+        // Fail: prefix sibling must not match
+        assert!(check_auth(&metadata, &config, "my-ns2", None, None).is_err());
 
         // 2. Agent scope
         let token = create_token(secret, Some("my-ns"), Some("agent-42"), None);
@@ -833,6 +855,24 @@ mod tests {
             &config,
             AuthzOperation::ReadWrite,
             "ops",
+            Some("triage"),
+            None
+        )
+        .is_err());
+        assert!(check_auth_for_operation(
+            &metadata,
+            &config,
+            AuthzOperation::Read,
+            "ops:tenant-1",
+            Some("triage"),
+            None
+        )
+        .is_ok());
+        assert!(check_auth_for_operation(
+            &metadata,
+            &config,
+            AuthzOperation::Read,
+            "ops-prod",
             Some("triage"),
             None
         )
