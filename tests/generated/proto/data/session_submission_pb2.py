@@ -25,15 +25,15 @@ _sym_db = _symbol_database.Default()
 from proto.data import session_journal_entry_pb2 as proto_dot_data_dot_session__journal__entry__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n#proto/data/session_submission.proto\x12\ntalon.data\x1a&proto/data/session_journal_entry.proto\"\xf9\x03\n\x11SessionSubmission\x12\x15\n\rsubmission_id\x18\x01 \x01(\t\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\x17\n\x0fuser_message_id\x18\x03 \x01(\t\x12\x33\n\x06status\x18\x04 \x01(\x0e\x32#.talon.data.SessionSubmissionStatus\x12\x12\n\nattempt_id\x18\x05 \x01(\t\x12\x15\n\rattempt_count\x18\x06 \x01(\r\x12\x1d\n\x10\x63laim_expires_at\x18\x07 \x01(\x03H\x00\x88\x01\x01\x12\x12\n\ncreated_at\x18\x08 \x01(\x03\x12\x12\n\nupdated_at\x18\t \x01(\x03\x12\x19\n\x0c\x63ompleted_at\x18\n \x01(\x03H\x01\x88\x01\x01\x12!\n\x14\x63ommitted_message_id\x18\x0b \x01(\tH\x02\x88\x01\x01\x12\x38\n\rcurrent_phase\x18\x0c \x01(\x0e\x32!.talon.data.SessionExecutionPhase\x12%\n\x18\x63urrent_journal_entry_id\x18\r \x01(\tH\x03\x88\x01\x01\x42\x13\n\x11_claim_expires_atB\x0f\n\r_completed_atB\x17\n\x15_committed_message_idB\x1b\n\x19_current_journal_entry_id*\x8c\x02\n\x17SessionSubmissionStatus\x12)\n%SESSION_SUBMISSION_STATUS_UNSPECIFIED\x10\x00\x12%\n!SESSION_SUBMISSION_STATUS_PENDING\x10\x01\x12%\n!SESSION_SUBMISSION_STATUS_CLAIMED\x10\x02\x12\'\n#SESSION_SUBMISSION_STATUS_COMMITTED\x10\x03\x12$\n SESSION_SUBMISSION_STATUS_FAILED\x10\x04\x12)\n%SESSION_SUBMISSION_STATUS_INTERRUPTED\x10\x05\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n#proto/data/session_submission.proto\x12\ntalon.data\x1a&proto/data/session_journal_entry.proto\"\x92\x04\n\x11SessionSubmission\x12\x15\n\rsubmission_id\x18\x01 \x01(\t\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\x17\n\x0fuser_message_id\x18\x03 \x01(\t\x12\x33\n\x06status\x18\x04 \x01(\x0e\x32#.talon.data.SessionSubmissionStatus\x12\x12\n\nattempt_id\x18\x05 \x01(\t\x12\x17\n\x0f\x63laim_worker_id\x18\x0e \x01(\t\x12\x15\n\rattempt_count\x18\x06 \x01(\r\x12\x1d\n\x10\x63laim_expires_at\x18\x07 \x01(\x03H\x00\x88\x01\x01\x12\x12\n\ncreated_at\x18\x08 \x01(\x03\x12\x12\n\nupdated_at\x18\t \x01(\x03\x12\x19\n\x0c\x63ompleted_at\x18\n \x01(\x03H\x01\x88\x01\x01\x12!\n\x14\x63ommitted_message_id\x18\x0b \x01(\tH\x02\x88\x01\x01\x12\x38\n\rcurrent_phase\x18\x0c \x01(\x0e\x32!.talon.data.SessionExecutionPhase\x12%\n\x18\x63urrent_journal_entry_id\x18\r \x01(\tH\x03\x88\x01\x01\x42\x13\n\x11_claim_expires_atB\x0f\n\r_completed_atB\x17\n\x15_committed_message_idB\x1b\n\x19_current_journal_entry_id*\x8c\x02\n\x17SessionSubmissionStatus\x12)\n%SESSION_SUBMISSION_STATUS_UNSPECIFIED\x10\x00\x12%\n!SESSION_SUBMISSION_STATUS_PENDING\x10\x01\x12%\n!SESSION_SUBMISSION_STATUS_CLAIMED\x10\x02\x12\'\n#SESSION_SUBMISSION_STATUS_COMMITTED\x10\x03\x12$\n SESSION_SUBMISSION_STATUS_FAILED\x10\x04\x12)\n%SESSION_SUBMISSION_STATUS_INTERRUPTED\x10\x05\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.data.session_submission_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_SESSIONSUBMISSIONSTATUS']._serialized_start=600
-  _globals['_SESSIONSUBMISSIONSTATUS']._serialized_end=868
+  _globals['_SESSIONSUBMISSIONSTATUS']._serialized_start=625
+  _globals['_SESSIONSUBMISSIONSTATUS']._serialized_end=893
   _globals['_SESSIONSUBMISSION']._serialized_start=92
-  _globals['_SESSIONSUBMISSION']._serialized_end=597
+  _globals['_SESSIONSUBMISSION']._serialized_end=622
 # @@protoc_insertion_point(module_scope)

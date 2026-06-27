@@ -26,7 +26,6 @@ Endpoint discovery is override-first. Set `TALON_WORKER_ENDPOINT_URL` only when 
 Platform behavior:
 
 - AWS ECS tasks with `ECS_CONTAINER_METADATA_URI_V4` register the task's first IPv4 address and the worker `PORT`.
-- Cloudflare Containers receive a per-instance internal endpoint from the Worker wrapper, such as `http://default.worker.internal` or `http://worker-7.worker.internal`.
 - Cloud Run worker pools do not have a load-balanced endpoint. Use `TALON_WORKER_ENDPOINT_URL` only when you intentionally front the worker with another reachable service.
 
 ## Local deployment shape

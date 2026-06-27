@@ -7,8 +7,6 @@
   "scripts": {
     "dev": "pnpm --filter @impalasys/talon-client build && next dev",
     "build": "pnpm --filter @impalasys/talon-client build && next build",
-    "build:cloudflare": "pnpm --filter @impalasys/talon-client build && node scripts/build-cloudflare.mjs",
-    "deploy:cloudflare": "pnpm build:cloudflare && wrangler pages deploy out --project-name talon-sightline",
     "start": "next start",
     "lint": "next lint",
     "test": "pnpm test:unit",
@@ -52,7 +50,6 @@
     "@types/react-dom": "^19.1.9",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
-    "typescript": "^5.9.3",
-    "wrangler": "4.88.0"
+    "typescript": "^5.9.3"
   }
 }

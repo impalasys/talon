@@ -162,9 +162,6 @@ pub enum ObjectStoreConfigWrapper {
         endpoint_url: Option<String>,
         force_path_style: Option<bool>,
     },
-    R2 {
-        endpoint_url: Option<String>,
-    },
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -646,13 +643,6 @@ impl From<ObjectStoreConfigWrapper> for proto::ObjectStoreConfig {
                         region: region.unwrap_or_default(),
                         endpoint_url: endpoint_url.unwrap_or_default(),
                         force_path_style: force_path_style.unwrap_or(false),
-                    },
-                )),
-            },
-            ObjectStoreConfigWrapper::R2 { endpoint_url } => Self {
-                backend: Some(proto::object_store_config::Backend::R2(
-                    proto::R2ObjectStoreConfig {
-                        endpoint_url: endpoint_url.unwrap_or_default(),
                     },
                 )),
             },

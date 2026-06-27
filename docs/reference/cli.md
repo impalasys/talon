@@ -66,5 +66,5 @@ Generate a TypeScript client SDK from manifest files.
 ## Notes
 
 - The CLI is best thought of as an operator/admin tool, not the only integration surface.
-- The CLI talks to the gateway RPC surface directly. Use native gRPC by default, and `--grpc-web` for Cloudflare-backed gateways that do not expose native gRPC.
+- The CLI talks to the gateway RPC surface directly. Use native gRPC by default, and `--grpc-web` only when an HTTP proxy exposes the gRPC-Web gateway path.
 - For service-to-service integrations, prefer the generated gateway contracts directly.

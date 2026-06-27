@@ -126,16 +126,11 @@ message S3ObjectStoreConfig {
   bool force_path_style = 5;
 }
 
-message R2ObjectStoreConfig {
-  string endpoint_url = 1;
-}
-
 message ObjectStoreConfig {
   oneof backend {
     LocalObjectStoreConfig local = 1;
     GcsObjectStoreConfig gcs = 2;
     S3ObjectStoreConfig s3 = 3;
-    R2ObjectStoreConfig r2 = 4;
   }
 }
 

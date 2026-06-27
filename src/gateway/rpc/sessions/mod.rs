@@ -272,7 +272,7 @@ impl GrpcGatewayHandler {
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to verify agent: {}", e)))?;
         if agent_exists.is_none() {
-            // Cloudflare/D1 can make a just-applied resource visible through
+            // Some stores can make a just-applied resource visible through
             // prefix listing before an exact point lookup observes it.
             agent_exists = store
                 .list(&req.ns, Some("Agent"))

@@ -711,7 +711,7 @@ control_plane:
     }
 
     #[test]
-    fn test_r2_object_store_config_from_yaml() {
+    fn test_s3_object_store_config_from_yaml() {
         let file = NamedTempFile::new().expect("Failed to create temp file");
         let path = file.path().with_extension("yaml");
         std::fs::write(
@@ -719,12 +719,14 @@ control_plane:
             r#"
 control_plane:
   database:
-    driver: d1
+    driver: sqlite
   message_broker:
-    driver: cf_queues
+    driver: local_socket
   object_store:
-    driver: r2
-    endpoint_url: http://talon-r2.internal
+    driver: s3
+    bucket: talon-objects
+    endpoint_url: http://localhost:9000
+    force_path_style: true
 "#,
         )
         .unwrap();
@@ -738,8 +740,10 @@ control_plane:
             .backend
             .unwrap();
         match backend {
-            proto::object_store_config::Backend::R2(cfg) => {
-                assert_eq!(cfg.endpoint_url, "http://talon-r2.internal");
+            proto::object_store_config::Backend::S3(cfg) => {
+                assert_eq!(cfg.bucket, "talon-objects");
+                assert_eq!(cfg.endpoint_url, "http://localhost:9000");
+                assert!(cfg.force_path_style);
             }
             other => panic!("unexpected object store backend: {other:?}"),
         }

@@ -1,7 +1,6 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-mod cf_queues;
 mod local_socket;
 #[cfg(feature = "sqs")]
 mod sqs;
@@ -19,7 +18,6 @@ use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-pub use cf_queues::CfQueuesPublisher;
 pub use local_socket::{LocalSocketMessagePublisher, LocalSocketSubscriber};
 #[cfg(feature = "sqs")]
 pub use sqs::{SqsMessagePublisher, TALON_TOPIC_ATTRIBUTE};

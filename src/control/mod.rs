@@ -358,7 +358,6 @@ fn message_broker_config(
         .ok_or_else(|| anyhow::anyhow!("control_plane.message_broker configuration is missing"))?;
     let supported = mb_config.driver == "gcp_pubsub"
         || mb_config.driver == "local_socket"
-        || mb_config.driver == "cf_queues"
         || mb_config.driver == "sqs";
     if !supported {
         return Err(anyhow::anyhow!(
@@ -401,13 +400,6 @@ pub async fn build_control_plane(
             println!("Connecting to SqliteKvStore at {}...", sqlite_url);
             kv = Arc::new(kv::SqliteKvStore::new(&sqlite_url, "talon_kv_store").await?);
             scheduler_database_url = Some(sqlite_url);
-        }
-        "d1" => {
-            println!("Connecting to D1KvStore...");
-            let kv_store = kv::D1KvStore::from_env();
-            kv_store.init().await?;
-            kv = Arc::new(kv_store);
-            scheduler_database_url = None;
         }
         #[cfg(feature = "dynamodb")]
         "dynamodb" => {
@@ -468,10 +460,6 @@ pub async fn build_control_plane(
                 socket_path.display()
             );
             Arc::new(pubsub::LocalSocketMessagePublisher::new(socket_path).await?)
-        }
-        "cf_queues" => {
-            println!("Initializing CfQueuesPublisher...");
-            Arc::new(pubsub::CfQueuesPublisher::from_env())
         }
         #[cfg(feature = "sqs")]
         "sqs" => {
@@ -541,7 +529,6 @@ pub async fn build_control_plane(
                 Arc::new(scheduler::NoopSchedulerBackend)
             }
         }
-        Some("cf_alarms") => Arc::new(scheduler::CfAlarmsSchedulerBackend::from_env()),
         _ => match configured_scheduler(cp.scheduler.as_ref()) {
             Some(crate::control::config::proto::SchedulerConfig {
                 backend:
@@ -648,12 +635,6 @@ async fn configured_document_store(
             Ok(Arc::new(
                 search::SqliteDocumentStore::new(&sqlite_url).await?,
             ))
-        }
-        "d1" => {
-            println!("Connecting to D1DocumentStore...");
-            let document_store = search::D1DocumentStore::from_env();
-            document_store.init().await?;
-            Ok(Arc::new(document_store))
         }
         "disabled" => Ok(search::disabled_document_store()),
         #[cfg(feature = "rocksdb")]
@@ -1099,7 +1080,7 @@ mod tests {
                     url: None,
                 }),
                 message_broker: Some(proto::MessageBrokerConfig {
-                    driver: "cf_queues".to_string(),
+                    driver: "local_socket".to_string(),
                 }),
                 scheduler: Some(proto::SchedulerConfig {
                     backend: Some(scheduler_config::Backend::CloudTasks(

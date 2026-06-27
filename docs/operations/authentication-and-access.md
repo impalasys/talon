@@ -49,7 +49,7 @@ Use the `auth` command to mint scoped tokens from `TALON_JWT_SECRET`, `GATEWAY_J
 - `auth session-token --namespace <ns> --agent <agent> --session <session-id>`
 - `auth channel-token --namespace <ns> --channel <channel>`
 
-The CLI targets the gateway RPC surface directly. It uses native gRPC by default; pass `--grpc-web` for Cloudflare-backed gateways where native gRPC is not available. Browser-oriented clients should use the gRPC-Web-compatible gateway path.
+The CLI targets the gateway RPC surface directly. It uses native gRPC by default; pass `--grpc-web` only when an HTTP proxy exposes the gRPC-Web gateway path. Browser-oriented clients should use the gRPC-Web-compatible gateway path.
 
 ## Browser and UI access
 

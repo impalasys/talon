@@ -1,7 +1,6 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-pub mod d1;
 pub mod disabled;
 pub mod ephemeral;
 mod events;
@@ -16,7 +15,6 @@ use std::collections::{HashMap, HashSet};
 use crate::control::keys;
 use crate::gateway::rpc::{data_proto, proto};
 
-pub use d1::D1DocumentStore;
 pub use disabled::{disabled_document_store, DisabledDocumentStore};
 pub use ephemeral::{ephemeral_document_store, EphemeralDocumentStore};
 pub(crate) use events::publish_index_event;

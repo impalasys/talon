@@ -221,23 +221,15 @@ class S3ObjectStoreConfig(_message.Message):
     force_path_style: bool
     def __init__(self, bucket: _Optional[str] = ..., prefix: _Optional[str] = ..., region: _Optional[str] = ..., endpoint_url: _Optional[str] = ..., force_path_style: bool = ...) -> None: ...
 
-class R2ObjectStoreConfig(_message.Message):
-    __slots__ = ("endpoint_url",)
-    ENDPOINT_URL_FIELD_NUMBER: _ClassVar[int]
-    endpoint_url: str
-    def __init__(self, endpoint_url: _Optional[str] = ...) -> None: ...
-
 class ObjectStoreConfig(_message.Message):
-    __slots__ = ("local", "gcs", "s3", "r2")
+    __slots__ = ("local", "gcs", "s3")
     LOCAL_FIELD_NUMBER: _ClassVar[int]
     GCS_FIELD_NUMBER: _ClassVar[int]
     S3_FIELD_NUMBER: _ClassVar[int]
-    R2_FIELD_NUMBER: _ClassVar[int]
     local: LocalObjectStoreConfig
     gcs: GcsObjectStoreConfig
     s3: S3ObjectStoreConfig
-    r2: R2ObjectStoreConfig
-    def __init__(self, local: _Optional[_Union[LocalObjectStoreConfig, _Mapping]] = ..., gcs: _Optional[_Union[GcsObjectStoreConfig, _Mapping]] = ..., s3: _Optional[_Union[S3ObjectStoreConfig, _Mapping]] = ..., r2: _Optional[_Union[R2ObjectStoreConfig, _Mapping]] = ...) -> None: ...
+    def __init__(self, local: _Optional[_Union[LocalObjectStoreConfig, _Mapping]] = ..., gcs: _Optional[_Union[GcsObjectStoreConfig, _Mapping]] = ..., s3: _Optional[_Union[S3ObjectStoreConfig, _Mapping]] = ...) -> None: ...
 
 class SchedulerCallbackAuthConfig(_message.Message):
     __slots__ = ("shared_secret", "google_oidc")
