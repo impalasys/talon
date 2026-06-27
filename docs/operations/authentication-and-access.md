@@ -31,7 +31,7 @@ JWTs can restrict access to:
 - a channel
 - one or more browser origins
 
-JWTs without resource scope are root tokens and can access the gateway wherever JWT auth is accepted. Agent and session tokens include namespace scope; session tokens also include agent scope so a session id is not accidentally reusable across agents.
+JWTs without resource scope are root tokens and can access the gateway wherever JWT auth is accepted. Namespace tokens can access one namespace and its child namespaces. Agent and session tokens include namespace scope; session tokens also include agent scope so a session id is not accidentally reusable across agents.
 
 That makes JWT mode the most expressive option for browser or delegated access.
 
@@ -54,6 +54,7 @@ TTLs and resource scopes.
 Use the `auth` command to mint scoped tokens from `TALON_JWT_SECRET`, `GATEWAY_JWT_SECRET`, or `--jwt-secret`:
 
 - `auth root-token`
+- `auth namespace-token --namespace <ns>`
 - `auth agent-token --namespace <ns> --agent <agent>`
 - `auth session-token --namespace <ns> --agent <agent> --session <session-id>`
 - `auth channel-token --namespace <ns> --channel <channel>`

@@ -24,6 +24,7 @@ running with `GATEWAY_JWT_SECRET`.
 - `auth logout`: remove stored CLI auth
 - `auth whoami`: show stored CLI auth
 - `auth root-token`: unrestricted root token
+- `auth namespace-token --namespace <ns>`: namespace scoped token
 - `auth agent-token --namespace <ns> --agent <agent>`: namespace and agent scoped token
 - `auth session-token --namespace <ns> --agent <agent> --session <session-id>`: namespace, agent, and session scoped token
 - `auth channel-token --namespace <ns> --channel <channel>`: namespace and channel scoped token

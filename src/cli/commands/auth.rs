@@ -7,9 +7,9 @@ use clap::{Args, Subcommand};
 use super::{Cli, RunOutcome};
 use crate::cli::{
     clear_stored_gateway_auth, describe_stored_auth, exchange_oidc_id_token,
-    login_with_google_loopback, mint_agent_jwt, mint_channel_jwt, mint_root_jwt, mint_session_jwt,
-    resolve_gateway_jwt_secret, resolve_token_ttl_seconds, save_stored_gateway_auth,
-    DEFAULT_TOKEN_TTL,
+    login_with_google_loopback, mint_agent_jwt, mint_channel_jwt, mint_namespace_jwt,
+    mint_root_jwt, mint_session_jwt, resolve_gateway_jwt_secret, resolve_token_ttl_seconds,
+    save_stored_gateway_auth, DEFAULT_TOKEN_TTL,
 };
 
 #[derive(Args)]
@@ -44,6 +44,22 @@ enum AuthCommands {
     /// Mint a root JWT with unrestricted gateway scope.
     RootToken {
         #[arg(long, default_value = "talon-root-client")]
+        subject: String,
+        /// Token lifetime, such as 5min, 1wk, 3mo, or 1yr.
+        #[arg(long, default_value = DEFAULT_TOKEN_TTL)]
+        ttl: String,
+        /// Token lifetime in seconds. Kept for script compatibility.
+        #[arg(long)]
+        ttl_seconds: Option<u64>,
+        /// Browser origin allowed to use this token. Repeat for multiple origins.
+        #[arg(long = "origin")]
+        origins: Vec<String>,
+    },
+    /// Mint a JWT that can access one namespace and its child namespaces.
+    NamespaceToken {
+        #[arg(short, long)]
+        namespace: String,
+        #[arg(long, default_value = "talon-namespace-client")]
         subject: String,
         /// Token lifetime, such as 5min, 1wk, 3mo, or 1yr.
         #[arg(long, default_value = DEFAULT_TOKEN_TTL)]
@@ -166,6 +182,18 @@ pub(super) async fn run(cli: &Cli, command: &AuthCommand) -> Result<RunOutcome> 
                 .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
             let ttl_seconds = resolve_token_ttl_seconds(ttl, *ttl_seconds)?;
             mint_root_jwt(&secret, subject, ttl_seconds, origins)?
+        }
+        AuthCommands::NamespaceToken {
+            namespace,
+            subject,
+            ttl,
+            ttl_seconds,
+            origins,
+        } => {
+            let secret = resolve_gateway_jwt_secret(cli)
+                .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
+            let ttl_seconds = resolve_token_ttl_seconds(ttl, *ttl_seconds)?;
+            mint_namespace_jwt(&secret, namespace, subject, ttl_seconds, origins)?
         }
         AuthCommands::AgentToken {
             namespace,
