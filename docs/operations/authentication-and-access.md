@@ -29,10 +29,19 @@ JWTs can restrict access to:
 - an agent
 - a session
 - a channel
+- one or more browser origins
 
 JWTs without resource scope are root tokens and can access the gateway wherever JWT auth is accepted. Agent and session tokens include namespace scope; session tokens also include agent scope so a session id is not accidentally reusable across agents.
 
 That makes JWT mode the most expressive option for browser or delegated access.
+
+Origin-scoped JWTs include `talon:origins`, for example
+`["https://app.example.com"]`. When present, browser-facing gateway paths
+require the request to include a matching `Origin` header. Talon enforces this
+for A2A REST and gRPC-Web requests; native gRPC ignores the claim because
+non-browser clients can set arbitrary origin metadata. This is intended to make
+browser-exposed tokens harder to reuse from another website; keep using short
+TTLs and resource scopes.
 
 ## CLI auth
 
@@ -48,6 +57,11 @@ Use the `auth` command to mint scoped tokens from `TALON_JWT_SECRET`, `GATEWAY_J
 - `auth agent-token --namespace <ns> --agent <agent>`
 - `auth session-token --namespace <ns> --agent <agent> --session <session-id>`
 - `auth channel-token --namespace <ns> --channel <channel>`
+
+All token commands accept `--ttl <duration>` and repeatable `--origin <origin>`
+flags. The default TTL is `5min`; examples include `1wk`, `3mo`, and `1yr`.
+`--ttl-seconds <seconds>` remains available for scripts. Origin flags add
+`talon:origins` to the minted JWT.
 
 The CLI targets the gateway RPC surface directly. It uses native gRPC by default; pass `--grpc-web` only when an HTTP proxy exposes the gRPC-Web gateway path. Browser-oriented clients should use the gRPC-Web-compatible gateway path.
 

@@ -17,6 +17,10 @@ use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tonic::{metadata::MetadataMap, Status};
+use url::Url;
+
+pub(crate) const TALON_GRPC_WEB_REQUEST_METADATA: &str = "x-talon-grpc-web-request";
+pub(crate) const TALON_GRPC_WEB_ORIGIN_METADATA: &str = "x-talon-grpc-web-origin";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AuthzOperation {
@@ -91,6 +95,12 @@ pub struct Claims {
     pub session: Option<String>,
     #[serde(rename = "talon:channel")]
     pub channel: Option<String>,
+    #[serde(
+        rename = "talon:origins",
+        default,
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    pub origins: Vec<String>,
     #[serde(rename = "talon:grants", default)]
     pub grants: Vec<TalonGrantClaim>,
 }
@@ -185,7 +195,16 @@ pub fn check_auth_for_operation(
     session: Option<&str>,
 ) -> Result<(), Status> {
     let auth_header = metadata.get("authorization").and_then(|v| v.to_str().ok());
-    check_auth_header_for_operation(auth_header, auth_config, operation, ns, agent, session)
+    let origin_scope = metadata_origin_scope(metadata);
+    check_auth_header_for_operation_with_origin_scope(
+        auth_header,
+        origin_scope,
+        auth_config,
+        operation,
+        ns,
+        agent,
+        session,
+    )
 }
 
 /// Verify and return bearer JWT claims for callers that need to derive an
@@ -196,7 +215,8 @@ pub fn check_auth_for_operation(
 /// call this when the caller needs claim details such as `talon:ns`, scoped
 /// agent/session/channel values, or `talon:grants`. Search uses this to narrow a
 /// broad query to the caller's authorized source filters before querying the
-/// `DocumentStore`.
+/// `DocumentStore`. It still enforces token validity conditions that require
+/// request metadata, such as `talon:origins`.
 ///
 /// Returns `Ok(None)` for non-JWT auth modes and for JWT mode's basic-password
 /// fallback, because there are no bearer JWT claims to inspect in those cases.
@@ -219,7 +239,9 @@ pub fn jwt_claims_from_metadata(
         .jwt_secret
         .as_ref()
         .ok_or_else(|| Status::internal("JWT secret not configured"))?;
-    verify_jwt(token, secret).map(Some)
+    let claims = verify_jwt(token, secret)?;
+    check_origin_scope(&claims, metadata_origin_scope(metadata))?;
+    Ok(Some(claims))
 }
 
 pub fn check_auth_header(
@@ -241,6 +263,46 @@ pub fn check_auth_header(
 
 pub fn check_auth_header_for_operation(
     auth_header: Option<&str>,
+    auth_config: &AuthConfig,
+    operation: AuthzOperation,
+    ns: &str,
+    agent: Option<&str>,
+    session: Option<&str>,
+) -> Result<(), Status> {
+    check_auth_header_for_operation_with_origin_scope(
+        auth_header,
+        OriginScope::Ignore,
+        auth_config,
+        operation,
+        ns,
+        agent,
+        session,
+    )
+}
+
+pub fn check_auth_header_for_operation_with_origin(
+    auth_header: Option<&str>,
+    origin: Option<&str>,
+    auth_config: &AuthConfig,
+    operation: AuthzOperation,
+    ns: &str,
+    agent: Option<&str>,
+    session: Option<&str>,
+) -> Result<(), Status> {
+    check_auth_header_for_operation_with_origin_scope(
+        auth_header,
+        OriginScope::Enforce(origin),
+        auth_config,
+        operation,
+        ns,
+        agent,
+        session,
+    )
+}
+
+fn check_auth_header_for_operation_with_origin_scope(
+    auth_header: Option<&str>,
+    origin_scope: OriginScope<'_>,
     auth_config: &AuthConfig,
     operation: AuthzOperation,
     ns: &str,
@@ -277,7 +339,7 @@ pub fn check_auth_header_for_operation(
                 .ok_or_else(|| Status::internal("JWT secret not configured"))?;
             let claims = verify_jwt(token, secret)?;
 
-            check_claim_scope(&claims, operation, ns, agent, session, None)
+            check_claim_scope(&claims, operation, ns, agent, session, None, origin_scope)
         }
         AuthMode::Password => {
             let auth_header = auth_header
@@ -318,6 +380,7 @@ pub fn check_channel_auth_for_operation(
     ns: &str,
     channel: &str,
 ) -> Result<(), Status> {
+    let origin_scope = metadata_origin_scope(metadata);
     match auth_config.mode {
         AuthMode::Jwt => {
             let auth_header = metadata
@@ -336,7 +399,15 @@ pub fn check_channel_auth_for_operation(
                 .as_ref()
                 .ok_or_else(|| Status::internal("JWT secret not configured"))?;
             let claims = verify_jwt(token, secret)?;
-            check_claim_scope(&claims, operation, ns, None, None, Some(channel))
+            check_claim_scope(
+                &claims,
+                operation,
+                ns,
+                None,
+                None,
+                Some(channel),
+                origin_scope,
+            )
         }
         _ => check_auth_for_operation(metadata, auth_config, operation, ns, None, None),
     }
@@ -349,7 +420,10 @@ fn check_claim_scope(
     agent: Option<&str>,
     session: Option<&str>,
     channel: Option<&str>,
+    origin_scope: OriginScope<'_>,
 ) -> Result<(), Status> {
+    check_origin_scope(claims, origin_scope)?;
+
     if claims.grants.is_empty() && claims.sub.starts_with("oidc:") {
         return Err(Status::permission_denied(
             "OIDC token does not include any Talon grants",
@@ -429,6 +503,73 @@ fn check_claim_scope(
     }
 
     Ok(())
+}
+
+#[derive(Clone, Copy)]
+enum OriginScope<'a> {
+    Ignore,
+    Enforce(Option<&'a str>),
+}
+
+fn metadata_origin_scope(metadata: &MetadataMap) -> OriginScope<'_> {
+    if metadata.get(TALON_GRPC_WEB_REQUEST_METADATA).is_none() {
+        return OriginScope::Ignore;
+    }
+    OriginScope::Enforce(
+        metadata
+            .get(TALON_GRPC_WEB_ORIGIN_METADATA)
+            .and_then(|value| value.to_str().ok()),
+    )
+}
+
+fn check_origin_scope(claims: &Claims, origin_scope: OriginScope<'_>) -> Result<(), Status> {
+    if claims.origins.is_empty() {
+        return Ok(());
+    }
+    let OriginScope::Enforce(origin) = origin_scope else {
+        return Ok(());
+    };
+
+    let origin = origin.ok_or_else(|| {
+        Status::permission_denied(
+            "Token scope restricted to origins, but request has no Origin header",
+        )
+    })?;
+    let origin = normalize_origin(origin).map_err(|message| {
+        Status::permission_denied(format!("Invalid request Origin: {message}"))
+    })?;
+
+    for allowed in &claims.origins {
+        let allowed = normalize_origin(allowed).map_err(|message| {
+            Status::permission_denied(format!("Token contains invalid origin scope: {message}"))
+        })?;
+        if allowed == origin {
+            return Ok(());
+        }
+    }
+
+    Err(Status::permission_denied(format!(
+        "Token scope restricted to origins: {}",
+        claims.origins.join(", ")
+    )))
+}
+
+fn normalize_origin(value: &str) -> Result<String, String> {
+    let value = value.trim();
+    let url = Url::parse(value).map_err(|err| err.to_string())?;
+    if !matches!(url.scheme(), "http" | "https") {
+        return Err("origin scheme must be http or https".to_string());
+    }
+    if url.username() != "" || url.password().is_some() {
+        return Err("origin must not include credentials".to_string());
+    }
+    if url.host_str().is_none() {
+        return Err("origin must include a host".to_string());
+    }
+    if url.path() != "/" || url.query().is_some() || url.fragment().is_some() {
+        return Err("origin must not include a path, query, or fragment".to_string());
+    }
+    Ok(url.origin().ascii_serialization())
 }
 
 fn grant_allows(
@@ -589,6 +730,10 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
                 .into_response()
         }
         AuthMode::Jwt => {
+            let origin = req
+                .headers()
+                .get(header::ORIGIN)
+                .and_then(|value| value.to_str().ok());
             if let Some(auth_header) = req.headers().get(header::AUTHORIZATION) {
                 if let Ok(auth_str) = auth_header.to_str() {
                     if matches!(
@@ -599,7 +744,13 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
                     }
                     if let Ok(token) = bearer_token(auth_str) {
                         if let Some(secret) = &auth_config.jwt_secret {
-                            if verify_jwt(token, secret).is_ok() {
+                            if verify_jwt(token, secret)
+                                .and_then(|claims| {
+                                    check_origin_scope(&claims, OriginScope::Enforce(origin))?;
+                                    Ok(claims)
+                                })
+                                .is_ok()
+                            {
                                 return next.run(req).await;
                             }
                         }
@@ -675,6 +826,28 @@ mod tests {
             agent: agent.map(|s| s.to_string()),
             session: session.map(|s| s.to_string()),
             channel: None,
+            origins: Vec::new(),
+            grants: Vec::new(),
+        };
+        encode(
+            &Header::default(),
+            &claims,
+            &EncodingKey::from_secret(secret.as_ref()),
+        )
+        .unwrap()
+    }
+
+    fn create_origin_token(secret: &str, origins: Vec<&str>) -> String {
+        crate::control::security::install_jwt_crypto_provider();
+        let claims = Claims {
+            sub: "browser-client".to_string(),
+            aud: "talon".to_string(),
+            exp: 10000000000,
+            ns: None,
+            agent: None,
+            session: None,
+            channel: None,
+            origins: origins.into_iter().map(str::to_string).collect(),
             grants: Vec::new(),
         };
         encode(
@@ -776,6 +949,39 @@ mod tests {
         .is_err());
     }
 
+    #[test]
+    fn test_origin_scoped_jwt_is_enforced_only_for_grpc_web_metadata() {
+        let secret = "test-secret";
+        let config = AuthConfig::jwt(secret.to_string());
+        let token = create_origin_token(secret, vec!["https://app.example.com"]);
+        let mut metadata = auth_metadata(&token);
+
+        assert!(check_auth(&metadata, &config, "any", None, None).is_ok());
+
+        metadata.insert("origin", "https://evil.example.com".parse().unwrap());
+        assert!(check_auth(&metadata, &config, "any", None, None).is_ok());
+
+        metadata.insert(TALON_GRPC_WEB_REQUEST_METADATA, "true".parse().unwrap());
+        assert!(check_auth(&metadata, &config, "any", None, None).is_err());
+
+        metadata.insert(
+            TALON_GRPC_WEB_ORIGIN_METADATA,
+            "https://evil.example.com".parse().unwrap(),
+        );
+        assert!(check_auth(&metadata, &config, "any", None, None).is_err());
+
+        metadata.insert(
+            TALON_GRPC_WEB_ORIGIN_METADATA,
+            "https://APP.example.com:443".parse().unwrap(),
+        );
+        assert!(check_auth(&metadata, &config, "any", None, None).is_ok());
+
+        let claims = jwt_claims_from_metadata(&metadata, &config)
+            .unwrap()
+            .unwrap();
+        assert_eq!(claims.origins, vec!["https://app.example.com"]);
+    }
+
     fn create_channel_token(secret: &str, ns: Option<&str>, channel: Option<&str>) -> String {
         crate::control::security::install_jwt_crypto_provider();
         let claims = Claims {
@@ -786,6 +992,7 @@ mod tests {
             agent: None,
             session: None,
             channel: channel.map(|s| s.to_string()),
+            origins: Vec::new(),
             grants: Vec::new(),
         };
         encode(
@@ -806,6 +1013,7 @@ mod tests {
             agent: None,
             session: None,
             channel: None,
+            origins: Vec::new(),
             grants,
         };
         encode(

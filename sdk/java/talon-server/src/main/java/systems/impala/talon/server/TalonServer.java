@@ -79,9 +79,6 @@ public final class TalonServer implements AutoCloseable {
         env.put("GATEWAY_UI_ADDR", "127.0.0.1:" + uiPort);
         env.put("TALON_CONFIG_PATH", configPath.toString());
         env.put("RUST_LOG", "info");
-        if (options.jwtSecret() != null && !options.jwtSecret().isEmpty()) {
-            env.put("GATEWAY_JWT_SECRET", options.jwtSecret());
-        }
         env.putAll(options.env());
         Process process = builder.redirectErrorStream(true).start();
 

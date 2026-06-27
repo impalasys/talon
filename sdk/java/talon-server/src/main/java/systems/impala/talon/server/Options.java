@@ -14,10 +14,9 @@ public record Options(
     boolean keepTempDir,
     Map<String, String> env,
     Duration startupTimeout,
-    Provider provider,
-    String jwtSecret
+    Provider provider
 ) {
     public static Options defaults() {
-        return new Options(null, null, null, null, null, null, false, Map.of(), Duration.ofSeconds(30), null, null);
+        return new Options(null, null, null, null, null, null, false, Map.of(), Duration.ofSeconds(30), null);
     }
 }

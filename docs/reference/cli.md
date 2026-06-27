@@ -28,7 +28,12 @@ running with `GATEWAY_JWT_SECRET`.
 - `auth session-token --namespace <ns> --agent <agent> --session <session-id>`: namespace, agent, and session scoped token
 - `auth channel-token --namespace <ns> --channel <channel>`: namespace and channel scoped token
 
-All token commands accept `--subject` and `--ttl-seconds`.
+All token commands accept `--subject`, `--ttl <duration>`, repeatable `--origin
+<origin>` flags, and `--ttl-seconds <seconds>` retained for scripts. The
+default token TTL is `5min`; examples include `1wk`, `3mo`, and `1yr`. Origins
+are serialized into the `talon:origins` claim and require A2A REST or gRPC-Web
+browser requests to carry a matching `Origin` header. Native gRPC ignores the
+claim.
 
 `auth login` accepts `--google-client-id` and `--google-client-secret`, with
 environment fallbacks `TALON_GOOGLE_CLIENT_ID` and

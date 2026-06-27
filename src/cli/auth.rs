@@ -17,6 +17,8 @@ use crate::gateway::auth::Claims;
 
 use super::commands::Cli;
 
+pub(crate) const DEFAULT_TOKEN_TTL: &str = "5min";
+
 #[derive(Debug, Serialize, Deserialize)]
 struct CliClaims {
     sub: String,
@@ -30,6 +32,8 @@ struct CliClaims {
     session: Option<String>,
     #[serde(rename = "talon:channel", skip_serializing_if = "Option::is_none")]
     channel: Option<String>,
+    #[serde(rename = "talon:origins", skip_serializing_if = "Vec::is_empty")]
+    origins: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -83,7 +87,7 @@ pub(crate) fn resolve_gateway_jwt_secret(cli: &Cli) -> Option<String> {
 }
 
 pub(crate) fn mint_gateway_jwt(secret: &str) -> Result<String> {
-    mint_root_jwt(secret, "talon-cli", 3600)
+    mint_root_jwt(secret, "talon-cli", 3600, &[])
 }
 
 pub(crate) fn gateway_http_base(cli: &Cli) -> String {
@@ -419,6 +423,7 @@ pub(crate) fn mint_scoped_jwt(
     agent: Option<&str>,
     session: Option<&str>,
     channel: Option<&str>,
+    origins: &[String],
 ) -> Result<String> {
     let subject = subject.trim();
     if subject.is_empty() {
@@ -430,7 +435,8 @@ pub(crate) fn mint_scoped_jwt(
     let exp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs()
-        + ttl_seconds;
+        .checked_add(ttl_seconds)
+        .context("ttl is too large")?;
     let claims = CliClaims {
         sub: subject.to_string(),
         aud: "talon".to_string(),
@@ -439,6 +445,7 @@ pub(crate) fn mint_scoped_jwt(
         agent: agent.map(str::to_string),
         session: session.map(str::to_string),
         channel: channel.map(str::to_string),
+        origins: validate_origins(origins)?,
     };
     jsonwebtoken::encode(
         &Header::default(),
@@ -448,8 +455,71 @@ pub(crate) fn mint_scoped_jwt(
     .context("Failed to sign Talon JWT")
 }
 
-pub(crate) fn mint_root_jwt(secret: &str, subject: &str, ttl_seconds: u64) -> Result<String> {
-    mint_scoped_jwt(secret, subject, ttl_seconds, None, None, None, None)
+pub(crate) fn parse_ttl_seconds(value: &str) -> Result<u64> {
+    let value = value.trim();
+    if value.is_empty() {
+        anyhow::bail!("ttl cannot be empty");
+    }
+
+    let split_at = value
+        .find(|ch: char| !ch.is_ascii_digit())
+        .unwrap_or(value.len());
+    let (amount, unit) = value.split_at(split_at);
+    if amount.is_empty() {
+        anyhow::bail!("ttl must start with a number");
+    }
+    let amount = amount.parse::<u64>().context("ttl amount must be a number")?;
+    if amount == 0 {
+        anyhow::bail!("ttl must be greater than zero");
+    }
+
+    let multiplier = match unit.trim().to_ascii_lowercase().as_str() {
+        "" | "s" | "sec" | "secs" | "second" | "seconds" => 1,
+        "m" | "min" | "mins" | "minute" | "minutes" => 60,
+        "h" | "hr" | "hrs" | "hour" | "hours" => 60 * 60,
+        "d" | "day" | "days" => 24 * 60 * 60,
+        "w" | "wk" | "wks" | "week" | "weeks" => 7 * 24 * 60 * 60,
+        "mo" | "mos" | "month" | "months" => 30 * 24 * 60 * 60,
+        "y" | "yr" | "yrs" | "year" | "years" => 365 * 24 * 60 * 60,
+        _ => anyhow::bail!(
+            "unsupported ttl unit '{}'; use s, min, h, d, wk, mo, or yr",
+            unit
+        ),
+    };
+    amount
+        .checked_mul(multiplier)
+        .context("ttl is too large")
+}
+
+pub(crate) fn resolve_token_ttl_seconds(ttl: &str, ttl_seconds: Option<u64>) -> Result<u64> {
+    if let Some(ttl_seconds) = ttl_seconds {
+        if ttl_seconds == 0 {
+            anyhow::bail!("ttl-seconds must be greater than zero");
+        }
+        if ttl.trim() != DEFAULT_TOKEN_TTL {
+            anyhow::bail!("use either --ttl or --ttl-seconds, not both");
+        }
+        return Ok(ttl_seconds);
+    }
+    parse_ttl_seconds(ttl)
+}
+
+pub(crate) fn mint_root_jwt(
+    secret: &str,
+    subject: &str,
+    ttl_seconds: u64,
+    origins: &[String],
+) -> Result<String> {
+    mint_scoped_jwt(
+        secret,
+        subject,
+        ttl_seconds,
+        None,
+        None,
+        None,
+        None,
+        origins,
+    )
         .context("Failed to sign Talon root JWT")
 }
 
@@ -467,6 +537,7 @@ pub(crate) fn mint_agent_jwt(
     agent: &str,
     subject: &str,
     ttl_seconds: u64,
+    origins: &[String],
 ) -> Result<String> {
     let namespace = validate_token_part(namespace, "namespace")?;
     let agent = validate_token_part(agent, "agent")?;
@@ -478,6 +549,7 @@ pub(crate) fn mint_agent_jwt(
         Some(agent),
         None,
         None,
+        origins,
     )
     .context("Failed to sign Talon agent JWT")
 }
@@ -489,6 +561,7 @@ pub(crate) fn mint_session_jwt(
     session: &str,
     subject: &str,
     ttl_seconds: u64,
+    origins: &[String],
 ) -> Result<String> {
     let namespace = validate_token_part(namespace, "namespace")?;
     let agent = validate_token_part(agent, "agent")?;
@@ -501,6 +574,7 @@ pub(crate) fn mint_session_jwt(
         Some(agent),
         Some(session),
         None,
+        origins,
     )
     .context("Failed to sign Talon session JWT")
 }
@@ -511,6 +585,7 @@ pub(crate) fn mint_channel_jwt(
     channel: &str,
     subject: &str,
     ttl_seconds: u64,
+    origins: &[String],
 ) -> Result<String> {
     let namespace = validate_token_part(namespace, "namespace")?;
     let channel = validate_token_part(channel, "channel")?;
@@ -522,8 +597,32 @@ pub(crate) fn mint_channel_jwt(
         None,
         None,
         Some(channel),
+        origins,
     )
     .context("Failed to sign Talon channel JWT")
+}
+
+fn validate_origins(origins: &[String]) -> Result<Vec<String>> {
+    origins
+        .iter()
+        .map(|origin| {
+            let parsed = Url::parse(origin.trim())
+                .with_context(|| format!("invalid origin '{}'", origin.trim()))?;
+            if !matches!(parsed.scheme(), "http" | "https") {
+                anyhow::bail!("origin '{}' must use http or https", origin.trim());
+            }
+            if !parsed.username().is_empty() || parsed.password().is_some() {
+                anyhow::bail!("origin '{}' must not include credentials", origin.trim());
+            }
+            if parsed.host_str().is_none() {
+                anyhow::bail!("origin '{}' must include a host", origin.trim());
+            }
+            if parsed.path() != "/" || parsed.query().is_some() || parsed.fragment().is_some() {
+                anyhow::bail!("origin '{}' must not include a path, query, or fragment", origin.trim());
+            }
+            Ok(parsed.origin().ascii_serialization())
+        })
+        .collect()
 }
 
 fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
@@ -563,7 +662,10 @@ pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
 
 #[cfg(test)]
 mod tests {
-    use super::{google_token_request_form, DEFAULT_GOOGLE_CLI_CLIENT_SECRET};
+    use super::{
+        google_token_request_form, parse_ttl_seconds, resolve_token_ttl_seconds,
+        DEFAULT_GOOGLE_CLI_CLIENT_SECRET, DEFAULT_TOKEN_TTL,
+    };
 
     #[test]
     fn google_token_request_form_includes_client_secret_when_present() {
@@ -596,5 +698,26 @@ mod tests {
             DEFAULT_GOOGLE_CLI_CLIENT_SECRET,
             option_env!("TALON_GOOGLE_CLIENT_SECRET")
         );
+    }
+
+    #[test]
+    fn parse_ttl_seconds_accepts_compact_units() {
+        assert_eq!(parse_ttl_seconds("5min").unwrap(), 300);
+        assert_eq!(parse_ttl_seconds("1wk").unwrap(), 604800);
+        assert_eq!(parse_ttl_seconds("3mo").unwrap(), 7776000);
+        assert_eq!(parse_ttl_seconds("1yr").unwrap(), 31536000);
+        assert_eq!(parse_ttl_seconds("42").unwrap(), 42);
+    }
+
+    #[test]
+    fn resolve_token_ttl_seconds_keeps_legacy_seconds_escape_hatch() {
+        assert_eq!(resolve_token_ttl_seconds(DEFAULT_TOKEN_TTL, None).unwrap(), 300);
+        assert_eq!(
+            resolve_token_ttl_seconds(DEFAULT_TOKEN_TTL, Some(123)).unwrap(),
+            123
+        );
+        assert!(resolve_token_ttl_seconds("1wk", Some(123)).is_err());
+        assert!(parse_ttl_seconds("0min").is_err());
+        assert!(parse_ttl_seconds("1fortnight").is_err());
     }
 }

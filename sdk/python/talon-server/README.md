@@ -7,16 +7,8 @@ broker for tests and development. By default the helper writes a temporary
 Set `TALON_NODE_PATH` to a local `talon-node` binary, or let the helper download
 one from the Talon GitHub releases.
 
-Pass `jwt_secret` to start the gateway in JWT-auth mode, then mint scoped
-browser or test tokens with `mint_jwt`:
-
-```python
-from talon_server import JwtOptions, Options, mint_jwt, start
-
-secret = "dev-secret"
-server = start(Options(jwt_secret=secret))
-token = mint_jwt(secret, JwtOptions(subject="browser-demo", namespace="demo", agent="copilot"))
-```
+JWTs should be minted by trusted Talon operator tooling, such as the Talon CLI,
+rather than by SDK callers.
 
 To provide the Talon runtime config directly, pass `config`:
 

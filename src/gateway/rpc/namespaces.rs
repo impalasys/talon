@@ -504,6 +504,7 @@ mod tests {
             agent: None,
             session: None,
             channel: None,
+            origins: Vec::new(),
             grants: Vec::new(),
         };
         encode(

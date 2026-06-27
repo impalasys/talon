@@ -1,5 +1,4 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-import { createHmac } from "node:crypto";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
@@ -25,16 +24,6 @@ export type StartOptions = {
   env?: Record<string, string>;
   startupTimeoutMs?: number;
   provider?: Provider;
-  jwtSecret?: string;
-};
-
-export type MintJwtOptions = {
-  subject?: string;
-  ttlSeconds?: number;
-  namespace?: string;
-  agent?: string;
-  session?: string;
-  channel?: string;
 };
 
 export class TalonServer {
@@ -77,7 +66,6 @@ export class TalonServer {
         GATEWAY_UI_ADDR: `127.0.0.1:${uiPort}`,
         TALON_CONFIG_PATH: configPath,
         RUST_LOG: "info",
-        ...(options.jwtSecret ? { GATEWAY_JWT_SECRET: options.jwtSecret } : {}),
         ...options.env,
       },
     });
@@ -128,47 +116,9 @@ export async function start(options: StartOptions = {}): Promise<TalonServer> {
   return TalonServer.start(options);
 }
 
-export function mintJwt(secret: string, options: MintJwtOptions = {}): string {
-  const claims = jwtClaims(secret, options);
-  const header = base64UrlJson({ alg: "HS256", typ: "JWT" });
-  const payload = base64UrlJson(claims);
-  const signature = createHmac("sha256", secret).update(`${header}.${payload}`).digest("base64url");
-  return `${header}.${payload}.${signature}`;
-}
-
 export function authorizationHeader(token: string): string {
   if (!token.trim()) throw new Error("token is required");
   return `Bearer ${token}`;
-}
-
-function jwtClaims(secret: string, options: MintJwtOptions): Record<string, string | number> {
-  if (!secret) throw new Error("secret is required");
-  const subject = options.subject ?? "talon-sdk";
-  if (!subject.trim()) throw new Error("subject is required");
-  const ttlSeconds = options.ttlSeconds ?? 3600;
-  if (!Number.isFinite(ttlSeconds) || ttlSeconds <= 0) throw new Error("ttlSeconds must be positive");
-  if (options.channel && !options.namespace) throw new Error("channel-scoped JWTs require namespace");
-
-  const claims: Record<string, string | number> = {
-    sub: subject,
-    aud: "talon",
-    exp: Math.floor(Date.now() / 1000) + Math.floor(ttlSeconds),
-  };
-  addOptionalClaim(claims, "talon:ns", options.namespace);
-  addOptionalClaim(claims, "talon:agent", options.agent);
-  addOptionalClaim(claims, "talon:session", options.session);
-  addOptionalClaim(claims, "talon:channel", options.channel);
-  return claims;
-}
-
-function addOptionalClaim(claims: Record<string, string | number>, key: string, value: string | undefined): void {
-  if (value === undefined) return;
-  if (!value.trim()) throw new Error(`${key} must not be empty`);
-  claims[key] = value;
-}
-
-function base64UrlJson(value: unknown): string {
-  return Buffer.from(JSON.stringify(value), "utf8").toString("base64url");
 }
 
 async function resolveTalonNode(explicit?: string): Promise<string> {
