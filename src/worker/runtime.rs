@@ -184,7 +184,7 @@ impl AgentRuntime {
                 }
             };
 
-            let mut server_config = server.config.clone();
+            let mut server_config = config_for_agent_namespace(&server.config, ns);
             server_config.agent_name = Some(agent_id.to_string());
 
             let mut accepted_tools = Vec::new();
@@ -303,6 +303,15 @@ fn visible_tools_for_agent(
         })
         .cloned()
         .collect()
+}
+
+fn config_for_agent_namespace(
+    config: &crate::harness::mcp::McpConnectionConfig,
+    namespace: &str,
+) -> crate::harness::mcp::McpConnectionConfig {
+    let mut config = config.clone();
+    config.namespace = Some(namespace.to_string());
+    config
 }
 
 fn is_schedule_tool_name(name: &str) -> bool {
@@ -483,8 +492,9 @@ fn tool_result_message_from_part(part: &data_proto::SessionMessagePart) -> Optio
 #[cfg(test)]
 mod tests {
     use super::{
-        builtin_tool_names, has_capability_action, message_content_parts, qualify_mcp_tool_name,
-        tool_result_message_from_part, visible_tools_for_agent, AgentRuntime,
+        builtin_tool_names, config_for_agent_namespace, has_capability_action,
+        message_content_parts, qualify_mcp_tool_name, tool_result_message_from_part,
+        visible_tools_for_agent, AgentRuntime,
     };
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
@@ -703,6 +713,23 @@ mod tests {
         let qualified = qualify_mcp_tool_name(&config("workspace--gh", None), "get---issue");
 
         assert_eq!(qualified, "mcp_workspace_gh_get_issue");
+    }
+
+    #[test]
+    fn config_for_agent_namespace_uses_calling_namespace_for_inherited_mcp_server() {
+        let inherited = McpConnectionConfig {
+            namespace: Some("Tenant:conic:Customers".to_string()),
+            mcp_server_name: Some("conic".to_string()),
+            ..config("conic", Some("conic"))
+        };
+
+        let scoped = config_for_agent_namespace(&inherited, "Tenant:conic:Customers:42");
+
+        assert_eq!(
+            scoped.namespace.as_deref(),
+            Some("Tenant:conic:Customers:42")
+        );
+        assert_eq!(scoped.mcp_server_name.as_deref(), Some("conic"));
     }
 
     #[test]

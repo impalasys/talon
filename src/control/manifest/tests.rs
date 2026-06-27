@@ -16,6 +16,9 @@ metadata:
 spec:
   transport: http
   target: https://example.com/mcp
+  args: []
+  headers: {}
+  disabled: false
 "#,
         )
         .expect_err("McpServer without namespace should fail");
@@ -33,6 +36,9 @@ metadata:
 spec:
   transport: http
   target: https://example.com/mcp
+  args: []
+  headers: {}
+  disabled: false
   policy:
     tools:
       allowlist:
