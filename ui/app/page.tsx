@@ -1019,8 +1019,12 @@ function DebuggerPageContent() {
       currentParams.delete('talon_gateway_url');
     }
     if (talonGatewayHttpUrl) {
-      setGatewayHttpUrl(talonGatewayHttpUrl);
-      localStorage.setItem('talon_gateway_http_url', talonGatewayHttpUrl);
+      const normalizedGatewayUrl = normalizeGatewayUrl(talonGatewayHttpUrl);
+      setGatewayUrl(normalizedGatewayUrl);
+      localStorage.setItem('talon_gateway_url', normalizedGatewayUrl);
+      localStorage.removeItem('talon_gateway_http_url');
+      updateGatewayClient(normalizedGatewayUrl);
+      setIsConnected(true);
       currentParams.delete('talon_gateway_http_url');
     }
     if (hasTalonHandoff) {
