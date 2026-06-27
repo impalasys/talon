@@ -10,7 +10,7 @@ use crate::gateway::auth::AuthConfig;
 use anyhow::Result;
 use axum::{
     body::Body,
-    http::{Request, Response, StatusCode},
+    http::{header, HeaderValue, Request, Response, StatusCode},
     response::IntoResponse,
     routing::RouterIntoService,
     Router,
@@ -203,9 +203,10 @@ where
     S::Error: std::fmt::Display + Send + Sync + 'static,
 {
     Router::new()
-        .fallback_service(tower::service_fn(move |request: Request<Body>| {
+        .fallback_service(tower::service_fn(move |mut request: Request<Body>| {
             let mut grpc_service = grpc_service.clone();
             async move {
+                mark_grpc_web_origin_scope(&mut request);
                 let request = request.map(tonic::body::boxed);
                 let response = match grpc_service.ready().await {
                     Ok(ready_service) => ready_service.call(request).await,
@@ -226,6 +227,34 @@ where
         .into_service()
 }
 
+fn mark_grpc_web_origin_scope(request: &mut Request<Body>) {
+    request
+        .headers_mut()
+        .remove(crate::gateway::auth::TALON_GRPC_WEB_REQUEST_METADATA);
+    request
+        .headers_mut()
+        .remove(crate::gateway::auth::TALON_GRPC_WEB_ORIGIN_METADATA);
+
+    let is_grpc_web = request
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|content_type| content_type.starts_with("application/grpc-web"));
+    if !is_grpc_web {
+        return;
+    }
+
+    request.headers_mut().insert(
+        crate::gateway::auth::TALON_GRPC_WEB_REQUEST_METADATA,
+        HeaderValue::from_static("true"),
+    );
+    if let Some(origin) = request.headers().get(header::ORIGIN).cloned() {
+        request
+            .headers_mut()
+            .insert(crate::gateway::auth::TALON_GRPC_WEB_ORIGIN_METADATA, origin);
+    }
+}
+
 fn internal_server_error() -> axum::response::Response {
     StatusCode::INTERNAL_SERVER_ERROR.into_response()
 }
@@ -236,4 +265,56 @@ fn permissive_cors_layer() -> CorsLayer {
         .allow_headers(Any)
         .allow_methods(Any)
         .expose_headers(Any)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mark_grpc_web_origin_scope_marks_only_grpc_web_requests() {
+        let mut grpc_web = Request::builder()
+            .header(header::CONTENT_TYPE, "application/grpc-web+proto")
+            .header(header::ORIGIN, "https://app.example.com")
+            .body(Body::empty())
+            .unwrap();
+        mark_grpc_web_origin_scope(&mut grpc_web);
+        assert_eq!(
+            grpc_web
+                .headers()
+                .get(crate::gateway::auth::TALON_GRPC_WEB_REQUEST_METADATA)
+                .and_then(|value| value.to_str().ok()),
+            Some("true")
+        );
+        assert_eq!(
+            grpc_web
+                .headers()
+                .get(crate::gateway::auth::TALON_GRPC_WEB_ORIGIN_METADATA)
+                .and_then(|value| value.to_str().ok()),
+            Some("https://app.example.com")
+        );
+
+        let mut native_grpc = Request::builder()
+            .header(header::CONTENT_TYPE, "application/grpc")
+            .header(header::ORIGIN, "https://app.example.com")
+            .header(
+                crate::gateway::auth::TALON_GRPC_WEB_REQUEST_METADATA,
+                "true",
+            )
+            .header(
+                crate::gateway::auth::TALON_GRPC_WEB_ORIGIN_METADATA,
+                "https://evil.example.com",
+            )
+            .body(Body::empty())
+            .unwrap();
+        mark_grpc_web_origin_scope(&mut native_grpc);
+        assert!(native_grpc
+            .headers()
+            .get(crate::gateway::auth::TALON_GRPC_WEB_REQUEST_METADATA)
+            .is_none());
+        assert!(native_grpc
+            .headers()
+            .get(crate::gateway::auth::TALON_GRPC_WEB_ORIGIN_METADATA)
+            .is_none());
+    }
 }

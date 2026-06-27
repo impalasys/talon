@@ -285,6 +285,7 @@ fn mint_talon_access_token(
         agent: None,
         session: None,
         channel: None,
+        origins: Vec::new(),
         grants: identity.grants.clone(),
     };
 

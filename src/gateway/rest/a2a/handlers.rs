@@ -608,8 +608,19 @@ fn ensure_a2a_operation_auth(
     let auth_header = headers
         .get(header::AUTHORIZATION)
         .and_then(|value| value.to_str().ok());
-    auth::check_auth_header(auth_header, &auth_config, ns, Some(agent), session)
-        .map_err(a2a_auth_error)
+    let origin = headers
+        .get(header::ORIGIN)
+        .and_then(|value| value.to_str().ok());
+    auth::check_auth_header_for_operation_with_origin(
+        auth_header,
+        origin,
+        &auth_config,
+        auth::AuthzOperation::ReadWrite,
+        ns,
+        Some(agent),
+        session,
+    )
+    .map_err(a2a_auth_error)
 }
 
 fn a2a_auth_error(status: tonic::Status) -> Response {

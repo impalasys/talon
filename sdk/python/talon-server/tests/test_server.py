@@ -1,8 +1,6 @@
-import base64
-import json
 from types import MappingProxyType
 
-from talon_server import JwtOptions, Options, Server, authorization_header, mint_jwt
+from talon_server import Options, Server, authorization_header
 from talon_server.server import _config_with_data_dir, _default_config
 
 
@@ -57,33 +55,15 @@ def test_config_path_rejects_generated_config_options() -> None:
         raise AssertionError("expected ValueError")
 
 
-def test_mint_jwt_creates_scoped_talon_token() -> None:
-    token = mint_jwt(
-        "secret",
-        JwtOptions(subject="browser-demo", ttl_seconds=60, namespace="demo", agent="copilot", channel="chat"),
-    )
-    header_segment, payload_segment, signature = token.split(".")
-    assert signature
-    header = _decode(header_segment)
-    payload = _decode(payload_segment)
-    assert header == {"alg": "HS256", "typ": "JWT"}
-    assert payload["sub"] == "browser-demo"
-    assert payload["aud"] == "talon"
-    assert payload["talon:ns"] == "demo"
-    assert payload["talon:agent"] == "copilot"
-    assert payload["talon:channel"] == "chat"
+def test_authorization_header_formats_bearer_token() -> None:
+    token = "test-token"
     assert authorization_header(token) == f"Bearer {token}"
 
 
-def test_mint_jwt_requires_namespace_for_channel_scope() -> None:
+def test_authorization_header_requires_token() -> None:
     try:
-        mint_jwt("secret", JwtOptions(channel="chat"))
+        authorization_header(" ")
     except ValueError as error:
-        assert "namespace" in str(error)
+        assert "token is required" in str(error)
     else:
         raise AssertionError("expected ValueError")
-
-
-def _decode(segment: str) -> dict[str, object]:
-    padded = segment + "=" * (-len(segment) % 4)
-    return json.loads(base64.urlsafe_b64decode(padded).decode("utf-8"))

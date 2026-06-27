@@ -5,9 +5,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
-	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -45,16 +43,6 @@ type Options struct {
 	Env            map[string]string
 	StartupTimeout time.Duration
 	Provider       *Provider
-	JWTSecret      string
-}
-
-type JWTOptions struct {
-	Subject   string
-	TTL       time.Duration
-	Namespace string
-	Agent     string
-	Session   string
-	Channel   string
 }
 
 type Server struct {
@@ -185,9 +173,6 @@ func Start(ctx context.Context, opts Options) (*Server, error) {
 		"TALON_CONFIG_PATH="+configPath,
 		"RUST_LOG=info",
 	)
-	if opts.JWTSecret != "" {
-		cmd.Env = append(cmd.Env, "GATEWAY_JWT_SECRET="+opts.JWTSecret)
-	}
 	for k, v := range opts.Env {
 		cmd.Env = append(cmd.Env, k+"="+v)
 	}
@@ -208,81 +193,11 @@ func (s *Server) TempDir() string      { return s.tempDir }
 func (s *Server) ConfigPath() string   { return s.configPath }
 func (s *Server) Logs() string         { return s.logs.String() }
 
-func MintJWT(secret string, opts JWTOptions) (string, error) {
-	if secret == "" {
-		return "", errors.New("secret is required")
-	}
-	if opts.Subject == "" {
-		opts.Subject = "talon-sdk"
-	}
-	if strings.TrimSpace(opts.Subject) == "" {
-		return "", errors.New("subject is required")
-	}
-	if opts.TTL == 0 {
-		opts.TTL = time.Hour
-	}
-	if opts.TTL <= 0 {
-		return "", errors.New("ttl must be positive")
-	}
-	if opts.Channel != "" && opts.Namespace == "" {
-		return "", errors.New("channel-scoped JWTs require namespace")
-	}
-	claims := map[string]any{
-		"sub": opts.Subject,
-		"aud": "talon",
-		"exp": time.Now().Add(opts.TTL).Unix(),
-	}
-	if err := addJWTClaim(claims, "talon:ns", opts.Namespace); err != nil {
-		return "", err
-	}
-	if err := addJWTClaim(claims, "talon:agent", opts.Agent); err != nil {
-		return "", err
-	}
-	if err := addJWTClaim(claims, "talon:session", opts.Session); err != nil {
-		return "", err
-	}
-	if err := addJWTClaim(claims, "talon:channel", opts.Channel); err != nil {
-		return "", err
-	}
-
-	header, err := jwtSegment(map[string]string{"alg": "HS256", "typ": "JWT"})
-	if err != nil {
-		return "", err
-	}
-	payload, err := jwtSegment(claims)
-	if err != nil {
-		return "", err
-	}
-	message := header + "." + payload
-	mac := hmac.New(sha256.New, []byte(secret))
-	_, _ = mac.Write([]byte(message))
-	return message + "." + base64.RawURLEncoding.EncodeToString(mac.Sum(nil)), nil
-}
-
 func AuthorizationHeader(token string) (string, error) {
 	if strings.TrimSpace(token) == "" {
 		return "", errors.New("token is required")
 	}
 	return "Bearer " + token, nil
-}
-
-func addJWTClaim(claims map[string]any, key string, value string) error {
-	if value == "" {
-		return nil
-	}
-	if strings.TrimSpace(value) == "" {
-		return fmt.Errorf("%s must not be empty", key)
-	}
-	claims[key] = value
-	return nil
-}
-
-func jwtSegment(value any) (string, error) {
-	data, err := json.Marshal(value)
-	if err != nil {
-		return "", err
-	}
-	return base64.RawURLEncoding.EncodeToString(data), nil
 }
 
 func (s *Server) Stop() error {
