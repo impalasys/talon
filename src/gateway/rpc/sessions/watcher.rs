@@ -16,6 +16,8 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::net::UnixStream;
+use tokio::sync::mpsc;
+use tokio_util::sync::CancellationToken;
 use tonic::transport::{Channel, Endpoint, Uri};
 use tower::service_fn;
 use url::Url;
@@ -23,6 +25,7 @@ use url::Url;
 const SESSION_STREAM_LEASE_CHECK_MAX_MICROS: u64 = 5_000_000;
 const SESSION_STREAM_LEASE_CHECK_MIN_MICROS: u64 = 100_000;
 const WORKER_FANOUT_NOT_FOUND_RETRY_DELAY: Duration = Duration::from_millis(50);
+const SESSION_PART_PREFETCH_BUFFER: usize = 64;
 
 pub(crate) type SessionPartEventStream = Pin<
     Box<
@@ -48,20 +51,21 @@ pub(crate) fn session_parts_event_stream(
     kv: Arc<dyn KeyValueStore + Send + Sync>,
     pubsub: Arc<dyn MessagePublisher + Send + Sync>,
 ) -> SessionPartEventStream {
-    if targets.len() > 1 {
-        return batch_session_parts_event_stream(targets, kv, pubsub);
-    }
-
-    let mut streams: SelectAll<SessionPartEventStream> = SelectAll::new();
-    for target in targets {
-        streams.push(single_session_parts_event_stream(
-            target,
-            None,
-            kv.clone(),
-            pubsub.clone(),
-        ));
-    }
-    Box::pin(streams)
+    let stream = if targets.len() > 1 {
+        batch_session_parts_event_stream(targets, kv, pubsub)
+    } else {
+        let mut streams: SelectAll<SessionPartEventStream> = SelectAll::new();
+        for target in targets {
+            streams.push(single_session_parts_event_stream(
+                target,
+                None,
+                kv.clone(),
+                pubsub.clone(),
+            ));
+        }
+        Box::pin(streams)
+    };
+    eager_buffer_session_part_stream(stream)
 }
 
 pub(crate) fn session_submission_event_stream(
@@ -70,7 +74,47 @@ pub(crate) fn session_submission_event_stream(
     kv: Arc<dyn KeyValueStore + Send + Sync>,
     pubsub: Arc<dyn MessagePublisher + Send + Sync>,
 ) -> SessionPartEventStream {
-    single_session_parts_event_stream(target, Some(submission_id), kv, pubsub)
+    eager_buffer_session_part_stream(single_session_parts_event_stream(
+        target,
+        Some(submission_id),
+        kv,
+        pubsub,
+    ))
+}
+
+fn eager_buffer_session_part_stream(mut source: SessionPartEventStream) -> SessionPartEventStream {
+    let (sender, receiver) = mpsc::channel(SESSION_PART_PREFETCH_BUFFER);
+    let cancel = CancellationToken::new();
+    let task_cancel = cancel.clone();
+    tokio::spawn(async move {
+        loop {
+            let item = tokio::select! {
+                _ = task_cancel.cancelled() => break,
+                item = source.next() => item,
+            };
+            let Some(item) = item else {
+                break;
+            };
+            tokio::select! {
+                _ = task_cancel.cancelled() => break,
+                result = sender.send(item) => {
+                    if result.is_err() {
+                        break;
+                    }
+                }
+            }
+        }
+    });
+    let cancel_on_drop = cancel.drop_guard();
+    Box::pin(futures::stream::unfold(
+        (receiver, cancel_on_drop),
+        |(mut receiver, cancel_on_drop)| async move {
+            receiver
+                .recv()
+                .await
+                .map(|item| (item, (receiver, cancel_on_drop)))
+        },
+    ))
 }
 
 fn single_session_parts_event_stream(
@@ -738,8 +782,10 @@ mod tests {
     use super::*;
     use crate::control::events::SessionMessagePartEventKind;
     use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
+    use futures::StreamExt;
     use tempfile::tempdir;
     use tokio::net::UnixListener;
+    use tokio::sync::oneshot;
     use tokio_stream::wrappers::UnixListenerStream;
     use tokio_util::sync::CancellationToken;
     use tonic::transport::Server;
@@ -760,6 +806,36 @@ mod tests {
             ns: "ns".to_string(),
             message_id: "message-1".to_string(),
         }
+    }
+
+    #[tokio::test]
+    async fn eager_buffer_polls_and_buffers_before_consumer_poll() {
+        let (started_tx, started_rx) = oneshot::channel();
+        let (event_tx, event_rx) = oneshot::channel();
+        let source: SessionPartEventStream = Box::pin(async_stream::stream! {
+            let _ = started_tx.send(());
+            if let Ok(event) = event_rx.await {
+                yield Ok(event);
+            }
+        });
+
+        let mut stream = eager_buffer_session_part_stream(source);
+        tokio::time::timeout(Duration::from_secs(1), started_rx)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert!(event_tx
+            .send(part_event(SessionMessagePartEventKind::Delta, "prefetched"))
+            .is_ok());
+        tokio::time::sleep(Duration::from_millis(10)).await;
+
+        let event = tokio::time::timeout(Duration::from_secs(1), stream.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert_eq!(event.part.unwrap().content, "prefetched");
     }
 
     #[tokio::test]
