@@ -10,7 +10,7 @@ The files are organized by tutorial:
 
 Each example directory can include:
 
-- one or more manifest files for namespaces, templates, agents, and bindings
+- one or more manifest files for namespaces, templates, agents, and MCP servers
 - sample knowledge documents
 - notes about which runtime surfaces need additional setup
 

@@ -263,7 +263,6 @@ type ResourceSpec struct {
 	//	*ResourceSpec_Channel
 	//	*ResourceSpec_ChannelSubscription
 	//	*ResourceSpec_McpServer
-	//	*ResourceSpec_McpServerBinding
 	//	*ResourceSpec_Knowledge
 	//	*ResourceSpec_Namespace
 	//	*ResourceSpec_Session
@@ -368,15 +367,6 @@ func (x *ResourceSpec) GetMcpServer() *McpServerSpec {
 	if x != nil {
 		if x, ok := x.Kind.(*ResourceSpec_McpServer); ok {
 			return x.McpServer
-		}
-	}
-	return nil
-}
-
-func (x *ResourceSpec) GetMcpServerBinding() *McpServerBindingSpec {
-	if x != nil {
-		if x, ok := x.Kind.(*ResourceSpec_McpServerBinding); ok {
-			return x.McpServerBinding
 		}
 	}
 	return nil
@@ -527,10 +517,6 @@ type ResourceSpec_McpServer struct {
 	McpServer *McpServerSpec `protobuf:"bytes,6,opt,name=mcp_server,json=mcpServer,proto3,oneof"`
 }
 
-type ResourceSpec_McpServerBinding struct {
-	McpServerBinding *McpServerBindingSpec `protobuf:"bytes,7,opt,name=mcp_server_binding,json=mcpServerBinding,proto3,oneof"`
-}
-
 type ResourceSpec_Knowledge struct {
 	Knowledge *KnowledgeSpec `protobuf:"bytes,8,opt,name=knowledge,proto3,oneof"`
 }
@@ -595,8 +581,6 @@ func (*ResourceSpec_ChannelSubscription) isResourceSpec_Kind() {}
 
 func (*ResourceSpec_McpServer) isResourceSpec_Kind() {}
 
-func (*ResourceSpec_McpServerBinding) isResourceSpec_Kind() {}
-
 func (*ResourceSpec_Knowledge) isResourceSpec_Kind() {}
 
 func (*ResourceSpec_Namespace) isResourceSpec_Kind() {}
@@ -633,7 +617,6 @@ type ResourceStatus struct {
 	//	*ResourceStatus_Channel
 	//	*ResourceStatus_ChannelSubscription
 	//	*ResourceStatus_McpServer
-	//	*ResourceStatus_McpServerBinding
 	//	*ResourceStatus_Knowledge
 	//	*ResourceStatus_Namespace
 	//	*ResourceStatus_Session
@@ -738,15 +721,6 @@ func (x *ResourceStatus) GetMcpServer() *CommonResourceStatus {
 	if x != nil {
 		if x, ok := x.Kind.(*ResourceStatus_McpServer); ok {
 			return x.McpServer
-		}
-	}
-	return nil
-}
-
-func (x *ResourceStatus) GetMcpServerBinding() *CommonResourceStatus {
-	if x != nil {
-		if x, ok := x.Kind.(*ResourceStatus_McpServerBinding); ok {
-			return x.McpServerBinding
 		}
 	}
 	return nil
@@ -897,10 +871,6 @@ type ResourceStatus_McpServer struct {
 	McpServer *CommonResourceStatus `protobuf:"bytes,6,opt,name=mcp_server,json=mcpServer,proto3,oneof"`
 }
 
-type ResourceStatus_McpServerBinding struct {
-	McpServerBinding *CommonResourceStatus `protobuf:"bytes,7,opt,name=mcp_server_binding,json=mcpServerBinding,proto3,oneof"`
-}
-
 type ResourceStatus_Knowledge struct {
 	Knowledge *CommonResourceStatus `protobuf:"bytes,8,opt,name=knowledge,proto3,oneof"`
 }
@@ -965,8 +935,6 @@ func (*ResourceStatus_ChannelSubscription) isResourceStatus_Kind() {}
 
 func (*ResourceStatus_McpServer) isResourceStatus_Kind() {}
 
-func (*ResourceStatus_McpServerBinding) isResourceStatus_Kind() {}
-
 func (*ResourceStatus_Knowledge) isResourceStatus_Kind() {}
 
 func (*ResourceStatus_Namespace) isResourceStatus_Kind() {}
@@ -1014,7 +982,7 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\x0fRawResourceSpec\x12\x12\n" +
 	"\x04json\x18\x01 \x01(\tR\x04json\"'\n" +
 	"\x11RawResourceStatus\x12\x12\n" +
-	"\x04json\x18\x01 \x01(\tR\x04json\"\xc2\n" +
+	"\x04json\x18\x01 \x01(\tR\x04json\"\x85\n" +
 	"\n" +
 	"\fResourceSpec\x122\n" +
 	"\x05agent\x18\x01 \x01(\v2\x1a.talon.resources.AgentSpecH\x00R\x05agent\x12;\n" +
@@ -1023,8 +991,7 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\achannel\x18\x04 \x01(\v2\x1c.talon.resources.ChannelSpecH\x00R\achannel\x12]\n" +
 	"\x14channel_subscription\x18\x05 \x01(\v2(.talon.resources.ChannelSubscriptionSpecH\x00R\x13channelSubscription\x12?\n" +
 	"\n" +
-	"mcp_server\x18\x06 \x01(\v2\x1e.talon.resources.McpServerSpecH\x00R\tmcpServer\x12U\n" +
-	"\x12mcp_server_binding\x18\a \x01(\v2%.talon.resources.McpServerBindingSpecH\x00R\x10mcpServerBinding\x12>\n" +
+	"mcp_server\x18\x06 \x01(\v2\x1e.talon.resources.McpServerSpecH\x00R\tmcpServer\x12>\n" +
 	"\tknowledge\x18\b \x01(\v2\x1e.talon.resources.KnowledgeSpecH\x00R\tknowledge\x12>\n" +
 	"\tnamespace\x18\t \x01(\v2\x1e.talon.resources.NamespaceSpecH\x00R\tnamespace\x128\n" +
 	"\asession\x18\n" +
@@ -1041,7 +1008,8 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\x06worker\x182 \x01(\v2\x1b.talon.resources.WorkerSpecH\x00R\x06worker\x12E\n" +
 	"\fusage_policy\x18< \x01(\v2 .talon.resources.UsagePolicySpecH\x00R\vusagePolicy\x125\n" +
 	"\x03raw\x18\xe8\a \x01(\v2 .talon.resources.RawResourceSpecH\x00R\x03rawB\x06\n" +
-	"\x04kind\"\x81\v\n" +
+	"\x04kindJ\x04\b\a\x10\bR\x12mcp_server_binding\"\xc4\n" +
+	"\n" +
 	"\x0eResourceStatus\x124\n" +
 	"\x05agent\x18\x01 \x01(\v2\x1c.talon.resources.AgentStatusH\x00R\x05agent\x12=\n" +
 	"\bworkflow\x18\x02 \x01(\v2\x1f.talon.resources.WorkflowStatusH\x00R\bworkflow\x12=\n" +
@@ -1049,8 +1017,7 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\achannel\x18\x04 \x01(\v2\x1e.talon.resources.ChannelStatusH\x00R\achannel\x12Z\n" +
 	"\x14channel_subscription\x18\x05 \x01(\v2%.talon.resources.CommonResourceStatusH\x00R\x13channelSubscription\x12F\n" +
 	"\n" +
-	"mcp_server\x18\x06 \x01(\v2%.talon.resources.CommonResourceStatusH\x00R\tmcpServer\x12U\n" +
-	"\x12mcp_server_binding\x18\a \x01(\v2%.talon.resources.CommonResourceStatusH\x00R\x10mcpServerBinding\x12E\n" +
+	"mcp_server\x18\x06 \x01(\v2%.talon.resources.CommonResourceStatusH\x00R\tmcpServer\x12E\n" +
 	"\tknowledge\x18\b \x01(\v2%.talon.resources.CommonResourceStatusH\x00R\tknowledge\x12@\n" +
 	"\tnamespace\x18\t \x01(\v2 .talon.resources.NamespaceStatusH\x00R\tnamespace\x12:\n" +
 	"\asession\x18\n" +
@@ -1067,7 +1034,7 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\x06worker\x182 \x01(\v2\x1d.talon.resources.WorkerStatusH\x00R\x06worker\x12G\n" +
 	"\fusage_policy\x18< \x01(\v2\".talon.resources.UsagePolicyStatusH\x00R\vusagePolicy\x127\n" +
 	"\x03raw\x18\xe8\a \x01(\v2\".talon.resources.RawResourceStatusH\x00R\x03rawB\x06\n" +
-	"\x04kindb\x06proto3"
+	"\x04kindJ\x04\b\a\x10\bR\x12mcp_server_bindingb\x06proto3"
 
 var (
 	file_proto_resources_resource_proto_rawDescOnce sync.Once
@@ -1096,31 +1063,30 @@ var file_proto_resources_resource_proto_goTypes = []any{
 	(*ChannelSpec)(nil),             // 10: talon.resources.ChannelSpec
 	(*ChannelSubscriptionSpec)(nil), // 11: talon.resources.ChannelSubscriptionSpec
 	(*McpServerSpec)(nil),           // 12: talon.resources.McpServerSpec
-	(*McpServerBindingSpec)(nil),    // 13: talon.resources.McpServerBindingSpec
-	(*KnowledgeSpec)(nil),           // 14: talon.resources.KnowledgeSpec
-	(*NamespaceSpec)(nil),           // 15: talon.resources.NamespaceSpec
-	(*SessionSpec)(nil),             // 16: talon.resources.SessionSpec
-	(*SkillSpec)(nil),               // 17: talon.resources.SkillSpec
-	(*TemplateSpec)(nil),            // 18: talon.resources.TemplateSpec
-	(*DeploymentSpec)(nil),          // 19: talon.resources.DeploymentSpec
-	(*DeploymentReplicaSpec)(nil),   // 20: talon.resources.DeploymentReplicaSpec
-	(*SandboxClassSpec)(nil),        // 21: talon.resources.SandboxClassSpec
-	(*SandboxPolicySpec)(nil),       // 22: talon.resources.SandboxPolicySpec
-	(*SandboxSpec)(nil),             // 23: talon.resources.SandboxSpec
-	(*WorkerSpec)(nil),              // 24: talon.resources.WorkerSpec
-	(*UsagePolicySpec)(nil),         // 25: talon.resources.UsagePolicySpec
-	(*AgentStatus)(nil),             // 26: talon.resources.AgentStatus
-	(*WorkflowStatus)(nil),          // 27: talon.resources.WorkflowStatus
-	(*ScheduleStatus)(nil),          // 28: talon.resources.ScheduleStatus
-	(*ChannelStatus)(nil),           // 29: talon.resources.ChannelStatus
-	(*CommonResourceStatus)(nil),    // 30: talon.resources.CommonResourceStatus
-	(*NamespaceStatus)(nil),         // 31: talon.resources.NamespaceStatus
-	(*SessionStatus)(nil),           // 32: talon.resources.SessionStatus
-	(*DeploymentStatus)(nil),        // 33: talon.resources.DeploymentStatus
-	(*DeploymentReplicaStatus)(nil), // 34: talon.resources.DeploymentReplicaStatus
-	(*SandboxStatus)(nil),           // 35: talon.resources.SandboxStatus
-	(*WorkerStatus)(nil),            // 36: talon.resources.WorkerStatus
-	(*UsagePolicyStatus)(nil),       // 37: talon.resources.UsagePolicyStatus
+	(*KnowledgeSpec)(nil),           // 13: talon.resources.KnowledgeSpec
+	(*NamespaceSpec)(nil),           // 14: talon.resources.NamespaceSpec
+	(*SessionSpec)(nil),             // 15: talon.resources.SessionSpec
+	(*SkillSpec)(nil),               // 16: talon.resources.SkillSpec
+	(*TemplateSpec)(nil),            // 17: talon.resources.TemplateSpec
+	(*DeploymentSpec)(nil),          // 18: talon.resources.DeploymentSpec
+	(*DeploymentReplicaSpec)(nil),   // 19: talon.resources.DeploymentReplicaSpec
+	(*SandboxClassSpec)(nil),        // 20: talon.resources.SandboxClassSpec
+	(*SandboxPolicySpec)(nil),       // 21: talon.resources.SandboxPolicySpec
+	(*SandboxSpec)(nil),             // 22: talon.resources.SandboxSpec
+	(*WorkerSpec)(nil),              // 23: talon.resources.WorkerSpec
+	(*UsagePolicySpec)(nil),         // 24: talon.resources.UsagePolicySpec
+	(*AgentStatus)(nil),             // 25: talon.resources.AgentStatus
+	(*WorkflowStatus)(nil),          // 26: talon.resources.WorkflowStatus
+	(*ScheduleStatus)(nil),          // 27: talon.resources.ScheduleStatus
+	(*ChannelStatus)(nil),           // 28: talon.resources.ChannelStatus
+	(*CommonResourceStatus)(nil),    // 29: talon.resources.CommonResourceStatus
+	(*NamespaceStatus)(nil),         // 30: talon.resources.NamespaceStatus
+	(*SessionStatus)(nil),           // 31: talon.resources.SessionStatus
+	(*DeploymentStatus)(nil),        // 32: talon.resources.DeploymentStatus
+	(*DeploymentReplicaStatus)(nil), // 33: talon.resources.DeploymentReplicaStatus
+	(*SandboxStatus)(nil),           // 34: talon.resources.SandboxStatus
+	(*WorkerStatus)(nil),            // 35: talon.resources.WorkerStatus
+	(*UsagePolicyStatus)(nil),       // 36: talon.resources.UsagePolicyStatus
 }
 var file_proto_resources_resource_proto_depIdxs = []int32{
 	6,  // 0: talon.resources.Resource.metadata:type_name -> talon.resources.ResourceMeta
@@ -1134,45 +1100,43 @@ var file_proto_resources_resource_proto_depIdxs = []int32{
 	10, // 8: talon.resources.ResourceSpec.channel:type_name -> talon.resources.ChannelSpec
 	11, // 9: talon.resources.ResourceSpec.channel_subscription:type_name -> talon.resources.ChannelSubscriptionSpec
 	12, // 10: talon.resources.ResourceSpec.mcp_server:type_name -> talon.resources.McpServerSpec
-	13, // 11: talon.resources.ResourceSpec.mcp_server_binding:type_name -> talon.resources.McpServerBindingSpec
-	14, // 12: talon.resources.ResourceSpec.knowledge:type_name -> talon.resources.KnowledgeSpec
-	15, // 13: talon.resources.ResourceSpec.namespace:type_name -> talon.resources.NamespaceSpec
-	16, // 14: talon.resources.ResourceSpec.session:type_name -> talon.resources.SessionSpec
-	17, // 15: talon.resources.ResourceSpec.skill:type_name -> talon.resources.SkillSpec
-	18, // 16: talon.resources.ResourceSpec.template:type_name -> talon.resources.TemplateSpec
-	19, // 17: talon.resources.ResourceSpec.deployment:type_name -> talon.resources.DeploymentSpec
-	20, // 18: talon.resources.ResourceSpec.deployment_replica:type_name -> talon.resources.DeploymentReplicaSpec
-	21, // 19: talon.resources.ResourceSpec.sandbox_class:type_name -> talon.resources.SandboxClassSpec
-	22, // 20: talon.resources.ResourceSpec.sandbox_policy:type_name -> talon.resources.SandboxPolicySpec
-	23, // 21: talon.resources.ResourceSpec.sandbox:type_name -> talon.resources.SandboxSpec
-	24, // 22: talon.resources.ResourceSpec.worker:type_name -> talon.resources.WorkerSpec
-	25, // 23: talon.resources.ResourceSpec.usage_policy:type_name -> talon.resources.UsagePolicySpec
-	2,  // 24: talon.resources.ResourceSpec.raw:type_name -> talon.resources.RawResourceSpec
-	26, // 25: talon.resources.ResourceStatus.agent:type_name -> talon.resources.AgentStatus
-	27, // 26: talon.resources.ResourceStatus.workflow:type_name -> talon.resources.WorkflowStatus
-	28, // 27: talon.resources.ResourceStatus.schedule:type_name -> talon.resources.ScheduleStatus
-	29, // 28: talon.resources.ResourceStatus.channel:type_name -> talon.resources.ChannelStatus
-	30, // 29: talon.resources.ResourceStatus.channel_subscription:type_name -> talon.resources.CommonResourceStatus
-	30, // 30: talon.resources.ResourceStatus.mcp_server:type_name -> talon.resources.CommonResourceStatus
-	30, // 31: talon.resources.ResourceStatus.mcp_server_binding:type_name -> talon.resources.CommonResourceStatus
-	30, // 32: talon.resources.ResourceStatus.knowledge:type_name -> talon.resources.CommonResourceStatus
-	31, // 33: talon.resources.ResourceStatus.namespace:type_name -> talon.resources.NamespaceStatus
-	32, // 34: talon.resources.ResourceStatus.session:type_name -> talon.resources.SessionStatus
-	30, // 35: talon.resources.ResourceStatus.skill:type_name -> talon.resources.CommonResourceStatus
-	30, // 36: talon.resources.ResourceStatus.template:type_name -> talon.resources.CommonResourceStatus
-	33, // 37: talon.resources.ResourceStatus.deployment:type_name -> talon.resources.DeploymentStatus
-	34, // 38: talon.resources.ResourceStatus.deployment_replica:type_name -> talon.resources.DeploymentReplicaStatus
-	30, // 39: talon.resources.ResourceStatus.sandbox_class:type_name -> talon.resources.CommonResourceStatus
-	30, // 40: talon.resources.ResourceStatus.sandbox_policy:type_name -> talon.resources.CommonResourceStatus
-	35, // 41: talon.resources.ResourceStatus.sandbox:type_name -> talon.resources.SandboxStatus
-	36, // 42: talon.resources.ResourceStatus.worker:type_name -> talon.resources.WorkerStatus
-	37, // 43: talon.resources.ResourceStatus.usage_policy:type_name -> talon.resources.UsagePolicyStatus
-	3,  // 44: talon.resources.ResourceStatus.raw:type_name -> talon.resources.RawResourceStatus
-	45, // [45:45] is the sub-list for method output_type
-	45, // [45:45] is the sub-list for method input_type
-	45, // [45:45] is the sub-list for extension type_name
-	45, // [45:45] is the sub-list for extension extendee
-	0,  // [0:45] is the sub-list for field type_name
+	13, // 11: talon.resources.ResourceSpec.knowledge:type_name -> talon.resources.KnowledgeSpec
+	14, // 12: talon.resources.ResourceSpec.namespace:type_name -> talon.resources.NamespaceSpec
+	15, // 13: talon.resources.ResourceSpec.session:type_name -> talon.resources.SessionSpec
+	16, // 14: talon.resources.ResourceSpec.skill:type_name -> talon.resources.SkillSpec
+	17, // 15: talon.resources.ResourceSpec.template:type_name -> talon.resources.TemplateSpec
+	18, // 16: talon.resources.ResourceSpec.deployment:type_name -> talon.resources.DeploymentSpec
+	19, // 17: talon.resources.ResourceSpec.deployment_replica:type_name -> talon.resources.DeploymentReplicaSpec
+	20, // 18: talon.resources.ResourceSpec.sandbox_class:type_name -> talon.resources.SandboxClassSpec
+	21, // 19: talon.resources.ResourceSpec.sandbox_policy:type_name -> talon.resources.SandboxPolicySpec
+	22, // 20: talon.resources.ResourceSpec.sandbox:type_name -> talon.resources.SandboxSpec
+	23, // 21: talon.resources.ResourceSpec.worker:type_name -> talon.resources.WorkerSpec
+	24, // 22: talon.resources.ResourceSpec.usage_policy:type_name -> talon.resources.UsagePolicySpec
+	2,  // 23: talon.resources.ResourceSpec.raw:type_name -> talon.resources.RawResourceSpec
+	25, // 24: talon.resources.ResourceStatus.agent:type_name -> talon.resources.AgentStatus
+	26, // 25: talon.resources.ResourceStatus.workflow:type_name -> talon.resources.WorkflowStatus
+	27, // 26: talon.resources.ResourceStatus.schedule:type_name -> talon.resources.ScheduleStatus
+	28, // 27: talon.resources.ResourceStatus.channel:type_name -> talon.resources.ChannelStatus
+	29, // 28: talon.resources.ResourceStatus.channel_subscription:type_name -> talon.resources.CommonResourceStatus
+	29, // 29: talon.resources.ResourceStatus.mcp_server:type_name -> talon.resources.CommonResourceStatus
+	29, // 30: talon.resources.ResourceStatus.knowledge:type_name -> talon.resources.CommonResourceStatus
+	30, // 31: talon.resources.ResourceStatus.namespace:type_name -> talon.resources.NamespaceStatus
+	31, // 32: talon.resources.ResourceStatus.session:type_name -> talon.resources.SessionStatus
+	29, // 33: talon.resources.ResourceStatus.skill:type_name -> talon.resources.CommonResourceStatus
+	29, // 34: talon.resources.ResourceStatus.template:type_name -> talon.resources.CommonResourceStatus
+	32, // 35: talon.resources.ResourceStatus.deployment:type_name -> talon.resources.DeploymentStatus
+	33, // 36: talon.resources.ResourceStatus.deployment_replica:type_name -> talon.resources.DeploymentReplicaStatus
+	29, // 37: talon.resources.ResourceStatus.sandbox_class:type_name -> talon.resources.CommonResourceStatus
+	29, // 38: talon.resources.ResourceStatus.sandbox_policy:type_name -> talon.resources.CommonResourceStatus
+	34, // 39: talon.resources.ResourceStatus.sandbox:type_name -> talon.resources.SandboxStatus
+	35, // 40: talon.resources.ResourceStatus.worker:type_name -> talon.resources.WorkerStatus
+	36, // 41: talon.resources.ResourceStatus.usage_policy:type_name -> talon.resources.UsagePolicyStatus
+	3,  // 42: talon.resources.ResourceStatus.raw:type_name -> talon.resources.RawResourceStatus
+	43, // [43:43] is the sub-list for method output_type
+	43, // [43:43] is the sub-list for method input_type
+	43, // [43:43] is the sub-list for extension type_name
+	43, // [43:43] is the sub-list for extension extendee
+	0,  // [0:43] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_resource_proto_init() }
@@ -1201,7 +1165,6 @@ func file_proto_resources_resource_proto_init() {
 		(*ResourceSpec_Channel)(nil),
 		(*ResourceSpec_ChannelSubscription)(nil),
 		(*ResourceSpec_McpServer)(nil),
-		(*ResourceSpec_McpServerBinding)(nil),
 		(*ResourceSpec_Knowledge)(nil),
 		(*ResourceSpec_Namespace)(nil),
 		(*ResourceSpec_Session)(nil),
@@ -1223,7 +1186,6 @@ func file_proto_resources_resource_proto_init() {
 		(*ResourceStatus_Channel)(nil),
 		(*ResourceStatus_ChannelSubscription)(nil),
 		(*ResourceStatus_McpServer)(nil),
-		(*ResourceStatus_McpServerBinding)(nil),
 		(*ResourceStatus_Knowledge)(nil),
 		(*ResourceStatus_Namespace)(nil),
 		(*ResourceStatus_Session)(nil),

@@ -10,7 +10,7 @@ import { AgentSpec, AgentStatus } from "./agents_pb.js";
 import { WorkflowSpec, WorkflowStatus } from "./workflows_pb.js";
 import { ScheduleSpec, ScheduleStatus } from "./schedules_pb.js";
 import { ChannelSpec, ChannelStatus, ChannelSubscriptionSpec } from "./channels_pb.js";
-import { McpServerBindingSpec, McpServerSpec } from "./mcp_pb.js";
+import { McpServerSpec } from "./mcp_pb.js";
 import { KnowledgeSpec } from "./knowledge_pb.js";
 import { NamespaceSpec, NamespaceStatus } from "./namespaces_pb.js";
 import { SessionSpec, SessionStatus } from "./sessions_pb.js";
@@ -255,12 +255,6 @@ export class ResourceSpec extends Message<ResourceSpec> {
     case: "mcpServer";
   } | {
     /**
-     * @generated from field: talon.resources.McpServerBindingSpec mcp_server_binding = 7;
-     */
-    value: McpServerBindingSpec;
-    case: "mcpServerBinding";
-  } | {
-    /**
      * @generated from field: talon.resources.KnowledgeSpec knowledge = 8;
      */
     value: KnowledgeSpec;
@@ -353,7 +347,6 @@ export class ResourceSpec extends Message<ResourceSpec> {
     { no: 4, name: "channel", kind: "message", T: ChannelSpec, oneof: "kind" },
     { no: 5, name: "channel_subscription", kind: "message", T: ChannelSubscriptionSpec, oneof: "kind" },
     { no: 6, name: "mcp_server", kind: "message", T: McpServerSpec, oneof: "kind" },
-    { no: 7, name: "mcp_server_binding", kind: "message", T: McpServerBindingSpec, oneof: "kind" },
     { no: 8, name: "knowledge", kind: "message", T: KnowledgeSpec, oneof: "kind" },
     { no: 9, name: "namespace", kind: "message", T: NamespaceSpec, oneof: "kind" },
     { no: 10, name: "session", kind: "message", T: SessionSpec, oneof: "kind" },
@@ -429,12 +422,6 @@ export class ResourceStatus extends Message<ResourceStatus> {
      */
     value: CommonResourceStatus;
     case: "mcpServer";
-  } | {
-    /**
-     * @generated from field: talon.resources.CommonResourceStatus mcp_server_binding = 7;
-     */
-    value: CommonResourceStatus;
-    case: "mcpServerBinding";
   } | {
     /**
      * @generated from field: talon.resources.CommonResourceStatus knowledge = 8;
@@ -529,7 +516,6 @@ export class ResourceStatus extends Message<ResourceStatus> {
     { no: 4, name: "channel", kind: "message", T: ChannelStatus, oneof: "kind" },
     { no: 5, name: "channel_subscription", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 6, name: "mcp_server", kind: "message", T: CommonResourceStatus, oneof: "kind" },
-    { no: 7, name: "mcp_server_binding", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 8, name: "knowledge", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 9, name: "namespace", kind: "message", T: NamespaceStatus, oneof: "kind" },
     { no: 10, name: "session", kind: "message", T: SessionStatus, oneof: "kind" },

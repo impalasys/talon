@@ -1907,8 +1907,8 @@ mod tests {
     async fn push_webhook_dispatches_known_lifecycle_events() {
         let handler = handler_with_auth(SchedulerRequestAuthenticator::deny_all());
         let event = LifecycleEvent {
-            resource_type: "McpServerBinding".to_string(),
-            name: "binding-1".to_string(),
+            resource_type: "McpServer".to_string(),
+            name: "server-1".to_string(),
             ns: "default".to_string(),
             action: 1,
             timestamp: 123,

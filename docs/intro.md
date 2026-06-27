@@ -4,7 +4,7 @@ title: Introduction
 sidebar_position: 1
 ---
 
-Talon is an agent control plane. It gives you durable runtime state, operational APIs, worker execution, schedules, knowledge, MCP tool bindings, and a browser UI for inspection.
+Talon is an agent control plane. It gives you durable runtime state, operational APIs, worker execution, schedules, knowledge, namespace-scoped MCP tools, and a browser UI for inspection.
 
 If you are new to Talon, the fastest way to build the right mental model is:
 
@@ -21,11 +21,11 @@ If you are new to Talon, the fastest way to build the right mental model is:
 
 ## What Talon manages
 
-- **Namespaces**: tenancy and grouping for agents, sessions, schedules, knowledge, and MCP bindings
+- **Namespaces**: tenancy and grouping for agents, sessions, schedules, knowledge, and MCP servers
 - **Agent templates and agents**: reusable specs and runtime instances
 - **Sessions**: durable interaction state, persisted messages, and streamed execution steps
 - **Schedules**: recurring or one-shot dispatch into the worker runtime
-- **Knowledge and MCP bindings**: runtime context and tool surfaces
+- **Knowledge and MCP servers**: runtime context and tool surfaces
 - **Gateway and worker processes**: the control-plane API and execution engine
 - **Sightline**: a browser-native operator surface over the same runtime system
 

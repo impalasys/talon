@@ -1,0 +1,22 @@
+apiVersion: talon.impalasys.com/v1
+kind: McpServer
+metadata:
+  name: talon-ops
+  namespace: internal-ops
+spec:
+  transport: http
+  target: http://worker:8081/mcp/talon-ops?allowed_prefix=internal-ops&session_messages=1&channel_messages=1&max_limit=100&max_lookback_s=604800
+  args: []
+  headers: {}
+  disabled: false
+  policy:
+    tools:
+      allowlist:
+        - list_schedules
+        - get_schedule
+        - list_channels
+        - get_channel
+        - list_channel_messages
+        - get_channel_message
+        - list_mcp_servers
+        - get_mcp_server

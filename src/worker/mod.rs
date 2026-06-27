@@ -5,7 +5,7 @@ use crate::control::config::Config;
 use crate::control::resource_model::TypedResource;
 use crate::control::topics;
 use crate::control::ControlPlane;
-use crate::harness::mcp::{invalidate_all_broker_auth_cache, invalidate_broker_auth_cache};
+use crate::harness::mcp::invalidate_all_broker_auth_cache;
 use anyhow::{anyhow, Result};
 use prost::Message;
 use std::sync::Arc;
@@ -107,11 +107,6 @@ impl WorkerEventHandler {
         if event.resource_type == "McpServer" {
             self.mcp_registry.invalidate_all().await;
             invalidate_all_broker_auth_cache().await;
-        } else if event.resource_type == "McpServerBinding" {
-            self.mcp_registry
-                .invalidate(&event.ns, Some(&event.name))
-                .await;
-            invalidate_broker_auth_cache(&event.ns, Some(&event.name)).await;
         }
         Ok(())
     }
@@ -123,11 +118,6 @@ impl WorkerEventHandler {
         if event.resource_kind == "McpServer" {
             self.mcp_registry.invalidate_all().await;
             invalidate_all_broker_auth_cache().await;
-        } else if event.resource_kind == "McpServerBinding" {
-            self.mcp_registry
-                .invalidate(&event.namespace, Some(&event.name))
-                .await;
-            invalidate_broker_auth_cache(&event.namespace, Some(&event.name)).await;
         }
 
         crate::worker::controllers::controller::ControllerHost::new(
@@ -641,8 +631,8 @@ mod tests {
         );
 
         let lifecycle = LifecycleEvent {
-            resource_type: "McpServerBinding".to_string(),
-            name: "binding-1".to_string(),
+            resource_type: "McpServer".to_string(),
+            name: "server-1".to_string(),
             ns: "conic:test".to_string(),
             action: 1,
             timestamp: 123,

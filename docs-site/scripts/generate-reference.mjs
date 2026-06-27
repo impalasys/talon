@@ -76,7 +76,7 @@ await generateSchemaReference({
   title: "Resource Schemas",
   slug: "resource-schemas",
   intro:
-    "This page summarizes the control-plane resource messages that drive Talon agents, deployments, sandbox orchestration, MCP servers, bindings, schedules, workflows, and knowledge resources.",
+    "This page summarizes the control-plane resource messages that drive Talon agents, deployments, sandbox orchestration, MCP servers, schedules, workflows, and knowledge resources.",
 });
 
 async function generateGatewayReference() {
@@ -358,7 +358,7 @@ function classifyMethod(method) {
   if (path.includes("/knowledge")) return "Knowledge";
   if (path.includes("/sessions")) return "Sessions";
   if (path.includes("/templates")) return "Templates";
-  if (path.includes("/mcp-servers") || path.includes("/mcp-bindings")) return "MCP";
+  if (path.includes("/mcp-servers")) return "MCP";
   if (path.includes("/namespaces") && !path.includes("/agents")) return "Namespaces";
   if (path.includes("/agents")) return "Agents";
   return "Other";

@@ -34,7 +34,7 @@ pub(super) fn resource_lookup_target(
             name.to_string(),
         )),
         "mcpserver" | "mcpservers" | "mcp" => Ok((
-            crate::control::ns::TALON_SYSTEM.to_string(),
+            namespace.cloned().context("McpServer requires --namespace")?,
             "McpServer".to_string(),
             name.to_string(),
         )),
@@ -43,12 +43,6 @@ pub(super) fn resource_lookup_target(
             "Worker".to_string(),
             name.to_string(),
         )),
-        "mcpserverbinding" | "mcpbindings" | "mcpbinding" => {
-            let ns = namespace
-                .cloned()
-                .context("McpServerBinding requires --namespace")?;
-            Ok((ns, "McpServerBinding".to_string(), name.to_string()))
-        }
         "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
             let ns = namespace.cloned().context("Knowledge requires --namespace")?;
             Ok((ns, "Knowledge".to_string(), name.to_string()))

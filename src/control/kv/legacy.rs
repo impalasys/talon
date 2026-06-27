@@ -57,8 +57,7 @@ pub(super) fn namespaced_key(namespace: &str, key: &str) -> Result<String> {
             .canonical())
         }
         ["Schedule", name] => Ok(keys::schedule(namespace, name).canonical()),
-        ["McpServer", name] => Ok(keys::mcp_server(name).canonical()),
-        ["McpServerBinding", name] => Ok(keys::mcp_server_binding(namespace, name).canonical()),
+        ["McpServer", name] => Ok(keys::mcp_server(namespace, name).canonical()),
         ["KnowledgeResource", rest @ ..] if !rest.is_empty() => {
             Ok(keys::knowledge_resource(namespace, &rest.join("/")).canonical())
         }

@@ -99,16 +99,12 @@ fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<Resour
             kind: Some("Template".to_string()),
         }),
         "mcpserver" | "mcpservers" | "mcp" => Ok(ResourceListTarget::Resources {
-            ns: system_ns(),
+            ns: ns_or_default(),
             kind: Some("McpServer".to_string()),
         }),
         "worker" | "workers" => Ok(ResourceListTarget::Resources {
             ns: system_ns(),
             kind: Some("Worker".to_string()),
-        }),
-        "mcpserverbinding" | "mcpbindings" | "mcpbinding" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("McpServerBinding".to_string()),
         }),
         "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
             Ok(ResourceListTarget::Resources {
@@ -397,7 +393,6 @@ fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String>
         StatusKind::Channel(status) => Some(status.phase.clone()),
         StatusKind::ChannelSubscription(status)
         | StatusKind::McpServer(status)
-        | StatusKind::McpServerBinding(status)
         | StatusKind::Knowledge(status)
         | StatusKind::Skill(status)
         | StatusKind::Template(status)

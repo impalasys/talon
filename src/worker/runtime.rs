@@ -267,11 +267,11 @@ fn visible_tools_for_agent(
     tools: &[crate::harness::mcp::McpTool],
     spec: &manifests::AgentSpec,
 ) -> Vec<crate::harness::mcp::McpTool> {
-    let binding_name = config
-        .binding_name
+    let mcp_server_name = config
+        .mcp_server_name
         .as_deref()
         .unwrap_or(&config.server_name);
-    if binding_name != "talon-ops" {
+    if mcp_server_name != "talon-ops" {
         return tools.to_vec();
     }
 
@@ -355,7 +355,7 @@ fn qualify_mcp_tool_name(
     tool_name: &str,
 ) -> String {
     let prefix = config
-        .binding_name
+        .mcp_server_name
         .as_deref()
         .unwrap_or(&config.server_name);
     format!(
@@ -584,7 +584,7 @@ mod tests {
         }
     }
 
-    fn config(server_name: &str, binding_name: Option<&str>) -> McpConnectionConfig {
+    fn config(server_name: &str, mcp_server_name: Option<&str>) -> McpConnectionConfig {
         McpConnectionConfig {
             server_name: server_name.to_string(),
             server_ref: server_name.to_string(),
@@ -594,7 +594,7 @@ mod tests {
             headers: HashMap::new(),
             disabled: false,
             namespace: None,
-            binding_name: binding_name.map(str::to_string),
+            mcp_server_name: mcp_server_name.map(str::to_string),
             agent_name: None,
             auth_broker: None,
         }
@@ -682,7 +682,7 @@ mod tests {
     }
 
     #[test]
-    fn qualify_mcp_tool_name_uses_binding_name_when_present() {
+    fn qualify_mcp_tool_name_uses_mcp_server_name_when_present() {
         let qualified = qualify_mcp_tool_name(
             &config("github", Some("workspace-gh")),
             "search_repositories",
@@ -787,7 +787,7 @@ mod tests {
     }
 
     #[test]
-    fn visible_tools_for_non_talon_ops_binding_returns_all_tools() {
+    fn visible_tools_for_non_talon_ops_server_returns_all_tools() {
         let tools = vec![tool("list_schedules"), tool("custom_tool")];
         let visible = visible_tools_for_agent(
             &config("github", Some("github")),
@@ -799,7 +799,7 @@ mod tests {
     }
 
     #[test]
-    fn visible_tools_for_talon_ops_binding_filters_by_capabilities() {
+    fn visible_tools_for_talon_ops_server_filters_by_capabilities() {
         let tools = vec![
             tool("list_schedules"),
             tool("create_schedule"),

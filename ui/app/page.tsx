@@ -74,7 +74,6 @@ const RESOURCE_KIND_BY_SELECTION: Partial<Record<Selection['type'], string>> = {
   'sandbox-policy': 'SandboxPolicy',
   sandbox: 'Sandbox',
   'mcp-server': 'McpServer',
-  'mcp-binding': 'McpServerBinding',
   knowledge: 'Knowledge',
 };
 
@@ -190,15 +189,6 @@ function selectionFromSearchParams(searchParams: URLSearchParams): Selection | n
     };
   }
 
-  if (type === 'mcp-server' && resourceName) {
-    return {
-      type: 'mcp-server',
-      ns: 'Sys',
-      resourceName,
-      fullPath: `mcp/${resourceName}`,
-    };
-  }
-
   if (!ns) return null;
 
   if (sessionId && agent) {
@@ -250,12 +240,12 @@ function selectionFromSearchParams(searchParams: URLSearchParams): Selection | n
     };
   }
 
-  if (type === 'mcp-binding' && resourceName) {
+  if (type === 'mcp-server' && resourceName) {
     return {
-      type: 'mcp-binding',
+      type: 'mcp-server',
       ns,
       resourceName,
-      fullPath: `${ns}:mcp-binding:${resourceName}`,
+      fullPath: `${ns}:mcp-server:${resourceName}`,
     };
   }
 
@@ -352,7 +342,7 @@ function getSelectionSubtitle(selection: Selection | null) {
   if (selection.type === 'channel-subscription') return `${selection.ns} / ${selection.channel} / ChannelSubscription`;
   if (selection.type === 'workflow') return `${selection.ns} / Workflow`;
   if (selection.type === 'schedule') return `${selection.ns} / Schedule`;
-  if (selection.type === 'mcp-binding') return `${selection.ns} / MCP Binding`;
+  if (selection.type === 'mcp-server') return `${selection.ns} / MCPServer`;
   if (selection.type === 'knowledge') return `${selection.ns} / Knowledge`;
   if (selection.type === 'template') return `${selection.ns} / Template`;
   if (selection.type === 'deployment') return `${selection.ns} / Deployment`;
@@ -379,7 +369,7 @@ function selectionIcon(selection: Selection | null) {
   if (selection.type === 'channel-subscription') return <Radio className="w-4 h-4 text-cyan-300" />;
   if (selection.type === 'workflow') return <Activity className="w-4 h-4 text-purple-400" />;
   if (selection.type === 'schedule') return <Clock3 className="w-4 h-4 text-amber-500" />;
-  if (selection.type === 'mcp-binding') return <Plug className="w-4 h-4 text-blue-500" />;
+  if (selection.type === 'mcp-server') return <Plug className="w-4 h-4 text-blue-500" />;
   if (selection.type === 'knowledge') return <FileText className="w-4 h-4 text-violet-400" />;
   if (selection.type === 'template') return <FileText className="w-4 h-4 text-emerald-500" />;
   if (selection.type === 'deployment') return <Layers3 className="w-4 h-4 text-indigo-400" />;
@@ -1236,12 +1226,11 @@ function DebuggerPageContent() {
           case 'sandbox-policy':
           case 'sandbox':
           case 'mcp-server':
-          case 'mcp-binding':
           case 'knowledge': {
             const kind = RESOURCE_KIND_BY_SELECTION[selection.type];
             if (!kind) throw new Error(`Unsupported resource selection '${selection.type}'`);
             document = (await getGatewayClient().resources.get({
-              ns: selection.type === 'mcp-server' ? SYSTEM_NAMESPACE : selection.ns,
+              ns: selection.ns,
               kind,
               name: selection.resourceName || '',
             })).resource;

@@ -42,26 +42,6 @@ pub fn render_mcp_server_yaml(server: &manifests::McpServer) -> Result<String> {
     serde_yaml::to_string(&yaml_server).context("Failed to serialize MCPServer to YAML")
 }
 
-pub fn render_mcp_server_binding_yaml(binding: &manifests::McpServerBinding) -> Result<String> {
-    let metadata = binding
-        .metadata
-        .as_ref()
-        .ok_or_else(|| anyhow!("McpServerBinding missing metadata"))?;
-    let spec = binding
-        .spec
-        .as_ref()
-        .ok_or_else(|| anyhow!("McpServerBinding missing spec"))?;
-
-    let yaml_binding = McpServerBindingManifest {
-        api_version: "talon.impalasys.com/v1".to_string(),
-        kind: "McpServerBinding".to_string(),
-        metadata: ObjectMetaManifest::from_proto(metadata),
-        spec: McpServerBindingSpecManifest::from_proto(spec),
-    };
-
-    serde_yaml::to_string(&yaml_binding).context("Failed to serialize McpServerBinding to YAML")
-}
-
 pub fn render_namespace_yaml(namespace: &resources_proto::Namespace) -> Result<String> {
     let yaml_namespace = NamespaceManifest {
         api_version: "talon.impalasys.com/v1".to_string(),

@@ -88,6 +88,8 @@ type McpServerSpec struct {
 	Args          []string               `protobuf:"bytes,3,rep,name=args,proto3" json:"args,omitempty"`
 	Headers       map[string]string      `protobuf:"bytes,4,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Disabled      bool                   `protobuf:"varint,5,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	AuthBroker    *McpAuthBrokerSpec     `protobuf:"bytes,6,opt,name=auth_broker,json=authBroker,proto3" json:"auth_broker,omitempty"`
+	Policy        *McpServerPolicy       `protobuf:"bytes,7,opt,name=policy,proto3" json:"policy,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -157,146 +159,16 @@ func (x *McpServerSpec) GetDisabled() bool {
 	return false
 }
 
-type McpServerBinding struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Spec          *McpServerBindingSpec  `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
-	Status        *CommonResourceStatus  `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *McpServerBinding) Reset() {
-	*x = McpServerBinding{}
-	mi := &file_proto_resources_mcp_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *McpServerBinding) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*McpServerBinding) ProtoMessage() {}
-
-func (x *McpServerBinding) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_mcp_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use McpServerBinding.ProtoReflect.Descriptor instead.
-func (*McpServerBinding) Descriptor() ([]byte, []int) {
-	return file_proto_resources_mcp_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *McpServerBinding) GetMetadata() *ResourceMeta {
-	if x != nil {
-		return x.Metadata
-	}
-	return nil
-}
-
-func (x *McpServerBinding) GetSpec() *McpServerBindingSpec {
-	if x != nil {
-		return x.Spec
-	}
-	return nil
-}
-
-func (x *McpServerBinding) GetStatus() *CommonResourceStatus {
-	if x != nil {
-		return x.Status
-	}
-	return nil
-}
-
-type McpServerBindingSpec struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	ServerRef        string                 `protobuf:"bytes,1,opt,name=server_ref,json=serverRef,proto3" json:"server_ref,omitempty"`
-	Args             []string               `protobuf:"bytes,2,rep,name=args,proto3" json:"args,omitempty"`
-	Headers          map[string]string      `protobuf:"bytes,3,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Disabled         bool                   `protobuf:"varint,4,opt,name=disabled,proto3" json:"disabled,omitempty"`
-	AuthBroker       *McpAuthBrokerSpec     `protobuf:"bytes,5,opt,name=auth_broker,json=authBroker,proto3" json:"auth_broker,omitempty"`
-	AllowedToolNames []string               `protobuf:"bytes,6,rep,name=allowed_tool_names,json=allowedToolNames,proto3" json:"allowed_tool_names,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
-}
-
-func (x *McpServerBindingSpec) Reset() {
-	*x = McpServerBindingSpec{}
-	mi := &file_proto_resources_mcp_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *McpServerBindingSpec) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*McpServerBindingSpec) ProtoMessage() {}
-
-func (x *McpServerBindingSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_mcp_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use McpServerBindingSpec.ProtoReflect.Descriptor instead.
-func (*McpServerBindingSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_mcp_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *McpServerBindingSpec) GetServerRef() string {
-	if x != nil {
-		return x.ServerRef
-	}
-	return ""
-}
-
-func (x *McpServerBindingSpec) GetArgs() []string {
-	if x != nil {
-		return x.Args
-	}
-	return nil
-}
-
-func (x *McpServerBindingSpec) GetHeaders() map[string]string {
-	if x != nil {
-		return x.Headers
-	}
-	return nil
-}
-
-func (x *McpServerBindingSpec) GetDisabled() bool {
-	if x != nil {
-		return x.Disabled
-	}
-	return false
-}
-
-func (x *McpServerBindingSpec) GetAuthBroker() *McpAuthBrokerSpec {
+func (x *McpServerSpec) GetAuthBroker() *McpAuthBrokerSpec {
 	if x != nil {
 		return x.AuthBroker
 	}
 	return nil
 }
 
-func (x *McpServerBindingSpec) GetAllowedToolNames() []string {
+func (x *McpServerSpec) GetPolicy() *McpServerPolicy {
 	if x != nil {
-		return x.AllowedToolNames
+		return x.Policy
 	}
 	return nil
 }
@@ -313,7 +185,7 @@ type McpAuthBrokerSpec struct {
 
 func (x *McpAuthBrokerSpec) Reset() {
 	*x = McpAuthBrokerSpec{}
-	mi := &file_proto_resources_mcp_proto_msgTypes[4]
+	mi := &file_proto_resources_mcp_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -325,7 +197,7 @@ func (x *McpAuthBrokerSpec) String() string {
 func (*McpAuthBrokerSpec) ProtoMessage() {}
 
 func (x *McpAuthBrokerSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_mcp_proto_msgTypes[4]
+	mi := &file_proto_resources_mcp_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -338,7 +210,7 @@ func (x *McpAuthBrokerSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use McpAuthBrokerSpec.ProtoReflect.Descriptor instead.
 func (*McpAuthBrokerSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_mcp_proto_rawDescGZIP(), []int{4}
+	return file_proto_resources_mcp_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *McpAuthBrokerSpec) GetKind() string {
@@ -369,6 +241,94 @@ func (x *McpAuthBrokerSpec) GetAudience() string {
 	return ""
 }
 
+type McpServerPolicy struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tools         *McpToolPolicy         `protobuf:"bytes,1,opt,name=tools,proto3" json:"tools,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *McpServerPolicy) Reset() {
+	*x = McpServerPolicy{}
+	mi := &file_proto_resources_mcp_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *McpServerPolicy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*McpServerPolicy) ProtoMessage() {}
+
+func (x *McpServerPolicy) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_mcp_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use McpServerPolicy.ProtoReflect.Descriptor instead.
+func (*McpServerPolicy) Descriptor() ([]byte, []int) {
+	return file_proto_resources_mcp_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *McpServerPolicy) GetTools() *McpToolPolicy {
+	if x != nil {
+		return x.Tools
+	}
+	return nil
+}
+
+type McpToolPolicy struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Allowlist     []string               `protobuf:"bytes,1,rep,name=allowlist,proto3" json:"allowlist,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *McpToolPolicy) Reset() {
+	*x = McpToolPolicy{}
+	mi := &file_proto_resources_mcp_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *McpToolPolicy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*McpToolPolicy) ProtoMessage() {}
+
+func (x *McpToolPolicy) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_mcp_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use McpToolPolicy.ProtoReflect.Descriptor instead.
+func (*McpToolPolicy) Descriptor() ([]byte, []int) {
+	return file_proto_resources_mcp_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *McpToolPolicy) GetAllowlist() []string {
+	if x != nil {
+		return x.Allowlist
+	}
+	return nil
+}
+
 var File_proto_resources_mcp_proto protoreflect.FileDescriptor
 
 const file_proto_resources_mcp_proto_rawDesc = "" +
@@ -377,29 +337,16 @@ const file_proto_resources_mcp_proto_rawDesc = "" +
 	"\tMcpServer\x129\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x122\n" +
 	"\x04spec\x18\x02 \x01(\v2\x1e.talon.resources.McpServerSpecR\x04spec\x12=\n" +
-	"\x06status\x18\x03 \x01(\v2%.talon.resources.CommonResourceStatusR\x06status\"\xf8\x01\n" +
+	"\x06status\x18\x03 \x01(\v2%.talon.resources.CommonResourceStatusR\x06status\"\xf7\x02\n" +
 	"\rMcpServerSpec\x12\x1c\n" +
 	"\ttransport\x18\x01 \x01(\tR\ttransport\x12\x16\n" +
 	"\x06target\x18\x02 \x01(\tR\x06target\x12\x12\n" +
 	"\x04args\x18\x03 \x03(\tR\x04args\x12E\n" +
 	"\aheaders\x18\x04 \x03(\v2+.talon.resources.McpServerSpec.HeadersEntryR\aheaders\x12\x1a\n" +
-	"\bdisabled\x18\x05 \x01(\bR\bdisabled\x1a:\n" +
-	"\fHeadersEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc7\x01\n" +
-	"\x10McpServerBinding\x129\n" +
-	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x129\n" +
-	"\x04spec\x18\x02 \x01(\v2%.talon.resources.McpServerBindingSpecR\x04spec\x12=\n" +
-	"\x06status\x18\x03 \x01(\v2%.talon.resources.CommonResourceStatusR\x06status\"\xe2\x02\n" +
-	"\x14McpServerBindingSpec\x12\x1d\n" +
-	"\n" +
-	"server_ref\x18\x01 \x01(\tR\tserverRef\x12\x12\n" +
-	"\x04args\x18\x02 \x03(\tR\x04args\x12L\n" +
-	"\aheaders\x18\x03 \x03(\v22.talon.resources.McpServerBindingSpec.HeadersEntryR\aheaders\x12\x1a\n" +
-	"\bdisabled\x18\x04 \x01(\bR\bdisabled\x12C\n" +
-	"\vauth_broker\x18\x05 \x01(\v2\".talon.resources.McpAuthBrokerSpecR\n" +
-	"authBroker\x12,\n" +
-	"\x12allowed_tool_names\x18\x06 \x03(\tR\x10allowedToolNames\x1a:\n" +
+	"\bdisabled\x18\x05 \x01(\bR\bdisabled\x12C\n" +
+	"\vauth_broker\x18\x06 \x01(\v2\".talon.resources.McpAuthBrokerSpecR\n" +
+	"authBroker\x128\n" +
+	"\x06policy\x18\a \x01(\v2 .talon.resources.McpServerPolicyR\x06policy\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x81\x01\n" +
@@ -407,7 +354,11 @@ const file_proto_resources_mcp_proto_rawDesc = "" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x10\n" +
 	"\x03url\x18\x02 \x01(\tR\x03url\x12*\n" +
 	"\x11cache_ttl_seconds\x18\x03 \x01(\x05R\x0fcacheTtlSeconds\x12\x1a\n" +
-	"\baudience\x18\x04 \x01(\tR\baudienceb\x06proto3"
+	"\baudience\x18\x04 \x01(\tR\baudience\"G\n" +
+	"\x0fMcpServerPolicy\x124\n" +
+	"\x05tools\x18\x01 \x01(\v2\x1e.talon.resources.McpToolPolicyR\x05tools\"-\n" +
+	"\rMcpToolPolicy\x12\x1c\n" +
+	"\tallowlist\x18\x01 \x03(\tR\tallowlistb\x06proto3"
 
 var (
 	file_proto_resources_mcp_proto_rawDescOnce sync.Once
@@ -421,33 +372,30 @@ func file_proto_resources_mcp_proto_rawDescGZIP() []byte {
 	return file_proto_resources_mcp_proto_rawDescData
 }
 
-var file_proto_resources_mcp_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_resources_mcp_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_resources_mcp_proto_goTypes = []any{
 	(*McpServer)(nil),            // 0: talon.resources.McpServer
 	(*McpServerSpec)(nil),        // 1: talon.resources.McpServerSpec
-	(*McpServerBinding)(nil),     // 2: talon.resources.McpServerBinding
-	(*McpServerBindingSpec)(nil), // 3: talon.resources.McpServerBindingSpec
-	(*McpAuthBrokerSpec)(nil),    // 4: talon.resources.McpAuthBrokerSpec
+	(*McpAuthBrokerSpec)(nil),    // 2: talon.resources.McpAuthBrokerSpec
+	(*McpServerPolicy)(nil),      // 3: talon.resources.McpServerPolicy
+	(*McpToolPolicy)(nil),        // 4: talon.resources.McpToolPolicy
 	nil,                          // 5: talon.resources.McpServerSpec.HeadersEntry
-	nil,                          // 6: talon.resources.McpServerBindingSpec.HeadersEntry
-	(*ResourceMeta)(nil),         // 7: talon.resources.ResourceMeta
-	(*CommonResourceStatus)(nil), // 8: talon.resources.CommonResourceStatus
+	(*ResourceMeta)(nil),         // 6: talon.resources.ResourceMeta
+	(*CommonResourceStatus)(nil), // 7: talon.resources.CommonResourceStatus
 }
 var file_proto_resources_mcp_proto_depIdxs = []int32{
-	7, // 0: talon.resources.McpServer.metadata:type_name -> talon.resources.ResourceMeta
+	6, // 0: talon.resources.McpServer.metadata:type_name -> talon.resources.ResourceMeta
 	1, // 1: talon.resources.McpServer.spec:type_name -> talon.resources.McpServerSpec
-	8, // 2: talon.resources.McpServer.status:type_name -> talon.resources.CommonResourceStatus
+	7, // 2: talon.resources.McpServer.status:type_name -> talon.resources.CommonResourceStatus
 	5, // 3: talon.resources.McpServerSpec.headers:type_name -> talon.resources.McpServerSpec.HeadersEntry
-	7, // 4: talon.resources.McpServerBinding.metadata:type_name -> talon.resources.ResourceMeta
-	3, // 5: talon.resources.McpServerBinding.spec:type_name -> talon.resources.McpServerBindingSpec
-	8, // 6: talon.resources.McpServerBinding.status:type_name -> talon.resources.CommonResourceStatus
-	6, // 7: talon.resources.McpServerBindingSpec.headers:type_name -> talon.resources.McpServerBindingSpec.HeadersEntry
-	4, // 8: talon.resources.McpServerBindingSpec.auth_broker:type_name -> talon.resources.McpAuthBrokerSpec
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	9, // [9:9] is the sub-list for extension type_name
-	9, // [9:9] is the sub-list for extension extendee
-	0, // [0:9] is the sub-list for field type_name
+	2, // 4: talon.resources.McpServerSpec.auth_broker:type_name -> talon.resources.McpAuthBrokerSpec
+	3, // 5: talon.resources.McpServerSpec.policy:type_name -> talon.resources.McpServerPolicy
+	4, // 6: talon.resources.McpServerPolicy.tools:type_name -> talon.resources.McpToolPolicy
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_mcp_proto_init() }
@@ -462,7 +410,7 @@ func file_proto_resources_mcp_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_mcp_proto_rawDesc), len(file_proto_resources_mcp_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

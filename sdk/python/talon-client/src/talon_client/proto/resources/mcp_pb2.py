@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from talon_client.proto.resources import common_pb2 as proto_dot_resources_dot_common__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19proto/resources/mcp.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\xa1\x01\n\tMcpServer\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12,\n\x04spec\x18\x02 \x01(\x0b\x32\x1e.talon.resources.McpServerSpec\x12\x35\n\x06status\x18\x03 \x01(\x0b\x32%.talon.resources.CommonResourceStatus\"\xc0\x01\n\rMcpServerSpec\x12\x11\n\ttransport\x18\x01 \x01(\t\x12\x0e\n\x06target\x18\x02 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x03 \x03(\t\x12<\n\x07headers\x18\x04 \x03(\x0b\x32+.talon.resources.McpServerSpec.HeadersEntry\x12\x10\n\x08\x64isabled\x18\x05 \x01(\x08\x1a.\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xaf\x01\n\x10McpServerBinding\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12\x33\n\x04spec\x18\x02 \x01(\x0b\x32%.talon.resources.McpServerBindingSpec\x12\x35\n\x06status\x18\x03 \x01(\x0b\x32%.talon.resources.CommonResourceStatus\"\x94\x02\n\x14McpServerBindingSpec\x12\x12\n\nserver_ref\x18\x01 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x02 \x03(\t\x12\x43\n\x07headers\x18\x03 \x03(\x0b\x32\x32.talon.resources.McpServerBindingSpec.HeadersEntry\x12\x10\n\x08\x64isabled\x18\x04 \x01(\x08\x12\x37\n\x0b\x61uth_broker\x18\x05 \x01(\x0b\x32\".talon.resources.McpAuthBrokerSpec\x12\x1a\n\x12\x61llowed_tool_names\x18\x06 \x03(\t\x1a.\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"[\n\x11McpAuthBrokerSpec\x12\x0c\n\x04kind\x18\x01 \x01(\t\x12\x0b\n\x03url\x18\x02 \x01(\t\x12\x19\n\x11\x63\x61\x63he_ttl_seconds\x18\x03 \x01(\x05\x12\x10\n\x08\x61udience\x18\x04 \x01(\tb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19proto/resources/mcp.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\xa1\x01\n\tMcpServer\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12,\n\x04spec\x18\x02 \x01(\x0b\x32\x1e.talon.resources.McpServerSpec\x12\x35\n\x06status\x18\x03 \x01(\x0b\x32%.talon.resources.CommonResourceStatus\"\xab\x02\n\rMcpServerSpec\x12\x11\n\ttransport\x18\x01 \x01(\t\x12\x0e\n\x06target\x18\x02 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x03 \x03(\t\x12<\n\x07headers\x18\x04 \x03(\x0b\x32+.talon.resources.McpServerSpec.HeadersEntry\x12\x10\n\x08\x64isabled\x18\x05 \x01(\x08\x12\x37\n\x0b\x61uth_broker\x18\x06 \x01(\x0b\x32\".talon.resources.McpAuthBrokerSpec\x12\x30\n\x06policy\x18\x07 \x01(\x0b\x32 .talon.resources.McpServerPolicy\x1a.\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"[\n\x11McpAuthBrokerSpec\x12\x0c\n\x04kind\x18\x01 \x01(\t\x12\x0b\n\x03url\x18\x02 \x01(\t\x12\x19\n\x11\x63\x61\x63he_ttl_seconds\x18\x03 \x01(\x05\x12\x10\n\x08\x61udience\x18\x04 \x01(\t\"@\n\x0fMcpServerPolicy\x12-\n\x05tools\x18\x01 \x01(\x0b\x32\x1e.talon.resources.McpToolPolicy\"\"\n\rMcpToolPolicy\x12\x11\n\tallowlist\x18\x01 \x03(\tb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,20 +34,16 @@ if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_MCPSERVERSPEC_HEADERSENTRY']._loaded_options = None
   _globals['_MCPSERVERSPEC_HEADERSENTRY']._serialized_options = b'8\001'
-  _globals['_MCPSERVERBINDINGSPEC_HEADERSENTRY']._loaded_options = None
-  _globals['_MCPSERVERBINDINGSPEC_HEADERSENTRY']._serialized_options = b'8\001'
   _globals['_MCPSERVER']._serialized_start=77
   _globals['_MCPSERVER']._serialized_end=238
   _globals['_MCPSERVERSPEC']._serialized_start=241
-  _globals['_MCPSERVERSPEC']._serialized_end=433
-  _globals['_MCPSERVERSPEC_HEADERSENTRY']._serialized_start=387
-  _globals['_MCPSERVERSPEC_HEADERSENTRY']._serialized_end=433
-  _globals['_MCPSERVERBINDING']._serialized_start=436
-  _globals['_MCPSERVERBINDING']._serialized_end=611
-  _globals['_MCPSERVERBINDINGSPEC']._serialized_start=614
-  _globals['_MCPSERVERBINDINGSPEC']._serialized_end=890
-  _globals['_MCPSERVERBINDINGSPEC_HEADERSENTRY']._serialized_start=387
-  _globals['_MCPSERVERBINDINGSPEC_HEADERSENTRY']._serialized_end=433
-  _globals['_MCPAUTHBROKERSPEC']._serialized_start=892
-  _globals['_MCPAUTHBROKERSPEC']._serialized_end=983
+  _globals['_MCPSERVERSPEC']._serialized_end=540
+  _globals['_MCPSERVERSPEC_HEADERSENTRY']._serialized_start=494
+  _globals['_MCPSERVERSPEC_HEADERSENTRY']._serialized_end=540
+  _globals['_MCPAUTHBROKERSPEC']._serialized_start=542
+  _globals['_MCPAUTHBROKERSPEC']._serialized_end=633
+  _globals['_MCPSERVERPOLICY']._serialized_start=635
+  _globals['_MCPSERVERPOLICY']._serialized_end=699
+  _globals['_MCPTOOLPOLICY']._serialized_start=701
+  _globals['_MCPTOOLPOLICY']._serialized_end=735
 # @@protoc_insertion_point(module_scope)

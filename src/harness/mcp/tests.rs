@@ -404,6 +404,8 @@ mod tests {
                 args: vec!["--flag".to_string()],
                 headers: HashMap::from([("Authorization".to_string(), "Bearer token".to_string())]),
                 disabled: true,
+                auth_broker: None,
+                policy: None,
             }),
             status: Some(crate::control::resource_model::common_status(String::new())),
         };
@@ -446,7 +448,7 @@ mod tests {
             headers: HashMap::new(),
             disabled: true,
             namespace: None,
-            binding_name: None,
+            mcp_server_name: None,
             agent_name: None,
             auth_broker: None,
         };
@@ -494,7 +496,7 @@ mod tests {
                         hits.fetch_add(1, Ordering::SeqCst);
                         assert!(headers.get("authorization").is_some());
                         assert_eq!(payload["namespace"], "conic:wks:42");
-                        assert_eq!(payload["binding_name"], "github");
+                        assert_eq!(payload["mcp_server_name"], "github");
                         assert_eq!(payload["agent_name"], "cmo");
                         Json(json!({
                             "authorization_bearer_token": "ghs_brokered_token",
@@ -520,7 +522,7 @@ mod tests {
             headers: HashMap::new(),
             disabled: false,
             namespace: Some("conic:wks:42".to_string()),
-            binding_name: Some("github".to_string()),
+            mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "http_bearer".to_string(),
@@ -558,7 +560,7 @@ mod tests {
             headers: HashMap::from([("Authorization".to_string(), "Bearer static".to_string())]),
             disabled: false,
             namespace: Some("conic:wks:42".to_string()),
-            binding_name: Some("github".to_string()),
+            mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "http_bearer".to_string(),
@@ -584,17 +586,17 @@ mod tests {
             .to_string()
             .contains("requires config namespace"));
 
-        let missing_binding = McpConnectionConfig {
+        let missing_mcp_server_name = McpConnectionConfig {
             headers: HashMap::new(),
             namespace: Some("conic:wks:42".to_string()),
-            binding_name: None,
+            mcp_server_name: None,
             ..with_static_auth.clone()
         };
-        assert!(resolve_http_headers(&missing_binding)
+        assert!(resolve_http_headers(&missing_mcp_server_name)
             .await
             .unwrap_err()
             .to_string()
-            .contains("requires binding name"));
+            .contains("requires MCP server name"));
     }
 
     #[tokio::test]
@@ -610,7 +612,7 @@ mod tests {
             headers: HashMap::new(),
             disabled: false,
             namespace: Some("conic:wks:42".to_string()),
-            binding_name: Some("github".to_string()),
+            mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "custom".to_string(),
@@ -659,7 +661,7 @@ mod tests {
                         hits.fetch_add(1, Ordering::SeqCst);
                         assert!(headers.get("authorization").is_some());
                         assert_eq!(payload["namespace"], "conic:wks:42");
-                        assert_eq!(payload["binding_name"], "github");
+                        assert_eq!(payload["mcp_server_name"], "github");
                         assert_eq!(payload["agent_name"], "cmo");
                         tokio::time::sleep(Duration::from_millis(50)).await;
                         Json(json!({
@@ -686,7 +688,7 @@ mod tests {
             headers: HashMap::new(),
             disabled: false,
             namespace: Some("conic:wks:42".to_string()),
-            binding_name: Some("github".to_string()),
+            mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "http_bearer".to_string(),
@@ -783,7 +785,7 @@ mod tests {
             headers: HashMap::new(),
             disabled: false,
             namespace: Some("conic:wks:42".to_string()),
-            binding_name: Some("github".to_string()),
+            mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
             auth_broker: None,
         };
@@ -1352,7 +1354,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_invalidate_broker_auth_cache_evicts_binding_and_namespace_entries() {
+    async fn test_invalidate_broker_auth_cache_evicts_server_and_namespace_entries() {
         let _test_guard = BrokerAuthTestGuard::acquire().await;
 
         let hits = Arc::new(AtomicUsize::new(0));
@@ -1363,9 +1365,9 @@ mod tests {
                     move |State(hits): State<Arc<AtomicUsize>>,
                           Json(payload): Json<serde_json::Value>| async move {
                         hits.fetch_add(1, Ordering::SeqCst);
-                        let binding = payload["binding_name"].as_str().unwrap_or("missing");
+                        let server_name = payload["mcp_server_name"].as_str().unwrap_or("missing");
                         Json(json!({
-                            "authorization_bearer_token": format!("token-{binding}"),
+                            "authorization_bearer_token": format!("token-{server_name}"),
                             "expires_at_unix": 4_102_444_800i64
                         }))
                     },
@@ -1388,7 +1390,7 @@ mod tests {
             headers: HashMap::new(),
             disabled: false,
             namespace: Some("conic:wks:42".to_string()),
-            binding_name: Some("github".to_string()),
+            mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "http_bearer".to_string(),
@@ -1397,8 +1399,8 @@ mod tests {
                 audience: "github".to_string(),
             }),
         };
-        let other_binding = McpConnectionConfig {
-            binding_name: Some("jira".to_string()),
+        let other_server = McpConnectionConfig {
+            mcp_server_name: Some("jira".to_string()),
             ..base.clone()
         };
 
@@ -1407,23 +1409,23 @@ mod tests {
             Some("Bearer token-github")
         );
         assert_eq!(
-            authorization_header(&resolve_http_headers(&other_binding).await.unwrap()).as_deref(),
+            authorization_header(&resolve_http_headers(&other_server).await.unwrap()).as_deref(),
             Some("Bearer token-jira")
         );
         assert_eq!(hits.load(Ordering::SeqCst), 2);
 
         resolve_http_headers(&base).await.unwrap();
-        resolve_http_headers(&other_binding).await.unwrap();
+        resolve_http_headers(&other_server).await.unwrap();
         assert_eq!(hits.load(Ordering::SeqCst), 2);
 
         invalidate_broker_auth_cache("conic:wks:42", Some("github")).await;
         resolve_http_headers(&base).await.unwrap();
-        resolve_http_headers(&other_binding).await.unwrap();
+        resolve_http_headers(&other_server).await.unwrap();
         assert_eq!(hits.load(Ordering::SeqCst), 3);
 
         invalidate_broker_auth_cache("conic:wks:42", None).await;
         resolve_http_headers(&base).await.unwrap();
-        resolve_http_headers(&other_binding).await.unwrap();
+        resolve_http_headers(&other_server).await.unwrap();
         assert_eq!(hits.load(Ordering::SeqCst), 5);
 
         server.abort();

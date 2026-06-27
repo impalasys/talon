@@ -16,21 +16,8 @@ message McpServerSpec {
   repeated string args = 3;
   map<string, string> headers = 4;
   bool disabled = 5;
-}
-
-message McpServerBinding {
-  ResourceMeta metadata = 1;
-  McpServerBindingSpec spec = 2;
-  CommonResourceStatus status = 3;
-}
-
-message McpServerBindingSpec {
-  string server_ref = 1;
-  repeated string args = 2;
-  map<string, string> headers = 3;
-  bool disabled = 4;
-  McpAuthBrokerSpec auth_broker = 5;
-  repeated string allowed_tool_names = 6;
+  McpAuthBrokerSpec auth_broker = 6;
+  McpServerPolicy policy = 7;
 }
 
 message McpAuthBrokerSpec {
@@ -38,4 +25,12 @@ message McpAuthBrokerSpec {
   string url = 2;
   int32 cache_ttl_seconds = 3;
   string audience = 4;
+}
+
+message McpServerPolicy {
+  McpToolPolicy tools = 1;
+}
+
+message McpToolPolicy {
+  repeated string allowlist = 1;
 }

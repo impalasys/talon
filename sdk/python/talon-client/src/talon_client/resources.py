@@ -2,7 +2,7 @@
 
 from talon_client.proto.resources.common_pb2 import OwnerReference, ResourceMeta, ResourceCondition, CommonResourceStatus, ResourceRef, NamespaceSelector
 from talon_client.proto.resources.agents_pb2 import Agent, AgentSpec, AgentStatus, AgentRuntime, AcpRuntime, Feature, Model, ThinkingConfig, ModelProfile, ModelPolicy, A2A, Connection, ConnectionRef, InternalConnectionRef, ExternalConnectionRef, ConnectionAuth, AgentCard, AgentCardCapabilities, AgentCardSkill
-from talon_client.proto.resources.mcp_pb2 import McpServer, McpServerSpec, McpServerBinding, McpServerBindingSpec, McpAuthBrokerSpec
+from talon_client.proto.resources.mcp_pb2 import McpServer, McpServerSpec, McpAuthBrokerSpec, McpServerPolicy, McpToolPolicy
 from talon_client.proto.resources.knowledge_pb2 import Knowledge, KnowledgeSpec
 from talon_client.proto.resources.namespaces_pb2 import Namespace, NamespaceSpec, NamespaceStatus
 from talon_client.proto.resources.channels_pb2 import Channel, ChannelSpec, ChannelStatus, ChannelContextPolicy, ChannelSubscription, ChannelSubscriptionSpec
@@ -44,9 +44,9 @@ __all__ = [
     "AgentCardSkill",
     "McpServer",
     "McpServerSpec",
-    "McpServerBinding",
-    "McpServerBindingSpec",
     "McpAuthBrokerSpec",
+    "McpServerPolicy",
+    "McpToolPolicy",
     "Knowledge",
     "KnowledgeSpec",
     "Namespace",

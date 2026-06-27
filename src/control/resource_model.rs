@@ -222,7 +222,6 @@ impl_typed_resource!(
     resources_proto::Channel,
     resources_proto::ChannelSubscription,
     resources_proto::McpServer,
-    resources_proto::McpServerBinding,
     resources_proto::Namespace,
     resources_proto::Schedule,
     resources_proto::Worker,

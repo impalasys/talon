@@ -1093,6 +1093,36 @@ java.lang.String defaultValue);
      * @return The disabled.
      */
     boolean getDisabled();
+
+    /**
+     * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+     * @return Whether the authBroker field is set.
+     */
+    boolean hasAuthBroker();
+    /**
+     * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+     * @return The authBroker.
+     */
+    talon.resources.Mcp.McpAuthBrokerSpec getAuthBroker();
+    /**
+     * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+     */
+    talon.resources.Mcp.McpAuthBrokerSpecOrBuilder getAuthBrokerOrBuilder();
+
+    /**
+     * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+     * @return Whether the policy field is set.
+     */
+    boolean hasPolicy();
+    /**
+     * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+     * @return The policy.
+     */
+    talon.resources.Mcp.McpServerPolicy getPolicy();
+    /**
+     * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+     */
+    talon.resources.Mcp.McpServerPolicyOrBuilder getPolicyOrBuilder();
   }
   /**
    * Protobuf type {@code talon.resources.McpServerSpec}
@@ -1152,6 +1182,7 @@ java.lang.String defaultValue);
               talon.resources.Mcp.McpServerSpec.class, talon.resources.Mcp.McpServerSpec.Builder.class);
     }
 
+    private int bitField0_;
     public static final int TRANSPORT_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
     private volatile java.lang.Object transport_ = "";
@@ -1357,6 +1388,58 @@ java.lang.String defaultValue) {
       return disabled_;
     }
 
+    public static final int AUTH_BROKER_FIELD_NUMBER = 6;
+    private talon.resources.Mcp.McpAuthBrokerSpec authBroker_;
+    /**
+     * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+     * @return Whether the authBroker field is set.
+     */
+    @java.lang.Override
+    public boolean hasAuthBroker() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+     * @return The authBroker.
+     */
+    @java.lang.Override
+    public talon.resources.Mcp.McpAuthBrokerSpec getAuthBroker() {
+      return authBroker_ == null ? talon.resources.Mcp.McpAuthBrokerSpec.getDefaultInstance() : authBroker_;
+    }
+    /**
+     * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Mcp.McpAuthBrokerSpecOrBuilder getAuthBrokerOrBuilder() {
+      return authBroker_ == null ? talon.resources.Mcp.McpAuthBrokerSpec.getDefaultInstance() : authBroker_;
+    }
+
+    public static final int POLICY_FIELD_NUMBER = 7;
+    private talon.resources.Mcp.McpServerPolicy policy_;
+    /**
+     * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+     * @return Whether the policy field is set.
+     */
+    @java.lang.Override
+    public boolean hasPolicy() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+     * @return The policy.
+     */
+    @java.lang.Override
+    public talon.resources.Mcp.McpServerPolicy getPolicy() {
+      return policy_ == null ? talon.resources.Mcp.McpServerPolicy.getDefaultInstance() : policy_;
+    }
+    /**
+     * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Mcp.McpServerPolicyOrBuilder getPolicyOrBuilder() {
+      return policy_ == null ? talon.resources.Mcp.McpServerPolicy.getDefaultInstance() : policy_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -1388,6 +1471,12 @@ java.lang.String defaultValue) {
           4);
       if (disabled_ != false) {
         output.writeBool(5, disabled_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(6, getAuthBroker());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(7, getPolicy());
       }
       getUnknownFields().writeTo(output);
     }
@@ -1426,6 +1515,14 @@ java.lang.String defaultValue) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(5, disabled_);
       }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, getAuthBroker());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(7, getPolicy());
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -1451,6 +1548,16 @@ java.lang.String defaultValue) {
           other.internalGetHeaders())) return false;
       if (getDisabled()
           != other.getDisabled()) return false;
+      if (hasAuthBroker() != other.hasAuthBroker()) return false;
+      if (hasAuthBroker()) {
+        if (!getAuthBroker()
+            .equals(other.getAuthBroker())) return false;
+      }
+      if (hasPolicy() != other.hasPolicy()) return false;
+      if (hasPolicy()) {
+        if (!getPolicy()
+            .equals(other.getPolicy())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1477,6 +1584,14 @@ java.lang.String defaultValue) {
       hash = (37 * hash) + DISABLED_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getDisabled());
+      if (hasAuthBroker()) {
+        hash = (37 * hash) + AUTH_BROKER_FIELD_NUMBER;
+        hash = (53 * hash) + getAuthBroker().hashCode();
+      }
+      if (hasPolicy()) {
+        hash = (37 * hash) + POLICY_FIELD_NUMBER;
+        hash = (53 * hash) + getPolicy().hashCode();
+      }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1618,13 +1733,20 @@ java.lang.String defaultValue) {
 
       // Construct using talon.resources.Mcp.McpServerSpec.newBuilder()
       private Builder() {
-
+        maybeForceBuilderInitialization();
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetAuthBrokerFieldBuilder();
+          internalGetPolicyFieldBuilder();
+        }
       }
       @java.lang.Override
       public Builder clear() {
@@ -1636,6 +1758,16 @@ java.lang.String defaultValue) {
             com.google.protobuf.LazyStringArrayList.emptyList();
         internalGetMutableHeaders().clear();
         disabled_ = false;
+        authBroker_ = null;
+        if (authBrokerBuilder_ != null) {
+          authBrokerBuilder_.dispose();
+          authBrokerBuilder_ = null;
+        }
+        policy_ = null;
+        if (policyBuilder_ != null) {
+          policyBuilder_.dispose();
+          policyBuilder_ = null;
+        }
         return this;
       }
 
@@ -1686,6 +1818,20 @@ java.lang.String defaultValue) {
         if (((from_bitField0_ & 0x00000010) != 0)) {
           result.disabled_ = disabled_;
         }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.authBroker_ = authBrokerBuilder_ == null
+              ? authBroker_
+              : authBrokerBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.policy_ = policyBuilder_ == null
+              ? policy_
+              : policyBuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
+        result.bitField0_ |= to_bitField0_;
       }
 
       @java.lang.Override
@@ -1725,6 +1871,12 @@ java.lang.String defaultValue) {
         bitField0_ |= 0x00000008;
         if (other.getDisabled() != false) {
           setDisabled(other.getDisabled());
+        }
+        if (other.hasAuthBroker()) {
+          mergeAuthBroker(other.getAuthBroker());
+        }
+        if (other.hasPolicy()) {
+          mergePolicy(other.getPolicy());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -1781,6 +1933,20 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000010;
                 break;
               } // case 40
+              case 50: {
+                input.readMessage(
+                    internalGetAuthBrokerFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
+              case 58: {
+                input.readMessage(
+                    internalGetPolicyFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -2212,6 +2378,248 @@ java.lang.String defaultValue) {
         return this;
       }
 
+      private talon.resources.Mcp.McpAuthBrokerSpec authBroker_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Mcp.McpAuthBrokerSpec, talon.resources.Mcp.McpAuthBrokerSpec.Builder, talon.resources.Mcp.McpAuthBrokerSpecOrBuilder> authBrokerBuilder_;
+      /**
+       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+       * @return Whether the authBroker field is set.
+       */
+      public boolean hasAuthBroker() {
+        return ((bitField0_ & 0x00000020) != 0);
+      }
+      /**
+       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+       * @return The authBroker.
+       */
+      public talon.resources.Mcp.McpAuthBrokerSpec getAuthBroker() {
+        if (authBrokerBuilder_ == null) {
+          return authBroker_ == null ? talon.resources.Mcp.McpAuthBrokerSpec.getDefaultInstance() : authBroker_;
+        } else {
+          return authBrokerBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+       */
+      public Builder setAuthBroker(talon.resources.Mcp.McpAuthBrokerSpec value) {
+        if (authBrokerBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          authBroker_ = value;
+        } else {
+          authBrokerBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+       */
+      public Builder setAuthBroker(
+          talon.resources.Mcp.McpAuthBrokerSpec.Builder builderForValue) {
+        if (authBrokerBuilder_ == null) {
+          authBroker_ = builderForValue.build();
+        } else {
+          authBrokerBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+       */
+      public Builder mergeAuthBroker(talon.resources.Mcp.McpAuthBrokerSpec value) {
+        if (authBrokerBuilder_ == null) {
+          if (((bitField0_ & 0x00000020) != 0) &&
+            authBroker_ != null &&
+            authBroker_ != talon.resources.Mcp.McpAuthBrokerSpec.getDefaultInstance()) {
+            getAuthBrokerBuilder().mergeFrom(value);
+          } else {
+            authBroker_ = value;
+          }
+        } else {
+          authBrokerBuilder_.mergeFrom(value);
+        }
+        if (authBroker_ != null) {
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+       */
+      public Builder clearAuthBroker() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        authBroker_ = null;
+        if (authBrokerBuilder_ != null) {
+          authBrokerBuilder_.dispose();
+          authBrokerBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+       */
+      public talon.resources.Mcp.McpAuthBrokerSpec.Builder getAuthBrokerBuilder() {
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return internalGetAuthBrokerFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+       */
+      public talon.resources.Mcp.McpAuthBrokerSpecOrBuilder getAuthBrokerOrBuilder() {
+        if (authBrokerBuilder_ != null) {
+          return authBrokerBuilder_.getMessageOrBuilder();
+        } else {
+          return authBroker_ == null ?
+              talon.resources.Mcp.McpAuthBrokerSpec.getDefaultInstance() : authBroker_;
+        }
+      }
+      /**
+       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 6;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Mcp.McpAuthBrokerSpec, talon.resources.Mcp.McpAuthBrokerSpec.Builder, talon.resources.Mcp.McpAuthBrokerSpecOrBuilder>
+          internalGetAuthBrokerFieldBuilder() {
+        if (authBrokerBuilder_ == null) {
+          authBrokerBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Mcp.McpAuthBrokerSpec, talon.resources.Mcp.McpAuthBrokerSpec.Builder, talon.resources.Mcp.McpAuthBrokerSpecOrBuilder>(
+                  getAuthBroker(),
+                  getParentForChildren(),
+                  isClean());
+          authBroker_ = null;
+        }
+        return authBrokerBuilder_;
+      }
+
+      private talon.resources.Mcp.McpServerPolicy policy_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Mcp.McpServerPolicy, talon.resources.Mcp.McpServerPolicy.Builder, talon.resources.Mcp.McpServerPolicyOrBuilder> policyBuilder_;
+      /**
+       * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+       * @return Whether the policy field is set.
+       */
+      public boolean hasPolicy() {
+        return ((bitField0_ & 0x00000040) != 0);
+      }
+      /**
+       * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+       * @return The policy.
+       */
+      public talon.resources.Mcp.McpServerPolicy getPolicy() {
+        if (policyBuilder_ == null) {
+          return policy_ == null ? talon.resources.Mcp.McpServerPolicy.getDefaultInstance() : policy_;
+        } else {
+          return policyBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+       */
+      public Builder setPolicy(talon.resources.Mcp.McpServerPolicy value) {
+        if (policyBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          policy_ = value;
+        } else {
+          policyBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+       */
+      public Builder setPolicy(
+          talon.resources.Mcp.McpServerPolicy.Builder builderForValue) {
+        if (policyBuilder_ == null) {
+          policy_ = builderForValue.build();
+        } else {
+          policyBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+       */
+      public Builder mergePolicy(talon.resources.Mcp.McpServerPolicy value) {
+        if (policyBuilder_ == null) {
+          if (((bitField0_ & 0x00000040) != 0) &&
+            policy_ != null &&
+            policy_ != talon.resources.Mcp.McpServerPolicy.getDefaultInstance()) {
+            getPolicyBuilder().mergeFrom(value);
+          } else {
+            policy_ = value;
+          }
+        } else {
+          policyBuilder_.mergeFrom(value);
+        }
+        if (policy_ != null) {
+          bitField0_ |= 0x00000040;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+       */
+      public Builder clearPolicy() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        policy_ = null;
+        if (policyBuilder_ != null) {
+          policyBuilder_.dispose();
+          policyBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+       */
+      public talon.resources.Mcp.McpServerPolicy.Builder getPolicyBuilder() {
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return internalGetPolicyFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+       */
+      public talon.resources.Mcp.McpServerPolicyOrBuilder getPolicyOrBuilder() {
+        if (policyBuilder_ != null) {
+          return policyBuilder_.getMessageOrBuilder();
+        } else {
+          return policy_ == null ?
+              talon.resources.Mcp.McpServerPolicy.getDefaultInstance() : policy_;
+        }
+      }
+      /**
+       * <code>.talon.resources.McpServerPolicy policy = 7;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Mcp.McpServerPolicy, talon.resources.Mcp.McpServerPolicy.Builder, talon.resources.Mcp.McpServerPolicyOrBuilder>
+          internalGetPolicyFieldBuilder() {
+        if (policyBuilder_ == null) {
+          policyBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Mcp.McpServerPolicy, talon.resources.Mcp.McpServerPolicy.Builder, talon.resources.Mcp.McpServerPolicyOrBuilder>(
+                  getPolicy(),
+                  getParentForChildren(),
+                  isClean());
+          policy_ = null;
+        }
+        return policyBuilder_;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.resources.McpServerSpec)
     }
 
@@ -2258,2516 +2666,6 @@ java.lang.String defaultValue) {
 
     @java.lang.Override
     public talon.resources.Mcp.McpServerSpec getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface McpServerBindingOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.resources.McpServerBinding)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-     * @return Whether the metadata field is set.
-     */
-    boolean hasMetadata();
-    /**
-     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-     * @return The metadata.
-     */
-    talon.resources.Common.ResourceMeta getMetadata();
-    /**
-     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-     */
-    talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
-
-    /**
-     * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-     * @return Whether the spec field is set.
-     */
-    boolean hasSpec();
-    /**
-     * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-     * @return The spec.
-     */
-    talon.resources.Mcp.McpServerBindingSpec getSpec();
-    /**
-     * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-     */
-    talon.resources.Mcp.McpServerBindingSpecOrBuilder getSpecOrBuilder();
-
-    /**
-     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-     * @return Whether the status field is set.
-     */
-    boolean hasStatus();
-    /**
-     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-     * @return The status.
-     */
-    talon.resources.Common.CommonResourceStatus getStatus();
-    /**
-     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-     */
-    talon.resources.Common.CommonResourceStatusOrBuilder getStatusOrBuilder();
-  }
-  /**
-   * Protobuf type {@code talon.resources.McpServerBinding}
-   */
-  public static final class McpServerBinding extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.resources.McpServerBinding)
-      McpServerBindingOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "McpServerBinding");
-    }
-    // Use McpServerBinding.newBuilder() to construct.
-    private McpServerBinding(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private McpServerBinding() {
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.resources.Mcp.internal_static_talon_resources_McpServerBinding_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.resources.Mcp.internal_static_talon_resources_McpServerBinding_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.resources.Mcp.internal_static_talon_resources_McpServerBinding_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.resources.Mcp.McpServerBinding.class, talon.resources.Mcp.McpServerBinding.Builder.class);
-    }
-
-    private int bitField0_;
-    public static final int METADATA_FIELD_NUMBER = 1;
-    private talon.resources.Common.ResourceMeta metadata_;
-    /**
-     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-     * @return Whether the metadata field is set.
-     */
-    @java.lang.Override
-    public boolean hasMetadata() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-     * @return The metadata.
-     */
-    @java.lang.Override
-    public talon.resources.Common.ResourceMeta getMetadata() {
-      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
-    }
-    /**
-     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-     */
-    @java.lang.Override
-    public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
-      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
-    }
-
-    public static final int SPEC_FIELD_NUMBER = 2;
-    private talon.resources.Mcp.McpServerBindingSpec spec_;
-    /**
-     * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-     * @return Whether the spec field is set.
-     */
-    @java.lang.Override
-    public boolean hasSpec() {
-      return ((bitField0_ & 0x00000002) != 0);
-    }
-    /**
-     * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-     * @return The spec.
-     */
-    @java.lang.Override
-    public talon.resources.Mcp.McpServerBindingSpec getSpec() {
-      return spec_ == null ? talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance() : spec_;
-    }
-    /**
-     * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-     */
-    @java.lang.Override
-    public talon.resources.Mcp.McpServerBindingSpecOrBuilder getSpecOrBuilder() {
-      return spec_ == null ? talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance() : spec_;
-    }
-
-    public static final int STATUS_FIELD_NUMBER = 3;
-    private talon.resources.Common.CommonResourceStatus status_;
-    /**
-     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-     * @return Whether the status field is set.
-     */
-    @java.lang.Override
-    public boolean hasStatus() {
-      return ((bitField0_ & 0x00000004) != 0);
-    }
-    /**
-     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-     * @return The status.
-     */
-    @java.lang.Override
-    public talon.resources.Common.CommonResourceStatus getStatus() {
-      return status_ == null ? talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
-    }
-    /**
-     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-     */
-    @java.lang.Override
-    public talon.resources.Common.CommonResourceStatusOrBuilder getStatusOrBuilder() {
-      return status_ == null ? talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(1, getMetadata());
-      }
-      if (((bitField0_ & 0x00000002) != 0)) {
-        output.writeMessage(2, getSpec());
-      }
-      if (((bitField0_ & 0x00000004) != 0)) {
-        output.writeMessage(3, getStatus());
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, getMetadata());
-      }
-      if (((bitField0_ & 0x00000002) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, getSpec());
-      }
-      if (((bitField0_ & 0x00000004) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, getStatus());
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.resources.Mcp.McpServerBinding)) {
-        return super.equals(obj);
-      }
-      talon.resources.Mcp.McpServerBinding other = (talon.resources.Mcp.McpServerBinding) obj;
-
-      if (hasMetadata() != other.hasMetadata()) return false;
-      if (hasMetadata()) {
-        if (!getMetadata()
-            .equals(other.getMetadata())) return false;
-      }
-      if (hasSpec() != other.hasSpec()) return false;
-      if (hasSpec()) {
-        if (!getSpec()
-            .equals(other.getSpec())) return false;
-      }
-      if (hasStatus() != other.hasStatus()) return false;
-      if (hasStatus()) {
-        if (!getStatus()
-            .equals(other.getStatus())) return false;
-      }
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasMetadata()) {
-        hash = (37 * hash) + METADATA_FIELD_NUMBER;
-        hash = (53 * hash) + getMetadata().hashCode();
-      }
-      if (hasSpec()) {
-        hash = (37 * hash) + SPEC_FIELD_NUMBER;
-        hash = (53 * hash) + getSpec().hashCode();
-      }
-      if (hasStatus()) {
-        hash = (37 * hash) + STATUS_FIELD_NUMBER;
-        hash = (53 * hash) + getStatus().hashCode();
-      }
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.resources.Mcp.McpServerBinding parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Mcp.McpServerBinding parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Mcp.McpServerBinding parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Mcp.McpServerBinding parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Mcp.McpServerBinding parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Mcp.McpServerBinding parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Mcp.McpServerBinding parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Mcp.McpServerBinding parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.resources.Mcp.McpServerBinding parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.resources.Mcp.McpServerBinding parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.resources.Mcp.McpServerBinding parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Mcp.McpServerBinding parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.resources.Mcp.McpServerBinding prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.resources.McpServerBinding}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.resources.McpServerBinding)
-        talon.resources.Mcp.McpServerBindingOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.resources.Mcp.internal_static_talon_resources_McpServerBinding_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.resources.Mcp.internal_static_talon_resources_McpServerBinding_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.resources.Mcp.McpServerBinding.class, talon.resources.Mcp.McpServerBinding.Builder.class);
-      }
-
-      // Construct using talon.resources.Mcp.McpServerBinding.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage
-                .alwaysUseFieldBuilders) {
-          internalGetMetadataFieldBuilder();
-          internalGetSpecFieldBuilder();
-          internalGetStatusFieldBuilder();
-        }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        metadata_ = null;
-        if (metadataBuilder_ != null) {
-          metadataBuilder_.dispose();
-          metadataBuilder_ = null;
-        }
-        spec_ = null;
-        if (specBuilder_ != null) {
-          specBuilder_.dispose();
-          specBuilder_ = null;
-        }
-        status_ = null;
-        if (statusBuilder_ != null) {
-          statusBuilder_.dispose();
-          statusBuilder_ = null;
-        }
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.resources.Mcp.internal_static_talon_resources_McpServerBinding_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.resources.Mcp.McpServerBinding getDefaultInstanceForType() {
-        return talon.resources.Mcp.McpServerBinding.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.resources.Mcp.McpServerBinding build() {
-        talon.resources.Mcp.McpServerBinding result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.resources.Mcp.McpServerBinding buildPartial() {
-        talon.resources.Mcp.McpServerBinding result = new talon.resources.Mcp.McpServerBinding(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.resources.Mcp.McpServerBinding result) {
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.metadata_ = metadataBuilder_ == null
-              ? metadata_
-              : metadataBuilder_.build();
-          to_bitField0_ |= 0x00000001;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.spec_ = specBuilder_ == null
-              ? spec_
-              : specBuilder_.build();
-          to_bitField0_ |= 0x00000002;
-        }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.status_ = statusBuilder_ == null
-              ? status_
-              : statusBuilder_.build();
-          to_bitField0_ |= 0x00000004;
-        }
-        result.bitField0_ |= to_bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.resources.Mcp.McpServerBinding) {
-          return mergeFrom((talon.resources.Mcp.McpServerBinding)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.resources.Mcp.McpServerBinding other) {
-        if (other == talon.resources.Mcp.McpServerBinding.getDefaultInstance()) return this;
-        if (other.hasMetadata()) {
-          mergeMetadata(other.getMetadata());
-        }
-        if (other.hasSpec()) {
-          mergeSpec(other.getSpec());
-        }
-        if (other.hasStatus()) {
-          mergeStatus(other.getStatus());
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                input.readMessage(
-                    internalGetMetadataFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                input.readMessage(
-                    internalGetSpecFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              case 26: {
-                input.readMessage(
-                    internalGetStatusFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private talon.resources.Common.ResourceMeta metadata_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
-      /**
-       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-       * @return Whether the metadata field is set.
-       */
-      public boolean hasMetadata() {
-        return ((bitField0_ & 0x00000001) != 0);
-      }
-      /**
-       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-       * @return The metadata.
-       */
-      public talon.resources.Common.ResourceMeta getMetadata() {
-        if (metadataBuilder_ == null) {
-          return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
-        } else {
-          return metadataBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-       */
-      public Builder setMetadata(talon.resources.Common.ResourceMeta value) {
-        if (metadataBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          metadata_ = value;
-        } else {
-          metadataBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-       */
-      public Builder setMetadata(
-          talon.resources.Common.ResourceMeta.Builder builderForValue) {
-        if (metadataBuilder_ == null) {
-          metadata_ = builderForValue.build();
-        } else {
-          metadataBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-       */
-      public Builder mergeMetadata(talon.resources.Common.ResourceMeta value) {
-        if (metadataBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) != 0) &&
-            metadata_ != null &&
-            metadata_ != talon.resources.Common.ResourceMeta.getDefaultInstance()) {
-            getMetadataBuilder().mergeFrom(value);
-          } else {
-            metadata_ = value;
-          }
-        } else {
-          metadataBuilder_.mergeFrom(value);
-        }
-        if (metadata_ != null) {
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-       */
-      public Builder clearMetadata() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        metadata_ = null;
-        if (metadataBuilder_ != null) {
-          metadataBuilder_.dispose();
-          metadataBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-       */
-      public talon.resources.Common.ResourceMeta.Builder getMetadataBuilder() {
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return internalGetMetadataFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-       */
-      public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
-        if (metadataBuilder_ != null) {
-          return metadataBuilder_.getMessageOrBuilder();
-        } else {
-          return metadata_ == null ?
-              talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
-        }
-      }
-      /**
-       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>
-          internalGetMetadataFieldBuilder() {
-        if (metadataBuilder_ == null) {
-          metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>(
-                  getMetadata(),
-                  getParentForChildren(),
-                  isClean());
-          metadata_ = null;
-        }
-        return metadataBuilder_;
-      }
-
-      private talon.resources.Mcp.McpServerBindingSpec spec_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Mcp.McpServerBindingSpec, talon.resources.Mcp.McpServerBindingSpec.Builder, talon.resources.Mcp.McpServerBindingSpecOrBuilder> specBuilder_;
-      /**
-       * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-       * @return Whether the spec field is set.
-       */
-      public boolean hasSpec() {
-        return ((bitField0_ & 0x00000002) != 0);
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-       * @return The spec.
-       */
-      public talon.resources.Mcp.McpServerBindingSpec getSpec() {
-        if (specBuilder_ == null) {
-          return spec_ == null ? talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance() : spec_;
-        } else {
-          return specBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-       */
-      public Builder setSpec(talon.resources.Mcp.McpServerBindingSpec value) {
-        if (specBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          spec_ = value;
-        } else {
-          specBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-       */
-      public Builder setSpec(
-          talon.resources.Mcp.McpServerBindingSpec.Builder builderForValue) {
-        if (specBuilder_ == null) {
-          spec_ = builderForValue.build();
-        } else {
-          specBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-       */
-      public Builder mergeSpec(talon.resources.Mcp.McpServerBindingSpec value) {
-        if (specBuilder_ == null) {
-          if (((bitField0_ & 0x00000002) != 0) &&
-            spec_ != null &&
-            spec_ != talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance()) {
-            getSpecBuilder().mergeFrom(value);
-          } else {
-            spec_ = value;
-          }
-        } else {
-          specBuilder_.mergeFrom(value);
-        }
-        if (spec_ != null) {
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-       */
-      public Builder clearSpec() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        spec_ = null;
-        if (specBuilder_ != null) {
-          specBuilder_.dispose();
-          specBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-       */
-      public talon.resources.Mcp.McpServerBindingSpec.Builder getSpecBuilder() {
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return internalGetSpecFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-       */
-      public talon.resources.Mcp.McpServerBindingSpecOrBuilder getSpecOrBuilder() {
-        if (specBuilder_ != null) {
-          return specBuilder_.getMessageOrBuilder();
-        } else {
-          return spec_ == null ?
-              talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance() : spec_;
-        }
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec spec = 2;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Mcp.McpServerBindingSpec, talon.resources.Mcp.McpServerBindingSpec.Builder, talon.resources.Mcp.McpServerBindingSpecOrBuilder>
-          internalGetSpecFieldBuilder() {
-        if (specBuilder_ == null) {
-          specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Mcp.McpServerBindingSpec, talon.resources.Mcp.McpServerBindingSpec.Builder, talon.resources.Mcp.McpServerBindingSpecOrBuilder>(
-                  getSpec(),
-                  getParentForChildren(),
-                  isClean());
-          spec_ = null;
-        }
-        return specBuilder_;
-      }
-
-      private talon.resources.Common.CommonResourceStatus status_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder> statusBuilder_;
-      /**
-       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-       * @return Whether the status field is set.
-       */
-      public boolean hasStatus() {
-        return ((bitField0_ & 0x00000004) != 0);
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-       * @return The status.
-       */
-      public talon.resources.Common.CommonResourceStatus getStatus() {
-        if (statusBuilder_ == null) {
-          return status_ == null ? talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
-        } else {
-          return statusBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-       */
-      public Builder setStatus(talon.resources.Common.CommonResourceStatus value) {
-        if (statusBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          status_ = value;
-        } else {
-          statusBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-       */
-      public Builder setStatus(
-          talon.resources.Common.CommonResourceStatus.Builder builderForValue) {
-        if (statusBuilder_ == null) {
-          status_ = builderForValue.build();
-        } else {
-          statusBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-       */
-      public Builder mergeStatus(talon.resources.Common.CommonResourceStatus value) {
-        if (statusBuilder_ == null) {
-          if (((bitField0_ & 0x00000004) != 0) &&
-            status_ != null &&
-            status_ != talon.resources.Common.CommonResourceStatus.getDefaultInstance()) {
-            getStatusBuilder().mergeFrom(value);
-          } else {
-            status_ = value;
-          }
-        } else {
-          statusBuilder_.mergeFrom(value);
-        }
-        if (status_ != null) {
-          bitField0_ |= 0x00000004;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-       */
-      public Builder clearStatus() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        status_ = null;
-        if (statusBuilder_ != null) {
-          statusBuilder_.dispose();
-          statusBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-       */
-      public talon.resources.Common.CommonResourceStatus.Builder getStatusBuilder() {
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return internalGetStatusFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-       */
-      public talon.resources.Common.CommonResourceStatusOrBuilder getStatusOrBuilder() {
-        if (statusBuilder_ != null) {
-          return statusBuilder_.getMessageOrBuilder();
-        } else {
-          return status_ == null ?
-              talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
-        }
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder>
-          internalGetStatusFieldBuilder() {
-        if (statusBuilder_ == null) {
-          statusBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder>(
-                  getStatus(),
-                  getParentForChildren(),
-                  isClean());
-          status_ = null;
-        }
-        return statusBuilder_;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.resources.McpServerBinding)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.resources.McpServerBinding)
-    private static final talon.resources.Mcp.McpServerBinding DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.resources.Mcp.McpServerBinding();
-    }
-
-    public static talon.resources.Mcp.McpServerBinding getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<McpServerBinding>
-        PARSER = new com.google.protobuf.AbstractParser<McpServerBinding>() {
-      @java.lang.Override
-      public McpServerBinding parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<McpServerBinding> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<McpServerBinding> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.resources.Mcp.McpServerBinding getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface McpServerBindingSpecOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.resources.McpServerBindingSpec)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>string server_ref = 1;</code>
-     * @return The serverRef.
-     */
-    java.lang.String getServerRef();
-    /**
-     * <code>string server_ref = 1;</code>
-     * @return The bytes for serverRef.
-     */
-    com.google.protobuf.ByteString
-        getServerRefBytes();
-
-    /**
-     * <code>repeated string args = 2;</code>
-     * @return A list containing the args.
-     */
-    java.util.List<java.lang.String>
-        getArgsList();
-    /**
-     * <code>repeated string args = 2;</code>
-     * @return The count of args.
-     */
-    int getArgsCount();
-    /**
-     * <code>repeated string args = 2;</code>
-     * @param index The index of the element to return.
-     * @return The args at the given index.
-     */
-    java.lang.String getArgs(int index);
-    /**
-     * <code>repeated string args = 2;</code>
-     * @param index The index of the value to return.
-     * @return The bytes of the args at the given index.
-     */
-    com.google.protobuf.ByteString
-        getArgsBytes(int index);
-
-    /**
-     * <code>map&lt;string, string&gt; headers = 3;</code>
-     */
-    int getHeadersCount();
-    /**
-     * <code>map&lt;string, string&gt; headers = 3;</code>
-     */
-    boolean containsHeaders(
-        java.lang.String key);
-    /**
-     * Use {@link #getHeadersMap()} instead.
-     */
-    @java.lang.Deprecated
-    java.util.Map<java.lang.String, java.lang.String>
-    getHeaders();
-    /**
-     * <code>map&lt;string, string&gt; headers = 3;</code>
-     */
-    java.util.Map<java.lang.String, java.lang.String>
-    getHeadersMap();
-    /**
-     * <code>map&lt;string, string&gt; headers = 3;</code>
-     */
-    /* nullable */
-java.lang.String getHeadersOrDefault(
-        java.lang.String key,
-        /* nullable */
-java.lang.String defaultValue);
-    /**
-     * <code>map&lt;string, string&gt; headers = 3;</code>
-     */
-    java.lang.String getHeadersOrThrow(
-        java.lang.String key);
-
-    /**
-     * <code>bool disabled = 4;</code>
-     * @return The disabled.
-     */
-    boolean getDisabled();
-
-    /**
-     * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-     * @return Whether the authBroker field is set.
-     */
-    boolean hasAuthBroker();
-    /**
-     * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-     * @return The authBroker.
-     */
-    talon.resources.Mcp.McpAuthBrokerSpec getAuthBroker();
-    /**
-     * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-     */
-    talon.resources.Mcp.McpAuthBrokerSpecOrBuilder getAuthBrokerOrBuilder();
-
-    /**
-     * <code>repeated string allowed_tool_names = 6;</code>
-     * @return A list containing the allowedToolNames.
-     */
-    java.util.List<java.lang.String>
-        getAllowedToolNamesList();
-    /**
-     * <code>repeated string allowed_tool_names = 6;</code>
-     * @return The count of allowedToolNames.
-     */
-    int getAllowedToolNamesCount();
-    /**
-     * <code>repeated string allowed_tool_names = 6;</code>
-     * @param index The index of the element to return.
-     * @return The allowedToolNames at the given index.
-     */
-    java.lang.String getAllowedToolNames(int index);
-    /**
-     * <code>repeated string allowed_tool_names = 6;</code>
-     * @param index The index of the value to return.
-     * @return The bytes of the allowedToolNames at the given index.
-     */
-    com.google.protobuf.ByteString
-        getAllowedToolNamesBytes(int index);
-  }
-  /**
-   * Protobuf type {@code talon.resources.McpServerBindingSpec}
-   */
-  public static final class McpServerBindingSpec extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.resources.McpServerBindingSpec)
-      McpServerBindingSpecOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "McpServerBindingSpec");
-    }
-    // Use McpServerBindingSpec.newBuilder() to construct.
-    private McpServerBindingSpec(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private McpServerBindingSpec() {
-      serverRef_ = "";
-      args_ =
-          com.google.protobuf.LazyStringArrayList.emptyList();
-      allowedToolNames_ =
-          com.google.protobuf.LazyStringArrayList.emptyList();
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.resources.Mcp.internal_static_talon_resources_McpServerBindingSpec_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.resources.Mcp.internal_static_talon_resources_McpServerBindingSpec_descriptor;
-    }
-
-    @SuppressWarnings({"rawtypes"})
-    @java.lang.Override
-    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
-        int number) {
-      switch (number) {
-        case 3:
-          return internalGetHeaders();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.resources.Mcp.internal_static_talon_resources_McpServerBindingSpec_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.resources.Mcp.McpServerBindingSpec.class, talon.resources.Mcp.McpServerBindingSpec.Builder.class);
-    }
-
-    private int bitField0_;
-    public static final int SERVER_REF_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object serverRef_ = "";
-    /**
-     * <code>string server_ref = 1;</code>
-     * @return The serverRef.
-     */
-    @java.lang.Override
-    public java.lang.String getServerRef() {
-      java.lang.Object ref = serverRef_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        serverRef_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string server_ref = 1;</code>
-     * @return The bytes for serverRef.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getServerRefBytes() {
-      java.lang.Object ref = serverRef_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        serverRef_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int ARGS_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private com.google.protobuf.LazyStringArrayList args_ =
-        com.google.protobuf.LazyStringArrayList.emptyList();
-    /**
-     * <code>repeated string args = 2;</code>
-     * @return A list containing the args.
-     */
-    public com.google.protobuf.ProtocolStringList
-        getArgsList() {
-      return args_;
-    }
-    /**
-     * <code>repeated string args = 2;</code>
-     * @return The count of args.
-     */
-    public int getArgsCount() {
-      return args_.size();
-    }
-    /**
-     * <code>repeated string args = 2;</code>
-     * @param index The index of the element to return.
-     * @return The args at the given index.
-     */
-    public java.lang.String getArgs(int index) {
-      return args_.get(index);
-    }
-    /**
-     * <code>repeated string args = 2;</code>
-     * @param index The index of the value to return.
-     * @return The bytes of the args at the given index.
-     */
-    public com.google.protobuf.ByteString
-        getArgsBytes(int index) {
-      return args_.getByteString(index);
-    }
-
-    public static final int HEADERS_FIELD_NUMBER = 3;
-    private static final class HeadersDefaultEntryHolder {
-      static final com.google.protobuf.MapEntry<
-          java.lang.String, java.lang.String> defaultEntry =
-              com.google.protobuf.MapEntry
-              .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.resources.Mcp.internal_static_talon_resources_McpServerBindingSpec_HeadersEntry_descriptor,
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "",
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "");
-    }
-    @SuppressWarnings("serial")
-    private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> headers_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetHeaders() {
-      if (headers_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            HeadersDefaultEntryHolder.defaultEntry);
-      }
-      return headers_;
-    }
-    public int getHeadersCount() {
-      return internalGetHeaders().getMap().size();
-    }
-    /**
-     * <code>map&lt;string, string&gt; headers = 3;</code>
-     */
-    @java.lang.Override
-    public boolean containsHeaders(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      return internalGetHeaders().getMap().containsKey(key);
-    }
-    /**
-     * Use {@link #getHeadersMap()} instead.
-     */
-    @java.lang.Override
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getHeaders() {
-      return getHeadersMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; headers = 3;</code>
-     */
-    @java.lang.Override
-    public java.util.Map<java.lang.String, java.lang.String> getHeadersMap() {
-      return internalGetHeaders().getMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; headers = 3;</code>
-     */
-    @java.lang.Override
-    public /* nullable */
-java.lang.String getHeadersOrDefault(
-        java.lang.String key,
-        /* nullable */
-java.lang.String defaultValue) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetHeaders().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-    /**
-     * <code>map&lt;string, string&gt; headers = 3;</code>
-     */
-    @java.lang.Override
-    public java.lang.String getHeadersOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetHeaders().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
-    }
-
-    public static final int DISABLED_FIELD_NUMBER = 4;
-    private boolean disabled_ = false;
-    /**
-     * <code>bool disabled = 4;</code>
-     * @return The disabled.
-     */
-    @java.lang.Override
-    public boolean getDisabled() {
-      return disabled_;
-    }
-
-    public static final int AUTH_BROKER_FIELD_NUMBER = 5;
-    private talon.resources.Mcp.McpAuthBrokerSpec authBroker_;
-    /**
-     * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-     * @return Whether the authBroker field is set.
-     */
-    @java.lang.Override
-    public boolean hasAuthBroker() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-     * @return The authBroker.
-     */
-    @java.lang.Override
-    public talon.resources.Mcp.McpAuthBrokerSpec getAuthBroker() {
-      return authBroker_ == null ? talon.resources.Mcp.McpAuthBrokerSpec.getDefaultInstance() : authBroker_;
-    }
-    /**
-     * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-     */
-    @java.lang.Override
-    public talon.resources.Mcp.McpAuthBrokerSpecOrBuilder getAuthBrokerOrBuilder() {
-      return authBroker_ == null ? talon.resources.Mcp.McpAuthBrokerSpec.getDefaultInstance() : authBroker_;
-    }
-
-    public static final int ALLOWED_TOOL_NAMES_FIELD_NUMBER = 6;
-    @SuppressWarnings("serial")
-    private com.google.protobuf.LazyStringArrayList allowedToolNames_ =
-        com.google.protobuf.LazyStringArrayList.emptyList();
-    /**
-     * <code>repeated string allowed_tool_names = 6;</code>
-     * @return A list containing the allowedToolNames.
-     */
-    public com.google.protobuf.ProtocolStringList
-        getAllowedToolNamesList() {
-      return allowedToolNames_;
-    }
-    /**
-     * <code>repeated string allowed_tool_names = 6;</code>
-     * @return The count of allowedToolNames.
-     */
-    public int getAllowedToolNamesCount() {
-      return allowedToolNames_.size();
-    }
-    /**
-     * <code>repeated string allowed_tool_names = 6;</code>
-     * @param index The index of the element to return.
-     * @return The allowedToolNames at the given index.
-     */
-    public java.lang.String getAllowedToolNames(int index) {
-      return allowedToolNames_.get(index);
-    }
-    /**
-     * <code>repeated string allowed_tool_names = 6;</code>
-     * @param index The index of the value to return.
-     * @return The bytes of the allowedToolNames at the given index.
-     */
-    public com.google.protobuf.ByteString
-        getAllowedToolNamesBytes(int index) {
-      return allowedToolNames_.getByteString(index);
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(serverRef_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, serverRef_);
-      }
-      for (int i = 0; i < args_.size(); i++) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, args_.getRaw(i));
-      }
-      com.google.protobuf.GeneratedMessage
-        .serializeStringMapTo(
-          output,
-          internalGetHeaders(),
-          HeadersDefaultEntryHolder.defaultEntry,
-          3);
-      if (disabled_ != false) {
-        output.writeBool(4, disabled_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(5, getAuthBroker());
-      }
-      for (int i = 0; i < allowedToolNames_.size(); i++) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 6, allowedToolNames_.getRaw(i));
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(serverRef_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, serverRef_);
-      }
-      {
-        int dataSize = 0;
-        for (int i = 0; i < args_.size(); i++) {
-          dataSize += computeStringSizeNoTag(args_.getRaw(i));
-        }
-        size += dataSize;
-        size += 1 * getArgsList().size();
-      }
-      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-           : internalGetHeaders().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-        headers__ = HeadersDefaultEntryHolder.defaultEntry.newBuilderForType()
-            .setKey(entry.getKey())
-            .setValue(entry.getValue())
-            .buildPartial();
-        size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(3, headers__);
-      }
-      if (disabled_ != false) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(4, disabled_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(5, getAuthBroker());
-      }
-      {
-        int dataSize = 0;
-        for (int i = 0; i < allowedToolNames_.size(); i++) {
-          dataSize += computeStringSizeNoTag(allowedToolNames_.getRaw(i));
-        }
-        size += dataSize;
-        size += 1 * getAllowedToolNamesList().size();
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.resources.Mcp.McpServerBindingSpec)) {
-        return super.equals(obj);
-      }
-      talon.resources.Mcp.McpServerBindingSpec other = (talon.resources.Mcp.McpServerBindingSpec) obj;
-
-      if (!getServerRef()
-          .equals(other.getServerRef())) return false;
-      if (!getArgsList()
-          .equals(other.getArgsList())) return false;
-      if (!internalGetHeaders().equals(
-          other.internalGetHeaders())) return false;
-      if (getDisabled()
-          != other.getDisabled()) return false;
-      if (hasAuthBroker() != other.hasAuthBroker()) return false;
-      if (hasAuthBroker()) {
-        if (!getAuthBroker()
-            .equals(other.getAuthBroker())) return false;
-      }
-      if (!getAllowedToolNamesList()
-          .equals(other.getAllowedToolNamesList())) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + SERVER_REF_FIELD_NUMBER;
-      hash = (53 * hash) + getServerRef().hashCode();
-      if (getArgsCount() > 0) {
-        hash = (37 * hash) + ARGS_FIELD_NUMBER;
-        hash = (53 * hash) + getArgsList().hashCode();
-      }
-      if (!internalGetHeaders().getMap().isEmpty()) {
-        hash = (37 * hash) + HEADERS_FIELD_NUMBER;
-        hash = (53 * hash) + internalGetHeaders().hashCode();
-      }
-      hash = (37 * hash) + DISABLED_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getDisabled());
-      if (hasAuthBroker()) {
-        hash = (37 * hash) + AUTH_BROKER_FIELD_NUMBER;
-        hash = (53 * hash) + getAuthBroker().hashCode();
-      }
-      if (getAllowedToolNamesCount() > 0) {
-        hash = (37 * hash) + ALLOWED_TOOL_NAMES_FIELD_NUMBER;
-        hash = (53 * hash) + getAllowedToolNamesList().hashCode();
-      }
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.resources.Mcp.McpServerBindingSpec parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Mcp.McpServerBindingSpec parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Mcp.McpServerBindingSpec parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Mcp.McpServerBindingSpec parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Mcp.McpServerBindingSpec parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Mcp.McpServerBindingSpec parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Mcp.McpServerBindingSpec parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Mcp.McpServerBindingSpec parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.resources.Mcp.McpServerBindingSpec parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.resources.Mcp.McpServerBindingSpec parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.resources.Mcp.McpServerBindingSpec parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Mcp.McpServerBindingSpec parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.resources.Mcp.McpServerBindingSpec prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.resources.McpServerBindingSpec}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.resources.McpServerBindingSpec)
-        talon.resources.Mcp.McpServerBindingSpecOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.resources.Mcp.internal_static_talon_resources_McpServerBindingSpec_descriptor;
-      }
-
-      @SuppressWarnings({"rawtypes"})
-      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
-          int number) {
-        switch (number) {
-          case 3:
-            return internalGetHeaders();
-          default:
-            throw new RuntimeException(
-                "Invalid map field number: " + number);
-        }
-      }
-      @SuppressWarnings({"rawtypes"})
-      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
-          int number) {
-        switch (number) {
-          case 3:
-            return internalGetMutableHeaders();
-          default:
-            throw new RuntimeException(
-                "Invalid map field number: " + number);
-        }
-      }
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.resources.Mcp.internal_static_talon_resources_McpServerBindingSpec_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.resources.Mcp.McpServerBindingSpec.class, talon.resources.Mcp.McpServerBindingSpec.Builder.class);
-      }
-
-      // Construct using talon.resources.Mcp.McpServerBindingSpec.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage
-                .alwaysUseFieldBuilders) {
-          internalGetAuthBrokerFieldBuilder();
-        }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        serverRef_ = "";
-        args_ =
-            com.google.protobuf.LazyStringArrayList.emptyList();
-        internalGetMutableHeaders().clear();
-        disabled_ = false;
-        authBroker_ = null;
-        if (authBrokerBuilder_ != null) {
-          authBrokerBuilder_.dispose();
-          authBrokerBuilder_ = null;
-        }
-        allowedToolNames_ =
-            com.google.protobuf.LazyStringArrayList.emptyList();
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.resources.Mcp.internal_static_talon_resources_McpServerBindingSpec_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.resources.Mcp.McpServerBindingSpec getDefaultInstanceForType() {
-        return talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.resources.Mcp.McpServerBindingSpec build() {
-        talon.resources.Mcp.McpServerBindingSpec result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.resources.Mcp.McpServerBindingSpec buildPartial() {
-        talon.resources.Mcp.McpServerBindingSpec result = new talon.resources.Mcp.McpServerBindingSpec(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.resources.Mcp.McpServerBindingSpec result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.serverRef_ = serverRef_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          args_.makeImmutable();
-          result.args_ = args_;
-        }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.headers_ = internalGetHeaders();
-          result.headers_.makeImmutable();
-        }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.disabled_ = disabled_;
-        }
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000010) != 0)) {
-          result.authBroker_ = authBrokerBuilder_ == null
-              ? authBroker_
-              : authBrokerBuilder_.build();
-          to_bitField0_ |= 0x00000001;
-        }
-        if (((from_bitField0_ & 0x00000020) != 0)) {
-          allowedToolNames_.makeImmutable();
-          result.allowedToolNames_ = allowedToolNames_;
-        }
-        result.bitField0_ |= to_bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.resources.Mcp.McpServerBindingSpec) {
-          return mergeFrom((talon.resources.Mcp.McpServerBindingSpec)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.resources.Mcp.McpServerBindingSpec other) {
-        if (other == talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance()) return this;
-        if (!other.getServerRef().isEmpty()) {
-          serverRef_ = other.serverRef_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.args_.isEmpty()) {
-          if (args_.isEmpty()) {
-            args_ = other.args_;
-            bitField0_ |= 0x00000002;
-          } else {
-            ensureArgsIsMutable();
-            args_.addAll(other.args_);
-          }
-          onChanged();
-        }
-        internalGetMutableHeaders().mergeFrom(
-            other.internalGetHeaders());
-        bitField0_ |= 0x00000004;
-        if (other.getDisabled() != false) {
-          setDisabled(other.getDisabled());
-        }
-        if (other.hasAuthBroker()) {
-          mergeAuthBroker(other.getAuthBroker());
-        }
-        if (!other.allowedToolNames_.isEmpty()) {
-          if (allowedToolNames_.isEmpty()) {
-            allowedToolNames_ = other.allowedToolNames_;
-            bitField0_ |= 0x00000020;
-          } else {
-            ensureAllowedToolNamesIsMutable();
-            allowedToolNames_.addAll(other.allowedToolNames_);
-          }
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                serverRef_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                ensureArgsIsMutable();
-                args_.add(input.readStringRequireUtf8());
-                break;
-              } // case 18
-              case 26: {
-                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-                headers__ = input.readMessage(
-                    HeadersDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-                internalGetMutableHeaders().getMutableMap().put(
-                    headers__.getKey(), headers__.getValue());
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
-              case 32: {
-                disabled_ = input.readBool();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 32
-              case 42: {
-                input.readMessage(
-                    internalGetAuthBrokerFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000010;
-                break;
-              } // case 42
-              case 50: {
-                ensureAllowedToolNamesIsMutable();
-                allowedToolNames_.add(input.readStringRequireUtf8());
-                break;
-              } // case 50
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object serverRef_ = "";
-      /**
-       * <code>string server_ref = 1;</code>
-       * @return The serverRef.
-       */
-      public java.lang.String getServerRef() {
-        java.lang.Object ref = serverRef_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          serverRef_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string server_ref = 1;</code>
-       * @return The bytes for serverRef.
-       */
-      public com.google.protobuf.ByteString
-          getServerRefBytes() {
-        java.lang.Object ref = serverRef_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          serverRef_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string server_ref = 1;</code>
-       * @param value The serverRef to set.
-       * @return This builder for chaining.
-       */
-      public Builder setServerRef(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        serverRef_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string server_ref = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearServerRef() {
-        serverRef_ = getDefaultInstance().getServerRef();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string server_ref = 1;</code>
-       * @param value The bytes for serverRef to set.
-       * @return This builder for chaining.
-       */
-      public Builder setServerRefBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        serverRef_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private com.google.protobuf.LazyStringArrayList args_ =
-          com.google.protobuf.LazyStringArrayList.emptyList();
-      private void ensureArgsIsMutable() {
-        if (!args_.isModifiable()) {
-          args_ = new com.google.protobuf.LazyStringArrayList(args_);
-        }
-        bitField0_ |= 0x00000002;
-      }
-      /**
-       * <code>repeated string args = 2;</code>
-       * @return A list containing the args.
-       */
-      public com.google.protobuf.ProtocolStringList
-          getArgsList() {
-        args_.makeImmutable();
-        return args_;
-      }
-      /**
-       * <code>repeated string args = 2;</code>
-       * @return The count of args.
-       */
-      public int getArgsCount() {
-        return args_.size();
-      }
-      /**
-       * <code>repeated string args = 2;</code>
-       * @param index The index of the element to return.
-       * @return The args at the given index.
-       */
-      public java.lang.String getArgs(int index) {
-        return args_.get(index);
-      }
-      /**
-       * <code>repeated string args = 2;</code>
-       * @param index The index of the value to return.
-       * @return The bytes of the args at the given index.
-       */
-      public com.google.protobuf.ByteString
-          getArgsBytes(int index) {
-        return args_.getByteString(index);
-      }
-      /**
-       * <code>repeated string args = 2;</code>
-       * @param index The index to set the value at.
-       * @param value The args to set.
-       * @return This builder for chaining.
-       */
-      public Builder setArgs(
-          int index, java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        ensureArgsIsMutable();
-        args_.set(index, value);
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string args = 2;</code>
-       * @param value The args to add.
-       * @return This builder for chaining.
-       */
-      public Builder addArgs(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        ensureArgsIsMutable();
-        args_.add(value);
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string args = 2;</code>
-       * @param values The args to add.
-       * @return This builder for chaining.
-       */
-      public Builder addAllArgs(
-          java.lang.Iterable<java.lang.String> values) {
-        ensureArgsIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, args_);
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string args = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearArgs() {
-        args_ =
-          com.google.protobuf.LazyStringArrayList.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000002);;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string args = 2;</code>
-       * @param value The bytes of the args to add.
-       * @return This builder for chaining.
-       */
-      public Builder addArgsBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        ensureArgsIsMutable();
-        args_.add(value);
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      private com.google.protobuf.MapField<
-          java.lang.String, java.lang.String> headers_;
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-          internalGetHeaders() {
-        if (headers_ == null) {
-          return com.google.protobuf.MapField.emptyMapField(
-              HeadersDefaultEntryHolder.defaultEntry);
-        }
-        return headers_;
-      }
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-          internalGetMutableHeaders() {
-        if (headers_ == null) {
-          headers_ = com.google.protobuf.MapField.newMapField(
-              HeadersDefaultEntryHolder.defaultEntry);
-        }
-        if (!headers_.isMutable()) {
-          headers_ = headers_.copy();
-        }
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return headers_;
-      }
-      public int getHeadersCount() {
-        return internalGetHeaders().getMap().size();
-      }
-      /**
-       * <code>map&lt;string, string&gt; headers = 3;</code>
-       */
-      @java.lang.Override
-      public boolean containsHeaders(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        return internalGetHeaders().getMap().containsKey(key);
-      }
-      /**
-       * Use {@link #getHeadersMap()} instead.
-       */
-      @java.lang.Override
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String> getHeaders() {
-        return getHeadersMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; headers = 3;</code>
-       */
-      @java.lang.Override
-      public java.util.Map<java.lang.String, java.lang.String> getHeadersMap() {
-        return internalGetHeaders().getMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; headers = 3;</code>
-       */
-      @java.lang.Override
-      public /* nullable */
-java.lang.String getHeadersOrDefault(
-          java.lang.String key,
-          /* nullable */
-java.lang.String defaultValue) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetHeaders().getMap();
-        return map.containsKey(key) ? map.get(key) : defaultValue;
-      }
-      /**
-       * <code>map&lt;string, string&gt; headers = 3;</code>
-       */
-      @java.lang.Override
-      public java.lang.String getHeadersOrThrow(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetHeaders().getMap();
-        if (!map.containsKey(key)) {
-          throw new java.lang.IllegalArgumentException();
-        }
-        return map.get(key);
-      }
-      public Builder clearHeaders() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        internalGetMutableHeaders().getMutableMap()
-            .clear();
-        return this;
-      }
-      /**
-       * <code>map&lt;string, string&gt; headers = 3;</code>
-       */
-      public Builder removeHeaders(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        internalGetMutableHeaders().getMutableMap()
-            .remove(key);
-        return this;
-      }
-      /**
-       * Use alternate mutation accessors instead.
-       */
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String>
-          getMutableHeaders() {
-        bitField0_ |= 0x00000004;
-        return internalGetMutableHeaders().getMutableMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; headers = 3;</code>
-       */
-      public Builder putHeaders(
-          java.lang.String key,
-          java.lang.String value) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        if (value == null) { throw new NullPointerException("map value"); }
-        internalGetMutableHeaders().getMutableMap()
-            .put(key, value);
-        bitField0_ |= 0x00000004;
-        return this;
-      }
-      /**
-       * <code>map&lt;string, string&gt; headers = 3;</code>
-       */
-      public Builder putAllHeaders(
-          java.util.Map<java.lang.String, java.lang.String> values) {
-        internalGetMutableHeaders().getMutableMap()
-            .putAll(values);
-        bitField0_ |= 0x00000004;
-        return this;
-      }
-
-      private boolean disabled_ ;
-      /**
-       * <code>bool disabled = 4;</code>
-       * @return The disabled.
-       */
-      @java.lang.Override
-      public boolean getDisabled() {
-        return disabled_;
-      }
-      /**
-       * <code>bool disabled = 4;</code>
-       * @param value The disabled to set.
-       * @return This builder for chaining.
-       */
-      public Builder setDisabled(boolean value) {
-
-        disabled_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>bool disabled = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearDisabled() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        disabled_ = false;
-        onChanged();
-        return this;
-      }
-
-      private talon.resources.Mcp.McpAuthBrokerSpec authBroker_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Mcp.McpAuthBrokerSpec, talon.resources.Mcp.McpAuthBrokerSpec.Builder, talon.resources.Mcp.McpAuthBrokerSpecOrBuilder> authBrokerBuilder_;
-      /**
-       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-       * @return Whether the authBroker field is set.
-       */
-      public boolean hasAuthBroker() {
-        return ((bitField0_ & 0x00000010) != 0);
-      }
-      /**
-       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-       * @return The authBroker.
-       */
-      public talon.resources.Mcp.McpAuthBrokerSpec getAuthBroker() {
-        if (authBrokerBuilder_ == null) {
-          return authBroker_ == null ? talon.resources.Mcp.McpAuthBrokerSpec.getDefaultInstance() : authBroker_;
-        } else {
-          return authBrokerBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-       */
-      public Builder setAuthBroker(talon.resources.Mcp.McpAuthBrokerSpec value) {
-        if (authBrokerBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          authBroker_ = value;
-        } else {
-          authBrokerBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-       */
-      public Builder setAuthBroker(
-          talon.resources.Mcp.McpAuthBrokerSpec.Builder builderForValue) {
-        if (authBrokerBuilder_ == null) {
-          authBroker_ = builderForValue.build();
-        } else {
-          authBrokerBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-       */
-      public Builder mergeAuthBroker(talon.resources.Mcp.McpAuthBrokerSpec value) {
-        if (authBrokerBuilder_ == null) {
-          if (((bitField0_ & 0x00000010) != 0) &&
-            authBroker_ != null &&
-            authBroker_ != talon.resources.Mcp.McpAuthBrokerSpec.getDefaultInstance()) {
-            getAuthBrokerBuilder().mergeFrom(value);
-          } else {
-            authBroker_ = value;
-          }
-        } else {
-          authBrokerBuilder_.mergeFrom(value);
-        }
-        if (authBroker_ != null) {
-          bitField0_ |= 0x00000010;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-       */
-      public Builder clearAuthBroker() {
-        bitField0_ = (bitField0_ & ~0x00000010);
-        authBroker_ = null;
-        if (authBrokerBuilder_ != null) {
-          authBrokerBuilder_.dispose();
-          authBrokerBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-       */
-      public talon.resources.Mcp.McpAuthBrokerSpec.Builder getAuthBrokerBuilder() {
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return internalGetAuthBrokerFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-       */
-      public talon.resources.Mcp.McpAuthBrokerSpecOrBuilder getAuthBrokerOrBuilder() {
-        if (authBrokerBuilder_ != null) {
-          return authBrokerBuilder_.getMessageOrBuilder();
-        } else {
-          return authBroker_ == null ?
-              talon.resources.Mcp.McpAuthBrokerSpec.getDefaultInstance() : authBroker_;
-        }
-      }
-      /**
-       * <code>.talon.resources.McpAuthBrokerSpec auth_broker = 5;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Mcp.McpAuthBrokerSpec, talon.resources.Mcp.McpAuthBrokerSpec.Builder, talon.resources.Mcp.McpAuthBrokerSpecOrBuilder>
-          internalGetAuthBrokerFieldBuilder() {
-        if (authBrokerBuilder_ == null) {
-          authBrokerBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Mcp.McpAuthBrokerSpec, talon.resources.Mcp.McpAuthBrokerSpec.Builder, talon.resources.Mcp.McpAuthBrokerSpecOrBuilder>(
-                  getAuthBroker(),
-                  getParentForChildren(),
-                  isClean());
-          authBroker_ = null;
-        }
-        return authBrokerBuilder_;
-      }
-
-      private com.google.protobuf.LazyStringArrayList allowedToolNames_ =
-          com.google.protobuf.LazyStringArrayList.emptyList();
-      private void ensureAllowedToolNamesIsMutable() {
-        if (!allowedToolNames_.isModifiable()) {
-          allowedToolNames_ = new com.google.protobuf.LazyStringArrayList(allowedToolNames_);
-        }
-        bitField0_ |= 0x00000020;
-      }
-      /**
-       * <code>repeated string allowed_tool_names = 6;</code>
-       * @return A list containing the allowedToolNames.
-       */
-      public com.google.protobuf.ProtocolStringList
-          getAllowedToolNamesList() {
-        allowedToolNames_.makeImmutable();
-        return allowedToolNames_;
-      }
-      /**
-       * <code>repeated string allowed_tool_names = 6;</code>
-       * @return The count of allowedToolNames.
-       */
-      public int getAllowedToolNamesCount() {
-        return allowedToolNames_.size();
-      }
-      /**
-       * <code>repeated string allowed_tool_names = 6;</code>
-       * @param index The index of the element to return.
-       * @return The allowedToolNames at the given index.
-       */
-      public java.lang.String getAllowedToolNames(int index) {
-        return allowedToolNames_.get(index);
-      }
-      /**
-       * <code>repeated string allowed_tool_names = 6;</code>
-       * @param index The index of the value to return.
-       * @return The bytes of the allowedToolNames at the given index.
-       */
-      public com.google.protobuf.ByteString
-          getAllowedToolNamesBytes(int index) {
-        return allowedToolNames_.getByteString(index);
-      }
-      /**
-       * <code>repeated string allowed_tool_names = 6;</code>
-       * @param index The index to set the value at.
-       * @param value The allowedToolNames to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAllowedToolNames(
-          int index, java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        ensureAllowedToolNamesIsMutable();
-        allowedToolNames_.set(index, value);
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string allowed_tool_names = 6;</code>
-       * @param value The allowedToolNames to add.
-       * @return This builder for chaining.
-       */
-      public Builder addAllowedToolNames(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        ensureAllowedToolNamesIsMutable();
-        allowedToolNames_.add(value);
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string allowed_tool_names = 6;</code>
-       * @param values The allowedToolNames to add.
-       * @return This builder for chaining.
-       */
-      public Builder addAllAllowedToolNames(
-          java.lang.Iterable<java.lang.String> values) {
-        ensureAllowedToolNamesIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, allowedToolNames_);
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string allowed_tool_names = 6;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearAllowedToolNames() {
-        allowedToolNames_ =
-          com.google.protobuf.LazyStringArrayList.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000020);;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string allowed_tool_names = 6;</code>
-       * @param value The bytes of the allowedToolNames to add.
-       * @return This builder for chaining.
-       */
-      public Builder addAllowedToolNamesBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        ensureAllowedToolNamesIsMutable();
-        allowedToolNames_.add(value);
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.resources.McpServerBindingSpec)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.resources.McpServerBindingSpec)
-    private static final talon.resources.Mcp.McpServerBindingSpec DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.resources.Mcp.McpServerBindingSpec();
-    }
-
-    public static talon.resources.Mcp.McpServerBindingSpec getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<McpServerBindingSpec>
-        PARSER = new com.google.protobuf.AbstractParser<McpServerBindingSpec>() {
-      @java.lang.Override
-      public McpServerBindingSpec parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<McpServerBindingSpec> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<McpServerBindingSpec> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.resources.Mcp.McpServerBindingSpec getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -5656,6 +3554,1161 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface McpServerPolicyOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.resources.McpServerPolicy)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+     * @return Whether the tools field is set.
+     */
+    boolean hasTools();
+    /**
+     * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+     * @return The tools.
+     */
+    talon.resources.Mcp.McpToolPolicy getTools();
+    /**
+     * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+     */
+    talon.resources.Mcp.McpToolPolicyOrBuilder getToolsOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.resources.McpServerPolicy}
+   */
+  public static final class McpServerPolicy extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.resources.McpServerPolicy)
+      McpServerPolicyOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "McpServerPolicy");
+    }
+    // Use McpServerPolicy.newBuilder() to construct.
+    private McpServerPolicy(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private McpServerPolicy() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.resources.Mcp.internal_static_talon_resources_McpServerPolicy_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.resources.Mcp.internal_static_talon_resources_McpServerPolicy_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.resources.Mcp.internal_static_talon_resources_McpServerPolicy_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.resources.Mcp.McpServerPolicy.class, talon.resources.Mcp.McpServerPolicy.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int TOOLS_FIELD_NUMBER = 1;
+    private talon.resources.Mcp.McpToolPolicy tools_;
+    /**
+     * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+     * @return Whether the tools field is set.
+     */
+    @java.lang.Override
+    public boolean hasTools() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+     * @return The tools.
+     */
+    @java.lang.Override
+    public talon.resources.Mcp.McpToolPolicy getTools() {
+      return tools_ == null ? talon.resources.Mcp.McpToolPolicy.getDefaultInstance() : tools_;
+    }
+    /**
+     * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Mcp.McpToolPolicyOrBuilder getToolsOrBuilder() {
+      return tools_ == null ? talon.resources.Mcp.McpToolPolicy.getDefaultInstance() : tools_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getTools());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getTools());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.resources.Mcp.McpServerPolicy)) {
+        return super.equals(obj);
+      }
+      talon.resources.Mcp.McpServerPolicy other = (talon.resources.Mcp.McpServerPolicy) obj;
+
+      if (hasTools() != other.hasTools()) return false;
+      if (hasTools()) {
+        if (!getTools()
+            .equals(other.getTools())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasTools()) {
+        hash = (37 * hash) + TOOLS_FIELD_NUMBER;
+        hash = (53 * hash) + getTools().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.resources.Mcp.McpServerPolicy parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Mcp.McpServerPolicy parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Mcp.McpServerPolicy parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Mcp.McpServerPolicy parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Mcp.McpServerPolicy parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Mcp.McpServerPolicy parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Mcp.McpServerPolicy parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Mcp.McpServerPolicy parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.resources.Mcp.McpServerPolicy parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.resources.Mcp.McpServerPolicy parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.resources.Mcp.McpServerPolicy parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Mcp.McpServerPolicy parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.resources.Mcp.McpServerPolicy prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.resources.McpServerPolicy}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.resources.McpServerPolicy)
+        talon.resources.Mcp.McpServerPolicyOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.resources.Mcp.internal_static_talon_resources_McpServerPolicy_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.resources.Mcp.internal_static_talon_resources_McpServerPolicy_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.resources.Mcp.McpServerPolicy.class, talon.resources.Mcp.McpServerPolicy.Builder.class);
+      }
+
+      // Construct using talon.resources.Mcp.McpServerPolicy.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetToolsFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        tools_ = null;
+        if (toolsBuilder_ != null) {
+          toolsBuilder_.dispose();
+          toolsBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.resources.Mcp.internal_static_talon_resources_McpServerPolicy_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.resources.Mcp.McpServerPolicy getDefaultInstanceForType() {
+        return talon.resources.Mcp.McpServerPolicy.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.resources.Mcp.McpServerPolicy build() {
+        talon.resources.Mcp.McpServerPolicy result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.resources.Mcp.McpServerPolicy buildPartial() {
+        talon.resources.Mcp.McpServerPolicy result = new talon.resources.Mcp.McpServerPolicy(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.resources.Mcp.McpServerPolicy result) {
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.tools_ = toolsBuilder_ == null
+              ? tools_
+              : toolsBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.resources.Mcp.McpServerPolicy) {
+          return mergeFrom((talon.resources.Mcp.McpServerPolicy)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.resources.Mcp.McpServerPolicy other) {
+        if (other == talon.resources.Mcp.McpServerPolicy.getDefaultInstance()) return this;
+        if (other.hasTools()) {
+          mergeTools(other.getTools());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetToolsFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private talon.resources.Mcp.McpToolPolicy tools_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Mcp.McpToolPolicy, talon.resources.Mcp.McpToolPolicy.Builder, talon.resources.Mcp.McpToolPolicyOrBuilder> toolsBuilder_;
+      /**
+       * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+       * @return Whether the tools field is set.
+       */
+      public boolean hasTools() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+       * @return The tools.
+       */
+      public talon.resources.Mcp.McpToolPolicy getTools() {
+        if (toolsBuilder_ == null) {
+          return tools_ == null ? talon.resources.Mcp.McpToolPolicy.getDefaultInstance() : tools_;
+        } else {
+          return toolsBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+       */
+      public Builder setTools(talon.resources.Mcp.McpToolPolicy value) {
+        if (toolsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          tools_ = value;
+        } else {
+          toolsBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+       */
+      public Builder setTools(
+          talon.resources.Mcp.McpToolPolicy.Builder builderForValue) {
+        if (toolsBuilder_ == null) {
+          tools_ = builderForValue.build();
+        } else {
+          toolsBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+       */
+      public Builder mergeTools(talon.resources.Mcp.McpToolPolicy value) {
+        if (toolsBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            tools_ != null &&
+            tools_ != talon.resources.Mcp.McpToolPolicy.getDefaultInstance()) {
+            getToolsBuilder().mergeFrom(value);
+          } else {
+            tools_ = value;
+          }
+        } else {
+          toolsBuilder_.mergeFrom(value);
+        }
+        if (tools_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+       */
+      public Builder clearTools() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        tools_ = null;
+        if (toolsBuilder_ != null) {
+          toolsBuilder_.dispose();
+          toolsBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+       */
+      public talon.resources.Mcp.McpToolPolicy.Builder getToolsBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return internalGetToolsFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+       */
+      public talon.resources.Mcp.McpToolPolicyOrBuilder getToolsOrBuilder() {
+        if (toolsBuilder_ != null) {
+          return toolsBuilder_.getMessageOrBuilder();
+        } else {
+          return tools_ == null ?
+              talon.resources.Mcp.McpToolPolicy.getDefaultInstance() : tools_;
+        }
+      }
+      /**
+       * <code>.talon.resources.McpToolPolicy tools = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Mcp.McpToolPolicy, talon.resources.Mcp.McpToolPolicy.Builder, talon.resources.Mcp.McpToolPolicyOrBuilder>
+          internalGetToolsFieldBuilder() {
+        if (toolsBuilder_ == null) {
+          toolsBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Mcp.McpToolPolicy, talon.resources.Mcp.McpToolPolicy.Builder, talon.resources.Mcp.McpToolPolicyOrBuilder>(
+                  getTools(),
+                  getParentForChildren(),
+                  isClean());
+          tools_ = null;
+        }
+        return toolsBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.resources.McpServerPolicy)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.resources.McpServerPolicy)
+    private static final talon.resources.Mcp.McpServerPolicy DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.resources.Mcp.McpServerPolicy();
+    }
+
+    public static talon.resources.Mcp.McpServerPolicy getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<McpServerPolicy>
+        PARSER = new com.google.protobuf.AbstractParser<McpServerPolicy>() {
+      @java.lang.Override
+      public McpServerPolicy parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<McpServerPolicy> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<McpServerPolicy> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.resources.Mcp.McpServerPolicy getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface McpToolPolicyOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.resources.McpToolPolicy)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated string allowlist = 1;</code>
+     * @return A list containing the allowlist.
+     */
+    java.util.List<java.lang.String>
+        getAllowlistList();
+    /**
+     * <code>repeated string allowlist = 1;</code>
+     * @return The count of allowlist.
+     */
+    int getAllowlistCount();
+    /**
+     * <code>repeated string allowlist = 1;</code>
+     * @param index The index of the element to return.
+     * @return The allowlist at the given index.
+     */
+    java.lang.String getAllowlist(int index);
+    /**
+     * <code>repeated string allowlist = 1;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the allowlist at the given index.
+     */
+    com.google.protobuf.ByteString
+        getAllowlistBytes(int index);
+  }
+  /**
+   * Protobuf type {@code talon.resources.McpToolPolicy}
+   */
+  public static final class McpToolPolicy extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.resources.McpToolPolicy)
+      McpToolPolicyOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "McpToolPolicy");
+    }
+    // Use McpToolPolicy.newBuilder() to construct.
+    private McpToolPolicy(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private McpToolPolicy() {
+      allowlist_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.resources.Mcp.internal_static_talon_resources_McpToolPolicy_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.resources.Mcp.internal_static_talon_resources_McpToolPolicy_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.resources.Mcp.internal_static_talon_resources_McpToolPolicy_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.resources.Mcp.McpToolPolicy.class, talon.resources.Mcp.McpToolPolicy.Builder.class);
+    }
+
+    public static final int ALLOWLIST_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList allowlist_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string allowlist = 1;</code>
+     * @return A list containing the allowlist.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getAllowlistList() {
+      return allowlist_;
+    }
+    /**
+     * <code>repeated string allowlist = 1;</code>
+     * @return The count of allowlist.
+     */
+    public int getAllowlistCount() {
+      return allowlist_.size();
+    }
+    /**
+     * <code>repeated string allowlist = 1;</code>
+     * @param index The index of the element to return.
+     * @return The allowlist at the given index.
+     */
+    public java.lang.String getAllowlist(int index) {
+      return allowlist_.get(index);
+    }
+    /**
+     * <code>repeated string allowlist = 1;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the allowlist at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getAllowlistBytes(int index) {
+      return allowlist_.getByteString(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      for (int i = 0; i < allowlist_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, allowlist_.getRaw(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      {
+        int dataSize = 0;
+        for (int i = 0; i < allowlist_.size(); i++) {
+          dataSize += computeStringSizeNoTag(allowlist_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getAllowlistList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.resources.Mcp.McpToolPolicy)) {
+        return super.equals(obj);
+      }
+      talon.resources.Mcp.McpToolPolicy other = (talon.resources.Mcp.McpToolPolicy) obj;
+
+      if (!getAllowlistList()
+          .equals(other.getAllowlistList())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (getAllowlistCount() > 0) {
+        hash = (37 * hash) + ALLOWLIST_FIELD_NUMBER;
+        hash = (53 * hash) + getAllowlistList().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.resources.Mcp.McpToolPolicy parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Mcp.McpToolPolicy parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Mcp.McpToolPolicy parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Mcp.McpToolPolicy parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Mcp.McpToolPolicy parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Mcp.McpToolPolicy parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Mcp.McpToolPolicy parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Mcp.McpToolPolicy parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.resources.Mcp.McpToolPolicy parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.resources.Mcp.McpToolPolicy parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.resources.Mcp.McpToolPolicy parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Mcp.McpToolPolicy parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.resources.Mcp.McpToolPolicy prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.resources.McpToolPolicy}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.resources.McpToolPolicy)
+        talon.resources.Mcp.McpToolPolicyOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.resources.Mcp.internal_static_talon_resources_McpToolPolicy_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.resources.Mcp.internal_static_talon_resources_McpToolPolicy_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.resources.Mcp.McpToolPolicy.class, talon.resources.Mcp.McpToolPolicy.Builder.class);
+      }
+
+      // Construct using talon.resources.Mcp.McpToolPolicy.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        allowlist_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.resources.Mcp.internal_static_talon_resources_McpToolPolicy_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.resources.Mcp.McpToolPolicy getDefaultInstanceForType() {
+        return talon.resources.Mcp.McpToolPolicy.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.resources.Mcp.McpToolPolicy build() {
+        talon.resources.Mcp.McpToolPolicy result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.resources.Mcp.McpToolPolicy buildPartial() {
+        talon.resources.Mcp.McpToolPolicy result = new talon.resources.Mcp.McpToolPolicy(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.resources.Mcp.McpToolPolicy result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          allowlist_.makeImmutable();
+          result.allowlist_ = allowlist_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.resources.Mcp.McpToolPolicy) {
+          return mergeFrom((talon.resources.Mcp.McpToolPolicy)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.resources.Mcp.McpToolPolicy other) {
+        if (other == talon.resources.Mcp.McpToolPolicy.getDefaultInstance()) return this;
+        if (!other.allowlist_.isEmpty()) {
+          if (allowlist_.isEmpty()) {
+            allowlist_ = other.allowlist_;
+            bitField0_ |= 0x00000001;
+          } else {
+            ensureAllowlistIsMutable();
+            allowlist_.addAll(other.allowlist_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                ensureAllowlistIsMutable();
+                allowlist_.add(input.readStringRequireUtf8());
+                break;
+              } // case 10
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private com.google.protobuf.LazyStringArrayList allowlist_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureAllowlistIsMutable() {
+        if (!allowlist_.isModifiable()) {
+          allowlist_ = new com.google.protobuf.LazyStringArrayList(allowlist_);
+        }
+        bitField0_ |= 0x00000001;
+      }
+      /**
+       * <code>repeated string allowlist = 1;</code>
+       * @return A list containing the allowlist.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getAllowlistList() {
+        allowlist_.makeImmutable();
+        return allowlist_;
+      }
+      /**
+       * <code>repeated string allowlist = 1;</code>
+       * @return The count of allowlist.
+       */
+      public int getAllowlistCount() {
+        return allowlist_.size();
+      }
+      /**
+       * <code>repeated string allowlist = 1;</code>
+       * @param index The index of the element to return.
+       * @return The allowlist at the given index.
+       */
+      public java.lang.String getAllowlist(int index) {
+        return allowlist_.get(index);
+      }
+      /**
+       * <code>repeated string allowlist = 1;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the allowlist at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getAllowlistBytes(int index) {
+        return allowlist_.getByteString(index);
+      }
+      /**
+       * <code>repeated string allowlist = 1;</code>
+       * @param index The index to set the value at.
+       * @param value The allowlist to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAllowlist(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureAllowlistIsMutable();
+        allowlist_.set(index, value);
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string allowlist = 1;</code>
+       * @param value The allowlist to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllowlist(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureAllowlistIsMutable();
+        allowlist_.add(value);
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string allowlist = 1;</code>
+       * @param values The allowlist to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllAllowlist(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureAllowlistIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, allowlist_);
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string allowlist = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAllowlist() {
+        allowlist_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string allowlist = 1;</code>
+       * @param value The bytes of the allowlist to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllowlistBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureAllowlistIsMutable();
+        allowlist_.add(value);
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.resources.McpToolPolicy)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.resources.McpToolPolicy)
+    private static final talon.resources.Mcp.McpToolPolicy DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.resources.Mcp.McpToolPolicy();
+    }
+
+    public static talon.resources.Mcp.McpToolPolicy getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<McpToolPolicy>
+        PARSER = new com.google.protobuf.AbstractParser<McpToolPolicy>() {
+      @java.lang.Override
+      public McpToolPolicy parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<McpToolPolicy> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<McpToolPolicy> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.resources.Mcp.McpToolPolicy getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_McpServer_descriptor;
   private static final
@@ -5672,25 +4725,20 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_McpServerSpec_HeadersEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_resources_McpServerBinding_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_resources_McpServerBinding_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_resources_McpServerBindingSpec_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_resources_McpServerBindingSpec_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_resources_McpServerBindingSpec_HeadersEntry_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_resources_McpServerBindingSpec_HeadersEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_McpAuthBrokerSpec_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_McpAuthBrokerSpec_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_resources_McpServerPolicy_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_resources_McpServerPolicy_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_resources_McpToolPolicy_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_resources_McpToolPolicy_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -5705,26 +4753,20 @@ java.lang.String defaultValue) {
       "cpServer\022/\n\010metadata\030\001 \001(\0132\035.talon.resou" +
       "rces.ResourceMeta\022,\n\004spec\030\002 \001(\0132\036.talon." +
       "resources.McpServerSpec\0225\n\006status\030\003 \001(\0132" +
-      "%.talon.resources.CommonResourceStatus\"\300" +
-      "\001\n\rMcpServerSpec\022\021\n\ttransport\030\001 \001(\t\022\016\n\006t" +
+      "%.talon.resources.CommonResourceStatus\"\253" +
+      "\002\n\rMcpServerSpec\022\021\n\ttransport\030\001 \001(\t\022\016\n\006t" +
       "arget\030\002 \001(\t\022\014\n\004args\030\003 \003(\t\022<\n\007headers\030\004 \003" +
       "(\0132+.talon.resources.McpServerSpec.Heade" +
-      "rsEntry\022\020\n\010disabled\030\005 \001(\010\032.\n\014HeadersEntr" +
-      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\257\001\n\020Mc" +
-      "pServerBinding\022/\n\010metadata\030\001 \001(\0132\035.talon" +
-      ".resources.ResourceMeta\0223\n\004spec\030\002 \001(\0132%." +
-      "talon.resources.McpServerBindingSpec\0225\n\006" +
-      "status\030\003 \001(\0132%.talon.resources.CommonRes" +
-      "ourceStatus\"\224\002\n\024McpServerBindingSpec\022\022\n\n" +
-      "server_ref\030\001 \001(\t\022\014\n\004args\030\002 \003(\t\022C\n\007header" +
-      "s\030\003 \003(\01322.talon.resources.McpServerBindi" +
-      "ngSpec.HeadersEntry\022\020\n\010disabled\030\004 \001(\010\0227\n" +
-      "\013auth_broker\030\005 \001(\0132\".talon.resources.Mcp" +
-      "AuthBrokerSpec\022\032\n\022allowed_tool_names\030\006 \003" +
-      "(\t\032.\n\014HeadersEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value" +
-      "\030\002 \001(\t:\0028\001\"[\n\021McpAuthBrokerSpec\022\014\n\004kind\030" +
-      "\001 \001(\t\022\013\n\003url\030\002 \001(\t\022\031\n\021cache_ttl_seconds\030" +
-      "\003 \001(\005\022\020\n\010audience\030\004 \001(\tb\006proto3"
+      "rsEntry\022\020\n\010disabled\030\005 \001(\010\0227\n\013auth_broker" +
+      "\030\006 \001(\0132\".talon.resources.McpAuthBrokerSp" +
+      "ec\0220\n\006policy\030\007 \001(\0132 .talon.resources.Mcp" +
+      "ServerPolicy\032.\n\014HeadersEntry\022\013\n\003key\030\001 \001(" +
+      "\t\022\r\n\005value\030\002 \001(\t:\0028\001\"[\n\021McpAuthBrokerSpe" +
+      "c\022\014\n\004kind\030\001 \001(\t\022\013\n\003url\030\002 \001(\t\022\031\n\021cache_tt" +
+      "l_seconds\030\003 \001(\005\022\020\n\010audience\030\004 \001(\t\"@\n\017Mcp" +
+      "ServerPolicy\022-\n\005tools\030\001 \001(\0132\036.talon.reso" +
+      "urces.McpToolPolicy\"\"\n\rMcpToolPolicy\022\021\n\t" +
+      "allowlist\030\001 \003(\tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -5742,37 +4784,31 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_McpServerSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_McpServerSpec_descriptor,
-        new java.lang.String[] { "Transport", "Target", "Args", "Headers", "Disabled", });
+        new java.lang.String[] { "Transport", "Target", "Args", "Headers", "Disabled", "AuthBroker", "Policy", });
     internal_static_talon_resources_McpServerSpec_HeadersEntry_descriptor =
       internal_static_talon_resources_McpServerSpec_descriptor.getNestedType(0);
     internal_static_talon_resources_McpServerSpec_HeadersEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_McpServerSpec_HeadersEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_talon_resources_McpServerBinding_descriptor =
-      getDescriptor().getMessageType(2);
-    internal_static_talon_resources_McpServerBinding_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_resources_McpServerBinding_descriptor,
-        new java.lang.String[] { "Metadata", "Spec", "Status", });
-    internal_static_talon_resources_McpServerBindingSpec_descriptor =
-      getDescriptor().getMessageType(3);
-    internal_static_talon_resources_McpServerBindingSpec_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_resources_McpServerBindingSpec_descriptor,
-        new java.lang.String[] { "ServerRef", "Args", "Headers", "Disabled", "AuthBroker", "AllowedToolNames", });
-    internal_static_talon_resources_McpServerBindingSpec_HeadersEntry_descriptor =
-      internal_static_talon_resources_McpServerBindingSpec_descriptor.getNestedType(0);
-    internal_static_talon_resources_McpServerBindingSpec_HeadersEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_resources_McpServerBindingSpec_HeadersEntry_descriptor,
-        new java.lang.String[] { "Key", "Value", });
     internal_static_talon_resources_McpAuthBrokerSpec_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(2);
     internal_static_talon_resources_McpAuthBrokerSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_McpAuthBrokerSpec_descriptor,
         new java.lang.String[] { "Kind", "Url", "CacheTtlSeconds", "Audience", });
+    internal_static_talon_resources_McpServerPolicy_descriptor =
+      getDescriptor().getMessageType(3);
+    internal_static_talon_resources_McpServerPolicy_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_resources_McpServerPolicy_descriptor,
+        new java.lang.String[] { "Tools", });
+    internal_static_talon_resources_McpToolPolicy_descriptor =
+      getDescriptor().getMessageType(4);
+    internal_static_talon_resources_McpToolPolicy_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_resources_McpToolPolicy_descriptor,
+        new java.lang.String[] { "Allowlist", });
     descriptor.resolveAllFeaturesImmutable();
     talon.resources.Common.getDescriptor();
   }

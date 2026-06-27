@@ -65,19 +65,6 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
     match raw.kind.as_str() {
         "MCPServer" | "McpServer" => Ok(json!({ "server": manifest_value })),
         "Agent" => Ok(json!({ "agent": manifest_value })),
-        "McpServerBinding" => {
-            let binding = crate::control::manifest::parse_mcp_server_binding(content)?;
-            let namespace = binding
-                .metadata
-                .as_ref()
-                .map(|meta| meta.namespace.clone())
-                .filter(|namespace| !namespace.is_empty())
-                .context("McpServerBinding missing metadata.namespace")?;
-            Ok(json!({
-                "ns": namespace,
-                "binding": binding,
-            }))
-        }
         "Namespace" => {
             let namespace = crate::control::manifest::parse_namespace(content)?;
             Ok(json!({

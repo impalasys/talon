@@ -1,43 +1,6 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-impl McpServerBindingSpecManifest {
-    fn into_proto(self) -> manifests::McpServerBindingSpec {
-        manifests::McpServerBindingSpec {
-            server_ref: self.server_ref,
-            args: self.args,
-            headers: self.headers,
-            disabled: self.disabled,
-            auth_broker: self.auth_broker.map(|spec| manifests::McpAuthBrokerSpec {
-                kind: spec.kind,
-                url: spec.url,
-                cache_ttl_seconds: spec.cache_ttl_seconds,
-                audience: spec.audience,
-            }),
-            allowed_tool_names: self.allowed_tool_names,
-        }
-    }
-
-    fn from_proto(spec: &manifests::McpServerBindingSpec) -> Self {
-        Self {
-            server_ref: spec.server_ref.clone(),
-            args: spec.args.clone(),
-            headers: spec.headers.clone(),
-            disabled: spec.disabled,
-            auth_broker: spec
-                .auth_broker
-                .as_ref()
-                .map(|broker| McpAuthBrokerSpecManifest {
-                    kind: broker.kind.clone(),
-                    url: broker.url.clone(),
-                    cache_ttl_seconds: broker.cache_ttl_seconds,
-                    audience: broker.audience.clone(),
-                }),
-            allowed_tool_names: spec.allowed_tool_names.clone(),
-        }
-    }
-}
-
 impl A2AManifest {
     fn into_proto(self) -> Result<manifests::A2a> {
         Ok(manifests::A2a {
@@ -250,6 +213,23 @@ impl AgentCardSkillManifest {
 }
 
 impl McpServerSpecManifest {
+    fn into_proto(self) -> manifests::McpServerSpec {
+        manifests::McpServerSpec {
+            transport: self.transport,
+            target: self.target,
+            args: self.args,
+            headers: self.headers,
+            disabled: self.disabled,
+            auth_broker: self.auth_broker.map(|spec| manifests::McpAuthBrokerSpec {
+                kind: spec.kind,
+                url: spec.url,
+                cache_ttl_seconds: spec.cache_ttl_seconds,
+                audience: spec.audience,
+            }),
+            policy: self.policy.map(McpServerPolicyManifest::into_proto),
+        }
+    }
+
     fn from_proto(spec: &manifests::McpServerSpec) -> Self {
         Self {
             transport: spec.transport.clone(),
@@ -257,6 +237,47 @@ impl McpServerSpecManifest {
             args: spec.args.clone(),
             headers: spec.headers.clone(),
             disabled: spec.disabled,
+            auth_broker: spec
+                .auth_broker
+                .as_ref()
+                .map(|broker| McpAuthBrokerSpecManifest {
+                    kind: broker.kind.clone(),
+                    url: broker.url.clone(),
+                    cache_ttl_seconds: broker.cache_ttl_seconds,
+                    audience: broker.audience.clone(),
+                }),
+            policy: spec
+                .policy
+                .as_ref()
+                .map(McpServerPolicyManifest::from_proto),
+        }
+    }
+}
+
+impl McpServerPolicyManifest {
+    fn into_proto(self) -> manifests::McpServerPolicy {
+        manifests::McpServerPolicy {
+            tools: self.tools.map(McpToolPolicyManifest::into_proto),
+        }
+    }
+
+    fn from_proto(policy: &manifests::McpServerPolicy) -> Self {
+        Self {
+            tools: policy.tools.as_ref().map(McpToolPolicyManifest::from_proto),
+        }
+    }
+}
+
+impl McpToolPolicyManifest {
+    fn into_proto(self) -> manifests::McpToolPolicy {
+        manifests::McpToolPolicy {
+            allowlist: self.allowlist,
+        }
+    }
+
+    fn from_proto(policy: &manifests::McpToolPolicy) -> Self {
+        Self {
+            allowlist: policy.allowlist.clone(),
         }
     }
 }
