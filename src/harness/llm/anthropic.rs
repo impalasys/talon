@@ -105,6 +105,35 @@ impl AnthropicProvider {
             "content": content,
         })
     }
+
+    fn request_system_prompt(messages: &[ChatMessage]) -> Option<String> {
+        let system_parts = messages
+            .iter()
+            .filter(|message| message.role == "system")
+            .map(|message| {
+                message
+                    .content_parts
+                    .iter()
+                    .filter_map(|part| match part.content.as_ref() {
+                        Some(chat_content_part::Content::Text(text)) => Some(text.as_str()),
+                        _ => None,
+                    })
+                    .collect::<Vec<_>>()
+                    .join("")
+            })
+            .filter(|text| !text.trim().is_empty())
+            .collect::<Vec<_>>();
+
+        (!system_parts.is_empty()).then(|| system_parts.join("\n\n"))
+    }
+
+    fn request_messages(messages: &[ChatMessage]) -> Vec<serde_json::Value> {
+        messages
+            .iter()
+            .filter(|message| message.role != "system")
+            .map(Self::serialize_message)
+            .collect()
+    }
 }
 
 fn anthropic_content_part(part: &ChatContentPart) -> serde_json::Value {
@@ -145,8 +174,11 @@ impl LlmProvider for AnthropicProvider {
         let mut payload = json!({
             "model": self.model,
             "max_tokens": max_tokens,
-            "messages": request.messages.iter().filter(|message| message.role != "system").map(Self::serialize_message).collect::<Vec<_>>(),
+            "messages": Self::request_messages(&request.messages),
         });
+        if let Some(system_prompt) = Self::request_system_prompt(&request.messages) {
+            payload["system"] = json!(system_prompt);
+        }
         if let Some(thinking_payload) = thinking_payload {
             payload["thinking"] = thinking_payload;
         }
@@ -185,9 +217,12 @@ impl LlmProvider for AnthropicProvider {
         let mut payload = json!({
             "model": self.model,
             "max_tokens": max_tokens,
-            "messages": request.messages.iter().filter(|message| message.role != "system").map(Self::serialize_message).collect::<Vec<_>>(),
+            "messages": Self::request_messages(&request.messages),
             "stream": true,
         });
+        if let Some(system_prompt) = Self::request_system_prompt(&request.messages) {
+            payload["system"] = json!(system_prompt);
+        }
         if let Some(thinking_payload) = thinking_payload {
             payload["thinking"] = thinking_payload;
         }
@@ -568,6 +603,9 @@ mod tests {
                     .iter()
                     .all(|message| message["role"] != "system"));
                 let content = body["messages"][0]["content"].as_str().unwrap_or_default();
+                if content == "hello" {
+                    assert_eq!(body["system"].as_str(), Some("top-level system prompt"));
+                }
                 if content == "cause-error" {
                     return (
                         axum::http::StatusCode::BAD_REQUEST,
@@ -637,6 +675,12 @@ mod tests {
         let app = Router::new().route(
             "/v1/messages",
             post(|Json(body): Json<serde_json::Value>| async move {
+                if body["messages"][0]["content"].as_str().unwrap_or_default() == "stream" {
+                    assert_eq!(
+                        body["system"].as_str(),
+                        Some("top-level system prompt")
+                    );
+                }
                 assert!(body["messages"]
                     .as_array()
                     .unwrap()

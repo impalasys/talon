@@ -45,6 +45,7 @@ pub struct AcpAgentRuntime {
     ns: String,
     agent_id: String,
     session_id: String,
+    system_prompt: String,
     acp: manifests::AcpRuntime,
     cp: ControlPlane,
     _config: Arc<Config>,
@@ -88,10 +89,12 @@ impl AcpAgentRuntime {
             .acp
             .clone()
             .ok_or_else(|| anyhow!("Agent '{}' ACP runtime config is missing", agent_id))?;
+        let system_prompt = spec.system_prompt.clone();
         Ok(Self {
             ns: ns.to_string(),
             agent_id: agent_id.to_string(),
             session_id: session_id.to_string(),
+            system_prompt,
             acp,
             cp: cp.clone(),
             _config: config.clone(),
@@ -188,6 +191,7 @@ impl AcpAgentRuntime {
         .await?;
         let _ = read_optional_capability_response(&mut lines, 2).await?;
         let mut open_request_id = 3;
+        let mut opened_new_session = false;
         let open_response = if effective_acp.persist_session {
             send_request(
                 &mut stdin,
@@ -200,6 +204,7 @@ impl AcpAgentRuntime {
                 Ok(response) => response,
                 Err(err) if is_acp_resource_not_found(&err) => {
                     open_request_id += 1;
+                    opened_new_session = true;
                     let mut new_session_acp = effective_acp.clone();
                     new_session_acp.persist_session = false;
                     send_request(
@@ -214,6 +219,7 @@ impl AcpAgentRuntime {
                 Err(err) => return Err(err),
             }
         } else {
+            opened_new_session = true;
             send_request(
                 &mut stdin,
                 open_request_id,
@@ -244,10 +250,12 @@ impl AcpAgentRuntime {
             &mut stdin,
             prompt_request_id,
             "session/prompt",
-            json!({
-                "sessionId": acp_session_id,
-                "prompt": [{ "type": "text", "text": prompt }],
-            }),
+            session_prompt_params(
+                &acp_session_id,
+                prompt,
+                &self.system_prompt,
+                opened_new_session,
+            ),
         )
         .await?;
 
@@ -849,6 +857,27 @@ fn session_open_params(session_id: &str, acp: &manifests::AcpRuntime) -> Value {
     }
 }
 
+fn session_prompt_params(
+    session_id: &str,
+    prompt: &str,
+    system_prompt: &str,
+    include_system_prompt: bool,
+) -> Value {
+    let text = if include_system_prompt && !system_prompt.trim().is_empty() {
+        format!(
+            "System instructions from Talon agent spec:\n{}\n\nUser message:\n{}",
+            system_prompt.trim(),
+            prompt
+        )
+    } else {
+        prompt.to_string()
+    };
+    json!({
+        "sessionId": session_id,
+        "prompt": [{ "type": "text", "text": text }],
+    })
+}
+
 fn acp_auth_method(acp: &manifests::AcpRuntime) -> &'static str {
     if acp.env.contains_key("CODEX_API_KEY") {
         "codex-api-key"
@@ -960,6 +989,31 @@ mod tests {
         assert_eq!(
             effective.env.get("CODEX_API_KEY").map(String::as_str),
             Some("test-openai-key")
+        );
+    }
+
+    #[test]
+    fn session_prompt_params_includes_system_prompt_for_new_sessions() {
+        let params = session_prompt_params("session-1", "Fix the bug", "Stay concise.", true);
+
+        let text = params
+            .pointer("/prompt/0/text")
+            .and_then(|value| value.as_str())
+            .unwrap();
+        assert!(text.contains("System instructions from Talon agent spec:"));
+        assert!(text.contains("Stay concise."));
+        assert!(text.contains("User message:\nFix the bug"));
+    }
+
+    #[test]
+    fn session_prompt_params_omits_system_prompt_for_loaded_sessions() {
+        let params = session_prompt_params("session-1", "Continue", "Stay concise.", false);
+
+        assert_eq!(
+            params
+                .pointer("/prompt/0/text")
+                .and_then(|value| value.as_str()),
+            Some("Continue")
         );
     }
 
