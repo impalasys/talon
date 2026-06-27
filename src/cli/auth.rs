@@ -531,6 +531,27 @@ pub(crate) fn validate_token_part<'a>(value: &'a str, name: &str) -> Result<&'a 
     Ok(value)
 }
 
+pub(crate) fn mint_namespace_jwt(
+    secret: &str,
+    namespace: &str,
+    subject: &str,
+    ttl_seconds: u64,
+    origins: &[String],
+) -> Result<String> {
+    let namespace = validate_token_part(namespace, "namespace")?;
+    mint_scoped_jwt(
+        secret,
+        subject,
+        ttl_seconds,
+        Some(namespace),
+        None,
+        None,
+        None,
+        origins,
+    )
+    .context("Failed to sign Talon namespace JWT")
+}
+
 pub(crate) fn mint_agent_jwt(
     secret: &str,
     namespace: &str,
@@ -663,9 +684,10 @@ pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
 #[cfg(test)]
 mod tests {
     use super::{
-        google_token_request_form, parse_ttl_seconds, resolve_token_ttl_seconds,
-        DEFAULT_GOOGLE_CLI_CLIENT_SECRET, DEFAULT_TOKEN_TTL,
+        google_token_request_form, mint_namespace_jwt, parse_ttl_seconds,
+        resolve_token_ttl_seconds, DEFAULT_GOOGLE_CLI_CLIENT_SECRET, DEFAULT_TOKEN_TTL,
     };
+    use crate::gateway::auth::verify_jwt;
 
     #[test]
     fn google_token_request_form_includes_client_secret_when_present() {
@@ -719,5 +741,18 @@ mod tests {
         assert!(resolve_token_ttl_seconds("1wk", Some(123)).is_err());
         assert!(parse_ttl_seconds("0min").is_err());
         assert!(parse_ttl_seconds("1fortnight").is_err());
+    }
+
+    #[test]
+    fn mint_namespace_jwt_sets_only_namespace_scope() {
+        let token =
+            mint_namespace_jwt("secret", " customers:acme ", "tenant-client", 60, &[]).unwrap();
+        let claims = verify_jwt(&token, "secret").unwrap();
+
+        assert_eq!(claims.sub, "tenant-client");
+        assert_eq!(claims.ns.as_deref(), Some("customers:acme"));
+        assert_eq!(claims.agent, None);
+        assert_eq!(claims.session, None);
+        assert_eq!(claims.channel, None);
     }
 }
