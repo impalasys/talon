@@ -62,7 +62,8 @@ impl McpRegistry {
         }
 
         let server = resolve_server_from_ancestry(cp, namespace, name).await?;
-        let config = McpConnectionConfig::try_from(&server)?;
+        let config =
+            config_for_resolution_namespace(McpConnectionConfig::try_from(&server)?, namespace);
         let allowlist = server
             .spec
             .as_ref()
@@ -119,9 +120,17 @@ fn filter_allowed_tools(tools: Vec<McpTool>, allowlist: &[String]) -> Vec<McpToo
         .collect()
 }
 
+fn config_for_resolution_namespace(
+    mut config: McpConnectionConfig,
+    namespace: &str,
+) -> McpConnectionConfig {
+    config.namespace = Some(namespace.to_string());
+    config
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{filter_allowed_tools, McpRegistry};
+    use super::{config_for_resolution_namespace, filter_allowed_tools, McpRegistry};
     use crate::control::{
         keys::{ResourceKey, ResourceList},
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
@@ -260,6 +269,31 @@ mod tests {
 
         assert_eq!(filtered.len(), 1);
         assert_eq!(filtered[0].name, "get_file_contents");
+    }
+
+    #[test]
+    fn config_for_resolution_namespace_uses_calling_namespace_for_inherited_server() {
+        let config = crate::harness::mcp::McpConnectionConfig {
+            server_name: "conic".to_string(),
+            server_ref: "conic".to_string(),
+            transport: "http".to_string(),
+            target: "https://api.useconic.com/mcp".to_string(),
+            args: Vec::new(),
+            headers: HashMap::new(),
+            disabled: false,
+            namespace: Some("Tenant:conic:Customers".to_string()),
+            mcp_server_name: Some("conic".to_string()),
+            agent_name: None,
+            auth_broker: None,
+        };
+
+        let scoped = config_for_resolution_namespace(config, "Tenant:conic:Customers:12");
+
+        assert_eq!(
+            scoped.namespace.as_deref(),
+            Some("Tenant:conic:Customers:12")
+        );
+        assert_eq!(scoped.mcp_server_name.as_deref(), Some("conic"));
     }
 
     #[tokio::test]
