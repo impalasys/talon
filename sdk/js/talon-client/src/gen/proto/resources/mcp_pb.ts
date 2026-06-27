@@ -85,6 +85,16 @@ export class McpServerSpec extends Message<McpServerSpec> {
    */
   disabled = false;
 
+  /**
+   * @generated from field: talon.resources.McpAuthBrokerSpec auth_broker = 6;
+   */
+  authBroker?: McpAuthBrokerSpec;
+
+  /**
+   * @generated from field: talon.resources.McpServerPolicy policy = 7;
+   */
+  policy?: McpServerPolicy;
+
   constructor(data?: PartialMessage<McpServerSpec>) {
     super();
     proto3.util.initPartial(data, this);
@@ -98,6 +108,8 @@ export class McpServerSpec extends Message<McpServerSpec> {
     { no: 3, name: "args", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 4, name: "headers", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
     { no: 5, name: "disabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 6, name: "auth_broker", kind: "message", T: McpAuthBrokerSpec },
+    { no: 7, name: "policy", kind: "message", T: McpServerPolicy },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): McpServerSpec {
@@ -114,122 +126,6 @@ export class McpServerSpec extends Message<McpServerSpec> {
 
   static equals(a: McpServerSpec | PlainMessage<McpServerSpec> | undefined, b: McpServerSpec | PlainMessage<McpServerSpec> | undefined): boolean {
     return proto3.util.equals(McpServerSpec, a, b);
-  }
-}
-
-/**
- * @generated from message talon.resources.McpServerBinding
- */
-export class McpServerBinding extends Message<McpServerBinding> {
-  /**
-   * @generated from field: talon.resources.ResourceMeta metadata = 1;
-   */
-  metadata?: ResourceMeta;
-
-  /**
-   * @generated from field: talon.resources.McpServerBindingSpec spec = 2;
-   */
-  spec?: McpServerBindingSpec;
-
-  /**
-   * @generated from field: talon.resources.CommonResourceStatus status = 3;
-   */
-  status?: CommonResourceStatus;
-
-  constructor(data?: PartialMessage<McpServerBinding>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.resources.McpServerBinding";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
-    { no: 2, name: "spec", kind: "message", T: McpServerBindingSpec },
-    { no: 3, name: "status", kind: "message", T: CommonResourceStatus },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): McpServerBinding {
-    return new McpServerBinding().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): McpServerBinding {
-    return new McpServerBinding().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): McpServerBinding {
-    return new McpServerBinding().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: McpServerBinding | PlainMessage<McpServerBinding> | undefined, b: McpServerBinding | PlainMessage<McpServerBinding> | undefined): boolean {
-    return proto3.util.equals(McpServerBinding, a, b);
-  }
-}
-
-/**
- * @generated from message talon.resources.McpServerBindingSpec
- */
-export class McpServerBindingSpec extends Message<McpServerBindingSpec> {
-  /**
-   * @generated from field: string server_ref = 1;
-   */
-  serverRef = "";
-
-  /**
-   * @generated from field: repeated string args = 2;
-   */
-  args: string[] = [];
-
-  /**
-   * @generated from field: map<string, string> headers = 3;
-   */
-  headers: { [key: string]: string } = {};
-
-  /**
-   * @generated from field: bool disabled = 4;
-   */
-  disabled = false;
-
-  /**
-   * @generated from field: talon.resources.McpAuthBrokerSpec auth_broker = 5;
-   */
-  authBroker?: McpAuthBrokerSpec;
-
-  /**
-   * @generated from field: repeated string allowed_tool_names = 6;
-   */
-  allowedToolNames: string[] = [];
-
-  constructor(data?: PartialMessage<McpServerBindingSpec>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.resources.McpServerBindingSpec";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "server_ref", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "args", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 3, name: "headers", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-    { no: 4, name: "disabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 5, name: "auth_broker", kind: "message", T: McpAuthBrokerSpec },
-    { no: 6, name: "allowed_tool_names", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): McpServerBindingSpec {
-    return new McpServerBindingSpec().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): McpServerBindingSpec {
-    return new McpServerBindingSpec().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): McpServerBindingSpec {
-    return new McpServerBindingSpec().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: McpServerBindingSpec | PlainMessage<McpServerBindingSpec> | undefined, b: McpServerBindingSpec | PlainMessage<McpServerBindingSpec> | undefined): boolean {
-    return proto3.util.equals(McpServerBindingSpec, a, b);
   }
 }
 
@@ -285,5 +181,79 @@ export class McpAuthBrokerSpec extends Message<McpAuthBrokerSpec> {
 
   static equals(a: McpAuthBrokerSpec | PlainMessage<McpAuthBrokerSpec> | undefined, b: McpAuthBrokerSpec | PlainMessage<McpAuthBrokerSpec> | undefined): boolean {
     return proto3.util.equals(McpAuthBrokerSpec, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.McpServerPolicy
+ */
+export class McpServerPolicy extends Message<McpServerPolicy> {
+  /**
+   * @generated from field: talon.resources.McpToolPolicy tools = 1;
+   */
+  tools?: McpToolPolicy;
+
+  constructor(data?: PartialMessage<McpServerPolicy>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.McpServerPolicy";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "tools", kind: "message", T: McpToolPolicy },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): McpServerPolicy {
+    return new McpServerPolicy().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): McpServerPolicy {
+    return new McpServerPolicy().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): McpServerPolicy {
+    return new McpServerPolicy().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: McpServerPolicy | PlainMessage<McpServerPolicy> | undefined, b: McpServerPolicy | PlainMessage<McpServerPolicy> | undefined): boolean {
+    return proto3.util.equals(McpServerPolicy, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.McpToolPolicy
+ */
+export class McpToolPolicy extends Message<McpToolPolicy> {
+  /**
+   * @generated from field: repeated string allowlist = 1;
+   */
+  allowlist: string[] = [];
+
+  constructor(data?: PartialMessage<McpToolPolicy>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.McpToolPolicy";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "allowlist", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): McpToolPolicy {
+    return new McpToolPolicy().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): McpToolPolicy {
+    return new McpToolPolicy().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): McpToolPolicy {
+    return new McpToolPolicy().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: McpToolPolicy | PlainMessage<McpToolPolicy> | undefined, b: McpToolPolicy | PlainMessage<McpToolPolicy> | undefined): boolean {
+    return proto3.util.equals(McpToolPolicy, a, b);
   }
 }

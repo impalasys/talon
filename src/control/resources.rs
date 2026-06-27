@@ -71,14 +71,6 @@ impl ResourceStore {
                 resources_proto::resource_spec::Kind::McpServer,
                 resources_proto::resource_status::Kind::McpServer,
             ),
-            "McpServerBinding" => {
-                decode_typed_resource::<resources_proto::McpServerBinding, _, _, _, _>(
-                    kind,
-                    bytes,
-                    resources_proto::resource_spec::Kind::McpServerBinding,
-                    resources_proto::resource_status::Kind::McpServerBinding,
-                )
-            }
             "Knowledge" => decode_typed_resource::<resources_proto::Knowledge, _, _, _, _>(
                 kind,
                 bytes,
@@ -650,11 +642,6 @@ impl_stored_typed_resource!(
     resources_proto::CommonResourceStatus
 );
 impl_stored_typed_resource!(
-    resources_proto::McpServerBinding,
-    resources_proto::McpServerBindingSpec,
-    resources_proto::CommonResourceStatus
-);
-impl_stored_typed_resource!(
     resources_proto::Knowledge,
     resources_proto::KnowledgeSpec,
     resources_proto::CommonResourceStatus
@@ -845,23 +832,6 @@ fn encode_stored_resource(resource: &resources_proto::Resource) -> Result<Vec<u8
             },
             |kind| match kind {
                 resources_proto::resource_status::Kind::McpServer(status) => Some(status),
-                _ => None,
-            },
-        ),
-        "McpServerBinding" => encode_typed_resource::<
-            resources_proto::McpServerBinding,
-            resources_proto::McpServerBindingSpec,
-            resources_proto::CommonResourceStatus,
-            _,
-            _,
-        >(
-            resource,
-            |kind| match kind {
-                resources_proto::resource_spec::Kind::McpServerBinding(spec) => Some(spec),
-                _ => None,
-            },
-            |kind| match kind {
-                resources_proto::resource_status::Kind::McpServerBinding(status) => Some(status),
                 _ => None,
             },
         ),
@@ -1153,7 +1123,6 @@ fn validate_resource_kind(resource: &resources_proto::Resource) -> Result<()> {
         Kind::Channel(_) => "Channel",
         Kind::ChannelSubscription(_) => "ChannelSubscription",
         Kind::McpServer(_) => "McpServer",
-        Kind::McpServerBinding(_) => "McpServerBinding",
         Kind::Knowledge(_) => "Knowledge",
         Kind::Namespace(_) => "Namespace",
         Kind::Session(_) => "Session",
@@ -1196,7 +1165,6 @@ fn default_status_for_resource(
             StatusKind::ChannelSubscription(Default::default())
         }
         Some(SpecKind::McpServer(_)) => StatusKind::McpServer(Default::default()),
-        Some(SpecKind::McpServerBinding(_)) => StatusKind::McpServerBinding(Default::default()),
         Some(SpecKind::Knowledge(_)) => StatusKind::Knowledge(Default::default()),
         Some(SpecKind::Namespace(_)) => StatusKind::Namespace(Default::default()),
         Some(SpecKind::Session(_)) => StatusKind::Session(Default::default()),

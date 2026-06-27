@@ -56,8 +56,8 @@ struct TalonOpsAccessClaims {
     exp: usize,
     #[serde(rename = "talon:ns")]
     namespace: String,
-    #[serde(rename = "talon:binding")]
-    binding_name: String,
+    #[serde(rename = "talon:mcp_server")]
+    mcp_server_name: String,
     #[serde(rename = "talon:agent")]
     agent_name: Option<String>,
 }
@@ -69,8 +69,8 @@ struct McpAuthBrokerClaims {
     exp: usize,
     #[serde(rename = "talon:ns")]
     namespace: String,
-    #[serde(rename = "talon:binding")]
-    binding_name: String,
+    #[serde(rename = "talon:mcp_server")]
+    mcp_server_name: String,
     #[serde(rename = "talon:agent")]
     agent_name: Option<String>,
 }
@@ -78,8 +78,7 @@ struct McpAuthBrokerClaims {
 #[derive(Debug, Deserialize)]
 struct McpAuthBrokerRequest {
     namespace: String,
-    binding_name: String,
-    server_ref: Option<String>,
+    mcp_server_name: String,
     agent_name: Option<String>,
     audience: Option<String>,
 }
@@ -94,7 +93,7 @@ struct McpAuthBrokerResponse {
 #[derive(Debug, Clone)]
 pub struct TalonOpsAccess {
     namespace: String,
-    binding_name: String,
+    mcp_server_name: String,
     agent_name: Option<String>,
     policy: TalonOpsPolicy,
 }
@@ -539,25 +538,14 @@ struct GetSessionArgs {
 
 #[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
 #[serde(default)]
-struct ListMcpBindingsArgs {
-    namespace: String,
-    limit: Option<usize>,
-}
-
-#[derive(Debug, Deserialize, schemars::JsonSchema)]
-struct GetMcpBindingArgs {
-    namespace: String,
-    name: String,
-}
-
-#[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
-#[serde(default)]
 struct ListMcpServersArgs {
+    namespace: String,
     limit: Option<usize>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 struct GetMcpServerArgs {
+    namespace: String,
     name: String,
 }
 
@@ -603,7 +591,7 @@ struct DeleteScheduleArgs {
 
 #[tool_router]
 impl TalonOpsServer {
-    #[tool(description = "List namespaces visible to the caller's talon-ops binding policy.")]
+    #[tool(description = "List namespaces visible to the caller's talon-ops MCP server policy.")]
     async fn list_namespaces(
         &self,
         rmcp::handler::server::common::Extension(parts): rmcp::handler::server::common::Extension<
@@ -638,7 +626,7 @@ impl TalonOpsServer {
         to_json_string(&json!({ "namespaces": filtered }))
     }
 
-    #[tool(description = "Get a namespace visible to the caller's talon-ops binding policy.")]
+    #[tool(description = "Get a namespace visible to the caller's talon-ops MCP server policy.")]
     async fn get_namespace(
         &self,
         rmcp::handler::server::common::Extension(parts): rmcp::handler::server::common::Extension<
@@ -656,7 +644,7 @@ impl TalonOpsServer {
     }
 
     #[tool(
-        description = "List agents in a namespace visible to the caller's talon-ops binding policy."
+        description = "List agents in a namespace visible to the caller's talon-ops MCP server policy."
     )]
     async fn list_agents(
         &self,
@@ -705,7 +693,7 @@ impl TalonOpsServer {
     }
 
     #[tool(
-        description = "List channels in a namespace visible to the caller's talon-ops binding policy."
+        description = "List channels in a namespace visible to the caller's talon-ops MCP server policy."
     )]
     async fn list_channels(
         &self,
@@ -750,7 +738,7 @@ impl TalonOpsServer {
     }
 
     #[tool(
-        description = "List public channel messages if the talon-ops binding policy allows channel messages."
+        description = "List public channel messages if the talon-ops MCP server policy allows channel messages."
     )]
     async fn list_channel_messages(
         &self,
@@ -780,7 +768,7 @@ impl TalonOpsServer {
     }
 
     #[tool(
-        description = "Get a single public channel message if the talon-ops binding policy allows channel messages."
+        description = "Get a single public channel message if the talon-ops MCP server policy allows channel messages."
     )]
     async fn get_channel_message(
         &self,
@@ -841,7 +829,7 @@ impl TalonOpsServer {
     }
 
     #[tool(
-        description = "Get a session, optionally including raw messages if the binding policy allows it."
+        description = "Get a session, optionally including raw messages if the MCP server policy allows it."
     )]
     async fn get_session(
         &self,
@@ -865,7 +853,7 @@ impl TalonOpsServer {
         let include_messages = args.include_messages.unwrap_or(false);
         if include_messages && !access.policy.allow_session_messages {
             return Err(McpError::invalid_params(
-                "binding policy does not allow session messages".to_string(),
+                "MCP server policy does not allow session messages".to_string(),
                 None,
             ));
         }
@@ -881,68 +869,20 @@ impl TalonOpsServer {
         to_json_string(&payload)
     }
 
-    #[tool(description = "List MCP bindings in a visible namespace.")]
-    async fn list_mcp_bindings(
+    #[tool(description = "List MCP servers in a visible namespace.")]
+    async fn list_mcp_servers(
         &self,
         rmcp::handler::server::common::Extension(parts): rmcp::handler::server::common::Extension<
             axum::http::request::Parts,
         >,
-        Parameters(args): Parameters<ListMcpBindingsArgs>,
+        Parameters(args): Parameters<ListMcpServersArgs>,
     ) -> Result<String, McpError> {
         let access = talon_ops_access_from_parts(&parts)?;
         require_namespace_access(&access, &args.namespace)?;
         let limit = bounded_limit(&access, args.limit);
         let mut keys = self
             .kv()
-            .list_keys(&keys::mcp_server_binding_prefix(&args.namespace))
-            .await
-            .map_err(internal_mcp_error)?;
-        keys.sort();
-        let mut bindings = Vec::new();
-        for key in keys.into_iter().take(limit) {
-            if let Some(binding) = self
-                .kv()
-                .get_msg::<manifests::McpServerBinding>(&key)
-                .await
-                .map_err(internal_mcp_error)?
-            {
-                bindings.push(binding);
-            }
-        }
-        to_json_string(&json!({ "bindings": bindings }))
-    }
-
-    #[tool(description = "Get a single MCP binding from a visible namespace.")]
-    async fn get_mcp_binding(
-        &self,
-        rmcp::handler::server::common::Extension(parts): rmcp::handler::server::common::Extension<
-            axum::http::request::Parts,
-        >,
-        Parameters(args): Parameters<GetMcpBindingArgs>,
-    ) -> Result<String, McpError> {
-        let access = talon_ops_access_from_parts(&parts)?;
-        require_namespace_access(&access, &args.namespace)?;
-        let binding = self
-            .kv()
-            .get_msg::<manifests::McpServerBinding>(&keys::mcp_server_binding(
-                &args.namespace,
-                &args.name,
-            ))
-            .await
-            .map_err(internal_mcp_error)?
-            .ok_or_else(|| McpError::invalid_params("MCP binding not found".to_string(), None))?;
-        to_json_string(&json!({ "binding": binding }))
-    }
-
-    #[tool(description = "List system MCP servers available in Talon.")]
-    async fn list_mcp_servers(
-        &self,
-        Parameters(args): Parameters<ListMcpServersArgs>,
-    ) -> Result<String, McpError> {
-        let limit = args.limit.unwrap_or(DEFAULT_MAX_LIST_LIMIT as usize);
-        let mut keys = self
-            .kv()
-            .list_keys(&keys::mcp_server_prefix())
+            .list_keys(&keys::mcp_server_prefix(&args.namespace))
             .await
             .map_err(internal_mcp_error)?;
         keys.sort();
@@ -960,14 +900,19 @@ impl TalonOpsServer {
         to_json_string(&json!({ "servers": servers }))
     }
 
-    #[tool(description = "Get a single system MCP server by name.")]
+    #[tool(description = "Get a single MCP server from a visible namespace.")]
     async fn get_mcp_server(
         &self,
+        rmcp::handler::server::common::Extension(parts): rmcp::handler::server::common::Extension<
+            axum::http::request::Parts,
+        >,
         Parameters(args): Parameters<GetMcpServerArgs>,
     ) -> Result<String, McpError> {
+        let access = talon_ops_access_from_parts(&parts)?;
+        require_namespace_access(&access, &args.namespace)?;
         let server = self
             .kv()
-            .get_msg::<manifests::McpServer>(&keys::mcp_server(&args.name))
+            .get_msg::<manifests::McpServer>(&keys::mcp_server(&args.namespace, &args.name))
             .await
             .map_err(internal_mcp_error)?
             .ok_or_else(|| McpError::invalid_params("MCP server not found".to_string(), None))?;
@@ -1187,18 +1132,14 @@ async fn talon_ops_auth_broker(
         Ok(claims) => claims,
         Err(error) => return (StatusCode::UNAUTHORIZED, error).into_response(),
     };
-    if claims.namespace != payload.namespace || claims.binding_name != payload.binding_name {
-        return (StatusCode::FORBIDDEN, "namespace or binding mismatch").into_response();
+    if claims.namespace != payload.namespace || claims.mcp_server_name != payload.mcp_server_name {
+        return (StatusCode::FORBIDDEN, "namespace or MCP server mismatch").into_response();
     }
     if claims.agent_name != payload.agent_name {
         return (StatusCode::FORBIDDEN, "agent mismatch").into_response();
     }
-    if payload
-        .server_ref
-        .as_deref()
-        .is_some_and(|server_ref| server_ref != TALON_OPS_SERVER_NAME)
-    {
-        return (StatusCode::BAD_REQUEST, "unsupported talon-ops binding").into_response();
+    if payload.mcp_server_name != TALON_OPS_SERVER_NAME {
+        return (StatusCode::BAD_REQUEST, "unsupported talon-ops MCP server").into_response();
     }
     if payload
         .audience
@@ -1208,24 +1149,24 @@ async fn talon_ops_auth_broker(
         return (StatusCode::BAD_REQUEST, "unsupported talon-ops audience").into_response();
     }
 
-    let binding = match load_talon_ops_binding(
+    let access = match load_talon_ops_server_access(
         handler.cp.kv.as_ref(),
         &claims.namespace,
-        &claims.binding_name,
+        &claims.mcp_server_name,
         claims.agent_name.as_deref(),
     )
     .await
     {
-        Ok(binding) => binding,
+        Ok(access) => access,
         Err(error) => return (StatusCode::FORBIDDEN, error.to_string()).into_response(),
     };
 
     let issued_at_unix = Utc::now().timestamp();
     let expires_at_unix = issued_at_unix + DEFAULT_ACCESS_TOKEN_TTL_SECONDS;
     let token = match mint_talon_ops_access_token(
-        &binding.namespace,
-        &binding.binding_name,
-        binding.agent_name.as_deref(),
+        &access.namespace,
+        &access.mcp_server_name,
+        access.agent_name.as_deref(),
         expires_at_unix,
     ) {
         Ok(token) => token,
@@ -1260,50 +1201,42 @@ async fn talon_ops_access_from_request(
         })?;
     let claims = parse_talon_ops_access_claims(auth_header)
         .map_err(|error| (StatusCode::UNAUTHORIZED, error))?;
-    load_talon_ops_binding(
+    load_talon_ops_server_access(
         handler.cp.kv.as_ref(),
         &claims.namespace,
-        &claims.binding_name,
+        &claims.mcp_server_name,
         claims.agent_name.as_deref(),
     )
     .await
     .map_err(|error| (StatusCode::FORBIDDEN, error.to_string()))
 }
 
-async fn load_talon_ops_binding(
+async fn load_talon_ops_server_access(
     kv: &dyn crate::control::KeyValueStore,
     namespace: &str,
-    binding_name: &str,
+    mcp_server_name: &str,
     agent_name: Option<&str>,
 ) -> Result<TalonOpsAccess> {
-    let binding = kv
-        .get_msg::<manifests::McpServerBinding>(&keys::mcp_server_binding(namespace, binding_name))
-        .await?
-        .ok_or_else(|| anyhow!("binding '{binding_name}' not found in namespace '{namespace}'"))?;
-    let spec = binding
-        .spec
-        .as_ref()
-        .ok_or_else(|| anyhow!("binding '{binding_name}' missing spec"))?;
-    if spec.server_ref != TALON_OPS_SERVER_NAME {
+    if mcp_server_name != TALON_OPS_SERVER_NAME {
         return Err(anyhow!(
-            "binding '{binding_name}' does not reference {}",
+            "MCP server '{mcp_server_name}' is not {}",
             TALON_OPS_SERVER_NAME
         ));
     }
-    let policy = load_talon_ops_policy(kv).await?;
+    let server = kv
+        .get_msg::<manifests::McpServer>(&keys::mcp_server(namespace, mcp_server_name))
+        .await?
+        .ok_or_else(|| anyhow!("MCP server '{mcp_server_name}' not found in namespace '{namespace}'"))?;
+    let policy = talon_ops_policy_from_server(&server)?;
     Ok(TalonOpsAccess {
         namespace: namespace.to_string(),
-        binding_name: binding_name.to_string(),
+        mcp_server_name: mcp_server_name.to_string(),
         agent_name: agent_name.map(str::to_string),
         policy,
     })
 }
 
-async fn load_talon_ops_policy(kv: &dyn crate::control::KeyValueStore) -> Result<TalonOpsPolicy> {
-    let server = kv
-        .get_msg::<manifests::McpServer>(&keys::mcp_server(TALON_OPS_SERVER_NAME))
-        .await?
-        .ok_or_else(|| anyhow!("MCPServer '{}' not found", TALON_OPS_SERVER_NAME))?;
+fn talon_ops_policy_from_server(server: &manifests::McpServer) -> Result<TalonOpsPolicy> {
     let spec = server
         .spec
         .as_ref()
@@ -1417,8 +1350,8 @@ fn parse_mcp_auth_broker_claims(
 ) -> std::result::Result<McpAuthBrokerClaims, String> {
     let token = bearer_token(raw_auth_header)?;
     decode_claims(token, MCP_AUTH_BROKER_AUDIENCE).and_then(|claims: McpAuthBrokerClaims| {
-        if claims.namespace.trim().is_empty() || claims.binding_name.trim().is_empty() {
-            Err("missing namespace or binding claim".to_string())
+        if claims.namespace.trim().is_empty() || claims.mcp_server_name.trim().is_empty() {
+            Err("missing namespace or MCP server claim".to_string())
         } else {
             Ok(claims)
         }
@@ -1430,8 +1363,8 @@ fn parse_talon_ops_access_claims(
 ) -> std::result::Result<TalonOpsAccessClaims, String> {
     let token = bearer_token(raw_auth_header)?;
     decode_claims(token, TALON_OPS_AUDIENCE).and_then(|claims: TalonOpsAccessClaims| {
-        if claims.namespace.trim().is_empty() || claims.binding_name.trim().is_empty() {
-            Err("missing namespace or binding claim".to_string())
+        if claims.namespace.trim().is_empty() || claims.mcp_server_name.trim().is_empty() {
+            Err("missing namespace or MCP server claim".to_string())
         } else {
             Ok(claims)
         }
@@ -1463,7 +1396,7 @@ where
 
 fn mint_talon_ops_access_token(
     namespace: &str,
-    binding_name: &str,
+    mcp_server_name: &str,
     agent_name: Option<&str>,
     expires_at_unix: i64,
 ) -> Result<String> {
@@ -1474,7 +1407,7 @@ fn mint_talon_ops_access_token(
         aud: TALON_OPS_AUDIENCE.to_string(),
         exp: expires_at_unix as usize,
         namespace: namespace.to_string(),
-        binding_name: binding_name.to_string(),
+        mcp_server_name: mcp_server_name.to_string(),
         agent_name: agent_name.map(str::to_string),
     };
     Ok(encode(
@@ -1507,8 +1440,8 @@ fn require_namespace_access(access: &TalonOpsAccess, namespace: &str) -> Result<
     } else {
         Err(McpError::invalid_params(
             format!(
-                "namespace '{namespace}' is outside binding scope '{}:{}'",
-                access.namespace, access.binding_name
+                "namespace '{namespace}' is outside MCP server scope '{}:{}'",
+                access.namespace, access.mcp_server_name
             ),
             None,
         ))
@@ -1520,7 +1453,7 @@ fn require_channel_messages_access(access: &TalonOpsAccess) -> Result<(), McpErr
         Ok(())
     } else {
         Err(McpError::invalid_params(
-            "binding policy does not allow channel messages".to_string(),
+            "MCP server policy does not allow channel messages".to_string(),
             None,
         ))
     }
@@ -1582,14 +1515,14 @@ fn internal_mcp_error(error: impl std::fmt::Display) -> McpError {
 #[cfg(test)]
 mod tests {
     use super::{
-        bearer_token, bounded_limit, load_talon_ops_binding, load_talon_ops_policy,
+        bearer_token, bounded_limit, load_talon_ops_server_access, talon_ops_policy_from_server,
         mint_talon_ops_access_token, parse_bool_query_param, parse_mcp_auth_broker_claims,
         parse_non_negative_i32_query_param, parse_talon_ops_access_claims,
         parse_talon_ops_policy_from_target, require_namespace_access, schedule_json,
         talon_jwt_secret, talon_ops_access_from_parts, talon_ops_access_from_request,
         talon_ops_auth_broker, to_json_string, DeleteScheduleArgs, GetAgentArgs, GetChannelArgs,
         GetChannelMessageArgs, GetScheduleArgs, ListChannelMessagesArgs, ListChannelsArgs,
-        ListMcpBindingsArgs, ListMcpServersArgs, ListNamespacesArgs, ListSchedulesArgs,
+        ListMcpServersArgs, ListNamespacesArgs, ListSchedulesArgs,
         ListSessionsArgs, McpAuthBrokerClaims, McpAuthBrokerRequest, PutScheduleArgs,
         TalonOpsAccess, TalonOpsAccessClaims, TalonOpsPolicy, TalonOpsServer,
         DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS, DEFAULT_MAX_LIST_LIMIT,
@@ -1716,13 +1649,13 @@ mod tests {
         }
     }
 
-    async fn seed_talon_ops_binding(kv: &MockKvStore, namespace: &str, binding_name: &str) {
+    async fn seed_talon_ops_server(kv: &MockKvStore, namespace: &str, mcp_server_name: &str) {
         kv.set_msg(
-            &keys::mcp_server("talon-ops"),
+            &keys::mcp_server(namespace, mcp_server_name),
             &manifests::McpServer {
                 metadata: Some(manifests::ObjectMeta {
-                    name: "talon-ops".to_string(),
-                    namespace: String::new(),
+                    name: mcp_server_name.to_string(),
+                    namespace: namespace.to_string(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
                     ..Default::default()
@@ -1735,41 +1668,20 @@ mod tests {
                     args: Vec::new(),
                     headers: HashMap::new(),
                     disabled: false,
+                    auth_broker: None,
+                    policy: None,
                 }),
                 status: Some(crate::control::resource_model::common_status(String::new())),
             },
         )
         .await
         .expect("talon-ops server should persist");
-        kv.set_msg(
-            &keys::mcp_server_binding(namespace, binding_name),
-            &manifests::McpServerBinding {
-                metadata: Some(manifests::ObjectMeta {
-                    name: binding_name.to_string(),
-                    namespace: namespace.to_string(),
-                    labels: HashMap::new(),
-                    annotations: HashMap::new(),
-                    ..Default::default()
-                }),
-                spec: Some(manifests::McpServerBindingSpec {
-                    server_ref: "talon-ops".to_string(),
-                    args: Vec::new(),
-                    headers: HashMap::new(),
-                    disabled: false,
-                    auth_broker: None,
-                    allowed_tool_names: Vec::new(),
-                }),
-                status: Some(crate::control::resource_model::common_status(String::new())),
-            },
-        )
-        .await
-        .expect("binding should persist");
     }
 
     fn access(prefixes: &[&str]) -> TalonOpsAccess {
         TalonOpsAccess {
             namespace: "conic".to_string(),
-            binding_name: "talon-ops".to_string(),
+            mcp_server_name: "talon-ops".to_string(),
             agent_name: Some("cmo".to_string()),
             policy: TalonOpsPolicy {
                 allowed_namespace_prefixes: prefixes
@@ -1999,7 +1911,7 @@ mod tests {
     fn talon_ops_access_uses_configured_limits_and_bounded_limit() {
         let access = TalonOpsAccess {
             namespace: "conic".to_string(),
-            binding_name: "talon-ops".to_string(),
+            mcp_server_name: "talon-ops".to_string(),
             agent_name: None,
             policy: TalonOpsPolicy {
                 allowed_namespace_prefixes: vec!["conic".to_string()],
@@ -2087,7 +1999,7 @@ mod tests {
         let access_claims = parse_talon_ops_access_claims(&format!("Bearer {access_token}"))
             .expect("claims should parse");
         assert_eq!(access_claims.namespace, "conic");
-        assert_eq!(access_claims.binding_name, "talon-ops");
+        assert_eq!(access_claims.mcp_server_name, "talon-ops");
         assert_eq!(access_claims.agent_name.as_deref(), Some("cmo"));
 
         let broker_claims_token = jsonwebtoken::encode(
@@ -2097,7 +2009,7 @@ mod tests {
                 aud: "conic-mcp-auth-broker".to_string(),
                 exp: 4_102_444_800usize,
                 namespace: "conic".to_string(),
-                binding_name: "talon-ops".to_string(),
+                mcp_server_name: "talon-ops".to_string(),
                 agent_name: None,
             },
             &jsonwebtoken::EncodingKey::from_secret("secret-for-tests".as_bytes()),
@@ -2106,7 +2018,7 @@ mod tests {
         let broker_claims = parse_mcp_auth_broker_claims(&format!("Bearer {broker_claims_token}"))
             .expect("broker claims should parse");
         assert_eq!(broker_claims.namespace, "conic");
-        assert_eq!(broker_claims.binding_name, "talon-ops");
+        assert_eq!(broker_claims.mcp_server_name, "talon-ops");
         assert!(broker_claims.agent_name.is_none());
 
         let invalid = parse_talon_ops_access_claims("Bearer definitely-not-a-jwt")
@@ -2119,7 +2031,7 @@ mod tests {
     }
 
     #[test]
-    fn claim_parsers_reject_blank_namespace_or_binding() {
+    fn claim_parsers_reject_blank_namespace_or_mcp_server() {
         let _guard = env_mutex().blocking_lock();
         unsafe {
             std::env::set_var("TALON_JWT_SECRET", "secret-for-tests");
@@ -2132,7 +2044,7 @@ mod tests {
                 aud: "talon-ops".to_string(),
                 exp: 4_102_444_800usize,
                 namespace: " ".to_string(),
-                binding_name: "talon-ops".to_string(),
+                mcp_server_name: "talon-ops".to_string(),
                 agent_name: None,
             },
             &EncodingKey::from_secret("secret-for-tests".as_bytes()),
@@ -2141,7 +2053,7 @@ mod tests {
         assert!(
             parse_talon_ops_access_claims(&format!("Bearer {access_token}"))
                 .expect_err("blank namespace should fail")
-                .contains("missing namespace or binding claim")
+                .contains("missing namespace or MCP server claim")
         );
 
         let broker_token = encode(
@@ -2151,7 +2063,7 @@ mod tests {
                 aud: "conic-mcp-auth-broker".to_string(),
                 exp: 4_102_444_800usize,
                 namespace: "conic".to_string(),
-                binding_name: " ".to_string(),
+                mcp_server_name: " ".to_string(),
                 agent_name: None,
             },
             &EncodingKey::from_secret("secret-for-tests".as_bytes()),
@@ -2159,8 +2071,8 @@ mod tests {
         .expect("broker token should mint");
         assert!(
             parse_mcp_auth_broker_claims(&format!("Bearer {broker_token}"))
-                .expect_err("blank binding should fail")
-                .contains("missing namespace or binding claim")
+                .expect_err("blank MCP server should fail")
+                .contains("missing namespace or MCP server claim")
         );
 
         unsafe {
@@ -2197,7 +2109,7 @@ mod tests {
             .expect("namespace should be allowed");
         let error = require_namespace_access(&access, "default")
             .expect_err("out of scope namespace should fail");
-        assert!(format!("{error:?}").contains("outside binding scope"));
+        assert!(format!("{error:?}").contains("outside MCP server scope"));
     }
 
     #[test]
@@ -2254,104 +2166,58 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn load_talon_ops_policy_and_binding_validate_kv_records() {
+    async fn talon_ops_policy_from_server_and_access_validate_kv_records() {
         let kv = MockKvStore::default();
+        let server = manifests::McpServer {
+            metadata: Some(manifests::ObjectMeta {
+                name: "talon-ops".to_string(),
+                namespace: "Conic".to_string(),
+                labels: HashMap::new(),
+                annotations: HashMap::new(),
+                ..Default::default()
+            }),
+            spec: Some(manifests::McpServerSpec {
+                transport: "streamable_http".to_string(),
+                target: "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&session_messages=1".to_string(),
+                args: Vec::new(),
+                headers: HashMap::new(),
+                disabled: false,
+                auth_broker: None,
+                policy: None,
+            }),
+            status: Some(crate::control::resource_model::common_status(String::new())),
+        };
         kv.set_msg(
-            &keys::mcp_server("talon-ops"),
-            &manifests::McpServer {
-                metadata: Some(manifests::ObjectMeta {
-                    name: "talon-ops".to_string(),
-                    namespace: String::new(),
-                    labels: HashMap::new(),
-                    annotations: HashMap::new(),
-                    ..Default::default()
-                }),
-                spec: Some(manifests::McpServerSpec {
-                    transport: "streamable_http".to_string(),
-                    target: "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&session_messages=1".to_string(),
-                    args: Vec::new(),
-                    headers: HashMap::new(),
-                    disabled: false,
-                }),
-                status: Some(crate::control::resource_model::common_status(String::new())),
-            },
+            &keys::mcp_server("Conic", "talon-ops"),
+            &server,
         )
         .await
-        .expect("talon-ops server should persist");
-        kv.set_msg(
-            &keys::mcp_server_binding("Conic", "talon-ops"),
-            &manifests::McpServerBinding {
-                metadata: Some(manifests::ObjectMeta {
-                    name: "talon-ops".to_string(),
-                    namespace: "Conic".to_string(),
-                    labels: HashMap::new(),
-                    annotations: HashMap::new(),
-                    ..Default::default()
-                }),
-                spec: Some(manifests::McpServerBindingSpec {
-                    server_ref: "talon-ops".to_string(),
-                    args: Vec::new(),
-                    headers: HashMap::new(),
-                    disabled: false,
-                    auth_broker: None,
-                    allowed_tool_names: Vec::new(),
-                }),
-                status: Some(crate::control::resource_model::common_status(String::new())),
-            },
-        )
-        .await
-        .expect("binding should persist");
+        .expect("MCP server should persist");
 
-        let policy = load_talon_ops_policy(&kv)
-            .await
-            .expect("policy should load");
+        let policy = talon_ops_policy_from_server(&server).expect("policy should load");
         assert_eq!(policy.allowed_namespace_prefixes, vec!["Conic".to_string()]);
         assert!(policy.allow_session_messages);
         assert!(!policy.allow_channel_messages);
 
-        let access = load_talon_ops_binding(&kv, "Conic", "talon-ops", Some("ctl"))
+        let access = load_talon_ops_server_access(&kv, "Conic", "talon-ops", Some("ctl"))
             .await
-            .expect("binding should load");
+            .expect("MCP server access should load");
         assert_eq!(access.namespace, "Conic");
-        assert_eq!(access.binding_name, "talon-ops");
+        assert_eq!(access.mcp_server_name, "talon-ops");
         assert_eq!(access.agent_name.as_deref(), Some("ctl"));
     }
 
     #[tokio::test]
-    async fn load_talon_ops_binding_rejects_missing_or_wrong_server_binding() {
+    async fn load_talon_ops_server_access_rejects_missing_or_wrong_server() {
         let kv = MockKvStore::default();
-        kv.set_msg(
-            &keys::mcp_server("talon-ops"),
-            &manifests::McpServer {
-                metadata: Some(manifests::ObjectMeta {
-                    name: "talon-ops".to_string(),
-                    namespace: String::new(),
-                    labels: HashMap::new(),
-                    annotations: HashMap::new(),
-                    ..Default::default()
-                }),
-                spec: Some(manifests::McpServerSpec {
-                    transport: "streamable_http".to_string(),
-                    target: "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic"
-                        .to_string(),
-                    args: Vec::new(),
-                    headers: HashMap::new(),
-                    disabled: false,
-                }),
-                status: Some(crate::control::resource_model::common_status(String::new())),
-            },
-        )
-        .await
-        .expect("talon-ops server should persist");
-
-        let missing = load_talon_ops_binding(&kv, "conic", "talon-ops", None)
+        let missing = load_talon_ops_server_access(&kv, "conic", "talon-ops", None)
             .await
-            .expect_err("missing binding should fail");
+            .expect_err("missing MCP server should fail");
         assert!(missing.to_string().contains("not found"));
 
         kv.set_msg(
-            &keys::mcp_server_binding("conic", "wrong"),
-            &manifests::McpServerBinding {
+            &keys::mcp_server("conic", "wrong"),
+            &manifests::McpServer {
                 metadata: Some(manifests::ObjectMeta {
                     name: "wrong".to_string(),
                     namespace: "conic".to_string(),
@@ -2359,30 +2225,31 @@ mod tests {
                     annotations: HashMap::new(),
                     ..Default::default()
                 }),
-                spec: Some(manifests::McpServerBindingSpec {
-                    server_ref: "github".to_string(),
+                spec: Some(manifests::McpServerSpec {
+                    transport: "streamable_http".to_string(),
+                    target: "https://worker.example.com/mcp/github".to_string(),
                     args: Vec::new(),
                     headers: HashMap::new(),
                     disabled: false,
                     auth_broker: None,
-                    allowed_tool_names: Vec::new(),
+                    policy: None,
                 }),
                 status: Some(crate::control::resource_model::common_status(String::new())),
             },
         )
         .await
-        .expect("wrong binding should persist");
+        .expect("wrong MCP server should persist");
 
-        let wrong = load_talon_ops_binding(&kv, "conic", "wrong", None)
+        let wrong = load_talon_ops_server_access(&kv, "conic", "wrong", None)
             .await
-            .expect_err("wrong server ref should fail");
-        assert!(wrong.to_string().contains("does not reference talon-ops"));
+            .expect_err("wrong MCP server should fail");
+        assert!(wrong.to_string().contains("is not talon-ops"));
     }
 
     #[tokio::test]
-    async fn talon_ops_access_from_request_checks_header_and_binding() {
+    async fn talon_ops_access_from_request_checks_header_and_mcp_server() {
         let kv = Arc::new(MockKvStore::default());
-        seed_talon_ops_binding(kv.as_ref(), "conic", "talon-ops").await;
+        seed_talon_ops_server(kv.as_ref(), "conic", "talon-ops").await;
         let handler = handler_with_kv(kv);
 
         let missing = talon_ops_access_from_request(&handler, None)
@@ -2399,9 +2266,9 @@ mod tests {
         let header = HeaderValue::from_str(&format!("Bearer {token}")).unwrap();
         let access = talon_ops_access_from_request(&handler, Some(&header))
             .await
-            .expect("binding should load");
+            .expect("MCP server access should load");
         assert_eq!(access.namespace, "conic");
-        assert_eq!(access.binding_name, "talon-ops");
+        assert_eq!(access.mcp_server_name, "talon-ops");
         assert_eq!(access.agent_name.as_deref(), Some("ctl"));
 
         let invalid = HeaderValue::from_static("Bearer bad-token");
@@ -2418,7 +2285,7 @@ mod tests {
     #[tokio::test]
     async fn talon_ops_auth_broker_validates_request_and_mints_token() {
         let kv = Arc::new(MockKvStore::default());
-        seed_talon_ops_binding(kv.as_ref(), "conic", "talon-ops").await;
+        seed_talon_ops_server(kv.as_ref(), "conic", "talon-ops").await;
         let handler = handler_with_kv(kv);
         let _guard = env_mutex().lock().await;
         unsafe {
@@ -2432,7 +2299,7 @@ mod tests {
                 aud: "conic-mcp-auth-broker".to_string(),
                 exp: 4_102_444_800usize,
                 namespace: "conic".to_string(),
-                binding_name: "talon-ops".to_string(),
+                mcp_server_name: "talon-ops".to_string(),
                 agent_name: Some("ctl".to_string()),
             },
             &EncodingKey::from_secret("secret-for-tests".as_bytes()),
@@ -2449,8 +2316,7 @@ mod tests {
             headers.clone(),
             Json(McpAuthBrokerRequest {
                 namespace: "other".to_string(),
-                binding_name: "talon-ops".to_string(),
-                server_ref: None,
+                mcp_server_name: "talon-ops".to_string(),
                 agent_name: Some("ctl".to_string()),
                 audience: None,
             }),
@@ -2459,13 +2325,30 @@ mod tests {
         .into_response();
         assert_eq!(mismatched.status(), StatusCode::FORBIDDEN);
 
+        let unsupported_server_claims_token = encode(
+            &Header::default(),
+            &McpAuthBrokerClaims {
+                sub: "talon-ops".to_string(),
+                aud: "conic-mcp-auth-broker".to_string(),
+                exp: 4_102_444_800usize,
+                namespace: "conic".to_string(),
+                mcp_server_name: "github".to_string(),
+                agent_name: Some("ctl".to_string()),
+            },
+            &EncodingKey::from_secret("secret-for-tests".as_bytes()),
+        )
+        .expect("broker token should mint");
+        let mut unsupported_server_headers = HeaderMap::new();
+        unsupported_server_headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {unsupported_server_claims_token}")).unwrap(),
+        );
         let unsupported_server = talon_ops_auth_broker(
             State(handler.clone()),
-            headers.clone(),
+            unsupported_server_headers,
             Json(McpAuthBrokerRequest {
                 namespace: "conic".to_string(),
-                binding_name: "talon-ops".to_string(),
-                server_ref: Some("github".to_string()),
+                mcp_server_name: "github".to_string(),
                 agent_name: Some("ctl".to_string()),
                 audience: None,
             }),
@@ -2479,8 +2362,7 @@ mod tests {
             headers,
             Json(McpAuthBrokerRequest {
                 namespace: "conic".to_string(),
-                binding_name: "talon-ops".to_string(),
-                server_ref: Some("talon-ops".to_string()),
+                mcp_server_name: "talon-ops".to_string(),
                 agent_name: Some("ctl".to_string()),
                 audience: Some("talon-ops".to_string()),
             }),
@@ -2497,7 +2379,7 @@ mod tests {
     #[tokio::test]
     async fn talon_ops_server_lists_visible_resources_and_filters_sessions() {
         let kv = Arc::new(MockKvStore::default());
-        seed_talon_ops_binding(kv.as_ref(), "conic", "talon-ops").await;
+        seed_talon_ops_server(kv.as_ref(), "conic", "talon-ops").await;
         seed_namespace(kv.as_ref(), "conic", "").await;
         seed_namespace(kv.as_ref(), "conic:child", "conic").await;
         seed_namespace(kv.as_ref(), "default", "").await;
@@ -2569,30 +2451,6 @@ mod tests {
                     created_at: 150,
                     object: None,
                 }],
-            },
-        )
-        .await
-        .unwrap();
-
-        kv.set_msg(
-            &keys::mcp_server_binding("conic", "talon-ops"),
-            &manifests::McpServerBinding {
-                metadata: Some(manifests::ObjectMeta {
-                    name: "talon-ops".to_string(),
-                    namespace: "conic".to_string(),
-                    labels: HashMap::new(),
-                    annotations: HashMap::new(),
-                    ..Default::default()
-                }),
-                spec: Some(manifests::McpServerBindingSpec {
-                    server_ref: "talon-ops".to_string(),
-                    args: Vec::new(),
-                    headers: HashMap::new(),
-                    disabled: false,
-                    auth_broker: None,
-                    allowed_tool_names: Vec::new(),
-                }),
-                status: Some(crate::control::resource_model::common_status(String::new())),
             },
         )
         .await
@@ -2696,7 +2554,7 @@ mod tests {
             .list_channel_messages(
                 rmcp::handler::server::common::Extension(parts_with_access(TalonOpsAccess {
                     namespace: "conic".to_string(),
-                    binding_name: "talon-ops".to_string(),
+                    mcp_server_name: "talon-ops".to_string(),
                     agent_name: None,
                     policy: TalonOpsPolicy {
                         allowed_namespace_prefixes: vec!["conic".to_string()],
@@ -2734,21 +2592,14 @@ mod tests {
         assert_eq!(sessions_json["sessions"].as_array().unwrap().len(), 1);
         assert_eq!(sessions_json["sessions"][0]["id"], "session-new");
 
-        let bindings: String = server
-            .list_mcp_bindings(
+        let servers: String = server
+            .list_mcp_servers(
                 rmcp::handler::server::common::Extension(parts.clone()),
-                Parameters(ListMcpBindingsArgs {
+                Parameters(ListMcpServersArgs {
                     namespace: "conic".to_string(),
                     limit: Some(10),
                 }),
             )
-            .await
-            .unwrap();
-        let bindings_json: serde_json::Value = serde_json::from_str(&bindings).unwrap();
-        assert_eq!(bindings_json["bindings"].as_array().unwrap().len(), 1);
-
-        let servers: String = server
-            .list_mcp_servers(Parameters(ListMcpServersArgs { limit: Some(10) }))
             .await
             .unwrap();
         let servers_json: serde_json::Value = serde_json::from_str(&servers).unwrap();

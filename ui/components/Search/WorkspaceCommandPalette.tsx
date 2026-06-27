@@ -47,7 +47,6 @@ const SELECTION_TYPE_BY_RESOURCE_KIND: Partial<Record<string, Selection['type']>
   SandboxPolicy: 'sandbox-policy',
   Sandbox: 'sandbox',
   McpServer: 'mcp-server',
-  McpServerBinding: 'mcp-binding',
   Knowledge: 'knowledge',
   Workflow: 'workflow',
 };

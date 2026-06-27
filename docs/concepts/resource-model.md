@@ -15,7 +15,7 @@ Most runtime resources live under a namespace:
 - sessions
 - schedules
 - namespace knowledge
-- MCP bindings
+- MCP servers
 
 ## Agent template
 
@@ -69,14 +69,15 @@ In practice, this is where you keep:
 - product or tenant notes
 - policies and playbooks
 
-## MCP server and MCP binding
+## MCP server
 
-Talon splits tool infrastructure into two resources:
+`McpServer` describes a namespace-local tool endpoint:
 
-- `McpServer`: the server definition itself
-- `McpServerBinding`: how that server is applied inside a namespace
+- transport, target URL, args, and headers
+- optional auth broker configuration
+- embedded tool policy
 
-That lets the same server surface be reused with different args, headers, auth broker settings, or tool allowlists.
+Agents reference MCP servers by simple name. Resolution follows namespace ancestry from the agent namespace toward its parents, and the first matching server wins. A child namespace can define the same server name to override a parent. `spec.policy.tools.allowlist` limits exposed MCP tools by exact tool name; an empty or missing allowlist exposes all tools.
 
 ## Read next
 

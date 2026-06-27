@@ -2,7 +2,7 @@
 
 Talon is the control plane for cloud native agents. It lets teams operate autonomous agent fleets with durable execution, declarative configuration, namespace isolation, and a browser-native fleet view.
 
-Talon gives you the infrastructure long-lived agents were missing: a gateway API, worker runtime, persisted sessions, schedule wakeups, knowledge, MCP bindings, and Sightline for inspecting what is running.
+Talon gives you the infrastructure long-lived agents were missing: a gateway API, worker runtime, persisted sessions, schedule wakeups, knowledge, namespace-scoped MCP tools, and Sightline for inspecting what is running.
 
 ## What ships in this repo
 

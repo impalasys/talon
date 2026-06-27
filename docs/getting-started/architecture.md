@@ -45,7 +45,7 @@ The most important Talon resources are:
 - sessions
 - schedules
 - namespace knowledge
-- MCP servers and bindings
+- MCP servers
 
 Read [Resource Model](../concepts/resource-model.md) for the durable control-plane view.
 
@@ -57,7 +57,7 @@ Talon is organized around a few resource types:
 - **Sessions**: durable conversational/execution state
 - **Knowledge**: namespace or agent knowledge assets
 - **Schedules**: wakeups and recurring work
-- **MCP servers / bindings**: tool connectivity and policy
+- **MCP servers**: namespace-scoped tool connectivity and policy
 
 ## Transport model
 

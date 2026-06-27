@@ -25,7 +25,7 @@ You will create:
 
 - an `internal-ops` namespace
 - an `ops-copilot` agent
-- a namespace binding to the built-in `talon-ops` MCP server
+- a namespace-local `talon-ops` MCP server
 - a small read-oriented tool allowlist
 
 ## 1. Apply the example manifests
@@ -34,7 +34,7 @@ You will create:
 cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/internal-ops-copilot/namespace.yaml
 cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/internal-ops-copilot/ops-copilot-template.yaml
 cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/internal-ops-copilot/ops-copilot.yaml
-cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/internal-ops-copilot/ops-tools.binding.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:50051 apply -f manifests/examples/internal-ops-copilot/talon-ops.mcp-server.yaml
 ```
 
 This creates:
@@ -42,7 +42,7 @@ This creates:
 - the `internal-ops` namespace
 - the `ops-copilot-template` template
 - the `ops-copilot` agent
-- the `ops-tools` MCP binding
+- the namespace-local `talon-ops` MCP server
 
 ## 2. Load the runbook
 
@@ -52,13 +52,13 @@ cargo run --bin talon-cli -- --gateway http://localhost:50051 knowledge sync \
   --dir manifests/examples/internal-ops-copilot/knowledge
 ```
 
-## 3. Verify the MCP binding
+## 3. Verify the MCP server
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:50051 get mcpserverbinding ops-tools --namespace internal-ops
+cargo run --bin talon-cli -- --gateway http://localhost:50051 get mcpserver talon-ops --namespace internal-ops
 ```
 
-The binding should point at `talon-ops` and allow only:
+The server should expose only:
 
 - `list_schedules`
 - `get_schedule`
@@ -66,8 +66,8 @@ The binding should point at `talon-ops` and allow only:
 - `get_channel`
 - `list_channel_messages`
 - `get_channel_message`
-- `list_mcp_bindings`
-- `get_mcp_binding`
+- `list_mcp_servers`
+- `get_mcp_server`
 
 ## 4. Start an operator session
 
@@ -89,11 +89,11 @@ In Sightline, open the session and confirm:
 - only the allowed `talon-ops` tools were exposed
 - the session transcript makes the tool usage legible
 
-That is the core ops-copilot pattern in Talon: narrow bindings, explicit visibility, and no broad ambient tool access.
+That is the core ops-copilot pattern in Talon: narrow namespace-local MCP servers, explicit visibility, and no broad ambient tool access.
 
 ## Why this tutorial matters
 
-Internal assistants get risky when every tool is globally available. Talon’s namespace bindings let you keep the exposure legible and reviewable.
+Internal assistants get risky when every tool is globally available. Talon’s namespace-scoped MCP servers and embedded policy let you keep the exposure legible and reviewable.
 
 ## Read next
 

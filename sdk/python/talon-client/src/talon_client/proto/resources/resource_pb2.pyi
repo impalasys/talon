@@ -58,14 +58,13 @@ class RawResourceStatus(_message.Message):
     def __init__(self, json: _Optional[str] = ...) -> None: ...
 
 class ResourceSpec(_message.Message):
-    __slots__ = ("agent", "workflow", "schedule", "channel", "channel_subscription", "mcp_server", "mcp_server_binding", "knowledge", "namespace", "session", "skill", "template", "deployment", "deployment_replica", "sandbox_class", "sandbox_policy", "sandbox", "worker", "usage_policy", "raw")
+    __slots__ = ("agent", "workflow", "schedule", "channel", "channel_subscription", "mcp_server", "knowledge", "namespace", "session", "skill", "template", "deployment", "deployment_replica", "sandbox_class", "sandbox_policy", "sandbox", "worker", "usage_policy", "raw")
     AGENT_FIELD_NUMBER: _ClassVar[int]
     WORKFLOW_FIELD_NUMBER: _ClassVar[int]
     SCHEDULE_FIELD_NUMBER: _ClassVar[int]
     CHANNEL_FIELD_NUMBER: _ClassVar[int]
     CHANNEL_SUBSCRIPTION_FIELD_NUMBER: _ClassVar[int]
     MCP_SERVER_FIELD_NUMBER: _ClassVar[int]
-    MCP_SERVER_BINDING_FIELD_NUMBER: _ClassVar[int]
     KNOWLEDGE_FIELD_NUMBER: _ClassVar[int]
     NAMESPACE_FIELD_NUMBER: _ClassVar[int]
     SESSION_FIELD_NUMBER: _ClassVar[int]
@@ -85,7 +84,6 @@ class ResourceSpec(_message.Message):
     channel: _channels_pb2.ChannelSpec
     channel_subscription: _channels_pb2.ChannelSubscriptionSpec
     mcp_server: _mcp_pb2.McpServerSpec
-    mcp_server_binding: _mcp_pb2.McpServerBindingSpec
     knowledge: _knowledge_pb2.KnowledgeSpec
     namespace: _namespaces_pb2.NamespaceSpec
     session: _sessions_pb2.SessionSpec
@@ -99,17 +97,16 @@ class ResourceSpec(_message.Message):
     worker: _workers_pb2.WorkerSpec
     usage_policy: _usage_pb2.UsagePolicySpec
     raw: RawResourceSpec
-    def __init__(self, agent: _Optional[_Union[_agents_pb2.AgentSpec, _Mapping]] = ..., workflow: _Optional[_Union[_workflows_pb2.WorkflowSpec, _Mapping]] = ..., schedule: _Optional[_Union[_schedules_pb2.ScheduleSpec, _Mapping]] = ..., channel: _Optional[_Union[_channels_pb2.ChannelSpec, _Mapping]] = ..., channel_subscription: _Optional[_Union[_channels_pb2.ChannelSubscriptionSpec, _Mapping]] = ..., mcp_server: _Optional[_Union[_mcp_pb2.McpServerSpec, _Mapping]] = ..., mcp_server_binding: _Optional[_Union[_mcp_pb2.McpServerBindingSpec, _Mapping]] = ..., knowledge: _Optional[_Union[_knowledge_pb2.KnowledgeSpec, _Mapping]] = ..., namespace: _Optional[_Union[_namespaces_pb2.NamespaceSpec, _Mapping]] = ..., session: _Optional[_Union[_sessions_pb2.SessionSpec, _Mapping]] = ..., skill: _Optional[_Union[_skills_pb2.SkillSpec, _Mapping]] = ..., template: _Optional[_Union[_deployments_pb2.TemplateSpec, _Mapping]] = ..., deployment: _Optional[_Union[_deployments_pb2.DeploymentSpec, _Mapping]] = ..., deployment_replica: _Optional[_Union[_deployments_pb2.DeploymentReplicaSpec, _Mapping]] = ..., sandbox_class: _Optional[_Union[_sandboxes_pb2.SandboxClassSpec, _Mapping]] = ..., sandbox_policy: _Optional[_Union[_sandboxes_pb2.SandboxPolicySpec, _Mapping]] = ..., sandbox: _Optional[_Union[_sandboxes_pb2.SandboxSpec, _Mapping]] = ..., worker: _Optional[_Union[_workers_pb2.WorkerSpec, _Mapping]] = ..., usage_policy: _Optional[_Union[_usage_pb2.UsagePolicySpec, _Mapping]] = ..., raw: _Optional[_Union[RawResourceSpec, _Mapping]] = ...) -> None: ...
+    def __init__(self, agent: _Optional[_Union[_agents_pb2.AgentSpec, _Mapping]] = ..., workflow: _Optional[_Union[_workflows_pb2.WorkflowSpec, _Mapping]] = ..., schedule: _Optional[_Union[_schedules_pb2.ScheduleSpec, _Mapping]] = ..., channel: _Optional[_Union[_channels_pb2.ChannelSpec, _Mapping]] = ..., channel_subscription: _Optional[_Union[_channels_pb2.ChannelSubscriptionSpec, _Mapping]] = ..., mcp_server: _Optional[_Union[_mcp_pb2.McpServerSpec, _Mapping]] = ..., knowledge: _Optional[_Union[_knowledge_pb2.KnowledgeSpec, _Mapping]] = ..., namespace: _Optional[_Union[_namespaces_pb2.NamespaceSpec, _Mapping]] = ..., session: _Optional[_Union[_sessions_pb2.SessionSpec, _Mapping]] = ..., skill: _Optional[_Union[_skills_pb2.SkillSpec, _Mapping]] = ..., template: _Optional[_Union[_deployments_pb2.TemplateSpec, _Mapping]] = ..., deployment: _Optional[_Union[_deployments_pb2.DeploymentSpec, _Mapping]] = ..., deployment_replica: _Optional[_Union[_deployments_pb2.DeploymentReplicaSpec, _Mapping]] = ..., sandbox_class: _Optional[_Union[_sandboxes_pb2.SandboxClassSpec, _Mapping]] = ..., sandbox_policy: _Optional[_Union[_sandboxes_pb2.SandboxPolicySpec, _Mapping]] = ..., sandbox: _Optional[_Union[_sandboxes_pb2.SandboxSpec, _Mapping]] = ..., worker: _Optional[_Union[_workers_pb2.WorkerSpec, _Mapping]] = ..., usage_policy: _Optional[_Union[_usage_pb2.UsagePolicySpec, _Mapping]] = ..., raw: _Optional[_Union[RawResourceSpec, _Mapping]] = ...) -> None: ...
 
 class ResourceStatus(_message.Message):
-    __slots__ = ("agent", "workflow", "schedule", "channel", "channel_subscription", "mcp_server", "mcp_server_binding", "knowledge", "namespace", "session", "skill", "template", "deployment", "deployment_replica", "sandbox_class", "sandbox_policy", "sandbox", "worker", "usage_policy", "raw")
+    __slots__ = ("agent", "workflow", "schedule", "channel", "channel_subscription", "mcp_server", "knowledge", "namespace", "session", "skill", "template", "deployment", "deployment_replica", "sandbox_class", "sandbox_policy", "sandbox", "worker", "usage_policy", "raw")
     AGENT_FIELD_NUMBER: _ClassVar[int]
     WORKFLOW_FIELD_NUMBER: _ClassVar[int]
     SCHEDULE_FIELD_NUMBER: _ClassVar[int]
     CHANNEL_FIELD_NUMBER: _ClassVar[int]
     CHANNEL_SUBSCRIPTION_FIELD_NUMBER: _ClassVar[int]
     MCP_SERVER_FIELD_NUMBER: _ClassVar[int]
-    MCP_SERVER_BINDING_FIELD_NUMBER: _ClassVar[int]
     KNOWLEDGE_FIELD_NUMBER: _ClassVar[int]
     NAMESPACE_FIELD_NUMBER: _ClassVar[int]
     SESSION_FIELD_NUMBER: _ClassVar[int]
@@ -129,7 +126,6 @@ class ResourceStatus(_message.Message):
     channel: _channels_pb2.ChannelStatus
     channel_subscription: _common_pb2.CommonResourceStatus
     mcp_server: _common_pb2.CommonResourceStatus
-    mcp_server_binding: _common_pb2.CommonResourceStatus
     knowledge: _common_pb2.CommonResourceStatus
     namespace: _namespaces_pb2.NamespaceStatus
     session: _sessions_pb2.SessionStatus
@@ -143,4 +139,4 @@ class ResourceStatus(_message.Message):
     worker: _workers_pb2.WorkerStatus
     usage_policy: _usage_pb2.UsagePolicyStatus
     raw: RawResourceStatus
-    def __init__(self, agent: _Optional[_Union[_agents_pb2.AgentStatus, _Mapping]] = ..., workflow: _Optional[_Union[_workflows_pb2.WorkflowStatus, _Mapping]] = ..., schedule: _Optional[_Union[_schedules_pb2.ScheduleStatus, _Mapping]] = ..., channel: _Optional[_Union[_channels_pb2.ChannelStatus, _Mapping]] = ..., channel_subscription: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., mcp_server: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., mcp_server_binding: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., knowledge: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., namespace: _Optional[_Union[_namespaces_pb2.NamespaceStatus, _Mapping]] = ..., session: _Optional[_Union[_sessions_pb2.SessionStatus, _Mapping]] = ..., skill: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., template: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., deployment: _Optional[_Union[_deployments_pb2.DeploymentStatus, _Mapping]] = ..., deployment_replica: _Optional[_Union[_deployments_pb2.DeploymentReplicaStatus, _Mapping]] = ..., sandbox_class: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., sandbox_policy: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., sandbox: _Optional[_Union[_sandboxes_pb2.SandboxStatus, _Mapping]] = ..., worker: _Optional[_Union[_workers_pb2.WorkerStatus, _Mapping]] = ..., usage_policy: _Optional[_Union[_usage_pb2.UsagePolicyStatus, _Mapping]] = ..., raw: _Optional[_Union[RawResourceStatus, _Mapping]] = ...) -> None: ...
+    def __init__(self, agent: _Optional[_Union[_agents_pb2.AgentStatus, _Mapping]] = ..., workflow: _Optional[_Union[_workflows_pb2.WorkflowStatus, _Mapping]] = ..., schedule: _Optional[_Union[_schedules_pb2.ScheduleStatus, _Mapping]] = ..., channel: _Optional[_Union[_channels_pb2.ChannelStatus, _Mapping]] = ..., channel_subscription: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., mcp_server: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., knowledge: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., namespace: _Optional[_Union[_namespaces_pb2.NamespaceStatus, _Mapping]] = ..., session: _Optional[_Union[_sessions_pb2.SessionStatus, _Mapping]] = ..., skill: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., template: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., deployment: _Optional[_Union[_deployments_pb2.DeploymentStatus, _Mapping]] = ..., deployment_replica: _Optional[_Union[_deployments_pb2.DeploymentReplicaStatus, _Mapping]] = ..., sandbox_class: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., sandbox_policy: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ..., sandbox: _Optional[_Union[_sandboxes_pb2.SandboxStatus, _Mapping]] = ..., worker: _Optional[_Union[_workers_pb2.WorkerStatus, _Mapping]] = ..., usage_policy: _Optional[_Union[_usage_pb2.UsagePolicyStatus, _Mapping]] = ..., raw: _Optional[_Union[RawResourceStatus, _Mapping]] = ...) -> None: ...

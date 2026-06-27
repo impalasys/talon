@@ -8,16 +8,13 @@ pub fn parse_mcp_server(yaml: &str) -> Result<manifests::McpServer> {
     if server.kind != "McpServer" {
         bail!("Expected kind 'McpServer', got '{}'", server.kind);
     }
+    if server.metadata.namespace.trim().is_empty() {
+        bail!("McpServer metadata.namespace is required");
+    }
 
     Ok(manifests::McpServer {
         metadata: Some(server.metadata.into_proto()),
-        spec: Some(manifests::McpServerSpec {
-            transport: server.spec.transport,
-            target: server.spec.target,
-            args: server.spec.args,
-            headers: server.spec.headers,
-            disabled: server.spec.disabled,
-        }),
+        spec: Some(server.spec.into_proto()),
         status: Some(resource_model::common_status(String::new())),
     })
 }
@@ -38,24 +35,6 @@ pub fn parse_agent(yaml: &str) -> Result<resources_proto::Agent> {
         agent.spec.into_proto()?,
         agent.metadata.labels,
     ))
-}
-
-pub fn parse_mcp_server_binding(yaml: &str) -> Result<manifests::McpServerBinding> {
-    let binding: McpServerBindingManifest =
-        serde_yaml::from_str(yaml).context("Failed to parse McpServerBinding YAML")?;
-
-    if binding.kind != "McpServerBinding" {
-        bail!("Expected kind 'McpServerBinding', got '{}'", binding.kind);
-    }
-    if binding.metadata.namespace.trim().is_empty() {
-        bail!("McpServerBinding metadata.namespace is required");
-    }
-
-    Ok(manifests::McpServerBinding {
-        metadata: Some(binding.metadata.into_proto()),
-        spec: Some(binding.spec.into_proto()),
-        status: Some(resource_model::common_status(String::new())),
-    })
 }
 
 pub fn parse_namespace(yaml: &str) -> Result<resources_proto::Namespace> {
@@ -187,6 +166,7 @@ pub fn parse_resource(yaml: &str) -> Result<resources_proto::Resource> {
     let manifest: ResourceYamlDocument =
         serde_yaml::from_str(yaml).context("Failed to parse resource YAML")?;
     let metadata = manifest.metadata.into_resource_meta();
+    validate_mcp_server_namespace(&manifest.kind, &metadata)?;
     let spec_json = non_empty_json_object(yaml_value_to_json_string(manifest.spec)?);
     let status_json = non_empty_json_object(yaml_value_to_json_string(manifest.status)?);
     let (spec, status) = resource_spec_status_from_json(&manifest.kind, &spec_json, &status_json)?;
@@ -206,6 +186,7 @@ pub fn parse_resource_manifest(yaml: &str) -> Result<resources_proto::ResourceMa
         bail!("Resource manifests cannot set status; status is controller-owned");
     }
     let metadata = manifest.metadata.into_resource_meta();
+    validate_mcp_server_namespace(&manifest.kind, &metadata)?;
     let spec_json = non_empty_json_object(yaml_value_to_json_string(manifest.spec)?);
     let (spec, _) = resource_spec_status_from_json(&manifest.kind, &spec_json, "{}")?;
     Ok(resources_proto::ResourceManifest {
@@ -214,6 +195,16 @@ pub fn parse_resource_manifest(yaml: &str) -> Result<resources_proto::ResourceMa
         metadata: Some(metadata),
         spec: Some(spec),
     })
+}
+
+fn validate_mcp_server_namespace(kind: &str, metadata: &resources_proto::ResourceMeta) -> Result<()> {
+    if kind == "McpServerBinding" {
+        bail!("McpServerBinding manifests are unsupported; use namespaced McpServer");
+    }
+    if kind == "McpServer" && metadata.namespace.trim().is_empty() {
+        bail!("McpServer metadata.namespace is required");
+    }
+    Ok(())
 }
 
 fn non_empty_json_object(value: String) -> String {
@@ -304,6 +295,9 @@ pub fn resource_spec_status_from_json(
         "Worker" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Worker(worker_spec_from_value(spec_value)?)),
         },
+        "McpServer" => resources_proto::ResourceSpec {
+            kind: Some(SpecKind::McpServer(serde_json::from_value(spec_value)?)),
+        },
         _ => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Raw(resources_proto::RawResourceSpec {
                 json: spec_json.to_string(),
@@ -359,6 +353,11 @@ pub fn resource_spec_status_from_json(
         "Worker" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Worker(worker_status_from_value(status_value)?)),
         },
+        "McpServer" => resources_proto::ResourceStatus {
+            kind: Some(StatusKind::McpServer(common_status_from_value(
+                status_value,
+            )?)),
+        },
         _ => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Raw(resources_proto::RawResourceStatus {
                 json: status_json.to_string(),
@@ -412,6 +411,7 @@ fn resource_spec_status_to_yaml_values(
             "runtimeTemplate": sandbox_runtime_template_to_json_value(spec.runtime_template.as_ref()),
         }))?,
         Some(SpecKind::UsagePolicy(spec)) => serde_json::to_string(spec)?,
+        Some(SpecKind::McpServer(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::Skill(spec)) => serde_json::to_string(&serde_json::json!({
             "description": spec.description,
             "instructions": spec.instructions,
@@ -534,6 +534,7 @@ fn resource_spec_status_to_yaml_values(
         }
         Some(StatusKind::Template(status))
         | Some(StatusKind::Skill(status))
+        | Some(StatusKind::McpServer(status))
         | Some(StatusKind::SandboxClass(status))
         | Some(StatusKind::SandboxPolicy(status)) => {
             serde_json::to_string(&common_status_to_json(status))?

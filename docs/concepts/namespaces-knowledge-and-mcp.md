@@ -13,7 +13,7 @@ Namespaces are the primary grouping and tenancy primitive. Most resources live u
 - sessions
 - schedules
 - namespace knowledge
-- MCP bindings
+- MCP servers
 
 Namespaces also matter for auth and scoping. JWT-backed access can be restricted to a namespace, agent, or even session.
 
@@ -29,16 +29,15 @@ In practice this supports flows like:
 
 Talon exposes both agent-oriented knowledge access and namespace knowledge CRUD. That split is useful when operators want to manage context centrally while agents consume it indirectly.
 
-## MCP servers and bindings
+## MCP servers
 
-Talon separates the definition of an MCP server from how it is bound into a namespace.
+`McpServer` is a namespace-scoped resource that describes both the server endpoint and the policy for exposing its tools.
 
-- **McpServer** describes the server endpoint/transport
-- **McpServerBinding** applies it inside a namespace with arguments, headers, policy, and tool allowlists
+Agents keep simple `mcpServerRefs` by name. At runtime, Talon resolves each ref through namespace ancestry from most specific to least specific. For an agent in `a:b:c`, Talon checks `a:b:c`, then `a:b`, then `a`. The first `McpServer` with that name wins, so a child namespace can override a parent by defining a local server with the same name. There is no fallback to `Sys` unless `Sys` is actually in that namespace ancestry.
 
-This lets operators apply the same tool surface differently across environments or tenants.
+Policy lives directly on the server. `spec.policy.tools.allowlist` is an exact MCP tool-name allowlist; when it is absent or empty, all tools from the server are exposed.
 
-Lifecycle changes to MCP servers and bindings also affect the worker’s runtime registry, so these are not just static config objects.
+Lifecycle changes to MCP servers also affect the worker’s runtime registry, so these are not just static config objects. Sightline shows local and inherited MCP servers in namespace context and marks child overrides.
 
 ## Read next
 

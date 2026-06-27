@@ -2,7 +2,7 @@
 title: Resource Schemas
 ---
 
-This page summarizes the control-plane resource messages that drive Talon agents, deployments, sandbox orchestration, MCP servers, bindings, schedules, workflows, and knowledge resources.
+This page summarizes the control-plane resource messages that drive Talon agents, deployments, sandbox orchestration, MCP servers, schedules, workflows, and knowledge resources.
 
 ## `OwnerReference`
 
@@ -247,25 +247,8 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `args` | `string` | repeated |
 | `headers` | `map<string, string>` | - |
 | `disabled` | `bool` | - |
-
-## `McpServerBinding`
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `metadata` | `ResourceMeta` | - |
-| `spec` | `McpServerBindingSpec` | - |
-| `status` | `CommonResourceStatus` | - |
-
-## `McpServerBindingSpec`
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `server_ref` | `string` | - |
-| `args` | `string` | repeated |
-| `headers` | `map<string, string>` | - |
-| `disabled` | `bool` | - |
 | `auth_broker` | `McpAuthBrokerSpec` | - |
-| `allowed_tool_names` | `string` | repeated |
+| `policy` | `McpServerPolicy` | - |
 
 ## `McpAuthBrokerSpec`
 
@@ -275,6 +258,18 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `url` | `string` | - |
 | `cache_ttl_seconds` | `int32` | - |
 | `audience` | `string` | - |
+
+## `McpServerPolicy`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `tools` | `McpToolPolicy` | - |
+
+## `McpToolPolicy`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `allowlist` | `string` | repeated |
 
 ## `Knowledge`
 
@@ -854,7 +849,6 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `channel` | `ChannelSpec` | oneof (kind) |
 | `channel_subscription` | `ChannelSubscriptionSpec` | oneof (kind) |
 | `mcp_server` | `McpServerSpec` | oneof (kind) |
-| `mcp_server_binding` | `McpServerBindingSpec` | oneof (kind) |
 | `knowledge` | `KnowledgeSpec` | oneof (kind) |
 | `namespace` | `NamespaceSpec` | oneof (kind) |
 | `session` | `SessionSpec` | oneof (kind) |
@@ -879,7 +873,6 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `channel` | `ChannelStatus` | oneof (kind) |
 | `channel_subscription` | `CommonResourceStatus` | oneof (kind) |
 | `mcp_server` | `CommonResourceStatus` | oneof (kind) |
-| `mcp_server_binding` | `CommonResourceStatus` | oneof (kind) |
 | `knowledge` | `CommonResourceStatus` | oneof (kind) |
 | `namespace` | `NamespaceStatus` | oneof (kind) |
 | `session` | `SessionStatus` | oneof (kind) |

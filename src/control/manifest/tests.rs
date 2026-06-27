@@ -6,6 +6,67 @@ mod tests {
     use crate::gateway::rpc::resources_proto::{resource_spec, resource_status};
 
     #[test]
+    fn mcp_server_manifest_requires_namespace_and_parses_policy() {
+        let missing_namespace = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: McpServer
+metadata:
+  name: github
+spec:
+  transport: http
+  target: https://example.com/mcp
+"#,
+        )
+        .expect_err("McpServer without namespace should fail");
+        assert!(missing_namespace
+            .to_string()
+            .contains("McpServer metadata.namespace is required"));
+
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: McpServer
+metadata:
+  name: github
+  namespace: conic
+spec:
+  transport: http
+  target: https://example.com/mcp
+  policy:
+    tools:
+      allowlist:
+        - search
+"#,
+        )
+        .expect("namespaced McpServer should parse");
+
+        let Some(resource_spec::Kind::McpServer(spec)) = manifest.spec.and_then(|spec| spec.kind)
+        else {
+            panic!("expected McpServer spec");
+        };
+        assert_eq!(spec.policy.unwrap().tools.unwrap().allowlist, vec!["search"]);
+    }
+
+    #[test]
+    fn mcp_server_binding_manifest_is_unsupported() {
+        let error = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: McpServerBinding
+metadata:
+  name: github
+  namespace: conic
+spec:
+  serverRef: github
+"#,
+        )
+        .expect_err("McpServerBinding should be unsupported");
+
+        assert!(error.to_string().contains("McpServerBinding manifests are unsupported"));
+    }
+
+    #[test]
     fn template_manifest_normalizes_nested_spec_to_json() {
         let manifest = parse_resource_manifest(
             r#"

@@ -3493,21 +3493,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Mcp.McpServerSpecOrBuilder getMcpServerOrBuilder();
 
     /**
-     * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-     * @return Whether the mcpServerBinding field is set.
-     */
-    boolean hasMcpServerBinding();
-    /**
-     * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-     * @return The mcpServerBinding.
-     */
-    talon.resources.Mcp.McpServerBindingSpec getMcpServerBinding();
-    /**
-     * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-     */
-    talon.resources.Mcp.McpServerBindingSpecOrBuilder getMcpServerBindingOrBuilder();
-
-    /**
      * <code>.talon.resources.KnowledgeSpec knowledge = 8;</code>
      * @return Whether the knowledge field is set.
      */
@@ -3758,7 +3743,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       CHANNEL(4),
       CHANNEL_SUBSCRIPTION(5),
       MCP_SERVER(6),
-      MCP_SERVER_BINDING(7),
       KNOWLEDGE(8),
       NAMESPACE(9),
       SESSION(10),
@@ -3795,7 +3779,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           case 4: return CHANNEL;
           case 5: return CHANNEL_SUBSCRIPTION;
           case 6: return MCP_SERVER;
-          case 7: return MCP_SERVER_BINDING;
           case 8: return KNOWLEDGE;
           case 9: return NAMESPACE;
           case 10: return SESSION;
@@ -4008,37 +3991,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
          return (talon.resources.Mcp.McpServerSpec) kind_;
       }
       return talon.resources.Mcp.McpServerSpec.getDefaultInstance();
-    }
-
-    public static final int MCP_SERVER_BINDING_FIELD_NUMBER = 7;
-    /**
-     * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-     * @return Whether the mcpServerBinding field is set.
-     */
-    @java.lang.Override
-    public boolean hasMcpServerBinding() {
-      return kindCase_ == 7;
-    }
-    /**
-     * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-     * @return The mcpServerBinding.
-     */
-    @java.lang.Override
-    public talon.resources.Mcp.McpServerBindingSpec getMcpServerBinding() {
-      if (kindCase_ == 7) {
-         return (talon.resources.Mcp.McpServerBindingSpec) kind_;
-      }
-      return talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance();
-    }
-    /**
-     * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-     */
-    @java.lang.Override
-    public talon.resources.Mcp.McpServerBindingSpecOrBuilder getMcpServerBindingOrBuilder() {
-      if (kindCase_ == 7) {
-         return (talon.resources.Mcp.McpServerBindingSpec) kind_;
-      }
-      return talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance();
     }
 
     public static final int KNOWLEDGE_FIELD_NUMBER = 8;
@@ -4476,9 +4428,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 6) {
         output.writeMessage(6, (talon.resources.Mcp.McpServerSpec) kind_);
       }
-      if (kindCase_ == 7) {
-        output.writeMessage(7, (talon.resources.Mcp.McpServerBindingSpec) kind_);
-      }
       if (kindCase_ == 8) {
         output.writeMessage(8, (talon.resources.KnowledgeOuterClass.KnowledgeSpec) kind_);
       }
@@ -4550,10 +4499,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 6) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(6, (talon.resources.Mcp.McpServerSpec) kind_);
-      }
-      if (kindCase_ == 7) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(7, (talon.resources.Mcp.McpServerBindingSpec) kind_);
       }
       if (kindCase_ == 8) {
         size += com.google.protobuf.CodedOutputStream
@@ -4648,10 +4593,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           if (!getMcpServer()
               .equals(other.getMcpServer())) return false;
           break;
-        case 7:
-          if (!getMcpServerBinding()
-              .equals(other.getMcpServerBinding())) return false;
-          break;
         case 8:
           if (!getKnowledge()
               .equals(other.getKnowledge())) return false;
@@ -4742,10 +4683,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 6:
           hash = (37 * hash) + MCP_SERVER_FIELD_NUMBER;
           hash = (53 * hash) + getMcpServer().hashCode();
-          break;
-        case 7:
-          hash = (37 * hash) + MCP_SERVER_BINDING_FIELD_NUMBER;
-          hash = (53 * hash) + getMcpServerBinding().hashCode();
           break;
         case 8:
           hash = (37 * hash) + KNOWLEDGE_FIELD_NUMBER;
@@ -4951,9 +4888,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (mcpServerBuilder_ != null) {
           mcpServerBuilder_.clear();
         }
-        if (mcpServerBindingBuilder_ != null) {
-          mcpServerBindingBuilder_.clear();
-        }
         if (knowledgeBuilder_ != null) {
           knowledgeBuilder_.clear();
         }
@@ -5058,10 +4992,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             mcpServerBuilder_ != null) {
           result.kind_ = mcpServerBuilder_.build();
         }
-        if (kindCase_ == 7 &&
-            mcpServerBindingBuilder_ != null) {
-          result.kind_ = mcpServerBindingBuilder_.build();
-        }
         if (kindCase_ == 8 &&
             knowledgeBuilder_ != null) {
           result.kind_ = knowledgeBuilder_.build();
@@ -5151,10 +5081,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           }
           case MCP_SERVER: {
             mergeMcpServer(other.getMcpServer());
-            break;
-          }
-          case MCP_SERVER_BINDING: {
-            mergeMcpServerBinding(other.getMcpServerBinding());
             break;
           }
           case KNOWLEDGE: {
@@ -5281,13 +5207,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 6;
                 break;
               } // case 50
-              case 58: {
-                input.readMessage(
-                    internalGetMcpServerBindingFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                kindCase_ = 7;
-                break;
-              } // case 58
               case 66: {
                 input.readMessage(
                     internalGetKnowledgeFieldBuilder().getBuilder(),
@@ -6261,148 +6180,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         kindCase_ = 6;
         onChanged();
         return mcpServerBuilder_;
-      }
-
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Mcp.McpServerBindingSpec, talon.resources.Mcp.McpServerBindingSpec.Builder, talon.resources.Mcp.McpServerBindingSpecOrBuilder> mcpServerBindingBuilder_;
-      /**
-       * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-       * @return Whether the mcpServerBinding field is set.
-       */
-      @java.lang.Override
-      public boolean hasMcpServerBinding() {
-        return kindCase_ == 7;
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-       * @return The mcpServerBinding.
-       */
-      @java.lang.Override
-      public talon.resources.Mcp.McpServerBindingSpec getMcpServerBinding() {
-        if (mcpServerBindingBuilder_ == null) {
-          if (kindCase_ == 7) {
-            return (talon.resources.Mcp.McpServerBindingSpec) kind_;
-          }
-          return talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance();
-        } else {
-          if (kindCase_ == 7) {
-            return mcpServerBindingBuilder_.getMessage();
-          }
-          return talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-       */
-      public Builder setMcpServerBinding(talon.resources.Mcp.McpServerBindingSpec value) {
-        if (mcpServerBindingBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          kind_ = value;
-          onChanged();
-        } else {
-          mcpServerBindingBuilder_.setMessage(value);
-        }
-        kindCase_ = 7;
-        return this;
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-       */
-      public Builder setMcpServerBinding(
-          talon.resources.Mcp.McpServerBindingSpec.Builder builderForValue) {
-        if (mcpServerBindingBuilder_ == null) {
-          kind_ = builderForValue.build();
-          onChanged();
-        } else {
-          mcpServerBindingBuilder_.setMessage(builderForValue.build());
-        }
-        kindCase_ = 7;
-        return this;
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-       */
-      public Builder mergeMcpServerBinding(talon.resources.Mcp.McpServerBindingSpec value) {
-        if (mcpServerBindingBuilder_ == null) {
-          if (kindCase_ == 7 &&
-              kind_ != talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance()) {
-            kind_ = talon.resources.Mcp.McpServerBindingSpec.newBuilder((talon.resources.Mcp.McpServerBindingSpec) kind_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            kind_ = value;
-          }
-          onChanged();
-        } else {
-          if (kindCase_ == 7) {
-            mcpServerBindingBuilder_.mergeFrom(value);
-          } else {
-            mcpServerBindingBuilder_.setMessage(value);
-          }
-        }
-        kindCase_ = 7;
-        return this;
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-       */
-      public Builder clearMcpServerBinding() {
-        if (mcpServerBindingBuilder_ == null) {
-          if (kindCase_ == 7) {
-            kindCase_ = 0;
-            kind_ = null;
-            onChanged();
-          }
-        } else {
-          if (kindCase_ == 7) {
-            kindCase_ = 0;
-            kind_ = null;
-          }
-          mcpServerBindingBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-       */
-      public talon.resources.Mcp.McpServerBindingSpec.Builder getMcpServerBindingBuilder() {
-        return internalGetMcpServerBindingFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-       */
-      @java.lang.Override
-      public talon.resources.Mcp.McpServerBindingSpecOrBuilder getMcpServerBindingOrBuilder() {
-        if ((kindCase_ == 7) && (mcpServerBindingBuilder_ != null)) {
-          return mcpServerBindingBuilder_.getMessageOrBuilder();
-        } else {
-          if (kindCase_ == 7) {
-            return (talon.resources.Mcp.McpServerBindingSpec) kind_;
-          }
-          return talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.talon.resources.McpServerBindingSpec mcp_server_binding = 7;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Mcp.McpServerBindingSpec, talon.resources.Mcp.McpServerBindingSpec.Builder, talon.resources.Mcp.McpServerBindingSpecOrBuilder>
-          internalGetMcpServerBindingFieldBuilder() {
-        if (mcpServerBindingBuilder_ == null) {
-          if (!(kindCase_ == 7)) {
-            kind_ = talon.resources.Mcp.McpServerBindingSpec.getDefaultInstance();
-          }
-          mcpServerBindingBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Mcp.McpServerBindingSpec, talon.resources.Mcp.McpServerBindingSpec.Builder, talon.resources.Mcp.McpServerBindingSpecOrBuilder>(
-                  (talon.resources.Mcp.McpServerBindingSpec) kind_,
-                  getParentForChildren(),
-                  isClean());
-          kind_ = null;
-        }
-        kindCase_ = 7;
-        onChanged();
-        return mcpServerBindingBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
@@ -8397,21 +8174,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Common.CommonResourceStatusOrBuilder getMcpServerOrBuilder();
 
     /**
-     * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-     * @return Whether the mcpServerBinding field is set.
-     */
-    boolean hasMcpServerBinding();
-    /**
-     * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-     * @return The mcpServerBinding.
-     */
-    talon.resources.Common.CommonResourceStatus getMcpServerBinding();
-    /**
-     * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-     */
-    talon.resources.Common.CommonResourceStatusOrBuilder getMcpServerBindingOrBuilder();
-
-    /**
      * <code>.talon.resources.CommonResourceStatus knowledge = 8;</code>
      * @return Whether the knowledge field is set.
      */
@@ -8662,7 +8424,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       CHANNEL(4),
       CHANNEL_SUBSCRIPTION(5),
       MCP_SERVER(6),
-      MCP_SERVER_BINDING(7),
       KNOWLEDGE(8),
       NAMESPACE(9),
       SESSION(10),
@@ -8699,7 +8460,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           case 4: return CHANNEL;
           case 5: return CHANNEL_SUBSCRIPTION;
           case 6: return MCP_SERVER;
-          case 7: return MCP_SERVER_BINDING;
           case 8: return KNOWLEDGE;
           case 9: return NAMESPACE;
           case 10: return SESSION;
@@ -8909,37 +8669,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     @java.lang.Override
     public talon.resources.Common.CommonResourceStatusOrBuilder getMcpServerOrBuilder() {
       if (kindCase_ == 6) {
-         return (talon.resources.Common.CommonResourceStatus) kind_;
-      }
-      return talon.resources.Common.CommonResourceStatus.getDefaultInstance();
-    }
-
-    public static final int MCP_SERVER_BINDING_FIELD_NUMBER = 7;
-    /**
-     * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-     * @return Whether the mcpServerBinding field is set.
-     */
-    @java.lang.Override
-    public boolean hasMcpServerBinding() {
-      return kindCase_ == 7;
-    }
-    /**
-     * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-     * @return The mcpServerBinding.
-     */
-    @java.lang.Override
-    public talon.resources.Common.CommonResourceStatus getMcpServerBinding() {
-      if (kindCase_ == 7) {
-         return (talon.resources.Common.CommonResourceStatus) kind_;
-      }
-      return talon.resources.Common.CommonResourceStatus.getDefaultInstance();
-    }
-    /**
-     * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-     */
-    @java.lang.Override
-    public talon.resources.Common.CommonResourceStatusOrBuilder getMcpServerBindingOrBuilder() {
-      if (kindCase_ == 7) {
          return (talon.resources.Common.CommonResourceStatus) kind_;
       }
       return talon.resources.Common.CommonResourceStatus.getDefaultInstance();
@@ -9380,9 +9109,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 6) {
         output.writeMessage(6, (talon.resources.Common.CommonResourceStatus) kind_);
       }
-      if (kindCase_ == 7) {
-        output.writeMessage(7, (talon.resources.Common.CommonResourceStatus) kind_);
-      }
       if (kindCase_ == 8) {
         output.writeMessage(8, (talon.resources.Common.CommonResourceStatus) kind_);
       }
@@ -9454,10 +9180,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 6) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(6, (talon.resources.Common.CommonResourceStatus) kind_);
-      }
-      if (kindCase_ == 7) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(7, (talon.resources.Common.CommonResourceStatus) kind_);
       }
       if (kindCase_ == 8) {
         size += com.google.protobuf.CodedOutputStream
@@ -9552,10 +9274,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           if (!getMcpServer()
               .equals(other.getMcpServer())) return false;
           break;
-        case 7:
-          if (!getMcpServerBinding()
-              .equals(other.getMcpServerBinding())) return false;
-          break;
         case 8:
           if (!getKnowledge()
               .equals(other.getKnowledge())) return false;
@@ -9646,10 +9364,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 6:
           hash = (37 * hash) + MCP_SERVER_FIELD_NUMBER;
           hash = (53 * hash) + getMcpServer().hashCode();
-          break;
-        case 7:
-          hash = (37 * hash) + MCP_SERVER_BINDING_FIELD_NUMBER;
-          hash = (53 * hash) + getMcpServerBinding().hashCode();
           break;
         case 8:
           hash = (37 * hash) + KNOWLEDGE_FIELD_NUMBER;
@@ -9855,9 +9569,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (mcpServerBuilder_ != null) {
           mcpServerBuilder_.clear();
         }
-        if (mcpServerBindingBuilder_ != null) {
-          mcpServerBindingBuilder_.clear();
-        }
         if (knowledgeBuilder_ != null) {
           knowledgeBuilder_.clear();
         }
@@ -9962,10 +9673,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             mcpServerBuilder_ != null) {
           result.kind_ = mcpServerBuilder_.build();
         }
-        if (kindCase_ == 7 &&
-            mcpServerBindingBuilder_ != null) {
-          result.kind_ = mcpServerBindingBuilder_.build();
-        }
         if (kindCase_ == 8 &&
             knowledgeBuilder_ != null) {
           result.kind_ = knowledgeBuilder_.build();
@@ -10055,10 +9762,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           }
           case MCP_SERVER: {
             mergeMcpServer(other.getMcpServer());
-            break;
-          }
-          case MCP_SERVER_BINDING: {
-            mergeMcpServerBinding(other.getMcpServerBinding());
             break;
           }
           case KNOWLEDGE: {
@@ -10185,13 +9888,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 6;
                 break;
               } // case 50
-              case 58: {
-                input.readMessage(
-                    internalGetMcpServerBindingFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                kindCase_ = 7;
-                break;
-              } // case 58
               case 66: {
                 input.readMessage(
                     internalGetKnowledgeFieldBuilder().getBuilder(),
@@ -11165,148 +10861,6 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         kindCase_ = 6;
         onChanged();
         return mcpServerBuilder_;
-      }
-
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder> mcpServerBindingBuilder_;
-      /**
-       * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-       * @return Whether the mcpServerBinding field is set.
-       */
-      @java.lang.Override
-      public boolean hasMcpServerBinding() {
-        return kindCase_ == 7;
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-       * @return The mcpServerBinding.
-       */
-      @java.lang.Override
-      public talon.resources.Common.CommonResourceStatus getMcpServerBinding() {
-        if (mcpServerBindingBuilder_ == null) {
-          if (kindCase_ == 7) {
-            return (talon.resources.Common.CommonResourceStatus) kind_;
-          }
-          return talon.resources.Common.CommonResourceStatus.getDefaultInstance();
-        } else {
-          if (kindCase_ == 7) {
-            return mcpServerBindingBuilder_.getMessage();
-          }
-          return talon.resources.Common.CommonResourceStatus.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-       */
-      public Builder setMcpServerBinding(talon.resources.Common.CommonResourceStatus value) {
-        if (mcpServerBindingBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          kind_ = value;
-          onChanged();
-        } else {
-          mcpServerBindingBuilder_.setMessage(value);
-        }
-        kindCase_ = 7;
-        return this;
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-       */
-      public Builder setMcpServerBinding(
-          talon.resources.Common.CommonResourceStatus.Builder builderForValue) {
-        if (mcpServerBindingBuilder_ == null) {
-          kind_ = builderForValue.build();
-          onChanged();
-        } else {
-          mcpServerBindingBuilder_.setMessage(builderForValue.build());
-        }
-        kindCase_ = 7;
-        return this;
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-       */
-      public Builder mergeMcpServerBinding(talon.resources.Common.CommonResourceStatus value) {
-        if (mcpServerBindingBuilder_ == null) {
-          if (kindCase_ == 7 &&
-              kind_ != talon.resources.Common.CommonResourceStatus.getDefaultInstance()) {
-            kind_ = talon.resources.Common.CommonResourceStatus.newBuilder((talon.resources.Common.CommonResourceStatus) kind_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            kind_ = value;
-          }
-          onChanged();
-        } else {
-          if (kindCase_ == 7) {
-            mcpServerBindingBuilder_.mergeFrom(value);
-          } else {
-            mcpServerBindingBuilder_.setMessage(value);
-          }
-        }
-        kindCase_ = 7;
-        return this;
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-       */
-      public Builder clearMcpServerBinding() {
-        if (mcpServerBindingBuilder_ == null) {
-          if (kindCase_ == 7) {
-            kindCase_ = 0;
-            kind_ = null;
-            onChanged();
-          }
-        } else {
-          if (kindCase_ == 7) {
-            kindCase_ = 0;
-            kind_ = null;
-          }
-          mcpServerBindingBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-       */
-      public talon.resources.Common.CommonResourceStatus.Builder getMcpServerBindingBuilder() {
-        return internalGetMcpServerBindingFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-       */
-      @java.lang.Override
-      public talon.resources.Common.CommonResourceStatusOrBuilder getMcpServerBindingOrBuilder() {
-        if ((kindCase_ == 7) && (mcpServerBindingBuilder_ != null)) {
-          return mcpServerBindingBuilder_.getMessageOrBuilder();
-        } else {
-          if (kindCase_ == 7) {
-            return (talon.resources.Common.CommonResourceStatus) kind_;
-          }
-          return talon.resources.Common.CommonResourceStatus.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.talon.resources.CommonResourceStatus mcp_server_binding = 7;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder>
-          internalGetMcpServerBindingFieldBuilder() {
-        if (mcpServerBindingBuilder_ == null) {
-          if (!(kindCase_ == 7)) {
-            kind_ = talon.resources.Common.CommonResourceStatus.getDefaultInstance();
-          }
-          mcpServerBindingBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder>(
-                  (talon.resources.Common.CommonResourceStatus) kind_,
-                  getParentForChildren(),
-                  isClean());
-          kind_ = null;
-        }
-        kindCase_ = 7;
-        onChanged();
-        return mcpServerBindingBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
@@ -13267,7 +12821,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       "alon.resources.ResourceMeta\022+\n\004spec\030\004 \001(" +
       "\0132\035.talon.resources.ResourceSpec\"\037\n\017RawR" +
       "esourceSpec\022\014\n\004json\030\001 \001(\t\"!\n\021RawResource" +
-      "Status\022\014\n\004json\030\001 \001(\t\"\335\010\n\014ResourceSpec\022+\n" +
+      "Status\022\014\n\004json\030\001 \001(\t\"\262\010\n\014ResourceSpec\022+\n" +
       "\005agent\030\001 \001(\0132\032.talon.resources.AgentSpec" +
       "H\000\0221\n\010workflow\030\002 \001(\0132\035.talon.resources.W" +
       "orkflowSpecH\000\0221\n\010schedule\030\003 \001(\0132\035.talon." +
@@ -13276,56 +12830,54 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       "nnel_subscription\030\005 \001(\0132(.talon.resource" +
       "s.ChannelSubscriptionSpecH\000\0224\n\nmcp_serve" +
       "r\030\006 \001(\0132\036.talon.resources.McpServerSpecH" +
-      "\000\022C\n\022mcp_server_binding\030\007 \001(\0132%.talon.re" +
-      "sources.McpServerBindingSpecH\000\0223\n\tknowle" +
-      "dge\030\010 \001(\0132\036.talon.resources.KnowledgeSpe" +
-      "cH\000\0223\n\tnamespace\030\t \001(\0132\036.talon.resources" +
-      ".NamespaceSpecH\000\022/\n\007session\030\n \001(\0132\034.talo" +
-      "n.resources.SessionSpecH\000\022+\n\005skill\030\013 \001(\013" +
-      "2\032.talon.resources.SkillSpecH\000\0221\n\010templa" +
-      "te\030\024 \001(\0132\035.talon.resources.TemplateSpecH" +
-      "\000\0225\n\ndeployment\030\025 \001(\0132\037.talon.resources." +
-      "DeploymentSpecH\000\022D\n\022deployment_replica\030\026" +
-      " \001(\0132&.talon.resources.DeploymentReplica" +
-      "SpecH\000\022:\n\rsandbox_class\030( \001(\0132!.talon.re" +
-      "sources.SandboxClassSpecH\000\022<\n\016sandbox_po" +
-      "licy\030) \001(\0132\".talon.resources.SandboxPoli" +
-      "cySpecH\000\022/\n\007sandbox\030* \001(\0132\034.talon.resour" +
-      "ces.SandboxSpecH\000\022-\n\006worker\0302 \001(\0132\033.talo" +
-      "n.resources.WorkerSpecH\000\0228\n\014usage_policy" +
-      "\030< \001(\0132 .talon.resources.UsagePolicySpec" +
-      "H\000\0220\n\003raw\030\350\007 \001(\0132 .talon.resources.RawRe" +
-      "sourceSpecH\000B\006\n\004kind\"\234\t\n\016ResourceStatus\022" +
-      "-\n\005agent\030\001 \001(\0132\034.talon.resources.AgentSt" +
-      "atusH\000\0223\n\010workflow\030\002 \001(\0132\037.talon.resourc" +
-      "es.WorkflowStatusH\000\0223\n\010schedule\030\003 \001(\0132\037." +
-      "talon.resources.ScheduleStatusH\000\0221\n\007chan" +
-      "nel\030\004 \001(\0132\036.talon.resources.ChannelStatu" +
-      "sH\000\022E\n\024channel_subscription\030\005 \001(\0132%.talo" +
-      "n.resources.CommonResourceStatusH\000\022;\n\nmc" +
-      "p_server\030\006 \001(\0132%.talon.resources.CommonR" +
-      "esourceStatusH\000\022C\n\022mcp_server_binding\030\007 " +
-      "\001(\0132%.talon.resources.CommonResourceStat" +
-      "usH\000\022:\n\tknowledge\030\010 \001(\0132%.talon.resource" +
-      "s.CommonResourceStatusH\000\0225\n\tnamespace\030\t " +
-      "\001(\0132 .talon.resources.NamespaceStatusH\000\022" +
-      "1\n\007session\030\n \001(\0132\036.talon.resources.Sessi" +
-      "onStatusH\000\0226\n\005skill\030\013 \001(\0132%.talon.resour" +
-      "ces.CommonResourceStatusH\000\0229\n\010template\030\024" +
-      " \001(\0132%.talon.resources.CommonResourceSta" +
-      "tusH\000\0227\n\ndeployment\030\025 \001(\0132!.talon.resour" +
-      "ces.DeploymentStatusH\000\022F\n\022deployment_rep" +
-      "lica\030\026 \001(\0132(.talon.resources.DeploymentR" +
-      "eplicaStatusH\000\022>\n\rsandbox_class\030( \001(\0132%." +
-      "talon.resources.CommonResourceStatusH\000\022?" +
-      "\n\016sandbox_policy\030) \001(\0132%.talon.resources" +
-      ".CommonResourceStatusH\000\0221\n\007sandbox\030* \001(\013" +
-      "2\036.talon.resources.SandboxStatusH\000\022/\n\006wo" +
-      "rker\0302 \001(\0132\035.talon.resources.WorkerStatu" +
-      "sH\000\022:\n\014usage_policy\030< \001(\0132\".talon.resour" +
-      "ces.UsagePolicyStatusH\000\0222\n\003raw\030\350\007 \001(\0132\"." +
-      "talon.resources.RawResourceStatusH\000B\006\n\004k" +
-      "indb\006proto3"
+      "\000\0223\n\tknowledge\030\010 \001(\0132\036.talon.resources.K" +
+      "nowledgeSpecH\000\0223\n\tnamespace\030\t \001(\0132\036.talo" +
+      "n.resources.NamespaceSpecH\000\022/\n\007session\030\n" +
+      " \001(\0132\034.talon.resources.SessionSpecH\000\022+\n\005" +
+      "skill\030\013 \001(\0132\032.talon.resources.SkillSpecH" +
+      "\000\0221\n\010template\030\024 \001(\0132\035.talon.resources.Te" +
+      "mplateSpecH\000\0225\n\ndeployment\030\025 \001(\0132\037.talon" +
+      ".resources.DeploymentSpecH\000\022D\n\022deploymen" +
+      "t_replica\030\026 \001(\0132&.talon.resources.Deploy" +
+      "mentReplicaSpecH\000\022:\n\rsandbox_class\030( \001(\013" +
+      "2!.talon.resources.SandboxClassSpecH\000\022<\n" +
+      "\016sandbox_policy\030) \001(\0132\".talon.resources." +
+      "SandboxPolicySpecH\000\022/\n\007sandbox\030* \001(\0132\034.t" +
+      "alon.resources.SandboxSpecH\000\022-\n\006worker\0302" +
+      " \001(\0132\033.talon.resources.WorkerSpecH\000\0228\n\014u" +
+      "sage_policy\030< \001(\0132 .talon.resources.Usag" +
+      "ePolicySpecH\000\0220\n\003raw\030\350\007 \001(\0132 .talon.reso" +
+      "urces.RawResourceSpecH\000B\006\n\004kindJ\004\010\007\020\010R\022m" +
+      "cp_server_binding\"\361\010\n\016ResourceStatus\022-\n\005" +
+      "agent\030\001 \001(\0132\034.talon.resources.AgentStatu" +
+      "sH\000\0223\n\010workflow\030\002 \001(\0132\037.talon.resources." +
+      "WorkflowStatusH\000\0223\n\010schedule\030\003 \001(\0132\037.tal" +
+      "on.resources.ScheduleStatusH\000\0221\n\007channel" +
+      "\030\004 \001(\0132\036.talon.resources.ChannelStatusH\000" +
+      "\022E\n\024channel_subscription\030\005 \001(\0132%.talon.r" +
+      "esources.CommonResourceStatusH\000\022;\n\nmcp_s" +
+      "erver\030\006 \001(\0132%.talon.resources.CommonReso" +
+      "urceStatusH\000\022:\n\tknowledge\030\010 \001(\0132%.talon." +
+      "resources.CommonResourceStatusH\000\0225\n\tname" +
+      "space\030\t \001(\0132 .talon.resources.NamespaceS" +
+      "tatusH\000\0221\n\007session\030\n \001(\0132\036.talon.resourc" +
+      "es.SessionStatusH\000\0226\n\005skill\030\013 \001(\0132%.talo" +
+      "n.resources.CommonResourceStatusH\000\0229\n\010te" +
+      "mplate\030\024 \001(\0132%.talon.resources.CommonRes" +
+      "ourceStatusH\000\0227\n\ndeployment\030\025 \001(\0132!.talo" +
+      "n.resources.DeploymentStatusH\000\022F\n\022deploy" +
+      "ment_replica\030\026 \001(\0132(.talon.resources.Dep" +
+      "loymentReplicaStatusH\000\022>\n\rsandbox_class\030" +
+      "( \001(\0132%.talon.resources.CommonResourceSt" +
+      "atusH\000\022?\n\016sandbox_policy\030) \001(\0132%.talon.r" +
+      "esources.CommonResourceStatusH\000\0221\n\007sandb" +
+      "ox\030* \001(\0132\036.talon.resources.SandboxStatus" +
+      "H\000\022/\n\006worker\0302 \001(\0132\035.talon.resources.Wor" +
+      "kerStatusH\000\022:\n\014usage_policy\030< \001(\0132\".talo" +
+      "n.resources.UsagePolicyStatusH\000\0222\n\003raw\030\350" +
+      "\007 \001(\0132\".talon.resources.RawResourceStatu" +
+      "sH\000B\006\n\004kindJ\004\010\007\020\010R\022mcp_server_bindingb\006p" +
+      "roto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -13374,13 +12926,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     internal_static_talon_resources_ResourceSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ResourceSpec_descriptor,
-        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "McpServerBinding", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "Raw", "Kind", });
+        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "Raw", "Kind", });
     internal_static_talon_resources_ResourceStatus_descriptor =
       getDescriptor().getMessageType(5);
     internal_static_talon_resources_ResourceStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ResourceStatus_descriptor,
-        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "McpServerBinding", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "Raw", "Kind", });
+        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "Raw", "Kind", });
     descriptor.resolveAllFeaturesImmutable();
     talon.resources.Agents.getDescriptor();
     talon.resources.Channels.getDescriptor();

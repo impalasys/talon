@@ -8,9 +8,7 @@ use tokio::sync::RwLock;
 
 use crate::control::{keys, ns, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::manifests;
-use crate::harness::mcp::{
-    list_tools_for_config, McpAuthBrokerConfig, McpConnectionConfig, McpTool,
-};
+use crate::harness::mcp::{list_tools_for_config, McpConnectionConfig, McpTool};
 
 #[derive(Debug, Clone)]
 pub struct ResolvedMcpServer {
@@ -63,71 +61,16 @@ impl McpRegistry {
             return Ok(existing);
         }
 
-        let binding_key = keys::mcp_server_binding(namespace, name);
-        let binding = cp
-            .kv
-            .get_msg::<manifests::McpServerBinding>(&binding_key)
-            .await?;
-        let (server_ref, extra_args, extra_headers, disabled, auth_broker, allowed_tool_names) =
-            match binding {
-                Some(binding) => {
-                    let binding_spec = binding
-                        .spec
-                        .as_ref()
-                        .ok_or_else(|| anyhow!("McpServerBinding '{}' missing spec", name))?;
-                    (
-                        binding_spec.server_ref.clone(),
-                        binding_spec.args.clone(),
-                        binding_spec.headers.clone(),
-                        binding_spec.disabled,
-                        binding_spec
-                            .auth_broker
-                            .as_ref()
-                            .map(|broker| McpAuthBrokerConfig {
-                                kind: broker.kind.clone(),
-                                url: broker.url.clone(),
-                                cache_ttl_seconds: broker.cache_ttl_seconds,
-                                audience: broker.audience.clone(),
-                            }),
-                        binding_spec.allowed_tool_names.clone(),
-                    )
-                }
-                None => (
-                    name.to_string(),
-                    Vec::new(),
-                    HashMap::new(),
-                    false,
-                    None,
-                    Vec::new(),
-                ),
-            };
-
-        let key = keys::mcp_server(&server_ref);
-        let server = cp
-            .kv
-            .get_msg::<manifests::McpServer>(&key)
-            .await?
-            .ok_or_else(|| {
-                anyhow!(
-                    "MCPServer '{}' not found in namespace '{}'",
-                    server_ref,
-                    ns::TALON_SYSTEM
-                )
-            })?;
-        let mut config = McpConnectionConfig::try_from(&server)?;
-        for arg in &extra_args {
-            config.args.push(arg.clone());
-        }
-        for (header, value) in &extra_headers {
-            config.headers.insert(header.clone(), value.clone());
-        }
-        config.disabled = config.disabled || disabled;
-        config.server_ref = server_ref;
-        config.namespace = Some(namespace.to_string());
-        config.binding_name = Some(name.to_string());
-        config.auth_broker = auth_broker;
-        let tools =
-            filter_allowed_tools(list_tools_for_config(&config).await?, &allowed_tool_names);
+        let server = resolve_server_from_ancestry(cp, namespace, name).await?;
+        let config = McpConnectionConfig::try_from(&server)?;
+        let allowlist = server
+            .spec
+            .as_ref()
+            .and_then(|spec| spec.policy.as_ref())
+            .and_then(|policy| policy.tools.as_ref())
+            .map(|tools| tools.allowlist.as_slice())
+            .unwrap_or_default();
+        let tools = filter_allowed_tools(list_tools_for_config(&config).await?, allowlist);
         let server = Arc::new(ResolvedMcpServer { config, tools });
 
         let mut cache = self.cache.write().await;
@@ -140,12 +83,31 @@ impl McpRegistry {
     }
 }
 
-fn filter_allowed_tools(tools: Vec<McpTool>, allowed_tool_names: &[String]) -> Vec<McpTool> {
-    if allowed_tool_names.is_empty() {
+async fn resolve_server_from_ancestry(
+    cp: &ControlPlane,
+    namespace: &str,
+    name: &str,
+) -> Result<manifests::McpServer> {
+    for candidate_ns in ns::ancestry(namespace) {
+        let key = keys::mcp_server(&candidate_ns, name);
+        if let Some(server) = cp.kv.get_msg::<manifests::McpServer>(&key).await? {
+            return Ok(server);
+        }
+    }
+
+    Err(anyhow!(
+        "MCPServer '{}' not found in namespace ancestry for '{}'",
+        name,
+        namespace
+    ))
+}
+
+fn filter_allowed_tools(tools: Vec<McpTool>, allowlist: &[String]) -> Vec<McpTool> {
+    if allowlist.is_empty() {
         return tools;
     }
 
-    let allowed: HashSet<&str> = allowed_tool_names
+    let allowed: HashSet<&str> = allowlist
         .iter()
         .map(|name| name.trim())
         .filter(|name| !name.is_empty())
@@ -240,6 +202,33 @@ mod tests {
         }
     }
 
+    async fn seed_server(kv: &MockKvStore, namespace: &str, name: &str, target: &str) {
+        kv.set_msg(
+            &crate::control::keys::mcp_server(namespace, name),
+            &manifests::McpServer {
+                metadata: Some(manifests::ObjectMeta {
+                    name: name.to_string(),
+                    namespace: namespace.to_string(),
+                    labels: HashMap::new(),
+                    annotations: HashMap::new(),
+                    ..Default::default()
+                }),
+                spec: Some(manifests::McpServerSpec {
+                    transport: "http".to_string(),
+                    target: target.to_string(),
+                    args: Vec::new(),
+                    headers: HashMap::new(),
+                    disabled: false,
+                    auth_broker: None,
+                    policy: None,
+                }),
+                status: Some(crate::control::resource_model::common_status(String::new())),
+            },
+        )
+        .await
+        .unwrap();
+    }
+
     #[test]
     fn filter_allowed_tools_returns_all_when_allowlist_is_empty() {
         let tools = vec![tool("get_file_contents"), tool("search_code")];
@@ -290,7 +279,7 @@ mod tests {
                         headers: HashMap::new(),
                         disabled: false,
                         namespace: Some("conic".to_string()),
-                        binding_name: Some("github".to_string()),
+                        mcp_server_name: Some("github".to_string()),
                         agent_name: None,
                         auth_broker: None,
                     },
@@ -316,7 +305,7 @@ mod tests {
                         headers: HashMap::new(),
                         disabled: false,
                         namespace: Some("conic".to_string()),
-                        binding_name: Some("docs".to_string()),
+                        mcp_server_name: Some("docs".to_string()),
                         agent_name: None,
                         auth_broker: None,
                     },
@@ -348,37 +337,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn resolve_server_errors_for_missing_binding_spec_or_server() {
+    async fn resolve_server_errors_for_missing_server() {
         let kv = Arc::new(MockKvStore::default());
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         let registry = McpRegistry::new();
 
-        kv.set_msg(
-            &crate::control::keys::mcp_server_binding("conic", "github"),
-            &manifests::McpServerBinding {
-                metadata: Some(manifests::ObjectMeta {
-                    name: "github".to_string(),
-                    namespace: "conic".to_string(),
-                    labels: HashMap::new(),
-                    annotations: HashMap::new(),
-                    ..Default::default()
-                }),
-                spec: None,
-                status: Some(crate::control::resource_model::common_status(String::new())),
-            },
-        )
-        .await
-        .unwrap();
-
-        let missing_spec = registry
-            .resolve_server(&cp, "github", "conic")
-            .await
-            .unwrap_err();
-        assert!(missing_spec.to_string().contains("missing spec"));
-
-        kv.delete(&crate::control::keys::mcp_server_binding("conic", "github"))
-            .await
-            .unwrap();
         let missing_server = registry
             .resolve_server(&cp, "github", "conic")
             .await
@@ -387,17 +350,67 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn resolve_server_merges_binding_and_returns_disabled_error_before_connecting() {
+    async fn resolve_server_from_ancestry_prefers_exact_namespace() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        seed_server(&kv, "conic", "docs", "https://parent.example.com").await;
+        seed_server(&kv, "conic:child", "docs", "https://child.example.com").await;
+
+        let resolved = super::resolve_server_from_ancestry(&cp, "conic:child", "docs")
+            .await
+            .unwrap();
+
+        assert_eq!(
+            resolved.metadata.as_ref().map(|meta| meta.namespace.as_str()),
+            Some("conic:child")
+        );
+        assert_eq!(
+            resolved.spec.as_ref().map(|spec| spec.target.as_str()),
+            Some("https://child.example.com")
+        );
+    }
+
+    #[tokio::test]
+    async fn resolve_server_from_ancestry_uses_parent_for_child_namespace() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        seed_server(&kv, "conic", "docs", "https://parent.example.com").await;
+
+        let resolved = super::resolve_server_from_ancestry(&cp, "conic:child:leaf", "docs")
+            .await
+            .unwrap();
+
+        assert_eq!(
+            resolved.metadata.as_ref().map(|meta| meta.namespace.as_str()),
+            Some("conic")
+        );
+    }
+
+    #[tokio::test]
+    async fn resolve_server_from_ancestry_ignores_sys_fallback() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        seed_server(&kv, "Sys", "docs", "https://sys.example.com").await;
+
+        let missing = super::resolve_server_from_ancestry(&cp, "conic:child", "docs")
+            .await
+            .unwrap_err();
+
+        assert!(missing.to_string().contains("not found"));
+    }
+
+    #[tokio::test]
+    async fn resolve_server_uses_parent_namespace_and_returns_disabled_error_before_connecting() {
         let kv = Arc::new(MockKvStore::default());
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         let registry = McpRegistry::new();
 
         kv.set_msg(
-            &crate::control::keys::mcp_server("docs-server"),
+            &crate::control::keys::mcp_server("conic", "docs"),
             &manifests::McpServer {
                 metadata: Some(manifests::ObjectMeta {
-                    name: "docs-server".to_string(),
-                    namespace: String::new(),
+                    name: "docs".to_string(),
+                    namespace: "conic".to_string(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
                     ..Default::default()
@@ -410,30 +423,6 @@ mod tests {
                         "Authorization".to_string(),
                         "Bearer token".to_string(),
                     )]),
-                    disabled: false,
-                }),
-                status: Some(crate::control::resource_model::common_status(String::new())),
-            },
-        )
-        .await
-        .unwrap();
-        kv.set_msg(
-            &crate::control::keys::mcp_server_binding("conic", "docs"),
-            &manifests::McpServerBinding {
-                metadata: Some(manifests::ObjectMeta {
-                    name: "docs".to_string(),
-                    namespace: "conic".to_string(),
-                    labels: HashMap::new(),
-                    annotations: HashMap::new(),
-                    ..Default::default()
-                }),
-                spec: Some(manifests::McpServerBindingSpec {
-                    server_ref: "docs-server".to_string(),
-                    args: vec!["--binding".to_string()],
-                    headers: HashMap::from([(
-                        "Authorization".to_string(),
-                        "Bearer override".to_string(),
-                    )]),
                     disabled: true,
                     auth_broker: Some(manifests::McpAuthBrokerSpec {
                         kind: "oauth".to_string(),
@@ -441,7 +430,11 @@ mod tests {
                         cache_ttl_seconds: 60,
                         audience: "docs".to_string(),
                     }),
-                    allowed_tool_names: vec!["search".to_string()],
+                    policy: Some(manifests::McpServerPolicy {
+                        tools: Some(manifests::McpToolPolicy {
+                            allowlist: vec!["search".to_string()],
+                        }),
+                    }),
                 }),
                 status: Some(crate::control::resource_model::common_status(String::new())),
             },
@@ -450,7 +443,7 @@ mod tests {
         .unwrap();
 
         let err = registry
-            .resolve_server(&cp, "docs", "conic")
+            .resolve_server(&cp, "docs", "conic:child")
             .await
             .unwrap_err();
         assert!(err.to_string().contains("disabled"));

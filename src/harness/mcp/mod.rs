@@ -72,7 +72,7 @@ pub struct McpConnectionConfig {
     pub headers: HashMap<String, String>,
     pub disabled: bool,
     pub namespace: Option<String>,
-    pub binding_name: Option<String>,
+    pub mcp_server_name: Option<String>,
     pub agent_name: Option<String>,
     pub auth_broker: Option<McpAuthBrokerConfig>,
 }
@@ -433,10 +433,15 @@ impl TryFrom<&manifests::McpServer> for McpConnectionConfig {
             args: spec.args.clone(),
             headers: spec.headers.clone(),
             disabled: spec.disabled,
-            namespace: None,
-            binding_name: None,
+            namespace: (!meta.namespace.is_empty()).then(|| meta.namespace.clone()),
+            mcp_server_name: Some(meta.name.clone()),
             agent_name: None,
-            auth_broker: None,
+            auth_broker: spec.auth_broker.as_ref().map(|broker| McpAuthBrokerConfig {
+                kind: broker.kind.clone(),
+                url: broker.url.clone(),
+                cache_ttl_seconds: broker.cache_ttl_seconds,
+                audience: broker.audience.clone(),
+            }),
         })
     }
 }
@@ -477,16 +482,16 @@ pub async fn call_tool_for_config(
     client.call_tool(name, arguments).await
 }
 
-pub async fn invalidate_broker_auth_cache(ns: &str, binding_name: Option<&str>) {
-    if let Some(binding_name) = binding_name {
+pub async fn invalidate_broker_auth_cache(ns: &str, mcp_server_name: Option<&str>) {
+    if let Some(mcp_server_name) = mcp_server_name {
         {
             let mut cache = auth_cache().write().await;
-            cache.retain(|key, _| !(key.namespace == ns && key.binding_name == binding_name));
+            cache.retain(|key, _| !(key.namespace == ns && key.mcp_server_name == mcp_server_name));
         }
         auth_fetch_locks()
             .write()
             .await
-            .retain(|key, _| !(key.namespace == ns && key.binding_name == binding_name));
+            .retain(|key, _| !(key.namespace == ns && key.mcp_server_name == mcp_server_name));
         return;
     }
 
@@ -645,14 +650,14 @@ async fn resolve_broker_bearer_token(
         .namespace
         .as_ref()
         .ok_or_else(|| anyhow!("MCP auth broker requires config namespace"))?;
-    let binding_name = config
-        .binding_name
+    let mcp_server_name = config
+        .mcp_server_name
         .as_ref()
-        .ok_or_else(|| anyhow!("MCP auth broker requires binding name"))?;
+        .ok_or_else(|| anyhow!("MCP auth broker requires MCP server name"))?;
     let agent_name = config.agent_name.clone();
     let key = AuthCacheKey {
         namespace: namespace.clone(),
-        binding_name: binding_name.clone(),
+        mcp_server_name: mcp_server_name.clone(),
         agent_name: agent_name.clone(),
     };
 
@@ -673,12 +678,11 @@ async fn resolve_broker_bearer_token(
     let fetch_result: Result<String> = async {
         let request = AuthBrokerRequest {
             namespace: namespace.clone(),
-            binding_name: binding_name.clone(),
-            server_ref: config.server_ref.clone(),
+            mcp_server_name: mcp_server_name.clone(),
             agent_name: agent_name.clone(),
             audience: empty_to_none(auth_broker.audience.trim()),
         };
-        let token = mint_auth_broker_jwt(namespace, binding_name, agent_name.as_deref())?;
+        let token = mint_auth_broker_jwt(namespace, mcp_server_name, agent_name.as_deref())?;
         let mut response = auth_broker_client()
             .post(auth_broker.url.trim())
             .bearer_auth(token)
@@ -687,9 +691,9 @@ async fn resolve_broker_bearer_token(
             .await
             .map_err(|err| {
                 anyhow!(
-                    "MCP auth broker request failed for binding '{}'/{}: {}",
+                    "MCP auth broker request failed for server '{}'/{}: {}",
                     namespace,
-                    binding_name,
+                    mcp_server_name,
                     err
                 )
             })?;
@@ -698,19 +702,19 @@ async fn resolve_broker_bearer_token(
             let status = response.status();
             let body = read_response_body_limited(&mut response, 8 << 10).await;
             return Err(anyhow!(
-                "MCP auth broker returned {} for binding '{}'/{}: {}",
+                "MCP auth broker returned {} for server '{}'/{}: {}",
                 status,
                 namespace,
-                binding_name,
+                mcp_server_name,
                 body.trim()
             ));
         }
 
         let payload: AuthBrokerResponse = response.json().await.map_err(|err| {
             anyhow!(
-                "Failed to decode MCP auth broker response for binding '{}'/{}: {}",
+                "Failed to decode MCP auth broker response for server '{}'/{}: {}",
                 namespace,
-                binding_name,
+                mcp_server_name,
                 err
             )
         })?;
@@ -718,9 +722,9 @@ async fn resolve_broker_bearer_token(
         let bearer = payload.authorization_bearer_token.trim();
         if bearer.is_empty() {
             return Err(anyhow!(
-                "MCP auth broker returned an empty bearer token for binding '{}'/{}'",
+                "MCP auth broker returned an empty bearer token for server '{}'/{}'",
                 namespace,
-                binding_name
+                mcp_server_name
             ));
         }
 
@@ -787,13 +791,13 @@ fn resolve_auth_expiry(expires_at_unix: Option<i64>, cache_ttl_seconds: i32) -> 
     }
 
     Err(anyhow!(
-        "MCP auth broker response omitted expires_at_unix and binding provided no cache_ttl_seconds fallback"
+                "MCP auth broker response omitted expires_at_unix and server provided no cache_ttl_seconds fallback"
     ))
 }
 
 fn mint_auth_broker_jwt(
     namespace: &str,
-    binding_name: &str,
+    mcp_server_name: &str,
     agent_name: Option<&str>,
 ) -> Result<String> {
     crate::control::security::install_jwt_crypto_provider();
@@ -805,7 +809,7 @@ fn mint_auth_broker_jwt(
         exp: now + 300,
         iat: now,
         talon_ns: namespace.to_string(),
-        talon_binding: binding_name.to_string(),
+        talon_mcp_server: mcp_server_name.to_string(),
         talon_agent: agent_name.map(str::to_string),
     };
     encode(
@@ -931,7 +935,7 @@ pub(crate) fn clear_broker_auth_cache_for_test() {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 struct AuthCacheKey {
     namespace: String,
-    binding_name: String,
+    mcp_server_name: String,
     agent_name: Option<String>,
 }
 
@@ -950,8 +954,7 @@ impl CachedAuthEntry {
 #[derive(Debug, Serialize)]
 struct AuthBrokerRequest {
     namespace: String,
-    binding_name: String,
-    server_ref: String,
+    mcp_server_name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     agent_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -976,8 +979,8 @@ struct BrokerJwtClaims {
     iat: i64,
     #[serde(rename = "talon:ns")]
     talon_ns: String,
-    #[serde(rename = "talon:binding")]
-    talon_binding: String,
+    #[serde(rename = "talon:mcp_server")]
+    talon_mcp_server: String,
     #[serde(rename = "talon:agent", skip_serializing_if = "Option::is_none")]
     talon_agent: Option<String>,
 }

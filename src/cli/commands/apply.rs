@@ -84,7 +84,6 @@ fn is_generic_resource_kind(kind: &str) -> bool {
         "Agent"
             | "McpServer"
             | "MCPServer"
-            | "McpServerBinding"
             | "Knowledge"
             | "Channel"
             | "ChannelSubscription"
@@ -109,14 +108,7 @@ fn resource_manifest_from_manifest(
     reject_status_field(content)?;
     let mut manifest = match raw.kind.as_str() {
         "MCPServer" | "McpServer" => {
-            let mut server = crate::control::manifest::parse_mcp_server(content)?;
-            let meta = server
-                .metadata
-                .as_mut()
-                .context("MCPServer missing metadata")?;
-            if meta.namespace.is_empty() {
-                meta.namespace = ns::TALON_SYSTEM.to_string();
-            }
+            let server = crate::control::manifest::parse_mcp_server(content)?;
             resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "McpServer".to_string(),
@@ -137,22 +129,6 @@ fn resource_manifest_from_manifest(
                 spec: Some(resources_proto::ResourceSpec {
                     kind: Some(SpecKind::Agent(
                         agent.spec.clone().context("Agent missing spec")?,
-                    )),
-                }),
-            }
-        }
-        "McpServerBinding" => {
-            let binding = crate::control::manifest::parse_mcp_server_binding(content)?;
-            resources_proto::ResourceManifest {
-                api_version: "talon.impalasys.com/v1".to_string(),
-                kind: "McpServerBinding".to_string(),
-                metadata: binding.metadata.clone(),
-                spec: Some(resources_proto::ResourceSpec {
-                    kind: Some(SpecKind::McpServerBinding(
-                        binding
-                            .spec
-                            .clone()
-                            .context("McpServerBinding missing spec")?,
                     )),
                 }),
             }

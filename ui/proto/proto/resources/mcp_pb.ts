@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/resources/mcp.proto.
  */
 export const file_proto_resources_mcp: GenFile = /*@__PURE__*/
-  fileDesc("Chlwcm90by9yZXNvdXJjZXMvbWNwLnByb3RvEg90YWxvbi5yZXNvdXJjZXMioQEKCU1jcFNlcnZlchIvCghtZXRhZGF0YRgBIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESLAoEc3BlYxgCIAEoCzIeLnRhbG9uLnJlc291cmNlcy5NY3BTZXJ2ZXJTcGVjEjUKBnN0YXR1cxgDIAEoCzIlLnRhbG9uLnJlc291cmNlcy5Db21tb25SZXNvdXJjZVN0YXR1cyLAAQoNTWNwU2VydmVyU3BlYxIRCgl0cmFuc3BvcnQYASABKAkSDgoGdGFyZ2V0GAIgASgJEgwKBGFyZ3MYAyADKAkSPAoHaGVhZGVycxgEIAMoCzIrLnRhbG9uLnJlc291cmNlcy5NY3BTZXJ2ZXJTcGVjLkhlYWRlcnNFbnRyeRIQCghkaXNhYmxlZBgFIAEoCBouCgxIZWFkZXJzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASKvAQoQTWNwU2VydmVyQmluZGluZxIvCghtZXRhZGF0YRgBIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESMwoEc3BlYxgCIAEoCzIlLnRhbG9uLnJlc291cmNlcy5NY3BTZXJ2ZXJCaW5kaW5nU3BlYxI1CgZzdGF0dXMYAyABKAsyJS50YWxvbi5yZXNvdXJjZXMuQ29tbW9uUmVzb3VyY2VTdGF0dXMilAIKFE1jcFNlcnZlckJpbmRpbmdTcGVjEhIKCnNlcnZlcl9yZWYYASABKAkSDAoEYXJncxgCIAMoCRJDCgdoZWFkZXJzGAMgAygLMjIudGFsb24ucmVzb3VyY2VzLk1jcFNlcnZlckJpbmRpbmdTcGVjLkhlYWRlcnNFbnRyeRIQCghkaXNhYmxlZBgEIAEoCBI3CgthdXRoX2Jyb2tlchgFIAEoCzIiLnRhbG9uLnJlc291cmNlcy5NY3BBdXRoQnJva2VyU3BlYxIaChJhbGxvd2VkX3Rvb2xfbmFtZXMYBiADKAkaLgoMSGVhZGVyc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiWwoRTWNwQXV0aEJyb2tlclNwZWMSDAoEa2luZBgBIAEoCRILCgN1cmwYAiABKAkSGQoRY2FjaGVfdHRsX3NlY29uZHMYAyABKAUSEAoIYXVkaWVuY2UYBCABKAliBnByb3RvMw", [file_proto_resources_common]);
+  fileDesc("Chlwcm90by9yZXNvdXJjZXMvbWNwLnByb3RvEg90YWxvbi5yZXNvdXJjZXMioQEKCU1jcFNlcnZlchIvCghtZXRhZGF0YRgBIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESLAoEc3BlYxgCIAEoCzIeLnRhbG9uLnJlc291cmNlcy5NY3BTZXJ2ZXJTcGVjEjUKBnN0YXR1cxgDIAEoCzIlLnRhbG9uLnJlc291cmNlcy5Db21tb25SZXNvdXJjZVN0YXR1cyKrAgoNTWNwU2VydmVyU3BlYxIRCgl0cmFuc3BvcnQYASABKAkSDgoGdGFyZ2V0GAIgASgJEgwKBGFyZ3MYAyADKAkSPAoHaGVhZGVycxgEIAMoCzIrLnRhbG9uLnJlc291cmNlcy5NY3BTZXJ2ZXJTcGVjLkhlYWRlcnNFbnRyeRIQCghkaXNhYmxlZBgFIAEoCBI3CgthdXRoX2Jyb2tlchgGIAEoCzIiLnRhbG9uLnJlc291cmNlcy5NY3BBdXRoQnJva2VyU3BlYxIwCgZwb2xpY3kYByABKAsyIC50YWxvbi5yZXNvdXJjZXMuTWNwU2VydmVyUG9saWN5Gi4KDEhlYWRlcnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIlsKEU1jcEF1dGhCcm9rZXJTcGVjEgwKBGtpbmQYASABKAkSCwoDdXJsGAIgASgJEhkKEWNhY2hlX3R0bF9zZWNvbmRzGAMgASgFEhAKCGF1ZGllbmNlGAQgASgJIkAKD01jcFNlcnZlclBvbGljeRItCgV0b29scxgBIAEoCzIeLnRhbG9uLnJlc291cmNlcy5NY3BUb29sUG9saWN5IiIKDU1jcFRvb2xQb2xpY3kSEQoJYWxsb3dsaXN0GAEgAygJYgZwcm90bzM", [file_proto_resources_common]);
 
 /**
  * @generated from message talon.resources.McpServer
@@ -69,6 +69,16 @@ export type McpServerSpec = Message<"talon.resources.McpServerSpec"> & {
    * @generated from field: bool disabled = 5;
    */
   disabled: boolean;
+
+  /**
+   * @generated from field: talon.resources.McpAuthBrokerSpec auth_broker = 6;
+   */
+  authBroker?: McpAuthBrokerSpec;
+
+  /**
+   * @generated from field: talon.resources.McpServerPolicy policy = 7;
+   */
+  policy?: McpServerPolicy;
 };
 
 /**
@@ -77,75 +87,6 @@ export type McpServerSpec = Message<"talon.resources.McpServerSpec"> & {
  */
 export const McpServerSpecSchema: GenMessage<McpServerSpec> = /*@__PURE__*/
   messageDesc(file_proto_resources_mcp, 1);
-
-/**
- * @generated from message talon.resources.McpServerBinding
- */
-export type McpServerBinding = Message<"talon.resources.McpServerBinding"> & {
-  /**
-   * @generated from field: talon.resources.ResourceMeta metadata = 1;
-   */
-  metadata?: ResourceMeta;
-
-  /**
-   * @generated from field: talon.resources.McpServerBindingSpec spec = 2;
-   */
-  spec?: McpServerBindingSpec;
-
-  /**
-   * @generated from field: talon.resources.CommonResourceStatus status = 3;
-   */
-  status?: CommonResourceStatus;
-};
-
-/**
- * Describes the message talon.resources.McpServerBinding.
- * Use `create(McpServerBindingSchema)` to create a new message.
- */
-export const McpServerBindingSchema: GenMessage<McpServerBinding> = /*@__PURE__*/
-  messageDesc(file_proto_resources_mcp, 2);
-
-/**
- * @generated from message talon.resources.McpServerBindingSpec
- */
-export type McpServerBindingSpec = Message<"talon.resources.McpServerBindingSpec"> & {
-  /**
-   * @generated from field: string server_ref = 1;
-   */
-  serverRef: string;
-
-  /**
-   * @generated from field: repeated string args = 2;
-   */
-  args: string[];
-
-  /**
-   * @generated from field: map<string, string> headers = 3;
-   */
-  headers: { [key: string]: string };
-
-  /**
-   * @generated from field: bool disabled = 4;
-   */
-  disabled: boolean;
-
-  /**
-   * @generated from field: talon.resources.McpAuthBrokerSpec auth_broker = 5;
-   */
-  authBroker?: McpAuthBrokerSpec;
-
-  /**
-   * @generated from field: repeated string allowed_tool_names = 6;
-   */
-  allowedToolNames: string[];
-};
-
-/**
- * Describes the message talon.resources.McpServerBindingSpec.
- * Use `create(McpServerBindingSpecSchema)` to create a new message.
- */
-export const McpServerBindingSpecSchema: GenMessage<McpServerBindingSpec> = /*@__PURE__*/
-  messageDesc(file_proto_resources_mcp, 3);
 
 /**
  * @generated from message talon.resources.McpAuthBrokerSpec
@@ -177,5 +118,39 @@ export type McpAuthBrokerSpec = Message<"talon.resources.McpAuthBrokerSpec"> & {
  * Use `create(McpAuthBrokerSpecSchema)` to create a new message.
  */
 export const McpAuthBrokerSpecSchema: GenMessage<McpAuthBrokerSpec> = /*@__PURE__*/
+  messageDesc(file_proto_resources_mcp, 2);
+
+/**
+ * @generated from message talon.resources.McpServerPolicy
+ */
+export type McpServerPolicy = Message<"talon.resources.McpServerPolicy"> & {
+  /**
+   * @generated from field: talon.resources.McpToolPolicy tools = 1;
+   */
+  tools?: McpToolPolicy;
+};
+
+/**
+ * Describes the message talon.resources.McpServerPolicy.
+ * Use `create(McpServerPolicySchema)` to create a new message.
+ */
+export const McpServerPolicySchema: GenMessage<McpServerPolicy> = /*@__PURE__*/
+  messageDesc(file_proto_resources_mcp, 3);
+
+/**
+ * @generated from message talon.resources.McpToolPolicy
+ */
+export type McpToolPolicy = Message<"talon.resources.McpToolPolicy"> & {
+  /**
+   * @generated from field: repeated string allowlist = 1;
+   */
+  allowlist: string[];
+};
+
+/**
+ * Describes the message talon.resources.McpToolPolicy.
+ * Use `create(McpToolPolicySchema)` to create a new message.
+ */
+export const McpToolPolicySchema: GenMessage<McpToolPolicy> = /*@__PURE__*/
   messageDesc(file_proto_resources_mcp, 4);
 

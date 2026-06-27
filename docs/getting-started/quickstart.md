@@ -61,7 +61,7 @@ It also starts:
 
 Talon resources are usually managed as manifests so the same agent, namespace, knowledge, and tool definitions can be reviewed, versioned, and applied again in another environment. This quickstart writes temporary manifests under `/tmp` so you can use the same workflow without adding files to the repository.
 
-Namespaces group agents, sessions, knowledge, and tool bindings. Create one for the quickstart:
+Namespaces group agents, sessions, knowledge, and MCP servers. Create one for the quickstart:
 
 ```bash
 cat > /tmp/quickstart-namespace.yaml <<'EOF'
@@ -144,12 +144,12 @@ In Sightline:
 In Sightline, you can inspect:
 
 - namespaces, which group the resources for a workspace or tenant
-- agents, which hold runnable behavior such as prompts, model policy, knowledge, and tool bindings
+- agents, which hold runnable behavior such as prompts, model policy, knowledge, and MCP server refs
 - sessions, which store durable conversation state and execution history
 - schedules, which wake agents for recurring or one-shot background work
 - templates, which define reusable agent behavior that multiple agents can share
 - knowledge resources, which provide durable context files available to agents in a namespace
-- MCP servers and bindings, which expose approved external tools to selected agents
+- MCP servers, which expose approved external tools to selected agents through namespace ancestry
 
 ## 8. Read the contracts
 

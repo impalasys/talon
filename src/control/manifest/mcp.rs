@@ -18,6 +18,20 @@ struct McpServerSpecManifest {
     args: Vec<String>,
     headers: HashMap<String, String>,
     disabled: bool,
+    auth_broker: Option<McpAuthBrokerSpecManifest>,
+    policy: Option<McpServerPolicyManifest>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct McpServerPolicyManifest {
+    tools: Option<McpToolPolicyManifest>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct McpToolPolicyManifest {
+    allowlist: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -27,26 +41,6 @@ struct AgentManifest {
     kind: String,
     metadata: ObjectMetaManifest,
     spec: AgentSpecManifest,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct McpServerBindingManifest {
-    api_version: String,
-    kind: String,
-    metadata: ObjectMetaManifest,
-    spec: McpServerBindingSpecManifest,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-#[serde(rename_all = "camelCase", default)]
-struct McpServerBindingSpecManifest {
-    server_ref: String,
-    args: Vec<String>,
-    headers: HashMap<String, String>,
-    disabled: bool,
-    auth_broker: Option<McpAuthBrokerSpecManifest>,
-    allowed_tool_names: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]

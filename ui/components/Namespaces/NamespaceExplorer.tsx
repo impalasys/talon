@@ -76,7 +76,6 @@ export type SelectionType =
   | 'sandbox-policy'
   | 'sandbox'
   | 'mcp-server'
-  | 'mcp-binding'
   | 'knowledge';
 
 export type Selection = {
@@ -107,22 +106,21 @@ type ExplorerMcpServer = {
     transport?: string;
     target?: string;
     disabled?: boolean;
-  };
-};
-
-type ExplorerMcpBinding = {
-  metadata?: {
-    name?: string;
-    namespace?: string;
-    labels?: Record<string, string>;
-  };
-  spec?: {
-    serverRef?: string;
-    disabled?: boolean;
     authBroker?: {
       kind?: string;
     };
+    policy?: {
+      tools?: {
+        allowlist?: string[];
+      };
+    };
   };
+};
+
+type EffectiveMcpServer = {
+  server: ExplorerMcpServer;
+  originNamespace: string;
+  badge?: string;
 };
 
 type ExplorerSchedule = {
@@ -197,7 +195,6 @@ const RESOURCE_KIND_BY_SELECTION: Partial<Record<SelectionType, string>> = {
   'sandbox-policy': 'SandboxPolicy',
   sandbox: 'Sandbox',
   'mcp-server': 'McpServer',
-  'mcp-binding': 'McpServerBinding',
   knowledge: 'Knowledge',
 };
 
@@ -314,13 +311,6 @@ function mcpServerFromResource(resource: ResourceEnvelope): ExplorerMcpServer {
   };
 }
 
-function mcpBindingFromResource(resource: ResourceEnvelope): ExplorerMcpBinding {
-  return {
-    metadata: resource.metadata,
-    spec: resourceSpec(resource, 'mcpServerBinding'),
-  };
-}
-
 function templateSummary(resource: ResourceEnvelope) {
   const spec = resourceSpec(resource, 'template');
   const targetKind = spec.kind || 'Resource';
@@ -393,7 +383,7 @@ function nodeSortWeight(node: TreeNode) {
       return 2;
     case 'channel-subscription':
       return 3;
-    case 'mcp-binding':
+    case 'mcp-server':
       return 4;
     case 'sandbox':
       return 5;
@@ -439,6 +429,56 @@ function namespaceAncestors(ns: string) {
     ancestors.push(parts.slice(0, i + 1).join(':'));
   }
   return ancestors;
+}
+
+function namespaceResolutionAncestry(ns: string) {
+  if (!ns) return [];
+  const parts = ns.split(':').filter(Boolean);
+  return parts.map((_, index) => parts.slice(0, parts.length - index).join(':'));
+}
+
+function collectMcpLookupNamespaceIds(expanded: Set<string>, selectedNode: Selection | null) {
+  const namespaces = new Set<string>();
+  for (const ns of collectExpandedNamespaceIds(expanded, selectedNode)) {
+    for (const candidate of namespaceResolutionAncestry(ns)) {
+      namespaces.add(candidate);
+    }
+  }
+  return namespaces;
+}
+
+function effectiveMcpServersForNamespace(
+  ns: string,
+  serversByNamespace: Record<string, ExplorerMcpServer[]>,
+): EffectiveMcpServer[] {
+  const ancestry = namespaceResolutionAncestry(ns);
+  const inheritedNames = new Set<string>();
+
+  for (const ancestor of ancestry.slice(1)) {
+    for (const server of serversByNamespace[ancestor] || []) {
+      const name = server.metadata?.name;
+      if (name) inheritedNames.add(name);
+    }
+  }
+
+  const effective = new Map<string, EffectiveMcpServer>();
+  for (const originNamespace of ancestry) {
+    for (const server of serversByNamespace[originNamespace] || []) {
+      const name = server.metadata?.name;
+      if (!name || effective.has(name)) continue;
+      effective.set(name, {
+        server,
+        originNamespace,
+        badge: originNamespace === ns
+          ? (inheritedNames.has(name) ? 'override' : undefined)
+          : `from ${originNamespace}`,
+      });
+    }
+  }
+
+  return Array.from(effective.values()).sort((left, right) =>
+    (left.server.metadata?.name || '').localeCompare(right.server.metadata?.name || ''),
+  );
 }
 
 function selectionExpansionIds(selection: Selection | null) {
@@ -610,7 +650,7 @@ function NamespaceNode({
     'session',
     'schedule',
     'knowledge',
-    'mcp-binding',
+    'mcp-server',
     'channel-subscription',
     'workflow',
     'template',
@@ -691,7 +731,7 @@ function NamespaceNode({
          {node.selection.type === 'sandbox-class' && <ShieldCheck className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-fuchsia-400")} />}
          {node.selection.type === 'sandbox-policy' && <Box className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-fuchsia-300")} />}
          {node.selection.type === 'sandbox' && <Container className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-orange-400")} />}
-         {node.selection.type === 'mcp-binding' && <Plug className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-blue-500")} />}
+         {node.selection.type === 'mcp-server' && <Plug className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-blue-500")} />}
          {node.selection.type === 'knowledge' && <FileText className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-violet-400")} />}
 
          <span className="truncate flex-1">{node.name}</span>
@@ -766,8 +806,7 @@ export function NamespaceExplorer({
   const [agentForm, setAgentForm] = useState({ name: '', template: '' });
   const [templates, setTemplates] = useState<any[]>([]);
   const [agentCreateTemplates, setAgentCreateTemplates] = useState<any[]>([]);
-  const [mcpServers, setMcpServers] = useState<ExplorerMcpServer[]>([]);
-  const [mcpBindingsByNamespace, setMcpBindingsByNamespace] = useState<Record<string, ExplorerMcpBinding[]>>({});
+  const [mcpServersByNamespace, setMcpServersByNamespace] = useState<Record<string, ExplorerMcpServer[]>>({});
   const [schedulesByNamespace, setSchedulesByNamespace] = useState<Record<string, ExplorerSchedule[]>>({});
   const [knowledgeByNamespace, setKnowledgeByNamespace] = useState<Record<string, ExplorerKnowledge[]>>({});
   const [channelsByNamespace, setChannelsByNamespace] = useState<Record<string, ExplorerChannel[]>>({});
@@ -954,19 +993,23 @@ export function NamespaceExplorer({
               }
             }
 
-            const namespaceBindings = mcpBindingsByNamespace[ns] || [];
-            for (const binding of namespaceBindings) {
-              const bindingName = binding.metadata?.name || 'unknown-binding';
-              const bindingId = `${ns}:mcp-binding:${bindingName}`;
-              currentLevel.children[`mcp-binding:${bindingName}`] = {
-                id: bindingId,
-                name: bindingName,
-                badge: binding.spec?.serverRef || undefined,
+            const namespaceMcpServers = effectiveMcpServersForNamespace(ns, mcpServersByNamespace);
+            for (const effective of namespaceMcpServers) {
+              const server = effective.server;
+              const serverName = server.metadata?.name || 'unknown-server';
+              const originNamespace = effective.originNamespace;
+              const serverId = originNamespace === ns
+                ? `${ns}:mcp-server:${serverName}`
+                : `${ns}:mcp-server:${originNamespace}:${serverName}`;
+              currentLevel.children[`mcp-server:${originNamespace}:${serverName}`] = {
+                id: serverId,
+                name: serverName,
+                badge: effective.badge,
                 selection: {
-                  type: 'mcp-binding',
-                  ns,
-                  resourceName: bindingName,
-                  fullPath: bindingId,
+                  type: 'mcp-server',
+                  ns: originNamespace,
+                  resourceName: serverName,
+                  fullPath: serverId,
                 },
                 children: {},
               };
@@ -1036,7 +1079,7 @@ export function NamespaceExplorer({
     } catch (e) {
       console.error(e);
     }
-  }, [channelSubscriptionsByKey, channelsByNamespace, controlResourcesByNamespace, isConnected, expanded, knowledgeByNamespace, mcpBindingsByNamespace, schedulesByNamespace, selectedNode]);
+  }, [channelSubscriptionsByKey, channelsByNamespace, controlResourcesByNamespace, isConnected, expanded, knowledgeByNamespace, mcpServersByNamespace, schedulesByNamespace, selectedNode]);
 
   useEffect(() => {
     if (!selectedNode?.ns) return;
@@ -1145,42 +1188,27 @@ export function NamespaceExplorer({
 
   const refreshMcpServers = useCallback(async () => {
     if (!isConnected) {
-      setMcpServers([]);
+      setMcpServersByNamespace({});
       return;
     }
 
     try {
-      const servers = await listResourceKind(SYSTEM_NAMESPACE, 'McpServer');
-      setMcpServers(servers.map(mcpServerFromResource));
-    } catch (e) {
-      console.warn('Could not fetch MCP servers', e);
-      setMcpServers([]);
-    }
-  }, [isConnected]);
-
-  const refreshMcpBindings = useCallback(async () => {
-    if (!isConnected) {
-      setMcpBindingsByNamespace({});
-      return;
-    }
-
-    try {
-      const namespaces = collectExpandedNamespaceIds(expanded, selectedNode);
-      const bindingEntries = await Promise.all(
+      const namespaces = collectMcpLookupNamespaceIds(expanded, selectedNode);
+      const serverEntries = await Promise.all(
         Array.from(namespaces).map(async (ns) => {
           try {
-            const resources = await listResourceKind(ns, 'McpServerBinding');
-            return [ns, resources.map(mcpBindingFromResource)] as const;
+            const resources = await listResourceKind(ns, 'McpServer');
+            return [ns, resources.map(mcpServerFromResource)] as const;
           } catch (e) {
-            console.warn(`Could not fetch MCP bindings for ns ${ns}`, e);
+            console.warn(`Could not fetch MCP servers for ns ${ns}`, e);
             return [ns, []] as const;
           }
         }),
       );
-      setMcpBindingsByNamespace(Object.fromEntries(bindingEntries));
+      setMcpServersByNamespace(Object.fromEntries(serverEntries));
     } catch (e) {
-      console.warn('Could not list namespaces for MCP bindings', e);
-      setMcpBindingsByNamespace({});
+      console.warn('Could not list namespace MCP servers', e);
+      setMcpServersByNamespace({});
     }
   }, [expanded, isConnected, selectedNode]);
 
@@ -1344,12 +1372,6 @@ export function NamespaceExplorer({
     const interval = setInterval(refreshMcpServers, 5000);
     return () => clearInterval(interval);
   }, [refreshMcpServers]);
-
-  useEffect(() => {
-    refreshMcpBindings();
-    const interval = setInterval(refreshMcpBindings, 5000);
-    return () => clearInterval(interval);
-  }, [refreshMcpBindings]);
 
   useEffect(() => {
     refreshSchedules();
@@ -1617,18 +1639,29 @@ export function NamespaceExplorer({
         ? (left.metadata?.name || '').localeCompare(right.metadata?.name || '')
         : leftNs.localeCompare(rightNs);
     });
-  const mcpCards = mcpServers
-    .map((server) => ({
-      id: `mcp:${server.metadata?.name || 'unknown-server'}`,
+  const visibleMcpServers: EffectiveMcpServer[] = selectedNode?.ns
+    ? effectiveMcpServersForNamespace(selectedNode.ns, mcpServersByNamespace)
+    : Object.entries(mcpServersByNamespace)
+        .flatMap(([originNamespace, servers]) => servers.map((server) => ({ server, originNamespace })))
+        .sort((left, right) =>
+          `${left.originNamespace}/${left.server.metadata?.name || ''}`.localeCompare(
+            `${right.originNamespace}/${right.server.metadata?.name || ''}`,
+          ),
+        );
+  const mcpCards = visibleMcpServers
+    .map(({ server, originNamespace, badge }) => ({
+      id: `mcp:${originNamespace}:${server.metadata?.name || 'unknown-server'}`,
       name: server.metadata?.name || 'Unnamed MCP server',
-      subtitle: server.spec?.target || 'No target configured',
-      tag: server.spec?.disabled ? 'disabled' : (server.spec?.transport || 'unknown'),
-      tone: server.spec?.disabled ? 'warning' as const : 'success' as const,
+      subtitle: `${originNamespace} / ${server.spec?.target || 'No target configured'}`,
+      tag: badge || (server.spec?.disabled ? 'disabled' : (server.spec?.transport || 'unknown')),
+      tone: server.spec?.disabled ? 'warning' as const : (badge ? 'default' as const : 'success' as const),
       selection: {
         type: 'mcp-server' as const,
-        ns: 'Sys',
+        ns: originNamespace,
         resourceName: server.metadata?.name || '',
-        fullPath: `mcp/${server.metadata?.name || 'unknown-server'}`,
+        fullPath: selectedNode?.ns
+          ? `${selectedNode.ns}:mcp-server:${originNamespace}:${server.metadata?.name || 'unknown-server'}`
+          : `${originNamespace}:mcp-server:${server.metadata?.name || 'unknown-server'}`,
       },
     }))
     .sort((left, right) => left.name.localeCompare(right.name));
@@ -1727,7 +1760,7 @@ export function NamespaceExplorer({
       >
         <ResourceList
           items={mcpCards}
-          emptyState="No MCP servers found in Sys."
+          emptyState="No MCP servers found for this namespace."
           selectedId={selectedNode?.fullPath || null}
           onSelect={onSelect}
         />
