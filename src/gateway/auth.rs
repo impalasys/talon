@@ -554,7 +554,7 @@ fn check_origin_scope(claims: &Claims, origin_scope: OriginScope<'_>) -> Result<
     )))
 }
 
-fn normalize_origin(value: &str) -> Result<String, String> {
+pub(crate) fn normalize_origin(value: &str) -> Result<String, String> {
     let value = value.trim();
     let url = Url::parse(value).map_err(|err| err.to_string())?;
     if !matches!(url.scheme(), "http" | "https") {

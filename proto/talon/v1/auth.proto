@@ -5,6 +5,7 @@ package talon.v1;
 service AuthService {
   rpc GetSsoConfig(GetSsoConfigRequest) returns (GetSsoConfigResponse);
   rpc ExchangeOidcToken(ExchangeOidcTokenRequest) returns (ExchangeOidcTokenResponse);
+  rpc MintAccessToken(MintAccessTokenRequest) returns (MintAccessTokenResponse);
 }
 
 message GetSsoConfigRequest {}
@@ -28,4 +29,20 @@ message ExchangeOidcTokenResponse {
   optional string email = 5;
   string trust = 6;
   optional string client_type = 7;
+}
+
+message MintAccessTokenRequest {
+  string namespace = 1;
+  optional string agent = 2;
+  optional string session = 3;
+  optional string channel = 4;
+  uint64 expires_in = 5;
+  repeated string origins = 6;
+}
+
+message MintAccessTokenResponse {
+  string access_token = 1;
+  string token_type = 2;
+  uint64 expires_in = 3;
+  uint64 expires_at = 4;
 }

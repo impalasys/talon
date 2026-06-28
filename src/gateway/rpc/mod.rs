@@ -492,4 +492,11 @@ impl proto::auth_service_server::AuthService for GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::ExchangeOidcTokenResponse>, tonic::Status> {
         self.handle_exchange_oidc_token(req).await
     }
+
+    async fn mint_access_token(
+        &self,
+        req: tonic::Request<proto::MintAccessTokenRequest>,
+    ) -> std::result::Result<tonic::Response<proto::MintAccessTokenResponse>, tonic::Status> {
+        self.handle_mint_access_token(req).await
+    }
 }
