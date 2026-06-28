@@ -261,6 +261,158 @@ func (x *ExchangeOidcTokenResponse) GetClientType() string {
 	return ""
 }
 
+type MintAccessTokenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Namespace     string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Agent         *string                `protobuf:"bytes,2,opt,name=agent,proto3,oneof" json:"agent,omitempty"`
+	Session       *string                `protobuf:"bytes,3,opt,name=session,proto3,oneof" json:"session,omitempty"`
+	Channel       *string                `protobuf:"bytes,4,opt,name=channel,proto3,oneof" json:"channel,omitempty"`
+	ExpiresIn     uint64                 `protobuf:"varint,5,opt,name=expires_in,json=expiresIn,proto3" json:"expires_in,omitempty"`
+	Origins       []string               `protobuf:"bytes,6,rep,name=origins,proto3" json:"origins,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MintAccessTokenRequest) Reset() {
+	*x = MintAccessTokenRequest{}
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MintAccessTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MintAccessTokenRequest) ProtoMessage() {}
+
+func (x *MintAccessTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MintAccessTokenRequest.ProtoReflect.Descriptor instead.
+func (*MintAccessTokenRequest) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_auth_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *MintAccessTokenRequest) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *MintAccessTokenRequest) GetAgent() string {
+	if x != nil && x.Agent != nil {
+		return *x.Agent
+	}
+	return ""
+}
+
+func (x *MintAccessTokenRequest) GetSession() string {
+	if x != nil && x.Session != nil {
+		return *x.Session
+	}
+	return ""
+}
+
+func (x *MintAccessTokenRequest) GetChannel() string {
+	if x != nil && x.Channel != nil {
+		return *x.Channel
+	}
+	return ""
+}
+
+func (x *MintAccessTokenRequest) GetExpiresIn() uint64 {
+	if x != nil {
+		return x.ExpiresIn
+	}
+	return 0
+}
+
+func (x *MintAccessTokenRequest) GetOrigins() []string {
+	if x != nil {
+		return x.Origins
+	}
+	return nil
+}
+
+type MintAccessTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	TokenType     string                 `protobuf:"bytes,2,opt,name=token_type,json=tokenType,proto3" json:"token_type,omitempty"`
+	ExpiresIn     uint64                 `protobuf:"varint,3,opt,name=expires_in,json=expiresIn,proto3" json:"expires_in,omitempty"`
+	ExpiresAt     uint64                 `protobuf:"varint,4,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MintAccessTokenResponse) Reset() {
+	*x = MintAccessTokenResponse{}
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MintAccessTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MintAccessTokenResponse) ProtoMessage() {}
+
+func (x *MintAccessTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MintAccessTokenResponse.ProtoReflect.Descriptor instead.
+func (*MintAccessTokenResponse) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_auth_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *MintAccessTokenResponse) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *MintAccessTokenResponse) GetTokenType() string {
+	if x != nil {
+		return x.TokenType
+	}
+	return ""
+}
+
+func (x *MintAccessTokenResponse) GetExpiresIn() uint64 {
+	if x != nil {
+		return x.ExpiresIn
+	}
+	return 0
+}
+
+func (x *MintAccessTokenResponse) GetExpiresAt() uint64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
 var File_proto_talon_v1_auth_proto protoreflect.FileDescriptor
 
 const file_proto_talon_v1_auth_proto_rawDesc = "" +
@@ -290,10 +442,32 @@ const file_proto_talon_v1_auth_proto_rawDesc = "" +
 	"\vclient_type\x18\a \x01(\tH\x01R\n" +
 	"clientType\x88\x01\x01B\b\n" +
 	"\x06_emailB\x0e\n" +
-	"\f_client_type2\xba\x01\n" +
+	"\f_client_type\"\xea\x01\n" +
+	"\x16MintAccessTokenRequest\x12\x1c\n" +
+	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x19\n" +
+	"\x05agent\x18\x02 \x01(\tH\x00R\x05agent\x88\x01\x01\x12\x1d\n" +
+	"\asession\x18\x03 \x01(\tH\x01R\asession\x88\x01\x01\x12\x1d\n" +
+	"\achannel\x18\x04 \x01(\tH\x02R\achannel\x88\x01\x01\x12\x1d\n" +
+	"\n" +
+	"expires_in\x18\x05 \x01(\x04R\texpiresIn\x12\x18\n" +
+	"\aorigins\x18\x06 \x03(\tR\aoriginsB\b\n" +
+	"\x06_agentB\n" +
+	"\n" +
+	"\b_sessionB\n" +
+	"\n" +
+	"\b_channel\"\x99\x01\n" +
+	"\x17MintAccessTokenResponse\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1d\n" +
+	"\n" +
+	"token_type\x18\x02 \x01(\tR\ttokenType\x12\x1d\n" +
+	"\n" +
+	"expires_in\x18\x03 \x01(\x04R\texpiresIn\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x04 \x01(\x04R\texpiresAt2\x92\x02\n" +
 	"\vAuthService\x12M\n" +
 	"\fGetSsoConfig\x12\x1d.talon.v1.GetSsoConfigRequest\x1a\x1e.talon.v1.GetSsoConfigResponse\x12\\\n" +
-	"\x11ExchangeOidcToken\x12\".talon.v1.ExchangeOidcTokenRequest\x1a#.talon.v1.ExchangeOidcTokenResponseb\x06proto3"
+	"\x11ExchangeOidcToken\x12\".talon.v1.ExchangeOidcTokenRequest\x1a#.talon.v1.ExchangeOidcTokenResponse\x12V\n" +
+	"\x0fMintAccessToken\x12 .talon.v1.MintAccessTokenRequest\x1a!.talon.v1.MintAccessTokenResponseb\x06proto3"
 
 var (
 	file_proto_talon_v1_auth_proto_rawDescOnce sync.Once
@@ -307,20 +481,24 @@ func file_proto_talon_v1_auth_proto_rawDescGZIP() []byte {
 	return file_proto_talon_v1_auth_proto_rawDescData
 }
 
-var file_proto_talon_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_talon_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_talon_v1_auth_proto_goTypes = []any{
 	(*GetSsoConfigRequest)(nil),       // 0: talon.v1.GetSsoConfigRequest
 	(*GetSsoConfigResponse)(nil),      // 1: talon.v1.GetSsoConfigResponse
 	(*ExchangeOidcTokenRequest)(nil),  // 2: talon.v1.ExchangeOidcTokenRequest
 	(*ExchangeOidcTokenResponse)(nil), // 3: talon.v1.ExchangeOidcTokenResponse
+	(*MintAccessTokenRequest)(nil),    // 4: talon.v1.MintAccessTokenRequest
+	(*MintAccessTokenResponse)(nil),   // 5: talon.v1.MintAccessTokenResponse
 }
 var file_proto_talon_v1_auth_proto_depIdxs = []int32{
 	0, // 0: talon.v1.AuthService.GetSsoConfig:input_type -> talon.v1.GetSsoConfigRequest
 	2, // 1: talon.v1.AuthService.ExchangeOidcToken:input_type -> talon.v1.ExchangeOidcTokenRequest
-	1, // 2: talon.v1.AuthService.GetSsoConfig:output_type -> talon.v1.GetSsoConfigResponse
-	3, // 3: talon.v1.AuthService.ExchangeOidcToken:output_type -> talon.v1.ExchangeOidcTokenResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	4, // 2: talon.v1.AuthService.MintAccessToken:input_type -> talon.v1.MintAccessTokenRequest
+	1, // 3: talon.v1.AuthService.GetSsoConfig:output_type -> talon.v1.GetSsoConfigResponse
+	3, // 4: talon.v1.AuthService.ExchangeOidcToken:output_type -> talon.v1.ExchangeOidcTokenResponse
+	5, // 5: talon.v1.AuthService.MintAccessToken:output_type -> talon.v1.MintAccessTokenResponse
+	3, // [3:6] is the sub-list for method output_type
+	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -334,13 +512,14 @@ func file_proto_talon_v1_auth_proto_init() {
 	file_proto_talon_v1_auth_proto_msgTypes[1].OneofWrappers = []any{}
 	file_proto_talon_v1_auth_proto_msgTypes[2].OneofWrappers = []any{}
 	file_proto_talon_v1_auth_proto_msgTypes[3].OneofWrappers = []any{}
+	file_proto_talon_v1_auth_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_talon_v1_auth_proto_rawDesc), len(file_proto_talon_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

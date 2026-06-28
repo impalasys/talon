@@ -333,4 +333,11 @@ impl crate::TalonClient {
         crate::v1::ExchangeOidcTokenRequest,
         crate::v1::ExchangeOidcTokenResponse,
     );
+    delegate_dynamic_unary_rpc!(
+        mint_access_token,
+        auth,
+        mint_access_token,
+        crate::v1::MintAccessTokenRequest,
+        crate::v1::MintAccessTokenResponse,
+    );
 }
