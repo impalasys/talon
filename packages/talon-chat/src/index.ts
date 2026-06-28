@@ -31,4 +31,11 @@ export {
   type CopilotMessage,
   type UsageSummary,
 } from "./lib/chatTimeline";
+export {
+  TalonChatComposer,
+  type TalonChatComposerCommandMenuItem,
+  type TalonChatComposerImageAttachment,
+  type TalonChatComposerProps,
+  type TalonChatComposerVariant,
+} from "./lib/TalonChatComposer";
 export { buildGatewayHeaders, normalizeGatewayUrl, applyGatewayAuthorizationHeader } from "./lib/grpc";

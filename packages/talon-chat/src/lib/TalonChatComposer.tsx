@@ -15,11 +15,94 @@ function border(color: string) {
 const talonChatFontFamily =
   'var(--talon-chat-font-family, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
-export type ChatInputBoxProps = {
+const composerTextareaFontSize = 16;
+const composerTextareaLineHeight = 20;
+const composerMutedForeground = "var(--copilot-composer-muted-fg, var(--copilot-input-placeholder, rgba(82,82,91,0.72)))";
+const composerVariantTransition =
+  "min-height 260ms cubic-bezier(0.22, 1, 0.36, 1), padding 260ms cubic-bezier(0.22, 1, 0.36, 1), border-radius 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms ease, background 220ms ease, border-color 220ms ease, gap 260ms cubic-bezier(0.22, 1, 0.36, 1)";
+
+export type TalonChatComposerVariant = "panel" | "compact" | "expanded" | "inline";
+
+type TalonChatComposerVariantStyle = {
+  attachmentRadius: number;
+  attachmentSize: number;
+  backdropFilter?: string;
+  border: string;
+  borderRadius: string;
+  boxShadow: string;
+  buttonSize: number;
+  controlsBelow?: boolean;
+  gap: number;
+  minHeight?: number;
+  padding: string;
+  textareaMinHeight?: number;
+  textareaPadding: string;
+  background: string;
+};
+
+const composerVariantStyles: Record<TalonChatComposerVariant, TalonChatComposerVariantStyle> = {
+  panel: {
+    attachmentRadius: 8,
+    attachmentSize: 58,
+    backdropFilter: "blur(12px)",
+    border: border("var(--copilot-input-border, rgba(212,212,216,0.72))"),
+    borderRadius: "var(--copilot-input-radius, 22px)",
+    boxShadow: "var(--copilot-input-shadow, 0 4px 14px rgba(24,24,27,0.08), 0 1px 2px rgba(24,24,27,0.06))",
+    buttonSize: 34,
+    gap: 8,
+    padding: "0.25rem 0.3125rem 0.25rem 0.625rem",
+    textareaPadding: "7px 0.4rem",
+    background: "var(--copilot-input-bg, rgba(255,255,255,0.96))",
+  },
+  compact: {
+    attachmentRadius: 7,
+    attachmentSize: 48,
+    backdropFilter: "blur(10px)",
+    border: border("var(--copilot-input-compact-border, rgba(212,212,216,0.72))"),
+    borderRadius: "var(--copilot-input-compact-radius, 16px)",
+    boxShadow: "var(--copilot-input-compact-shadow, 0 2px 8px rgba(24,24,27,0.07), 0 1px 2px rgba(24,24,27,0.05))",
+    buttonSize: 30,
+    gap: 6,
+    padding: "0.1875rem 0.25rem 0.1875rem 0.5rem",
+    textareaPadding: "5px 0.3rem",
+    background: "var(--copilot-input-compact-bg, rgba(255,255,255,0.96))",
+  },
+  expanded: {
+    attachmentRadius: 10,
+    attachmentSize: 64,
+    backdropFilter: "blur(18px)",
+    border: border("var(--copilot-input-expanded-border, rgba(212,212,216,0.78))"),
+    borderRadius: "var(--copilot-input-expanded-radius, 28px)",
+    boxShadow: "var(--copilot-input-expanded-shadow, 0 6px 18px rgba(24,24,27,0.06), 0 1px 2px rgba(24,24,27,0.05))",
+    buttonSize: 34,
+    controlsBelow: true,
+    gap: 8,
+    minHeight: 110,
+    padding: "0.875rem 0.625rem 0.625rem 0.875rem",
+    textareaMinHeight: 42,
+    textareaPadding: "0 0.375rem",
+    background: "var(--copilot-input-expanded-bg, rgba(255,255,255,0.94))",
+  },
+  inline: {
+    attachmentRadius: 7,
+    attachmentSize: 46,
+    border: border("var(--copilot-input-inline-border, rgba(212,212,216,0.64))"),
+    borderRadius: "var(--copilot-input-inline-radius, 10px)",
+    boxShadow: "var(--copilot-input-inline-shadow, none)",
+    buttonSize: 30,
+    gap: 6,
+    padding: "0.125rem 0.25rem 0.125rem 0.375rem",
+    textareaPadding: "5px 0.25rem",
+    background: "var(--copilot-input-inline-bg, transparent)",
+  },
+};
+
+export type TalonChatComposerProps = {
   value: string;
   onValueChange: (value: string) => void;
   onSubmit: (value: string) => void;
   placeholder: string;
+  variant?: TalonChatComposerVariant;
   autoFocus?: boolean;
   disabled?: boolean;
   rows?: number;
@@ -32,8 +115,8 @@ export type ChatInputBoxProps = {
   stopLabel?: string;
   textareaMinHeight?: number;
   textareaMaxHeight?: number | string;
-  commandMenuItems?: ChatInputCommandMenuItem[];
-  imageAttachments?: ChatInputImageAttachment[];
+  commandMenuItems?: TalonChatComposerCommandMenuItem[];
+  imageAttachments?: TalonChatComposerImageAttachment[];
   imageUploadEnabled?: boolean;
   imageAccept?: string;
   imageButtonLabel?: string;
@@ -42,13 +125,13 @@ export type ChatInputBoxProps = {
   style?: React.CSSProperties;
 };
 
-export type ChatInputCommandMenuItem = {
+export type TalonChatComposerCommandMenuItem = {
   name: string;
   aliases?: string[];
   description?: string;
 };
 
-export type ChatInputImageAttachment = {
+export type TalonChatComposerImageAttachment = {
   id: string;
   filename: string;
   previewUrl: string;
@@ -56,11 +139,12 @@ export type ChatInputImageAttachment = {
   error?: string;
 };
 
-export function ChatInputBox({
+export function TalonChatComposer({
   value,
   onValueChange,
   onSubmit,
   placeholder,
+  variant = "panel",
   autoFocus = false,
   disabled = false,
   rows = 1,
@@ -81,7 +165,7 @@ export function ChatInputBox({
   onImageFilesSelected,
   onRemoveImageAttachment,
   style,
-}: ChatInputBoxProps) {
+}: TalonChatComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [highlightedCommandIndex, setHighlightedCommandIndex] = useState(0);
@@ -93,10 +177,16 @@ export function ChatInputBox({
   const resolvedCanStop = Boolean(isStopMode && canStop);
   const buttonDisabled = isStopMode ? !resolvedCanStop : !resolvedCanSubmit;
   const buttonIsEnabled = !buttonDisabled;
-  const buttonSize = 34;
+  const variantStyle = composerVariantStyles[variant];
+  const controlsBelow = Boolean(variantStyle.controlsBelow);
+  const attachmentMenuWidth = controlsBelow ? "auto" : "min(176px, calc(100vw - 48px))";
+  const buttonSize = variantStyle.buttonSize;
   const attachments = imageAttachments ?? [];
-  const textareaLineHeight = 20;
-  const resolvedTextareaMinHeight = rows > 1 ? textareaMinHeight : buttonSize;
+  const textareaLineHeight = composerTextareaLineHeight;
+  const resolvedTextareaMinHeight = Math.max(
+    rows > 1 ? textareaMinHeight : buttonSize,
+    variantStyle.textareaMinHeight ?? 0,
+  );
   const [textareaSize, setTextareaSize] = useState<{ height: number; overflowY: "auto" | "hidden" }>({
     height: resolvedTextareaMinHeight,
     overflowY: "hidden",
@@ -119,7 +209,7 @@ export function ChatInputBox({
     onSubmit(value);
   }, [onSubmit, resolvedCanSubmit, value]);
 
-  const selectCommand = useCallback((item: ChatInputCommandMenuItem) => {
+  const selectCommand = useCallback((item: TalonChatComposerCommandMenuItem) => {
     onValueChange(`/${item.name}`);
     window.requestAnimationFrame(() => {
       textareaRef.current?.focus();
@@ -184,7 +274,7 @@ export function ChatInputBox({
       <style>
         {`
           .talon-chat-input-textarea::placeholder {
-            color: var(--copilot-input-placeholder, rgba(82,82,91,0.72));
+            color: ${composerMutedForeground};
             opacity: 1;
           }
         `}
@@ -198,16 +288,19 @@ export function ChatInputBox({
           position: "relative",
           display: "flex",
           alignItems: "flex-end",
-          gap: 8,
+          gap: variantStyle.gap,
+          rowGap: controlsBelow ? 8 : variantStyle.gap,
           width: "100%",
+          minHeight: variantStyle.minHeight,
           boxSizing: "border-box",
-          borderRadius: "var(--copilot-input-radius, 22px)",
-          border: border("var(--copilot-input-border, rgba(212,212,216,0.72))"),
-          background: "var(--copilot-input-bg, rgba(255,255,255,0.96))",
-          boxShadow: "var(--copilot-input-shadow, 0 4px 14px rgba(24,24,27,0.08), 0 1px 2px rgba(24,24,27,0.06))",
-          padding: "0.25rem 0.3125rem 0.25rem 0.625rem",
-          backdropFilter: "blur(12px)",
-          flexWrap: attachments.length > 0 ? "wrap" : "nowrap",
+          borderRadius: variantStyle.borderRadius,
+          border: variantStyle.border,
+          background: variantStyle.background,
+          boxShadow: variantStyle.boxShadow,
+          padding: variantStyle.padding,
+          backdropFilter: variantStyle.backdropFilter,
+          transition: composerVariantTransition,
+          flexWrap: controlsBelow || attachments.length > 0 ? "wrap" : "nowrap",
           fontFamily: talonChatFontFamily,
           ...style,
         }}
@@ -310,6 +403,7 @@ export function ChatInputBox({
           <div
             style={{
               flexBasis: "100%",
+              order: controlsBelow ? 0 : undefined,
               display: "flex",
               gap: 8,
               overflowX: "auto",
@@ -321,17 +415,18 @@ export function ChatInputBox({
                 key={attachment.id}
                 style={{
                   position: "relative",
-                  width: 58,
-                  height: 58,
+                  width: variantStyle.attachmentSize,
+                  height: variantStyle.attachmentSize,
                   flexShrink: 0,
                   overflow: "hidden",
-                  borderRadius: 8,
+                  borderRadius: variantStyle.attachmentRadius,
                   border: border(
                     attachment.status === "error"
                       ? "var(--copilot-attachment-error-border, rgba(220,38,38,0.55))"
                       : "var(--copilot-attachment-border, rgba(212,212,216,0.9))",
                   ),
                   background: "var(--copilot-attachment-bg, rgba(244,244,245,0.88))",
+                  transition: "width 220ms ease, height 220ms ease, border-radius 220ms ease",
                 }}
                 title={attachment.error || attachment.filename}
               >
@@ -394,18 +489,35 @@ export function ChatInputBox({
                 style={{
                   position: "absolute",
                   left: 0,
-                  bottom: "calc(100% + 8px)",
+                  right: controlsBelow ? 0 : undefined,
+                  bottom: controlsBelow ? "calc(100% + 16px)" : "calc(100% + 6px)",
                   zIndex: 30,
-                  width: "min(176px, calc(100vw - 48px))",
+                  width: attachmentMenuWidth,
+                  maxHeight: controlsBelow ? "min(360px, calc(100vh - 220px))" : undefined,
                   boxSizing: "border-box",
-                  padding: "0.375rem",
-                  borderRadius: 16,
+                  overflowY: controlsBelow ? "auto" : undefined,
+                  padding: controlsBelow ? "0.625rem" : "0.375rem",
+                  borderRadius: controlsBelow ? variantStyle.borderRadius : 16,
                   border: border("var(--copilot-attachment-menu-border, rgba(212,212,216,0.9))"),
                   background: "var(--copilot-attachment-menu-bg, rgba(255,255,255,0.98))",
-                  boxShadow: "var(--copilot-attachment-menu-shadow, 0 18px 46px rgba(24,24,27,0.16), 0 2px 8px rgba(24,24,27,0.08))",
-                  color: "var(--copilot-attachment-menu-fg, rgba(24,24,27,0.96))",
+                  boxShadow: controlsBelow
+                    ? "var(--copilot-attachment-menu-expanded-shadow, var(--copilot-input-expanded-shadow, 0 6px 18px rgba(24,24,27,0.06), 0 1px 2px rgba(24,24,27,0.05)))"
+                    : "var(--copilot-attachment-menu-shadow, 0 14px 30px rgba(24,24,27,0.13), 0 2px 8px rgba(24,24,27,0.07))",
+                  color: composerMutedForeground,
                 }}
               >
+                {controlsBelow ? (
+                  <div
+                    style={{
+                      padding: "0 0.5rem 0.375rem",
+                      color: composerMutedForeground,
+                      fontSize: 14,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    Add
+                  </div>
+                ) : null}
                 <button
                   type="button"
                   role="menuitem"
@@ -418,22 +530,22 @@ export function ChatInputBox({
                   }}
                   style={{
                     width: "100%",
-                    minHeight: 34,
+                    minHeight: controlsBelow ? 44 : 34,
                     boxSizing: "border-box",
                     border: "none",
-                    borderRadius: 10,
-                    padding: "0.25rem 0.375rem",
+                    borderRadius: controlsBelow ? 12 : 10,
+                    padding: controlsBelow ? "0.375rem 0.5rem" : "0.25rem 0.375rem",
                     display: "grid",
-                    gridTemplateColumns: "26px minmax(0, 1fr)",
+                    gridTemplateColumns: controlsBelow ? "36px minmax(0, 1fr)" : "26px minmax(0, 1fr)",
                     alignItems: "center",
                     gap: 8,
                     background: hoveredAttachmentIndex === 0
                       ? "var(--copilot-attachment-menu-hover-bg, rgba(24,24,27,0.07))"
                       : "transparent",
-                    color: "inherit",
+                    color: composerMutedForeground,
                     cursor: "pointer",
                     fontFamily: "inherit",
-                    fontSize: 14,
+                    fontSize: controlsBelow ? 15 : 14,
                     lineHeight: 1.2,
                     textAlign: "left",
                   }}
@@ -441,15 +553,15 @@ export function ChatInputBox({
                   <span
                     aria-hidden="true"
                     style={{
-                      width: 26,
-                      height: 26,
+                      width: controlsBelow ? 36 : 26,
+                      height: controlsBelow ? 36 : 26,
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: "var(--copilot-attachment-menu-icon-fg, rgba(24,24,27,0.96))",
+                    color: composerMutedForeground,
                     }}
                   >
-                    <ImagePlus size="17" strokeWidth={2.1} />
+                    <ImagePlus size={controlsBelow ? 19 : 17} strokeWidth={2.1} />
                   </span>
                   <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {imageButtonLabel}
@@ -485,6 +597,7 @@ export function ChatInputBox({
                 width: buttonSize,
                 height: buttonSize,
                 boxSizing: "border-box",
+                order: controlsBelow ? 2 : undefined,
                 flexShrink: 0,
                 borderRadius: 999,
                 border: "none",
@@ -495,7 +608,8 @@ export function ChatInputBox({
                 cursor: disabled || isGenerating ? "not-allowed" : "pointer",
                 opacity: disabled || isGenerating ? 0.5 : 1,
                 background: "transparent",
-                color: "var(--copilot-secondary-control-fg, rgba(39,39,42,0.88))",
+                color: composerMutedForeground,
+                transition: "width 220ms ease, height 220ms ease, opacity 160ms ease, color 160ms ease",
               }}
             >
               <Plus size="19" strokeWidth={2.1} />
@@ -512,24 +626,26 @@ export function ChatInputBox({
           disabled={disabled}
           rows={rows}
           style={{
-            flex: 1,
+            order: controlsBelow ? 1 : undefined,
+            flex: controlsBelow ? "0 0 100%" : 1,
             boxSizing: "border-box",
             resize: "none",
             border: "none",
             outline: "none",
             boxShadow: "none",
             background: "transparent",
-            padding: "7px 0.4rem",
+            padding: variantStyle.textareaPadding,
             maxHeight: textareaMaxHeight,
             minHeight: resolvedTextareaMinHeight,
             height: textareaSize.height,
             fontFamily: "inherit",
-            fontSize: 14,
+            fontSize: composerTextareaFontSize,
             lineHeight: `${textareaLineHeight}px`,
             overflowY: textareaSize.overflowY,
             color: "inherit",
             appearance: "none",
             WebkitAppearance: "none",
+            transition: "height 220ms cubic-bezier(0.22, 1, 0.36, 1), min-height 220ms cubic-bezier(0.22, 1, 0.36, 1), padding 220ms ease",
           }}
           onKeyDown={(event) => {
             if (shouldShowCommandMenu && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
@@ -560,7 +676,9 @@ export function ChatInputBox({
             width: buttonSize,
             height: buttonSize,
             boxSizing: "border-box",
+            order: controlsBelow ? 3 : undefined,
             flexShrink: 0,
+            marginLeft: controlsBelow ? "auto" : undefined,
             borderRadius: 999,
             border: "none",
             padding: 0,
@@ -569,8 +687,9 @@ export function ChatInputBox({
             justifyContent: "center",
             cursor: buttonIsEnabled ? "pointer" : "not-allowed",
             opacity: buttonIsEnabled ? 1 : 0.5,
-            background: "var(--copilot-control-bg, var(--foreground, #18181b))",
+            background: "var(--copilot-control-bg, var(--foreground, #8e8e93))",
             color: "var(--copilot-control-fg, var(--background, #ffffff))",
+            transition: "width 220ms ease, height 220ms ease, margin-left 220ms ease, opacity 160ms ease, background 160ms ease",
           }}
         >
           {isStopMode ? (

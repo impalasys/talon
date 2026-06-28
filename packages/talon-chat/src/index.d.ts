@@ -63,6 +63,50 @@ export type TalonChatCommand<TTarget = unknown, TMessage = unknown> = {
   run: (context: TalonChatCommandContext<TTarget, TMessage>) => void | Promise<void>;
 };
 
+export type TalonChatComposerCommandMenuItem = {
+  name: string;
+  aliases?: string[];
+  description?: string;
+};
+
+export type TalonChatComposerImageAttachment = {
+  id: string;
+  filename: string;
+  previewUrl: string;
+  status?: "queued" | "uploading" | "ready" | "error";
+  error?: string;
+};
+
+export type TalonChatComposerVariant = "panel" | "compact" | "expanded" | "inline";
+
+export type TalonChatComposerProps = {
+  value: string;
+  onValueChange: (value: string) => void;
+  onSubmit: (value: string) => void;
+  placeholder: string;
+  variant?: TalonChatComposerVariant;
+  autoFocus?: boolean;
+  disabled?: boolean;
+  rows?: number;
+  canSubmit?: boolean;
+  isGenerating?: boolean;
+  canStop?: boolean;
+  onStop?: () => void;
+  helperText?: string;
+  submitLabel?: string;
+  stopLabel?: string;
+  textareaMinHeight?: number;
+  textareaMaxHeight?: number | string;
+  commandMenuItems?: TalonChatComposerCommandMenuItem[];
+  imageAttachments?: TalonChatComposerImageAttachment[];
+  imageUploadEnabled?: boolean;
+  imageAccept?: string;
+  imageButtonLabel?: string;
+  onImageFilesSelected?: (files: File[]) => void;
+  onRemoveImageAttachment?: (id: string) => void;
+  style?: React.CSSProperties;
+};
+
 export type TalonSessionCommandTarget = {
   type: "session";
   namespace: string;
@@ -221,6 +265,7 @@ export type UseTalonChannelMessagesResult = {
 export function TalonSession(props: TalonSessionProps): React.JSX.Element;
 export const TalonCopilot: typeof TalonSession;
 export function TalonChannel(props: TalonChannelProps): React.JSX.Element;
+export function TalonChatComposer(props: TalonChatComposerProps): React.JSX.Element;
 export function useTalonChannelMessages(
   options: UseTalonChannelMessagesOptions,
 ): UseTalonChannelMessagesResult;

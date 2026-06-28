@@ -14,7 +14,7 @@ import {
   type AssistantTimelineItem,
   type CopilotMessage,
 } from "./lib/chatTimeline";
-import { ChatInputBox } from "./lib/ChatInputBox";
+import { TalonChatComposer } from "./lib/TalonChatComposer";
 import {
   findTalonChatCommand,
   parseTalonChatCommandInput,
@@ -1536,7 +1536,7 @@ export function TalonSession({
           }}
         >
           <div style={{ width: "100%", maxWidth: 896, paddingBottom: 8 }}>
-            <ChatInputBox
+            <TalonChatComposer
               value={input}
               onValueChange={setInput}
               onSubmit={(nextInput) => void submitMessage(nextInput)}

@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Hash } from "lucide-react";
-import { ChatInputBox } from "./lib/ChatInputBox";
+import { TalonChatComposer } from "./lib/TalonChatComposer";
 import {
   findTalonChatCommand,
   parseTalonChatCommandInput,
@@ -683,7 +683,7 @@ export function TalonChannel({
 
         {disableUserInput ? null : (
           <div style={{ borderTop: border("rgba(148,163,184,0.2)"), background: "var(--copilot-channel-input-bg, rgba(255,255,255,0.72))", padding: "0.75rem" }}>
-            <ChatInputBox
+            <TalonChatComposer
               value={draft}
               onValueChange={setDraft}
               onSubmit={(content) => void submitChannelMessage(content)}
