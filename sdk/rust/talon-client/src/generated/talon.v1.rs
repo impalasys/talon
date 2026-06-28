@@ -2200,6 +2200,32 @@ pub struct ExchangeOidcTokenResponse {
     #[prost(string, optional, tag = "7")]
     pub client_type: ::core::option::Option<::prost::alloc::string::String>,
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MintAccessTokenRequest {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "2")]
+    pub agent: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "3")]
+    pub session: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "4")]
+    pub channel: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(uint64, tag = "5")]
+    pub expires_in: u64,
+    #[prost(string, repeated, tag = "6")]
+    pub origins: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MintAccessTokenResponse {
+    #[prost(string, tag = "1")]
+    pub access_token: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub token_type: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub expires_in: u64,
+    #[prost(uint64, tag = "4")]
+    pub expires_at: u64,
+}
 /// Generated client implementations.
 pub mod auth_service_client {
     #![allow(
@@ -2337,6 +2363,30 @@ pub mod auth_service_client {
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("talon.v1.AuthService", "ExchangeOidcToken"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn mint_access_token(
+            &mut self,
+            request: impl tonic::IntoRequest<super::MintAccessTokenRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::MintAccessTokenResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.AuthService/MintAccessToken",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.AuthService", "MintAccessToken"));
             self.inner.unary(req, path, codec).await
         }
     }

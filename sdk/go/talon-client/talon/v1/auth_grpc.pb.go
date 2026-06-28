@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	AuthService_GetSsoConfig_FullMethodName      = "/talon.v1.AuthService/GetSsoConfig"
 	AuthService_ExchangeOidcToken_FullMethodName = "/talon.v1.AuthService/ExchangeOidcToken"
+	AuthService_MintAccessToken_FullMethodName   = "/talon.v1.AuthService/MintAccessToken"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -29,6 +30,7 @@ const (
 type AuthServiceClient interface {
 	GetSsoConfig(ctx context.Context, in *GetSsoConfigRequest, opts ...grpc.CallOption) (*GetSsoConfigResponse, error)
 	ExchangeOidcToken(ctx context.Context, in *ExchangeOidcTokenRequest, opts ...grpc.CallOption) (*ExchangeOidcTokenResponse, error)
+	MintAccessToken(ctx context.Context, in *MintAccessTokenRequest, opts ...grpc.CallOption) (*MintAccessTokenResponse, error)
 }
 
 type authServiceClient struct {
@@ -59,12 +61,23 @@ func (c *authServiceClient) ExchangeOidcToken(ctx context.Context, in *ExchangeO
 	return out, nil
 }
 
+func (c *authServiceClient) MintAccessToken(ctx context.Context, in *MintAccessTokenRequest, opts ...grpc.CallOption) (*MintAccessTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MintAccessTokenResponse)
+	err := c.cc.Invoke(ctx, AuthService_MintAccessToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
 type AuthServiceServer interface {
 	GetSsoConfig(context.Context, *GetSsoConfigRequest) (*GetSsoConfigResponse, error)
 	ExchangeOidcToken(context.Context, *ExchangeOidcTokenRequest) (*ExchangeOidcTokenResponse, error)
+	MintAccessToken(context.Context, *MintAccessTokenRequest) (*MintAccessTokenResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -80,6 +93,9 @@ func (UnimplementedAuthServiceServer) GetSsoConfig(context.Context, *GetSsoConfi
 }
 func (UnimplementedAuthServiceServer) ExchangeOidcToken(context.Context, *ExchangeOidcTokenRequest) (*ExchangeOidcTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ExchangeOidcToken not implemented")
+}
+func (UnimplementedAuthServiceServer) MintAccessToken(context.Context, *MintAccessTokenRequest) (*MintAccessTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MintAccessToken not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -138,6 +154,24 @@ func _AuthService_ExchangeOidcToken_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_MintAccessToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MintAccessTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).MintAccessToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_MintAccessToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).MintAccessToken(ctx, req.(*MintAccessTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +186,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ExchangeOidcToken",
 			Handler:    _AuthService_ExchangeOidcToken_Handler,
+		},
+		{
+			MethodName: "MintAccessToken",
+			Handler:    _AuthService_MintAccessToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

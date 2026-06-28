@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ExchangeOidcTokenRequest, ExchangeOidcTokenResponse, GetSsoConfigRequest, GetSsoConfigResponse } from "./auth_pb.js";
+import { ExchangeOidcTokenRequest, ExchangeOidcTokenResponse, GetSsoConfigRequest, GetSsoConfigResponse, MintAccessTokenRequest, MintAccessTokenResponse } from "./auth_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -28,6 +28,15 @@ export const AuthService = {
       name: "ExchangeOidcToken",
       I: ExchangeOidcTokenRequest,
       O: ExchangeOidcTokenResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.v1.AuthService.MintAccessToken
+     */
+    mintAccessToken: {
+      name: "MintAccessToken",
+      I: MintAccessTokenRequest,
+      O: MintAccessTokenResponse,
       kind: MethodKind.Unary,
     },
   }

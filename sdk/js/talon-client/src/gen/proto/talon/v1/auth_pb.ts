@@ -201,3 +201,125 @@ export class ExchangeOidcTokenResponse extends Message<ExchangeOidcTokenResponse
     return proto3.util.equals(ExchangeOidcTokenResponse, a, b);
   }
 }
+
+/**
+ * @generated from message talon.v1.MintAccessTokenRequest
+ */
+export class MintAccessTokenRequest extends Message<MintAccessTokenRequest> {
+  /**
+   * @generated from field: string namespace = 1;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: optional string agent = 2;
+   */
+  agent?: string;
+
+  /**
+   * @generated from field: optional string session = 3;
+   */
+  session?: string;
+
+  /**
+   * @generated from field: optional string channel = 4;
+   */
+  channel?: string;
+
+  /**
+   * @generated from field: uint64 expires_in = 5;
+   */
+  expiresIn = protoInt64.zero;
+
+  /**
+   * @generated from field: repeated string origins = 6;
+   */
+  origins: string[] = [];
+
+  constructor(data?: PartialMessage<MintAccessTokenRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.MintAccessTokenRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "session", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 4, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 5, name: "expires_in", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 6, name: "origins", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MintAccessTokenRequest {
+    return new MintAccessTokenRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MintAccessTokenRequest {
+    return new MintAccessTokenRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MintAccessTokenRequest {
+    return new MintAccessTokenRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MintAccessTokenRequest | PlainMessage<MintAccessTokenRequest> | undefined, b: MintAccessTokenRequest | PlainMessage<MintAccessTokenRequest> | undefined): boolean {
+    return proto3.util.equals(MintAccessTokenRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.MintAccessTokenResponse
+ */
+export class MintAccessTokenResponse extends Message<MintAccessTokenResponse> {
+  /**
+   * @generated from field: string access_token = 1;
+   */
+  accessToken = "";
+
+  /**
+   * @generated from field: string token_type = 2;
+   */
+  tokenType = "";
+
+  /**
+   * @generated from field: uint64 expires_in = 3;
+   */
+  expiresIn = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 expires_at = 4;
+   */
+  expiresAt = protoInt64.zero;
+
+  constructor(data?: PartialMessage<MintAccessTokenResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.MintAccessTokenResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "access_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "token_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "expires_in", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 4, name: "expires_at", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MintAccessTokenResponse {
+    return new MintAccessTokenResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MintAccessTokenResponse {
+    return new MintAccessTokenResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MintAccessTokenResponse {
+    return new MintAccessTokenResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MintAccessTokenResponse | PlainMessage<MintAccessTokenResponse> | undefined, b: MintAccessTokenResponse | PlainMessage<MintAccessTokenResponse> | undefined): boolean {
+    return proto3.util.equals(MintAccessTokenResponse, a, b);
+  }
+}

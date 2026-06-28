@@ -74,6 +74,37 @@ public final class AuthServiceGrpc {
     return getExchangeOidcTokenMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Auth.MintAccessTokenRequest,
+      talon.v1.Auth.MintAccessTokenResponse> getMintAccessTokenMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "MintAccessToken",
+      requestType = talon.v1.Auth.MintAccessTokenRequest.class,
+      responseType = talon.v1.Auth.MintAccessTokenResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.v1.Auth.MintAccessTokenRequest,
+      talon.v1.Auth.MintAccessTokenResponse> getMintAccessTokenMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Auth.MintAccessTokenRequest, talon.v1.Auth.MintAccessTokenResponse> getMintAccessTokenMethod;
+    if ((getMintAccessTokenMethod = AuthServiceGrpc.getMintAccessTokenMethod) == null) {
+      synchronized (AuthServiceGrpc.class) {
+        if ((getMintAccessTokenMethod = AuthServiceGrpc.getMintAccessTokenMethod) == null) {
+          AuthServiceGrpc.getMintAccessTokenMethod = getMintAccessTokenMethod =
+              io.grpc.MethodDescriptor.<talon.v1.Auth.MintAccessTokenRequest, talon.v1.Auth.MintAccessTokenResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "MintAccessToken"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Auth.MintAccessTokenRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Auth.MintAccessTokenResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new AuthServiceMethodDescriptorSupplier("MintAccessToken"))
+              .build();
+        }
+      }
+    }
+    return getMintAccessTokenMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -150,6 +181,13 @@ public final class AuthServiceGrpc {
         io.grpc.stub.StreamObserver<talon.v1.Auth.ExchangeOidcTokenResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getExchangeOidcTokenMethod(), responseObserver);
     }
+
+    /**
+     */
+    default void mintAccessToken(talon.v1.Auth.MintAccessTokenRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.MintAccessTokenResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getMintAccessTokenMethod(), responseObserver);
+    }
   }
 
   /**
@@ -194,6 +232,14 @@ public final class AuthServiceGrpc {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getExchangeOidcTokenMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void mintAccessToken(talon.v1.Auth.MintAccessTokenRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.MintAccessTokenResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getMintAccessTokenMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -225,6 +271,13 @@ public final class AuthServiceGrpc {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getExchangeOidcTokenMethod(), getCallOptions(), request);
     }
+
+    /**
+     */
+    public talon.v1.Auth.MintAccessTokenResponse mintAccessToken(talon.v1.Auth.MintAccessTokenRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getMintAccessTokenMethod(), getCallOptions(), request);
+    }
   }
 
   /**
@@ -255,6 +308,13 @@ public final class AuthServiceGrpc {
     public talon.v1.Auth.ExchangeOidcTokenResponse exchangeOidcToken(talon.v1.Auth.ExchangeOidcTokenRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getExchangeOidcTokenMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Auth.MintAccessTokenResponse mintAccessToken(talon.v1.Auth.MintAccessTokenRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getMintAccessTokenMethod(), getCallOptions(), request);
     }
   }
 
@@ -289,10 +349,19 @@ public final class AuthServiceGrpc {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getExchangeOidcTokenMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Auth.MintAccessTokenResponse> mintAccessToken(
+        talon.v1.Auth.MintAccessTokenRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getMintAccessTokenMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_GET_SSO_CONFIG = 0;
   private static final int METHODID_EXCHANGE_OIDC_TOKEN = 1;
+  private static final int METHODID_MINT_ACCESS_TOKEN = 2;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -318,6 +387,10 @@ public final class AuthServiceGrpc {
         case METHODID_EXCHANGE_OIDC_TOKEN:
           serviceImpl.exchangeOidcToken((talon.v1.Auth.ExchangeOidcTokenRequest) request,
               (io.grpc.stub.StreamObserver<talon.v1.Auth.ExchangeOidcTokenResponse>) responseObserver);
+          break;
+        case METHODID_MINT_ACCESS_TOKEN:
+          serviceImpl.mintAccessToken((talon.v1.Auth.MintAccessTokenRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Auth.MintAccessTokenResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -351,6 +424,13 @@ public final class AuthServiceGrpc {
               talon.v1.Auth.ExchangeOidcTokenRequest,
               talon.v1.Auth.ExchangeOidcTokenResponse>(
                 service, METHODID_EXCHANGE_OIDC_TOKEN)))
+        .addMethod(
+          getMintAccessTokenMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.v1.Auth.MintAccessTokenRequest,
+              talon.v1.Auth.MintAccessTokenResponse>(
+                service, METHODID_MINT_ACCESS_TOKEN)))
         .build();
   }
 
@@ -401,6 +481,7 @@ public final class AuthServiceGrpc {
               .setSchemaDescriptor(new AuthServiceFileDescriptorSupplier())
               .addMethod(getGetSsoConfigMethod())
               .addMethod(getExchangeOidcTokenMethod())
+              .addMethod(getMintAccessTokenMethod())
               .build();
         }
       }

@@ -3252,6 +3252,2141 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
 
   }
 
+  public interface MintAccessTokenRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.MintAccessTokenRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    java.lang.String getNamespace();
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    com.google.protobuf.ByteString
+        getNamespaceBytes();
+
+    /**
+     * <code>optional string agent = 2;</code>
+     * @return Whether the agent field is set.
+     */
+    boolean hasAgent();
+    /**
+     * <code>optional string agent = 2;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <code>optional string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+
+    /**
+     * <code>optional string session = 3;</code>
+     * @return Whether the session field is set.
+     */
+    boolean hasSession();
+    /**
+     * <code>optional string session = 3;</code>
+     * @return The session.
+     */
+    java.lang.String getSession();
+    /**
+     * <code>optional string session = 3;</code>
+     * @return The bytes for session.
+     */
+    com.google.protobuf.ByteString
+        getSessionBytes();
+
+    /**
+     * <code>optional string channel = 4;</code>
+     * @return Whether the channel field is set.
+     */
+    boolean hasChannel();
+    /**
+     * <code>optional string channel = 4;</code>
+     * @return The channel.
+     */
+    java.lang.String getChannel();
+    /**
+     * <code>optional string channel = 4;</code>
+     * @return The bytes for channel.
+     */
+    com.google.protobuf.ByteString
+        getChannelBytes();
+
+    /**
+     * <code>uint64 expires_in = 5;</code>
+     * @return The expiresIn.
+     */
+    long getExpiresIn();
+
+    /**
+     * <code>repeated string origins = 6;</code>
+     * @return A list containing the origins.
+     */
+    java.util.List<java.lang.String>
+        getOriginsList();
+    /**
+     * <code>repeated string origins = 6;</code>
+     * @return The count of origins.
+     */
+    int getOriginsCount();
+    /**
+     * <code>repeated string origins = 6;</code>
+     * @param index The index of the element to return.
+     * @return The origins at the given index.
+     */
+    java.lang.String getOrigins(int index);
+    /**
+     * <code>repeated string origins = 6;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the origins at the given index.
+     */
+    com.google.protobuf.ByteString
+        getOriginsBytes(int index);
+  }
+  /**
+   * Protobuf type {@code talon.v1.MintAccessTokenRequest}
+   */
+  public static final class MintAccessTokenRequest extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.v1.MintAccessTokenRequest)
+      MintAccessTokenRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "MintAccessTokenRequest");
+    }
+    // Use MintAccessTokenRequest.newBuilder() to construct.
+    private MintAccessTokenRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private MintAccessTokenRequest() {
+      namespace_ = "";
+      agent_ = "";
+      session_ = "";
+      channel_ = "";
+      origins_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.v1.Auth.internal_static_talon_v1_MintAccessTokenRequest_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.v1.Auth.internal_static_talon_v1_MintAccessTokenRequest_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.v1.Auth.internal_static_talon_v1_MintAccessTokenRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.v1.Auth.MintAccessTokenRequest.class, talon.v1.Auth.MintAccessTokenRequest.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int NAMESPACE_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object namespace_ = "";
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    @java.lang.Override
+    public java.lang.String getNamespace() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        namespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNamespaceBytes() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        namespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <code>optional string agent = 2;</code>
+     * @return Whether the agent field is set.
+     */
+    @java.lang.Override
+    public boolean hasAgent() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional string agent = 2;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SESSION_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object session_ = "";
+    /**
+     * <code>optional string session = 3;</code>
+     * @return Whether the session field is set.
+     */
+    @java.lang.Override
+    public boolean hasSession() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>optional string session = 3;</code>
+     * @return The session.
+     */
+    @java.lang.Override
+    public java.lang.String getSession() {
+      java.lang.Object ref = session_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        session_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string session = 3;</code>
+     * @return The bytes for session.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionBytes() {
+      java.lang.Object ref = session_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        session_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CHANNEL_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object channel_ = "";
+    /**
+     * <code>optional string channel = 4;</code>
+     * @return Whether the channel field is set.
+     */
+    @java.lang.Override
+    public boolean hasChannel() {
+      return ((bitField0_ & 0x00000004) != 0);
+    }
+    /**
+     * <code>optional string channel = 4;</code>
+     * @return The channel.
+     */
+    @java.lang.Override
+    public java.lang.String getChannel() {
+      java.lang.Object ref = channel_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        channel_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string channel = 4;</code>
+     * @return The bytes for channel.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getChannelBytes() {
+      java.lang.Object ref = channel_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        channel_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int EXPIRES_IN_FIELD_NUMBER = 5;
+    private long expiresIn_ = 0L;
+    /**
+     * <code>uint64 expires_in = 5;</code>
+     * @return The expiresIn.
+     */
+    @java.lang.Override
+    public long getExpiresIn() {
+      return expiresIn_;
+    }
+
+    public static final int ORIGINS_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList origins_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string origins = 6;</code>
+     * @return A list containing the origins.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getOriginsList() {
+      return origins_;
+    }
+    /**
+     * <code>repeated string origins = 6;</code>
+     * @return The count of origins.
+     */
+    public int getOriginsCount() {
+      return origins_.size();
+    }
+    /**
+     * <code>repeated string origins = 6;</code>
+     * @param index The index of the element to return.
+     * @return The origins at the given index.
+     */
+    public java.lang.String getOrigins(int index) {
+      return origins_.get(index);
+    }
+    /**
+     * <code>repeated string origins = 6;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the origins at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getOriginsBytes(int index) {
+      return origins_.getByteString(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, namespace_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, agent_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, session_);
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, channel_);
+      }
+      if (expiresIn_ != 0L) {
+        output.writeUInt64(5, expiresIn_);
+      }
+      for (int i = 0; i < origins_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, origins_.getRaw(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, namespace_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, agent_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, session_);
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, channel_);
+      }
+      if (expiresIn_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(5, expiresIn_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < origins_.size(); i++) {
+          dataSize += computeStringSizeNoTag(origins_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getOriginsList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.v1.Auth.MintAccessTokenRequest)) {
+        return super.equals(obj);
+      }
+      talon.v1.Auth.MintAccessTokenRequest other = (talon.v1.Auth.MintAccessTokenRequest) obj;
+
+      if (!getNamespace()
+          .equals(other.getNamespace())) return false;
+      if (hasAgent() != other.hasAgent()) return false;
+      if (hasAgent()) {
+        if (!getAgent()
+            .equals(other.getAgent())) return false;
+      }
+      if (hasSession() != other.hasSession()) return false;
+      if (hasSession()) {
+        if (!getSession()
+            .equals(other.getSession())) return false;
+      }
+      if (hasChannel() != other.hasChannel()) return false;
+      if (hasChannel()) {
+        if (!getChannel()
+            .equals(other.getChannel())) return false;
+      }
+      if (getExpiresIn()
+          != other.getExpiresIn()) return false;
+      if (!getOriginsList()
+          .equals(other.getOriginsList())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getNamespace().hashCode();
+      if (hasAgent()) {
+        hash = (37 * hash) + AGENT_FIELD_NUMBER;
+        hash = (53 * hash) + getAgent().hashCode();
+      }
+      if (hasSession()) {
+        hash = (37 * hash) + SESSION_FIELD_NUMBER;
+        hash = (53 * hash) + getSession().hashCode();
+      }
+      if (hasChannel()) {
+        hash = (37 * hash) + CHANNEL_FIELD_NUMBER;
+        hash = (53 * hash) + getChannel().hashCode();
+      }
+      hash = (37 * hash) + EXPIRES_IN_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getExpiresIn());
+      if (getOriginsCount() > 0) {
+        hash = (37 * hash) + ORIGINS_FIELD_NUMBER;
+        hash = (53 * hash) + getOriginsList().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.v1.Auth.MintAccessTokenRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Auth.MintAccessTokenRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Auth.MintAccessTokenRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Auth.MintAccessTokenRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Auth.MintAccessTokenRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Auth.MintAccessTokenRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Auth.MintAccessTokenRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Auth.MintAccessTokenRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.v1.Auth.MintAccessTokenRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.v1.Auth.MintAccessTokenRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.v1.Auth.MintAccessTokenRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Auth.MintAccessTokenRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.v1.Auth.MintAccessTokenRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.v1.MintAccessTokenRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.v1.MintAccessTokenRequest)
+        talon.v1.Auth.MintAccessTokenRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.v1.Auth.internal_static_talon_v1_MintAccessTokenRequest_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.v1.Auth.internal_static_talon_v1_MintAccessTokenRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.v1.Auth.MintAccessTokenRequest.class, talon.v1.Auth.MintAccessTokenRequest.Builder.class);
+      }
+
+      // Construct using talon.v1.Auth.MintAccessTokenRequest.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        namespace_ = "";
+        agent_ = "";
+        session_ = "";
+        channel_ = "";
+        expiresIn_ = 0L;
+        origins_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.v1.Auth.internal_static_talon_v1_MintAccessTokenRequest_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.v1.Auth.MintAccessTokenRequest getDefaultInstanceForType() {
+        return talon.v1.Auth.MintAccessTokenRequest.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.v1.Auth.MintAccessTokenRequest build() {
+        talon.v1.Auth.MintAccessTokenRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.v1.Auth.MintAccessTokenRequest buildPartial() {
+        talon.v1.Auth.MintAccessTokenRequest result = new talon.v1.Auth.MintAccessTokenRequest(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.v1.Auth.MintAccessTokenRequest result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.namespace_ = namespace_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.agent_ = agent_;
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.session_ = session_;
+          to_bitField0_ |= 0x00000002;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.channel_ = channel_;
+          to_bitField0_ |= 0x00000004;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.expiresIn_ = expiresIn_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          origins_.makeImmutable();
+          result.origins_ = origins_;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.v1.Auth.MintAccessTokenRequest) {
+          return mergeFrom((talon.v1.Auth.MintAccessTokenRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.v1.Auth.MintAccessTokenRequest other) {
+        if (other == talon.v1.Auth.MintAccessTokenRequest.getDefaultInstance()) return this;
+        if (!other.getNamespace().isEmpty()) {
+          namespace_ = other.namespace_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (other.hasAgent()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (other.hasSession()) {
+          session_ = other.session_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (other.hasChannel()) {
+          channel_ = other.channel_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (other.getExpiresIn() != 0L) {
+          setExpiresIn(other.getExpiresIn());
+        }
+        if (!other.origins_.isEmpty()) {
+          if (origins_.isEmpty()) {
+            origins_ = other.origins_;
+            bitField0_ |= 0x00000020;
+          } else {
+            ensureOriginsIsMutable();
+            origins_.addAll(other.origins_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                namespace_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                session_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                channel_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 40: {
+                expiresIn_ = input.readUInt64();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 40
+              case 50: {
+                ensureOriginsIsMutable();
+                origins_.add(input.readStringRequireUtf8());
+                break;
+              } // case 50
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object namespace_ = "";
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The namespace.
+       */
+      public java.lang.String getNamespace() {
+        java.lang.Object ref = namespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          namespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The bytes for namespace.
+       */
+      public com.google.protobuf.ByteString
+          getNamespaceBytes() {
+        java.lang.Object ref = namespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          namespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNamespace() {
+        namespace_ = getDefaultInstance().getNamespace();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The bytes for namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <code>optional string agent = 2;</code>
+       * @return Whether the agent field is set.
+       */
+      public boolean hasAgent() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>optional string agent = 2;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string agent = 2;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string agent = 2;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string agent = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string agent = 2;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object session_ = "";
+      /**
+       * <code>optional string session = 3;</code>
+       * @return Whether the session field is set.
+       */
+      public boolean hasSession() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>optional string session = 3;</code>
+       * @return The session.
+       */
+      public java.lang.String getSession() {
+        java.lang.Object ref = session_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          session_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string session = 3;</code>
+       * @return The bytes for session.
+       */
+      public com.google.protobuf.ByteString
+          getSessionBytes() {
+        java.lang.Object ref = session_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          session_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string session = 3;</code>
+       * @param value The session to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSession(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        session_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string session = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSession() {
+        session_ = getDefaultInstance().getSession();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string session = 3;</code>
+       * @param value The bytes for session to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        session_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object channel_ = "";
+      /**
+       * <code>optional string channel = 4;</code>
+       * @return Whether the channel field is set.
+       */
+      public boolean hasChannel() {
+        return ((bitField0_ & 0x00000008) != 0);
+      }
+      /**
+       * <code>optional string channel = 4;</code>
+       * @return The channel.
+       */
+      public java.lang.String getChannel() {
+        java.lang.Object ref = channel_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          channel_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string channel = 4;</code>
+       * @return The bytes for channel.
+       */
+      public com.google.protobuf.ByteString
+          getChannelBytes() {
+        java.lang.Object ref = channel_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          channel_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string channel = 4;</code>
+       * @param value The channel to set.
+       * @return This builder for chaining.
+       */
+      public Builder setChannel(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        channel_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string channel = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearChannel() {
+        channel_ = getDefaultInstance().getChannel();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string channel = 4;</code>
+       * @param value The bytes for channel to set.
+       * @return This builder for chaining.
+       */
+      public Builder setChannelBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        channel_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private long expiresIn_ ;
+      /**
+       * <code>uint64 expires_in = 5;</code>
+       * @return The expiresIn.
+       */
+      @java.lang.Override
+      public long getExpiresIn() {
+        return expiresIn_;
+      }
+      /**
+       * <code>uint64 expires_in = 5;</code>
+       * @param value The expiresIn to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExpiresIn(long value) {
+
+        expiresIn_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 expires_in = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearExpiresIn() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        expiresIn_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList origins_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureOriginsIsMutable() {
+        if (!origins_.isModifiable()) {
+          origins_ = new com.google.protobuf.LazyStringArrayList(origins_);
+        }
+        bitField0_ |= 0x00000020;
+      }
+      /**
+       * <code>repeated string origins = 6;</code>
+       * @return A list containing the origins.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getOriginsList() {
+        origins_.makeImmutable();
+        return origins_;
+      }
+      /**
+       * <code>repeated string origins = 6;</code>
+       * @return The count of origins.
+       */
+      public int getOriginsCount() {
+        return origins_.size();
+      }
+      /**
+       * <code>repeated string origins = 6;</code>
+       * @param index The index of the element to return.
+       * @return The origins at the given index.
+       */
+      public java.lang.String getOrigins(int index) {
+        return origins_.get(index);
+      }
+      /**
+       * <code>repeated string origins = 6;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the origins at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getOriginsBytes(int index) {
+        return origins_.getByteString(index);
+      }
+      /**
+       * <code>repeated string origins = 6;</code>
+       * @param index The index to set the value at.
+       * @param value The origins to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOrigins(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureOriginsIsMutable();
+        origins_.set(index, value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string origins = 6;</code>
+       * @param value The origins to add.
+       * @return This builder for chaining.
+       */
+      public Builder addOrigins(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureOriginsIsMutable();
+        origins_.add(value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string origins = 6;</code>
+       * @param values The origins to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllOrigins(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureOriginsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, origins_);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string origins = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOrigins() {
+        origins_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000020);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string origins = 6;</code>
+       * @param value The bytes of the origins to add.
+       * @return This builder for chaining.
+       */
+      public Builder addOriginsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureOriginsIsMutable();
+        origins_.add(value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.v1.MintAccessTokenRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.v1.MintAccessTokenRequest)
+    private static final talon.v1.Auth.MintAccessTokenRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.v1.Auth.MintAccessTokenRequest();
+    }
+
+    public static talon.v1.Auth.MintAccessTokenRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<MintAccessTokenRequest>
+        PARSER = new com.google.protobuf.AbstractParser<MintAccessTokenRequest>() {
+      @java.lang.Override
+      public MintAccessTokenRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<MintAccessTokenRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<MintAccessTokenRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.v1.Auth.MintAccessTokenRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface MintAccessTokenResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.MintAccessTokenResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string access_token = 1;</code>
+     * @return The accessToken.
+     */
+    java.lang.String getAccessToken();
+    /**
+     * <code>string access_token = 1;</code>
+     * @return The bytes for accessToken.
+     */
+    com.google.protobuf.ByteString
+        getAccessTokenBytes();
+
+    /**
+     * <code>string token_type = 2;</code>
+     * @return The tokenType.
+     */
+    java.lang.String getTokenType();
+    /**
+     * <code>string token_type = 2;</code>
+     * @return The bytes for tokenType.
+     */
+    com.google.protobuf.ByteString
+        getTokenTypeBytes();
+
+    /**
+     * <code>uint64 expires_in = 3;</code>
+     * @return The expiresIn.
+     */
+    long getExpiresIn();
+
+    /**
+     * <code>uint64 expires_at = 4;</code>
+     * @return The expiresAt.
+     */
+    long getExpiresAt();
+  }
+  /**
+   * Protobuf type {@code talon.v1.MintAccessTokenResponse}
+   */
+  public static final class MintAccessTokenResponse extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.v1.MintAccessTokenResponse)
+      MintAccessTokenResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "MintAccessTokenResponse");
+    }
+    // Use MintAccessTokenResponse.newBuilder() to construct.
+    private MintAccessTokenResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private MintAccessTokenResponse() {
+      accessToken_ = "";
+      tokenType_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.v1.Auth.internal_static_talon_v1_MintAccessTokenResponse_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.v1.Auth.internal_static_talon_v1_MintAccessTokenResponse_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.v1.Auth.internal_static_talon_v1_MintAccessTokenResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.v1.Auth.MintAccessTokenResponse.class, talon.v1.Auth.MintAccessTokenResponse.Builder.class);
+    }
+
+    public static final int ACCESS_TOKEN_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object accessToken_ = "";
+    /**
+     * <code>string access_token = 1;</code>
+     * @return The accessToken.
+     */
+    @java.lang.Override
+    public java.lang.String getAccessToken() {
+      java.lang.Object ref = accessToken_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        accessToken_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string access_token = 1;</code>
+     * @return The bytes for accessToken.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAccessTokenBytes() {
+      java.lang.Object ref = accessToken_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        accessToken_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TOKEN_TYPE_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object tokenType_ = "";
+    /**
+     * <code>string token_type = 2;</code>
+     * @return The tokenType.
+     */
+    @java.lang.Override
+    public java.lang.String getTokenType() {
+      java.lang.Object ref = tokenType_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        tokenType_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string token_type = 2;</code>
+     * @return The bytes for tokenType.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTokenTypeBytes() {
+      java.lang.Object ref = tokenType_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        tokenType_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int EXPIRES_IN_FIELD_NUMBER = 3;
+    private long expiresIn_ = 0L;
+    /**
+     * <code>uint64 expires_in = 3;</code>
+     * @return The expiresIn.
+     */
+    @java.lang.Override
+    public long getExpiresIn() {
+      return expiresIn_;
+    }
+
+    public static final int EXPIRES_AT_FIELD_NUMBER = 4;
+    private long expiresAt_ = 0L;
+    /**
+     * <code>uint64 expires_at = 4;</code>
+     * @return The expiresAt.
+     */
+    @java.lang.Override
+    public long getExpiresAt() {
+      return expiresAt_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(accessToken_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, accessToken_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(tokenType_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, tokenType_);
+      }
+      if (expiresIn_ != 0L) {
+        output.writeUInt64(3, expiresIn_);
+      }
+      if (expiresAt_ != 0L) {
+        output.writeUInt64(4, expiresAt_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(accessToken_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, accessToken_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(tokenType_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, tokenType_);
+      }
+      if (expiresIn_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(3, expiresIn_);
+      }
+      if (expiresAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(4, expiresAt_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.v1.Auth.MintAccessTokenResponse)) {
+        return super.equals(obj);
+      }
+      talon.v1.Auth.MintAccessTokenResponse other = (talon.v1.Auth.MintAccessTokenResponse) obj;
+
+      if (!getAccessToken()
+          .equals(other.getAccessToken())) return false;
+      if (!getTokenType()
+          .equals(other.getTokenType())) return false;
+      if (getExpiresIn()
+          != other.getExpiresIn()) return false;
+      if (getExpiresAt()
+          != other.getExpiresAt()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ACCESS_TOKEN_FIELD_NUMBER;
+      hash = (53 * hash) + getAccessToken().hashCode();
+      hash = (37 * hash) + TOKEN_TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getTokenType().hashCode();
+      hash = (37 * hash) + EXPIRES_IN_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getExpiresIn());
+      hash = (37 * hash) + EXPIRES_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getExpiresAt());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.v1.Auth.MintAccessTokenResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Auth.MintAccessTokenResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Auth.MintAccessTokenResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Auth.MintAccessTokenResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Auth.MintAccessTokenResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Auth.MintAccessTokenResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Auth.MintAccessTokenResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Auth.MintAccessTokenResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.v1.Auth.MintAccessTokenResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.v1.Auth.MintAccessTokenResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.v1.Auth.MintAccessTokenResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Auth.MintAccessTokenResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.v1.Auth.MintAccessTokenResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.v1.MintAccessTokenResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.v1.MintAccessTokenResponse)
+        talon.v1.Auth.MintAccessTokenResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.v1.Auth.internal_static_talon_v1_MintAccessTokenResponse_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.v1.Auth.internal_static_talon_v1_MintAccessTokenResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.v1.Auth.MintAccessTokenResponse.class, talon.v1.Auth.MintAccessTokenResponse.Builder.class);
+      }
+
+      // Construct using talon.v1.Auth.MintAccessTokenResponse.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        accessToken_ = "";
+        tokenType_ = "";
+        expiresIn_ = 0L;
+        expiresAt_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.v1.Auth.internal_static_talon_v1_MintAccessTokenResponse_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.v1.Auth.MintAccessTokenResponse getDefaultInstanceForType() {
+        return talon.v1.Auth.MintAccessTokenResponse.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.v1.Auth.MintAccessTokenResponse build() {
+        talon.v1.Auth.MintAccessTokenResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.v1.Auth.MintAccessTokenResponse buildPartial() {
+        talon.v1.Auth.MintAccessTokenResponse result = new talon.v1.Auth.MintAccessTokenResponse(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.v1.Auth.MintAccessTokenResponse result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.accessToken_ = accessToken_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.tokenType_ = tokenType_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.expiresIn_ = expiresIn_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.expiresAt_ = expiresAt_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.v1.Auth.MintAccessTokenResponse) {
+          return mergeFrom((talon.v1.Auth.MintAccessTokenResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.v1.Auth.MintAccessTokenResponse other) {
+        if (other == talon.v1.Auth.MintAccessTokenResponse.getDefaultInstance()) return this;
+        if (!other.getAccessToken().isEmpty()) {
+          accessToken_ = other.accessToken_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getTokenType().isEmpty()) {
+          tokenType_ = other.tokenType_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (other.getExpiresIn() != 0L) {
+          setExpiresIn(other.getExpiresIn());
+        }
+        if (other.getExpiresAt() != 0L) {
+          setExpiresAt(other.getExpiresAt());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                accessToken_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                tokenType_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 24: {
+                expiresIn_ = input.readUInt64();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              case 32: {
+                expiresAt_ = input.readUInt64();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object accessToken_ = "";
+      /**
+       * <code>string access_token = 1;</code>
+       * @return The accessToken.
+       */
+      public java.lang.String getAccessToken() {
+        java.lang.Object ref = accessToken_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          accessToken_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string access_token = 1;</code>
+       * @return The bytes for accessToken.
+       */
+      public com.google.protobuf.ByteString
+          getAccessTokenBytes() {
+        java.lang.Object ref = accessToken_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          accessToken_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string access_token = 1;</code>
+       * @param value The accessToken to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAccessToken(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        accessToken_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string access_token = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAccessToken() {
+        accessToken_ = getDefaultInstance().getAccessToken();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string access_token = 1;</code>
+       * @param value The bytes for accessToken to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAccessTokenBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        accessToken_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object tokenType_ = "";
+      /**
+       * <code>string token_type = 2;</code>
+       * @return The tokenType.
+       */
+      public java.lang.String getTokenType() {
+        java.lang.Object ref = tokenType_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          tokenType_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string token_type = 2;</code>
+       * @return The bytes for tokenType.
+       */
+      public com.google.protobuf.ByteString
+          getTokenTypeBytes() {
+        java.lang.Object ref = tokenType_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          tokenType_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string token_type = 2;</code>
+       * @param value The tokenType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTokenType(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        tokenType_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string token_type = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTokenType() {
+        tokenType_ = getDefaultInstance().getTokenType();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string token_type = 2;</code>
+       * @param value The bytes for tokenType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTokenTypeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        tokenType_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private long expiresIn_ ;
+      /**
+       * <code>uint64 expires_in = 3;</code>
+       * @return The expiresIn.
+       */
+      @java.lang.Override
+      public long getExpiresIn() {
+        return expiresIn_;
+      }
+      /**
+       * <code>uint64 expires_in = 3;</code>
+       * @param value The expiresIn to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExpiresIn(long value) {
+
+        expiresIn_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 expires_in = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearExpiresIn() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        expiresIn_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long expiresAt_ ;
+      /**
+       * <code>uint64 expires_at = 4;</code>
+       * @return The expiresAt.
+       */
+      @java.lang.Override
+      public long getExpiresAt() {
+        return expiresAt_;
+      }
+      /**
+       * <code>uint64 expires_at = 4;</code>
+       * @param value The expiresAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExpiresAt(long value) {
+
+        expiresAt_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 expires_at = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearExpiresAt() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        expiresAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.v1.MintAccessTokenResponse)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.v1.MintAccessTokenResponse)
+    private static final talon.v1.Auth.MintAccessTokenResponse DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.v1.Auth.MintAccessTokenResponse();
+    }
+
+    public static talon.v1.Auth.MintAccessTokenResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<MintAccessTokenResponse>
+        PARSER = new com.google.protobuf.AbstractParser<MintAccessTokenResponse>() {
+      @java.lang.Override
+      public MintAccessTokenResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<MintAccessTokenResponse> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<MintAccessTokenResponse> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.v1.Auth.MintAccessTokenResponse getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_v1_GetSsoConfigRequest_descriptor;
   private static final
@@ -3272,6 +5407,16 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_v1_ExchangeOidcTokenResponse_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_MintAccessTokenRequest_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_MintAccessTokenRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_MintAccessTokenResponse_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_MintAccessTokenResponse_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -3293,12 +5438,21 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
       "(\t\022\022\n\nexpires_in\030\003 \001(\004\022\017\n\007subject\030\004 \001(\t\022" +
       "\022\n\005email\030\005 \001(\tH\000\210\001\001\022\r\n\005trust\030\006 \001(\t\022\030\n\013cl" +
       "ient_type\030\007 \001(\tH\001\210\001\001B\010\n\006_emailB\016\n\014_clien" +
-      "t_type2\272\001\n\013AuthService\022M\n\014GetSsoConfig\022\035" +
-      ".talon.v1.GetSsoConfigRequest\032\036.talon.v1" +
-      ".GetSsoConfigResponse\022\\\n\021ExchangeOidcTok" +
-      "en\022\".talon.v1.ExchangeOidcTokenRequest\032#" +
-      ".talon.v1.ExchangeOidcTokenResponseb\006pro" +
-      "to3"
+      "t_type\"\262\001\n\026MintAccessTokenRequest\022\021\n\tnam" +
+      "espace\030\001 \001(\t\022\022\n\005agent\030\002 \001(\tH\000\210\001\001\022\024\n\007sess" +
+      "ion\030\003 \001(\tH\001\210\001\001\022\024\n\007channel\030\004 \001(\tH\002\210\001\001\022\022\n\n" +
+      "expires_in\030\005 \001(\004\022\017\n\007origins\030\006 \003(\tB\010\n\006_ag" +
+      "entB\n\n\010_sessionB\n\n\010_channel\"k\n\027MintAcces" +
+      "sTokenResponse\022\024\n\014access_token\030\001 \001(\t\022\022\n\n" +
+      "token_type\030\002 \001(\t\022\022\n\nexpires_in\030\003 \001(\004\022\022\n\n" +
+      "expires_at\030\004 \001(\0042\222\002\n\013AuthService\022M\n\014GetS" +
+      "soConfig\022\035.talon.v1.GetSsoConfigRequest\032" +
+      "\036.talon.v1.GetSsoConfigResponse\022\\\n\021Excha" +
+      "ngeOidcToken\022\".talon.v1.ExchangeOidcToke" +
+      "nRequest\032#.talon.v1.ExchangeOidcTokenRes" +
+      "ponse\022V\n\017MintAccessToken\022 .talon.v1.Mint" +
+      "AccessTokenRequest\032!.talon.v1.MintAccess" +
+      "TokenResponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -3328,6 +5482,18 @@ public final class Auth extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ExchangeOidcTokenResponse_descriptor,
         new java.lang.String[] { "AccessToken", "TokenType", "ExpiresIn", "Subject", "Email", "Trust", "ClientType", });
+    internal_static_talon_v1_MintAccessTokenRequest_descriptor =
+      getDescriptor().getMessageType(4);
+    internal_static_talon_v1_MintAccessTokenRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_MintAccessTokenRequest_descriptor,
+        new java.lang.String[] { "Namespace", "Agent", "Session", "Channel", "ExpiresIn", "Origins", });
+    internal_static_talon_v1_MintAccessTokenResponse_descriptor =
+      getDescriptor().getMessageType(5);
+    internal_static_talon_v1_MintAccessTokenResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_MintAccessTokenResponse_descriptor,
+        new java.lang.String[] { "AccessToken", "TokenType", "ExpiresIn", "ExpiresAt", });
     descriptor.resolveAllFeaturesImmutable();
   }
 

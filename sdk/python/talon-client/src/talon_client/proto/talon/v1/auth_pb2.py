@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19proto/talon/v1/auth.proto\x12\x08talon.v1\"\x15\n\x13GetSsoConfigRequest\"n\n\x14GetSsoConfigResponse\x12\x1a\n\x12google_sso_enabled\x18\x01 \x01(\x08\x12!\n\x14google_web_client_id\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\x17\n\x15_google_web_client_id\"t\n\x18\x45xchangeOidcTokenRequest\x12\x10\n\x08id_token\x18\x01 \x01(\t\x12\x12\n\x05trust\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x18\n\x0b\x63lient_type\x18\x03 \x01(\tH\x01\x88\x01\x01\x42\x08\n\x06_trustB\x0e\n\x0c_client_type\"\xc1\x01\n\x19\x45xchangeOidcTokenResponse\x12\x14\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\t\x12\x12\n\ntoken_type\x18\x02 \x01(\t\x12\x12\n\nexpires_in\x18\x03 \x01(\x04\x12\x0f\n\x07subject\x18\x04 \x01(\t\x12\x12\n\x05\x65mail\x18\x05 \x01(\tH\x00\x88\x01\x01\x12\r\n\x05trust\x18\x06 \x01(\t\x12\x18\n\x0b\x63lient_type\x18\x07 \x01(\tH\x01\x88\x01\x01\x42\x08\n\x06_emailB\x0e\n\x0c_client_type2\xba\x01\n\x0b\x41uthService\x12M\n\x0cGetSsoConfig\x12\x1d.talon.v1.GetSsoConfigRequest\x1a\x1e.talon.v1.GetSsoConfigResponse\x12\\\n\x11\x45xchangeOidcToken\x12\".talon.v1.ExchangeOidcTokenRequest\x1a#.talon.v1.ExchangeOidcTokenResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19proto/talon/v1/auth.proto\x12\x08talon.v1\"\x15\n\x13GetSsoConfigRequest\"n\n\x14GetSsoConfigResponse\x12\x1a\n\x12google_sso_enabled\x18\x01 \x01(\x08\x12!\n\x14google_web_client_id\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\x17\n\x15_google_web_client_id\"t\n\x18\x45xchangeOidcTokenRequest\x12\x10\n\x08id_token\x18\x01 \x01(\t\x12\x12\n\x05trust\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x18\n\x0b\x63lient_type\x18\x03 \x01(\tH\x01\x88\x01\x01\x42\x08\n\x06_trustB\x0e\n\x0c_client_type\"\xc1\x01\n\x19\x45xchangeOidcTokenResponse\x12\x14\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\t\x12\x12\n\ntoken_type\x18\x02 \x01(\t\x12\x12\n\nexpires_in\x18\x03 \x01(\x04\x12\x0f\n\x07subject\x18\x04 \x01(\t\x12\x12\n\x05\x65mail\x18\x05 \x01(\tH\x00\x88\x01\x01\x12\r\n\x05trust\x18\x06 \x01(\t\x12\x18\n\x0b\x63lient_type\x18\x07 \x01(\tH\x01\x88\x01\x01\x42\x08\n\x06_emailB\x0e\n\x0c_client_type\"\xb2\x01\n\x16MintAccessTokenRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x12\n\x05\x61gent\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x14\n\x07session\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x14\n\x07\x63hannel\x18\x04 \x01(\tH\x02\x88\x01\x01\x12\x12\n\nexpires_in\x18\x05 \x01(\x04\x12\x0f\n\x07origins\x18\x06 \x03(\tB\x08\n\x06_agentB\n\n\x08_sessionB\n\n\x08_channel\"k\n\x17MintAccessTokenResponse\x12\x14\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\t\x12\x12\n\ntoken_type\x18\x02 \x01(\t\x12\x12\n\nexpires_in\x18\x03 \x01(\x04\x12\x12\n\nexpires_at\x18\x04 \x01(\x04\x32\x92\x02\n\x0b\x41uthService\x12M\n\x0cGetSsoConfig\x12\x1d.talon.v1.GetSsoConfigRequest\x1a\x1e.talon.v1.GetSsoConfigResponse\x12\\\n\x11\x45xchangeOidcToken\x12\".talon.v1.ExchangeOidcTokenRequest\x1a#.talon.v1.ExchangeOidcTokenResponse\x12V\n\x0fMintAccessToken\x12 .talon.v1.MintAccessTokenRequest\x1a!.talon.v1.MintAccessTokenResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -39,6 +39,10 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_EXCHANGEOIDCTOKENREQUEST']._serialized_end=290
   _globals['_EXCHANGEOIDCTOKENRESPONSE']._serialized_start=293
   _globals['_EXCHANGEOIDCTOKENRESPONSE']._serialized_end=486
-  _globals['_AUTHSERVICE']._serialized_start=489
-  _globals['_AUTHSERVICE']._serialized_end=675
+  _globals['_MINTACCESSTOKENREQUEST']._serialized_start=489
+  _globals['_MINTACCESSTOKENREQUEST']._serialized_end=667
+  _globals['_MINTACCESSTOKENRESPONSE']._serialized_start=669
+  _globals['_MINTACCESSTOKENRESPONSE']._serialized_end=776
+  _globals['_AUTHSERVICE']._serialized_start=779
+  _globals['_AUTHSERVICE']._serialized_end=1053
 # @@protoc_insertion_point(module_scope)
