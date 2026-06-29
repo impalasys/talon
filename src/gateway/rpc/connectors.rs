@@ -6,6 +6,8 @@ use crate::control::resource_model::ChannelResourceExt;
 use crate::control::scheduling;
 use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
 use crate::worker::controllers::connectors;
+use anyhow::Context;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 
@@ -20,6 +22,64 @@ const LABEL_EXTERNAL_MESSAGE: &str = "talon.impalasys.com/external-message";
 const LABEL_EXTERNAL_SENDER: &str = "talon.impalasys.com/external-sender";
 const LABEL_CONVERSATION_TYPE: &str = "talon.impalasys.com/conversation-type";
 const LABEL_CONNECTOR_MATCH_PREFIX: &str = "talon.impalasys.com/connector-match/";
+
+#[derive(Debug, Serialize)]
+struct ConnectorDeliveryRequest {
+    #[serde(rename = "deliveryId")]
+    delivery_id: String,
+    #[serde(rename = "registrationId")]
+    registration_id: String,
+    #[serde(rename = "connectorClass")]
+    connector_class: String,
+    namespace: String,
+    #[serde(rename = "connectorName")]
+    connector_name: String,
+    #[serde(rename = "matchFields")]
+    match_fields: HashMap<String, String>,
+    #[serde(rename = "externalConversationId")]
+    external_conversation_id: String,
+    #[serde(rename = "externalThreadId", skip_serializing_if = "Option::is_none")]
+    external_thread_id: Option<String>,
+    #[serde(
+        rename = "replyToExternalMessageId",
+        skip_serializing_if = "Option::is_none"
+    )]
+    reply_to_external_message_id: Option<String>,
+    text: String,
+    attachments: Vec<serde_json::Value>,
+    labels: HashMap<String, String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ConnectorDeliveryResponse {
+    accepted: bool,
+    disposition: String,
+    error: String,
+}
+
+#[derive(Debug, Serialize)]
+struct ConnectorActivityRequest {
+    #[serde(rename = "activityId")]
+    activity_id: String,
+    #[serde(rename = "registrationId")]
+    registration_id: String,
+    #[serde(rename = "connectorClass")]
+    connector_class: String,
+    namespace: String,
+    #[serde(rename = "connectorName")]
+    connector_name: String,
+    #[serde(rename = "matchFields")]
+    match_fields: HashMap<String, String>,
+    #[serde(rename = "externalConversationId")]
+    external_conversation_id: String,
+    #[serde(rename = "externalThreadId", skip_serializing_if = "Option::is_none")]
+    external_thread_id: Option<String>,
+    kind: String,
+    phase: String,
+    #[serde(rename = "statusText")]
+    status_text: String,
+    labels: HashMap<String, String>,
+}
 
 impl GrpcGatewayHandler {
     pub async fn handle_ingest_connector_message_event(
@@ -180,6 +240,238 @@ fn internal_error(err: impl std::fmt::Display) -> tonic::Status {
     tonic::Status::internal(err.to_string())
 }
 
+pub fn is_connector_silence_response(text: &str) -> bool {
+    matches!(
+        text.trim().to_ascii_uppercase().as_str(),
+        "[SILENT]" | "SILENT" | "NO_REPLY" | "NO REPLY"
+    )
+}
+
+pub async fn deliver_connector_session_message(
+    cp: &ControlPlane,
+    session: &data_proto::Session,
+    message: &data_proto::SessionMessage,
+    text: &str,
+) -> anyhow::Result<()> {
+    let registration_id = required_label(&session.labels, LABEL_CONNECTOR_REGISTRATION)?;
+    let connector_name = required_label(&session.labels, LABEL_CONNECTOR)?;
+    let connector_class = required_label(&session.labels, LABEL_CONNECTOR_CLASS)?;
+    let external_conversation_id = required_label(&session.labels, LABEL_EXTERNAL_CONVERSATION)?;
+    let registration = cp
+        .kv
+        .get_msg::<resources_proto::ConnectorRegistrationEntry>(&keys::connector_registration(
+            registration_id,
+        ))
+        .await?
+        .ok_or_else(|| anyhow::anyhow!("connector registration not found"))?;
+    let class_spec = registration
+        .class_spec
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector registration missing class spec"))?;
+    let runtime = class_spec
+        .runtime
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector class runtime is required"))?;
+    if runtime.endpoint.trim().is_empty() {
+        anyhow::bail!("connector class runtime endpoint is required");
+    }
+    let auth = class_spec
+        .auth
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector class auth is required"))?;
+    if auth.kind != "apiKey" {
+        anyhow::bail!("connector class auth.kind must be apiKey");
+    }
+    let api_key = auth
+        .api_key
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector class auth.apiKey is required"))
+        .and_then(resolve_connector_secret)?;
+
+    let mut match_fields = HashMap::new();
+    for (key, value) in &session.labels {
+        if let Some(field) = key.strip_prefix(LABEL_CONNECTOR_MATCH_PREFIX) {
+            match_fields.insert(field.to_string(), value.clone());
+        }
+    }
+
+    let mut delivery_labels = HashMap::new();
+    delivery_labels.insert("talon.session".to_string(), session.id.clone());
+    delivery_labels.insert("talon.agent".to_string(), session.agent.clone());
+    delivery_labels.insert("talon.sessionMessage".to_string(), message.id.clone());
+    if let Some(source_event) = session.labels.get(LABEL_CONNECTOR_EVENT).cloned() {
+        delivery_labels.insert("talon.connectorEvent".to_string(), source_event);
+    }
+
+    let url = format!("{}/v1/deliveries", runtime.endpoint.trim_end_matches('/'));
+    let response = reqwest::Client::new()
+        .post(url)
+        .bearer_auth(api_key)
+        .json(&ConnectorDeliveryRequest {
+            delivery_id: message.id.clone(),
+            registration_id: registration_id.to_string(),
+            connector_class: connector_class.to_string(),
+            namespace: session.ns.clone(),
+            connector_name: connector_name.to_string(),
+            match_fields,
+            external_conversation_id: external_conversation_id.to_string(),
+            external_thread_id: session
+                .labels
+                .get(LABEL_EXTERNAL_THREAD)
+                .cloned()
+                .or_else(|| session.labels.get(LABEL_EXTERNAL_MESSAGE).cloned()),
+            reply_to_external_message_id: session.labels.get(LABEL_EXTERNAL_MESSAGE).cloned(),
+            text: text.trim().to_string(),
+            attachments: Vec::new(),
+            labels: delivery_labels,
+        })
+        .send()
+        .await
+        .context("failed to submit connector delivery")?;
+    let status = response.status();
+    let body = response
+        .json::<ConnectorDeliveryResponse>()
+        .await
+        .context("failed to decode connector delivery response")?;
+    if !status.is_success() || !body.accepted {
+        anyhow::bail!(
+            "connector delivery rejected: HTTP {status} disposition={} error={}",
+            body.disposition,
+            body.error
+        );
+    }
+    Ok(())
+}
+
+pub async fn send_connector_session_activity(
+    cp: &ControlPlane,
+    session: &data_proto::Session,
+    activity_id: &str,
+    phase: &str,
+    status_text: &str,
+) -> anyhow::Result<()> {
+    let registration_id = required_label(&session.labels, LABEL_CONNECTOR_REGISTRATION)?;
+    let connector_name = required_label(&session.labels, LABEL_CONNECTOR)?;
+    let connector_class = required_label(&session.labels, LABEL_CONNECTOR_CLASS)?;
+    let external_conversation_id = required_label(&session.labels, LABEL_EXTERNAL_CONVERSATION)?;
+    let registration = cp
+        .kv
+        .get_msg::<resources_proto::ConnectorRegistrationEntry>(&keys::connector_registration(
+            registration_id,
+        ))
+        .await?
+        .ok_or_else(|| anyhow::anyhow!("connector registration not found"))?;
+    let class_spec = registration
+        .class_spec
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector registration missing class spec"))?;
+    let runtime = class_spec
+        .runtime
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector class runtime is required"))?;
+    if runtime.endpoint.trim().is_empty() {
+        anyhow::bail!("connector class runtime endpoint is required");
+    }
+    let auth = class_spec
+        .auth
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector class auth is required"))?;
+    if auth.kind != "apiKey" {
+        anyhow::bail!("connector class auth.kind must be apiKey");
+    }
+    let api_key = auth
+        .api_key
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector class auth.apiKey is required"))
+        .and_then(resolve_connector_secret)?;
+
+    let mut match_fields = HashMap::new();
+    for (key, value) in &session.labels {
+        if let Some(field) = key.strip_prefix(LABEL_CONNECTOR_MATCH_PREFIX) {
+            match_fields.insert(field.to_string(), value.clone());
+        }
+    }
+
+    let mut labels = HashMap::new();
+    labels.insert("talon.session".to_string(), session.id.clone());
+    labels.insert("talon.agent".to_string(), session.agent.clone());
+    if let Some(source_event) = session.labels.get(LABEL_CONNECTOR_EVENT).cloned() {
+        labels.insert("talon.connectorEvent".to_string(), source_event);
+    }
+
+    let response = reqwest::Client::new()
+        .post(format!(
+            "{}/v1/activities",
+            runtime.endpoint.trim_end_matches('/')
+        ))
+        .bearer_auth(api_key)
+        .json(&ConnectorActivityRequest {
+            activity_id: activity_id.to_string(),
+            registration_id: registration_id.to_string(),
+            connector_class: connector_class.to_string(),
+            namespace: session.ns.clone(),
+            connector_name: connector_name.to_string(),
+            match_fields,
+            external_conversation_id: external_conversation_id.to_string(),
+            external_thread_id: session
+                .labels
+                .get(LABEL_EXTERNAL_THREAD)
+                .cloned()
+                .or_else(|| session.labels.get(LABEL_EXTERNAL_MESSAGE).cloned()),
+            kind: "typing".to_string(),
+            phase: phase.to_string(),
+            status_text: status_text.to_string(),
+            labels,
+        })
+        .send()
+        .await
+        .context("failed to submit connector activity")?;
+    let status = response.status();
+    let body = response
+        .json::<ConnectorDeliveryResponse>()
+        .await
+        .context("failed to decode connector activity response")?;
+    if !status.is_success() || !body.accepted {
+        anyhow::bail!(
+            "connector activity rejected: HTTP {status} disposition={} error={}",
+            body.disposition,
+            body.error
+        );
+    }
+    Ok(())
+}
+
+fn required_label<'a>(labels: &'a HashMap<String, String>, name: &str) -> anyhow::Result<&'a str> {
+    labels
+        .get(name)
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| anyhow::anyhow!("missing connector label {name}"))
+}
+
+fn resolve_connector_secret(
+    secret: &crate::gateway::rpc::generated::config::Secret,
+) -> anyhow::Result<String> {
+    use crate::gateway::rpc::generated::config::{secret, secret_ref};
+
+    match secret.source.as_ref() {
+        Some(secret::Source::Plain(value)) => Ok(value.clone()),
+        Some(secret::Source::Ref(reference)) => {
+            let source = secret_ref::Source::try_from(reference.source)
+                .map_err(|_| anyhow::anyhow!("invalid connector secret source"))?;
+            match source {
+                secret_ref::Source::Env => std::env::var(&reference.key)
+                    .map_err(|_| anyhow::anyhow!("Env var {} not set", reference.key)),
+                other => anyhow::bail!(
+                    "ConnectorClass auth.apiKey currently supports plain and env refs; got {}",
+                    other.as_str_name()
+                ),
+            }
+        }
+        None => anyhow::bail!("secret source missing"),
+    }
+}
+
 async fn dispatch_connector_message(
     cp: &ControlPlane,
     entry: &resources_proto::ConnectorMatchEntry,
@@ -211,8 +503,8 @@ async fn dispatch_to_session(
         ));
     }
     let mut labels = connector_labels(entry, event);
-    let session_id = connector_session_id(cp, entry, target, event, labels.clone()).await?;
     labels.insert(LABEL_MESSAGE_SOURCE.to_string(), "connector".to_string());
+    let session_id = connector_session_id(cp, entry, target, event, labels.clone()).await?;
     let message = connector_session_message(event, labels)?;
     scheduling::send_session_message(
         cp.kv.as_ref(),

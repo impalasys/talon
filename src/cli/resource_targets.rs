@@ -103,6 +103,16 @@ pub(super) fn resource_lookup_target(
                 .context("UsagePolicy requires --namespace")?;
             Ok((ns, "UsagePolicy".to_string(), name.to_string()))
         }
+        "connectorclass" | "connectorclasses" | "connector-class" | "connector-classes" => {
+            let ns = namespace
+                .cloned()
+                .context("ConnectorClass requires --namespace")?;
+            Ok((ns, "ConnectorClass".to_string(), name.to_string()))
+        }
+        "connector" | "connectors" => {
+            let ns = namespace.cloned().context("Connector requires --namespace")?;
+            Ok((ns, "Connector".to_string(), name.to_string()))
+        }
         other => anyhow::bail!("Unsupported resource kind '{}'", other),
     }
 }

@@ -52,6 +52,34 @@ impl ConnectorController {
             .as_ref()
             .ok_or_else(|| anyhow!("ConnectorClass metadata is required"))?;
         let spec = connector_class_spec(class)?;
+        if let Ok(status) = connector_class_status(class) {
+            if status.observed_generation == meta.generation
+                && status.phase == "Ready"
+                && !status.registration_id.trim().is_empty()
+            {
+                let key = keys::connector_registration(&status.registration_id);
+                if cp
+                    .kv
+                    .get_msg::<resources_proto::ConnectorRegistrationEntry>(&key)
+                    .await?
+                    .is_none()
+                {
+                    cp.kv
+                        .set_msg(
+                            &key,
+                            &resources_proto::ConnectorRegistrationEntry {
+                                registration_id: status.registration_id.clone(),
+                                class_namespace: meta.namespace.clone(),
+                                class_name: meta.name.clone(),
+                                generation: meta.generation,
+                                class_spec: Some(spec.clone()),
+                            },
+                        )
+                        .await?;
+                }
+                return Ok(());
+            }
+        }
         delete_registration_entries_for_class(cp.kv.as_ref(), &meta.namespace, &meta.name).await?;
         let registration_id =
             register_connector_class(spec, &meta.namespace, meta.name.as_str(), config).await?;
@@ -153,6 +181,16 @@ impl ConnectorController {
             .as_ref()
             .ok_or_else(|| anyhow!("Connector metadata is required"))?;
         let spec = connector_spec(connector)?;
+        if connector_status(connector)
+            .map(|status| {
+                status.observed_generation == meta.generation
+                    && status.phase == "Ready"
+                    && !status.compiled_match_keys.is_empty()
+            })
+            .unwrap_or(false)
+        {
+            return Ok(());
+        }
         delete_match_entries_for_uid(cp.kv.as_ref(), &meta.uid).await?;
 
         if !spec.enabled {
@@ -459,6 +497,19 @@ fn connector_class_status(
     }
 }
 
+fn connector_status(
+    resource: &resources_proto::Resource,
+) -> Result<&resources_proto::ConnectorStatus> {
+    match resource
+        .status
+        .as_ref()
+        .and_then(|status| status.kind.as_ref())
+    {
+        Some(resources_proto::resource_status::Kind::Connector(status)) => Ok(status),
+        _ => Err(anyhow!("Connector resource is missing status")),
+    }
+}
+
 fn connector_references_class(
     resource: &resources_proto::Resource,
     class_namespace: &str,
@@ -530,9 +581,10 @@ async fn register_connector_class(
         .ok_or_else(|| anyhow!("ConnectorClass auth.apiKey is required"))?
         .resolve_connector_secret()
         .context("failed to resolve ConnectorClass api key")?;
-    let callback_base_url = std::env::var("TALON_CONNECTOR_CALLBACK_BASE_URL")
+    let callback_base_url = std::env::var("TALON_GATEWAY_BASE_URL")
         .ok()
         .filter(|value| !value.trim().is_empty())
+        .map(|value| format!("{}/v1/connectors", value.trim_end_matches('/')))
         .unwrap_or_else(|| {
             let server = config.server.as_ref();
             let configured_host = server.map(|server| server.host.trim()).unwrap_or_default();

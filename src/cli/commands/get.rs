@@ -164,6 +164,16 @@ fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<Resour
                 kind: Some("UsagePolicy".to_string()),
             })
         }
+        "connectorclass" | "connectorclasses" | "connector-class" | "connector-classes" => {
+            Ok(ResourceListTarget::Resources {
+                ns: ns_or_default(),
+                kind: Some("ConnectorClass".to_string()),
+            })
+        }
+        "connector" | "connectors" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("Connector".to_string()),
+        }),
         other => anyhow::bail!("Unsupported resource kind '{}'", other),
     }
 }

@@ -21,7 +21,7 @@ services:
       - TALON_GOOGLE_CLIENT_ID
       - TALON_GOOGLE_WEB_CLIENT_ID
       - TALON_GOOGLE_WEB_CLIENT_SECRET
-      - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET:-local-dev-talon-jwt}
+      - GATEWAY_JWT_SECRET
       - TALON_CONFIG_PATH=/data/talon/talon.docker-compose.yaml
     env_file:
       - .env

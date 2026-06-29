@@ -9,8 +9,10 @@ use crate::control::scheduling;
 use crate::control::topics;
 use crate::control::{events, keys, ControlPlane, KeyValueStore};
 use crate::control::{MessagePublisher, ProtoKeyValueStoreExt};
+use anyhow::Context;
 use futures::StreamExt;
 use prost::Message;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
 const DEFAULT_CHANNEL_MESSAGES_LIMIT: usize = 50;
@@ -26,6 +28,47 @@ const LABEL_CHANNEL_SUBSCRIPTION: &str = "talon.impalasys.com/channel-subscripti
 const LABEL_CHANNEL_TRIGGER: &str = "talon.impalasys.com/channel-trigger";
 pub const LABEL_CHANNEL_REPLY_MODE: &str = "talon.impalasys.com/channel-reply-mode";
 const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
+const LABEL_CONNECTOR: &str = "talon.impalasys.com/connector";
+const LABEL_CONNECTOR_CLASS: &str = "talon.impalasys.com/connector-class";
+const LABEL_CONNECTOR_MATCH_PREFIX: &str = "talon.impalasys.com/connector-match/";
+const LABEL_CONNECTOR_REGISTRATION: &str = "talon.impalasys.com/connector-registration";
+const LABEL_EXTERNAL_CONVERSATION: &str = "talon.impalasys.com/external-conversation";
+const LABEL_EXTERNAL_MESSAGE: &str = "talon.impalasys.com/external-message";
+const LABEL_EXTERNAL_THREAD: &str = "talon.impalasys.com/external-thread";
+
+#[derive(Debug, Serialize)]
+struct ConnectorDeliveryRequest {
+    #[serde(rename = "deliveryId")]
+    delivery_id: String,
+    #[serde(rename = "registrationId")]
+    registration_id: String,
+    #[serde(rename = "connectorClass")]
+    connector_class: String,
+    namespace: String,
+    #[serde(rename = "connectorName")]
+    connector_name: String,
+    #[serde(rename = "matchFields")]
+    match_fields: HashMap<String, String>,
+    #[serde(rename = "externalConversationId")]
+    external_conversation_id: String,
+    #[serde(rename = "externalThreadId", skip_serializing_if = "Option::is_none")]
+    external_thread_id: Option<String>,
+    #[serde(
+        rename = "replyToExternalMessageId",
+        skip_serializing_if = "Option::is_none"
+    )]
+    reply_to_external_message_id: Option<String>,
+    text: String,
+    attachments: Vec<serde_json::Value>,
+    labels: HashMap<String, String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ConnectorDeliveryResponse {
+    accepted: bool,
+    disposition: String,
+    error: String,
+}
 
 fn validate_resource_name(kind: &str, name: &str) -> Result<(), tonic::Status> {
     if name.trim().is_empty() {
@@ -267,7 +310,7 @@ pub async fn publish_channel_message_from_session(
     if let Some(subscription) = session.labels.get(LABEL_CHANNEL_SUBSCRIPTION) {
         labels.insert(LABEL_CHANNEL_SUBSCRIPTION.to_string(), subscription.clone());
     }
-    persist_channel_message(
+    let message = persist_channel_message(
         cp,
         data_proto::ChannelMessage {
             id: String::new(),
@@ -282,7 +325,170 @@ pub async fn publish_channel_message_from_session(
             labels,
         },
     )
-    .await
+    .await?;
+    deliver_connector_channel_message(cp, &session, &message).await?;
+    Ok(message)
+}
+
+async fn deliver_connector_channel_message(
+    cp: &ControlPlane,
+    session: &data_proto::Session,
+    message: &data_proto::ChannelMessage,
+) -> anyhow::Result<()> {
+    if session
+        .labels
+        .get(LABEL_CHANNEL_TRIGGER)
+        .map(|trigger| trigger != "connector")
+        .unwrap_or(true)
+    {
+        return Ok(());
+    }
+
+    let registration_id = required_label(&session.labels, LABEL_CONNECTOR_REGISTRATION)?;
+    let connector_name = required_label(&session.labels, LABEL_CONNECTOR)?;
+    let connector_class = required_label(&session.labels, LABEL_CONNECTOR_CLASS)?;
+    let external_conversation_id = required_label(&session.labels, LABEL_EXTERNAL_CONVERSATION)?;
+    let registration = cp
+        .kv
+        .get_msg::<resources_proto::ConnectorRegistrationEntry>(&keys::connector_registration(
+            registration_id,
+        ))
+        .await?
+        .ok_or_else(|| anyhow::anyhow!("connector registration not found"))?;
+    let class_spec = registration
+        .class_spec
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector registration missing class spec"))?;
+    let runtime = class_spec
+        .runtime
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector class runtime is required"))?;
+    if runtime.endpoint.trim().is_empty() {
+        anyhow::bail!("connector class runtime endpoint is required");
+    }
+    let auth = class_spec
+        .auth
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector class auth is required"))?;
+    if auth.kind != "apiKey" {
+        anyhow::bail!("connector class auth.kind must be apiKey");
+    }
+    let api_key = auth
+        .api_key
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector class auth.apiKey is required"))
+        .and_then(resolve_connector_secret)?;
+
+    let mut match_fields = HashMap::new();
+    for (key, value) in &session.labels {
+        if let Some(field) = key.strip_prefix(LABEL_CONNECTOR_MATCH_PREFIX) {
+            match_fields.insert(field.to_string(), value.clone());
+        }
+    }
+
+    let reply_mode = session
+        .labels
+        .get(LABEL_CHANNEL_REPLY_MODE)
+        .map(|value| value.as_str())
+        .unwrap_or_default();
+    let external_message_id = session.labels.get(LABEL_EXTERNAL_MESSAGE).cloned();
+    let external_thread_id = if reply_mode == "thread" {
+        session
+            .labels
+            .get(LABEL_EXTERNAL_THREAD)
+            .cloned()
+            .or_else(|| external_message_id.clone())
+    } else {
+        session.labels.get(LABEL_EXTERNAL_THREAD).cloned()
+    };
+    let reply_to_external_message_id = if reply_mode == "thread" {
+        external_message_id
+    } else {
+        None
+    };
+
+    let mut delivery_labels = HashMap::new();
+    delivery_labels.insert("talon.channel".to_string(), message.channel.clone());
+    delivery_labels.insert("talon.channelMessage".to_string(), message.id.clone());
+    if let Some(source_message) = session.labels.get(LABEL_CHANNEL_MESSAGE) {
+        delivery_labels.insert(
+            "talon.sourceChannelMessage".to_string(),
+            source_message.clone(),
+        );
+    }
+    if let Some(source_event) = session
+        .labels
+        .get("talon.impalasys.com/connector-event")
+        .cloned()
+    {
+        delivery_labels.insert("talon.connectorEvent".to_string(), source_event);
+    }
+
+    let url = format!("{}/v1/deliveries", runtime.endpoint.trim_end_matches('/'));
+    let response = reqwest::Client::new()
+        .post(url)
+        .bearer_auth(api_key)
+        .json(&ConnectorDeliveryRequest {
+            delivery_id: message.id.clone(),
+            registration_id: registration_id.to_string(),
+            connector_class: connector_class.to_string(),
+            namespace: message.ns.clone(),
+            connector_name: connector_name.to_string(),
+            match_fields,
+            external_conversation_id: external_conversation_id.to_string(),
+            external_thread_id,
+            reply_to_external_message_id,
+            text: message.content.clone(),
+            attachments: Vec::new(),
+            labels: delivery_labels,
+        })
+        .send()
+        .await
+        .context("failed to submit connector delivery")?;
+    let status = response.status();
+    let body = response
+        .json::<ConnectorDeliveryResponse>()
+        .await
+        .context("failed to decode connector delivery response")?;
+    if !status.is_success() || !body.accepted {
+        anyhow::bail!(
+            "connector delivery rejected: HTTP {status} disposition={} error={}",
+            body.disposition,
+            body.error
+        );
+    }
+    Ok(())
+}
+
+fn required_label<'a>(labels: &'a HashMap<String, String>, name: &str) -> anyhow::Result<&'a str> {
+    labels
+        .get(name)
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| anyhow::anyhow!("missing connector label {name}"))
+}
+
+fn resolve_connector_secret(
+    secret: &crate::gateway::rpc::generated::config::Secret,
+) -> anyhow::Result<String> {
+    use crate::gateway::rpc::generated::config::{secret, secret_ref};
+
+    match secret.source.as_ref() {
+        Some(secret::Source::Plain(value)) => Ok(value.clone()),
+        Some(secret::Source::Ref(reference)) => {
+            let source = secret_ref::Source::try_from(reference.source)
+                .map_err(|_| anyhow::anyhow!("invalid connector secret source"))?;
+            match source {
+                secret_ref::Source::Env => std::env::var(&reference.key)
+                    .map_err(|_| anyhow::anyhow!("Env var {} not set", reference.key)),
+                other => anyhow::bail!(
+                    "ConnectorClass auth.apiKey currently supports plain and env refs; got {}",
+                    other.as_str_name()
+                ),
+            }
+        }
+        None => anyhow::bail!("secret source missing"),
+    }
 }
 
 pub async fn skip_channel_reply_from_session(
@@ -842,8 +1048,10 @@ fn format_connector_channel_prompt(
 ) -> String {
     let reply_instruction = if reply_mode == "none" {
         "Normal assistant text stays private in your session and will not be posted to the channel. This connector is configured with replyPolicy none, so no public channel reply is expected."
+    } else if reply_mode == "thread" {
+        "Normal assistant text stays private in your session and will not be posted to the channel. This connector is configured with replyPolicy thread, so answer by calling channel_publish exactly once with the public response content. Only call channel_skip_reply for spam, bot loops, or messages that clearly require no response."
     } else {
-        "Normal assistant text stays private in your session and will not be posted to the channel. If a public channel reply is needed, call channel_publish with the response content. If no public reply is needed, call channel_skip_reply."
+        "Normal assistant text stays private in your session and will not be posted to the channel. If a public channel reply is needed, call channel_publish with the response content. Only call channel_skip_reply when no public reply is appropriate."
     };
     format!(
         "You are handling a connector message in Talon channel '{}' as agent '{}'. {}\n\nTriggering channel message id: {}\nTriggering author: {}:{}\nTriggering content:\n{}",

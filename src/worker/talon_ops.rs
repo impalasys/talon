@@ -1226,7 +1226,9 @@ async fn load_talon_ops_server_access(
     let server = kv
         .get_msg::<manifests::McpServer>(&keys::mcp_server(namespace, mcp_server_name))
         .await?
-        .ok_or_else(|| anyhow!("MCP server '{mcp_server_name}' not found in namespace '{namespace}'"))?;
+        .ok_or_else(|| {
+            anyhow!("MCP server '{mcp_server_name}' not found in namespace '{namespace}'")
+        })?;
     let policy = talon_ops_policy_from_server(&server)?;
     Ok(TalonOpsAccess {
         namespace: namespace.to_string(),
@@ -1515,17 +1517,17 @@ fn internal_mcp_error(error: impl std::fmt::Display) -> McpError {
 #[cfg(test)]
 mod tests {
     use super::{
-        bearer_token, bounded_limit, load_talon_ops_server_access, talon_ops_policy_from_server,
-        mint_talon_ops_access_token, parse_bool_query_param, parse_mcp_auth_broker_claims,
-        parse_non_negative_i32_query_param, parse_talon_ops_access_claims,
-        parse_talon_ops_policy_from_target, require_namespace_access, schedule_json,
-        talon_jwt_secret, talon_ops_access_from_parts, talon_ops_access_from_request,
-        talon_ops_auth_broker, to_json_string, DeleteScheduleArgs, GetAgentArgs, GetChannelArgs,
-        GetChannelMessageArgs, GetScheduleArgs, ListChannelMessagesArgs, ListChannelsArgs,
-        ListMcpServersArgs, ListNamespacesArgs, ListSchedulesArgs,
-        ListSessionsArgs, McpAuthBrokerClaims, McpAuthBrokerRequest, PutScheduleArgs,
-        TalonOpsAccess, TalonOpsAccessClaims, TalonOpsPolicy, TalonOpsServer,
-        DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS, DEFAULT_MAX_LIST_LIMIT,
+        bearer_token, bounded_limit, load_talon_ops_server_access, mint_talon_ops_access_token,
+        parse_bool_query_param, parse_mcp_auth_broker_claims, parse_non_negative_i32_query_param,
+        parse_talon_ops_access_claims, parse_talon_ops_policy_from_target,
+        require_namespace_access, schedule_json, talon_jwt_secret, talon_ops_access_from_parts,
+        talon_ops_access_from_request, talon_ops_auth_broker, talon_ops_policy_from_server,
+        to_json_string, DeleteScheduleArgs, GetAgentArgs, GetChannelArgs, GetChannelMessageArgs,
+        GetScheduleArgs, ListChannelMessagesArgs, ListChannelsArgs, ListMcpServersArgs,
+        ListNamespacesArgs, ListSchedulesArgs, ListSessionsArgs, McpAuthBrokerClaims,
+        McpAuthBrokerRequest, PutScheduleArgs, TalonOpsAccess, TalonOpsAccessClaims,
+        TalonOpsPolicy, TalonOpsServer, DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS,
+        DEFAULT_MAX_LIST_LIMIT,
     };
     use crate::control::config::Config;
     use crate::control::{
@@ -2187,12 +2189,9 @@ mod tests {
             }),
             status: Some(crate::control::resource_model::common_status(String::new())),
         };
-        kv.set_msg(
-            &keys::mcp_server("Conic", "talon-ops"),
-            &server,
-        )
-        .await
-        .expect("MCP server should persist");
+        kv.set_msg(&keys::mcp_server("Conic", "talon-ops"), &server)
+            .await
+            .expect("MCP server should persist");
 
         let policy = talon_ops_policy_from_server(&server).expect("policy should load");
         assert_eq!(policy.allowed_namespace_prefixes, vec!["Conic".to_string()]);

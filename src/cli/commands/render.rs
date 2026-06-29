@@ -98,6 +98,8 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
         | "SandboxPolicy"
         | "Sandbox"
         | "UsagePolicy"
+        | "ConnectorClass"
+        | "Connector"
         | "Skill" => Ok(json!({ "resource": manifest_value })),
         other => anyhow::bail!("Unsupported manifest kind '{}'", other),
     }
