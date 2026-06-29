@@ -8,9 +8,9 @@ The Talon gateway API is defined by the domain service files in `proto/talon/v1/
 ## Surface summary
 
 - Package: `talon.v1`
-- Services: `NamespaceService`, `ResourceService`, `SessionService`, `ChannelService`, `WorkflowService`, `KnowledgeService`, `AuthService`
+- Services: `NamespaceService`, `ResourceService`, `SessionService`, `ChannelService`, `WorkflowService`, `KnowledgeService`, `AuthService`, `ConnectorService`, `SearchService`
 - Transport modes: native gRPC and gRPC-Web on the gateway port
-- Total RPC methods: **35**
+- Total RPC methods: **40**
 
 ## NamespaceService
 
@@ -200,3 +200,36 @@ The Talon gateway API is defined by the domain service files in `proto/talon/v1/
 
 - Request: `ExchangeOidcTokenRequest`
 - Response: `ExchangeOidcTokenResponse`
+
+### `MintAccessToken`
+
+- Request: `MintAccessTokenRequest`
+- Response: `MintAccessTokenResponse`
+
+## ConnectorService
+
+### `IngestMessageEvent`
+
+IngestMessageEvent delivers one normalized provider message event to Talon. Talon deduplicates by registration_id + event_id, resolves a Connector by match_fields, and dispatches the message to the resolved Connector target.
+
+- Request: `ConnectorMessageEvent`
+- Response: `ConnectorMessageEventResponse`
+
+### `ReportStatus`
+
+ReportStatus lets the connector service report registration or provider connection health without sending a message event.
+
+- Request: `ConnectorStatusEvent`
+- Response: `ConnectorAckResponse`
+
+## SearchService
+
+### `Search`
+
+- Request: `SearchRequest`
+- Response: `SearchResponse`
+
+### `GetResult`
+
+- Request: `GetSearchResultRequest`
+- Response: `GetSearchResultResponse`

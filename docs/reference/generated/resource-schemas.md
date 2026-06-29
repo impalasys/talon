@@ -848,6 +848,8 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `schedule` | `ScheduleSpec` | oneof (kind) |
 | `channel` | `ChannelSpec` | oneof (kind) |
 | `channel_subscription` | `ChannelSubscriptionSpec` | oneof (kind) |
+| `connector_class` | `ConnectorClassSpec` | oneof (kind) |
+| `connector` | `ConnectorSpec` | oneof (kind) |
 | `mcp_server` | `McpServerSpec` | oneof (kind) |
 | `knowledge` | `KnowledgeSpec` | oneof (kind) |
 | `namespace` | `NamespaceSpec` | oneof (kind) |
@@ -872,6 +874,8 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `schedule` | `ScheduleStatus` | oneof (kind) |
 | `channel` | `ChannelStatus` | oneof (kind) |
 | `channel_subscription` | `CommonResourceStatus` | oneof (kind) |
+| `connector_class` | `ConnectorClassStatus` | oneof (kind) |
+| `connector` | `ConnectorStatus` | oneof (kind) |
 | `mcp_server` | `CommonResourceStatus` | oneof (kind) |
 | `knowledge` | `CommonResourceStatus` | oneof (kind) |
 | `namespace` | `NamespaceStatus` | oneof (kind) |

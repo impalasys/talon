@@ -10,6 +10,7 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
+use std::time::Duration;
 
 const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
 const LABEL_CONNECTOR: &str = "talon.impalasys.com/connector";
@@ -22,6 +23,8 @@ const LABEL_EXTERNAL_MESSAGE: &str = "talon.impalasys.com/external-message";
 const LABEL_EXTERNAL_SENDER: &str = "talon.impalasys.com/external-sender";
 const LABEL_CONVERSATION_TYPE: &str = "talon.impalasys.com/conversation-type";
 const LABEL_CONNECTOR_MATCH_PREFIX: &str = "talon.impalasys.com/connector-match/";
+const CONNECTOR_HTTP_TIMEOUT: Duration = Duration::from_secs(15);
+const CONNECTOR_SESSION_RESERVATION_PREFIX: &str = "reserved:";
 
 #[derive(Debug, Serialize)]
 struct ConnectorDeliveryRequest {
@@ -95,19 +98,24 @@ impl GrpcGatewayHandler {
         if event.event_id.trim().is_empty() {
             return Err(tonic::Status::invalid_argument("event_id is required"));
         }
+        if !event.event_kind.trim().is_empty() && event.event_kind != "message_created" {
+            return Err(tonic::Status::invalid_argument(format!(
+                "unsupported connector event_kind '{}'",
+                event.event_kind
+            )));
+        }
 
         let (class_namespace, class_name, class_spec) = self
             .class_for_registration(&event.registration_id, &event.connector_class)
             .await?;
 
         let event_key = keys::connector_event(&event.registration_id, &event.event_id);
-        if self
+        if !self
             .gateway
             .kv
-            .get(&event_key)
+            .compare_and_swap(&event_key, None, b"reserved")
             .await
             .map_err(internal_error)?
-            .is_some()
         {
             return Ok(tonic::Response::new(proto::ConnectorMessageEventResponse {
                 accepted: true,
@@ -155,8 +163,20 @@ impl GrpcGatewayHandler {
             .target
             .clone()
             .ok_or_else(|| tonic::Status::failed_precondition("Connector target is missing"))?;
-        dispatch_connector_message(&self.gateway.control_plane(), &match_entry, &target, &event)
-            .await?;
+        if let Err(err) =
+            dispatch_connector_message(&self.gateway.control_plane(), &match_entry, &target, &event)
+                .await
+        {
+            if let Err(delete_err) = self.gateway.kv.delete(&event_key).await {
+                tracing::warn!(
+                    error = %delete_err,
+                    registration_id = %event.registration_id,
+                    event_id = %event.event_id,
+                    "failed to release connector event reservation after dispatch error"
+                );
+            }
+            return Err(err);
+        }
 
         self.gateway
             .kv
@@ -304,7 +324,7 @@ pub async fn deliver_connector_session_message(
     }
 
     let url = format!("{}/v1/deliveries", runtime.endpoint.trim_end_matches('/'));
-    let response = reqwest::Client::new()
+    let response = connector_http_client()?
         .post(url)
         .bearer_auth(api_key)
         .json(&ConnectorDeliveryRequest {
@@ -399,7 +419,7 @@ pub async fn send_connector_session_activity(
         labels.insert("talon.connectorEvent".to_string(), source_event);
     }
 
-    let response = reqwest::Client::new()
+    let response = connector_http_client()?
         .post(format!(
             "{}/v1/activities",
             runtime.endpoint.trim_end_matches('/')
@@ -452,24 +472,22 @@ fn required_label<'a>(labels: &'a HashMap<String, String>, name: &str) -> anyhow
 fn resolve_connector_secret(
     secret: &crate::gateway::rpc::generated::config::Secret,
 ) -> anyhow::Result<String> {
-    use crate::gateway::rpc::generated::config::{secret, secret_ref};
+    use crate::gateway::rpc::generated::config::secret;
 
     match secret.source.as_ref() {
         Some(secret::Source::Plain(value)) => Ok(value.clone()),
-        Some(secret::Source::Ref(reference)) => {
-            let source = secret_ref::Source::try_from(reference.source)
-                .map_err(|_| anyhow::anyhow!("invalid connector secret source"))?;
-            match source {
-                secret_ref::Source::Env => std::env::var(&reference.key)
-                    .map_err(|_| anyhow::anyhow!("Env var {} not set", reference.key)),
-                other => anyhow::bail!(
-                    "ConnectorClass auth.apiKey currently supports plain and env refs; got {}",
-                    other.as_str_name()
-                ),
-            }
+        Some(secret::Source::Ref(_)) => {
+            anyhow::bail!("ConnectorClass auth.apiKey must be a plain value; secret refs are not allowed on namespace-scoped connector resources")
         }
         None => anyhow::bail!("secret source missing"),
     }
+}
+
+fn connector_http_client() -> anyhow::Result<reqwest::Client> {
+    reqwest::Client::builder()
+        .timeout(CONNECTOR_HTTP_TIMEOUT)
+        .build()
+        .context("failed to build connector HTTP client")
 }
 
 async fn dispatch_connector_message(
@@ -556,7 +574,7 @@ async fn dispatch_to_channel(
             channel: target.channel.clone(),
             author_kind: connector_author_kind(event),
             author: connector_author(event),
-            content: connector_text_projection(event),
+            content: connector_channel_content(event),
             created_at: event_time_micros(event),
             source_agent: String::new(),
             source_session_id: String::new(),
@@ -587,27 +605,36 @@ async fn connector_session_id(
 ) -> Result<String, tonic::Status> {
     if target.continuity.eq_ignore_ascii_case("reuse") {
         let key = keys::connector_session(&connector_session_pointer_name(entry, target, event));
-        if let Some(bytes) = cp.kv.get(&key).await.map_err(internal_error)? {
-            if let Ok(session_id) = String::from_utf8(bytes) {
-                if cp
-                    .kv
-                    .get(&keys::session(&entry.namespace, &target.agent, &session_id))
-                    .await
-                    .map_err(internal_error)?
-                    .is_some()
-                {
-                    return Ok(session_id);
-                }
-            }
+        if let Some(session_id) = existing_connector_session(cp, &key, entry, target).await? {
+            return Ok(session_id);
+        }
+        let reservation = format!(
+            "{CONNECTOR_SESSION_RESERVATION_PREFIX}{}",
+            uuid::Uuid::now_v7()
+        );
+        if !cp
+            .kv
+            .compare_and_swap(&key, None, reservation.as_bytes())
+            .await
+            .map_err(internal_error)?
+        {
+            return wait_for_connector_session(cp, &key, entry, target).await;
         }
         let session_id =
             scheduling::create_session_with_labels(cp, &entry.namespace, &target.agent, labels)
                 .await
                 .map_err(map_dispatch_error)?;
-        cp.kv
-            .set(&key, session_id.as_bytes())
+        if !cp
+            .kv
+            .compare_and_swap(&key, Some(reservation.as_bytes()), session_id.as_bytes())
             .await
-            .map_err(internal_error)?;
+            .map_err(internal_error)?
+        {
+            cp.kv.delete(&key).await.map_err(internal_error)?;
+            return Err(tonic::Status::aborted(
+                "connector session reservation was lost",
+            ));
+        }
         Ok(session_id)
     } else {
         scheduling::create_session_with_labels(cp, &entry.namespace, &target.agent, labels)
@@ -622,9 +649,8 @@ fn connector_session_pointer_name(
     event: &proto::ConnectorMessageEvent,
 ) -> String {
     let mut source = format!(
-        "{}\x1f{}\x1f{}\x1f{}\x1f{}\x1f{}",
+        "{}\x1f{}\x1f{}\x1f{}\x1f{}",
         entry.connector_uid,
-        entry.generation,
         entry.namespace,
         target.agent,
         event.external_conversation_id,
@@ -647,6 +673,52 @@ fn connector_session_pointer_name(
         }
     }
     format!("{}-{}", entry.connector_uid, hex_sha256(source.as_bytes()))
+}
+
+async fn existing_connector_session(
+    cp: &ControlPlane,
+    key: &crate::control::keys::ResourceKey,
+    entry: &resources_proto::ConnectorMatchEntry,
+    target: &resources_proto::ConnectorSessionTarget,
+) -> Result<Option<String>, tonic::Status> {
+    let Some(bytes) = cp.kv.get(key).await.map_err(internal_error)? else {
+        return Ok(None);
+    };
+    let Ok(session_id) = String::from_utf8(bytes) else {
+        cp.kv.delete(key).await.map_err(internal_error)?;
+        return Ok(None);
+    };
+    if session_id.starts_with(CONNECTOR_SESSION_RESERVATION_PREFIX) {
+        return Ok(None);
+    }
+    if cp
+        .kv
+        .get(&keys::session(&entry.namespace, &target.agent, &session_id))
+        .await
+        .map_err(internal_error)?
+        .is_some()
+    {
+        return Ok(Some(session_id));
+    }
+    cp.kv.delete(key).await.map_err(internal_error)?;
+    Ok(None)
+}
+
+async fn wait_for_connector_session(
+    cp: &ControlPlane,
+    key: &crate::control::keys::ResourceKey,
+    entry: &resources_proto::ConnectorMatchEntry,
+    target: &resources_proto::ConnectorSessionTarget,
+) -> Result<String, tonic::Status> {
+    for _ in 0..40 {
+        if let Some(session_id) = existing_connector_session(cp, key, entry, target).await? {
+            return Ok(session_id);
+        }
+        tokio::time::sleep(Duration::from_millis(50)).await;
+    }
+    Err(tonic::Status::aborted(
+        "timed out waiting for connector session reservation",
+    ))
 }
 
 fn connector_session_message(
@@ -855,6 +927,33 @@ fn connector_text_projection(event: &proto::ConnectorMessageEvent) -> String {
     } else {
         format!("[Attachment: {}]", attachment_names.join(", "))
     }
+}
+
+fn connector_channel_content(event: &proto::ConnectorMessageEvent) -> String {
+    let mut content = connector_text_projection(event);
+    let attachment_lines = event
+        .attachments
+        .iter()
+        .filter(|attachment| !attachment.object_key.trim().is_empty())
+        .enumerate()
+        .map(|(index, attachment)| {
+            format!(
+                "[Attachment {}: filename=\"{}\" kind=\"{}\" media_type=\"{}\" object_key=\"{}\"]",
+                index + 1,
+                attachment.filename,
+                attachment.kind,
+                attachment.media_type,
+                attachment.object_key
+            )
+        })
+        .collect::<Vec<_>>();
+    if !attachment_lines.is_empty() {
+        if !content.ends_with('\n') {
+            content.push('\n');
+        }
+        content.push_str(&attachment_lines.join("\n"));
+    }
+    content
 }
 
 fn event_time_micros(event: &proto::ConnectorMessageEvent) -> i64 {

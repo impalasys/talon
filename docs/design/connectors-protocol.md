@@ -246,12 +246,6 @@ spec:
       agent: marketing-agent
       continuity: reuse
       replyPolicy: thread
-status:
-  displayName: Acme Slack
-  provider:
-    platform: slack
-    teamId: T123
-    botUserId: U999
 ```
 
 The normal flow is:
@@ -263,7 +257,7 @@ The normal flow is:
 3. The setup backend determines the provider match fields, such as Slack
    workspace/team ID or iMessage profile ID.
 4. The setup backend creates or updates the Talon Connector with `classRef`,
-   `match`, `target`, and display metadata.
+   `matchFields`, and `target`.
 
 Provider-native IDs such as Slack `team_id` are not global authorization
 boundaries. They are match fields scoped by the namespaced ConnectorClass
@@ -278,9 +272,10 @@ For iMessage, match fields depend on the provider. Examples include phone
 number, Apple Messages handle, BlueBubbles chat GUID, or Photon/iMessage profile
 ID.
 
-Each v1 Connector is one route. It has one top-level `match` and one top-level
-`target`. To route different Slack channels, iMessage profiles, or conversation
-classes differently, create multiple Connector resources with different matches.
+Each v1 Connector is one route. It has one top-level `matchFields` map and one
+top-level `target`. To route different Slack channels, iMessage profiles, or
+conversation classes differently, create multiple Connector resources with
+different `matchFields`.
 
 ## Ownership Policy
 
@@ -472,12 +467,6 @@ spec:
     session:
       agent: marketing-agent
       continuity: reuse
-status:
-  displayName: Acme Slack
-  provider:
-    platform: slack
-    teamId: T123
-    botUserId: U999
 ```
 
 The setup backend may also configure the connector runtime so the Slack app or
@@ -528,7 +517,7 @@ Field ownership:
 | Field | Provided by | Why it exists |
 | --- | --- | --- |
 | `registrationId` | Connector runtime/setup backend | Identifies the Talon registration this status belongs to. |
-| `provider` | Connector runtime/setup backend | Provider-native match metadata used to resolve affected Connectors. |
+| `matchFields` | Connector runtime/setup backend | Provider-native match metadata used to resolve affected Connectors. |
 | `status` | Connector runtime/setup backend | Reports connection health: `connected`, `degraded`, `disabled`, or `revoked`. |
 | `reason` | Connector runtime/setup backend | Operator-facing diagnostic reason. |
 
@@ -845,7 +834,7 @@ iMessage connector events should support:
 
 - `sender.externalAddress` for phone/email identity.
 - `conversationDisplayName` in labels or provider metadata.
-- Attachments with `objectKey`, `externalUrl`, `expiresAt`, and `contentType`.
+- Attachments with `objectKey`, `externalUrl`, `expiresAt`, and `mediaType`.
 - Delivery statuses such as `accepted`, `sent`, `delivered`, `read`,
   `undeliverable`, and `rate_limited` where supported.
 

@@ -69,6 +69,9 @@ impl ControllerHost {
                 );
             }
             "ConnectorClass" | "Connector" => {
+                if is_status_only_update(&event) {
+                    return Ok(());
+                }
                 tracing::info!(
                     namespace = %event.namespace,
                     kind = %event.resource_kind,
@@ -97,6 +100,15 @@ impl ControllerHost {
                                     )
                                     .await?;
                             }
+                        } else if event.change_type
+                            == crate::control::events::ResourceChangeType::Deleted as i32
+                        {
+                            crate::worker::controllers::connectors::delete_registration_entries_for_class(
+                                self.cp.kv.as_ref(),
+                                &event.namespace,
+                                &event.name,
+                            )
+                            .await?;
                         }
                     }
                     "Connector" => {
@@ -192,6 +204,15 @@ impl ControllerHost {
         }
         Ok(())
     }
+}
+
+fn is_status_only_update(event: &ResourceChangedEvent) -> bool {
+    event.change_type == crate::control::events::ResourceChangeType::Updated as i32
+        && !event.changed_sections.is_empty()
+        && event
+            .changed_sections
+            .iter()
+            .all(|section| section == "status")
 }
 
 fn deployment_spec(

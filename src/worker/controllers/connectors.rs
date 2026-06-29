@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use anyhow::{anyhow, bail, Context, Result};
+use jsonwebtoken::{EncodingKey, Header};
 use prost::Message;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -12,6 +13,7 @@ use crate::gateway::rpc::resources_proto;
 
 const CONNECTOR_INDEX_NAME_SEP: &str = "|";
 const CONNECTOR_INDEX_FIELD_SEP: &str = "\x1f";
+const CONNECTOR_CALLBACK_TOKEN_TTL_SECONDS: u64 = 365 * 24 * 60 * 60;
 
 #[derive(Debug, Serialize)]
 struct RegisterClusterRequest {
@@ -22,6 +24,10 @@ struct RegisterClusterRequest {
     connector_class: String,
     #[serde(rename = "callbackBaseUrl")]
     callback_base_url: String,
+    #[serde(rename = "callbackAuthKind")]
+    callback_auth_kind: String,
+    #[serde(rename = "callbackAuthKey")]
+    callback_auth_key: String,
     #[serde(rename = "protocolVersion")]
     protocol_version: String,
 }
@@ -125,7 +131,18 @@ impl ConnectorController {
             let namespace = namespace_key.name;
             for connector in self.store.list(&namespace, Some("Connector")).await? {
                 if connector_references_class(&connector, &meta.namespace, &meta.name) {
-                    self.reconcile_connector(&connector, cp).await?;
+                    if let Err(err) = self.reconcile_connector(&connector, cp).await {
+                        tracing::warn!(
+                            error = %err,
+                            namespace = %namespace,
+                            name = %connector.metadata.as_ref().map(|meta| meta.name.as_str()).unwrap_or_default(),
+                            class_namespace = %meta.namespace,
+                            class_name = %meta.name,
+                            "Connector reconcile failed while reconciling ConnectorClass"
+                        );
+                        self.reconcile_connector_error(&connector, cp, err.to_string())
+                            .await?;
+                    }
                 }
             }
         }
@@ -181,15 +198,31 @@ impl ConnectorController {
             .as_ref()
             .ok_or_else(|| anyhow!("Connector metadata is required"))?;
         let spec = connector_spec(connector)?;
-        if connector_status(connector)
-            .map(|status| {
-                status.observed_generation == meta.generation
-                    && status.phase == "Ready"
-                    && !status.compiled_match_keys.is_empty()
-            })
-            .unwrap_or(false)
-        {
-            return Ok(());
+        if let Ok(status) = connector_status(connector) {
+            if status.observed_generation == meta.generation
+                && status.phase == "Ready"
+                && !status.compiled_match_keys.is_empty()
+            {
+                let mut intact = true;
+                for key_name in &status.compiled_match_keys {
+                    match cp
+                        .kv
+                        .get_msg::<resources_proto::ConnectorMatchEntry>(&keys::connector_match(
+                            key_name,
+                        ))
+                        .await?
+                    {
+                        Some(entry) if entry.connector_uid == meta.uid => {}
+                        _ => {
+                            intact = false;
+                            break;
+                        }
+                    }
+                }
+                if intact {
+                    return Ok(());
+                }
+            }
         }
         delete_match_entries_for_uid(cp.kv.as_ref(), &meta.uid).await?;
 
@@ -438,7 +471,11 @@ pub fn compile_match_keys(
         let mut complete = true;
         for field in &index.fields {
             match fields.get(field).filter(|value| !value.trim().is_empty()) {
-                Some(value) => segments.push(format!("{}={}", field, value)),
+                Some(value) => segments.push(format!(
+                    "{}={}",
+                    encode_match_component(field),
+                    encode_match_component(value)
+                )),
                 None => {
                     complete = false;
                     break;
@@ -448,13 +485,13 @@ pub fn compile_match_keys(
         if complete {
             let key = format!(
                 "{}{}{}{}{}{}{}{}{}",
-                registration_id,
+                encode_match_component(registration_id),
                 CONNECTOR_INDEX_NAME_SEP,
-                class_namespace,
+                encode_match_component(class_namespace),
                 CONNECTOR_INDEX_NAME_SEP,
-                class_name,
+                encode_match_component(class_name),
                 CONNECTOR_INDEX_NAME_SEP,
-                index.name,
+                encode_match_component(&index.name),
                 CONNECTOR_INDEX_FIELD_SEP,
                 segments.join(CONNECTOR_INDEX_FIELD_SEP)
             );
@@ -464,6 +501,10 @@ pub fn compile_match_keys(
         }
     }
     Ok(keys)
+}
+
+fn encode_match_component(value: &str) -> String {
+    urlencoding::encode(value).into_owned()
 }
 
 fn connector_spec(resource: &resources_proto::Resource) -> Result<&resources_proto::ConnectorSpec> {
@@ -579,7 +620,7 @@ async fn register_connector_class(
         .api_key
         .as_ref()
         .ok_or_else(|| anyhow!("ConnectorClass auth.apiKey is required"))?
-        .resolve_connector_secret()
+        .resolve_connector_api_key()
         .context("failed to resolve ConnectorClass api key")?;
     let callback_base_url = std::env::var("TALON_GATEWAY_BASE_URL")
         .ok()
@@ -603,6 +644,8 @@ async fn register_connector_class(
         });
     let cluster_id =
         std::env::var("TALON_CONNECTOR_CLUSTER_ID").unwrap_or_else(|_| "talon-cluster".into());
+    let callback_auth_key = mint_connector_callback_token(class_namespace)
+        .context("failed to mint connector callback auth token")?;
     let url = format!(
         "{}/v1/clusters/register",
         runtime.endpoint.trim_end_matches('/')
@@ -615,6 +658,8 @@ async fn register_connector_class(
             namespace: class_namespace.to_string(),
             connector_class: class_name.to_string(),
             callback_base_url,
+            callback_auth_kind: "bearer".to_string(),
+            callback_auth_key,
             protocol_version: "v1".to_string(),
         })
         .send()
@@ -636,30 +681,56 @@ async fn register_connector_class(
 }
 
 trait ConnectorSecretExt {
-    fn resolve_connector_secret(&self) -> Result<String>;
+    fn resolve_connector_api_key(&self) -> Result<String>;
 }
 
 impl ConnectorSecretExt for crate::gateway::rpc::generated::config::Secret {
-    fn resolve_connector_secret(&self) -> Result<String> {
-        use crate::gateway::rpc::generated::config::{secret, secret_ref};
+    fn resolve_connector_api_key(&self) -> Result<String> {
+        use crate::gateway::rpc::generated::config::secret;
 
         match self.source.as_ref() {
             Some(secret::Source::Plain(value)) => Ok(value.clone()),
-            Some(secret::Source::Ref(reference)) => {
-                let source = secret_ref::Source::try_from(reference.source)
-                    .map_err(|_| anyhow!("invalid secret source"))?;
-                match source {
-                    secret_ref::Source::Env => std::env::var(&reference.key)
-                        .map_err(|_| anyhow!("Env var {} not set", reference.key)),
-                    other => bail!(
-                        "ConnectorClass auth.apiKey currently supports plain and env refs; got {}",
-                        other.as_str_name()
-                    ),
-                }
+            Some(secret::Source::Ref(_)) => {
+                bail!("ConnectorClass auth.apiKey must be a plain value; secret refs are not allowed on namespace-scoped connector resources")
             }
             None => bail!("secret source missing"),
         }
     }
+}
+
+fn mint_connector_callback_token(namespace: &str) -> Result<String> {
+    crate::control::security::install_jwt_crypto_provider();
+    let secret = std::env::var("GATEWAY_JWT_SECRET")
+        .or_else(|_| std::env::var("TALON_JWT_SECRET"))
+        .unwrap_or_else(|_| "local-dev-talon-jwt".to_string());
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)?
+        .as_secs();
+    let claims = crate::gateway::auth::Claims {
+        sub: "connector-runtime".to_string(),
+        aud: "talon".to_string(),
+        exp: now
+            .checked_add(CONNECTOR_CALLBACK_TOKEN_TTL_SECONDS)
+            .context("connector callback token ttl is too large")? as usize,
+        ns: Some(namespace.to_string()),
+        agent: None,
+        session: None,
+        channel: None,
+        origins: Vec::new(),
+        grants: vec![crate::gateway::auth::TalonGrantClaim {
+            kind: "readwrite".to_string(),
+            namespace: Some(namespace.to_string()),
+            agent: None,
+            session: None,
+            channel: None,
+        }],
+    };
+    jsonwebtoken::encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(secret.as_bytes()),
+    )
+    .context("failed to sign connector callback token")
 }
 
 fn condition(
@@ -718,6 +789,37 @@ mod tests {
                 "reg_1|customer-acme|slack|slack-channel\u{1f}teamId=T123\u{1f}channelId=C999"
                     .to_string(),
                 "reg_1|customer-acme|slack|slack-team\u{1f}teamId=T123".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn compile_match_keys_escapes_separator_characters() {
+        let class_spec = resources_proto::ConnectorClassSpec {
+            platform: "slack".to_string(),
+            runtime: None,
+            auth: None,
+            match_indexes: vec![resources_proto::ConnectorMatchIndex {
+                name: "team|channel".to_string(),
+                fields: vec!["team|id".to_string(), "channel\u{1f}id".to_string()],
+            }],
+        };
+        let fields = HashMap::from([
+            ("team|id".to_string(), "T|123".to_string()),
+            (
+                "channel\u{1f}id".to_string(),
+                "C\u{1f}999=value".to_string(),
+            ),
+        ]);
+
+        let keys =
+            compile_match_keys("reg_1", "customer|acme", "slack", &class_spec, &fields).unwrap();
+
+        assert_eq!(
+            keys,
+            vec![
+                "reg_1|customer%7Cacme|slack|team%7Cchannel\u{1f}team%7Cid=T%7C123\u{1f}channel%1Fid=C%1F999%3Dvalue"
+                    .to_string()
             ]
         );
     }

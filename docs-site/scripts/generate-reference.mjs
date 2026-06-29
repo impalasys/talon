@@ -12,9 +12,11 @@ const protoRoot = path.resolve(talonRoot, "proto");
 const apiProtos = [
   "auth.proto",
   "channels.proto",
+  "connectors.proto",
   "knowledge.proto",
   "namespaces.proto",
   "resources.proto",
+  "search.proto",
   "sessions.proto",
   "workflows.proto",
 ].map((file) => path.resolve(protoRoot, "talon", "v1", file));
@@ -89,6 +91,8 @@ async function generateGatewayReference() {
     "WorkflowService",
     "KnowledgeService",
     "AuthService",
+    "ConnectorService",
+    "SearchService",
   ];
   const services = serviceNames.map((name) => ({
     name,

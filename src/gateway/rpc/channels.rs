@@ -14,6 +14,7 @@ use futures::StreamExt;
 use prost::Message;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use std::time::Duration;
 
 const DEFAULT_CHANNEL_MESSAGES_LIMIT: usize = 50;
 const MAX_CHANNEL_MESSAGES_LIMIT: usize = 200;
@@ -33,6 +34,7 @@ const LABEL_CONNECTOR_CLASS: &str = "talon.impalasys.com/connector-class";
 const LABEL_CONNECTOR_MATCH_PREFIX: &str = "talon.impalasys.com/connector-match/";
 const LABEL_CONNECTOR_REGISTRATION: &str = "talon.impalasys.com/connector-registration";
 const LABEL_EXTERNAL_CONVERSATION: &str = "talon.impalasys.com/external-conversation";
+const CONNECTOR_HTTP_TIMEOUT: Duration = Duration::from_secs(15);
 const LABEL_EXTERNAL_MESSAGE: &str = "talon.impalasys.com/external-message";
 const LABEL_EXTERNAL_THREAD: &str = "talon.impalasys.com/external-thread";
 
@@ -425,7 +427,7 @@ async fn deliver_connector_channel_message(
     }
 
     let url = format!("{}/v1/deliveries", runtime.endpoint.trim_end_matches('/'));
-    let response = reqwest::Client::new()
+    let response = connector_http_client()?
         .post(url)
         .bearer_auth(api_key)
         .json(&ConnectorDeliveryRequest {
@@ -471,24 +473,22 @@ fn required_label<'a>(labels: &'a HashMap<String, String>, name: &str) -> anyhow
 fn resolve_connector_secret(
     secret: &crate::gateway::rpc::generated::config::Secret,
 ) -> anyhow::Result<String> {
-    use crate::gateway::rpc::generated::config::{secret, secret_ref};
+    use crate::gateway::rpc::generated::config::secret;
 
     match secret.source.as_ref() {
         Some(secret::Source::Plain(value)) => Ok(value.clone()),
-        Some(secret::Source::Ref(reference)) => {
-            let source = secret_ref::Source::try_from(reference.source)
-                .map_err(|_| anyhow::anyhow!("invalid connector secret source"))?;
-            match source {
-                secret_ref::Source::Env => std::env::var(&reference.key)
-                    .map_err(|_| anyhow::anyhow!("Env var {} not set", reference.key)),
-                other => anyhow::bail!(
-                    "ConnectorClass auth.apiKey currently supports plain and env refs; got {}",
-                    other.as_str_name()
-                ),
-            }
+        Some(secret::Source::Ref(_)) => {
+            anyhow::bail!("ConnectorClass auth.apiKey must be a plain value; secret refs are not allowed on namespace-scoped connector resources")
         }
         None => anyhow::bail!("secret source missing"),
     }
+}
+
+fn connector_http_client() -> anyhow::Result<reqwest::Client> {
+    reqwest::Client::builder()
+        .timeout(CONNECTOR_HTTP_TIMEOUT)
+        .build()
+        .context("failed to build connector HTTP client")
 }
 
 pub async fn skip_channel_reply_from_session(

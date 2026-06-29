@@ -228,15 +228,11 @@ def generate_python_init() -> None:
         "",
         "from . import auth, config, data, events, harness, resources, v1",
         "from .clientset import TalonClient",
-        "from .proto.talon.v1 import auth_pb2, auth_pb2_grpc",
-        "from .proto.talon.v1 import channels_pb2, channels_pb2_grpc",
-        "from .proto.talon.v1 import knowledge_pb2, knowledge_pb2_grpc",
-        "from .proto.talon.v1 import namespaces_pb2, namespaces_pb2_grpc",
-        "from .proto.talon.v1 import resources_pb2, resources_pb2_grpc",
-        "from .proto.talon.v1 import sessions_pb2, sessions_pb2_grpc",
-        "from .proto.talon.v1 import workflows_pb2, workflows_pb2_grpc",
-        "from .v1 import (",
     ]
+    for file in V1_PROTO_FILES:
+        stem = Path(file).stem
+        lines.append(f"from .proto.talon.v1 import {stem}_pb2, {stem}_pb2_grpc")
+    lines.append("from .v1 import (")
     for name in v1_names:
         lines.append(f"    {name},")
     lines.extend(
@@ -252,22 +248,12 @@ def generate_python_init() -> None:
             '    "harness",',
             '    "resources",',
             '    "v1",',
-            '    "auth_pb2",',
-            '    "auth_pb2_grpc",',
-            '    "channels_pb2",',
-            '    "channels_pb2_grpc",',
-            '    "knowledge_pb2",',
-            '    "knowledge_pb2_grpc",',
-            '    "namespaces_pb2",',
-            '    "namespaces_pb2_grpc",',
-            '    "resources_pb2",',
-            '    "resources_pb2_grpc",',
-            '    "sessions_pb2",',
-            '    "sessions_pb2_grpc",',
-            '    "workflows_pb2",',
-            '    "workflows_pb2_grpc",',
         ]
     )
+    for file in V1_PROTO_FILES:
+        stem = Path(file).stem
+        lines.append(f'    "{stem}_pb2",')
+        lines.append(f'    "{stem}_pb2_grpc",')
     for name in v1_names:
         lines.append(f'    "{name}",')
     lines.extend(["]", ""])
@@ -283,7 +269,7 @@ def parse_python_export_names(path: Path) -> list[str]:
             continue
         names.append(match.group(2))
         if match.group(1) == "enum":
-            names.extend(parse_enum_values(source, match.start()))
+            names.extend(parse_enum_values(source, brace_source, match.start()))
     return names
 
 
@@ -324,13 +310,13 @@ def strip_proto_string_literals(source: str) -> str:
     return "".join(result)
 
 
-def parse_enum_values(source: str, start: int) -> list[str]:
-    body_start = source.find("{", start)
+def parse_enum_values(source: str, brace_source: str, start: int) -> list[str]:
+    body_start = brace_source.find("{", start)
     if body_start == -1:
         return []
     depth = 0
-    for index in range(body_start, len(source)):
-        char = source[index]
+    for index in range(body_start, len(brace_source)):
+        char = brace_source[index]
         if char == "{":
             depth += 1
         elif char == "}":
