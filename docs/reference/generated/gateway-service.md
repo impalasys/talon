@@ -210,7 +210,7 @@ The Talon gateway API is defined by the domain service files in `proto/talon/v1/
 
 ### `IngestMessageEvent`
 
-IngestMessageEvent delivers one normalized provider message event to Talon. Talon deduplicates by registration_id + event_id, resolves a Connector by match_fields, and dispatches the message to the resolved Connector target.
+IngestMessageEvent delivers one normalized provider message event to Talon. Talon deduplicates under the ConnectorClass registration by event_id, resolves a Connector by match_fields, and dispatches the message to the resolved Connector target.
 
 - Request: `ConnectorMessageEvent`
 - Response: `ConnectorMessageEventResponse`

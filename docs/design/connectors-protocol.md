@@ -174,9 +174,11 @@ It answers:
 - Where should the connector service send callbacks?
 - Which signing material should protect callbacks?
 
-Talon stores the returned `registrationId` in `ConnectorClass.status` and writes
-a controller-managed `ConnectorRegistration` index in the Sys namespace. The
-connector service stores the callback URL and callback authentication metadata.
+Talon computes `registrationId` as the canonical ConnectorClass key
+`Namespace/<namespace>/ConnectorClass/<name>`, stores it in
+`ConnectorClass.status`, and writes controller-managed registration and match
+indexes as children under that ConnectorClass. The connector service stores the
+callback URL, callback authentication metadata, and Talon's registration id.
 
 ### ProviderAccount
 
@@ -395,6 +397,7 @@ Request:
 ```json
 {
   "clusterId": "talon-agency-prod",
+  "registrationId": "Namespace/customer-acme/ConnectorClass/slack",
   "namespace": "customer-acme",
   "connectorClass": "slack",
   "callbackBaseUrl": "https://talon.example.com/v1/connectors",
@@ -406,7 +409,7 @@ Response:
 
 ```json
 {
-  "registrationId": "reg_abc",
+  "registrationId": "Namespace/customer-acme/ConnectorClass/slack",
   "callbackAuth": {
     "kind": "hmac-sha256",
     "keyId": "key_1"
@@ -420,11 +423,11 @@ Field ownership:
 | Field | Provided by | Why it exists |
 | --- | --- | --- |
 | `clusterId` | Talon | Stable operator-defined cluster identity for connector-service diagnostics and policy. |
+| `registrationId` | Talon | Canonical ConnectorClass key used on every callback and delivery. The connector service stores it but does not assign it. |
 | `namespace` | Talon | Identifies the ConnectorClass namespace for this registration so the connector service does not infer Talon tenant/class from the API key. |
 | `connectorClass` | Talon | Identifies the ConnectorClass name for this registration and gives callbacks a stable consistency check. |
 | `callbackBaseUrl` | Talon | Tells the connector service where to send message and status callbacks. |
 | `protocolVersion` | Talon | Confirms the requested protocol contract. |
-| `registrationId` | Connector service | Stable connector-service handle for this Talon registration. Used on every callback and delivery. |
 | `callbackAuth` | Connector service | Describes how connector-to-Talon callbacks will be authenticated. |
 | `status` | Connector service | Lets Talon surface registration readiness. |
 
@@ -503,7 +506,7 @@ Payload:
 
 ```json
 {
-  "registrationId": "reg_abc",
+  "registrationId": "Namespace/customer-acme/ConnectorClass/slack",
   "matchFields": {
     "teamId": "T123"
   },
@@ -516,7 +519,7 @@ Field ownership:
 
 | Field | Provided by | Why it exists |
 | --- | --- | --- |
-| `registrationId` | Connector runtime/setup backend | Identifies the Talon registration this status belongs to. |
+| `registrationId` | Talon, echoed by connector runtime/setup backend | Identifies the Talon ConnectorClass registration this status belongs to. |
 | `matchFields` | Connector runtime/setup backend | Provider-native match metadata used to resolve affected Connectors. |
 | `status` | Connector runtime/setup backend | Reports connection health: `connected`, `degraded`, `disabled`, or `revoked`. |
 | `reason` | Connector runtime/setup backend | Operator-facing diagnostic reason. |
@@ -652,28 +655,30 @@ optional status callbacks, but they must not be required for correctness.
 ## Efficient Inbound Routing In Talon
 
 Talon must not scan namespaces or routes for inbound events. In v1,
-`ConnectorController` writes a `ConnectorRegistration` entry in the Sys namespace
-keyed by `registrationId`. The gateway reads that single entry, validates the
+`registrationId` is the canonical ConnectorClass key
+`Namespace/<namespace>/ConnectorClass/<name>`. The gateway parses that id, reads
+`ConnectorRegistration/current` under the owning ConnectorClass, validates the
 optional `connector_class` consistency field, and then resolves provider match
-fields under the indexed ConnectorClass namespace/name.
+fields using direct child `ConnectorMatch` lookups under that registration.
 
 Required indexes:
 
 ```text
-registrationId -> ConnectorClass namespace/name + registration state
-registrationId + classNamespace + className + provider match key -> connectorUid, namespace, connectorName, classNamespace, className, enabled
-registrationId + eventId -> idempotency record
+ConnectorClass/<name>/ConnectorRegistration/current -> registration state
+ConnectorClass/<name>/ConnectorRegistration/current/ConnectorMatch/<provider match key> -> connectorUid, namespace, connectorName, classNamespace, className, enabled
+ConnectorClass/<name>/ConnectorRegistration/current/ConnectorEvent/<eventId> -> idempotency record
 ```
 
 Inbound flow:
 
-1. Read `ConnectorRegistration(registrationId)`.
-2. Verify callback signature and timestamp.
-3. Resolve the event provider fields against Connector match indexes under the
+1. Parse `registrationId` into the owning ConnectorClass key.
+2. Read `ConnectorRegistration/current` under that ConnectorClass.
+3. Verify callback signature and timestamp.
+4. Resolve the event provider fields against Connector match indexes under the
    registration's ConnectorClass.
-4. Reject if `connector_class` conflicts with the resolved ConnectorClass.
-5. Deduplicate `event_id`.
-6. Dispatch to `Connector.spec.target`.
+5. Reject if `connector_class` conflicts with the resolved ConnectorClass.
+6. Deduplicate `event_id` under that registration.
+7. Dispatch to `Connector.spec.target`.
 
 Connector match precedence is provider-specific but must be deterministic. For
 Slack, preferred precedence is:

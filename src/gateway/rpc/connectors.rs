@@ -105,11 +105,18 @@ impl GrpcGatewayHandler {
             )));
         }
 
-        let (class_namespace, class_name, class_spec) = self
+        let registration = self
             .class_for_registration(&event.registration_id, &event.connector_class)
             .await?;
+        let class_spec = registration.class_spec.clone().ok_or_else(|| {
+            tonic::Status::failed_precondition("ConnectorClass registration missing spec snapshot")
+        })?;
 
-        let event_key = keys::connector_event(&event.registration_id, &event.event_id);
+        let event_key = keys::connector_event(
+            &registration.class_namespace,
+            &registration.class_name,
+            &event.event_id,
+        );
         if !self
             .gateway
             .kv
@@ -129,9 +136,8 @@ impl GrpcGatewayHandler {
 
         let Some(match_entry) = connectors::resolve_match(
             self.gateway.kv.as_ref(),
-            &event.registration_id,
-            &class_namespace,
-            &class_name,
+            &registration.class_namespace,
+            &registration.class_name,
             &class_spec,
             &event.match_fields,
         )
@@ -220,16 +226,23 @@ impl GrpcGatewayHandler {
         &self,
         registration_id: &str,
         requested_class: &str,
-    ) -> Result<(String, String, resources_proto::ConnectorClassSpec), tonic::Status> {
-        let entry = self
-            .gateway
-            .kv
-            .get_msg::<resources_proto::ConnectorRegistrationEntry>(&keys::connector_registration(
-                registration_id,
-            ))
-            .await
-            .map_err(internal_error)?
-            .ok_or_else(|| tonic::Status::not_found("ConnectorClass registration not found"))?;
+    ) -> Result<resources_proto::ConnectorRegistrationEntry, tonic::Status> {
+        let (class_namespace, class_name) = keys::parse_connector_registration_id(registration_id)
+            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
+        if !requested_class.trim().is_empty() && requested_class != class_name {
+            return Err(tonic::Status::failed_precondition(
+                "connector_class conflicts with ConnectorClass registration",
+            ));
+        }
+        let entry =
+            self.gateway
+                .kv
+                .get_msg::<resources_proto::ConnectorRegistrationEntry>(
+                    &keys::connector_registration(&class_namespace, &class_name),
+                )
+                .await
+                .map_err(internal_error)?
+                .ok_or_else(|| tonic::Status::not_found("ConnectorClass registration not found"))?;
 
         if entry.registration_id != registration_id {
             return Err(tonic::Status::failed_precondition(
@@ -237,22 +250,18 @@ impl GrpcGatewayHandler {
             ));
         }
 
-        if entry.class_namespace.trim().is_empty() || entry.class_name.trim().is_empty() {
+        if entry.class_namespace != class_namespace || entry.class_name != class_name {
             return Err(tonic::Status::failed_precondition(
                 "ConnectorClass registration index is incomplete",
             ));
         }
 
-        if !requested_class.trim().is_empty() && requested_class != entry.class_name {
+        if entry.class_spec.is_none() {
             return Err(tonic::Status::failed_precondition(
-                "connector_class conflicts with ConnectorClass registration",
+                "ConnectorClass registration missing spec snapshot",
             ));
         }
-
-        let class_spec = entry.class_spec.ok_or_else(|| {
-            tonic::Status::failed_precondition("ConnectorClass registration missing spec snapshot")
-        })?;
-        Ok((entry.class_namespace, entry.class_name, class_spec))
+        Ok(entry)
     }
 }
 
@@ -279,11 +288,12 @@ pub async fn deliver_connector_session_message(
     let external_conversation_id = required_label(&session.labels, LABEL_EXTERNAL_CONVERSATION)?;
     let registration = cp
         .kv
-        .get_msg::<resources_proto::ConnectorRegistrationEntry>(&keys::connector_registration(
+        .get_msg::<resources_proto::ConnectorRegistrationEntry>(&connector_registration_key(
             registration_id,
-        ))
+        )?)
         .await?
         .ok_or_else(|| anyhow::anyhow!("connector registration not found"))?;
+    ensure_connector_class_matches(&registration, connector_class)?;
     let class_spec = registration
         .class_spec
         .as_ref()
@@ -376,11 +386,12 @@ pub async fn send_connector_session_activity(
     let external_conversation_id = required_label(&session.labels, LABEL_EXTERNAL_CONVERSATION)?;
     let registration = cp
         .kv
-        .get_msg::<resources_proto::ConnectorRegistrationEntry>(&keys::connector_registration(
+        .get_msg::<resources_proto::ConnectorRegistrationEntry>(&connector_registration_key(
             registration_id,
-        ))
+        )?)
         .await?
         .ok_or_else(|| anyhow::anyhow!("connector registration not found"))?;
+    ensure_connector_class_matches(&registration, connector_class)?;
     let class_spec = registration
         .class_spec
         .as_ref()
@@ -467,6 +478,27 @@ fn required_label<'a>(labels: &'a HashMap<String, String>, name: &str) -> anyhow
         .map(|value| value.trim())
         .filter(|value| !value.is_empty())
         .ok_or_else(|| anyhow::anyhow!("missing connector label {name}"))
+}
+
+pub fn connector_registration_key(
+    registration_id: &str,
+) -> anyhow::Result<crate::control::keys::ResourceKey> {
+    let (class_namespace, class_name) = keys::parse_connector_registration_id(registration_id)?;
+    Ok(keys::connector_registration(&class_namespace, &class_name))
+}
+
+pub fn ensure_connector_class_matches(
+    registration: &resources_proto::ConnectorRegistrationEntry,
+    connector_class: &str,
+) -> anyhow::Result<()> {
+    if registration.class_name != connector_class {
+        anyhow::bail!(
+            "connector class '{}' does not match registration '{}'",
+            connector_class,
+            registration.registration_id
+        );
+    }
+    Ok(())
 }
 
 fn resolve_connector_secret(
@@ -604,7 +636,11 @@ async fn connector_session_id(
     labels: HashMap<String, String>,
 ) -> Result<String, tonic::Status> {
     if target.continuity.eq_ignore_ascii_case("reuse") {
-        let key = keys::connector_session(&connector_session_pointer_name(entry, target, event));
+        let key = keys::connector_session(
+            &entry.class_namespace,
+            &entry.class_name,
+            &connector_session_pointer_name(entry, target, event),
+        );
         if let Some(session_id) = existing_connector_session(cp, &key, entry, target).await? {
             return Ok(session_id);
         }

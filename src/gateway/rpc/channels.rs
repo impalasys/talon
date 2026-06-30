@@ -352,11 +352,12 @@ async fn deliver_connector_channel_message(
     let external_conversation_id = required_label(&session.labels, LABEL_EXTERNAL_CONVERSATION)?;
     let registration = cp
         .kv
-        .get_msg::<resources_proto::ConnectorRegistrationEntry>(&keys::connector_registration(
-            registration_id,
-        ))
+        .get_msg::<resources_proto::ConnectorRegistrationEntry>(
+            &super::connectors::connector_registration_key(registration_id)?,
+        )
         .await?
         .ok_or_else(|| anyhow::anyhow!("connector registration not found"))?;
+    super::connectors::ensure_connector_class_matches(&registration, connector_class)?;
     let class_spec = registration
         .class_spec
         .as_ref()

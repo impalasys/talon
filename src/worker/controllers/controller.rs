@@ -137,11 +137,28 @@ impl ControllerHost {
                         } else if event.change_type
                             == crate::control::events::ResourceChangeType::Deleted as i32
                         {
-                            crate::worker::controllers::connectors::delete_match_entries_for_uid(
-                                self.cp.kv.as_ref(),
-                                &event.uid,
-                            )
-                            .await?;
+                            for namespace_key in self
+                                .cp
+                                .kv
+                                .list_keys(&crate::control::keys::namespace_metadata_prefix())
+                                .await?
+                            {
+                                for class in store
+                                    .list(&namespace_key.name, Some("ConnectorClass"))
+                                    .await?
+                                {
+                                    let Some(meta) = class.metadata.as_ref() else {
+                                        continue;
+                                    };
+                                    crate::worker::controllers::connectors::delete_match_entries_for_uid(
+                                        self.cp.kv.as_ref(),
+                                        &meta.namespace,
+                                        &meta.name,
+                                        &event.uid,
+                                    )
+                                    .await?;
+                                }
+                            }
                         }
                     }
                     _ => {}
