@@ -340,4 +340,32 @@ impl crate::TalonClient {
         crate::v1::MintAccessTokenRequest,
         crate::v1::MintAccessTokenResponse,
     );
+    delegate_dynamic_unary_rpc!(
+        create_api_key,
+        auth,
+        create_api_key,
+        crate::v1::CreateApiKeyRequest,
+        crate::v1::CreateApiKeyResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        list_api_keys,
+        auth,
+        list_api_keys,
+        crate::v1::ListApiKeysRequest,
+        crate::v1::ListApiKeysResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        revoke_api_key,
+        auth,
+        revoke_api_key,
+        crate::v1::RevokeApiKeyRequest,
+        crate::v1::RevokeApiKeyResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        exchange_api_key,
+        auth,
+        exchange_api_key,
+        crate::v1::ExchangeApiKeyRequest,
+        crate::v1::ExchangeApiKeyResponse,
+    );
 }

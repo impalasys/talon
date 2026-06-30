@@ -105,6 +105,130 @@ public final class AuthServiceGrpc {
     return getMintAccessTokenMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Auth.CreateApiKeyRequest,
+      talon.v1.Auth.CreateApiKeyResponse> getCreateApiKeyMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CreateApiKey",
+      requestType = talon.v1.Auth.CreateApiKeyRequest.class,
+      responseType = talon.v1.Auth.CreateApiKeyResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.v1.Auth.CreateApiKeyRequest,
+      talon.v1.Auth.CreateApiKeyResponse> getCreateApiKeyMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Auth.CreateApiKeyRequest, talon.v1.Auth.CreateApiKeyResponse> getCreateApiKeyMethod;
+    if ((getCreateApiKeyMethod = AuthServiceGrpc.getCreateApiKeyMethod) == null) {
+      synchronized (AuthServiceGrpc.class) {
+        if ((getCreateApiKeyMethod = AuthServiceGrpc.getCreateApiKeyMethod) == null) {
+          AuthServiceGrpc.getCreateApiKeyMethod = getCreateApiKeyMethod =
+              io.grpc.MethodDescriptor.<talon.v1.Auth.CreateApiKeyRequest, talon.v1.Auth.CreateApiKeyResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateApiKey"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Auth.CreateApiKeyRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Auth.CreateApiKeyResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new AuthServiceMethodDescriptorSupplier("CreateApiKey"))
+              .build();
+        }
+      }
+    }
+    return getCreateApiKeyMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Auth.ListApiKeysRequest,
+      talon.v1.Auth.ListApiKeysResponse> getListApiKeysMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ListApiKeys",
+      requestType = talon.v1.Auth.ListApiKeysRequest.class,
+      responseType = talon.v1.Auth.ListApiKeysResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.v1.Auth.ListApiKeysRequest,
+      talon.v1.Auth.ListApiKeysResponse> getListApiKeysMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Auth.ListApiKeysRequest, talon.v1.Auth.ListApiKeysResponse> getListApiKeysMethod;
+    if ((getListApiKeysMethod = AuthServiceGrpc.getListApiKeysMethod) == null) {
+      synchronized (AuthServiceGrpc.class) {
+        if ((getListApiKeysMethod = AuthServiceGrpc.getListApiKeysMethod) == null) {
+          AuthServiceGrpc.getListApiKeysMethod = getListApiKeysMethod =
+              io.grpc.MethodDescriptor.<talon.v1.Auth.ListApiKeysRequest, talon.v1.Auth.ListApiKeysResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListApiKeys"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Auth.ListApiKeysRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Auth.ListApiKeysResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new AuthServiceMethodDescriptorSupplier("ListApiKeys"))
+              .build();
+        }
+      }
+    }
+    return getListApiKeysMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Auth.RevokeApiKeyRequest,
+      talon.v1.Auth.RevokeApiKeyResponse> getRevokeApiKeyMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "RevokeApiKey",
+      requestType = talon.v1.Auth.RevokeApiKeyRequest.class,
+      responseType = talon.v1.Auth.RevokeApiKeyResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.v1.Auth.RevokeApiKeyRequest,
+      talon.v1.Auth.RevokeApiKeyResponse> getRevokeApiKeyMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Auth.RevokeApiKeyRequest, talon.v1.Auth.RevokeApiKeyResponse> getRevokeApiKeyMethod;
+    if ((getRevokeApiKeyMethod = AuthServiceGrpc.getRevokeApiKeyMethod) == null) {
+      synchronized (AuthServiceGrpc.class) {
+        if ((getRevokeApiKeyMethod = AuthServiceGrpc.getRevokeApiKeyMethod) == null) {
+          AuthServiceGrpc.getRevokeApiKeyMethod = getRevokeApiKeyMethod =
+              io.grpc.MethodDescriptor.<talon.v1.Auth.RevokeApiKeyRequest, talon.v1.Auth.RevokeApiKeyResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "RevokeApiKey"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Auth.RevokeApiKeyRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Auth.RevokeApiKeyResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new AuthServiceMethodDescriptorSupplier("RevokeApiKey"))
+              .build();
+        }
+      }
+    }
+    return getRevokeApiKeyMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Auth.ExchangeApiKeyRequest,
+      talon.v1.Auth.ExchangeApiKeyResponse> getExchangeApiKeyMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ExchangeApiKey",
+      requestType = talon.v1.Auth.ExchangeApiKeyRequest.class,
+      responseType = talon.v1.Auth.ExchangeApiKeyResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.v1.Auth.ExchangeApiKeyRequest,
+      talon.v1.Auth.ExchangeApiKeyResponse> getExchangeApiKeyMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Auth.ExchangeApiKeyRequest, talon.v1.Auth.ExchangeApiKeyResponse> getExchangeApiKeyMethod;
+    if ((getExchangeApiKeyMethod = AuthServiceGrpc.getExchangeApiKeyMethod) == null) {
+      synchronized (AuthServiceGrpc.class) {
+        if ((getExchangeApiKeyMethod = AuthServiceGrpc.getExchangeApiKeyMethod) == null) {
+          AuthServiceGrpc.getExchangeApiKeyMethod = getExchangeApiKeyMethod =
+              io.grpc.MethodDescriptor.<talon.v1.Auth.ExchangeApiKeyRequest, talon.v1.Auth.ExchangeApiKeyResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ExchangeApiKey"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Auth.ExchangeApiKeyRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Auth.ExchangeApiKeyResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new AuthServiceMethodDescriptorSupplier("ExchangeApiKey"))
+              .build();
+        }
+      }
+    }
+    return getExchangeApiKeyMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -188,6 +312,34 @@ public final class AuthServiceGrpc {
         io.grpc.stub.StreamObserver<talon.v1.Auth.MintAccessTokenResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getMintAccessTokenMethod(), responseObserver);
     }
+
+    /**
+     */
+    default void createApiKey(talon.v1.Auth.CreateApiKeyRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.CreateApiKeyResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateApiKeyMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void listApiKeys(talon.v1.Auth.ListApiKeysRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.ListApiKeysResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListApiKeysMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void revokeApiKey(talon.v1.Auth.RevokeApiKeyRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.RevokeApiKeyResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getRevokeApiKeyMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void exchangeApiKey(talon.v1.Auth.ExchangeApiKeyRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.ExchangeApiKeyResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getExchangeApiKeyMethod(), responseObserver);
+    }
   }
 
   /**
@@ -240,6 +392,38 @@ public final class AuthServiceGrpc {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getMintAccessTokenMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void createApiKey(talon.v1.Auth.CreateApiKeyRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.CreateApiKeyResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getCreateApiKeyMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void listApiKeys(talon.v1.Auth.ListApiKeysRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.ListApiKeysResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getListApiKeysMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void revokeApiKey(talon.v1.Auth.RevokeApiKeyRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.RevokeApiKeyResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getRevokeApiKeyMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void exchangeApiKey(talon.v1.Auth.ExchangeApiKeyRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Auth.ExchangeApiKeyResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getExchangeApiKeyMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -278,6 +462,34 @@ public final class AuthServiceGrpc {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getMintAccessTokenMethod(), getCallOptions(), request);
     }
+
+    /**
+     */
+    public talon.v1.Auth.CreateApiKeyResponse createApiKey(talon.v1.Auth.CreateApiKeyRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getCreateApiKeyMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Auth.ListApiKeysResponse listApiKeys(talon.v1.Auth.ListApiKeysRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getListApiKeysMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Auth.RevokeApiKeyResponse revokeApiKey(talon.v1.Auth.RevokeApiKeyRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getRevokeApiKeyMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Auth.ExchangeApiKeyResponse exchangeApiKey(talon.v1.Auth.ExchangeApiKeyRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getExchangeApiKeyMethod(), getCallOptions(), request);
+    }
   }
 
   /**
@@ -315,6 +527,34 @@ public final class AuthServiceGrpc {
     public talon.v1.Auth.MintAccessTokenResponse mintAccessToken(talon.v1.Auth.MintAccessTokenRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getMintAccessTokenMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Auth.CreateApiKeyResponse createApiKey(talon.v1.Auth.CreateApiKeyRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getCreateApiKeyMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Auth.ListApiKeysResponse listApiKeys(talon.v1.Auth.ListApiKeysRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getListApiKeysMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Auth.RevokeApiKeyResponse revokeApiKey(talon.v1.Auth.RevokeApiKeyRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getRevokeApiKeyMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Auth.ExchangeApiKeyResponse exchangeApiKey(talon.v1.Auth.ExchangeApiKeyRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getExchangeApiKeyMethod(), getCallOptions(), request);
     }
   }
 
@@ -357,11 +597,47 @@ public final class AuthServiceGrpc {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getMintAccessTokenMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Auth.CreateApiKeyResponse> createApiKey(
+        talon.v1.Auth.CreateApiKeyRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getCreateApiKeyMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Auth.ListApiKeysResponse> listApiKeys(
+        talon.v1.Auth.ListApiKeysRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getListApiKeysMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Auth.RevokeApiKeyResponse> revokeApiKey(
+        talon.v1.Auth.RevokeApiKeyRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getRevokeApiKeyMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Auth.ExchangeApiKeyResponse> exchangeApiKey(
+        talon.v1.Auth.ExchangeApiKeyRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getExchangeApiKeyMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_GET_SSO_CONFIG = 0;
   private static final int METHODID_EXCHANGE_OIDC_TOKEN = 1;
   private static final int METHODID_MINT_ACCESS_TOKEN = 2;
+  private static final int METHODID_CREATE_API_KEY = 3;
+  private static final int METHODID_LIST_API_KEYS = 4;
+  private static final int METHODID_REVOKE_API_KEY = 5;
+  private static final int METHODID_EXCHANGE_API_KEY = 6;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -391,6 +667,22 @@ public final class AuthServiceGrpc {
         case METHODID_MINT_ACCESS_TOKEN:
           serviceImpl.mintAccessToken((talon.v1.Auth.MintAccessTokenRequest) request,
               (io.grpc.stub.StreamObserver<talon.v1.Auth.MintAccessTokenResponse>) responseObserver);
+          break;
+        case METHODID_CREATE_API_KEY:
+          serviceImpl.createApiKey((talon.v1.Auth.CreateApiKeyRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Auth.CreateApiKeyResponse>) responseObserver);
+          break;
+        case METHODID_LIST_API_KEYS:
+          serviceImpl.listApiKeys((talon.v1.Auth.ListApiKeysRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Auth.ListApiKeysResponse>) responseObserver);
+          break;
+        case METHODID_REVOKE_API_KEY:
+          serviceImpl.revokeApiKey((talon.v1.Auth.RevokeApiKeyRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Auth.RevokeApiKeyResponse>) responseObserver);
+          break;
+        case METHODID_EXCHANGE_API_KEY:
+          serviceImpl.exchangeApiKey((talon.v1.Auth.ExchangeApiKeyRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Auth.ExchangeApiKeyResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -431,6 +723,34 @@ public final class AuthServiceGrpc {
               talon.v1.Auth.MintAccessTokenRequest,
               talon.v1.Auth.MintAccessTokenResponse>(
                 service, METHODID_MINT_ACCESS_TOKEN)))
+        .addMethod(
+          getCreateApiKeyMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.v1.Auth.CreateApiKeyRequest,
+              talon.v1.Auth.CreateApiKeyResponse>(
+                service, METHODID_CREATE_API_KEY)))
+        .addMethod(
+          getListApiKeysMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.v1.Auth.ListApiKeysRequest,
+              talon.v1.Auth.ListApiKeysResponse>(
+                service, METHODID_LIST_API_KEYS)))
+        .addMethod(
+          getRevokeApiKeyMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.v1.Auth.RevokeApiKeyRequest,
+              talon.v1.Auth.RevokeApiKeyResponse>(
+                service, METHODID_REVOKE_API_KEY)))
+        .addMethod(
+          getExchangeApiKeyMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.v1.Auth.ExchangeApiKeyRequest,
+              talon.v1.Auth.ExchangeApiKeyResponse>(
+                service, METHODID_EXCHANGE_API_KEY)))
         .build();
   }
 
@@ -482,6 +802,10 @@ public final class AuthServiceGrpc {
               .addMethod(getGetSsoConfigMethod())
               .addMethod(getExchangeOidcTokenMethod())
               .addMethod(getMintAccessTokenMethod())
+              .addMethod(getCreateApiKeyMethod())
+              .addMethod(getListApiKeysMethod())
+              .addMethod(getRevokeApiKeyMethod())
+              .addMethod(getExchangeApiKeyMethod())
               .build();
         }
       }

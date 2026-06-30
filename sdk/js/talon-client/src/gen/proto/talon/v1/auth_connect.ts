@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ExchangeOidcTokenRequest, ExchangeOidcTokenResponse, GetSsoConfigRequest, GetSsoConfigResponse, MintAccessTokenRequest, MintAccessTokenResponse } from "./auth_pb.js";
+import { CreateApiKeyRequest, CreateApiKeyResponse, ExchangeApiKeyRequest, ExchangeApiKeyResponse, ExchangeOidcTokenRequest, ExchangeOidcTokenResponse, GetSsoConfigRequest, GetSsoConfigResponse, ListApiKeysRequest, ListApiKeysResponse, MintAccessTokenRequest, MintAccessTokenResponse, RevokeApiKeyRequest, RevokeApiKeyResponse } from "./auth_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -37,6 +37,42 @@ export const AuthService = {
       name: "MintAccessToken",
       I: MintAccessTokenRequest,
       O: MintAccessTokenResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.v1.AuthService.CreateApiKey
+     */
+    createApiKey: {
+      name: "CreateApiKey",
+      I: CreateApiKeyRequest,
+      O: CreateApiKeyResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.v1.AuthService.ListApiKeys
+     */
+    listApiKeys: {
+      name: "ListApiKeys",
+      I: ListApiKeysRequest,
+      O: ListApiKeysResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.v1.AuthService.RevokeApiKey
+     */
+    revokeApiKey: {
+      name: "RevokeApiKey",
+      I: RevokeApiKeyRequest,
+      O: RevokeApiKeyResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.v1.AuthService.ExchangeApiKey
+     */
+    exchangeApiKey: {
+      name: "ExchangeApiKey",
+      I: ExchangeApiKeyRequest,
+      O: ExchangeApiKeyResponse,
       kind: MethodKind.Unary,
     },
   }

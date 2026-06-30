@@ -25,6 +25,7 @@ PY_EXPORT_GROUPS = {
         "proto/config.proto",
     ],
     "data": [
+        "proto/data/api_keys.proto",
         "proto/data/data.proto",
         "proto/data/search.proto",
         "proto/data/session_submission.proto",
@@ -225,7 +226,7 @@ def generate_python_init() -> None:
     lines = [
         f"# {HEADER}",
         "",
-        "from . import config, data, events, harness, resources, v1",
+        "from . import auth, config, data, events, harness, resources, v1",
         "from .clientset import TalonClient",
         "from .proto.talon.v1 import auth_pb2, auth_pb2_grpc",
         "from .proto.talon.v1 import channels_pb2, channels_pb2_grpc",
@@ -244,6 +245,7 @@ def generate_python_init() -> None:
             "",
             "__all__ = [",
             '    "TalonClient",',
+            '    "auth",',
             '    "config",',
             '    "data",',
             '    "events",',

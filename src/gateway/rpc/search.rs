@@ -70,7 +70,11 @@ fn authorize_search(
     let Some(claims) = authorize_search_namespace(handler, metadata, first_namespace)? else {
         return Ok(());
     };
-    if let Some(claim_namespace) = claims.ns.as_ref().filter(|value| !value.is_empty()) {
+    if !claims.grants.is_empty() {
+        for namespace in namespaces {
+            ensure_grant_allows_search_namespace(&claims, namespace)?;
+        }
+    } else if let Some(claim_namespace) = claims.ns.as_ref().filter(|value| !value.is_empty()) {
         for namespace in namespaces {
             if !namespace.is_empty() && !auth::namespace_scope_allows(claim_namespace, namespace) {
                 return Err(tonic::Status::permission_denied(format!(
@@ -97,7 +101,9 @@ fn authorize_search_namespace(
     let Some(claims) = auth::jwt_claims_from_metadata(metadata, auth_config)? else {
         return Ok(None);
     };
-    if let Some(claim_namespace) = claims.ns.as_ref().filter(|value| !value.is_empty()) {
+    if !claims.grants.is_empty() {
+        ensure_grant_allows_search_namespace(&claims, namespace)?;
+    } else if let Some(claim_namespace) = claims.ns.as_ref().filter(|value| !value.is_empty()) {
         if !namespace.is_empty() && !auth::namespace_scope_allows(claim_namespace, namespace) {
             return Err(tonic::Status::permission_denied(format!(
                 "Token scope restricted to namespace: {claim_namespace}"
@@ -107,10 +113,30 @@ fn authorize_search_namespace(
     Ok(Some(claims))
 }
 
+fn ensure_grant_allows_search_namespace(
+    claims: &Claims,
+    namespace: &str,
+) -> std::result::Result<(), tonic::Status> {
+    if claims.grants.iter().any(|grant| {
+        matches!(grant.kind.as_str(), "read" | "readwrite")
+            && grant.namespace.as_deref().map_or(true, |allowed| {
+                auth::namespace_scope_allows(allowed, namespace)
+            })
+    }) {
+        return Ok(());
+    }
+    Err(tonic::Status::permission_denied(
+        "Token grants do not allow this search namespace",
+    ))
+}
+
 fn apply_claim_scope(
     claims: Claims,
     query: &mut proto::SearchRequest,
 ) -> std::result::Result<(), tonic::Status> {
+    if !claims.grants.is_empty() {
+        return apply_grant_scope(claims.grants, query);
+    }
     if let Some(agent) = claims.agent.filter(|value| !value.is_empty()) {
         if let Some(current) = query
             .attributes
@@ -155,6 +181,69 @@ fn apply_claim_scope(
         }
         query.attributes.insert(ATTR_CHANNEL.to_string(), channel);
     }
+    Ok(())
+}
+
+fn apply_grant_scope(
+    grants: Vec<auth::TalonGrantClaim>,
+    query: &mut proto::SearchRequest,
+) -> std::result::Result<(), tonic::Status> {
+    let mut scoped_agent = None;
+    let mut scoped_session = None;
+    let mut scoped_channel = None;
+
+    for grant in grants {
+        if !matches!(grant.kind.as_str(), "read" | "readwrite") {
+            continue;
+        }
+        let grant_agent = grant.agent.filter(|value| !value.is_empty());
+        let grant_session = grant.session.filter(|value| !value.is_empty());
+        let grant_channel = grant.channel.filter(|value| !value.is_empty());
+        if grant_agent.is_none() && grant_session.is_none() && grant_channel.is_none() {
+            return Ok(());
+        }
+        if scoped_agent.is_none() && scoped_session.is_none() && scoped_channel.is_none() {
+            scoped_agent = grant_agent;
+            scoped_session = grant_session;
+            scoped_channel = grant_channel;
+            continue;
+        }
+        if scoped_agent != grant_agent
+            || scoped_session != grant_session
+            || scoped_channel != grant_channel
+        {
+            return Err(tonic::Status::permission_denied(
+                "Search with multiple differently scoped grants requires a narrower token",
+            ));
+        }
+    }
+
+    if let Some(agent) = scoped_agent {
+        constrain_attribute(query, ATTR_AGENT, agent, "agent")?;
+    }
+    if let Some(session) = scoped_session {
+        constrain_attribute(query, ATTR_SESSION_ID, session, "session")?;
+    }
+    if let Some(channel) = scoped_channel {
+        constrain_attribute(query, ATTR_CHANNEL, channel, "channel")?;
+    }
+    Ok(())
+}
+
+fn constrain_attribute(
+    query: &mut proto::SearchRequest,
+    key: &str,
+    value: String,
+    label: &str,
+) -> std::result::Result<(), tonic::Status> {
+    if let Some(current) = query.attributes.get(key).filter(|value| !value.is_empty()) {
+        if current != &value {
+            return Err(tonic::Status::permission_denied(format!(
+                "Token scope restricted to {label}: {value}"
+            )));
+        }
+    }
+    query.attributes.insert(key.to_string(), value);
     Ok(())
 }
 

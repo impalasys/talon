@@ -240,11 +240,16 @@ def test_streaming_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_ser
 
 def apply_manifest_with_cli(path, grpc_port):
     cli = conftest.get_binary_path("talon_cli")
+    auth_args = []
+    api_key = os.environ.get(conftest.api_key_env_name(grpc_port))
+    if api_key:
+        auth_args.extend(["--api-key", api_key])
     result = subprocess.run(
         [
             cli,
             "--gateway",
             f"http://127.0.0.1:{grpc_port}",
+            *auth_args,
             "apply",
             "-f",
             str(path),
@@ -262,9 +267,15 @@ def apply_manifest_with_cli(path, grpc_port):
 
 
 def cli_for_grpc_port(grpc_port):
+    env = {}
+    auth_file = os.environ.get(conftest.api_key_auth_file_env_name(grpc_port))
+    if auth_file:
+        env["TALON_AUTH_FILE"] = auth_file
     return TalonCli(
         conftest.get_binary_path("talon_cli"),
         f"http://127.0.0.1:{grpc_port}",
+        api_key=os.environ.get(conftest.api_key_env_name(grpc_port)),
+        env=env,
     )
 
 

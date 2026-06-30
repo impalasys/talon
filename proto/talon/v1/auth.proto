@@ -2,10 +2,16 @@ syntax = "proto3";
 
 package talon.v1;
 
+import "proto/data/api_keys.proto";
+
 service AuthService {
   rpc GetSsoConfig(GetSsoConfigRequest) returns (GetSsoConfigResponse);
   rpc ExchangeOidcToken(ExchangeOidcTokenRequest) returns (ExchangeOidcTokenResponse);
   rpc MintAccessToken(MintAccessTokenRequest) returns (MintAccessTokenResponse);
+  rpc CreateApiKey(CreateApiKeyRequest) returns (CreateApiKeyResponse);
+  rpc ListApiKeys(ListApiKeysRequest) returns (ListApiKeysResponse);
+  rpc RevokeApiKey(RevokeApiKeyRequest) returns (RevokeApiKeyResponse);
+  rpc ExchangeApiKey(ExchangeApiKeyRequest) returns (ExchangeApiKeyResponse);
 }
 
 message GetSsoConfigRequest {}
@@ -41,6 +47,70 @@ message MintAccessTokenRequest {
 }
 
 message MintAccessTokenResponse {
+  string access_token = 1;
+  string token_type = 2;
+  uint64 expires_in = 3;
+  uint64 expires_at = 4;
+}
+
+message ApiKeyInfo {
+  // Stable server-generated key id embedded in the opaque API key.
+  string id = 1;
+
+  // Human-readable display name for operators.
+  string name = 2;
+
+  // Leading characters of the full opaque API key, safe for listing and logs.
+  string prefix = 3;
+
+  // Grants this API key may exchange into access tokens.
+  repeated talon.data.ApiKeyGrant grants = 4;
+
+  // Unix timestamp when the API key was created.
+  uint64 created_at = 5;
+
+  // Unix timestamp for the most recent successful exchange, or zero if unused.
+  uint64 last_used_at = 6;
+
+  // Optional Unix timestamp after which exchanges are rejected.
+  optional uint64 expires_at = 7;
+
+  // Optional Unix timestamp when the key was revoked.
+  optional uint64 revoked_at = 8;
+}
+
+message CreateApiKeyRequest {
+  string name = 1;
+  repeated talon.data.ApiKeyGrant grants = 2;
+  optional uint64 expires_at = 3;
+}
+
+message CreateApiKeyResponse {
+  ApiKeyInfo api_key = 1;
+  string secret = 2;
+}
+
+message ListApiKeysRequest {}
+
+message ListApiKeysResponse {
+  repeated ApiKeyInfo api_keys = 1;
+}
+
+message RevokeApiKeyRequest {
+  string id = 1;
+}
+
+message RevokeApiKeyResponse {
+  ApiKeyInfo api_key = 1;
+}
+
+message ExchangeApiKeyRequest {
+  string api_key = 1;
+  optional talon.data.ApiKeyGrant grant = 2;
+  uint64 expires_in = 3;
+}
+
+message ExchangeApiKeyResponse {
   string access_token = 1;
   string token_type = 2;
   uint64 expires_in = 3;

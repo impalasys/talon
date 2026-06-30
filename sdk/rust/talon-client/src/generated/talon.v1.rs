@@ -2226,6 +2226,86 @@ pub struct MintAccessTokenResponse {
     #[prost(uint64, tag = "4")]
     pub expires_at: u64,
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ApiKeyInfo {
+    /// Stable server-generated key id embedded in the opaque API key.
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// Human-readable display name for operators.
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    /// Leading characters of the full opaque API key, safe for listing and logs.
+    #[prost(string, tag = "3")]
+    pub prefix: ::prost::alloc::string::String,
+    /// Grants this API key may exchange into access tokens.
+    #[prost(message, repeated, tag = "4")]
+    pub grants: ::prost::alloc::vec::Vec<super::data::ApiKeyGrant>,
+    /// Unix timestamp when the API key was created.
+    #[prost(uint64, tag = "5")]
+    pub created_at: u64,
+    /// Unix timestamp for the most recent successful exchange, or zero if unused.
+    #[prost(uint64, tag = "6")]
+    pub last_used_at: u64,
+    /// Optional Unix timestamp after which exchanges are rejected.
+    #[prost(uint64, optional, tag = "7")]
+    pub expires_at: ::core::option::Option<u64>,
+    /// Optional Unix timestamp when the key was revoked.
+    #[prost(uint64, optional, tag = "8")]
+    pub revoked_at: ::core::option::Option<u64>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateApiKeyRequest {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "2")]
+    pub grants: ::prost::alloc::vec::Vec<super::data::ApiKeyGrant>,
+    #[prost(uint64, optional, tag = "3")]
+    pub expires_at: ::core::option::Option<u64>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateApiKeyResponse {
+    #[prost(message, optional, tag = "1")]
+    pub api_key: ::core::option::Option<ApiKeyInfo>,
+    #[prost(string, tag = "2")]
+    pub secret: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ListApiKeysRequest {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListApiKeysResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub api_keys: ::prost::alloc::vec::Vec<ApiKeyInfo>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RevokeApiKeyRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RevokeApiKeyResponse {
+    #[prost(message, optional, tag = "1")]
+    pub api_key: ::core::option::Option<ApiKeyInfo>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExchangeApiKeyRequest {
+    #[prost(string, tag = "1")]
+    pub api_key: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub grant: ::core::option::Option<super::data::ApiKeyGrant>,
+    #[prost(uint64, tag = "3")]
+    pub expires_in: u64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExchangeApiKeyResponse {
+    #[prost(string, tag = "1")]
+    pub access_token: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub token_type: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub expires_in: u64,
+    #[prost(uint64, tag = "4")]
+    pub expires_at: u64,
+}
 /// Generated client implementations.
 pub mod auth_service_client {
     #![allow(
@@ -2387,6 +2467,102 @@ pub mod auth_service_client {
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("talon.v1.AuthService", "MintAccessToken"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn create_api_key(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateApiKeyRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::CreateApiKeyResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.AuthService/CreateApiKey",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.AuthService", "CreateApiKey"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn list_api_keys(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListApiKeysRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListApiKeysResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.AuthService/ListApiKeys",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.AuthService", "ListApiKeys"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn revoke_api_key(
+            &mut self,
+            request: impl tonic::IntoRequest<super::RevokeApiKeyRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RevokeApiKeyResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.AuthService/RevokeApiKey",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.AuthService", "RevokeApiKey"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn exchange_api_key(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ExchangeApiKeyRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ExchangeApiKeyResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.AuthService/ExchangeApiKey",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.AuthService", "ExchangeApiKey"));
             self.inner.unary(req, path, codec).await
         }
     }

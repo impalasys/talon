@@ -22,6 +22,10 @@ const (
 	AuthService_GetSsoConfig_FullMethodName      = "/talon.v1.AuthService/GetSsoConfig"
 	AuthService_ExchangeOidcToken_FullMethodName = "/talon.v1.AuthService/ExchangeOidcToken"
 	AuthService_MintAccessToken_FullMethodName   = "/talon.v1.AuthService/MintAccessToken"
+	AuthService_CreateApiKey_FullMethodName      = "/talon.v1.AuthService/CreateApiKey"
+	AuthService_ListApiKeys_FullMethodName       = "/talon.v1.AuthService/ListApiKeys"
+	AuthService_RevokeApiKey_FullMethodName      = "/talon.v1.AuthService/RevokeApiKey"
+	AuthService_ExchangeApiKey_FullMethodName    = "/talon.v1.AuthService/ExchangeApiKey"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -31,6 +35,10 @@ type AuthServiceClient interface {
 	GetSsoConfig(ctx context.Context, in *GetSsoConfigRequest, opts ...grpc.CallOption) (*GetSsoConfigResponse, error)
 	ExchangeOidcToken(ctx context.Context, in *ExchangeOidcTokenRequest, opts ...grpc.CallOption) (*ExchangeOidcTokenResponse, error)
 	MintAccessToken(ctx context.Context, in *MintAccessTokenRequest, opts ...grpc.CallOption) (*MintAccessTokenResponse, error)
+	CreateApiKey(ctx context.Context, in *CreateApiKeyRequest, opts ...grpc.CallOption) (*CreateApiKeyResponse, error)
+	ListApiKeys(ctx context.Context, in *ListApiKeysRequest, opts ...grpc.CallOption) (*ListApiKeysResponse, error)
+	RevokeApiKey(ctx context.Context, in *RevokeApiKeyRequest, opts ...grpc.CallOption) (*RevokeApiKeyResponse, error)
+	ExchangeApiKey(ctx context.Context, in *ExchangeApiKeyRequest, opts ...grpc.CallOption) (*ExchangeApiKeyResponse, error)
 }
 
 type authServiceClient struct {
@@ -71,6 +79,46 @@ func (c *authServiceClient) MintAccessToken(ctx context.Context, in *MintAccessT
 	return out, nil
 }
 
+func (c *authServiceClient) CreateApiKey(ctx context.Context, in *CreateApiKeyRequest, opts ...grpc.CallOption) (*CreateApiKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateApiKeyResponse)
+	err := c.cc.Invoke(ctx, AuthService_CreateApiKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ListApiKeys(ctx context.Context, in *ListApiKeysRequest, opts ...grpc.CallOption) (*ListApiKeysResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListApiKeysResponse)
+	err := c.cc.Invoke(ctx, AuthService_ListApiKeys_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) RevokeApiKey(ctx context.Context, in *RevokeApiKeyRequest, opts ...grpc.CallOption) (*RevokeApiKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RevokeApiKeyResponse)
+	err := c.cc.Invoke(ctx, AuthService_RevokeApiKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ExchangeApiKey(ctx context.Context, in *ExchangeApiKeyRequest, opts ...grpc.CallOption) (*ExchangeApiKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExchangeApiKeyResponse)
+	err := c.cc.Invoke(ctx, AuthService_ExchangeApiKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -78,6 +126,10 @@ type AuthServiceServer interface {
 	GetSsoConfig(context.Context, *GetSsoConfigRequest) (*GetSsoConfigResponse, error)
 	ExchangeOidcToken(context.Context, *ExchangeOidcTokenRequest) (*ExchangeOidcTokenResponse, error)
 	MintAccessToken(context.Context, *MintAccessTokenRequest) (*MintAccessTokenResponse, error)
+	CreateApiKey(context.Context, *CreateApiKeyRequest) (*CreateApiKeyResponse, error)
+	ListApiKeys(context.Context, *ListApiKeysRequest) (*ListApiKeysResponse, error)
+	RevokeApiKey(context.Context, *RevokeApiKeyRequest) (*RevokeApiKeyResponse, error)
+	ExchangeApiKey(context.Context, *ExchangeApiKeyRequest) (*ExchangeApiKeyResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -96,6 +148,18 @@ func (UnimplementedAuthServiceServer) ExchangeOidcToken(context.Context, *Exchan
 }
 func (UnimplementedAuthServiceServer) MintAccessToken(context.Context, *MintAccessTokenRequest) (*MintAccessTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MintAccessToken not implemented")
+}
+func (UnimplementedAuthServiceServer) CreateApiKey(context.Context, *CreateApiKeyRequest) (*CreateApiKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateApiKey not implemented")
+}
+func (UnimplementedAuthServiceServer) ListApiKeys(context.Context, *ListApiKeysRequest) (*ListApiKeysResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListApiKeys not implemented")
+}
+func (UnimplementedAuthServiceServer) RevokeApiKey(context.Context, *RevokeApiKeyRequest) (*RevokeApiKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeApiKey not implemented")
+}
+func (UnimplementedAuthServiceServer) ExchangeApiKey(context.Context, *ExchangeApiKeyRequest) (*ExchangeApiKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExchangeApiKey not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -172,6 +236,78 @@ func _AuthService_MintAccessToken_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_CreateApiKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateApiKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).CreateApiKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_CreateApiKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).CreateApiKey(ctx, req.(*CreateApiKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ListApiKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListApiKeysRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ListApiKeys(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ListApiKeys_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ListApiKeys(ctx, req.(*ListApiKeysRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_RevokeApiKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeApiKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).RevokeApiKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_RevokeApiKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).RevokeApiKey(ctx, req.(*RevokeApiKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ExchangeApiKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExchangeApiKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ExchangeApiKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ExchangeApiKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ExchangeApiKey(ctx, req.(*ExchangeApiKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +326,22 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "MintAccessToken",
 			Handler:    _AuthService_MintAccessToken_Handler,
+		},
+		{
+			MethodName: "CreateApiKey",
+			Handler:    _AuthService_CreateApiKey_Handler,
+		},
+		{
+			MethodName: "ListApiKeys",
+			Handler:    _AuthService_ListApiKeys_Handler,
+		},
+		{
+			MethodName: "RevokeApiKey",
+			Handler:    _AuthService_RevokeApiKey_Handler,
+		},
+		{
+			MethodName: "ExchangeApiKey",
+			Handler:    _AuthService_ExchangeApiKey_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

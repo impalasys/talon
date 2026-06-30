@@ -29,6 +29,7 @@ const (
 type grpcWebConn struct {
 	endpoint      string
 	authorization string
+	apiKey        *apiKeyCredentials
 	client        *http.Client
 	ownedClient   bool
 }
@@ -47,9 +48,17 @@ func newGRPCWebConn(opts GatewayClientOptions) (*grpcWebConn, error) {
 	return &grpcWebConn{
 		endpoint:      endpoint,
 		authorization: opts.Authorization,
+		apiKey:        grpcWebAPIKeyCredentials(opts),
 		client:        client,
 		ownedClient:   ownedClient,
 	}, nil
+}
+
+func grpcWebAPIKeyCredentials(opts GatewayClientOptions) *apiKeyCredentials {
+	if opts.Authorization != "" || strings.TrimSpace(opts.APIKey) == "" {
+		return nil
+	}
+	return newAPIKeyCredentials(opts)
 }
 
 type grpcWebCallConfig struct {
@@ -145,6 +154,12 @@ func (c *grpcWebConn) do(ctx context.Context, method string, message []byte) (*h
 	req.Header.Set("x-user-agent", grpcWebUserAgent)
 	if c.authorization != "" {
 		req.Header.Set("authorization", c.authorization)
+	} else if c.apiKey != nil {
+		authorization, err := c.apiKey.authorization(ctx)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("authorization", authorization)
 	}
 	addOutgoingMetadata(req.Header, ctx)
 

@@ -184,6 +184,7 @@ class DurableSessionStack:
         data_dir: Path,
         env: dict[str, str],
         grpc_port: int,
+        api_key: str,
         server_proc: subprocess.Popen,
         worker_proc: subprocess.Popen,
     ) -> None:
@@ -191,6 +192,7 @@ class DurableSessionStack:
         self.data_dir = data_dir
         self.env = env
         self.grpc_port = grpc_port
+        self.api_key = api_key
         self.server_proc = server_proc
         self.worker_proc = worker_proc
         self.worker_procs = [worker_proc]
@@ -209,6 +211,7 @@ class DurableSessionStack:
         env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
         env["PORT"] = str(worker_port)
         env["TALON_SESSION_PROCESSING_TIMEOUT_SECONDS"] = "1"
+        env["GATEWAY_JWT_SECRET"] = conftest.E2E_GATEWAY_JWT_SECRET
 
         temp_dir = Path(tempfile.mkdtemp(prefix="talon-durable-stress-"))
         data_dir = temp_dir / "data"
@@ -244,11 +247,14 @@ control_plane:
             test_grpc_port,
             worker_pull_mode=True,
         )
+        api_key = conftest.create_e2e_api_key(test_grpc_port, "pytest-durable-root")
+        os.environ[conftest.api_key_env_name(test_grpc_port)] = api_key
         return cls(
             temp_dir=temp_dir,
             data_dir=data_dir,
             env=env,
             grpc_port=test_grpc_port,
+            api_key=api_key,
             server_proc=server_proc,
             worker_proc=worker_proc,
         )
@@ -270,6 +276,7 @@ control_plane:
             except subprocess.TimeoutExpired:
                 proc.kill()
                 proc.wait(timeout=10)
+        os.environ.pop(conftest.api_key_env_name(self.grpc_port), None)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def kill_worker(self) -> None:
@@ -329,7 +336,17 @@ class SessionStreamBuffer:
         self.stop()
 
     def start(self) -> None:
-        self._channel = grpc.insecure_channel(f"127.0.0.1:{self.grpc_port}")
+        api_key = os.environ.get(conftest.api_key_env_name(self.grpc_port))
+        if api_key:
+            raw_channel, channel = conftest.authenticated_gateway_channel(
+                self.grpc_port,
+                api_key,
+            )
+            self._raw_channel = raw_channel
+            self._channel = channel
+        else:
+            self._raw_channel = None
+            self._channel = grpc.insecure_channel(f"127.0.0.1:{self.grpc_port}")
         self._thread = threading.Thread(
             target=self._run,
             name=f"session-stream-{self.session_id}",
@@ -343,6 +360,8 @@ class SessionStreamBuffer:
         self._stop.set()
         if self._channel is not None:
             self._channel.close()
+        if getattr(self, "_raw_channel", None) is not None:
+            self._raw_channel.close()
         if self._thread is not None:
             self._thread.join(timeout=5)
 
@@ -505,6 +524,25 @@ def create_agent(
                             ]
                         },
                         system_prompt="You are a durable session stress test assistant.",
+                    )
+                ),
+            ),
+        )
+    )
+
+
+def create_blocking_mcp_server(stub: TalonClient, namespace: str) -> None:
+    stub.resources.Create(
+        CreateResourceRequest(
+            ns=namespace,
+            manifest=ResourceManifest(
+                api_version="talon.impalasys.com/v1",
+                kind="McpServer",
+                metadata=ResourceMeta(name=BLOCKING_MCP_SERVER, namespace=namespace),
+                spec=ResourceSpec(
+                    mcp_server=McpServerSpec(
+                        transport="http",
+                        target=f"http://127.0.0.1:{conftest.MOCK_LLM_PORT}/mcp",
                     )
                 ),
             ),
@@ -948,8 +986,8 @@ def test_tool_call_recorded_worker_kill_restart_recovers_from_journal(
     stub = TalonClient(gateway_channel_sqlite)
     namespace = f"durable-tool-recovery-{uuid.uuid4().hex[:8]}"
     agent = "stress-agent"
-    infra.kv.seed_blocking_mcp_server()
     create_agent(stub, namespace, agent, mcp_server_refs=[BLOCKING_MCP_SERVER])
+    create_blocking_mcp_server(stub, namespace)
     session_id = stub.sessions.Create(CreateSessionRequest(agent=agent, ns=namespace)).session_id
     snooper = SessionSnooper(
         stack=infra, stub=stub, namespace=namespace, agent=agent, session_id=session_id
@@ -1060,8 +1098,8 @@ def test_tool_result_recorded_worker_kill_restart_does_not_duplicate_message_par
     stub = TalonClient(gateway_channel_sqlite)
     namespace = f"durable-tool-result-recovery-{uuid.uuid4().hex[:8]}"
     agent = "stress-agent"
-    infra.kv.seed_blocking_mcp_server()
     create_agent(stub, namespace, agent, mcp_server_refs=[BLOCKING_MCP_SERVER])
+    create_blocking_mcp_server(stub, namespace)
     session_id = stub.sessions.Create(CreateSessionRequest(agent=agent, ns=namespace)).session_id
     snooper = SessionSnooper(
         stack=infra, stub=stub, namespace=namespace, agent=agent, session_id=session_id

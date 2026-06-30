@@ -6,6 +6,7 @@ import textwrap
 import uuid
 from urllib.parse import urlparse, urlunparse
 
+import grpc
 import httpx
 import pytest
 
@@ -90,11 +91,20 @@ def parse_grpc_web_response(response_body, message_type):
     return message
 
 
-async def assert_grpc_web_list_namespaces(gateway_url: str):
+def api_key_access_token(grpc_port: int, api_key: str) -> str:
+    raw_channel = grpc.insecure_channel(f"127.0.0.1:{grpc_port}")
+    try:
+        return conftest.ApiKeyTokenSource(raw_channel, api_key).token()
+    finally:
+        raw_channel.close()
+
+
+async def assert_grpc_web_list_namespaces(gateway_url: str, access_token: str):
     async with httpx.AsyncClient(timeout=30.0) as http_client:
         response = await http_client.post(
             f"{gateway_url}/talon.v1.NamespaceService/List",
             headers={
+                "authorization": f"Bearer {access_token}",
                 "content-type": "application/grpc-web+proto",
                 "x-grpc-web": "1",
             },
@@ -114,7 +124,17 @@ def bool_field(value, snake_name, camel_name):
     return bool(field_value)
 
 
-def apply_manifest(path, gateway_url):
+def apply_manifest(path, gateway_url, api_key, auth_file):
+    env = os.environ.copy()
+    for key in (
+        "TALON_GATEWAY_TOKEN",
+        "GATEWAY_TOKEN",
+        "TALON_GATEWAY_PASSWORD",
+        "GATEWAY_PASSWORD",
+    ):
+        env.pop(key, None)
+    env["TALON_API_KEY"] = api_key
+    env["TALON_AUTH_FILE"] = auth_file
     subprocess.run(
         [
             conftest.get_binary_path("talon_cli"),
@@ -125,6 +145,7 @@ def apply_manifest(path, gateway_url):
             str(path),
         ],
         check=True,
+        env=env,
     )
 
 
@@ -134,7 +155,14 @@ def write_manifest(tmp_path, name, content):
     return path
 
 
-def create_a2a_fixture(namespace: str, agent_name: str, tmp_path, gateway_url: str):
+def create_a2a_fixture(
+    namespace: str,
+    agent_name: str,
+    tmp_path,
+    gateway_url: str,
+    api_key: str,
+    auth_file: str,
+):
     agent_path = write_manifest(
         tmp_path,
         "agent.yaml",
@@ -180,7 +208,7 @@ def create_a2a_fixture(namespace: str, agent_name: str, tmp_path, gateway_url: s
                       - text/plain
         """,
     )
-    apply_manifest(agent_path, gateway_url)
+    apply_manifest(agent_path, gateway_url, api_key, auth_file)
 
 
 @pytest.mark.asyncio
@@ -191,12 +219,28 @@ async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
     namespace = f"talon-a2a-compat-{run_id}"
     agent_name = f"a2a-agent-{run_id}"
     gateway_url = f"http://127.0.0.1:{test_grpc_port}"
-    create_a2a_fixture(namespace, agent_name, tmp_path, gateway_url)
-    await assert_grpc_web_list_namespaces(gateway_url)
+    api_key = talon_infrastructure["api_key"]
+    access_token = api_key_access_token(test_grpc_port, api_key)
+    create_a2a_fixture(
+        namespace,
+        agent_name,
+        tmp_path,
+        gateway_url,
+        api_key,
+        talon_infrastructure["auth_file"],
+    )
+    await assert_grpc_web_list_namespaces(
+        gateway_url,
+        access_token,
+    )
 
     agent_card_url = f"http://localhost:{test_grpc_port}/a2a/{namespace}/{agent_name}/agent-card.json"
     async with httpx.AsyncClient(
-        timeout=90.0, headers={"x-forwarded-proto": "http"}
+        timeout=90.0,
+        headers={
+            "authorization": f"Bearer {access_token}",
+            "x-forwarded-proto": "http",
+        },
     ) as http_client:
         resolver = card_resolver(http_client, agent_card_url)
         card = await resolver.get_agent_card()

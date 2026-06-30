@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package talon.data;
+
+message ApiKeyGrant {
+  // Permission level for this grant. Valid values are "read" and "readwrite".
+  string kind = 1;
+
+  // Optional namespace scope. When omitted, the grant is root-scoped.
+  optional string namespace = 2;
+
+  // Optional agent selector within the namespace.
+  optional string agent = 3;
+
+  // Optional session selector. Requires both namespace and agent.
+  optional string session = 4;
+
+  // Optional channel selector within the namespace. Cannot be combined with agent or session.
+  optional string channel = 5;
+}
+
+message ApiKeyRecord {
+  // Stable server-generated key id embedded in the opaque API key.
+  string id = 1;
+
+  // Human-readable display name for operators.
+  string name = 2;
+
+  // Leading characters of the full opaque API key, safe for listing and logs.
+  string prefix = 3;
+
+  // Unpadded base64url-encoded SHA-256 digest of the secret component. Raw API key material is never stored.
+  string secret_hash = 4;
+
+  // Storage-authoritative grants this API key may exchange into access tokens.
+  repeated ApiKeyGrant grants = 5;
+
+  // Unix timestamp when the API key was created.
+  uint64 created_at = 6;
+
+  // Unix timestamp for the most recent successful exchange, or zero if unused.
+  uint64 last_used_at = 7;
+
+  // Optional Unix timestamp after which exchanges are rejected.
+  optional uint64 expires_at = 8;
+
+  // Optional Unix timestamp when the key was revoked.
+  optional uint64 revoked_at = 9;
+}

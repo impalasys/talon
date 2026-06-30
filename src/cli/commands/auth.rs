@@ -3,13 +3,15 @@
 
 use anyhow::{Context, Result};
 use clap::{Args, Subcommand};
+use talon_client::data::ApiKeyGrant;
+use talon_client::v1::{CreateApiKeyRequest, ListApiKeysRequest, RevokeApiKeyRequest};
 
 use super::{Cli, RunOutcome};
 use crate::cli::{
-    clear_stored_gateway_auth, describe_stored_auth, exchange_oidc_id_token,
+    DEFAULT_TOKEN_TTL, clear_stored_gateway_auth, describe_stored_auth, exchange_oidc_id_token,
     login_with_google_loopback, mint_agent_jwt, mint_channel_jwt, mint_namespace_jwt,
     mint_root_jwt, mint_session_jwt, resolve_gateway_jwt_secret, resolve_token_ttl_seconds,
-    save_stored_gateway_auth, DEFAULT_TOKEN_TTL,
+    save_stored_gateway_auth,
 };
 
 #[derive(Args)]
@@ -127,6 +129,30 @@ enum AuthCommands {
         #[arg(long = "origin")]
         origins: Vec<String>,
     },
+    /// Manage revocable API keys.
+    ApiKey {
+        #[command(subcommand)]
+        command: ApiKeyCommands,
+    },
+}
+
+#[derive(Subcommand)]
+enum ApiKeyCommands {
+    /// Create an API key. The secret is printed once.
+    Create {
+        #[arg(long)]
+        name: String,
+        /// Grant syntax: read|readwrite[,namespace=ns][,agent=name][,session=id][,channel=name].
+        #[arg(long = "grant", required = true)]
+        grants: Vec<String>,
+        /// Absolute Unix expiry timestamp for the API key.
+        #[arg(long)]
+        expires_at: Option<u64>,
+    },
+    /// List API keys without secret material.
+    List,
+    /// Revoke an API key by id.
+    Revoke { id: String },
 }
 
 pub(super) async fn run(cli: &Cli, command: &AuthCommand) -> Result<RunOutcome> {
@@ -243,7 +269,136 @@ pub(super) async fn run(cli: &Cli, command: &AuthCommand) -> Result<RunOutcome> 
             let ttl_seconds = resolve_token_ttl_seconds(ttl, *ttl_seconds)?;
             mint_channel_jwt(&secret, namespace, channel, subject, ttl_seconds, origins)?
         }
+        AuthCommands::ApiKey { command } => {
+            run_api_key_command(cli, command).await?;
+            return Ok(RunOutcome { exit_code: None });
+        }
     };
     println!("{}", token);
     Ok(RunOutcome { exit_code: None })
+}
+
+async fn run_api_key_command(cli: &Cli, command: &ApiKeyCommands) -> Result<()> {
+    let mut client = crate::cli::connect_gateway(cli).await?;
+    match command {
+        ApiKeyCommands::Create {
+            name,
+            grants,
+            expires_at,
+        } => {
+            let response = client
+                .create_api_key(CreateApiKeyRequest {
+                    name: name.clone(),
+                    grants: grants
+                        .iter()
+                        .map(|grant| parse_grant(grant))
+                        .collect::<Result<Vec<_>>>()?,
+                    expires_at: *expires_at,
+                })
+                .await
+                .context("Failed to create API key")?
+                .into_inner();
+            let api_key = response
+                .api_key
+                .context("API key response missing metadata")?;
+            println!("id={}", api_key.id);
+            println!("prefix={}", api_key.prefix);
+            println!("secret={}", response.secret);
+        }
+        ApiKeyCommands::List => {
+            let response = client
+                .list_api_keys(ListApiKeysRequest {})
+                .await
+                .context("Failed to list API keys")?
+                .into_inner();
+            for key in response.api_keys {
+                println!(
+                    "id={} name={} prefix={} grants={} created_at={} last_used_at={} expires_at={} revoked_at={}",
+                    key.id,
+                    key.name,
+                    key.prefix,
+                    key.grants
+                        .iter()
+                        .map(format_grant)
+                        .collect::<Vec<_>>()
+                        .join(";"),
+                    key.created_at,
+                    key.last_used_at,
+                    key.expires_at
+                        .map(|value| value.to_string())
+                        .unwrap_or_else(|| "-".to_string()),
+                    key.revoked_at
+                        .map(|value| value.to_string())
+                        .unwrap_or_else(|| "-".to_string())
+                );
+            }
+        }
+        ApiKeyCommands::Revoke { id } => {
+            let response = client
+                .revoke_api_key(RevokeApiKeyRequest { id: id.clone() })
+                .await
+                .context("Failed to revoke API key")?
+                .into_inner();
+            let api_key = response
+                .api_key
+                .context("API key response missing metadata")?;
+            println!("revoked id={}", api_key.id);
+        }
+    }
+    Ok(())
+}
+
+fn parse_grant(value: &str) -> Result<ApiKeyGrant> {
+    let mut parts = value
+        .split(',')
+        .map(str::trim)
+        .filter(|part| !part.is_empty());
+    let kind = parts
+        .next()
+        .context("grant must start with read or readwrite")?
+        .to_ascii_lowercase();
+    if kind != "read" && kind != "readwrite" {
+        anyhow::bail!("grant kind must be read or readwrite");
+    }
+    let mut grant = ApiKeyGrant {
+        kind,
+        namespace: None,
+        agent: None,
+        session: None,
+        channel: None,
+    };
+    for part in parts {
+        let (key, value) = part
+            .split_once('=')
+            .with_context(|| format!("grant selector '{part}' must be key=value"))?;
+        let value = value.trim();
+        if value.is_empty() {
+            anyhow::bail!("grant selector '{key}' cannot be empty");
+        }
+        match key.trim() {
+            "namespace" | "ns" => grant.namespace = Some(value.to_string()),
+            "agent" => grant.agent = Some(value.to_string()),
+            "session" => grant.session = Some(value.to_string()),
+            "channel" => grant.channel = Some(value.to_string()),
+            other => anyhow::bail!("unsupported grant selector '{other}'"),
+        }
+    }
+    Ok(grant)
+}
+
+fn format_grant(grant: &ApiKeyGrant) -> String {
+    let mut parts = vec![grant.kind.clone()];
+    if let Some(namespace) = &grant.namespace {
+        parts.push(format!("namespace={namespace}"));
+    }
+    if let Some(agent) = &grant.agent {
+        parts.push(format!("agent={agent}"));
+    }
+    if let Some(session) = &grant.session {
+        parts.push(format!("session={session}"));
+    }
+    if let Some(channel) = &grant.channel {
+        parts.push(format!("channel={channel}"));
+    }
+    parts.join(",")
 }

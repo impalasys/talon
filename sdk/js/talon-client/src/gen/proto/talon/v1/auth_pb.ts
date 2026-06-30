@@ -5,6 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
+import { ApiKeyGrant } from "../../data/api_keys_pb.js";
 
 /**
  * @generated from message talon.v1.GetSsoConfigRequest
@@ -321,5 +322,438 @@ export class MintAccessTokenResponse extends Message<MintAccessTokenResponse> {
 
   static equals(a: MintAccessTokenResponse | PlainMessage<MintAccessTokenResponse> | undefined, b: MintAccessTokenResponse | PlainMessage<MintAccessTokenResponse> | undefined): boolean {
     return proto3.util.equals(MintAccessTokenResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.ApiKeyInfo
+ */
+export class ApiKeyInfo extends Message<ApiKeyInfo> {
+  /**
+   * Stable server-generated key id embedded in the opaque API key.
+   *
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * Human-readable display name for operators.
+   *
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  /**
+   * Leading characters of the full opaque API key, safe for listing and logs.
+   *
+   * @generated from field: string prefix = 3;
+   */
+  prefix = "";
+
+  /**
+   * Grants this API key may exchange into access tokens.
+   *
+   * @generated from field: repeated talon.data.ApiKeyGrant grants = 4;
+   */
+  grants: ApiKeyGrant[] = [];
+
+  /**
+   * Unix timestamp when the API key was created.
+   *
+   * @generated from field: uint64 created_at = 5;
+   */
+  createdAt = protoInt64.zero;
+
+  /**
+   * Unix timestamp for the most recent successful exchange, or zero if unused.
+   *
+   * @generated from field: uint64 last_used_at = 6;
+   */
+  lastUsedAt = protoInt64.zero;
+
+  /**
+   * Optional Unix timestamp after which exchanges are rejected.
+   *
+   * @generated from field: optional uint64 expires_at = 7;
+   */
+  expiresAt?: bigint;
+
+  /**
+   * Optional Unix timestamp when the key was revoked.
+   *
+   * @generated from field: optional uint64 revoked_at = 8;
+   */
+  revokedAt?: bigint;
+
+  constructor(data?: PartialMessage<ApiKeyInfo>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.ApiKeyInfo";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "prefix", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "grants", kind: "message", T: ApiKeyGrant, repeated: true },
+    { no: 5, name: "created_at", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 6, name: "last_used_at", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 7, name: "expires_at", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+    { no: 8, name: "revoked_at", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ApiKeyInfo {
+    return new ApiKeyInfo().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ApiKeyInfo {
+    return new ApiKeyInfo().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ApiKeyInfo {
+    return new ApiKeyInfo().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ApiKeyInfo | PlainMessage<ApiKeyInfo> | undefined, b: ApiKeyInfo | PlainMessage<ApiKeyInfo> | undefined): boolean {
+    return proto3.util.equals(ApiKeyInfo, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.CreateApiKeyRequest
+ */
+export class CreateApiKeyRequest extends Message<CreateApiKeyRequest> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * @generated from field: repeated talon.data.ApiKeyGrant grants = 2;
+   */
+  grants: ApiKeyGrant[] = [];
+
+  /**
+   * @generated from field: optional uint64 expires_at = 3;
+   */
+  expiresAt?: bigint;
+
+  constructor(data?: PartialMessage<CreateApiKeyRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.CreateApiKeyRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "grants", kind: "message", T: ApiKeyGrant, repeated: true },
+    { no: 3, name: "expires_at", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateApiKeyRequest {
+    return new CreateApiKeyRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateApiKeyRequest {
+    return new CreateApiKeyRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateApiKeyRequest {
+    return new CreateApiKeyRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreateApiKeyRequest | PlainMessage<CreateApiKeyRequest> | undefined, b: CreateApiKeyRequest | PlainMessage<CreateApiKeyRequest> | undefined): boolean {
+    return proto3.util.equals(CreateApiKeyRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.CreateApiKeyResponse
+ */
+export class CreateApiKeyResponse extends Message<CreateApiKeyResponse> {
+  /**
+   * @generated from field: talon.v1.ApiKeyInfo api_key = 1;
+   */
+  apiKey?: ApiKeyInfo;
+
+  /**
+   * @generated from field: string secret = 2;
+   */
+  secret = "";
+
+  constructor(data?: PartialMessage<CreateApiKeyResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.CreateApiKeyResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "api_key", kind: "message", T: ApiKeyInfo },
+    { no: 2, name: "secret", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateApiKeyResponse {
+    return new CreateApiKeyResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateApiKeyResponse {
+    return new CreateApiKeyResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateApiKeyResponse {
+    return new CreateApiKeyResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreateApiKeyResponse | PlainMessage<CreateApiKeyResponse> | undefined, b: CreateApiKeyResponse | PlainMessage<CreateApiKeyResponse> | undefined): boolean {
+    return proto3.util.equals(CreateApiKeyResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.ListApiKeysRequest
+ */
+export class ListApiKeysRequest extends Message<ListApiKeysRequest> {
+  constructor(data?: PartialMessage<ListApiKeysRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.ListApiKeysRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListApiKeysRequest {
+    return new ListApiKeysRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListApiKeysRequest {
+    return new ListApiKeysRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListApiKeysRequest {
+    return new ListApiKeysRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListApiKeysRequest | PlainMessage<ListApiKeysRequest> | undefined, b: ListApiKeysRequest | PlainMessage<ListApiKeysRequest> | undefined): boolean {
+    return proto3.util.equals(ListApiKeysRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.ListApiKeysResponse
+ */
+export class ListApiKeysResponse extends Message<ListApiKeysResponse> {
+  /**
+   * @generated from field: repeated talon.v1.ApiKeyInfo api_keys = 1;
+   */
+  apiKeys: ApiKeyInfo[] = [];
+
+  constructor(data?: PartialMessage<ListApiKeysResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.ListApiKeysResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "api_keys", kind: "message", T: ApiKeyInfo, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListApiKeysResponse {
+    return new ListApiKeysResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListApiKeysResponse {
+    return new ListApiKeysResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListApiKeysResponse {
+    return new ListApiKeysResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListApiKeysResponse | PlainMessage<ListApiKeysResponse> | undefined, b: ListApiKeysResponse | PlainMessage<ListApiKeysResponse> | undefined): boolean {
+    return proto3.util.equals(ListApiKeysResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.RevokeApiKeyRequest
+ */
+export class RevokeApiKeyRequest extends Message<RevokeApiKeyRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  constructor(data?: PartialMessage<RevokeApiKeyRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.RevokeApiKeyRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RevokeApiKeyRequest {
+    return new RevokeApiKeyRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RevokeApiKeyRequest {
+    return new RevokeApiKeyRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RevokeApiKeyRequest {
+    return new RevokeApiKeyRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RevokeApiKeyRequest | PlainMessage<RevokeApiKeyRequest> | undefined, b: RevokeApiKeyRequest | PlainMessage<RevokeApiKeyRequest> | undefined): boolean {
+    return proto3.util.equals(RevokeApiKeyRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.RevokeApiKeyResponse
+ */
+export class RevokeApiKeyResponse extends Message<RevokeApiKeyResponse> {
+  /**
+   * @generated from field: talon.v1.ApiKeyInfo api_key = 1;
+   */
+  apiKey?: ApiKeyInfo;
+
+  constructor(data?: PartialMessage<RevokeApiKeyResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.RevokeApiKeyResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "api_key", kind: "message", T: ApiKeyInfo },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RevokeApiKeyResponse {
+    return new RevokeApiKeyResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RevokeApiKeyResponse {
+    return new RevokeApiKeyResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RevokeApiKeyResponse {
+    return new RevokeApiKeyResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RevokeApiKeyResponse | PlainMessage<RevokeApiKeyResponse> | undefined, b: RevokeApiKeyResponse | PlainMessage<RevokeApiKeyResponse> | undefined): boolean {
+    return proto3.util.equals(RevokeApiKeyResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.ExchangeApiKeyRequest
+ */
+export class ExchangeApiKeyRequest extends Message<ExchangeApiKeyRequest> {
+  /**
+   * @generated from field: string api_key = 1;
+   */
+  apiKey = "";
+
+  /**
+   * @generated from field: optional talon.data.ApiKeyGrant grant = 2;
+   */
+  grant?: ApiKeyGrant;
+
+  /**
+   * @generated from field: uint64 expires_in = 3;
+   */
+  expiresIn = protoInt64.zero;
+
+  constructor(data?: PartialMessage<ExchangeApiKeyRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.ExchangeApiKeyRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "api_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "grant", kind: "message", T: ApiKeyGrant, opt: true },
+    { no: 3, name: "expires_in", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExchangeApiKeyRequest {
+    return new ExchangeApiKeyRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExchangeApiKeyRequest {
+    return new ExchangeApiKeyRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExchangeApiKeyRequest {
+    return new ExchangeApiKeyRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ExchangeApiKeyRequest | PlainMessage<ExchangeApiKeyRequest> | undefined, b: ExchangeApiKeyRequest | PlainMessage<ExchangeApiKeyRequest> | undefined): boolean {
+    return proto3.util.equals(ExchangeApiKeyRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.ExchangeApiKeyResponse
+ */
+export class ExchangeApiKeyResponse extends Message<ExchangeApiKeyResponse> {
+  /**
+   * @generated from field: string access_token = 1;
+   */
+  accessToken = "";
+
+  /**
+   * @generated from field: string token_type = 2;
+   */
+  tokenType = "";
+
+  /**
+   * @generated from field: uint64 expires_in = 3;
+   */
+  expiresIn = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 expires_at = 4;
+   */
+  expiresAt = protoInt64.zero;
+
+  constructor(data?: PartialMessage<ExchangeApiKeyResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.ExchangeApiKeyResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "access_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "token_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "expires_in", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 4, name: "expires_at", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExchangeApiKeyResponse {
+    return new ExchangeApiKeyResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExchangeApiKeyResponse {
+    return new ExchangeApiKeyResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExchangeApiKeyResponse {
+    return new ExchangeApiKeyResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ExchangeApiKeyResponse | PlainMessage<ExchangeApiKeyResponse> | undefined, b: ExchangeApiKeyResponse | PlainMessage<ExchangeApiKeyResponse> | undefined): boolean {
+    return proto3.util.equals(ExchangeApiKeyResponse, a, b);
   }
 }

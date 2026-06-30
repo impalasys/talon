@@ -35,6 +35,28 @@ JWTs without resource scope are root tokens and can access the gateway wherever 
 
 That makes JWT mode the most expressive option for browser or delegated access.
 
+Talon-issued JWTs can also carry structured `grants`. New tokens use the
+`grants` claim, and Talon continues to accept legacy `talon:grants`. Grants
+express `read` or `readwrite` access with optional namespace, agent, session, or
+channel selectors. When grants are present, Talon treats them as the
+authoritative authorization scope.
+
+## API keys
+
+API keys are long-lived credentials for trusted server-side clients. They are
+not accepted on normal gateway APIs. Instead, clients exchange an API key with
+`AuthService.ExchangeApiKey` and receive a short-lived Talon JWT whose grant is
+the same as, or narrower than, the API key's stored grants.
+
+API key lifecycle management is root-only. A root JWT can create, list, and
+revoke keys through `AuthService`; scoped JWTs, OIDC grant JWTs, and Basic auth
+cannot manage API keys. Revocation stops future exchanges immediately, while
+already-issued JWTs remain valid until their short expiry.
+
+Use API keys only in trusted backends, CLIs, workers, or CI jobs. Browser clients
+should receive short-lived, origin-scoped JWTs from a backend instead of holding
+API keys.
+
 Origin-scoped JWTs include `talon:origins`, for example
 `["https://app.example.com"]`. When present, browser-facing gateway paths
 require the request to include a matching `Origin` header. Talon enforces this
@@ -58,11 +80,17 @@ Use the `auth` command to mint scoped tokens from `TALON_JWT_SECRET`, `GATEWAY_J
 - `auth agent-token --namespace <ns> --agent <agent>`
 - `auth session-token --namespace <ns> --agent <agent> --session <session-id>`
 - `auth channel-token --namespace <ns> --channel <channel>`
+- `auth api-key create --name <name> --grant readwrite,namespace=<ns>`
+- `auth api-key list`
+- `auth api-key revoke <id>`
 
 All token commands accept `--ttl <duration>` and repeatable `--origin <origin>`
 flags. The default TTL is `5min`; examples include `1wk`, `3mo`, and `1yr`.
 `--ttl-seconds <seconds>` remains available for scripts. Origin flags add
 `talon:origins` to the minted JWT.
+
+Normal CLI commands also accept `--api-key` or `TALON_API_KEY`; the CLI exchanges
+the key for a cached short-lived JWT before calling the gateway.
 
 The CLI targets the gateway RPC surface directly. It uses native gRPC by default; pass `--grpc-web` only when an HTTP proxy exposes the gRPC-Web gateway path. Browser-oriented clients should use the gRPC-Web-compatible gateway path.
 

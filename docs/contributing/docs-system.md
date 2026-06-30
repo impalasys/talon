@@ -24,7 +24,7 @@ Generated pages come from:
 - `proto/talon/v1/*.proto`
 - `proto/config.proto`
 - `proto/resources/*.proto`
-- `proto/data/data.proto`
+- `proto/data/*.proto`
 
 Review generated diffs in PRs rather than treating them as opaque build output.
 

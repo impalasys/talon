@@ -1,7 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { installBrowserAuth, e2eGatewayUrl, readE2EAuth } from './talonAuth';
 
 test.describe('Talon UI', () => {
   test('should load and connect to the gateway', async ({ page }) => {
+    const gatewayUrl = e2eGatewayUrl();
+    await installBrowserAuth(page, gatewayUrl);
+
     // 1. Visit the page
     await page.goto('/');
 
@@ -12,9 +16,11 @@ test.describe('Talon UI', () => {
     // Ensure we are in disconnected state showing the form
     await expect(gatewayInput).toBeVisible();
     
-    // Use the backend port
-    const API_PORT = process.env.API_PORT || '50051';
-    await gatewayInput.fill(`http://127.0.0.1:${API_PORT}`);
+    await gatewayInput.fill(gatewayUrl);
+    const auth = readE2EAuth();
+    if (auth?.accessToken) {
+      await page.locator('input[type="password"]').fill(auth.accessToken);
+    }
     await connectButton.click();
 
     // 3. Ensure we are connected
