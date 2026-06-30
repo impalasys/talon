@@ -558,10 +558,10 @@ export function TalonChatComposer({
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
-                    color: composerMutedForeground,
+                      color: composerMutedForeground,
                     }}
                   >
-                    <ImagePlus size={controlsBelow ? 19 : 17} strokeWidth={2.1} />
+                    <ImagePlus size={controlsBelow ? "19" : "17"} strokeWidth={2.1} />
                   </span>
                   <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {imageButtonLabel}
