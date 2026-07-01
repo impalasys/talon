@@ -874,7 +874,7 @@ mod tests {
     fn local_platform_access_jwt_sets_gateway_profile_and_scope() {
         let _env_lock = crate::test_support::env_lock();
         let issuer = "https://talon.example.com";
-        let _issuer_guard = EnvVarGuard::set(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV, issuer);
+        let _issuer_guard = EnvVarGuard::set(platform_jwt::TALON_JWT_ISSUER_ENV, issuer);
         let token = mint_local_platform_access_jwt(
             platform_jwt::TEST_RSA_PRIVATE_KEY,
             "tenant-client",

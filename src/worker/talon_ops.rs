@@ -1668,17 +1668,15 @@ mod tests {
                 crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
             )
             .ok();
-            let previous_issuer = std::env::var(
-                crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
-            )
-            .ok();
+            let previous_issuer =
+                std::env::var(crate::control::security::platform_jwt::TALON_JWT_ISSUER_ENV).ok();
             unsafe {
                 std::env::set_var(
                     crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
                     crate::control::security::platform_jwt::TEST_RSA_PRIVATE_KEY,
                 );
                 std::env::set_var(
-                    crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+                    crate::control::security::platform_jwt::TALON_JWT_ISSUER_ENV,
                     TEST_PLATFORM_ISSUER,
                 );
             }
@@ -1705,12 +1703,12 @@ mod tests {
                 }
                 if let Some(previous_issuer) = &self.previous_issuer {
                     std::env::set_var(
-                        crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+                        crate::control::security::platform_jwt::TALON_JWT_ISSUER_ENV,
                         previous_issuer,
                     );
                 } else {
                     std::env::remove_var(
-                        crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+                        crate::control::security::platform_jwt::TALON_JWT_ISSUER_ENV,
                     );
                 }
             }

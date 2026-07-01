@@ -27,8 +27,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 GATEWAY_GRPC_PORT = int(os.environ.get("GRPC_PORT", "50051"))
 MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
 READY_PORT = int(os.environ.get("READY_PORT", os.environ.get("E2E_READY_PORT", "8090")))
-E2E_PLATFORM_JWT_ISSUER = os.environ.get(
-    "TALON_E2E_PLATFORM_JWT_ISSUER",
+E2E_JWT_ISSUER = os.environ.get(
+    "TALON_E2E_JWT_ISSUER",
     "https://talon-e2e.example.com",
 )
 E2E_JWT_PRIVATE_KEY_PEM = os.environ.get(
@@ -121,7 +121,7 @@ def create_bootstrap_token(grpc_port):
                 "--subject",
                 "playwright-bootstrap",
             ],
-            env={**os.environ, "TALON_PLATFORM_JWT_ISSUER": E2E_PLATFORM_JWT_ISSUER},
+            env={**os.environ, "TALON_JWT_ISSUER": E2E_JWT_ISSUER},
             text=True,
             capture_output=True,
             check=False,
@@ -251,7 +251,7 @@ def main():
     env["GCP_PROJECT_ID"] = "talon-local"
     env["NOVITA_API_KEY"] = "test-dummy-key"
     env["TALON_JWT_PRIVATE_KEY_PEM"] = E2E_JWT_PRIVATE_KEY_PEM
-    env["TALON_PLATFORM_JWT_ISSUER"] = E2E_PLATFORM_JWT_ISSUER
+    env["TALON_JWT_ISSUER"] = E2E_JWT_ISSUER
     temp_dir = Path(tempfile.mkdtemp(prefix="talon-e2e-"))
     
     env["GRPC_ADDR"] = f"0.0.0.0:{GATEWAY_GRPC_PORT}"

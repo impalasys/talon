@@ -12,8 +12,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use std::sync::OnceLock;
 
 pub const TALON_JWT_PRIVATE_KEY_PEM_ENV: &str = "TALON_JWT_PRIVATE_KEY_PEM";
-pub const TALON_PLATFORM_JWT_ISSUER_ENV: &str = "TALON_PLATFORM_JWT_ISSUER";
-pub const DEFAULT_PLATFORM_JWT_ISSUER: &str = "https://talon.impala.systems";
+pub const TALON_JWT_ISSUER_ENV: &str = "TALON_JWT_ISSUER";
+pub const DEFAULT_JWT_ISSUER: &str = "https://talon.impala.systems";
 pub const TALON_GATEWAY_AUDIENCE: &str = "talon.impala.systems";
 pub const MCP_AUTH_BROKER_AUDIENCE: &str = "mcps.talon.impala.systems";
 pub const TALON_OPS_AUDIENCE: &str = "talon-ops";
@@ -97,11 +97,11 @@ impl PlatformJwtKey {
 }
 
 pub fn issuer() -> Result<String> {
-    let issuer = std::env::var(TALON_PLATFORM_JWT_ISSUER_ENV)
+    let issuer = std::env::var(TALON_JWT_ISSUER_ENV)
         .ok()
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty())
-        .unwrap_or_else(|| DEFAULT_PLATFORM_JWT_ISSUER.to_string());
+        .unwrap_or_else(|| DEFAULT_JWT_ISSUER.to_string());
     validate_issuer(&issuer)?;
     Ok(issuer)
 }
@@ -300,15 +300,15 @@ GstIYNA4dYolNw==
     #[test]
     fn issuer_defaults_to_platform_url() {
         let _guard = crate::test_support::env_lock();
-        let _issuer = EnvGuard::remove(TALON_PLATFORM_JWT_ISSUER_ENV);
+        let _issuer = EnvGuard::remove(TALON_JWT_ISSUER_ENV);
 
-        assert_eq!(issuer().unwrap(), DEFAULT_PLATFORM_JWT_ISSUER);
+        assert_eq!(issuer().unwrap(), DEFAULT_JWT_ISSUER);
     }
 
     #[test]
     fn issuer_honors_env_override() {
         let _guard = crate::test_support::env_lock();
-        let _issuer = EnvGuard::set(TALON_PLATFORM_JWT_ISSUER_ENV, "https://talon.localhost");
+        let _issuer = EnvGuard::set(TALON_JWT_ISSUER_ENV, "https://talon.localhost");
 
         assert_eq!(issuer().unwrap(), "https://talon.localhost");
     }
@@ -316,7 +316,7 @@ GstIYNA4dYolNw==
     #[test]
     fn issuer_rejects_invalid_env_override() {
         let _guard = crate::test_support::env_lock();
-        let _issuer = EnvGuard::set(TALON_PLATFORM_JWT_ISSUER_ENV, "http://talon.localhost?x=1");
+        let _issuer = EnvGuard::set(TALON_JWT_ISSUER_ENV, "http://talon.localhost?x=1");
 
         let err = issuer().unwrap_err();
         assert!(err.to_string().contains("must use https"));

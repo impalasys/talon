@@ -35,8 +35,8 @@ RESOURCE_LIFECYCLE_TOPIC = "talon.resource.lifecycle"
 WORKFLOW_DISPATCH_TOPIC = "talon.workflow.dispatch"
 INDEX_EVENTS_TOPIC = "talon.index.events"
 MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
-E2E_PLATFORM_JWT_ISSUER = os.environ.get(
-    "TALON_E2E_PLATFORM_JWT_ISSUER",
+E2E_JWT_ISSUER = os.environ.get(
+    "TALON_E2E_JWT_ISSUER",
     "https://talon-e2e.example.com",
 )
 E2E_JWT_PRIVATE_KEY_PEM = os.environ.get(
@@ -127,7 +127,7 @@ def create_e2e_bootstrap_token(grpc_port):
                 "--subject",
                 "pytest-bootstrap",
             ],
-            env={**os.environ, "TALON_PLATFORM_JWT_ISSUER": E2E_PLATFORM_JWT_ISSUER},
+            env={**os.environ, "TALON_JWT_ISSUER": E2E_JWT_ISSUER},
             text=True,
             capture_output=True,
             check=False,
@@ -354,7 +354,7 @@ def talon_infrastructure():
     env["RUST_LOG"] = "info"
     env["GCP_PROJECT_ID"] = "talon-local"
     env["TALON_JWT_PRIVATE_KEY_PEM"] = E2E_JWT_PRIVATE_KEY_PEM
-    env["TALON_PLATFORM_JWT_ISSUER"] = E2E_PLATFORM_JWT_ISSUER
+    env["TALON_JWT_ISSUER"] = E2E_JWT_ISSUER
     
     # Pre-provision PubSub topics and subscriptions to avoid races
     try:
@@ -506,7 +506,7 @@ def talon_infrastructure_sqlite():
     env["PORT"] = str(worker_port)
     env["TALON_SESSION_PROCESSING_TIMEOUT_SECONDS"] = "1"
     env["TALON_JWT_PRIVATE_KEY_PEM"] = E2E_JWT_PRIVATE_KEY_PEM
-    env["TALON_PLATFORM_JWT_ISSUER"] = E2E_PLATFORM_JWT_ISSUER
+    env["TALON_JWT_ISSUER"] = E2E_JWT_ISSUER
 
     temp_dir = Path(tempfile.mkdtemp(prefix="talon-sqlite-e2e-"))
     data_dir = temp_dir / "data"

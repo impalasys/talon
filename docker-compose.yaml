@@ -21,7 +21,7 @@ services:
       TALON_GOOGLE_CLIENT_ID:
       TALON_GOOGLE_WEB_CLIENT_ID:
       TALON_GOOGLE_WEB_CLIENT_SECRET:
-      TALON_PLATFORM_JWT_ISSUER: https://talon.localhost
+      TALON_JWT_ISSUER: https://talon.localhost
       TALON_CONFIG_PATH: /data/talon/talon.docker-compose.yaml
     env_file:
       - path: dockerfiles/dev-jwt.env
@@ -55,7 +55,7 @@ services:
     volumes:
       - talon-auth:/data/talon/auth
     environment:
-      TALON_PLATFORM_JWT_ISSUER: https://talon.localhost
+      TALON_JWT_ISSUER: https://talon.localhost
     env_file:
       - path: dockerfiles/dev-jwt.env
         required: true
@@ -101,7 +101,7 @@ services:
       TALON_GOOGLE_CLIENT_ID:
       TALON_GOOGLE_WEB_CLIENT_ID:
       PULL_MODE: "1"
-      TALON_PLATFORM_JWT_ISSUER: https://talon.localhost
+      TALON_JWT_ISSUER: https://talon.localhost
       TALON_CONFIG_PATH: /data/talon/talon.docker-compose.yaml
       TALON_WORKER_ENDPOINT_URL: http://worker:8081
       TALON_WORKER_ENDPOINT_PROTOCOL: grpc

@@ -142,7 +142,7 @@ const gatewayClient = createTalonClient({
 For local development with untrusted frontends, mint a short-lived channel token from the platform private PEM and pass it as a Bearer token:
 
 ```bash
-TALON_PLATFORM_JWT_ISSUER=https://talon.localhost \
+TALON_JWT_ISSUER=https://talon.localhost \
 talon-cli auth local-token \
   --private-key-pem-file ./talon-jwt-private-key.pem \
   --namespace support \

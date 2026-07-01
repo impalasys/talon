@@ -505,16 +505,13 @@ mod tests {
         fn acquire() -> Self {
             let previous_private_key =
                 std::env::var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV).ok();
-            let previous_issuer = std::env::var(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV).ok();
+            let previous_issuer = std::env::var(platform_jwt::TALON_JWT_ISSUER_ENV).ok();
             unsafe {
                 std::env::set_var(
                     platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
                     platform_jwt::TEST_RSA_PRIVATE_KEY,
                 );
-                std::env::set_var(
-                    platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
-                    TEST_PLATFORM_ISSUER,
-                );
+                std::env::set_var(platform_jwt::TALON_JWT_ISSUER_ENV, TEST_PLATFORM_ISSUER);
             }
             Self {
                 previous_private_key,
@@ -535,9 +532,9 @@ mod tests {
                     std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
                 }
                 if let Some(previous_issuer) = &self.previous_issuer {
-                    std::env::set_var(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV, previous_issuer);
+                    std::env::set_var(platform_jwt::TALON_JWT_ISSUER_ENV, previous_issuer);
                 } else {
-                    std::env::remove_var(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV);
+                    std::env::remove_var(platform_jwt::TALON_JWT_ISSUER_ENV);
                 }
             }
         }
