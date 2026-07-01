@@ -164,6 +164,16 @@ fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<Resour
                 kind: Some("UsagePolicy".to_string()),
             })
         }
+        "connectorclass" | "connectorclasses" | "connector-class" | "connector-classes" => {
+            Ok(ResourceListTarget::Resources {
+                ns: ns_or_default(),
+                kind: Some("ConnectorClass".to_string()),
+            })
+        }
+        "connector" | "connectors" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("Connector".to_string()),
+        }),
         other => anyhow::bail!("Unsupported resource kind '{}'", other),
     }
 }
@@ -398,6 +408,8 @@ fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String>
         | StatusKind::Template(status)
         | StatusKind::SandboxClass(status)
         | StatusKind::SandboxPolicy(status) => Some(status.phase.clone()),
+        StatusKind::ConnectorClass(status) => Some(status.phase.clone()),
+        StatusKind::Connector(status) => Some(status.phase.clone()),
         StatusKind::Worker(status) => Some(status.phase.clone()),
         StatusKind::Namespace(status) => Some(status.phase.clone()),
         StatusKind::Session(status) => Some(status.phase.clone()),

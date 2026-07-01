@@ -65,6 +65,20 @@ impl ResourceStore {
                     resources_proto::resource_status::Kind::ChannelSubscription,
                 )
             }
+            "ConnectorClass" => {
+                decode_typed_resource::<resources_proto::ConnectorClass, _, _, _, _>(
+                    kind,
+                    bytes,
+                    resources_proto::resource_spec::Kind::ConnectorClass,
+                    resources_proto::resource_status::Kind::ConnectorClass,
+                )
+            }
+            "Connector" => decode_typed_resource::<resources_proto::Connector, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Connector,
+                resources_proto::resource_status::Kind::Connector,
+            ),
             "McpServer" => decode_typed_resource::<resources_proto::McpServer, _, _, _, _>(
                 kind,
                 bytes,
@@ -637,6 +651,16 @@ impl_stored_typed_resource!(
     resources_proto::CommonResourceStatus
 );
 impl_stored_typed_resource!(
+    resources_proto::ConnectorClass,
+    resources_proto::ConnectorClassSpec,
+    resources_proto::ConnectorClassStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::Connector,
+    resources_proto::ConnectorSpec,
+    resources_proto::ConnectorStatus
+);
+impl_stored_typed_resource!(
     resources_proto::McpServer,
     resources_proto::McpServerSpec,
     resources_proto::CommonResourceStatus
@@ -815,6 +839,40 @@ fn encode_stored_resource(resource: &resources_proto::Resource) -> Result<Vec<u8
             },
             |kind| match kind {
                 resources_proto::resource_status::Kind::ChannelSubscription(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "ConnectorClass" => encode_typed_resource::<
+            resources_proto::ConnectorClass,
+            resources_proto::ConnectorClassSpec,
+            resources_proto::ConnectorClassStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::ConnectorClass(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::ConnectorClass(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "Connector" => encode_typed_resource::<
+            resources_proto::Connector,
+            resources_proto::ConnectorSpec,
+            resources_proto::ConnectorStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Connector(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Connector(status) => Some(status),
                 _ => None,
             },
         ),
@@ -1122,6 +1180,8 @@ fn validate_resource_kind(resource: &resources_proto::Resource) -> Result<()> {
         Kind::Schedule(_) => "Schedule",
         Kind::Channel(_) => "Channel",
         Kind::ChannelSubscription(_) => "ChannelSubscription",
+        Kind::ConnectorClass(_) => "ConnectorClass",
+        Kind::Connector(_) => "Connector",
         Kind::McpServer(_) => "McpServer",
         Kind::Knowledge(_) => "Knowledge",
         Kind::Namespace(_) => "Namespace",
@@ -1164,6 +1224,8 @@ fn default_status_for_resource(
         Some(SpecKind::ChannelSubscription(_)) => {
             StatusKind::ChannelSubscription(Default::default())
         }
+        Some(SpecKind::ConnectorClass(_)) => StatusKind::ConnectorClass(Default::default()),
+        Some(SpecKind::Connector(_)) => StatusKind::Connector(Default::default()),
         Some(SpecKind::McpServer(_)) => StatusKind::McpServer(Default::default()),
         Some(SpecKind::Knowledge(_)) => StatusKind::Knowledge(Default::default()),
         Some(SpecKind::Namespace(_)) => StatusKind::Namespace(Default::default()),

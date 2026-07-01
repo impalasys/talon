@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package talon.data;
+
+import "proto/data/routing.proto";
+
+message Route {
+  // UID of the Connector resource that owns this materialized route. The
+  // controller uses this for cleanup and delete/recreate race safety.
+  string connector_uid = 1;
+
+  // Namespace/name of the Connector resource that produced this route.
+  ResourceRef connector = 2;
+
+  // Snapshot of Connector.spec.consumer used by gateway dispatch.
+  MessageConsumer consumer = 3;
+}

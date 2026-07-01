@@ -10,6 +10,7 @@ import (
 type Clientset struct {
 	auth       talonv1.AuthServiceClient
 	channels   talonv1.ChannelServiceClient
+	connectors talonv1.ConnectorServiceClient
 	knowledge  talonv1.KnowledgeServiceClient
 	namespaces talonv1.NamespaceServiceClient
 	resources  talonv1.ResourceServiceClient
@@ -25,6 +26,10 @@ func (c *Clientset) Auth() talonv1.AuthServiceClient {
 
 func (c *Clientset) Channels() talonv1.ChannelServiceClient {
 	return c.channels
+}
+
+func (c *Clientset) Connectors() talonv1.ConnectorServiceClient {
+	return c.connectors
 }
 
 func (c *Clientset) Knowledge() talonv1.KnowledgeServiceClient {
@@ -55,6 +60,7 @@ func newClientset(conn grpc.ClientConnInterface, close func() error) *Clientset 
 	return &Clientset{
 		auth:       talonv1.NewAuthServiceClient(conn),
 		channels:   talonv1.NewChannelServiceClient(conn),
+		connectors: talonv1.NewConnectorServiceClient(conn),
 		knowledge:  talonv1.NewKnowledgeServiceClient(conn),
 		namespaces: talonv1.NewNamespaceServiceClient(conn),
 		resources:  talonv1.NewResourceServiceClient(conn),

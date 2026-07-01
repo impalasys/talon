@@ -1,0 +1,286 @@
+syntax = "proto3";
+
+package talon.external;
+
+import "proto/data/data.proto";
+import "proto/data/routing.proto";
+
+// ConnectorMessageEventKind is the normalized lifecycle event kind that a
+// connector service sends to Talon after receiving a provider webhook.
+enum ConnectorMessageEventKind {
+  CONNECTOR_MESSAGE_EVENT_KIND_UNSPECIFIED = 0;
+
+  // A new provider message should be delivered to the configured consumer.
+  CONNECTOR_MESSAGE_EVENT_KIND_CREATED = 1;
+
+  // A previously delivered provider message was edited.
+  CONNECTOR_MESSAGE_EVENT_KIND_UPDATED = 2;
+
+  // A previously delivered provider message was deleted.
+  CONNECTOR_MESSAGE_EVENT_KIND_DELETED = 3;
+}
+
+// ConnectorMessageEventStatus is Talon's mutually exclusive outcome for an
+// inbound connector message event.
+enum ConnectorMessageEventStatus {
+  CONNECTOR_MESSAGE_EVENT_STATUS_UNSPECIFIED = 0;
+
+  // Talon accepted the event and dispatched or durably scheduled it.
+  CONNECTOR_MESSAGE_EVENT_STATUS_ACCEPTED = 1;
+
+  // Talon had already processed this event_id under the ConnectorClass
+  // registration. The connector should not retry.
+  CONNECTOR_MESSAGE_EVENT_STATUS_DUPLICATE = 2;
+
+  // Talon processed the event but found no matching Connector route. Usually
+  // not retryable unless the operator changes Connector configuration.
+  CONNECTOR_MESSAGE_EVENT_STATUS_UNMATCHED = 3;
+
+  // Talon intentionally ignored the event, for example an unsupported event
+  // kind.
+  CONNECTOR_MESSAGE_EVENT_STATUS_IGNORED = 4;
+
+  // Talon understood the event but refused to accept it, for example because
+  // the matched Connector is disabled.
+  CONNECTOR_MESSAGE_EVENT_STATUS_REJECTED = 5;
+}
+
+// RegisterClusterRequest is sent by Talon to a connector service at
+// POST /v1/clusters/register when a ConnectorClass becomes ready to receive
+// callbacks.
+message RegisterClusterRequest {
+  // Operator-defined Talon cluster identifier.
+  string cluster_id = 1;
+
+  // Talon-owned ConnectorClass registration identifier, formatted as
+  // Namespace/<namespace>/ConnectorClass/<name>.
+  string registration_id = 2;
+
+  // Namespace that owns the ConnectorClass.
+  string namespace = 3;
+
+  // ConnectorClass name.
+  string connector_class = 4;
+
+  // Base URL for Talon's connector callback API.
+  string callback_base_url = 5;
+
+  // Authentication scheme the connector service must use for callbacks.
+  string callback_auth_kind = 6;
+
+  // Secret value the connector service must present for callbacks.
+  string callback_auth_key = 7;
+
+  // Connector protocol version requested by Talon.
+  string protocol_version = 8;
+}
+
+// RegisterClusterResponse is returned by the connector service from
+// POST /v1/clusters/register.
+message RegisterClusterResponse {
+  // Optional echo of Talon's registration_id. If present, it must match.
+  optional string registration_id = 1;
+}
+
+// ConnectorMessageEvent delivers one normalized provider message event to
+// Talon. Connector services call Talon's ConnectorService.IngestMessageEvent
+// after provider webhook/OAuth handling.
+message ConnectorMessageEvent {
+  // Connector-service idempotency key for this normalized event.
+  string event_id = 1;
+
+  // Normalized event kind. V1 dispatch primarily handles CREATED.
+  ConnectorMessageEventKind event_kind = 2;
+
+  // Talon-owned ConnectorClass registration identifier, formatted as
+  // Namespace/<namespace>/ConnectorClass/<name>. This scopes webhook delivery
+  // to one ConnectorClass registration.
+  string registration_id = 3;
+
+  // ConnectorClass name expected by the connector service. Talon uses this as
+  // a defensive consistency check when resolving the registration.
+  string connector_class = 4;
+
+  // Provider-specific routing keys normalized by the connector service. Talon
+  // treats these as opaque values and matches them against Connector resources.
+  map<string, string> match_fields = 5;
+
+  // Stable provider conversation identifier, such as a Slack channel/DM ID or
+  // iMessage chat GUID.
+  string external_conversation_id = 6;
+
+  // Stable provider thread identifier when the platform has threads. Omitted
+  // for platforms or conversations without a thread concept.
+  optional string external_thread_id = 7;
+
+  // Provider-native message identifier for delivery correlation, replies,
+  // edits, deletes, and deduplication diagnostics.
+  string external_message_id = 8;
+
+  // Normalized conversation shape, such as dm, group, channel, or
+  // channel_thread.
+  string conversation_type = 9;
+
+  // Normalized sender identity.
+  talon.data.Principal sender = 10;
+
+  // Plain text projection of the provider message.
+  string text = 11;
+
+  // Talon object-store references for attachments associated with the provider
+  // message. The connector service uploads provider attachments to Talon before
+  // sending the event.
+  repeated talon.data.ObjectRef attachments = 12;
+
+  // Provider event timestamp in Unix milliseconds. Connector services should
+  // preserve provider time when available.
+  int64 event_time_ms = 13;
+
+  // Connector-service-defined labels for diagnostics or provider-specific
+  // routing hints that do not justify a first-class protocol field.
+  map<string, string> labels = 14;
+}
+
+message ConnectorMessageEventResponse {
+  // Mutually exclusive Talon outcome for this message event.
+  ConnectorMessageEventStatus status = 1;
+
+  // Machine-readable reason for rejected, ignored, or unmatched outcomes.
+  string reason = 2;
+
+  // Namespace of the Connector that matched the event. Empty when unmatched or
+  // duplicate without a fresh route lookup.
+  string namespace = 4;
+
+  // Name of the Connector that matched the event. Empty when unmatched or
+  // duplicate without a fresh route lookup.
+  string connector_name = 5;
+
+  // Consumer snapshot used for dispatch. Returned for observability so
+  // connector services can log which Talon destination accepted the event.
+  talon.data.MessageConsumer consumer = 6;
+}
+
+// ConnectorDeliveryRequest is sent by Talon to a connector service at
+// POST /v1/deliveries when an agent response should be delivered to the
+// external provider.
+message ConnectorDeliveryRequest {
+  // Talon-generated idempotency key for this outbound delivery request.
+  string delivery_id = 1;
+
+  // Talon-owned ConnectorClass registration identifier for the connector
+  // service that should perform provider delivery.
+  string registration_id = 2;
+
+  // ConnectorClass name associated with the outbound route.
+  string connector_class = 3;
+
+  // Talon namespace that produced the outbound message.
+  string namespace = 4;
+
+  // Connector resource name that provides provider routing context.
+  string connector_name = 5;
+
+  // Provider-specific route fields copied from the matched Connector/event.
+  map<string, string> match_fields = 6;
+
+  // Provider conversation identifier to deliver into.
+  string external_conversation_id = 7;
+
+  // Provider thread identifier to deliver into when replying in a thread.
+  optional string external_thread_id = 8;
+
+  // Provider message identifier this delivery should reply to, when applicable.
+  optional string reply_to_external_message_id = 9;
+
+  // Plain text body produced by Talon.
+  string text = 10;
+
+  // Object-store references Talon wants the connector service to deliver to
+  // the provider.
+  repeated talon.data.ObjectRef attachments = 11;
+
+  // Talon-defined delivery labels for diagnostics and provider-specific hints.
+  map<string, string> labels = 12;
+}
+
+message ConnectorDeliveryResponse {
+  // True when the connector service has accepted responsibility for provider
+  // delivery. After this point, provider retries/rate limits are connector
+  // service responsibilities.
+  bool accepted = 1;
+
+  // Machine-readable handoff outcome, such as accepted, duplicate, or rejected.
+  string disposition = 2;
+
+  // Diagnostic error string when accepted is false.
+  string error = 3;
+}
+
+// ConnectorActivityRequest is sent by Talon to a connector service at
+// POST /v1/activities for provider-visible activity indicators such as typing.
+message ConnectorActivityRequest {
+  // Talon-generated idempotency key for this activity notification.
+  string activity_id = 1;
+
+  // Talon-owned ConnectorClass registration identifier for the connector
+  // service that should perform provider activity.
+  string registration_id = 2;
+
+  // ConnectorClass name associated with the outbound route.
+  string connector_class = 3;
+
+  // Talon namespace that produced the activity.
+  string namespace = 4;
+
+  // Connector resource name that provides provider routing context.
+  string connector_name = 5;
+
+  // Provider-specific route fields copied from the matched Connector/event.
+  map<string, string> match_fields = 6;
+
+  // Provider conversation identifier to deliver activity into.
+  string external_conversation_id = 7;
+
+  // Provider thread identifier to deliver activity into when applicable.
+  optional string external_thread_id = 8;
+
+  // Normalized activity kind, such as typing.
+  string kind = 9;
+
+  // Activity phase, such as started or stopped.
+  string phase = 10;
+
+  // Optional human-readable provider activity text.
+  string status_text = 11;
+
+  // Talon-defined activity labels for diagnostics and provider-specific hints.
+  map<string, string> labels = 12;
+}
+
+// ConnectorStatusEvent lets the connector service report registration or
+// provider connection health without sending a message event.
+message ConnectorStatusEvent {
+  // Talon-owned ConnectorClass registration identifier whose health is being
+  // reported.
+  string registration_id = 1;
+
+  // Optional provider-specific route fields identifying the affected Connector
+  // or provider account.
+  map<string, string> match_fields = 2;
+
+  // Connector-service-reported health, such as connected, degraded, disabled,
+  // or revoked.
+  string status = 3;
+
+  // Machine-readable diagnostic reason, such as provider_token_revoked.
+  string reason = 4;
+}
+
+message ConnectorAckResponse {
+  // True when Talon accepted the status/report request.
+  bool accepted = 1;
+
+  // Machine-readable acknowledgement outcome.
+  string disposition = 2;
+}

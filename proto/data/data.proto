@@ -34,6 +34,26 @@ message ObjectRef {
   map<string, string> metadata = 6;
 }
 
+message Principal {
+  // Stable provider-native principal identifier when available, such as a
+  // Slack user ID or iMessage handle GUID.
+  string external_id = 1;
+
+  // Human-addressable identity when available, such as email, phone number, or
+  // iMessage handle.
+  string address = 2;
+
+  // Display name captured from the provider at event time.
+  string display_name = 3;
+
+  // Normalized principal kind, such as user, bot, app, or system.
+  string kind = 4;
+
+  // Provider-specific identity metadata that does not justify a first-class
+  // protocol field.
+  map<string, string> metadata = 5;
+}
+
 message SessionMessagePart {
   string id = 1;
   SessionMessagePartType part_type = 2;

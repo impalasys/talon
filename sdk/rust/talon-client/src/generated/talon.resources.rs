@@ -1047,6 +1047,131 @@ pub struct Worker {
     pub status: ::core::option::Option<WorkerStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorClassRuntimeSpec {
+    /// Runtime implementation type, for example an HTTP connector service.
+    #[prost(string, tag = "1")]
+    pub kind: ::prost::alloc::string::String,
+    /// Base URL for the connector service that implements the Talon connector
+    /// protocol for this class.
+    #[prost(string, tag = "2")]
+    pub endpoint: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorClassAuthSpec {
+    /// Authentication scheme Talon uses when calling the connector service.
+    #[prost(string, tag = "1")]
+    pub kind: ::prost::alloc::string::String,
+    /// API key or secret reference used to authenticate this Talon cluster to the
+    /// connector service.
+    #[prost(message, optional, tag = "2")]
+    pub api_key: ::core::option::Option<super::config::Secret>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorMatchIndex {
+    /// Connector-service-defined index name, stable within the ConnectorClass.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Match field names, in priority order, used to compile routing keys.
+    #[prost(string, repeated, tag = "2")]
+    pub fields: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorClassSpec {
+    /// External messaging platform implemented by this class, such as slack or
+    /// imessage.
+    #[prost(string, tag = "1")]
+    pub platform: ::prost::alloc::string::String,
+    /// How Talon reaches the connector service.
+    #[prost(message, optional, tag = "2")]
+    pub runtime: ::core::option::Option<ConnectorClassRuntimeSpec>,
+    /// How Talon authenticates requests to the connector service.
+    #[prost(message, optional, tag = "3")]
+    pub auth: ::core::option::Option<ConnectorClassAuthSpec>,
+    /// Provider-specific match indexes supported by this connector service.
+    #[prost(message, repeated, tag = "4")]
+    pub match_indexes: ::prost::alloc::vec::Vec<ConnectorMatchIndex>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorClassStatus {
+    /// Resource generation last reconciled by the ConnectorController.
+    #[prost(uint64, tag = "1")]
+    pub observed_generation: u64,
+    /// Current registration phase for this class, such as pending, ready, or
+    /// degraded.
+    #[prost(string, tag = "2")]
+    pub phase: ::prost::alloc::string::String,
+    /// Detailed readiness and error conditions from registration with the
+    /// connector service.
+    #[prost(message, repeated, tag = "3")]
+    pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorSpec {
+    /// ConnectorClass that owns the platform adapter and match index definitions.
+    /// If namespace is empty, Talon resolves the class in the Connector's
+    /// namespace. In v1, a non-empty namespace must match the Connector namespace;
+    /// cross-namespace class references require a future policy/RBAC gate.
+    #[prost(message, optional, tag = "1")]
+    pub class_ref: ::core::option::Option<ResourceRef>,
+    /// Disabled Connectors are not indexed for incoming message routing.
+    #[prost(bool, tag = "2")]
+    pub enabled: bool,
+    /// Provider-specific route fields, such as Slack team/channel IDs or an
+    /// iMessage profile identifier. Talon treats these as opaque keys described by
+    /// the ConnectorClass match indexes.
+    #[prost(map = "string, string", tag = "3")]
+    pub match_fields: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    /// Single Talon message consumer for messages that match this Connector.
+    #[prost(message, optional, tag = "4")]
+    pub consumer: ::core::option::Option<super::data::MessageConsumer>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorStatus {
+    /// Resource generation last reconciled by the ConnectorController.
+    #[prost(uint64, tag = "1")]
+    pub observed_generation: u64,
+    /// Current route indexing phase for this Connector, such as ready or invalid.
+    #[prost(string, tag = "2")]
+    pub phase: ::prost::alloc::string::String,
+    /// Detailed route-indexing readiness and validation conditions.
+    #[prost(message, repeated, tag = "3")]
+    pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    /// Materialized route IDs generated from match_fields and the owning
+    /// ConnectorClass match indexes.
+    #[prost(string, repeated, tag = "4")]
+    pub compiled_route_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorClass {
+    /// Standard namespaced resource metadata. ConnectorClasses are regular
+    /// namespace resources so each tenant or operator namespace can define its own
+    /// trusted connector services.
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    /// Desired connector service registration and platform capabilities.
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<ConnectorClassSpec>,
+    /// Observed registration state for this connector service class.
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<ConnectorClassStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Connector {
+    /// Standard namespaced resource metadata. Each Connector is owned by the
+    /// namespace whose messages it routes into Talon.
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    /// Desired provider match and Talon message consumer for one route.
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<ConnectorSpec>,
+    /// Observed route-indexing state for this Connector.
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<ConnectorStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Resource {
     #[prost(string, tag = "1")]
     pub api_version: ::prost::alloc::string::String,
@@ -1084,7 +1209,7 @@ pub struct RawResourceStatus {
 pub struct ResourceSpec {
     #[prost(
         oneof = "resource_spec::Kind",
-        tags = "1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
+        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
     )]
     pub kind: ::core::option::Option<resource_spec::Kind>,
 }
@@ -1102,6 +1227,10 @@ pub mod resource_spec {
         Channel(super::ChannelSpec),
         #[prost(message, tag = "5")]
         ChannelSubscription(super::ChannelSubscriptionSpec),
+        #[prost(message, tag = "12")]
+        ConnectorClass(super::ConnectorClassSpec),
+        #[prost(message, tag = "13")]
+        Connector(super::ConnectorSpec),
         #[prost(message, tag = "6")]
         McpServer(super::McpServerSpec),
         #[prost(message, tag = "8")]
@@ -1136,7 +1265,7 @@ pub mod resource_spec {
 pub struct ResourceStatus {
     #[prost(
         oneof = "resource_status::Kind",
-        tags = "1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
+        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
     )]
     pub kind: ::core::option::Option<resource_status::Kind>,
 }
@@ -1154,6 +1283,10 @@ pub mod resource_status {
         Channel(super::ChannelStatus),
         #[prost(message, tag = "5")]
         ChannelSubscription(super::CommonResourceStatus),
+        #[prost(message, tag = "12")]
+        ConnectorClass(super::ConnectorClassStatus),
+        #[prost(message, tag = "13")]
+        Connector(super::ConnectorStatus),
         #[prost(message, tag = "6")]
         McpServer(super::CommonResourceStatus),
         #[prost(message, tag = "8")]

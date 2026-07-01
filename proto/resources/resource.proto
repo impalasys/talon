@@ -5,6 +5,7 @@ package talon.resources;
 import "proto/resources/agents.proto";
 import "proto/resources/channels.proto";
 import "proto/resources/common.proto";
+import "proto/resources/connectors.proto";
 import "proto/resources/deployments.proto";
 import "proto/resources/knowledge.proto";
 import "proto/resources/mcp.proto";
@@ -50,6 +51,8 @@ message ResourceSpec {
     ScheduleSpec schedule = 3;
     ChannelSpec channel = 4;
     ChannelSubscriptionSpec channel_subscription = 5;
+    ConnectorClassSpec connector_class = 12;
+    ConnectorSpec connector = 13;
     McpServerSpec mcp_server = 6;
     KnowledgeSpec knowledge = 8;
     NamespaceSpec namespace = 9;
@@ -77,6 +80,8 @@ message ResourceStatus {
     ScheduleStatus schedule = 3;
     ChannelStatus channel = 4;
     CommonResourceStatus channel_subscription = 5;
+    ConnectorClassStatus connector_class = 12;
+    ConnectorStatus connector = 13;
     CommonResourceStatus mcp_server = 6;
     CommonResourceStatus knowledge = 8;
     NamespaceStatus namespace = 9;

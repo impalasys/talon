@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package talon.v1;
+
+import "proto/external/connectors.proto";
+
+// ConnectorService is implemented by Talon's gateway for callbacks from an
+// external connector service. The connector service owns provider-specific
+// webhooks and OAuth/runtime details; Talon owns routing into Sessions and
+// Channels after a normalized event is accepted here.
+service ConnectorService {
+  // IngestMessageEvent delivers one normalized provider message event to Talon.
+  // Talon deduplicates under the ConnectorClass registration by event_id,
+  // resolves a Connector by match_fields, and dispatches the message to the
+  // resolved message consumer.
+  rpc IngestMessageEvent(talon.external.ConnectorMessageEvent) returns (talon.external.ConnectorMessageEventResponse);
+
+  // ReportStatus lets the connector service report registration or provider
+  // connection health without sending a message event.
+  rpc ReportStatus(talon.external.ConnectorStatusEvent) returns (talon.external.ConnectorAckResponse);
+}

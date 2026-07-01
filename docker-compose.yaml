@@ -24,7 +24,8 @@ services:
       - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET:-local-dev-talon-jwt}
       - TALON_CONFIG_PATH=/data/talon/talon.docker-compose.yaml
     env_file:
-      - .env
+      - path: .env
+        required: false
     volumes:
       - ./talon.docker-compose.yaml:/data/talon/talon.docker-compose.yaml:ro
       - talon-objects:/data/talon/objects
@@ -91,12 +92,14 @@ services:
       - ANTHROPIC_API_KEY
       - TALON_GOOGLE_CLIENT_ID
       - TALON_GOOGLE_WEB_CLIENT_ID
+      - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET:-local-dev-talon-jwt}
       - PULL_MODE=1
       - TALON_CONFIG_PATH=/data/talon/talon.docker-compose.yaml
       - TALON_WORKER_ENDPOINT_URL=http://worker:8081
       - TALON_WORKER_ENDPOINT_PROTOCOL=grpc
     env_file:
-      - .env
+      - path: .env
+        required: false
     volumes:
       - ./talon.docker-compose.yaml:/data/talon/talon.docker-compose.yaml:ro
       - talon-objects:/data/talon/objects
@@ -135,9 +138,11 @@ services:
       - ./manifests:/manifests:ro
       - talon-auth:/data/talon/auth:ro
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       - TALON_GATEWAY=http://gateway:50051
+      - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET:-local-dev-talon-jwt}
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
@@ -162,7 +167,10 @@ services:
       - ./manifests:/manifests:ro
       - talon-auth:/data/talon/auth:ro
     env_file:
-      - .env
+      - path: .env
+        required: false
+    environment:
+      - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET:-local-dev-talon-jwt}
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |

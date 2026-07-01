@@ -68,6 +68,102 @@ impl ControllerHost {
                     "Sandbox controller observed resource change"
                 );
             }
+            "ConnectorClass" | "Connector" => {
+                if is_status_only_update(&event) {
+                    return Ok(());
+                }
+                tracing::info!(
+                    namespace = %event.namespace,
+                    kind = %event.resource_kind,
+                    name = %event.name,
+                    "Connector controller observed resource change"
+                );
+                let store = ResourceStore::new(self.cp.kv.clone(), self.cp.pubsub.clone());
+                let controller =
+                    crate::worker::controllers::connectors::ConnectorController::new(store.clone());
+                match event.resource_kind.as_str() {
+                    "ConnectorClass" => {
+                        if let Some(class) = store
+                            .get(&event.namespace, "ConnectorClass", &event.name)
+                            .await?
+                        {
+                            if let Err(err) = controller
+                                .reconcile_class(&class, self.cp.as_ref(), self.config.as_ref())
+                                .await
+                            {
+                                tracing::warn!(error = %err, name = %event.name, "ConnectorClass reconcile failed");
+                                controller
+                                    .reconcile_class_error(
+                                        &class,
+                                        self.cp.as_ref(),
+                                        err.to_string(),
+                                    )
+                                    .await?;
+                            }
+                        } else if event.change_type
+                            == crate::control::events::ResourceChangeType::Deleted as i32
+                        {
+                            crate::worker::controllers::connectors::delete_connector_class_entries(
+                                self.cp.kv.as_ref(),
+                                &event.namespace,
+                                &event.name,
+                            )
+                            .await?;
+                        }
+                    }
+                    "Connector" => {
+                        if let Some(connector) = store
+                            .get(&event.namespace, "Connector", &event.name)
+                            .await?
+                        {
+                            if let Err(err) = controller
+                                .reconcile_connector(&connector, self.cp.as_ref())
+                                .await
+                            {
+                                tracing::warn!(
+                                    error = %err,
+                                    namespace = %event.namespace,
+                                    name = %event.name,
+                                    "Connector reconcile failed"
+                                );
+                                controller
+                                    .reconcile_connector_error(
+                                        &connector,
+                                        self.cp.as_ref(),
+                                        err.to_string(),
+                                    )
+                                    .await?;
+                            }
+                        } else if event.change_type
+                            == crate::control::events::ResourceChangeType::Deleted as i32
+                        {
+                            for namespace_key in self
+                                .cp
+                                .kv
+                                .list_keys(&crate::control::keys::namespace_metadata_prefix())
+                                .await?
+                            {
+                                for class in store
+                                    .list(&namespace_key.name, Some("ConnectorClass"))
+                                    .await?
+                                {
+                                    let Some(meta) = class.metadata.as_ref() else {
+                                        continue;
+                                    };
+                                    crate::worker::controllers::connectors::delete_route_entries_for_uid(
+                                        self.cp.kv.as_ref(),
+                                        &meta.namespace,
+                                        &meta.name,
+                                        &event.uid,
+                                    )
+                                    .await?;
+                                }
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
             _ => {}
         }
         Ok(())
@@ -127,6 +223,15 @@ impl ControllerHost {
     }
 }
 
+fn is_status_only_update(event: &ResourceChangedEvent) -> bool {
+    event.change_type == crate::control::events::ResourceChangeType::Updated as i32
+        && !event.changed_sections.is_empty()
+        && event
+            .changed_sections
+            .iter()
+            .all(|section| section == "status")
+}
+
 fn deployment_spec(
     deployment: &resources_proto::Resource,
 ) -> Option<&resources_proto::DeploymentSpec> {
@@ -182,6 +287,7 @@ fn controller_for_kind(kind: &str) -> &'static str {
     match kind {
         "Deployment" | "Template" | "Namespace" => "deployment",
         "Sandbox" | "SandboxPolicy" | "SandboxClass" => "sandbox",
+        "ConnectorClass" | "Connector" => "connectors",
         _ => "",
     }
 }

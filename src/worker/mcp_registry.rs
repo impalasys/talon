@@ -395,7 +395,10 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            resolved.metadata.as_ref().map(|meta| meta.namespace.as_str()),
+            resolved
+                .metadata
+                .as_ref()
+                .map(|meta| meta.namespace.as_str()),
             Some("conic:child")
         );
         assert_eq!(
@@ -415,7 +418,10 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            resolved.metadata.as_ref().map(|meta| meta.namespace.as_str()),
+            resolved
+                .metadata
+                .as_ref()
+                .map(|meta| meta.namespace.as_str()),
             Some("conic")
         );
     }

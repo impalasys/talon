@@ -162,6 +162,12 @@ impl Gateway {
         let search_service = tonic_web::enable(
             crate::gateway::rpc::proto::search_service_server::SearchServiceServer::with_interceptor(
                 handler.clone(),
+                interceptor.clone(),
+            ),
+        );
+        let connector_service = tonic_web::enable(
+            crate::gateway::rpc::proto::connector_service_server::ConnectorServiceServer::with_interceptor(
+                handler.clone(),
                 interceptor,
             ),
         );
@@ -178,6 +184,7 @@ impl Gateway {
             .add_service(workflow_service)
             .add_service(knowledge_service)
             .add_service(search_service)
+            .add_service(connector_service)
             .add_service(auth_service)
             .into_service::<BoxBody>();
 

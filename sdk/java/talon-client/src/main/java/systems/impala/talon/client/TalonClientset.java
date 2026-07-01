@@ -5,6 +5,7 @@ package systems.impala.talon.client;
 import io.grpc.Channel;
 import talon.v1.AuthServiceGrpc;
 import talon.v1.ChannelServiceGrpc;
+import talon.v1.ConnectorServiceGrpc;
 import talon.v1.KnowledgeServiceGrpc;
 import talon.v1.NamespaceServiceGrpc;
 import talon.v1.ResourceServiceGrpc;
@@ -20,6 +21,9 @@ public final class TalonClientset {
     private final ChannelServiceGrpc.ChannelServiceBlockingStub channels;
     private final ChannelServiceGrpc.ChannelServiceStub channelsAsync;
     private final ChannelServiceGrpc.ChannelServiceFutureStub channelsFuture;
+    private final ConnectorServiceGrpc.ConnectorServiceBlockingStub connectors;
+    private final ConnectorServiceGrpc.ConnectorServiceStub connectorsAsync;
+    private final ConnectorServiceGrpc.ConnectorServiceFutureStub connectorsFuture;
     private final KnowledgeServiceGrpc.KnowledgeServiceBlockingStub knowledge;
     private final KnowledgeServiceGrpc.KnowledgeServiceStub knowledgeAsync;
     private final KnowledgeServiceGrpc.KnowledgeServiceFutureStub knowledgeFuture;
@@ -51,6 +55,9 @@ public final class TalonClientset {
         this.channels = ChannelServiceGrpc.newBlockingStub(channel);
         this.channelsAsync = ChannelServiceGrpc.newStub(channel);
         this.channelsFuture = ChannelServiceGrpc.newFutureStub(channel);
+        this.connectors = ConnectorServiceGrpc.newBlockingStub(channel);
+        this.connectorsAsync = ConnectorServiceGrpc.newStub(channel);
+        this.connectorsFuture = ConnectorServiceGrpc.newFutureStub(channel);
         this.knowledge = KnowledgeServiceGrpc.newBlockingStub(channel);
         this.knowledgeAsync = KnowledgeServiceGrpc.newStub(channel);
         this.knowledgeFuture = KnowledgeServiceGrpc.newFutureStub(channel);
@@ -97,6 +104,18 @@ public final class TalonClientset {
 
     public ChannelServiceGrpc.ChannelServiceFutureStub channelsFuture() {
         return channelsFuture;
+    }
+
+    public ConnectorServiceGrpc.ConnectorServiceBlockingStub connectors() {
+        return connectors;
+    }
+
+    public ConnectorServiceGrpc.ConnectorServiceStub connectorsAsync() {
+        return connectorsAsync;
+    }
+
+    public ConnectorServiceGrpc.ConnectorServiceFutureStub connectorsFuture() {
+        return connectorsFuture;
     }
 
     public KnowledgeServiceGrpc.KnowledgeServiceBlockingStub knowledge() {

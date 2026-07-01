@@ -8,9 +8,9 @@ The Talon gateway API is defined by the domain service files in `proto/talon/v1/
 ## Surface summary
 
 - Package: `talon.v1`
-- Services: `NamespaceService`, `ResourceService`, `SessionService`, `ChannelService`, `WorkflowService`, `KnowledgeService`, `AuthService`
+- Services: `NamespaceService`, `ResourceService`, `SessionService`, `ChannelService`, `WorkflowService`, `KnowledgeService`, `AuthService`, `ConnectorService`, `SearchService`
 - Transport modes: native gRPC and gRPC-Web on the gateway port
-- Total RPC methods: **35**
+- Total RPC methods: **44**
 
 ## NamespaceService
 
@@ -200,3 +200,56 @@ The Talon gateway API is defined by the domain service files in `proto/talon/v1/
 
 - Request: `ExchangeOidcTokenRequest`
 - Response: `ExchangeOidcTokenResponse`
+
+### `MintAccessToken`
+
+- Request: `MintAccessTokenRequest`
+- Response: `MintAccessTokenResponse`
+
+### `CreateApiKey`
+
+- Request: `CreateApiKeyRequest`
+- Response: `CreateApiKeyResponse`
+
+### `ListApiKeys`
+
+- Request: `ListApiKeysRequest`
+- Response: `ListApiKeysResponse`
+
+### `RevokeApiKey`
+
+- Request: `RevokeApiKeyRequest`
+- Response: `RevokeApiKeyResponse`
+
+### `ExchangeApiKey`
+
+- Request: `ExchangeApiKeyRequest`
+- Response: `ExchangeApiKeyResponse`
+
+## ConnectorService
+
+### `IngestMessageEvent`
+
+IngestMessageEvent delivers one normalized provider message event to Talon. Talon deduplicates under the ConnectorClass registration by event_id, resolves a Connector by match_fields, and dispatches the message to the resolved message consumer.
+
+- Request: `talon.external.ConnectorMessageEvent`
+- Response: `talon.external.ConnectorMessageEventResponse`
+
+### `ReportStatus`
+
+ReportStatus lets the connector service report registration or provider connection health without sending a message event.
+
+- Request: `talon.external.ConnectorStatusEvent`
+- Response: `talon.external.ConnectorAckResponse`
+
+## SearchService
+
+### `Search`
+
+- Request: `SearchRequest`
+- Response: `SearchResponse`
+
+### `GetResult`
+
+- Request: `GetSearchResultRequest`
+- Response: `GetSearchResultResponse`

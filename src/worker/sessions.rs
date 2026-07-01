@@ -12,6 +12,7 @@ use super::runtime::AgentRuntime;
 use super::sink::PubSubSessionSink;
 use super::WorkerEventHandler;
 use crate::control::{events::SessionMessageEvent, ControlPlane, ProtoKeyValueStoreExt};
+use crate::gateway::rpc::connectors as connector_rpc;
 use crate::gateway::rpc::data_proto::{
     self, session_journal_entry_payload, SessionExecutionPhase, SessionSubmissionStatus,
 };
@@ -23,6 +24,9 @@ use tracing::Instrument;
 const MAX_SESSION_RELEASE_CAS_RETRIES: usize = 8;
 const SESSION_RELEASE_CAS_BACKOFF_MS: u64 = 10;
 const DEFAULT_FANOUT_SUBSCRIBER_GRACE_MS: u64 = 100;
+const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
+const LABEL_CONNECTOR_REGISTRATION: &str = "talon.impalasys.com/connector-registration";
+const LABEL_CHANNEL_TRIGGER: &str = "talon.impalasys.com/channel-trigger";
 
 fn fanout_subscriber_grace() -> std::time::Duration {
     let millis = match std::env::var("TALON_WORKER_FANOUT_SUBSCRIBER_GRACE_MS") {
@@ -41,6 +45,17 @@ fn fanout_subscriber_grace() -> std::time::Duration {
         Err(_) => DEFAULT_FANOUT_SUBSCRIBER_GRACE_MS,
     };
     std::time::Duration::from_millis(millis)
+}
+
+fn session_message_text(message: &data_proto::SessionMessage) -> String {
+    message
+        .parts
+        .iter()
+        .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+        .map(|part| part.content.trim())
+        .filter(|content| !content.is_empty())
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 async fn execute_with_panic_boundary<F>(
@@ -337,6 +352,27 @@ impl WorkerEventHandler {
                     committed_message_id = ?submission.committed_message_id,
                     "Session submission already terminal; skipping duplicate delivery"
                 );
+                if submission.status == SessionSubmissionStatus::Committed as i32 {
+                    if let Some(committed_message_id) = submission.committed_message_id.as_deref() {
+                        if let Err(err) = self
+                            .maybe_deliver_connector_session_reply(
+                                ns,
+                                &event.agent,
+                                &event.session_id,
+                                committed_message_id,
+                            )
+                            .await
+                        {
+                            tracing::warn!(
+                                error = %err,
+                                agent = %event.agent,
+                                session = %event.session_id,
+                                message_id = %committed_message_id,
+                                "failed to deliver already-committed connector session reply"
+                            );
+                        }
+                    }
+                }
                 self.release_session_lock(
                     ns,
                     &event.agent,
@@ -494,6 +530,26 @@ impl WorkerEventHandler {
             )
             .await;
             return Ok(());
+        }
+
+        if let Err(err) = self
+            .maybe_send_connector_session_activity(
+                ns,
+                &event.agent,
+                &event.session_id,
+                &submission.submission_id,
+                "start",
+                "is thinking...",
+            )
+            .await
+        {
+            tracing::warn!(
+                error = %err,
+                agent = %event.agent,
+                session = %event.session_id,
+                submission = %submission.submission_id,
+                "failed to send connector typing start activity"
+            );
         }
 
         let outcome = async {
@@ -674,6 +730,46 @@ impl WorkerEventHandler {
         ))
         .await;
 
+        if let Err(err) = self
+            .maybe_send_connector_session_activity(
+                ns,
+                &event.agent,
+                &event.session_id,
+                &submission.submission_id,
+                "stop",
+                "",
+            )
+            .await
+        {
+            tracing::warn!(
+                error = %err,
+                agent = %event.agent,
+                session = %event.session_id,
+                submission = %submission.submission_id,
+                "failed to send connector typing stop activity"
+            );
+        }
+
+        if completion_status == SessionCompletionStatus::Completed {
+            if let Err(err) = self
+                .maybe_deliver_connector_session_reply(
+                    ns,
+                    &event.agent,
+                    &event.session_id,
+                    &sink.reply_msg_id,
+                )
+                .await
+            {
+                tracing::warn!(
+                    error = %err,
+                    agent = %event.agent,
+                    session = %event.session_id,
+                    message_id = %sink.reply_msg_id,
+                    "failed to deliver connector session reply"
+                );
+            }
+        }
+
         // If execution failed after writing a reply projection, terminalize the
         // submission as failed so redelivery does not treat it as still claimed.
         if outcome.is_err() || completion_status != SessionCompletionStatus::Completed {
@@ -737,6 +833,104 @@ impl WorkerEventHandler {
         }
 
         outcome.map(|_| ())
+    }
+
+    async fn maybe_send_connector_session_activity(
+        &self,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        submission_id: &str,
+        phase: &str,
+        status_text: &str,
+    ) -> Result<()> {
+        let session = self
+            .cp
+            .kv
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(ns, agent, session_id))
+            .await?
+            .ok_or_else(|| anyhow!("session not found"))?;
+        if !session.labels.contains_key(LABEL_CONNECTOR_REGISTRATION) {
+            return Ok(());
+        }
+        if session
+            .labels
+            .get(LABEL_MESSAGE_SOURCE)
+            .is_some_and(|source| source != "connector")
+        {
+            return Ok(());
+        }
+        if session.labels.contains_key(LABEL_CHANNEL_TRIGGER) {
+            return Ok(());
+        }
+        connector_rpc::send_connector_session_activity(
+            &self.cp,
+            &session,
+            &format!("{submission_id}:typing:{phase}"),
+            phase,
+            status_text,
+        )
+        .await
+    }
+
+    async fn maybe_deliver_connector_session_reply(
+        &self,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        message_id: &str,
+    ) -> Result<()> {
+        let session = self
+            .cp
+            .kv
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(ns, agent, session_id))
+            .await?
+            .ok_or_else(|| anyhow!("session not found"))?;
+        if !session.labels.contains_key(LABEL_CONNECTOR_REGISTRATION) {
+            return Ok(());
+        }
+        if session
+            .labels
+            .get(LABEL_MESSAGE_SOURCE)
+            .is_some_and(|source| source != "connector")
+        {
+            return Ok(());
+        }
+        if session.labels.contains_key(LABEL_CHANNEL_TRIGGER) {
+            return Ok(());
+        }
+
+        let message = self
+            .cp
+            .kv
+            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+                ns, agent, session_id, message_id,
+            ))
+            .await?
+            .ok_or_else(|| anyhow!("assistant message not found"))?;
+        let text = session_message_text(&message);
+        if text.trim().is_empty() {
+            tracing::info!(
+                namespace = %ns,
+                agent = %agent,
+                session = %session_id,
+                message_id = %message_id,
+                "connector session reply has no text; skipping outbound delivery"
+            );
+            return Ok(());
+        }
+        if connector_rpc::is_connector_silence_response(&text) {
+            tracing::info!(
+                namespace = %ns,
+                agent = %agent,
+                session = %session_id,
+                message_id = %message_id,
+                "connector session reply suppressed by no-reply token"
+            );
+            return Ok(());
+        }
+
+        connector_rpc::deliver_connector_session_message(&self.cp, &session, &message, &text).await
     }
 
     pub async fn handle_session_control(

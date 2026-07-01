@@ -192,6 +192,80 @@ export class ObjectRef extends Message<ObjectRef> {
 }
 
 /**
+ * @generated from message talon.data.Principal
+ */
+export class Principal extends Message<Principal> {
+  /**
+   * Stable provider-native principal identifier when available, such as a
+   * Slack user ID or iMessage handle GUID.
+   *
+   * @generated from field: string external_id = 1;
+   */
+  externalId = "";
+
+  /**
+   * Human-addressable identity when available, such as email, phone number, or
+   * iMessage handle.
+   *
+   * @generated from field: string address = 2;
+   */
+  address = "";
+
+  /**
+   * Display name captured from the provider at event time.
+   *
+   * @generated from field: string display_name = 3;
+   */
+  displayName = "";
+
+  /**
+   * Normalized principal kind, such as user, bot, app, or system.
+   *
+   * @generated from field: string kind = 4;
+   */
+  kind = "";
+
+  /**
+   * Provider-specific identity metadata that does not justify a first-class
+   * protocol field.
+   *
+   * @generated from field: map<string, string> metadata = 5;
+   */
+  metadata: { [key: string]: string } = {};
+
+  constructor(data?: PartialMessage<Principal>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.Principal";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "external_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "address", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "display_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Principal {
+    return new Principal().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Principal {
+    return new Principal().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Principal {
+    return new Principal().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Principal | PlainMessage<Principal> | undefined, b: Principal | PlainMessage<Principal> | undefined): boolean {
+    return proto3.util.equals(Principal, a, b);
+  }
+}
+
+/**
  * @generated from message talon.data.SessionMessagePart
  */
 export class SessionMessagePart extends Message<SessionMessagePart> {

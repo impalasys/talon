@@ -266,6 +266,78 @@ pub fn namespace_ref_prefix(parent: Option<&str>) -> ResourceList {
     direct_child_prefix(ref_namespace, &[], Some("NamespaceRef"))
 }
 
+pub fn connector_registration_id(class_namespace: &str, class_name: &str) -> String {
+    format!(
+        "Namespace/{}/ConnectorClass/{}",
+        enc(class_namespace),
+        enc(class_name)
+    )
+}
+
+pub fn parse_connector_registration_id(registration_id: &str) -> Result<(String, String)> {
+    let parts = registration_id.split('/').collect::<Vec<_>>();
+    if parts.len() != 4 || parts[0] != "Namespace" || parts[2] != "ConnectorClass" {
+        bail!("connector registration id must be Namespace/<namespace>/ConnectorClass/<name>");
+    }
+    let namespace = dec(parts[1])?;
+    let class_name = dec(parts[3])?;
+    if namespace.trim().is_empty() || class_name.trim().is_empty() {
+        bail!("connector registration id namespace and ConnectorClass name are required");
+    }
+    Ok((namespace, class_name))
+}
+
+pub fn connector_route(class_namespace: &str, class_name: &str, name: &str) -> ResourceKey {
+    resource_key(
+        class_namespace,
+        &[("ConnectorClass", class_name)],
+        "Route",
+        name,
+    )
+}
+
+pub fn connector_route_prefix(class_namespace: &str, class_name: &str) -> ResourceList {
+    direct_child_prefix(
+        class_namespace,
+        &[("ConnectorClass", class_name)],
+        Some("Route"),
+    )
+}
+
+pub fn connector_event(class_namespace: &str, class_name: &str, event_id: &str) -> ResourceKey {
+    resource_key(
+        class_namespace,
+        &[("ConnectorClass", class_name)],
+        "Event",
+        event_id,
+    )
+}
+
+pub fn connector_event_prefix(class_namespace: &str, class_name: &str) -> ResourceList {
+    direct_child_prefix(
+        class_namespace,
+        &[("ConnectorClass", class_name)],
+        Some("Event"),
+    )
+}
+
+pub fn connector_session(class_namespace: &str, class_name: &str, name: &str) -> ResourceKey {
+    resource_key(
+        class_namespace,
+        &[("ConnectorClass", class_name)],
+        "Session",
+        name,
+    )
+}
+
+pub fn connector_session_prefix(class_namespace: &str, class_name: &str) -> ResourceList {
+    direct_child_prefix(
+        class_namespace,
+        &[("ConnectorClass", class_name)],
+        Some("Session"),
+    )
+}
+
 pub fn agent(namespace: &str, id: &str) -> ResourceKey {
     resource_key(namespace, &[], "Agent", id)
 }
@@ -586,6 +658,27 @@ mod tests {
             channel_subscription("Impala:Talon", "incident-123", "researcher").canonical(),
             "@Namespace/Impala:Talon/Channel/incident-123/@/ChannelSubscription/researcher"
         );
+        assert_eq!(
+            connector_route("Impala:Talon", "slack", "team\u{1f}teamId=T123").canonical(),
+            "@Namespace/Impala:Talon/ConnectorClass/slack/@/Route/team%1FteamId%3DT123"
+        );
+    }
+
+    #[test]
+    fn connector_registration_id_round_trips_encoded_segments() {
+        let registration_id = connector_registration_id("customer/acme", "slack:prod");
+        assert_eq!(
+            registration_id,
+            "Namespace/customer%2Facme/ConnectorClass/slack%3Aprod"
+        );
+        assert_eq!(
+            parse_connector_registration_id(&registration_id).unwrap(),
+            ("customer/acme".to_string(), "slack:prod".to_string())
+        );
+        assert!(parse_connector_registration_id("reg_abc").is_err());
+        assert!(parse_connector_registration_id("Namespace/acme/Connector/slack").is_err());
+        assert!(parse_connector_registration_id("Namespace//ConnectorClass/slack").is_err());
+        assert!(parse_connector_registration_id("Namespace/acme/ConnectorClass/").is_err());
     }
 
     #[test]

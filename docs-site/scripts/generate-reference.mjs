@@ -12,13 +12,18 @@ const protoRoot = path.resolve(talonRoot, "proto");
 const apiProtos = [
   "auth.proto",
   "channels.proto",
+  "connectors.proto",
   "knowledge.proto",
   "namespaces.proto",
   "resources.proto",
+  "search.proto",
   "sessions.proto",
   "workflows.proto",
 ].map((file) => path.resolve(protoRoot, "talon", "v1", file));
 const configProto = path.resolve(protoRoot, "config.proto");
+const externalProtos = [
+  "external/connectors.proto",
+].map((file) => path.resolve(protoRoot, file));
 const resourceProtos = [
   "resources/common.proto",
   "resources/agents.proto",
@@ -26,6 +31,7 @@ const resourceProtos = [
   "resources/knowledge.proto",
   "resources/namespaces.proto",
   "resources/channels.proto",
+  "resources/connectors.proto",
   "resources/schedules.proto",
   "resources/workflows.proto",
   "resources/deployments.proto",
@@ -35,6 +41,7 @@ const resourceProtos = [
   "resources/usage.proto",
   "resources/workers.proto",
   "resources/resource.proto",
+  "data/routing.proto",
 ].map((file) => path.resolve(protoRoot, file));
 
 await rm(generatedRoot, {recursive: true, force: true});
@@ -57,7 +64,8 @@ This section is generated from Talon's canonical source files in the monorepo:
 - \`talon/proto/talon/v1/*.proto\`
 - \`talon/proto/config.proto\`
 - \`talon/proto/resources/*.proto\`
-- \`talon/proto/data/data.proto\`
+- \`talon/proto/data/*.proto\`
+- \`talon/proto/external/*.proto\`
 
 The generated pages are intentionally static artifacts checked into the repo so API changes are reviewable in pull requests.
 `,
@@ -70,6 +78,13 @@ await generateSchemaReference({
   slug: "config-schema",
   intro:
     "This page summarizes the major configuration messages exposed by Talon's runtime configuration proto.",
+});
+await generateSchemaReference({
+  sourcePaths: externalProtos,
+  title: "External Connector Schemas",
+  slug: "external-connector-schemas",
+  intro:
+    "This page summarizes the connector runtime contract that external connector services implement when registering clusters, receiving deliveries and activities, and calling back into Talon.",
 });
 await generateSchemaReference({
   sourcePaths: resourceProtos,
@@ -89,6 +104,8 @@ async function generateGatewayReference() {
     "WorkflowService",
     "KnowledgeService",
     "AuthService",
+    "ConnectorService",
+    "SearchService",
   ];
   const services = serviceNames.map((name) => ({
     name,

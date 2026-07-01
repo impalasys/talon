@@ -4,6 +4,7 @@ import grpc
 
 from talon_client.proto.talon.v1 import auth_pb2_grpc
 from talon_client.proto.talon.v1 import channels_pb2_grpc
+from talon_client.proto.talon.v1 import connectors_pb2_grpc
 from talon_client.proto.talon.v1 import knowledge_pb2_grpc
 from talon_client.proto.talon.v1 import namespaces_pb2_grpc
 from talon_client.proto.talon.v1 import resources_pb2_grpc
@@ -15,6 +16,7 @@ from talon_client.proto.talon.v1 import workflows_pb2_grpc
 class TalonClient:
     auth: auth_pb2_grpc.AuthServiceStub
     channels: channels_pb2_grpc.ChannelServiceStub
+    connectors: connectors_pb2_grpc.ConnectorServiceStub
     knowledge: knowledge_pb2_grpc.KnowledgeServiceStub
     namespaces: namespaces_pb2_grpc.NamespaceServiceStub
     resources: resources_pb2_grpc.ResourceServiceStub
@@ -25,6 +27,7 @@ class TalonClient:
     def __init__(self, channel: grpc.Channel):
         self.auth = auth_pb2_grpc.AuthServiceStub(channel)
         self.channels = channels_pb2_grpc.ChannelServiceStub(channel)
+        self.connectors = connectors_pb2_grpc.ConnectorServiceStub(channel)
         self.knowledge = knowledge_pb2_grpc.KnowledgeServiceStub(channel)
         self.namespaces = namespaces_pb2_grpc.NamespaceServiceStub(channel)
         self.resources = resources_pb2_grpc.ResourceServiceStub(channel)

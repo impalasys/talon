@@ -289,6 +289,12 @@ pub fn resource_spec_status_from_json(
         "UsagePolicy" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::UsagePolicy(serde_json::from_value(spec_value)?)),
         },
+        "ConnectorClass" => resources_proto::ResourceSpec {
+            kind: Some(SpecKind::ConnectorClass(serde_json::from_value(spec_value)?)),
+        },
+        "Connector" => resources_proto::ResourceSpec {
+            kind: Some(SpecKind::Connector(serde_json::from_value(spec_value)?)),
+        },
         "Skill" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Skill(skill_spec_from_value(spec_value)?)),
         },
@@ -349,6 +355,14 @@ pub fn resource_spec_status_from_json(
         },
         "UsagePolicy" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::UsagePolicy(serde_json::from_value(status_value)?)),
+        },
+        "ConnectorClass" => resources_proto::ResourceStatus {
+            kind: Some(StatusKind::ConnectorClass(serde_json::from_value(
+                status_value,
+            )?)),
+        },
+        "Connector" => resources_proto::ResourceStatus {
+            kind: Some(StatusKind::Connector(serde_json::from_value(status_value)?)),
         },
         "Worker" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Worker(worker_status_from_value(status_value)?)),
@@ -411,6 +425,8 @@ fn resource_spec_status_to_yaml_values(
             "runtimeTemplate": sandbox_runtime_template_to_json_value(spec.runtime_template.as_ref()),
         }))?,
         Some(SpecKind::UsagePolicy(spec)) => serde_json::to_string(spec)?,
+        Some(SpecKind::ConnectorClass(spec)) => serde_json::to_string(spec)?,
+        Some(SpecKind::Connector(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::McpServer(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::Skill(spec)) => serde_json::to_string(&serde_json::json!({
             "description": spec.description,
@@ -541,6 +557,8 @@ fn resource_spec_status_to_yaml_values(
         }
         Some(StatusKind::Worker(status)) => serde_json::to_string(&worker_status_to_json(status))?,
         Some(StatusKind::UsagePolicy(status)) => serde_json::to_string(status)?,
+        Some(StatusKind::ConnectorClass(status)) => serde_json::to_string(status)?,
+        Some(StatusKind::Connector(status)) => serde_json::to_string(status)?,
         Some(StatusKind::Raw(raw)) => raw.json.clone(),
         _ => "{}".to_string(),
     };
