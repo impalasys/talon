@@ -42,16 +42,16 @@ func TestClientsetExposesGeneratedServiceClients(t *testing.T) {
 	var _ talonv1.AuthServiceClient = clientset.Auth()
 }
 
-func TestConnectNativeRejectsPlaintextAuthorization(t *testing.T) {
+func TestConnectNativeRejectsPlaintextAPIKey(t *testing.T) {
 	_, err := talonclient.ConnectWithOptions(
 		context.Background(),
 		"http://127.0.0.1:1",
-		talonclient.WithAuthorization("Bearer test-token"),
+		talonclient.WithAPIKey("talon_sk_v1_id_secret"),
 	)
 	if err == nil {
-		t.Fatalf("expected plaintext authorization to fail")
+		t.Fatalf("expected plaintext api key auth to fail")
 	}
-	if !strings.Contains(err.Error(), "authorization requires a TLS native gRPC endpoint") {
+	if !strings.Contains(err.Error(), "api key auth requires a TLS native gRPC endpoint") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

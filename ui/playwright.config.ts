@@ -3,6 +3,7 @@ import fs from 'fs';
 
 const API_PORT = process.env.API_PORT || '50051';
 const WEB_PORT = process.env.WEB_PORT || '3000';
+const E2E_READY_PORT = process.env.READY_PORT || process.env.E2E_READY_PORT || '8090';
 const SETUP_PYTHON_BIN = process.env.pythonLocation
   ? `${process.env.pythonLocation}/bin/python`
   : null;
@@ -44,7 +45,7 @@ export default defineConfig({
   webServer: [
     {
       command: process.env.BACKEND_COMMAND || DEFAULT_BACKEND_COMMAND,
-      url: `http://127.0.0.1:8090/`,
+      url: `http://127.0.0.1:${E2E_READY_PORT}/`,
       reuseExistingServer,
       timeout: 600000,
       stdout: 'pipe',

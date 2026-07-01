@@ -499,4 +499,32 @@ impl proto::auth_service_server::AuthService for GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::MintAccessTokenResponse>, tonic::Status> {
         self.handle_mint_access_token(req).await
     }
+
+    async fn create_api_key(
+        &self,
+        req: tonic::Request<proto::CreateApiKeyRequest>,
+    ) -> std::result::Result<tonic::Response<proto::CreateApiKeyResponse>, tonic::Status> {
+        self.handle_create_api_key(req).await
+    }
+
+    async fn list_api_keys(
+        &self,
+        req: tonic::Request<proto::ListApiKeysRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ListApiKeysResponse>, tonic::Status> {
+        self.handle_list_api_keys(req).await
+    }
+
+    async fn revoke_api_key(
+        &self,
+        req: tonic::Request<proto::RevokeApiKeyRequest>,
+    ) -> std::result::Result<tonic::Response<proto::RevokeApiKeyResponse>, tonic::Status> {
+        self.handle_revoke_api_key(req).await
+    }
+
+    async fn exchange_api_key(
+        &self,
+        req: tonic::Request<proto::ExchangeApiKeyRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ExchangeApiKeyResponse>, tonic::Status> {
+        self.handle_exchange_api_key(req).await
+    }
 }

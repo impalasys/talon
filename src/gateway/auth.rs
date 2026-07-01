@@ -14,7 +14,7 @@ use axum::{
 };
 use base64::{engine::general_purpose, Engine as _};
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::sync::Arc;
 use tonic::{metadata::MetadataMap, Status};
 use url::Url;
@@ -82,7 +82,7 @@ impl AuthConfig {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Claims {
     pub sub: String,
     pub aud: String,
@@ -101,8 +101,50 @@ pub struct Claims {
         skip_serializing_if = "Vec::is_empty"
     )]
     pub origins: Vec<String>,
-    #[serde(rename = "talon:grants", default)]
+    #[serde(rename = "grants", default)]
     pub grants: Vec<TalonGrantClaim>,
+}
+
+impl<'de> Deserialize<'de> for Claims {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct RawClaims {
+            sub: String,
+            aud: String,
+            exp: usize,
+            #[serde(rename = "talon:ns")]
+            ns: Option<String>,
+            #[serde(rename = "talon:agent")]
+            agent: Option<String>,
+            #[serde(rename = "talon:session")]
+            session: Option<String>,
+            #[serde(rename = "talon:channel")]
+            channel: Option<String>,
+            #[serde(rename = "talon:origins", default)]
+            origins: Vec<String>,
+            #[serde(rename = "grants", default)]
+            grants: Vec<TalonGrantClaim>,
+            #[serde(rename = "talon:grants", default)]
+            legacy_grants: Vec<TalonGrantClaim>,
+        }
+
+        let mut raw = RawClaims::deserialize(deserializer)?;
+        raw.grants.extend(raw.legacy_grants);
+        Ok(Self {
+            sub: raw.sub,
+            aud: raw.aud,
+            exp: raw.exp,
+            ns: raw.ns,
+            agent: raw.agent,
+            session: raw.session,
+            channel: raw.channel,
+            origins: raw.origins,
+            grants: raw.grants,
+        })
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]

@@ -1,20 +1,28 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{proto, GrpcGatewayHandler};
+use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::control::config::proto as config_proto;
+use crate::control::{keys, ns};
 use crate::gateway::auth::{
     self as gateway_auth, AuthConfig, AuthMode, AuthzOperation, Claims, TalonGrantClaim,
 };
 use crate::gateway::Gateway;
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
 use jsonwebtoken::{
     decode, decode_header, jwk::JwkSet, Algorithm, DecodingKey, EncodingKey, Header, Validation,
 };
+use prost::Message;
+use rand::RngCore;
 use serde::Deserialize;
+use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 
 const DEFAULT_GOOGLE_JWKS_URL: &str = "https://www.googleapis.com/oauth2/v3/certs";
 const TALON_ACCESS_TOKEN_TTL_SECONDS: u64 = 900;
+const TALON_API_KEY_ACCESS_TOKEN_MAX_TTL_SECONDS: u64 = 3600;
+const API_KEY_PREFIX: &str = "talon_sk_v1_";
+const API_KEY_SECRET_BYTES: usize = 32;
 
 #[derive(Debug, Deserialize, Clone)]
 struct OidcIdentityClaims {
@@ -47,6 +55,13 @@ struct DelegatedTokenScope {
     channel: Option<String>,
     expires_in: u64,
     origins: Vec<String>,
+}
+
+type StoredApiKey = data_proto::ApiKeyRecord;
+
+struct ParsedApiKey<'a> {
+    id: &'a str,
+    secret: &'a str,
 }
 
 impl GrpcGatewayHandler {
@@ -142,6 +157,168 @@ impl GrpcGatewayHandler {
         })?;
 
         Ok(tonic::Response::new(proto::MintAccessTokenResponse {
+            access_token,
+            token_type: "Bearer".to_string(),
+            expires_in,
+            expires_at,
+        }))
+    }
+
+    pub async fn handle_create_api_key(
+        &self,
+        req: tonic::Request<proto::CreateApiKeyRequest>,
+    ) -> Result<tonic::Response<proto::CreateApiKeyResponse>, tonic::Status> {
+        ensure_root_jwt(self.gateway.as_ref(), req.metadata())?;
+        let request = req.into_inner();
+        let name = request.name.trim().to_string();
+        if name.is_empty() {
+            return Err(tonic::Status::invalid_argument("name is required"));
+        }
+        let grants = request
+            .grants
+            .into_iter()
+            .map(grant_from_proto)
+            .collect::<Result<Vec<_>, _>>()?;
+        if grants.is_empty() {
+            return Err(tonic::Status::invalid_argument(
+                "at least one grant is required",
+            ));
+        }
+        for grant in &grants {
+            validate_grant(grant)?;
+        }
+        if let Some(expires_at) = request.expires_at {
+            let now = unix_seconds()?;
+            if expires_at <= now {
+                return Err(tonic::Status::invalid_argument(
+                    "expires_at must be in the future",
+                ));
+            }
+        }
+
+        let id = uuid::Uuid::now_v7().to_string();
+        let secret = random_url_token(API_KEY_SECRET_BYTES);
+        let raw_key = format!("{API_KEY_PREFIX}{id}_{secret}");
+        let prefix = raw_key
+            .chars()
+            .take(API_KEY_PREFIX.len() + 8)
+            .collect::<String>();
+        let now = unix_seconds()?;
+        let record = StoredApiKey {
+            id: id.clone(),
+            name,
+            prefix,
+            secret_hash: hash_api_key_secret(&secret),
+            grants: grants.iter().map(grant_to_data_proto).collect(),
+            created_at: now,
+            last_used_at: 0,
+            expires_at: request.expires_at,
+            revoked_at: None,
+        };
+        write_api_key(self.gateway.as_ref(), &record).await?;
+
+        Ok(tonic::Response::new(proto::CreateApiKeyResponse {
+            api_key: Some(api_key_info(&record)),
+            secret: raw_key,
+        }))
+    }
+
+    pub async fn handle_list_api_keys(
+        &self,
+        req: tonic::Request<proto::ListApiKeysRequest>,
+    ) -> Result<tonic::Response<proto::ListApiKeysResponse>, tonic::Status> {
+        ensure_root_jwt(self.gateway.as_ref(), req.metadata())?;
+        let entries = self
+            .gateway
+            .kv
+            .list_entries(&api_key_list())
+            .await
+            .map_err(|err| tonic::Status::internal(format!("failed to list API keys: {err}")))?;
+        let mut api_keys = Vec::with_capacity(entries.len());
+        for (key, bytes) in entries {
+            match decode_api_key_record(&bytes) {
+                Ok(record) => api_keys.push(api_key_info(&record)),
+                Err(err) => {
+                    tracing::warn!(
+                        api_key_id = %key.name,
+                        error = %err,
+                        "Skipping invalid API key record while listing API keys"
+                    );
+                }
+            }
+        }
+        api_keys.sort_by(|left, right| right.created_at.cmp(&left.created_at));
+        Ok(tonic::Response::new(proto::ListApiKeysResponse {
+            api_keys,
+        }))
+    }
+
+    pub async fn handle_revoke_api_key(
+        &self,
+        req: tonic::Request<proto::RevokeApiKeyRequest>,
+    ) -> Result<tonic::Response<proto::RevokeApiKeyResponse>, tonic::Status> {
+        ensure_root_jwt(self.gateway.as_ref(), req.metadata())?;
+        let id = req.into_inner().id.trim().to_string();
+        if id.is_empty() {
+            return Err(tonic::Status::invalid_argument("id is required"));
+        }
+        let now = unix_seconds()?;
+        let Some((record, ())) = update_api_key_record(self.gateway.as_ref(), &id, |mut record| {
+            if record.revoked_at.is_none() {
+                record.revoked_at = Some(now);
+            }
+            Ok((record, ()))
+        })
+        .await?
+        else {
+            return Err(tonic::Status::not_found("API key not found"));
+        };
+        Ok(tonic::Response::new(proto::RevokeApiKeyResponse {
+            api_key: Some(api_key_info(&record)),
+        }))
+    }
+
+    pub async fn handle_exchange_api_key(
+        &self,
+        req: tonic::Request<proto::ExchangeApiKeyRequest>,
+    ) -> Result<tonic::Response<proto::ExchangeApiKeyResponse>, tonic::Status> {
+        let request = req.into_inner();
+        let parsed = parse_api_key(request.api_key.trim())?;
+        let now = unix_seconds()?;
+        let requested_grant = request.grant;
+        let Some((record, effective_grant)) =
+            update_api_key_record(self.gateway.as_ref(), parsed.id, |mut record| {
+                validate_api_key_exchange_record(&record, parsed.secret, now)?;
+                let effective_grant = effective_api_key_grant(&record, requested_grant.clone())?;
+                record.last_used_at = now;
+                Ok((record, effective_grant))
+            })
+            .await?
+        else {
+            return Err(tonic::Status::unauthenticated("Invalid API key"));
+        };
+        let (expires_in, expires_at) = api_key_access_token_expiration(request.expires_in)?;
+        let secret = gateway_jwt_secret(self.gateway.as_ref())?;
+        let claims = Claims {
+            sub: format!("api_key:{}", record.id),
+            aud: "talon".to_string(),
+            exp: expires_at as usize,
+            ns: effective_grant.namespace.clone(),
+            agent: effective_grant.agent.clone(),
+            session: effective_grant.session.clone(),
+            channel: effective_grant.channel.clone(),
+            origins: Vec::new(),
+            grants: vec![effective_grant],
+        };
+        let access_token = jsonwebtoken::encode(
+            &Header::new(Algorithm::HS256),
+            &claims,
+            &EncodingKey::from_secret(secret.as_bytes()),
+        )
+        .map_err(|err| {
+            tonic::Status::internal(format!("failed to mint Talon access token: {err}"))
+        })?;
+        Ok(tonic::Response::new(proto::ExchangeApiKeyResponse {
             access_token,
             token_type: "Bearer".to_string(),
             expires_in,
@@ -351,6 +528,336 @@ fn unix_seconds() -> Result<u64, tonic::Status> {
         .duration_since(std::time::UNIX_EPOCH)
         .map_err(|err| tonic::Status::internal(err.to_string()))
         .map(|duration| duration.as_secs())
+}
+
+fn gateway_jwt_secret(gateway: &Gateway) -> Result<&str, tonic::Status> {
+    match gateway.auth_config.as_ref() {
+        Some(AuthConfig {
+            mode: AuthMode::Jwt,
+            jwt_secret: Some(secret),
+            ..
+        }) => Ok(secret),
+        _ => Err(tonic::Status::unauthenticated(
+            "JWT auth is required to mint Talon access tokens",
+        )),
+    }
+}
+
+fn ensure_root_jwt(
+    gateway: &Gateway,
+    metadata: &tonic::metadata::MetadataMap,
+) -> Result<Claims, tonic::Status> {
+    let auth_config = gateway
+        .auth_config
+        .as_ref()
+        .ok_or_else(|| tonic::Status::unauthenticated("JWT auth is not configured"))?;
+    if auth_config.mode != AuthMode::Jwt {
+        return Err(tonic::Status::unauthenticated(
+            "JWT auth is required to manage API keys",
+        ));
+    }
+    let claims = gateway_auth::jwt_claims_from_metadata(metadata, auth_config)?
+        .ok_or_else(|| tonic::Status::unauthenticated("Root bearer JWT is required"))?;
+    if claims.ns.as_deref().is_some_and(|value| !value.is_empty())
+        || claims
+            .agent
+            .as_deref()
+            .is_some_and(|value| !value.is_empty())
+        || claims
+            .session
+            .as_deref()
+            .is_some_and(|value| !value.is_empty())
+        || claims
+            .channel
+            .as_deref()
+            .is_some_and(|value| !value.is_empty())
+        || !claims.grants.is_empty()
+    {
+        return Err(tonic::Status::permission_denied(
+            "Root JWT is required to manage API keys",
+        ));
+    }
+    Ok(claims)
+}
+
+fn api_key_key(id: &str) -> keys::ResourceKey {
+    keys::ResourceKey::new(ns::TALON_SYSTEM, &[("Auth", "api-keys")], "ApiKey", id)
+}
+
+fn api_key_list() -> keys::ResourceList {
+    keys::ResourceParent::root(ns::TALON_SYSTEM)
+        .child("Auth", "api-keys")
+        .list(Some("ApiKey"))
+}
+
+async fn write_api_key(gateway: &Gateway, record: &StoredApiKey) -> Result<(), tonic::Status> {
+    let bytes = record.encode_to_vec();
+    gateway
+        .kv
+        .set(&api_key_key(&record.id), &bytes)
+        .await
+        .map_err(|err| tonic::Status::internal(format!("failed to write API key: {err}")))
+}
+
+async fn update_api_key_record<R>(
+    gateway: &Gateway,
+    id: &str,
+    mut update: impl FnMut(StoredApiKey) -> Result<(StoredApiKey, R), tonic::Status>,
+) -> Result<Option<(StoredApiKey, R)>, tonic::Status> {
+    let key = api_key_key(id);
+    loop {
+        let Some(current_bytes) = gateway
+            .kv
+            .get(&key)
+            .await
+            .map_err(|err| tonic::Status::internal(format!("failed to read API key: {err}")))?
+        else {
+            return Ok(None);
+        };
+        let current = decode_api_key_record(&current_bytes)?;
+        let (updated, output) = update(current)?;
+        let updated_bytes = updated.encode_to_vec();
+        if updated_bytes == current_bytes {
+            return Ok(Some((updated, output)));
+        }
+        let swapped = gateway
+            .kv
+            .compare_and_swap(&key, Some(current_bytes.as_slice()), &updated_bytes)
+            .await
+            .map_err(|err| tonic::Status::internal(format!("failed to update API key: {err}")))?;
+        if swapped {
+            return Ok(Some((updated, output)));
+        }
+    }
+}
+
+fn decode_api_key_record(bytes: &[u8]) -> Result<StoredApiKey, tonic::Status> {
+    StoredApiKey::decode(bytes)
+        .map_err(|err| tonic::Status::internal(format!("failed to decode API key: {err}")))
+}
+
+fn api_key_info(record: &StoredApiKey) -> proto::ApiKeyInfo {
+    proto::ApiKeyInfo {
+        id: record.id.clone(),
+        name: record.name.clone(),
+        prefix: record.prefix.clone(),
+        grants: record.grants.clone(),
+        created_at: record.created_at,
+        last_used_at: record.last_used_at,
+        expires_at: record.expires_at,
+        revoked_at: record.revoked_at,
+    }
+}
+
+fn grant_from_proto(grant: data_proto::ApiKeyGrant) -> Result<TalonGrantClaim, tonic::Status> {
+    let grant = TalonGrantClaim {
+        kind: grant.kind.trim().to_ascii_lowercase(),
+        namespace: trim_optional(grant.namespace),
+        agent: trim_optional(grant.agent),
+        session: trim_optional(grant.session),
+        channel: trim_optional(grant.channel),
+    };
+    validate_grant(&grant)?;
+    Ok(grant)
+}
+
+fn grant_to_data_proto(grant: &TalonGrantClaim) -> data_proto::ApiKeyGrant {
+    data_proto::ApiKeyGrant {
+        kind: grant.kind.clone(),
+        namespace: grant.namespace.clone(),
+        agent: grant.agent.clone(),
+        session: grant.session.clone(),
+        channel: grant.channel.clone(),
+    }
+}
+
+fn grant_from_data_proto(
+    grant: &data_proto::ApiKeyGrant,
+) -> Result<TalonGrantClaim, tonic::Status> {
+    let grant = TalonGrantClaim {
+        kind: grant.kind.trim().to_ascii_lowercase(),
+        namespace: trim_optional(grant.namespace.clone()),
+        agent: trim_optional(grant.agent.clone()),
+        session: trim_optional(grant.session.clone()),
+        channel: trim_optional(grant.channel.clone()),
+    };
+    validate_grant(&grant)?;
+    Ok(grant)
+}
+
+fn trim_optional(value: Option<String>) -> Option<String> {
+    value
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+}
+
+fn validate_grant(grant: &TalonGrantClaim) -> Result<(), tonic::Status> {
+    match grant.kind.as_str() {
+        "read" | "readwrite" => {}
+        _ => {
+            return Err(tonic::Status::invalid_argument(
+                "grant kind must be read or readwrite",
+            ));
+        }
+    }
+    if grant.session.is_some() && (grant.namespace.is_none() || grant.agent.is_none()) {
+        return Err(tonic::Status::invalid_argument(
+            "session grant requires namespace and agent",
+        ));
+    }
+    if grant.channel.is_some()
+        && (grant.namespace.is_none() || grant.agent.is_some() || grant.session.is_some())
+    {
+        return Err(tonic::Status::invalid_argument(
+            "channel grant requires namespace and cannot combine with agent or session",
+        ));
+    }
+    if (grant.agent.is_some() || grant.channel.is_some()) && grant.namespace.is_none() {
+        return Err(tonic::Status::invalid_argument(
+            "resource grant requires namespace",
+        ));
+    }
+    Ok(())
+}
+
+fn effective_api_key_grant(
+    record: &StoredApiKey,
+    requested: Option<data_proto::ApiKeyGrant>,
+) -> Result<TalonGrantClaim, tonic::Status> {
+    if record.grants.is_empty() {
+        return Err(tonic::Status::permission_denied("API key has no grants"));
+    }
+    let Some(requested) = requested else {
+        if record.grants.len() == 1 {
+            return grant_from_data_proto(&record.grants[0]);
+        }
+        return Err(tonic::Status::invalid_argument(
+            "grant is required when API key has multiple grants",
+        ));
+    };
+    let requested = grant_from_proto(requested)?;
+    for allowed in &record.grants {
+        let allowed = grant_from_data_proto(allowed)?;
+        if grant_allows_requested(&allowed, &requested) {
+            return Ok(requested);
+        }
+    }
+    Err(tonic::Status::permission_denied(
+        "Requested grant is broader than the API key grant",
+    ))
+}
+
+fn grant_allows_requested(allowed: &TalonGrantClaim, requested: &TalonGrantClaim) -> bool {
+    if !kind_allows_requested(&allowed.kind, &requested.kind) {
+        return false;
+    }
+    if !namespace_allows_requested(allowed.namespace.as_deref(), requested.namespace.as_deref()) {
+        return false;
+    }
+    if !optional_selector_allows(allowed.agent.as_deref(), requested.agent.as_deref()) {
+        return false;
+    }
+    if !optional_selector_allows(allowed.session.as_deref(), requested.session.as_deref()) {
+        return false;
+    }
+    if !optional_selector_allows(allowed.channel.as_deref(), requested.channel.as_deref()) {
+        return false;
+    }
+    true
+}
+
+fn kind_allows_requested(allowed: &str, requested: &str) -> bool {
+    allowed == "readwrite" || requested == "read"
+}
+
+fn namespace_allows_requested(allowed: Option<&str>, requested: Option<&str>) -> bool {
+    let Some(allowed) = allowed.map(str::trim).filter(|value| !value.is_empty()) else {
+        return true;
+    };
+    matches!(requested, Some(requested) if gateway_auth::namespace_scope_allows(allowed, requested))
+}
+
+fn optional_selector_allows(allowed: Option<&str>, requested: Option<&str>) -> bool {
+    let Some(allowed) = allowed.map(str::trim).filter(|value| !value.is_empty()) else {
+        return true;
+    };
+    matches!(requested, Some(requested) if requested == allowed)
+}
+
+fn validate_api_key_exchange_record(
+    record: &StoredApiKey,
+    secret: &str,
+    now: u64,
+) -> Result<(), tonic::Status> {
+    if !constant_time_eq(
+        hash_api_key_secret(secret).as_bytes(),
+        record.secret_hash.as_bytes(),
+    ) {
+        return Err(tonic::Status::unauthenticated("Invalid API key"));
+    }
+    if record.revoked_at.is_some() {
+        return Err(tonic::Status::unauthenticated("API key is revoked"));
+    }
+    if record
+        .expires_at
+        .is_some_and(|expires_at| expires_at <= now)
+    {
+        return Err(tonic::Status::unauthenticated("API key is expired"));
+    }
+    Ok(())
+}
+
+fn api_key_access_token_expiration(requested_expires_in: u64) -> Result<(u64, u64), tonic::Status> {
+    let expires_in = if requested_expires_in == 0 {
+        TALON_ACCESS_TOKEN_TTL_SECONDS
+    } else {
+        requested_expires_in
+    };
+    if expires_in == 0 {
+        return Err(tonic::Status::invalid_argument(
+            "expires_in must be positive",
+        ));
+    }
+    if expires_in > TALON_API_KEY_ACCESS_TOKEN_MAX_TTL_SECONDS {
+        return Err(tonic::Status::permission_denied(
+            "Requested token expiry exceeds API key token maximum",
+        ));
+    }
+    Ok((expires_in, unix_seconds()? + expires_in))
+}
+
+fn parse_api_key(value: &str) -> Result<ParsedApiKey<'_>, tonic::Status> {
+    let rest = value
+        .strip_prefix(API_KEY_PREFIX)
+        .ok_or_else(|| tonic::Status::unauthenticated("Invalid API key"))?;
+    let (id, secret) = rest
+        .split_once('_')
+        .ok_or_else(|| tonic::Status::unauthenticated("Invalid API key"))?;
+    if id.is_empty() || secret.is_empty() {
+        return Err(tonic::Status::unauthenticated("Invalid API key"));
+    }
+    Ok(ParsedApiKey { id, secret })
+}
+
+fn random_url_token(byte_len: usize) -> String {
+    let mut bytes = vec![0u8; byte_len];
+    rand::thread_rng().fill_bytes(&mut bytes);
+    URL_SAFE_NO_PAD.encode(bytes)
+}
+
+fn hash_api_key_secret(secret: &str) -> String {
+    URL_SAFE_NO_PAD.encode(Sha256::digest(secret.as_bytes()))
+}
+
+fn constant_time_eq(left: &[u8], right: &[u8]) -> bool {
+    if left.len() != right.len() {
+        return false;
+    }
+    let mut diff = 0u8;
+    for (left, right) in left.iter().zip(right.iter()) {
+        diff |= left ^ right;
+    }
+    diff == 0
 }
 
 async fn verify_against_trust(
@@ -576,15 +1083,18 @@ fn mint_talon_access_token(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::ControlPlane;
+    use crate::control::{ControlPlane, KeyValueStore};
     use crate::gateway::auth::{check_auth, verify_jwt};
     use crate::test_support::{EmptyPubSub, MockKvStore};
     use jsonwebtoken::{encode, EncodingKey, Header};
     use std::sync::Arc;
 
     fn handler(secret: &str) -> GrpcGatewayHandler {
-        let control_plane =
-            ControlPlane::builder(Arc::new(MockKvStore::default()), Arc::new(EmptyPubSub)).build();
+        handler_with_kv(secret, Arc::new(MockKvStore::default()))
+    }
+
+    fn handler_with_kv(secret: &str, kv: Arc<MockKvStore>) -> GrpcGatewayHandler {
+        let control_plane = ControlPlane::builder(kv, Arc::new(EmptyPubSub)).build();
         GrpcGatewayHandler {
             gateway: Arc::new(Gateway::from_control_plane(
                 Some(AuthConfig::jwt(secret.to_string())),
@@ -597,6 +1107,13 @@ mod tests {
         token: &str,
         request: proto::MintAccessTokenRequest,
     ) -> tonic::Request<proto::MintAccessTokenRequest> {
+        let mut req = tonic::Request::new(request);
+        req.metadata_mut()
+            .insert("authorization", format!("Bearer {token}").parse().unwrap());
+        req
+    }
+
+    fn auth_request<T>(token: &str, request: T) -> tonic::Request<T> {
         let mut req = tonic::Request::new(request);
         req.metadata_mut()
             .insert("authorization", format!("Bearer {token}").parse().unwrap());
@@ -638,6 +1155,22 @@ mod tests {
             channel: None,
             expires_in: 60,
             origins: Vec::new(),
+        }
+    }
+
+    fn proto_grant(
+        kind: &str,
+        namespace: Option<&str>,
+        agent: Option<&str>,
+        session: Option<&str>,
+        channel: Option<&str>,
+    ) -> data_proto::ApiKeyGrant {
+        data_proto::ApiKeyGrant {
+            kind: kind.to_string(),
+            namespace: namespace.map(str::to_string),
+            agent: agent.map(str::to_string),
+            session: session.map(str::to_string),
+            channel: channel.map(str::to_string),
         }
     }
 
@@ -792,5 +1325,231 @@ mod tests {
             .await
             .expect_err("read-only grant must not mint write-capable token");
         assert_eq!(err.code(), tonic::Code::PermissionDenied);
+    }
+
+    #[tokio::test]
+    async fn api_key_create_exchange_and_revoke_are_scoped() {
+        let secret = "api-key-secret";
+        let handler = handler(secret);
+        let root = token(secret, claims(None, None, None));
+
+        let created = handler
+            .handle_create_api_key(auth_request(
+                &root,
+                proto::CreateApiKeyRequest {
+                    name: "deploy bot".to_string(),
+                    grants: vec![proto_grant(
+                        "readwrite",
+                        Some("Tenant:acme"),
+                        None,
+                        None,
+                        None,
+                    )],
+                    expires_at: None,
+                },
+            ))
+            .await
+            .unwrap()
+            .into_inner();
+        let info = created.api_key.as_ref().unwrap();
+        assert_eq!(info.name, "deploy bot");
+        assert_eq!(info.grants.len(), 1);
+        assert!(!created.secret.is_empty());
+
+        let exchanged = handler
+            .handle_exchange_api_key(tonic::Request::new(proto::ExchangeApiKeyRequest {
+                api_key: created.secret.clone(),
+                grant: None,
+                expires_in: 60,
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(exchanged.token_type, "Bearer");
+        let minted = verify_jwt(&exchanged.access_token, secret).unwrap();
+        assert_eq!(minted.sub, format!("api_key:{}", info.id));
+        assert_eq!(minted.ns.as_deref(), Some("Tenant:acme"));
+        assert_eq!(minted.grants.len(), 1);
+        assert_eq!(minted.grants[0].kind, "readwrite");
+
+        let config = AuthConfig::jwt(secret.to_string());
+        let mut metadata = tonic::metadata::MetadataMap::new();
+        metadata.insert(
+            "authorization",
+            format!("Bearer {}", exchanged.access_token)
+                .parse()
+                .unwrap(),
+        );
+        assert!(check_auth(&metadata, &config, "Tenant:acme:child", None, None).is_ok());
+        assert!(check_auth(&metadata, &config, "Tenant:other", None, None).is_err());
+
+        handler
+            .handle_revoke_api_key(auth_request(
+                &root,
+                proto::RevokeApiKeyRequest {
+                    id: info.id.clone(),
+                },
+            ))
+            .await
+            .unwrap();
+        let err = handler
+            .handle_exchange_api_key(tonic::Request::new(proto::ExchangeApiKeyRequest {
+                api_key: created.secret,
+                grant: None,
+                expires_in: 60,
+            }))
+            .await
+            .expect_err("revoked API key must not exchange");
+        assert_eq!(err.code(), tonic::Code::Unauthenticated);
+    }
+
+    #[tokio::test]
+    async fn api_key_management_requires_root_jwt() {
+        let secret = "api-key-secret";
+        let handler = handler(secret);
+        let scoped = token(secret, claims(Some("Tenant:acme"), None, None));
+
+        let err = handler
+            .handle_create_api_key(auth_request(
+                &scoped,
+                proto::CreateApiKeyRequest {
+                    name: "scoped".to_string(),
+                    grants: vec![proto_grant("read", Some("Tenant:acme"), None, None, None)],
+                    expires_at: None,
+                },
+            ))
+            .await
+            .expect_err("scoped JWT must not create API keys");
+        assert_eq!(err.code(), tonic::Code::PermissionDenied);
+    }
+
+    #[tokio::test]
+    async fn api_key_list_skips_invalid_records() {
+        let secret = "api-key-secret";
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv(secret, kv.clone());
+        let root = token(secret, claims(None, None, None));
+
+        handler
+            .handle_create_api_key(auth_request(
+                &root,
+                proto::CreateApiKeyRequest {
+                    name: "valid".to_string(),
+                    grants: vec![proto_grant("read", Some("Tenant:acme"), None, None, None)],
+                    expires_at: None,
+                },
+            ))
+            .await
+            .unwrap();
+        kv.set(&api_key_key("corrupt"), b"not a protobuf record")
+            .await
+            .unwrap();
+
+        let response = handler
+            .handle_list_api_keys(auth_request(&root, proto::ListApiKeysRequest {}))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(response.api_keys.len(), 1);
+        assert_eq!(response.api_keys[0].name, "valid");
+    }
+
+    #[tokio::test]
+    async fn api_key_exchange_requires_explicit_grant_for_multiple_grants_and_allows_narrowing() {
+        let secret = "api-key-secret";
+        let handler = handler(secret);
+        let root = token(secret, claims(None, None, None));
+
+        let created = handler
+            .handle_create_api_key(auth_request(
+                &root,
+                proto::CreateApiKeyRequest {
+                    name: "multi".to_string(),
+                    grants: vec![
+                        proto_grant("readwrite", Some("Tenant:acme"), None, None, None),
+                        proto_grant("read", Some("Tenant:other"), None, None, None),
+                    ],
+                    expires_at: None,
+                },
+            ))
+            .await
+            .unwrap()
+            .into_inner();
+
+        let err = handler
+            .handle_exchange_api_key(tonic::Request::new(proto::ExchangeApiKeyRequest {
+                api_key: created.secret.clone(),
+                grant: None,
+                expires_in: 60,
+            }))
+            .await
+            .expect_err("multiple grants require explicit requested grant");
+        assert_eq!(err.code(), tonic::Code::InvalidArgument);
+
+        let narrowed = handler
+            .handle_exchange_api_key(tonic::Request::new(proto::ExchangeApiKeyRequest {
+                api_key: created.secret.clone(),
+                grant: Some(proto_grant(
+                    "read",
+                    Some("Tenant:acme:child"),
+                    Some("assistant"),
+                    None,
+                    None,
+                )),
+                expires_in: 60,
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        let claims = verify_jwt(&narrowed.access_token, secret).unwrap();
+        assert_eq!(claims.grants[0].kind, "read");
+        assert_eq!(
+            claims.grants[0].namespace.as_deref(),
+            Some("Tenant:acme:child")
+        );
+        assert_eq!(claims.grants[0].agent.as_deref(), Some("assistant"));
+
+        let err = handler
+            .handle_exchange_api_key(tonic::Request::new(proto::ExchangeApiKeyRequest {
+                api_key: created.secret,
+                grant: Some(proto_grant(
+                    "readwrite",
+                    Some("Tenant:other"),
+                    None,
+                    None,
+                    None,
+                )),
+                expires_in: 60,
+            }))
+            .await
+            .expect_err("read grant must not mint readwrite token");
+        assert_eq!(err.code(), tonic::Code::PermissionDenied);
+    }
+
+    #[test]
+    fn jwt_decode_accepts_grants_and_legacy_talon_grants() {
+        let secret = "compat-secret";
+        crate::control::security::install_jwt_crypto_provider();
+        let value = serde_json::json!({
+            "sub": "api_key:test",
+            "aud": "talon",
+            "exp": 10000000000_u64,
+            "grants": [
+                {"kind": "read", "namespace": "Tenant:acme"}
+            ],
+            "talon:grants": [
+                {"kind": "readwrite", "namespace": "Tenant:ops"}
+            ]
+        });
+        let token = encode(
+            &Header::new(Algorithm::HS256),
+            &value,
+            &EncodingKey::from_secret(secret.as_ref()),
+        )
+        .unwrap();
+        let claims = verify_jwt(&token, secret).unwrap();
+        assert_eq!(claims.grants.len(), 2);
+        assert_eq!(claims.grants[0].kind, "read");
+        assert_eq!(claims.grants[1].kind, "readwrite");
     }
 }

@@ -1,21 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { createHmac } from 'node:crypto';
-
-function base64Url(value: object) {
-  return Buffer.from(JSON.stringify(value)).toString('base64url');
-}
-
-function createLocalRootToken() {
-  const header = base64Url({ typ: 'JWT', alg: 'HS256' });
-  const payload = base64Url({
-    sub: 'talon-root-client',
-    aud: 'talon',
-    exp: Math.floor(Date.now() / 1000) + 3600,
-  });
-  const body = `${header}.${payload}`;
-  const signature = createHmac('sha256', 'local-dev-talon-jwt').update(body).digest('base64url');
-  return `${body}.${signature}`;
-}
+import { installBrowserAuth, e2eGatewayUrl, readE2EAuth } from './talonAuth';
 
 test.describe('Talon UI', () => {
   test('shows a connection error when the gateway probe fails', async ({ page }) => {
@@ -76,6 +60,9 @@ test.describe('Talon UI', () => {
   });
 
   test('should load and connect to the gateway', async ({ page }) => {
+    const gatewayUrl = e2eGatewayUrl();
+    await installBrowserAuth(page, gatewayUrl);
+
     // 1. Visit the page
     await page.goto('/');
 
@@ -87,10 +74,11 @@ test.describe('Talon UI', () => {
     // Ensure we are in disconnected state showing the form
     await expect(gatewayInput).toBeVisible();
     
-    // Use the backend port
-    const API_PORT = process.env.API_PORT || '50051';
-    await gatewayInput.fill(`http://127.0.0.1:${API_PORT}`);
-    await tokenInput.fill(createLocalRootToken());
+    await gatewayInput.fill(gatewayUrl);
+    const auth = readE2EAuth();
+    if (auth?.accessToken) {
+      await tokenInput.fill(auth.accessToken);
+    }
     await connectButton.click();
 
     // 3. Ensure we are connected and stay out of the auth fork after URL sync settles.

@@ -9,7 +9,8 @@ use sha2::{Digest, Sha256};
 use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::path::PathBuf;
-use talon_client::v1::ExchangeOidcTokenRequest;
+use talon_client::data::ApiKeyGrant;
+use talon_client::v1::{ExchangeApiKeyRequest, ExchangeOidcTokenRequest};
 use talon_client::{GatewayClientOptions, GatewayTransport, TalonClient};
 use url::Url;
 
@@ -45,6 +46,10 @@ pub(crate) struct StoredGatewayAuth {
     pub subject: String,
     pub email: Option<String>,
     pub trust: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auth_source: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub credential_hash: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -76,7 +81,58 @@ pub(crate) fn resolve_gateway_token(cli: &Cli) -> Option<String> {
         .clone()
         .or_else(|| std::env::var("TALON_GATEWAY_TOKEN").ok())
         .or_else(|| std::env::var("GATEWAY_TOKEN").ok())
-        .or_else(|| load_stored_gateway_auth(cli).ok().flatten().map(|auth| auth.access_token))
+        .or_else(|| {
+            load_stored_gateway_auth(cli)
+                .ok()
+                .flatten()
+                .map(|auth| auth.access_token)
+        })
+}
+
+pub(crate) fn resolve_gateway_api_key(cli: &Cli) -> Option<String> {
+    cli.api_key
+        .clone()
+        .or_else(|| std::env::var("TALON_API_KEY").ok())
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+}
+
+pub(crate) fn parse_api_key_grant(value: &str) -> Result<ApiKeyGrant> {
+    let mut parts = value
+        .split(',')
+        .map(str::trim)
+        .filter(|part| !part.is_empty());
+    let kind = parts
+        .next()
+        .context("grant must start with read or readwrite")?
+        .to_ascii_lowercase();
+    if kind != "read" && kind != "readwrite" {
+        anyhow::bail!("grant kind must be read or readwrite");
+    }
+    let mut grant = ApiKeyGrant {
+        kind,
+        namespace: None,
+        agent: None,
+        session: None,
+        channel: None,
+    };
+    for part in parts {
+        let (key, value) = part
+            .split_once('=')
+            .with_context(|| format!("grant selector '{part}' must be key=value"))?;
+        let value = value.trim();
+        if value.is_empty() {
+            anyhow::bail!("grant selector '{key}' cannot be empty");
+        }
+        match key.trim() {
+            "namespace" | "ns" => grant.namespace = Some(value.to_string()),
+            "agent" => grant.agent = Some(value.to_string()),
+            "session" => grant.session = Some(value.to_string()),
+            "channel" => grant.channel = Some(value.to_string()),
+            other => anyhow::bail!("unsupported grant selector '{other}'"),
+        }
+    }
+    Ok(grant)
 }
 
 pub(crate) fn resolve_gateway_jwt_secret(cli: &Cli) -> Option<String> {
@@ -88,6 +144,13 @@ pub(crate) fn resolve_gateway_jwt_secret(cli: &Cli) -> Option<String> {
 
 pub(crate) fn mint_gateway_jwt(secret: &str) -> Result<String> {
     mint_root_jwt(secret, "talon-cli", 3600, &[])
+}
+
+impl StoredGatewayAuth {
+    fn matches_api_key(&self, api_key: &str, grant: Option<&str>) -> bool {
+        self.auth_source.as_deref() == Some("api_key")
+            && self.credential_hash.as_deref() == Some(api_key_cache_hash(api_key, grant).as_str())
+    }
 }
 
 pub(crate) fn gateway_http_base(cli: &Cli) -> String {
@@ -117,8 +180,8 @@ pub(crate) fn load_stored_gateway_auth(cli: &Cli) -> Result<Option<StoredGateway
     }
     let text = std::fs::read_to_string(&path)
         .with_context(|| format!("Failed to read auth file {}", path.display()))?;
-    let auth: StoredGatewayAuth =
-        serde_json::from_str(&text).with_context(|| format!("Invalid auth file {}", path.display()))?;
+    let auth: StoredGatewayAuth = serde_json::from_str(&text)
+        .with_context(|| format!("Invalid auth file {}", path.display()))?;
     if auth.gateway != gateway_http_base(cli) {
         return Ok(None);
     }
@@ -181,12 +244,13 @@ pub(crate) async fn exchange_oidc_id_token(
         endpoint: base.clone(),
         transport: GatewayTransport::Grpc,
         authorization: None,
+        api_key: None,
         connect_timeout: Some(std::time::Duration::from_secs(5)),
         request_timeout: Some(std::time::Duration::from_secs(20)),
     })
-        .await
-        .map_err(|err| anyhow::anyhow!("{err}"))
-        .context("Failed to connect to Talon AuthService")?;
+    .await
+    .map_err(|err| anyhow::anyhow!("{err}"))
+    .context("Failed to connect to Talon AuthService")?;
     let exchanged = client
         .exchange_oidc_token(ExchangeOidcTokenRequest {
             id_token: id_token.to_string(),
@@ -212,6 +276,53 @@ pub(crate) async fn exchange_oidc_id_token(
         subject: exchanged.subject,
         email: exchanged.email,
         trust: exchanged.trust,
+        auth_source: Some("oidc".to_string()),
+        credential_hash: None,
+    })
+}
+
+pub(crate) async fn exchange_api_key(cli: &Cli, api_key: &str) -> Result<StoredGatewayAuth> {
+    let base = gateway_http_base(cli);
+    let requested_grant = cli
+        .api_key_grant
+        .as_deref()
+        .map(parse_api_key_grant)
+        .transpose()?;
+    let mut client = TalonClient::connect_with_options(GatewayClientOptions {
+        endpoint: base.clone(),
+        transport: GatewayTransport::Grpc,
+        authorization: None,
+        api_key: None,
+        connect_timeout: Some(std::time::Duration::from_secs(5)),
+        request_timeout: Some(std::time::Duration::from_secs(20)),
+    })
+    .await
+    .map_err(|err| anyhow::anyhow!("{err}"))
+    .context("Failed to connect to Talon AuthService")?;
+    let exchanged = client
+        .exchange_api_key(ExchangeApiKeyRequest {
+            api_key: api_key.to_string(),
+            grant: requested_grant,
+            expires_in: 0,
+        })
+        .await
+        .context("API key exchange failed")?
+        .into_inner();
+    let expires_at = exchanged.expires_at;
+    let claims = decode_jwt_payload::<Claims>(&exchanged.access_token).ok();
+    Ok(StoredGatewayAuth {
+        gateway: base,
+        access_token: exchanged.access_token,
+        token_type: exchanged.token_type,
+        expires_at,
+        subject: claims
+            .as_ref()
+            .map(|claims| claims.sub.clone())
+            .unwrap_or_else(|| "api_key".to_string()),
+        email: None,
+        trust: "api-key".to_string(),
+        auth_source: Some("api_key".to_string()),
+        credential_hash: Some(api_key_cache_hash(api_key, cli.api_key_grant.as_deref())),
     })
 }
 
@@ -304,7 +415,9 @@ fn open_browser(url: &str) -> Result<()> {
 }
 
 fn wait_for_loopback_code(listener: TcpListener, expected_state: &str) -> Result<String> {
-    let (mut stream, _) = listener.accept().context("Failed to receive OAuth callback")?;
+    let (mut stream, _) = listener
+        .accept()
+        .context("Failed to receive OAuth callback")?;
     let mut buffer = [0u8; 4096];
     let size = stream.read(&mut buffer)?;
     let request = String::from_utf8_lossy(&buffer[..size]);
@@ -314,8 +427,12 @@ fn wait_for_loopback_code(listener: TcpListener, expected_state: &str) -> Result
         .and_then(|line| line.split_whitespace().nth(1))
         .context("Invalid OAuth callback request")?;
     let url = Url::parse(&format!("http://localhost{path}"))?;
-    let params = url.query_pairs().collect::<std::collections::HashMap<_, _>>();
-    let state = params.get("state").context("OAuth callback missing state")?;
+    let params = url
+        .query_pairs()
+        .collect::<std::collections::HashMap<_, _>>();
+    let state = params
+        .get("state")
+        .context("OAuth callback missing state")?;
     if state.as_ref() != expected_state {
         anyhow::bail!("OAuth callback state mismatch");
     }
@@ -347,7 +464,10 @@ async fn exchange_google_code_for_id_token(
         .await
         .context("Failed to exchange Google OAuth code")?;
     let status = response.status();
-    let text = response.text().await.context("Failed to read Google token response")?;
+    let text = response
+        .text()
+        .await
+        .context("Failed to read Google token response")?;
     if !status.is_success() {
         if text.contains("client_secret is missing") {
             anyhow::bail!(
@@ -358,7 +478,11 @@ Do not use a Google Web OAuth client secret for CLI login. status={} body={}",
                 text.trim()
             );
         }
-        anyhow::bail!("Google OAuth code exchange failed: status={} body={}", status, text.trim());
+        anyhow::bail!(
+            "Google OAuth code exchange failed: status={} body={}",
+            status,
+            text.trim()
+        );
     }
     let token: GoogleTokenResponse =
         serde_json::from_str(&text).context("Failed to parse Google token response")?;
@@ -379,7 +503,10 @@ fn google_token_request_form<'a>(
         ("grant_type", "authorization_code"),
         ("redirect_uri", redirect_uri),
     ];
-    if let Some(client_secret) = client_secret.map(str::trim).filter(|value| !value.is_empty()) {
+    if let Some(client_secret) = client_secret
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
         form.push(("client_secret", client_secret));
     }
     form
@@ -468,7 +595,9 @@ pub(crate) fn parse_ttl_seconds(value: &str) -> Result<u64> {
     if amount.is_empty() {
         anyhow::bail!("ttl must start with a number");
     }
-    let amount = amount.parse::<u64>().context("ttl amount must be a number")?;
+    let amount = amount
+        .parse::<u64>()
+        .context("ttl amount must be a number")?;
     if amount == 0 {
         anyhow::bail!("ttl must be greater than zero");
     }
@@ -486,9 +615,7 @@ pub(crate) fn parse_ttl_seconds(value: &str) -> Result<u64> {
             unit
         ),
     };
-    amount
-        .checked_mul(multiplier)
-        .context("ttl is too large")
+    amount.checked_mul(multiplier).context("ttl is too large")
 }
 
 pub(crate) fn resolve_token_ttl_seconds(ttl: &str, ttl_seconds: Option<u64>) -> Result<u64> {
@@ -520,7 +647,7 @@ pub(crate) fn mint_root_jwt(
         None,
         origins,
     )
-        .context("Failed to sign Talon root JWT")
+    .context("Failed to sign Talon root JWT")
 }
 
 pub(crate) fn validate_token_part<'a>(value: &'a str, name: &str) -> Result<&'a str> {
@@ -639,15 +766,42 @@ fn validate_origins(origins: &[String]) -> Result<Vec<String>> {
                 anyhow::bail!("origin '{}' must include a host", origin.trim());
             }
             if parsed.path() != "/" || parsed.query().is_some() || parsed.fragment().is_some() {
-                anyhow::bail!("origin '{}' must not include a path, query, or fragment", origin.trim());
+                anyhow::bail!(
+                    "origin '{}' must not include a path, query, or fragment",
+                    origin.trim()
+                );
             }
             Ok(parsed.origin().ascii_serialization())
         })
         .collect()
 }
 
-fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
-    if let Some(token) = resolve_gateway_token(cli) {
+async fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
+    if let Some(token) = cli
+        .token
+        .as_ref()
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+    {
+        Ok(Some(format!("Bearer {}", token)))
+    } else if let Some(secret) = cli
+        .jwt_secret
+        .as_ref()
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+    {
+        let token = mint_gateway_jwt(secret)?;
+        Ok(Some(format!("Bearer {}", token)))
+    } else if let Some(api_key) = resolve_gateway_api_key(cli) {
+        if let Some(auth) = load_stored_gateway_auth(cli)?
+            .filter(|auth| auth.matches_api_key(&api_key, cli.api_key_grant.as_deref()))
+        {
+            return Ok(Some(format!("Bearer {}", auth.access_token)));
+        }
+        let auth = exchange_api_key(cli, &api_key).await?;
+        save_stored_gateway_auth(&auth)?;
+        Ok(Some(format!("Bearer {}", auth.access_token)))
+    } else if let Some(token) = resolve_gateway_token(cli) {
         Ok(Some(format!("Bearer {}", token)))
     } else if let Some(secret) = resolve_gateway_jwt_secret(cli) {
         let token = mint_gateway_jwt(&secret)?;
@@ -658,6 +812,14 @@ fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
     } else {
         Ok(None)
     }
+}
+
+fn api_key_cache_hash(api_key: &str, grant: Option<&str>) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(api_key.trim().as_bytes());
+    hasher.update(b"\0");
+    hasher.update(grant.map(str::trim).unwrap_or("").as_bytes());
+    general_purpose::URL_SAFE_NO_PAD.encode(hasher.finalize())
 }
 
 fn grpc_web_enabled(cli: &Cli) -> bool {
@@ -674,7 +836,7 @@ pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
     } else {
         GatewayTransport::Grpc
     };
-    options.authorization = resolve_authorization_header(cli)?;
+    options.authorization = resolve_authorization_header(cli).await?;
     TalonClient::connect_with_options(options)
         .await
         .map_err(|err| anyhow::anyhow!("{err}"))
@@ -684,8 +846,9 @@ pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
 #[cfg(test)]
 mod tests {
     use super::{
-        google_token_request_form, mint_namespace_jwt, parse_ttl_seconds,
-        resolve_token_ttl_seconds, DEFAULT_GOOGLE_CLI_CLIENT_SECRET, DEFAULT_TOKEN_TTL,
+        api_key_cache_hash, google_token_request_form, mint_namespace_jwt, parse_ttl_seconds,
+        resolve_token_ttl_seconds, StoredGatewayAuth, DEFAULT_GOOGLE_CLI_CLIENT_SECRET,
+        DEFAULT_TOKEN_TTL,
     };
     use crate::gateway::auth::verify_jwt;
 
@@ -733,7 +896,10 @@ mod tests {
 
     #[test]
     fn resolve_token_ttl_seconds_keeps_legacy_seconds_escape_hatch() {
-        assert_eq!(resolve_token_ttl_seconds(DEFAULT_TOKEN_TTL, None).unwrap(), 300);
+        assert_eq!(
+            resolve_token_ttl_seconds(DEFAULT_TOKEN_TTL, None).unwrap(),
+            300
+        );
         assert_eq!(
             resolve_token_ttl_seconds(DEFAULT_TOKEN_TTL, Some(123)).unwrap(),
             123
@@ -754,5 +920,28 @@ mod tests {
         assert_eq!(claims.agent, None);
         assert_eq!(claims.session, None);
         assert_eq!(claims.channel, None);
+    }
+
+    #[test]
+    fn stored_api_key_auth_matches_only_same_api_key() {
+        let auth = StoredGatewayAuth {
+            gateway: "http://localhost:50051".to_string(),
+            access_token: "token".to_string(),
+            token_type: "Bearer".to_string(),
+            expires_at: 1,
+            subject: "api_key:test".to_string(),
+            email: None,
+            trust: "api-key".to_string(),
+            auth_source: Some("api_key".to_string()),
+            credential_hash: Some(api_key_cache_hash("talon_sk_v1_id_secret", None)),
+        };
+
+        assert!(auth.matches_api_key("talon_sk_v1_id_secret", None));
+        assert!(!auth.matches_api_key("talon_sk_v1_id_secret", Some("read")));
+        assert!(!auth.matches_api_key("talon_sk_v1_id_other", None));
+
+        let mut oidc_auth = auth;
+        oidc_auth.auth_source = Some("oidc".to_string());
+        assert!(!oidc_auth.matches_api_key("talon_sk_v1_id_secret", None));
     }
 }

@@ -50,6 +50,7 @@ fn main() {
         root.join("proto/resources/workers.proto"),
         root.join("proto/resources/resource.proto"),
         root.join("proto/harness/llm.proto"),
+        root.join("proto/data/api_keys.proto"),
         root.join("proto/data/data.proto"),
         root.join("proto/data/session_submission.proto"),
         root.join("proto/data/session_journal_entry.proto"),

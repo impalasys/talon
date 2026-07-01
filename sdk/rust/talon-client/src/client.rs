@@ -1,23 +1,23 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use futures::lock::Mutex;
 use futures::TryStreamExt;
 use http_body::Frame;
 use http_body_util::{BodyExt, StreamBody};
 use std::error::Error;
+use std::future::Future;
 use std::pin::Pin;
+use std::sync::Arc;
 use std::task::{Context, Poll};
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tonic::codegen::{http, Body, Bytes, Service, StdError};
-use tonic::metadata::MetadataValue;
-use tonic::service::Interceptor;
-use tonic::{Request, Status};
+use tonic::transport::Channel;
 
 use crate::TalonClientset;
 
 type BoxError = Box<dyn Error + Send + Sync + 'static>;
-pub type NativeService =
-    tonic::service::interceptor::InterceptedService<tonic::transport::Channel, AuthInterceptor>;
+pub type NativeService = AuthenticatedNativeService;
 type GrpcWebBody = http_body_util::combinators::BoxBody<Bytes, reqwest_grpc_web::Error>;
 pub type GrpcWebService = tonic_web::GrpcWebClientService<GrpcWebHttpService>;
 
@@ -32,6 +32,7 @@ pub struct GatewayClientOptions {
     pub endpoint: String,
     pub transport: GatewayTransport,
     pub authorization: Option<String>,
+    pub api_key: Option<String>,
     pub connect_timeout: Option<Duration>,
     pub request_timeout: Option<Duration>,
 }
@@ -42,6 +43,7 @@ impl GatewayClientOptions {
             endpoint: endpoint.into(),
             transport: GatewayTransport::Grpc,
             authorization: None,
+            api_key: None,
             connect_timeout: Some(Duration::from_secs(5)),
             request_timeout: Some(Duration::from_secs(30)),
         }
@@ -89,32 +91,141 @@ impl TalonClient {
 }
 
 #[derive(Clone, Debug)]
-pub struct AuthInterceptor {
-    authorization: Option<MetadataValue<tonic::metadata::Ascii>>,
+pub struct AuthenticatedNativeService {
+    inner: Channel,
+    authorization: Option<http::HeaderValue>,
+    token_source: Option<Arc<ApiKeyTokenSource>>,
 }
 
-impl AuthInterceptor {
-    fn new(authorization: Option<String>) -> Result<Self, BoxError> {
+impl AuthenticatedNativeService {
+    fn new(
+        inner: Channel,
+        authorization: Option<String>,
+        token_source: Option<Arc<ApiKeyTokenSource>>,
+    ) -> Result<Self, BoxError> {
         Ok(Self {
+            inner,
             authorization: authorization
-                .map(MetadataValue::try_from)
+                .map(http::HeaderValue::try_from)
                 .transpose()
                 .map_err(|err| -> BoxError { Box::new(err) })?,
+            token_source,
         })
     }
 }
 
-impl Interceptor for AuthInterceptor {
-    fn call(&mut self, mut req: Request<()>) -> Result<Request<()>, Status> {
-        if let Some(auth) = &self.authorization {
-            req.metadata_mut().insert("authorization", auth.clone());
-        }
-        Ok(req)
+impl Service<http::Request<tonic::body::BoxBody>> for AuthenticatedNativeService {
+    type Response = <Channel as Service<http::Request<tonic::body::BoxBody>>>::Response;
+    type Error = StdError;
+    type Future =
+        Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>>;
+
+    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        self.inner.poll_ready(cx).map_err(Into::into)
+    }
+
+    fn call(&mut self, mut req: http::Request<tonic::body::BoxBody>) -> Self::Future {
+        let authorization = self.authorization.clone();
+        let token_source = self.token_source.clone();
+        let clone = self.inner.clone();
+        let mut inner = std::mem::replace(&mut self.inner, clone);
+        Box::pin(async move {
+            if let Some(auth) = authorization {
+                req.headers_mut().insert("authorization", auth);
+            } else if let Some(token_source) = token_source {
+                let auth = token_source.authorization().await?;
+                req.headers_mut().insert("authorization", auth);
+            }
+            inner.call(req).await.map_err(Into::into)
+        })
     }
 }
 
+#[derive(Clone, Debug)]
+struct ApiKeyTokenSource {
+    channel: Channel,
+    api_key: String,
+    cached: Arc<Mutex<CachedApiKeyToken>>,
+    refresh_lock: Arc<Mutex<()>>,
+    refresh_skew: u64,
+}
+
+#[derive(Debug, Default)]
+struct CachedApiKeyToken {
+    token: Option<http::HeaderValue>,
+    expires_at: u64,
+}
+
+impl ApiKeyTokenSource {
+    fn new(channel: Channel, api_key: String) -> Self {
+        Self {
+            channel,
+            api_key,
+            cached: Arc::new(Mutex::new(CachedApiKeyToken::default())),
+            refresh_lock: Arc::new(Mutex::new(())),
+            refresh_skew: 60,
+        }
+    }
+
+    async fn authorization(&self) -> Result<http::HeaderValue, StdError> {
+        let now = unix_timestamp();
+        {
+            let cached = self.cached.lock().await;
+            if let Some(token) = &cached.token {
+                if cached.expires_at > now + self.refresh_skew {
+                    return Ok(token.clone());
+                }
+            }
+        }
+
+        let _refresh_guard = self.refresh_lock.lock().await;
+        let now = unix_timestamp();
+        {
+            let cached = self.cached.lock().await;
+            if let Some(token) = &cached.token {
+                if cached.expires_at > now + self.refresh_skew {
+                    return Ok(token.clone());
+                }
+            }
+        }
+
+        let mut client =
+            crate::v1::auth_service_client::AuthServiceClient::new(self.channel.clone());
+        let exchanged = client
+            .exchange_api_key(crate::v1::ExchangeApiKeyRequest {
+                api_key: self.api_key.clone(),
+                grant: None,
+                expires_in: 0,
+            })
+            .await?
+            .into_inner();
+        let token = http::HeaderValue::try_from(format!("Bearer {}", exchanged.access_token))?;
+        let mut cached = self.cached.lock().await;
+        cached.expires_at = exchanged.expires_at.try_into().unwrap_or_default();
+        cached.token = Some(token.clone());
+        Ok(token)
+    }
+}
+
+fn unix_timestamp() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
+}
+
 async fn connect_native(options: GatewayClientOptions) -> Result<NativeTalonClient, BoxError> {
-    let mut endpoint = tonic::transport::Endpoint::new(native_endpoint_url(&options.endpoint))?;
+    let endpoint_url = native_endpoint_url(&options.endpoint);
+    if options
+        .api_key
+        .as_deref()
+        .is_some_and(|value| !value.trim().is_empty())
+    {
+        if endpoint_url.starts_with("http://") {
+            return Err("api_key auth requires an HTTPS native gRPC endpoint".into());
+        }
+    }
+    let mut endpoint = tonic::transport::Endpoint::new(endpoint_url)?;
     if let Some(timeout) = options.connect_timeout {
         endpoint = endpoint.connect_timeout(timeout);
     }
@@ -122,10 +233,14 @@ async fn connect_native(options: GatewayClientOptions) -> Result<NativeTalonClie
         endpoint = endpoint.timeout(timeout);
     }
     let channel = endpoint.connect().await?;
-    let service = tonic::service::interceptor::InterceptedService::new(
-        channel,
-        AuthInterceptor::new(options.authorization)?,
-    );
+    let token_source = options
+        .api_key
+        .as_deref()
+        .filter(|_| options.authorization.is_none())
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(|api_key| Arc::new(ApiKeyTokenSource::new(channel.clone(), api_key.to_string())));
+    let service = AuthenticatedNativeService::new(channel, options.authorization, token_source)?;
     Ok(TalonClientset::from_service(service))
 }
 
@@ -146,7 +261,7 @@ fn native_endpoint_url(endpoint: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::native_endpoint_url;
+    use super::{native_endpoint_url, GatewayClientOptions, NativeTalonClient};
 
     #[test]
     fn native_endpoint_url_defaults_hosted_gateways_to_https() {
@@ -170,14 +285,28 @@ mod tests {
             native_endpoint_url("127.0.0.1:50051"),
             "http://127.0.0.1:50051"
         );
-        assert_eq!(
-            native_endpoint_url("[::1]:50051"),
-            "http://[::1]:50051"
-        );
+        assert_eq!(native_endpoint_url("[::1]:50051"), "http://[::1]:50051");
+    }
+
+    #[tokio::test]
+    async fn native_api_key_auth_rejects_plaintext_endpoints() {
+        let mut options = GatewayClientOptions::new("http://127.0.0.1:50051");
+        options.api_key = Some("talon_sk_v1_id_secret".to_string());
+        let err = NativeTalonClient::connect_with_options(options)
+            .await
+            .expect_err("plaintext api_key auth should be rejected");
+        assert!(err.to_string().contains("requires an HTTPS"));
     }
 }
 
 fn connect_grpc_web(options: GatewayClientOptions) -> Result<GrpcWebTalonClient, BoxError> {
+    if options
+        .api_key
+        .as_deref()
+        .is_some_and(|value| !value.trim().is_empty())
+    {
+        return Err("api_key auth is only supported by the native async Rust client".into());
+    }
     let service = tonic_web::GrpcWebClientService::new(GrpcWebHttpService::new(options)?);
     Ok(TalonClientset::from_service(service))
 }

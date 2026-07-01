@@ -2,16 +2,15 @@ import { test, expect, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { createTalonClient } from "@impalasys/talon-client";
+import { createE2ETalonClient, e2eGatewayUrl, installBrowserAuth } from './talonAuth';
 
 async function createTestSession() {
-  const API_PORT = process.env.API_PORT || '50051';
-  const gatewayUrl = `http://127.0.0.1:${API_PORT}`;
+  const gatewayUrl = e2eGatewayUrl();
   const runId = `${Date.now()}-${randomUUID().slice(0, 8)}`;
   const testNs = `e2e-ns-${runId}`;
   const testAgent = `e2e-agent-${runId}`;
 
-  const client = createTalonClient(gatewayUrl);
+  const client = createE2ETalonClient(gatewayUrl);
 
   await expect(async () => {
     await client.namespaces.create({ name: testNs, recursive: true });
@@ -57,9 +56,7 @@ async function provisionSession(page: Page) {
 
   const { sessionId, gatewayUrl, client, testNs, testAgent } = await createTestSession();
 
-  await page.addInitScript((url) => {
-    localStorage.setItem('talon_gateway_url', url);
-  }, gatewayUrl);
+  await installBrowserAuth(page, gatewayUrl);
   await page.goto('/?connected=true');
 
   const nsNode = page.locator('.truncate', { hasText: testNs }).first();
@@ -387,9 +384,7 @@ test.describe('Copilot history pagination', () => {
     });
 
     try {
-      await page.addInitScript((url) => {
-        localStorage.setItem('talon_gateway_url', url);
-      }, gatewayUrl);
+      await installBrowserAuth(page, gatewayUrl);
 
       await page.goto(`/?connected=true&historyPageSize=4&ns=${encodeURIComponent(testNs)}&agent=${encodeURIComponent(testAgent)}&session=${encodeURIComponent(sessionId)}`);
       await expect(page.locator('text=Connected')).toBeVisible({ timeout: 45000 });

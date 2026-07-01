@@ -7,6 +7,7 @@
 package v1
 
 import (
+	data "github.com/impalasys/talon/sdk/go/talon-client/talon/data"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -413,11 +414,527 @@ func (x *MintAccessTokenResponse) GetExpiresAt() uint64 {
 	return 0
 }
 
+type ApiKeyInfo struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Stable server-generated key id embedded in the opaque API key.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Human-readable display name for operators.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Leading characters of the full opaque API key, safe for listing and logs.
+	Prefix string `protobuf:"bytes,3,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	// Grants this API key may exchange into access tokens.
+	Grants []*data.ApiKeyGrant `protobuf:"bytes,4,rep,name=grants,proto3" json:"grants,omitempty"`
+	// Unix timestamp when the API key was created.
+	CreatedAt uint64 `protobuf:"varint,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Unix timestamp for the most recent successful exchange, or zero if unused.
+	LastUsedAt uint64 `protobuf:"varint,6,opt,name=last_used_at,json=lastUsedAt,proto3" json:"last_used_at,omitempty"`
+	// Optional Unix timestamp after which exchanges are rejected.
+	ExpiresAt *uint64 `protobuf:"varint,7,opt,name=expires_at,json=expiresAt,proto3,oneof" json:"expires_at,omitempty"`
+	// Optional Unix timestamp when the key was revoked.
+	RevokedAt     *uint64 `protobuf:"varint,8,opt,name=revoked_at,json=revokedAt,proto3,oneof" json:"revoked_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApiKeyInfo) Reset() {
+	*x = ApiKeyInfo{}
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApiKeyInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApiKeyInfo) ProtoMessage() {}
+
+func (x *ApiKeyInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApiKeyInfo.ProtoReflect.Descriptor instead.
+func (*ApiKeyInfo) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_auth_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ApiKeyInfo) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ApiKeyInfo) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ApiKeyInfo) GetPrefix() string {
+	if x != nil {
+		return x.Prefix
+	}
+	return ""
+}
+
+func (x *ApiKeyInfo) GetGrants() []*data.ApiKeyGrant {
+	if x != nil {
+		return x.Grants
+	}
+	return nil
+}
+
+func (x *ApiKeyInfo) GetCreatedAt() uint64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *ApiKeyInfo) GetLastUsedAt() uint64 {
+	if x != nil {
+		return x.LastUsedAt
+	}
+	return 0
+}
+
+func (x *ApiKeyInfo) GetExpiresAt() uint64 {
+	if x != nil && x.ExpiresAt != nil {
+		return *x.ExpiresAt
+	}
+	return 0
+}
+
+func (x *ApiKeyInfo) GetRevokedAt() uint64 {
+	if x != nil && x.RevokedAt != nil {
+		return *x.RevokedAt
+	}
+	return 0
+}
+
+type CreateApiKeyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Grants        []*data.ApiKeyGrant    `protobuf:"bytes,2,rep,name=grants,proto3" json:"grants,omitempty"`
+	ExpiresAt     *uint64                `protobuf:"varint,3,opt,name=expires_at,json=expiresAt,proto3,oneof" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateApiKeyRequest) Reset() {
+	*x = CreateApiKeyRequest{}
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateApiKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateApiKeyRequest) ProtoMessage() {}
+
+func (x *CreateApiKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateApiKeyRequest.ProtoReflect.Descriptor instead.
+func (*CreateApiKeyRequest) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_auth_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CreateApiKeyRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateApiKeyRequest) GetGrants() []*data.ApiKeyGrant {
+	if x != nil {
+		return x.Grants
+	}
+	return nil
+}
+
+func (x *CreateApiKeyRequest) GetExpiresAt() uint64 {
+	if x != nil && x.ExpiresAt != nil {
+		return *x.ExpiresAt
+	}
+	return 0
+}
+
+type CreateApiKeyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ApiKey        *ApiKeyInfo            `protobuf:"bytes,1,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
+	Secret        string                 `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateApiKeyResponse) Reset() {
+	*x = CreateApiKeyResponse{}
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateApiKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateApiKeyResponse) ProtoMessage() {}
+
+func (x *CreateApiKeyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateApiKeyResponse.ProtoReflect.Descriptor instead.
+func (*CreateApiKeyResponse) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_auth_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *CreateApiKeyResponse) GetApiKey() *ApiKeyInfo {
+	if x != nil {
+		return x.ApiKey
+	}
+	return nil
+}
+
+func (x *CreateApiKeyResponse) GetSecret() string {
+	if x != nil {
+		return x.Secret
+	}
+	return ""
+}
+
+type ListApiKeysRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListApiKeysRequest) Reset() {
+	*x = ListApiKeysRequest{}
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListApiKeysRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListApiKeysRequest) ProtoMessage() {}
+
+func (x *ListApiKeysRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListApiKeysRequest.ProtoReflect.Descriptor instead.
+func (*ListApiKeysRequest) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_auth_proto_rawDescGZIP(), []int{9}
+}
+
+type ListApiKeysResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ApiKeys       []*ApiKeyInfo          `protobuf:"bytes,1,rep,name=api_keys,json=apiKeys,proto3" json:"api_keys,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListApiKeysResponse) Reset() {
+	*x = ListApiKeysResponse{}
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListApiKeysResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListApiKeysResponse) ProtoMessage() {}
+
+func (x *ListApiKeysResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListApiKeysResponse.ProtoReflect.Descriptor instead.
+func (*ListApiKeysResponse) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_auth_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ListApiKeysResponse) GetApiKeys() []*ApiKeyInfo {
+	if x != nil {
+		return x.ApiKeys
+	}
+	return nil
+}
+
+type RevokeApiKeyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeApiKeyRequest) Reset() {
+	*x = RevokeApiKeyRequest{}
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeApiKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeApiKeyRequest) ProtoMessage() {}
+
+func (x *RevokeApiKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeApiKeyRequest.ProtoReflect.Descriptor instead.
+func (*RevokeApiKeyRequest) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_auth_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *RevokeApiKeyRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type RevokeApiKeyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ApiKey        *ApiKeyInfo            `protobuf:"bytes,1,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeApiKeyResponse) Reset() {
+	*x = RevokeApiKeyResponse{}
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeApiKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeApiKeyResponse) ProtoMessage() {}
+
+func (x *RevokeApiKeyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeApiKeyResponse.ProtoReflect.Descriptor instead.
+func (*RevokeApiKeyResponse) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_auth_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *RevokeApiKeyResponse) GetApiKey() *ApiKeyInfo {
+	if x != nil {
+		return x.ApiKey
+	}
+	return nil
+}
+
+type ExchangeApiKeyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ApiKey        string                 `protobuf:"bytes,1,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
+	Grant         *data.ApiKeyGrant      `protobuf:"bytes,2,opt,name=grant,proto3,oneof" json:"grant,omitempty"`
+	ExpiresIn     uint64                 `protobuf:"varint,3,opt,name=expires_in,json=expiresIn,proto3" json:"expires_in,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExchangeApiKeyRequest) Reset() {
+	*x = ExchangeApiKeyRequest{}
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExchangeApiKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExchangeApiKeyRequest) ProtoMessage() {}
+
+func (x *ExchangeApiKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExchangeApiKeyRequest.ProtoReflect.Descriptor instead.
+func (*ExchangeApiKeyRequest) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_auth_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ExchangeApiKeyRequest) GetApiKey() string {
+	if x != nil {
+		return x.ApiKey
+	}
+	return ""
+}
+
+func (x *ExchangeApiKeyRequest) GetGrant() *data.ApiKeyGrant {
+	if x != nil {
+		return x.Grant
+	}
+	return nil
+}
+
+func (x *ExchangeApiKeyRequest) GetExpiresIn() uint64 {
+	if x != nil {
+		return x.ExpiresIn
+	}
+	return 0
+}
+
+type ExchangeApiKeyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	TokenType     string                 `protobuf:"bytes,2,opt,name=token_type,json=tokenType,proto3" json:"token_type,omitempty"`
+	ExpiresIn     uint64                 `protobuf:"varint,3,opt,name=expires_in,json=expiresIn,proto3" json:"expires_in,omitempty"`
+	ExpiresAt     uint64                 `protobuf:"varint,4,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExchangeApiKeyResponse) Reset() {
+	*x = ExchangeApiKeyResponse{}
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExchangeApiKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExchangeApiKeyResponse) ProtoMessage() {}
+
+func (x *ExchangeApiKeyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_auth_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExchangeApiKeyResponse.ProtoReflect.Descriptor instead.
+func (*ExchangeApiKeyResponse) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_auth_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ExchangeApiKeyResponse) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *ExchangeApiKeyResponse) GetTokenType() string {
+	if x != nil {
+		return x.TokenType
+	}
+	return ""
+}
+
+func (x *ExchangeApiKeyResponse) GetExpiresIn() uint64 {
+	if x != nil {
+		return x.ExpiresIn
+	}
+	return 0
+}
+
+func (x *ExchangeApiKeyResponse) GetExpiresAt() uint64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
 var File_proto_talon_v1_auth_proto protoreflect.FileDescriptor
 
 const file_proto_talon_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x19proto/talon/v1/auth.proto\x12\btalon.v1\"\x15\n" +
+	"\x19proto/talon/v1/auth.proto\x12\btalon.v1\x1a\x19proto/data/api_keys.proto\"\x15\n" +
 	"\x13GetSsoConfigRequest\"\x93\x01\n" +
 	"\x14GetSsoConfigResponse\x12,\n" +
 	"\x12google_sso_enabled\x18\x01 \x01(\bR\x10googleSsoEnabled\x124\n" +
@@ -463,11 +980,61 @@ const file_proto_talon_v1_auth_proto_rawDesc = "" +
 	"\n" +
 	"expires_in\x18\x03 \x01(\x04R\texpiresIn\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\x04 \x01(\x04R\texpiresAt2\x92\x02\n" +
+	"expires_at\x18\x04 \x01(\x04R\texpiresAt\"\xa0\x02\n" +
+	"\n" +
+	"ApiKeyInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
+	"\x06prefix\x18\x03 \x01(\tR\x06prefix\x12/\n" +
+	"\x06grants\x18\x04 \x03(\v2\x17.talon.data.ApiKeyGrantR\x06grants\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\x04R\tcreatedAt\x12 \n" +
+	"\flast_used_at\x18\x06 \x01(\x04R\n" +
+	"lastUsedAt\x12\"\n" +
+	"\n" +
+	"expires_at\x18\a \x01(\x04H\x00R\texpiresAt\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"revoked_at\x18\b \x01(\x04H\x01R\trevokedAt\x88\x01\x01B\r\n" +
+	"\v_expires_atB\r\n" +
+	"\v_revoked_at\"\x8d\x01\n" +
+	"\x13CreateApiKeyRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12/\n" +
+	"\x06grants\x18\x02 \x03(\v2\x17.talon.data.ApiKeyGrantR\x06grants\x12\"\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\x04H\x00R\texpiresAt\x88\x01\x01B\r\n" +
+	"\v_expires_at\"]\n" +
+	"\x14CreateApiKeyResponse\x12-\n" +
+	"\aapi_key\x18\x01 \x01(\v2\x14.talon.v1.ApiKeyInfoR\x06apiKey\x12\x16\n" +
+	"\x06secret\x18\x02 \x01(\tR\x06secret\"\x14\n" +
+	"\x12ListApiKeysRequest\"F\n" +
+	"\x13ListApiKeysResponse\x12/\n" +
+	"\bapi_keys\x18\x01 \x03(\v2\x14.talon.v1.ApiKeyInfoR\aapiKeys\"%\n" +
+	"\x13RevokeApiKeyRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"E\n" +
+	"\x14RevokeApiKeyResponse\x12-\n" +
+	"\aapi_key\x18\x01 \x01(\v2\x14.talon.v1.ApiKeyInfoR\x06apiKey\"\x8d\x01\n" +
+	"\x15ExchangeApiKeyRequest\x12\x17\n" +
+	"\aapi_key\x18\x01 \x01(\tR\x06apiKey\x122\n" +
+	"\x05grant\x18\x02 \x01(\v2\x17.talon.data.ApiKeyGrantH\x00R\x05grant\x88\x01\x01\x12\x1d\n" +
+	"\n" +
+	"expires_in\x18\x03 \x01(\x04R\texpiresInB\b\n" +
+	"\x06_grant\"\x98\x01\n" +
+	"\x16ExchangeApiKeyResponse\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1d\n" +
+	"\n" +
+	"token_type\x18\x02 \x01(\tR\ttokenType\x12\x1d\n" +
+	"\n" +
+	"expires_in\x18\x03 \x01(\x04R\texpiresIn\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x04 \x01(\x04R\texpiresAt2\xd1\x04\n" +
 	"\vAuthService\x12M\n" +
 	"\fGetSsoConfig\x12\x1d.talon.v1.GetSsoConfigRequest\x1a\x1e.talon.v1.GetSsoConfigResponse\x12\\\n" +
 	"\x11ExchangeOidcToken\x12\".talon.v1.ExchangeOidcTokenRequest\x1a#.talon.v1.ExchangeOidcTokenResponse\x12V\n" +
-	"\x0fMintAccessToken\x12 .talon.v1.MintAccessTokenRequest\x1a!.talon.v1.MintAccessTokenResponseb\x06proto3"
+	"\x0fMintAccessToken\x12 .talon.v1.MintAccessTokenRequest\x1a!.talon.v1.MintAccessTokenResponse\x12M\n" +
+	"\fCreateApiKey\x12\x1d.talon.v1.CreateApiKeyRequest\x1a\x1e.talon.v1.CreateApiKeyResponse\x12J\n" +
+	"\vListApiKeys\x12\x1c.talon.v1.ListApiKeysRequest\x1a\x1d.talon.v1.ListApiKeysResponse\x12M\n" +
+	"\fRevokeApiKey\x12\x1d.talon.v1.RevokeApiKeyRequest\x1a\x1e.talon.v1.RevokeApiKeyResponse\x12S\n" +
+	"\x0eExchangeApiKey\x12\x1f.talon.v1.ExchangeApiKeyRequest\x1a .talon.v1.ExchangeApiKeyResponseb\x06proto3"
 
 var (
 	file_proto_talon_v1_auth_proto_rawDescOnce sync.Once
@@ -481,7 +1048,7 @@ func file_proto_talon_v1_auth_proto_rawDescGZIP() []byte {
 	return file_proto_talon_v1_auth_proto_rawDescData
 }
 
-var file_proto_talon_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_talon_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_proto_talon_v1_auth_proto_goTypes = []any{
 	(*GetSsoConfigRequest)(nil),       // 0: talon.v1.GetSsoConfigRequest
 	(*GetSsoConfigResponse)(nil),      // 1: talon.v1.GetSsoConfigResponse
@@ -489,19 +1056,43 @@ var file_proto_talon_v1_auth_proto_goTypes = []any{
 	(*ExchangeOidcTokenResponse)(nil), // 3: talon.v1.ExchangeOidcTokenResponse
 	(*MintAccessTokenRequest)(nil),    // 4: talon.v1.MintAccessTokenRequest
 	(*MintAccessTokenResponse)(nil),   // 5: talon.v1.MintAccessTokenResponse
+	(*ApiKeyInfo)(nil),                // 6: talon.v1.ApiKeyInfo
+	(*CreateApiKeyRequest)(nil),       // 7: talon.v1.CreateApiKeyRequest
+	(*CreateApiKeyResponse)(nil),      // 8: talon.v1.CreateApiKeyResponse
+	(*ListApiKeysRequest)(nil),        // 9: talon.v1.ListApiKeysRequest
+	(*ListApiKeysResponse)(nil),       // 10: talon.v1.ListApiKeysResponse
+	(*RevokeApiKeyRequest)(nil),       // 11: talon.v1.RevokeApiKeyRequest
+	(*RevokeApiKeyResponse)(nil),      // 12: talon.v1.RevokeApiKeyResponse
+	(*ExchangeApiKeyRequest)(nil),     // 13: talon.v1.ExchangeApiKeyRequest
+	(*ExchangeApiKeyResponse)(nil),    // 14: talon.v1.ExchangeApiKeyResponse
+	(*data.ApiKeyGrant)(nil),          // 15: talon.data.ApiKeyGrant
 }
 var file_proto_talon_v1_auth_proto_depIdxs = []int32{
-	0, // 0: talon.v1.AuthService.GetSsoConfig:input_type -> talon.v1.GetSsoConfigRequest
-	2, // 1: talon.v1.AuthService.ExchangeOidcToken:input_type -> talon.v1.ExchangeOidcTokenRequest
-	4, // 2: talon.v1.AuthService.MintAccessToken:input_type -> talon.v1.MintAccessTokenRequest
-	1, // 3: talon.v1.AuthService.GetSsoConfig:output_type -> talon.v1.GetSsoConfigResponse
-	3, // 4: talon.v1.AuthService.ExchangeOidcToken:output_type -> talon.v1.ExchangeOidcTokenResponse
-	5, // 5: talon.v1.AuthService.MintAccessToken:output_type -> talon.v1.MintAccessTokenResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	15, // 0: talon.v1.ApiKeyInfo.grants:type_name -> talon.data.ApiKeyGrant
+	15, // 1: talon.v1.CreateApiKeyRequest.grants:type_name -> talon.data.ApiKeyGrant
+	6,  // 2: talon.v1.CreateApiKeyResponse.api_key:type_name -> talon.v1.ApiKeyInfo
+	6,  // 3: talon.v1.ListApiKeysResponse.api_keys:type_name -> talon.v1.ApiKeyInfo
+	6,  // 4: talon.v1.RevokeApiKeyResponse.api_key:type_name -> talon.v1.ApiKeyInfo
+	15, // 5: talon.v1.ExchangeApiKeyRequest.grant:type_name -> talon.data.ApiKeyGrant
+	0,  // 6: talon.v1.AuthService.GetSsoConfig:input_type -> talon.v1.GetSsoConfigRequest
+	2,  // 7: talon.v1.AuthService.ExchangeOidcToken:input_type -> talon.v1.ExchangeOidcTokenRequest
+	4,  // 8: talon.v1.AuthService.MintAccessToken:input_type -> talon.v1.MintAccessTokenRequest
+	7,  // 9: talon.v1.AuthService.CreateApiKey:input_type -> talon.v1.CreateApiKeyRequest
+	9,  // 10: talon.v1.AuthService.ListApiKeys:input_type -> talon.v1.ListApiKeysRequest
+	11, // 11: talon.v1.AuthService.RevokeApiKey:input_type -> talon.v1.RevokeApiKeyRequest
+	13, // 12: talon.v1.AuthService.ExchangeApiKey:input_type -> talon.v1.ExchangeApiKeyRequest
+	1,  // 13: talon.v1.AuthService.GetSsoConfig:output_type -> talon.v1.GetSsoConfigResponse
+	3,  // 14: talon.v1.AuthService.ExchangeOidcToken:output_type -> talon.v1.ExchangeOidcTokenResponse
+	5,  // 15: talon.v1.AuthService.MintAccessToken:output_type -> talon.v1.MintAccessTokenResponse
+	8,  // 16: talon.v1.AuthService.CreateApiKey:output_type -> talon.v1.CreateApiKeyResponse
+	10, // 17: talon.v1.AuthService.ListApiKeys:output_type -> talon.v1.ListApiKeysResponse
+	12, // 18: talon.v1.AuthService.RevokeApiKey:output_type -> talon.v1.RevokeApiKeyResponse
+	14, // 19: talon.v1.AuthService.ExchangeApiKey:output_type -> talon.v1.ExchangeApiKeyResponse
+	13, // [13:20] is the sub-list for method output_type
+	6,  // [6:13] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_proto_talon_v1_auth_proto_init() }
@@ -513,13 +1104,16 @@ func file_proto_talon_v1_auth_proto_init() {
 	file_proto_talon_v1_auth_proto_msgTypes[2].OneofWrappers = []any{}
 	file_proto_talon_v1_auth_proto_msgTypes[3].OneofWrappers = []any{}
 	file_proto_talon_v1_auth_proto_msgTypes[4].OneofWrappers = []any{}
+	file_proto_talon_v1_auth_proto_msgTypes[6].OneofWrappers = []any{}
+	file_proto_talon_v1_auth_proto_msgTypes[7].OneofWrappers = []any{}
+	file_proto_talon_v1_auth_proto_msgTypes[13].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_talon_v1_auth_proto_rawDesc), len(file_proto_talon_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

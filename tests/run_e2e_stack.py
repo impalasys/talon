@@ -6,8 +6,10 @@ import signal
 from pathlib import Path
 import socket
 import tempfile
+import json
 
 # Add generated protos to path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "sdk" / "python" / "talon-client" / "src"))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
@@ -15,6 +17,8 @@ from testcontainers.postgres import PostgresContainer
 from testcontainers.core.container import DockerContainer
 import requests
 import shutil
+import grpc
+from talon_client.proto.talon.v1 import auth_pb2, auth_pb2_grpc
 
 SESSION_DISPATCH_TOPIC = "talon.session.dispatch"
 RESOURCE_LIFECYCLE_TOPIC = "talon.resource.lifecycle"
@@ -22,6 +26,17 @@ WORKFLOW_DISPATCH_TOPIC = "talon.workflow.dispatch"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 GATEWAY_GRPC_PORT = int(os.environ.get("GRPC_PORT", "50051"))
 MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
+READY_PORT = int(os.environ.get("READY_PORT", os.environ.get("E2E_READY_PORT", "8090")))
+E2E_GATEWAY_JWT_SECRET = os.environ.get(
+    "TALON_E2E_GATEWAY_JWT_SECRET",
+    "talon-e2e-root-secret",
+)
+E2E_AUTH_FILE = Path(
+    os.environ.get(
+        "TALON_E2E_AUTH_FILE",
+        str(REPO_ROOT / "target" / "talon-e2e-auth.json"),
+    )
+)
 
 def binary_candidates(name):
     yield name
@@ -73,6 +88,85 @@ def cleanup_temp_dir(temp_dir: Path):
     if temp_dir.exists():
         shutil.rmtree(temp_dir, ignore_errors=True)
 
+def create_api_key(grpc_port):
+    cli = get_binary_path("talon_cli")
+    env = os.environ.copy()
+    for key in (
+        "TALON_API_KEY",
+        "TALON_AUTH_FILE",
+        "TALON_GATEWAY_TOKEN",
+        "GATEWAY_TOKEN",
+        "TALON_GATEWAY_PASSWORD",
+        "GATEWAY_PASSWORD",
+    ):
+        env.pop(key, None)
+    env["TALON_AUTH_FILE"] = str(
+        Path(tempfile.gettempdir()) / f"talon-e2e-bootstrap-auth-{grpc_port}.json"
+    )
+    result = subprocess.run(
+        [
+            cli,
+            "--gateway",
+            f"http://127.0.0.1:{grpc_port}",
+            "--jwt-secret",
+            E2E_GATEWAY_JWT_SECRET,
+            "auth",
+            "api-key",
+            "create",
+            "--name",
+            "playwright-root",
+            "--grant",
+            "readwrite",
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=30,
+        env=env,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            "Failed to create Playwright API key\n"
+            f"stdout:\n{result.stdout}\n"
+            f"stderr:\n{result.stderr}"
+        )
+    for line in result.stdout.splitlines():
+        if line.startswith("secret="):
+            secret = line.split("=", 1)[1].strip()
+            if secret:
+                return secret
+    raise RuntimeError(f"API key creation did not print a secret:\n{result.stdout}")
+
+def write_auth_handoff(grpc_port, api_key):
+    channel = grpc.insecure_channel(f"127.0.0.1:{grpc_port}")
+    try:
+        exchanged = auth_pb2_grpc.AuthServiceStub(channel).ExchangeApiKey(
+            auth_pb2.ExchangeApiKeyRequest(api_key=api_key),
+            timeout=10,
+        )
+    finally:
+        channel.close()
+
+    E2E_AUTH_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = E2E_AUTH_FILE.with_suffix(E2E_AUTH_FILE.suffix + ".tmp")
+    tmp_path.write_text(
+        json.dumps(
+            {
+                "gatewayUrl": f"http://127.0.0.1:{grpc_port}",
+                "apiKey": api_key,
+                "accessToken": exchanged.access_token,
+                "expiresAt": int(exchanged.expires_at),
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    try:
+        tmp_path.chmod(0o600)
+    except OSError:
+        pass
+    tmp_path.replace(E2E_AUTH_FILE)
+
 def main():
     print("Starting mock LLM server...")
     import threading
@@ -108,6 +202,7 @@ def main():
     env["RUST_LOG"] = "info"
     env["GCP_PROJECT_ID"] = "talon-local"
     env["NOVITA_API_KEY"] = "test-dummy-key"
+    env["GATEWAY_JWT_SECRET"] = E2E_GATEWAY_JWT_SECRET
     temp_dir = Path(tempfile.mkdtemp(prefix="talon-e2e-"))
     
     env["GRPC_ADDR"] = f"0.0.0.0:{GATEWAY_GRPC_PORT}"
@@ -171,7 +266,18 @@ control_plane:
         cleanup_temp_dir(temp_dir)
         raise RuntimeError(f"Talon server failed to start on port {GATEWAY_GRPC_PORT}")
 
-    time.sleep(3)
+    try:
+        time.sleep(3)
+        api_key = create_api_key(GATEWAY_GRPC_PORT)
+        write_auth_handoff(GATEWAY_GRPC_PORT, api_key)
+    except Exception:
+        server_proc.terminate()
+        postgres.stop()
+        pubsub.stop()
+        E2E_AUTH_FILE.unlink(missing_ok=True)
+        cleanup_temp_dir(temp_dir)
+        raise
+
     env_worker = env.copy()
     env_worker["PULL_MODE"] = "1"
     env_worker["TALON_WORKER_ENDPOINT_URL"] = "http://127.0.0.1:8081"
@@ -190,7 +296,7 @@ control_plane:
             self.end_headers()
             self.wfile.write(b"READY")
 
-    ready_server = socketserver.TCPServer(("127.0.0.1", 8090), ReadyHandler)
+    ready_server = socketserver.TCPServer(("127.0.0.1", READY_PORT), ReadyHandler)
     ready_thread = threading.Thread(target=ready_server.serve_forever, daemon=True)
     ready_thread.start()
 
@@ -202,6 +308,7 @@ control_plane:
         ready_server.server_close()
         postgres.stop()
         pubsub.stop()
+        E2E_AUTH_FILE.unlink(missing_ok=True)
         cleanup_temp_dir(temp_dir)
         sys.exit(0)
 
@@ -215,6 +322,7 @@ control_plane:
         ready_server.server_close()
         postgres.stop()
         pubsub.stop()
+        E2E_AUTH_FILE.unlink(missing_ok=True)
         cleanup_temp_dir(temp_dir)
 
 if __name__ == '__main__':

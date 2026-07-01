@@ -4,8 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	talonv1 "github.com/impalasys/talon/sdk/go/talon-client/talon/v1"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc"
@@ -29,6 +31,7 @@ type GatewayClientOptions struct {
 	Endpoint       string
 	Transport      GatewayTransport
 	Authorization  string
+	APIKey         string
 	ConnectTimeout time.Duration
 	RequestTimeout time.Duration
 	HTTPClient     *http.Client
@@ -87,6 +90,12 @@ func WithAuthorization(authorization string) GatewayClientOption {
 	}
 }
 
+func WithAPIKey(apiKey string) GatewayClientOption {
+	return func(opts *GatewayClientOptions) {
+		opts.APIKey = apiKey
+	}
+}
+
 func WithConnectTimeout(timeout time.Duration) GatewayClientOption {
 	return func(opts *GatewayClientOptions) {
 		opts.ConnectTimeout = timeout
@@ -139,13 +148,15 @@ func connectNative(ctx context.Context, opts GatewayClientOptions) (*Clientset, 
 			MinVersion: tls.VersionTLS13,
 		})))
 	} else {
-		if opts.Authorization != "" {
-			return nil, errors.New("authorization requires a TLS native gRPC endpoint; use https:// or omit WithAuthorization")
+		if strings.TrimSpace(opts.APIKey) != "" {
+			return nil, errors.New("api key auth requires a TLS native gRPC endpoint; use https:// or omit api key auth")
 		}
 		dialOptions = append(dialOptions, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 	if opts.Authorization != "" {
 		dialOptions = append(dialOptions, grpc.WithPerRPCCredentials(authorizationCredentials(opts.Authorization)))
+	} else if strings.TrimSpace(opts.APIKey) != "" {
+		dialOptions = append(dialOptions, grpc.WithPerRPCCredentials(newAPIKeyCredentials(opts)))
 	}
 	dialOptions = append(dialOptions, opts.DialOptions...)
 	dialOptions = append(dialOptions, grpc.WithBlock())
@@ -188,5 +199,99 @@ func (c authorizationCredentials) GetRequestMetadata(context.Context, ...string)
 }
 
 func (authorizationCredentials) RequireTransportSecurity() bool {
+	return false
+}
+
+type apiKeyCredentials struct {
+	apiKey      string
+	opts        GatewayClientOptions
+	mu          sync.Mutex
+	token       string
+	expires     time.Time
+	refresh     time.Duration
+	refreshing  bool
+	refreshDone chan struct{}
+	exchange    func(context.Context, string) (*talonv1.ExchangeApiKeyResponse, error)
+}
+
+func newAPIKeyCredentials(opts GatewayClientOptions) *apiKeyCredentials {
+	exchangeOpts := opts
+	exchangeOpts.Authorization = ""
+	exchangeOpts.APIKey = ""
+	return newAPIKeyCredentialsWithExchange(opts, func(ctx context.Context, apiKey string) (*talonv1.ExchangeApiKeyResponse, error) {
+		client, err := connectNative(ctx, exchangeOpts)
+		if err != nil {
+			return nil, err
+		}
+		defer client.Close()
+		return client.Auth().ExchangeApiKey(ctx, &talonv1.ExchangeApiKeyRequest{
+			ApiKey: apiKey,
+		})
+	})
+}
+
+func newAPIKeyCredentialsWithExchange(opts GatewayClientOptions, exchange func(context.Context, string) (*talonv1.ExchangeApiKeyResponse, error)) *apiKeyCredentials {
+	return &apiKeyCredentials{
+		apiKey:   strings.TrimSpace(opts.APIKey),
+		opts:     opts,
+		refresh:  time.Minute,
+		exchange: exchange,
+	}
+}
+
+func (c *apiKeyCredentials) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
+	token, err := c.authorization(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]string{"authorization": token}, nil
+}
+
+func (*apiKeyCredentials) RequireTransportSecurity() bool {
 	return true
+}
+
+func (c *apiKeyCredentials) authorization(ctx context.Context) (string, error) {
+	c.mu.Lock()
+	for {
+		now := time.Now()
+		if c.token != "" && c.expires.After(now.Add(c.refresh)) {
+			token := c.token
+			c.mu.Unlock()
+			return token, nil
+		}
+		if !c.refreshing {
+			c.refreshing = true
+			c.refreshDone = make(chan struct{})
+			break
+		}
+		done := c.refreshDone
+		c.mu.Unlock()
+		select {
+		case <-done:
+		case <-ctx.Done():
+			return "", ctx.Err()
+		}
+		c.mu.Lock()
+	}
+	done := c.refreshDone
+	c.mu.Unlock()
+
+	resp, err := c.exchange(ctx, c.apiKey)
+	if err != nil {
+		c.mu.Lock()
+		c.refreshing = false
+		close(done)
+		c.mu.Unlock()
+		return "", err
+	}
+
+	c.mu.Lock()
+	c.token = "Bearer " + resp.AccessToken
+	c.expires = time.Unix(int64(resp.ExpiresAt), 0)
+	c.refreshing = false
+	close(done)
+	token := c.token
+	c.mu.Unlock()
+	return token, nil
 }

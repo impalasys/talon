@@ -1,11 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { createTalonClient } from "@impalasys/talon-client";
+import { createE2ETalonClient, e2eGatewayUrl, installBrowserAuth } from './talonAuth';
 
 test.describe('Explorer navigation', () => {
   test('deep session URL auto-expands namespace path and agent', async ({ page }) => {
-    const API_PORT = process.env.API_PORT || '50051';
-    const gatewayUrl = `http://127.0.0.1:${API_PORT}`;
-    const client = createTalonClient(gatewayUrl);
+    const gatewayUrl = e2eGatewayUrl();
+    const client = createE2ETalonClient(gatewayUrl);
 
     await expect(async () => {
       await client.namespaces.create({ name: 'conic:wks:13', recursive: true });
@@ -50,9 +49,7 @@ test.describe('Explorer navigation', () => {
       session: sessionRes.sessionId,
     });
 
-    await page.addInitScript((url) => {
-      localStorage.setItem('talon_gateway_url', url);
-    }, gatewayUrl);
+    await installBrowserAuth(page, gatewayUrl);
 
     await page.goto(`/?${params.toString()}`);
 

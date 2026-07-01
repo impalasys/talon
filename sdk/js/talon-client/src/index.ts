@@ -1,4 +1,5 @@
 import {
+  createPromiseClient,
   type Interceptor,
   type Transport,
 } from "@connectrpc/connect";
@@ -81,6 +82,10 @@ export type { TalonClient } from "./clientset.js";
 export type TalonClientOptions = {
   baseUrl: string;
   authToken?: string | null;
+  /**
+   * Server-side only. Long-lived API keys must not be embedded in browser apps.
+   */
+  apiKey?: string | null;
   fetch?: typeof globalThis.fetch;
   interceptors?: Interceptor[];
   useBinaryFormat?: boolean;
@@ -103,9 +108,43 @@ export function createTalonTransport(options: TalonClientOptions): Transport {
   if (!options || typeof options.baseUrl !== "string" || !options.baseUrl.trim()) {
     throw new Error("TalonClient requires a baseUrl.");
   }
+  const baseUrl = options.baseUrl.trim().replace(/\/+$/, "");
+  let cachedApiKeyToken: { token: string; expiresAt: number } | undefined;
+  let refreshPromise: Promise<string | undefined> | undefined;
+  let authClient: TalonClient["auth"] | undefined;
+
+  async function apiKeyAuthorization() {
+    const apiKey = options.apiKey?.trim();
+    if (!apiKey) return undefined;
+    const now = Math.floor(Date.now() / 1000);
+    if (cachedApiKeyToken && cachedApiKeyToken.expiresAt > now + 60) {
+      return `Bearer ${cachedApiKeyToken.token}`;
+    }
+    refreshPromise ??= (async () => {
+      if (!authClient) {
+        const bareTransport = createGrpcWebTransport({
+          baseUrl,
+          fetch: options.fetch,
+          useBinaryFormat: options.useBinaryFormat,
+        });
+        authClient = createPromiseClient(v1AuthConnect.AuthService, bareTransport);
+      }
+      const exchanged = await authClient.exchangeApiKey(new v1Auth.ExchangeApiKeyRequest({
+        apiKey,
+      }));
+      cachedApiKeyToken = {
+        token: exchanged.accessToken,
+        expiresAt: Number(exchanged.expiresAt),
+      };
+      return `Bearer ${exchanged.accessToken}`;
+    })().finally(() => {
+      refreshPromise = undefined;
+    });
+    return await refreshPromise;
+  }
 
   const authInterceptor: Interceptor = (next) => async (req) => {
-    const authorization = buildAuthorizationHeader(options.authToken);
+    const authorization = buildAuthorizationHeader(options.authToken) ?? await apiKeyAuthorization();
     if (authorization) {
       req.header.set("authorization", authorization);
     }
@@ -113,7 +152,7 @@ export function createTalonTransport(options: TalonClientOptions): Transport {
   };
 
   return createGrpcWebTransport({
-    baseUrl: options.baseUrl.trim().replace(/\/+$/, ""),
+    baseUrl,
     fetch: options.fetch,
     interceptors: [authInterceptor, ...(options.interceptors ?? [])],
     useBinaryFormat: options.useBinaryFormat,
