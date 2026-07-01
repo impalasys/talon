@@ -1146,10 +1146,8 @@ where
     FShutdown: std::future::Future,
 {
     let config = load_config()?;
-    if talon::control::security::platform_jwt::private_key_env_configured()? {
-        talon::control::security::platform_jwt::load_key()?;
-        talon::control::security::platform_jwt::issuer()?;
-    }
+    talon::control::security::platform_jwt::load_key()?;
+    talon::control::security::platform_jwt::issuer()?;
     let cp = build_cp(&config).await?;
     let scheduler_authenticator = build_auth(&config).await?;
     run_worker_with(
@@ -1321,6 +1319,7 @@ mod tests {
     use std::collections::HashMap;
     use std::sync::Arc;
     use talon::control::config::Config;
+    use talon::control::security::platform_jwt;
     use talon::control::{
         events::{LifecycleEvent, SessionControlEvent},
         keys, topics, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
@@ -1335,6 +1334,35 @@ mod tests {
     use tokio::sync::Mutex;
     use tokio_util::sync::CancellationToken;
     use tower::ServiceExt;
+
+    const TEST_RSA_PRIVATE_KEY: &str = include_str!("../control/security/test_rsa_private_key.pem");
+
+    struct EnvGuard {
+        key: &'static str,
+        previous: Option<std::ffi::OsString>,
+    }
+
+    impl EnvGuard {
+        fn set(key: &'static str, value: &str) -> Self {
+            let previous = std::env::var_os(key);
+            unsafe {
+                std::env::set_var(key, value);
+            }
+            Self { key, previous }
+        }
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            unsafe {
+                if let Some(previous) = &self.previous {
+                    std::env::set_var(self.key, previous);
+                } else {
+                    std::env::remove_var(self.key);
+                }
+            }
+        }
+    }
 
     fn handler_with_auth(authenticator: SchedulerRequestAuthenticator) -> WorkerEventHandler {
         WorkerEventHandler {
@@ -2253,6 +2281,12 @@ mod tests {
         .unwrap_err();
         assert!(config_err.to_string().contains("config failed"));
 
+        let _env_lock = talon::test_support::async_env_mutex().lock().await;
+        let _private_key = EnvGuard::set(
+            platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+            TEST_RSA_PRIVATE_KEY,
+        );
+
         let cp_err = run_worker_main_with(
             || Ok(Arc::new(Config::default())),
             |_| async { anyhow::bail!("control plane failed") },
@@ -2282,6 +2316,11 @@ mod tests {
 
     #[tokio::test]
     async fn run_worker_main_with_starts_and_routes_to_worker_runtime() {
+        let _env_lock = talon::test_support::async_env_mutex().lock().await;
+        let _private_key = EnvGuard::set(
+            platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+            TEST_RSA_PRIVATE_KEY,
+        );
         let spawned = Arc::new(std::sync::Mutex::new(Vec::<(bool, String)>::new()));
         let result = run_worker_main_with(
             || Ok(Arc::new(Config::default())),

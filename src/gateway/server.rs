@@ -124,7 +124,10 @@ impl Gateway {
         };
         let http_gateway = handler.gateway.clone();
 
-        let auth_config = self.auth_config.clone().unwrap_or_else(AuthConfig::open);
+        let auth_config = self
+            .auth_config
+            .clone()
+            .unwrap_or_else(AuthConfig::jwt_platform);
         let interceptor = crate::gateway::auth::TalonAuthInterceptor {
             config: auth_config,
         };
@@ -233,17 +236,6 @@ fn well_known_router() -> Router<Arc<Gateway>> {
 
 async fn jwks(State(gateway): State<Arc<Gateway>>) -> axum::response::Response {
     let _ = gateway;
-    match platform_jwt::private_key_env_configured() {
-        Ok(true) => {}
-        Ok(false) => return StatusCode::NOT_FOUND.into_response(),
-        Err(err) => {
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": format!("platform JWT key is not configured: {err}")})),
-            )
-                .into_response();
-        }
-    }
     match platform_jwt::load_key() {
         Ok(key) => Json(key.jwks()).into_response(),
         Err(err) => (

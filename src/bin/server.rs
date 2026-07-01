@@ -18,12 +18,8 @@ use tokio_util::sync::CancellationToken;
 #[global_allocator]
 static GLOBAL_ALLOCATOR: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
-fn select_auth_config() -> Result<AuthConfig> {
-    Ok(if platform_jwt::private_key_env_configured()? {
-        AuthConfig::jwt_platform()
-    } else {
-        AuthConfig::open()
-    })
+fn select_auth_config() -> AuthConfig {
+    AuthConfig::jwt_platform()
 }
 
 fn gateway_addr<F>(mut get: F) -> String
@@ -71,7 +67,7 @@ where
     FGetAddr: FnMut(&str) -> Option<String>,
     FShutdown: std::future::Future,
 {
-    let auth_config = select_auth_config()?;
+    let auth_config = select_auth_config();
     let gateway = build_gateway(auth_config, trust_config, cp);
     let rpc_addr = gateway_addr(addr_get);
     let shutdown_token = CancellationToken::new();
@@ -118,10 +114,8 @@ where
 {
     let config = load_config()?;
     let trust_config = config.trust.clone();
-    if platform_jwt::private_key_env_configured()? {
-        platform_jwt::load_key()?;
-        platform_jwt::issuer()?;
-    }
+    platform_jwt::load_key()?;
+    platform_jwt::issuer()?;
     let cp = build_cp(&config).await?;
     run_gateway_with(cp, trust_config, addr_get, shutdown).await
 }
@@ -190,7 +184,7 @@ mod tests {
             TEST_RSA_PRIVATE_KEY,
         );
 
-        let gateway = build_gateway(select_auth_config().unwrap(), None, test_control_plane());
+        let gateway = build_gateway(select_auth_config(), None, test_control_plane());
         let auth_config = gateway.auth_config.as_ref().unwrap();
 
         assert_eq!(auth_config.mode, talon::gateway::auth::AuthMode::Jwt);

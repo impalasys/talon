@@ -30,11 +30,7 @@ pub struct PlatformJwtKey {
 
 impl PlatformJwtKey {
     pub fn from_env() -> Result<Self> {
-        let pem = std::env::var(TALON_JWT_PRIVATE_KEY_PEM_ENV)
-            .map_err(|_| anyhow!("{TALON_JWT_PRIVATE_KEY_PEM_ENV} is required"))?;
-        if pem.trim().is_empty() {
-            return Err(anyhow!("{TALON_JWT_PRIVATE_KEY_PEM_ENV} is set but empty"));
-        }
+        let pem = private_key_pem_from_env()?;
         Self::from_pem(&pem)
     }
 
@@ -129,9 +125,7 @@ fn validate_issuer(issuer: &str) -> Result<()> {
 
 pub fn load_key() -> Result<PlatformJwtKey> {
     static KEY: OnceLock<PlatformJwtKey> = OnceLock::new();
-    if !private_key_env_configured()? {
-        return Err(anyhow!("{TALON_JWT_PRIVATE_KEY_PEM_ENV} is required"));
-    }
+    private_key_pem_from_env()?;
     if let Some(key) = KEY.get() {
         return Ok(key.clone());
     }
@@ -142,13 +136,15 @@ pub fn load_key() -> Result<PlatformJwtKey> {
         .ok_or_else(|| anyhow!("failed to cache platform JWT key"))
 }
 
-pub fn private_key_env_configured() -> Result<bool> {
+fn private_key_pem_from_env() -> Result<String> {
     match std::env::var(TALON_JWT_PRIVATE_KEY_PEM_ENV) {
         Ok(value) if value.trim().is_empty() => {
             Err(anyhow!("{TALON_JWT_PRIVATE_KEY_PEM_ENV} is set but empty"))
         }
-        Ok(_) => Ok(true),
-        Err(std::env::VarError::NotPresent) => Ok(false),
+        Ok(value) => Ok(value),
+        Err(std::env::VarError::NotPresent) => {
+            Err(anyhow!("{TALON_JWT_PRIVATE_KEY_PEM_ENV} is required"))
+        }
         Err(std::env::VarError::NotUnicode(_)) => Err(anyhow!(
             "{TALON_JWT_PRIVATE_KEY_PEM_ENV} must be valid UTF-8"
         )),
