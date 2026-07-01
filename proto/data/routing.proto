@@ -2,11 +2,18 @@ syntax = "proto3";
 
 package talon.data;
 
-import "proto/resources/common.proto";
+message ResourceRef {
+  // Namespace containing the referenced Talon resource. Empty means the
+  // reference is resolved relative to the owning resource or route.
+  string namespace = 1;
+
+  // Resource name within namespace.
+  string name = 2;
+}
 
 message SessionMessageConsumer {
   // Agent that consumes matching messages through a Talon Session.
-  talon.resources.ResourceRef agent = 1;
+  ResourceRef agent = 1;
 
   // Existing Talon Session id to deliver matching messages into. The session
   // is resolved under agent.namespace/name, with an empty agent namespace
@@ -21,10 +28,10 @@ message SessionMessageConsumer {
 
 message ChannelMessageConsumer {
   // Channel that receives matching messages before agent routing.
-  talon.resources.ResourceRef channel = 1;
+  ResourceRef channel = 1;
 
   // Agent that consumes the persisted Channel message.
-  talon.resources.ResourceRef agent = 2;
+  ResourceRef agent = 2;
 
   // Channel routing continuity policy. This is reserved for channel dispatch
   // policies that create agent runtime context per message or thread.

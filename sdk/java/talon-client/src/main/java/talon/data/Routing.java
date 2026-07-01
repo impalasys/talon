@@ -26,6 +26,750 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     registerAllExtensions(
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
+  public interface ResourceRefOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.data.ResourceRef)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Namespace containing the referenced Talon resource. Empty means the
+     * reference is resolved relative to the owning resource or route.
+     * </pre>
+     *
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    java.lang.String getNamespace();
+    /**
+     * <pre>
+     * Namespace containing the referenced Talon resource. Empty means the
+     * reference is resolved relative to the owning resource or route.
+     * </pre>
+     *
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    com.google.protobuf.ByteString
+        getNamespaceBytes();
+
+    /**
+     * <pre>
+     * Resource name within namespace.
+     * </pre>
+     *
+     * <code>string name = 2;</code>
+     * @return The name.
+     */
+    java.lang.String getName();
+    /**
+     * <pre>
+     * Resource name within namespace.
+     * </pre>
+     *
+     * <code>string name = 2;</code>
+     * @return The bytes for name.
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
+  }
+  /**
+   * Protobuf type {@code talon.data.ResourceRef}
+   */
+  public static final class ResourceRef extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.data.ResourceRef)
+      ResourceRefOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ResourceRef");
+    }
+    // Use ResourceRef.newBuilder() to construct.
+    private ResourceRef(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ResourceRef() {
+      namespace_ = "";
+      name_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.data.Routing.internal_static_talon_data_ResourceRef_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.data.Routing.internal_static_talon_data_ResourceRef_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.data.Routing.internal_static_talon_data_ResourceRef_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.data.Routing.ResourceRef.class, talon.data.Routing.ResourceRef.Builder.class);
+    }
+
+    public static final int NAMESPACE_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object namespace_ = "";
+    /**
+     * <pre>
+     * Namespace containing the referenced Talon resource. Empty means the
+     * reference is resolved relative to the owning resource or route.
+     * </pre>
+     *
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    @java.lang.Override
+    public java.lang.String getNamespace() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        namespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Namespace containing the referenced Talon resource. Empty means the
+     * reference is resolved relative to the owning resource or route.
+     * </pre>
+     *
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNamespaceBytes() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        namespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NAME_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object name_ = "";
+    /**
+     * <pre>
+     * Resource name within namespace.
+     * </pre>
+     *
+     * <code>string name = 2;</code>
+     * @return The name.
+     */
+    @java.lang.Override
+    public java.lang.String getName() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        name_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Resource name within namespace.
+     * </pre>
+     *
+     * <code>string name = 2;</code>
+     * @return The bytes for name.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNameBytes() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        name_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, name_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, name_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.data.Routing.ResourceRef)) {
+        return super.equals(obj);
+      }
+      talon.data.Routing.ResourceRef other = (talon.data.Routing.ResourceRef) obj;
+
+      if (!getNamespace()
+          .equals(other.getNamespace())) return false;
+      if (!getName()
+          .equals(other.getName())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getNamespace().hashCode();
+      hash = (37 * hash) + NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getName().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.data.Routing.ResourceRef parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Routing.ResourceRef parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Routing.ResourceRef parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Routing.ResourceRef parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Routing.ResourceRef parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Routing.ResourceRef parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Routing.ResourceRef parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Routing.ResourceRef parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.data.Routing.ResourceRef parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.data.Routing.ResourceRef parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.data.Routing.ResourceRef parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Routing.ResourceRef parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.data.Routing.ResourceRef prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.data.ResourceRef}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.data.ResourceRef)
+        talon.data.Routing.ResourceRefOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.data.Routing.internal_static_talon_data_ResourceRef_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.data.Routing.internal_static_talon_data_ResourceRef_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.data.Routing.ResourceRef.class, talon.data.Routing.ResourceRef.Builder.class);
+      }
+
+      // Construct using talon.data.Routing.ResourceRef.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        namespace_ = "";
+        name_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.data.Routing.internal_static_talon_data_ResourceRef_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.data.Routing.ResourceRef getDefaultInstanceForType() {
+        return talon.data.Routing.ResourceRef.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.data.Routing.ResourceRef build() {
+        talon.data.Routing.ResourceRef result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.data.Routing.ResourceRef buildPartial() {
+        talon.data.Routing.ResourceRef result = new talon.data.Routing.ResourceRef(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.data.Routing.ResourceRef result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.namespace_ = namespace_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.name_ = name_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.data.Routing.ResourceRef) {
+          return mergeFrom((talon.data.Routing.ResourceRef)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.data.Routing.ResourceRef other) {
+        if (other == talon.data.Routing.ResourceRef.getDefaultInstance()) return this;
+        if (!other.getNamespace().isEmpty()) {
+          namespace_ = other.namespace_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getName().isEmpty()) {
+          name_ = other.name_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                namespace_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                name_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object namespace_ = "";
+      /**
+       * <pre>
+       * Namespace containing the referenced Talon resource. Empty means the
+       * reference is resolved relative to the owning resource or route.
+       * </pre>
+       *
+       * <code>string namespace = 1;</code>
+       * @return The namespace.
+       */
+      public java.lang.String getNamespace() {
+        java.lang.Object ref = namespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          namespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Namespace containing the referenced Talon resource. Empty means the
+       * reference is resolved relative to the owning resource or route.
+       * </pre>
+       *
+       * <code>string namespace = 1;</code>
+       * @return The bytes for namespace.
+       */
+      public com.google.protobuf.ByteString
+          getNamespaceBytes() {
+        java.lang.Object ref = namespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          namespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Namespace containing the referenced Talon resource. Empty means the
+       * reference is resolved relative to the owning resource or route.
+       * </pre>
+       *
+       * <code>string namespace = 1;</code>
+       * @param value The namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Namespace containing the referenced Talon resource. Empty means the
+       * reference is resolved relative to the owning resource or route.
+       * </pre>
+       *
+       * <code>string namespace = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNamespace() {
+        namespace_ = getDefaultInstance().getNamespace();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Namespace containing the referenced Talon resource. Empty means the
+       * reference is resolved relative to the owning resource or route.
+       * </pre>
+       *
+       * <code>string namespace = 1;</code>
+       * @param value The bytes for namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object name_ = "";
+      /**
+       * <pre>
+       * Resource name within namespace.
+       * </pre>
+       *
+       * <code>string name = 2;</code>
+       * @return The name.
+       */
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          name_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Resource name within namespace.
+       * </pre>
+       *
+       * <code>string name = 2;</code>
+       * @return The bytes for name.
+       */
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Resource name within namespace.
+       * </pre>
+       *
+       * <code>string name = 2;</code>
+       * @param value The name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setName(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        name_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Resource name within namespace.
+       * </pre>
+       *
+       * <code>string name = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearName() {
+        name_ = getDefaultInstance().getName();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Resource name within namespace.
+       * </pre>
+       *
+       * <code>string name = 2;</code>
+       * @param value The bytes for name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        name_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.data.ResourceRef)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.data.ResourceRef)
+    private static final talon.data.Routing.ResourceRef DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.data.Routing.ResourceRef();
+    }
+
+    public static talon.data.Routing.ResourceRef getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ResourceRef>
+        PARSER = new com.google.protobuf.AbstractParser<ResourceRef>() {
+      @java.lang.Override
+      public ResourceRef parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ResourceRef> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ResourceRef> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.data.Routing.ResourceRef getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface SessionMessageConsumerOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.data.SessionMessageConsumer)
       com.google.protobuf.MessageOrBuilder {
@@ -35,7 +779,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
      * Agent that consumes matching messages through a Talon Session.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef agent = 1;</code>
+     * <code>.talon.data.ResourceRef agent = 1;</code>
      * @return Whether the agent field is set.
      */
     boolean hasAgent();
@@ -44,18 +788,18 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
      * Agent that consumes matching messages through a Talon Session.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef agent = 1;</code>
+     * <code>.talon.data.ResourceRef agent = 1;</code>
      * @return The agent.
      */
-    talon.resources.Common.ResourceRef getAgent();
+    talon.data.Routing.ResourceRef getAgent();
     /**
      * <pre>
      * Agent that consumes matching messages through a Talon Session.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef agent = 1;</code>
+     * <code>.talon.data.ResourceRef agent = 1;</code>
      */
-    talon.resources.Common.ResourceRefOrBuilder getAgentOrBuilder();
+    talon.data.Routing.ResourceRefOrBuilder getAgentOrBuilder();
 
     /**
      * <pre>
@@ -151,13 +895,13 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
 
     private int bitField0_;
     public static final int AGENT_FIELD_NUMBER = 1;
-    private talon.resources.Common.ResourceRef agent_;
+    private talon.data.Routing.ResourceRef agent_;
     /**
      * <pre>
      * Agent that consumes matching messages through a Talon Session.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef agent = 1;</code>
+     * <code>.talon.data.ResourceRef agent = 1;</code>
      * @return Whether the agent field is set.
      */
     @java.lang.Override
@@ -169,23 +913,23 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
      * Agent that consumes matching messages through a Talon Session.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef agent = 1;</code>
+     * <code>.talon.data.ResourceRef agent = 1;</code>
      * @return The agent.
      */
     @java.lang.Override
-    public talon.resources.Common.ResourceRef getAgent() {
-      return agent_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : agent_;
+    public talon.data.Routing.ResourceRef getAgent() {
+      return agent_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : agent_;
     }
     /**
      * <pre>
      * Agent that consumes matching messages through a Talon Session.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef agent = 1;</code>
+     * <code>.talon.data.ResourceRef agent = 1;</code>
      */
     @java.lang.Override
-    public talon.resources.Common.ResourceRefOrBuilder getAgentOrBuilder() {
-      return agent_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : agent_;
+    public talon.data.Routing.ResourceRefOrBuilder getAgentOrBuilder() {
+      return agent_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : agent_;
     }
 
     public static final int SESSION_ID_FIELD_NUMBER = 2;
@@ -653,15 +1397,15 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
-      private talon.resources.Common.ResourceRef agent_;
+      private talon.data.Routing.ResourceRef agent_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder> agentBuilder_;
+          talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder> agentBuilder_;
       /**
        * <pre>
        * Agent that consumes matching messages through a Talon Session.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 1;</code>
+       * <code>.talon.data.ResourceRef agent = 1;</code>
        * @return Whether the agent field is set.
        */
       public boolean hasAgent() {
@@ -672,12 +1416,12 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes matching messages through a Talon Session.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 1;</code>
+       * <code>.talon.data.ResourceRef agent = 1;</code>
        * @return The agent.
        */
-      public talon.resources.Common.ResourceRef getAgent() {
+      public talon.data.Routing.ResourceRef getAgent() {
         if (agentBuilder_ == null) {
-          return agent_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : agent_;
+          return agent_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : agent_;
         } else {
           return agentBuilder_.getMessage();
         }
@@ -687,9 +1431,9 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes matching messages through a Talon Session.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 1;</code>
+       * <code>.talon.data.ResourceRef agent = 1;</code>
        */
-      public Builder setAgent(talon.resources.Common.ResourceRef value) {
+      public Builder setAgent(talon.data.Routing.ResourceRef value) {
         if (agentBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -707,10 +1451,10 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes matching messages through a Talon Session.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 1;</code>
+       * <code>.talon.data.ResourceRef agent = 1;</code>
        */
       public Builder setAgent(
-          talon.resources.Common.ResourceRef.Builder builderForValue) {
+          talon.data.Routing.ResourceRef.Builder builderForValue) {
         if (agentBuilder_ == null) {
           agent_ = builderForValue.build();
         } else {
@@ -725,13 +1469,13 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes matching messages through a Talon Session.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 1;</code>
+       * <code>.talon.data.ResourceRef agent = 1;</code>
        */
-      public Builder mergeAgent(talon.resources.Common.ResourceRef value) {
+      public Builder mergeAgent(talon.data.Routing.ResourceRef value) {
         if (agentBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             agent_ != null &&
-            agent_ != talon.resources.Common.ResourceRef.getDefaultInstance()) {
+            agent_ != talon.data.Routing.ResourceRef.getDefaultInstance()) {
             getAgentBuilder().mergeFrom(value);
           } else {
             agent_ = value;
@@ -750,7 +1494,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes matching messages through a Talon Session.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 1;</code>
+       * <code>.talon.data.ResourceRef agent = 1;</code>
        */
       public Builder clearAgent() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -767,9 +1511,9 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes matching messages through a Talon Session.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 1;</code>
+       * <code>.talon.data.ResourceRef agent = 1;</code>
        */
-      public talon.resources.Common.ResourceRef.Builder getAgentBuilder() {
+      public talon.data.Routing.ResourceRef.Builder getAgentBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetAgentFieldBuilder().getBuilder();
@@ -779,14 +1523,14 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes matching messages through a Talon Session.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 1;</code>
+       * <code>.talon.data.ResourceRef agent = 1;</code>
        */
-      public talon.resources.Common.ResourceRefOrBuilder getAgentOrBuilder() {
+      public talon.data.Routing.ResourceRefOrBuilder getAgentOrBuilder() {
         if (agentBuilder_ != null) {
           return agentBuilder_.getMessageOrBuilder();
         } else {
           return agent_ == null ?
-              talon.resources.Common.ResourceRef.getDefaultInstance() : agent_;
+              talon.data.Routing.ResourceRef.getDefaultInstance() : agent_;
         }
       }
       /**
@@ -794,14 +1538,14 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes matching messages through a Talon Session.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 1;</code>
+       * <code>.talon.data.ResourceRef agent = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>
+          talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder>
           internalGetAgentFieldBuilder() {
         if (agentBuilder_ == null) {
           agentBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>(
+              talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder>(
                   getAgent(),
                   getParentForChildren(),
                   isClean());
@@ -1074,7 +1818,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
      * Channel that receives matching messages before agent routing.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef channel = 1;</code>
+     * <code>.talon.data.ResourceRef channel = 1;</code>
      * @return Whether the channel field is set.
      */
     boolean hasChannel();
@@ -1083,25 +1827,25 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
      * Channel that receives matching messages before agent routing.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef channel = 1;</code>
+     * <code>.talon.data.ResourceRef channel = 1;</code>
      * @return The channel.
      */
-    talon.resources.Common.ResourceRef getChannel();
+    talon.data.Routing.ResourceRef getChannel();
     /**
      * <pre>
      * Channel that receives matching messages before agent routing.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef channel = 1;</code>
+     * <code>.talon.data.ResourceRef channel = 1;</code>
      */
-    talon.resources.Common.ResourceRefOrBuilder getChannelOrBuilder();
+    talon.data.Routing.ResourceRefOrBuilder getChannelOrBuilder();
 
     /**
      * <pre>
      * Agent that consumes the persisted Channel message.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef agent = 2;</code>
+     * <code>.talon.data.ResourceRef agent = 2;</code>
      * @return Whether the agent field is set.
      */
     boolean hasAgent();
@@ -1110,18 +1854,18 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
      * Agent that consumes the persisted Channel message.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef agent = 2;</code>
+     * <code>.talon.data.ResourceRef agent = 2;</code>
      * @return The agent.
      */
-    talon.resources.Common.ResourceRef getAgent();
+    talon.data.Routing.ResourceRef getAgent();
     /**
      * <pre>
      * Agent that consumes the persisted Channel message.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef agent = 2;</code>
+     * <code>.talon.data.ResourceRef agent = 2;</code>
      */
-    talon.resources.Common.ResourceRefOrBuilder getAgentOrBuilder();
+    talon.data.Routing.ResourceRefOrBuilder getAgentOrBuilder();
 
     /**
      * <pre>
@@ -1213,13 +1957,13 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
 
     private int bitField0_;
     public static final int CHANNEL_FIELD_NUMBER = 1;
-    private talon.resources.Common.ResourceRef channel_;
+    private talon.data.Routing.ResourceRef channel_;
     /**
      * <pre>
      * Channel that receives matching messages before agent routing.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef channel = 1;</code>
+     * <code>.talon.data.ResourceRef channel = 1;</code>
      * @return Whether the channel field is set.
      */
     @java.lang.Override
@@ -1231,33 +1975,33 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
      * Channel that receives matching messages before agent routing.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef channel = 1;</code>
+     * <code>.talon.data.ResourceRef channel = 1;</code>
      * @return The channel.
      */
     @java.lang.Override
-    public talon.resources.Common.ResourceRef getChannel() {
-      return channel_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : channel_;
+    public talon.data.Routing.ResourceRef getChannel() {
+      return channel_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : channel_;
     }
     /**
      * <pre>
      * Channel that receives matching messages before agent routing.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef channel = 1;</code>
+     * <code>.talon.data.ResourceRef channel = 1;</code>
      */
     @java.lang.Override
-    public talon.resources.Common.ResourceRefOrBuilder getChannelOrBuilder() {
-      return channel_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : channel_;
+    public talon.data.Routing.ResourceRefOrBuilder getChannelOrBuilder() {
+      return channel_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : channel_;
     }
 
     public static final int AGENT_FIELD_NUMBER = 2;
-    private talon.resources.Common.ResourceRef agent_;
+    private talon.data.Routing.ResourceRef agent_;
     /**
      * <pre>
      * Agent that consumes the persisted Channel message.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef agent = 2;</code>
+     * <code>.talon.data.ResourceRef agent = 2;</code>
      * @return Whether the agent field is set.
      */
     @java.lang.Override
@@ -1269,23 +2013,23 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
      * Agent that consumes the persisted Channel message.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef agent = 2;</code>
+     * <code>.talon.data.ResourceRef agent = 2;</code>
      * @return The agent.
      */
     @java.lang.Override
-    public talon.resources.Common.ResourceRef getAgent() {
-      return agent_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : agent_;
+    public talon.data.Routing.ResourceRef getAgent() {
+      return agent_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : agent_;
     }
     /**
      * <pre>
      * Agent that consumes the persisted Channel message.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef agent = 2;</code>
+     * <code>.talon.data.ResourceRef agent = 2;</code>
      */
     @java.lang.Override
-    public talon.resources.Common.ResourceRefOrBuilder getAgentOrBuilder() {
-      return agent_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : agent_;
+    public talon.data.Routing.ResourceRefOrBuilder getAgentOrBuilder() {
+      return agent_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : agent_;
     }
 
     public static final int CONTINUITY_FIELD_NUMBER = 3;
@@ -1787,15 +2531,15 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
-      private talon.resources.Common.ResourceRef channel_;
+      private talon.data.Routing.ResourceRef channel_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder> channelBuilder_;
+          talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder> channelBuilder_;
       /**
        * <pre>
        * Channel that receives matching messages before agent routing.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef channel = 1;</code>
+       * <code>.talon.data.ResourceRef channel = 1;</code>
        * @return Whether the channel field is set.
        */
       public boolean hasChannel() {
@@ -1806,12 +2550,12 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Channel that receives matching messages before agent routing.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef channel = 1;</code>
+       * <code>.talon.data.ResourceRef channel = 1;</code>
        * @return The channel.
        */
-      public talon.resources.Common.ResourceRef getChannel() {
+      public talon.data.Routing.ResourceRef getChannel() {
         if (channelBuilder_ == null) {
-          return channel_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : channel_;
+          return channel_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : channel_;
         } else {
           return channelBuilder_.getMessage();
         }
@@ -1821,9 +2565,9 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Channel that receives matching messages before agent routing.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef channel = 1;</code>
+       * <code>.talon.data.ResourceRef channel = 1;</code>
        */
-      public Builder setChannel(talon.resources.Common.ResourceRef value) {
+      public Builder setChannel(talon.data.Routing.ResourceRef value) {
         if (channelBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -1841,10 +2585,10 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Channel that receives matching messages before agent routing.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef channel = 1;</code>
+       * <code>.talon.data.ResourceRef channel = 1;</code>
        */
       public Builder setChannel(
-          talon.resources.Common.ResourceRef.Builder builderForValue) {
+          talon.data.Routing.ResourceRef.Builder builderForValue) {
         if (channelBuilder_ == null) {
           channel_ = builderForValue.build();
         } else {
@@ -1859,13 +2603,13 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Channel that receives matching messages before agent routing.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef channel = 1;</code>
+       * <code>.talon.data.ResourceRef channel = 1;</code>
        */
-      public Builder mergeChannel(talon.resources.Common.ResourceRef value) {
+      public Builder mergeChannel(talon.data.Routing.ResourceRef value) {
         if (channelBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             channel_ != null &&
-            channel_ != talon.resources.Common.ResourceRef.getDefaultInstance()) {
+            channel_ != talon.data.Routing.ResourceRef.getDefaultInstance()) {
             getChannelBuilder().mergeFrom(value);
           } else {
             channel_ = value;
@@ -1884,7 +2628,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Channel that receives matching messages before agent routing.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef channel = 1;</code>
+       * <code>.talon.data.ResourceRef channel = 1;</code>
        */
       public Builder clearChannel() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -1901,9 +2645,9 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Channel that receives matching messages before agent routing.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef channel = 1;</code>
+       * <code>.talon.data.ResourceRef channel = 1;</code>
        */
-      public talon.resources.Common.ResourceRef.Builder getChannelBuilder() {
+      public talon.data.Routing.ResourceRef.Builder getChannelBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetChannelFieldBuilder().getBuilder();
@@ -1913,14 +2657,14 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Channel that receives matching messages before agent routing.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef channel = 1;</code>
+       * <code>.talon.data.ResourceRef channel = 1;</code>
        */
-      public talon.resources.Common.ResourceRefOrBuilder getChannelOrBuilder() {
+      public talon.data.Routing.ResourceRefOrBuilder getChannelOrBuilder() {
         if (channelBuilder_ != null) {
           return channelBuilder_.getMessageOrBuilder();
         } else {
           return channel_ == null ?
-              talon.resources.Common.ResourceRef.getDefaultInstance() : channel_;
+              talon.data.Routing.ResourceRef.getDefaultInstance() : channel_;
         }
       }
       /**
@@ -1928,14 +2672,14 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Channel that receives matching messages before agent routing.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef channel = 1;</code>
+       * <code>.talon.data.ResourceRef channel = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>
+          talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder>
           internalGetChannelFieldBuilder() {
         if (channelBuilder_ == null) {
           channelBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>(
+              talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder>(
                   getChannel(),
                   getParentForChildren(),
                   isClean());
@@ -1944,15 +2688,15 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
         return channelBuilder_;
       }
 
-      private talon.resources.Common.ResourceRef agent_;
+      private talon.data.Routing.ResourceRef agent_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder> agentBuilder_;
+          talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder> agentBuilder_;
       /**
        * <pre>
        * Agent that consumes the persisted Channel message.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 2;</code>
+       * <code>.talon.data.ResourceRef agent = 2;</code>
        * @return Whether the agent field is set.
        */
       public boolean hasAgent() {
@@ -1963,12 +2707,12 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes the persisted Channel message.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 2;</code>
+       * <code>.talon.data.ResourceRef agent = 2;</code>
        * @return The agent.
        */
-      public talon.resources.Common.ResourceRef getAgent() {
+      public talon.data.Routing.ResourceRef getAgent() {
         if (agentBuilder_ == null) {
-          return agent_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : agent_;
+          return agent_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : agent_;
         } else {
           return agentBuilder_.getMessage();
         }
@@ -1978,9 +2722,9 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes the persisted Channel message.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 2;</code>
+       * <code>.talon.data.ResourceRef agent = 2;</code>
        */
-      public Builder setAgent(talon.resources.Common.ResourceRef value) {
+      public Builder setAgent(talon.data.Routing.ResourceRef value) {
         if (agentBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -1998,10 +2742,10 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes the persisted Channel message.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 2;</code>
+       * <code>.talon.data.ResourceRef agent = 2;</code>
        */
       public Builder setAgent(
-          talon.resources.Common.ResourceRef.Builder builderForValue) {
+          talon.data.Routing.ResourceRef.Builder builderForValue) {
         if (agentBuilder_ == null) {
           agent_ = builderForValue.build();
         } else {
@@ -2016,13 +2760,13 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes the persisted Channel message.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 2;</code>
+       * <code>.talon.data.ResourceRef agent = 2;</code>
        */
-      public Builder mergeAgent(talon.resources.Common.ResourceRef value) {
+      public Builder mergeAgent(talon.data.Routing.ResourceRef value) {
         if (agentBuilder_ == null) {
           if (((bitField0_ & 0x00000002) != 0) &&
             agent_ != null &&
-            agent_ != talon.resources.Common.ResourceRef.getDefaultInstance()) {
+            agent_ != talon.data.Routing.ResourceRef.getDefaultInstance()) {
             getAgentBuilder().mergeFrom(value);
           } else {
             agent_ = value;
@@ -2041,7 +2785,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes the persisted Channel message.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 2;</code>
+       * <code>.talon.data.ResourceRef agent = 2;</code>
        */
       public Builder clearAgent() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -2058,9 +2802,9 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes the persisted Channel message.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 2;</code>
+       * <code>.talon.data.ResourceRef agent = 2;</code>
        */
-      public talon.resources.Common.ResourceRef.Builder getAgentBuilder() {
+      public talon.data.Routing.ResourceRef.Builder getAgentBuilder() {
         bitField0_ |= 0x00000002;
         onChanged();
         return internalGetAgentFieldBuilder().getBuilder();
@@ -2070,14 +2814,14 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes the persisted Channel message.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 2;</code>
+       * <code>.talon.data.ResourceRef agent = 2;</code>
        */
-      public talon.resources.Common.ResourceRefOrBuilder getAgentOrBuilder() {
+      public talon.data.Routing.ResourceRefOrBuilder getAgentOrBuilder() {
         if (agentBuilder_ != null) {
           return agentBuilder_.getMessageOrBuilder();
         } else {
           return agent_ == null ?
-              talon.resources.Common.ResourceRef.getDefaultInstance() : agent_;
+              talon.data.Routing.ResourceRef.getDefaultInstance() : agent_;
         }
       }
       /**
@@ -2085,14 +2829,14 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * Agent that consumes the persisted Channel message.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef agent = 2;</code>
+       * <code>.talon.data.ResourceRef agent = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>
+          talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder>
           internalGetAgentFieldBuilder() {
         if (agentBuilder_ == null) {
           agentBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>(
+              talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder>(
                   getAgent(),
                   getParentForChildren(),
                   isClean());
@@ -3372,6 +4116,11 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_ResourceRef_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_ResourceRef_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_data_SessionMessageConsumer_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -3395,45 +4144,49 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\030proto/data/routing.proto\022\ntalon.data\032\034" +
-      "proto/resources/common.proto\"m\n\026SessionM" +
-      "essageConsumer\022+\n\005agent\030\001 \001(\0132\034.talon.re" +
-      "sources.ResourceRef\022\022\n\nsession_id\030\002 \001(\t\022" +
-      "\022\n\ncontinuity\030\003 \001(\t\"\236\001\n\026ChannelMessageCo" +
-      "nsumer\022-\n\007channel\030\001 \001(\0132\034.talon.resource" +
-      "s.ResourceRef\022+\n\005agent\030\002 \001(\0132\034.talon.res" +
-      "ources.ResourceRef\022\022\n\ncontinuity\030\003 \001(\t\022\024" +
-      "\n\014reply_policy\030\004 \001(\t\"\213\001\n\017MessageConsumer" +
-      "\0225\n\007session\030\001 \001(\0132\".talon.data.SessionMe" +
-      "ssageConsumerH\000\0225\n\007channel\030\002 \001(\0132\".talon" +
-      ".data.ChannelMessageConsumerH\000B\n\n\010consum" +
-      "erb\006proto3"
+      "\n\030proto/data/routing.proto\022\ntalon.data\"." +
+      "\n\013ResourceRef\022\021\n\tnamespace\030\001 \001(\t\022\014\n\004name" +
+      "\030\002 \001(\t\"h\n\026SessionMessageConsumer\022&\n\005agen" +
+      "t\030\001 \001(\0132\027.talon.data.ResourceRef\022\022\n\nsess" +
+      "ion_id\030\002 \001(\t\022\022\n\ncontinuity\030\003 \001(\t\"\224\001\n\026Cha" +
+      "nnelMessageConsumer\022(\n\007channel\030\001 \001(\0132\027.t" +
+      "alon.data.ResourceRef\022&\n\005agent\030\002 \001(\0132\027.t" +
+      "alon.data.ResourceRef\022\022\n\ncontinuity\030\003 \001(" +
+      "\t\022\024\n\014reply_policy\030\004 \001(\t\"\213\001\n\017MessageConsu" +
+      "mer\0225\n\007session\030\001 \001(\0132\".talon.data.Sessio" +
+      "nMessageConsumerH\000\0225\n\007channel\030\002 \001(\0132\".ta" +
+      "lon.data.ChannelMessageConsumerH\000B\n\n\010con" +
+      "sumerb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          talon.resources.Common.getDescriptor(),
         });
-    internal_static_talon_data_SessionMessageConsumer_descriptor =
+    internal_static_talon_data_ResourceRef_descriptor =
       getDescriptor().getMessageType(0);
+    internal_static_talon_data_ResourceRef_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_ResourceRef_descriptor,
+        new java.lang.String[] { "Namespace", "Name", });
+    internal_static_talon_data_SessionMessageConsumer_descriptor =
+      getDescriptor().getMessageType(1);
     internal_static_talon_data_SessionMessageConsumer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessageConsumer_descriptor,
         new java.lang.String[] { "Agent", "SessionId", "Continuity", });
     internal_static_talon_data_ChannelMessageConsumer_descriptor =
-      getDescriptor().getMessageType(1);
+      getDescriptor().getMessageType(2);
     internal_static_talon_data_ChannelMessageConsumer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ChannelMessageConsumer_descriptor,
         new java.lang.String[] { "Channel", "Agent", "Continuity", "ReplyPolicy", });
     internal_static_talon_data_MessageConsumer_descriptor =
-      getDescriptor().getMessageType(2);
+      getDescriptor().getMessageType(3);
     internal_static_talon_data_MessageConsumer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_MessageConsumer_descriptor,
         new java.lang.String[] { "Session", "Channel", "Consumer", });
     descriptor.resolveAllFeaturesImmutable();
-    talon.resources.Common.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

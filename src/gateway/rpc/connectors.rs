@@ -455,7 +455,7 @@ fn connector_http_client() -> anyhow::Result<reqwest::Client> {
 
 fn route_connector_ref(
     route: &data_proto::Route,
-) -> Result<&resources_proto::ResourceRef, tonic::Status> {
+) -> Result<&data_proto::ResourceRef, tonic::Status> {
     let connector = route
         .connector
         .as_ref()
@@ -469,7 +469,7 @@ fn route_connector_ref(
 }
 
 fn consumer_ref_namespace(
-    reference: &resources_proto::ResourceRef,
+    reference: &data_proto::ResourceRef,
     default_namespace: &str,
 ) -> String {
     reference
@@ -481,7 +481,7 @@ fn consumer_ref_namespace(
 }
 
 fn consumer_ref_name<'a>(
-    reference: &'a resources_proto::ResourceRef,
+    reference: &'a data_proto::ResourceRef,
     message: &'static str,
 ) -> Result<&'a str, tonic::Status> {
     reference

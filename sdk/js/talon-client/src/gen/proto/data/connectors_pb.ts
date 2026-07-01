@@ -5,8 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { ResourceRef } from "../resources/common_pb.js";
-import { MessageConsumer } from "./routing_pb.js";
+import { MessageConsumer, ResourceRef } from "./routing_pb.js";
 
 /**
  * @generated from message talon.data.Route
@@ -23,7 +22,7 @@ export class Route extends Message<Route> {
   /**
    * Namespace/name of the Connector resource that produced this route.
    *
-   * @generated from field: talon.resources.ResourceRef connector = 2;
+   * @generated from field: talon.data.ResourceRef connector = 2;
    */
   connector?: ResourceRef;
 

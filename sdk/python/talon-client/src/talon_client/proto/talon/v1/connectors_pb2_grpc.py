@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from proto.external import connectors_pb2 as proto_dot_external_dot_connectors__pb2
+from talon_client.proto.external import connectors_pb2 as proto_dot_external_dot_connectors__pb2
 
 GRPC_GENERATED_VERSION = '1.76.0'
 GRPC_VERSION = grpc.__version__

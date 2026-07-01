@@ -242,7 +242,7 @@ impl ConnectorController {
             let key = keys::connector_route(&class_meta.namespace, &class_meta.name, &key_name);
             let route = data_proto::Route {
                 connector_uid: meta.uid.clone(),
-                connector: Some(resources_proto::ResourceRef {
+                connector: Some(data_proto::ResourceRef {
                     namespace: meta.namespace.clone(),
                     name: meta.name.clone(),
                 }),
@@ -580,7 +580,7 @@ fn validate_consumer(
 fn validate_local_ref(
     connector_namespace: &str,
     field: &str,
-    reference: &resources_proto::ResourceRef,
+    reference: &data_proto::ResourceRef,
 ) -> Result<()> {
     if reference.name.trim().is_empty() {
         bail!("Connector {field} requires name");

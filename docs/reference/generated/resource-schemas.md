@@ -963,11 +963,18 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `usage_policy` | `UsagePolicyStatus` | oneof (kind) |
 | `raw` | `RawResourceStatus` | oneof (kind) |
 
+## `ResourceRef`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `namespace` | `string` | Namespace containing the referenced Talon resource. Empty means the reference is resolved relative to the owning resource or route. |
+| `name` | `string` | Resource name within namespace. |
+
 ## `SessionMessageConsumer`
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `agent` | `talon.resources.ResourceRef` | Agent that consumes matching messages through a Talon Session. |
+| `agent` | `ResourceRef` | Agent that consumes matching messages through a Talon Session. |
 | `session_id` | `string` | Existing Talon Session id to deliver matching messages into. The session is resolved under agent.namespace/name, with an empty agent namespace resolved relative to the owning Connector namespace. |
 | `continuity` | `string` | Session continuity policy. "reuse" reuses the connector session pointer for the external conversation/thread; "pinned" requires session_id; any other value creates a new Session for each message. |
 
@@ -975,8 +982,8 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `channel` | `talon.resources.ResourceRef` | Channel that receives matching messages before agent routing. |
-| `agent` | `talon.resources.ResourceRef` | Agent that consumes the persisted Channel message. |
+| `channel` | `ResourceRef` | Channel that receives matching messages before agent routing. |
+| `agent` | `ResourceRef` | Agent that consumes the persisted Channel message. |
 | `continuity` | `string` | Channel routing continuity policy. This is reserved for channel dispatch policies that create agent runtime context per message or thread. |
 | `reply_policy` | `string` | Reply behavior requested from the connector-aware channel router, such as replying in the provider thread instead of the root conversation. |
 

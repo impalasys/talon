@@ -123,6 +123,7 @@ fn main() -> std::io::Result<()> {
         ".talon.data.KnowledgeSearchResult",
         ".talon.data.ObjectRef",
         ".talon.data.Principal",
+        ".talon.data.ResourceRef",
         ".talon.data.Route",
         ".talon.data.SessionMessageConsumer",
         ".talon.data.Session",

@@ -8,7 +8,7 @@ package resources
 
 import (
 	config "github.com/impalasys/talon/sdk/go/talon-client/talon/config"
-	data "github.com/impalasys/talon/sdk/go/talon-client/talon/data"
+	routing "github.com/impalasys/talon/sdk/go/talon-client/talon/routing"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -339,7 +339,7 @@ type ConnectorSpec struct {
 	// the ConnectorClass match indexes.
 	MatchFields map[string]string `protobuf:"bytes,3,rep,name=match_fields,json=matchFields,proto3" json:"match_fields,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Single Talon message consumer for messages that match this Connector.
-	Consumer      *data.MessageConsumer `protobuf:"bytes,4,opt,name=consumer,proto3" json:"consumer,omitempty"`
+	Consumer      *routing.MessageConsumer `protobuf:"bytes,4,opt,name=consumer,proto3" json:"consumer,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -395,7 +395,7 @@ func (x *ConnectorSpec) GetMatchFields() map[string]string {
 	return nil
 }
 
-func (x *ConnectorSpec) GetConsumer() *data.MessageConsumer {
+func (x *ConnectorSpec) GetConsumer() *routing.MessageConsumer {
 	if x != nil {
 		return x.Consumer
 	}
@@ -680,7 +680,7 @@ var file_proto_resources_connectors_proto_goTypes = []any{
 	(*config.Secret)(nil),             // 10: talon.config.Secret
 	(*ResourceCondition)(nil),         // 11: talon.resources.ResourceCondition
 	(*ResourceRef)(nil),               // 12: talon.resources.ResourceRef
-	(*data.MessageConsumer)(nil),      // 13: talon.data.MessageConsumer
+	(*routing.MessageConsumer)(nil),   // 13: talon.data.MessageConsumer
 	(*ResourceMeta)(nil),              // 14: talon.resources.ResourceMeta
 }
 var file_proto_resources_connectors_proto_depIdxs = []int32{

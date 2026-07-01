@@ -1,4 +1,3 @@
-from talon_client.proto.resources import common_pb2 as _common_pb2
 from talon_client.proto.data import routing_pb2 as _routing_pb2
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -13,6 +12,6 @@ class Route(_message.Message):
     CONNECTOR_FIELD_NUMBER: _ClassVar[int]
     CONSUMER_FIELD_NUMBER: _ClassVar[int]
     connector_uid: str
-    connector: _common_pb2.ResourceRef
+    connector: _routing_pb2.ResourceRef
     consumer: _routing_pb2.MessageConsumer
-    def __init__(self, connector_uid: _Optional[str] = ..., connector: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ..., consumer: _Optional[_Union[_routing_pb2.MessageConsumer, _Mapping]] = ...) -> None: ...
+    def __init__(self, connector_uid: _Optional[str] = ..., connector: _Optional[_Union[_routing_pb2.ResourceRef, _Mapping]] = ..., consumer: _Optional[_Union[_routing_pb2.MessageConsumer, _Mapping]] = ...) -> None: ...

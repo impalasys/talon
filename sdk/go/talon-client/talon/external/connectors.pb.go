@@ -8,6 +8,7 @@ package external
 
 import (
 	data "github.com/impalasys/talon/sdk/go/talon-client/talon/data"
+	routing "github.com/impalasys/talon/sdk/go/talon-client/talon/routing"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -498,7 +499,7 @@ type ConnectorMessageEventResponse struct {
 	ConnectorName string `protobuf:"bytes,5,opt,name=connector_name,json=connectorName,proto3" json:"connector_name,omitempty"`
 	// Consumer snapshot used for dispatch. Returned for observability so
 	// connector services can log which Talon destination accepted the event.
-	Consumer      *data.MessageConsumer `protobuf:"bytes,6,opt,name=consumer,proto3" json:"consumer,omitempty"`
+	Consumer      *routing.MessageConsumer `protobuf:"bytes,6,opt,name=consumer,proto3" json:"consumer,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -561,7 +562,7 @@ func (x *ConnectorMessageEventResponse) GetConnectorName() string {
 	return ""
 }
 
-func (x *ConnectorMessageEventResponse) GetConsumer() *data.MessageConsumer {
+func (x *ConnectorMessageEventResponse) GetConsumer() *routing.MessageConsumer {
 	if x != nil {
 		return x.Consumer
 	}
@@ -1217,7 +1218,7 @@ var file_proto_external_connectors_proto_goTypes = []any{
 	nil,                                   // 17: talon.external.ConnectorStatusEvent.MatchFieldsEntry
 	(*data.Principal)(nil),                // 18: talon.data.Principal
 	(*data.ObjectRef)(nil),                // 19: talon.data.ObjectRef
-	(*data.MessageConsumer)(nil),          // 20: talon.data.MessageConsumer
+	(*routing.MessageConsumer)(nil),       // 20: talon.data.MessageConsumer
 }
 var file_proto_external_connectors_proto_depIdxs = []int32{
 	0,  // 0: talon.external.ConnectorMessageEvent.event_kind:type_name -> talon.external.ConnectorMessageEventKind

@@ -1,4 +1,3 @@
-from talon_client.proto.resources import common_pb2 as _common_pb2
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from collections.abc import Mapping as _Mapping
@@ -6,15 +5,23 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
+class ResourceRef(_message.Message):
+    __slots__ = ("namespace", "name")
+    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    namespace: str
+    name: str
+    def __init__(self, namespace: _Optional[str] = ..., name: _Optional[str] = ...) -> None: ...
+
 class SessionMessageConsumer(_message.Message):
     __slots__ = ("agent", "session_id", "continuity")
     AGENT_FIELD_NUMBER: _ClassVar[int]
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     CONTINUITY_FIELD_NUMBER: _ClassVar[int]
-    agent: _common_pb2.ResourceRef
+    agent: ResourceRef
     session_id: str
     continuity: str
-    def __init__(self, agent: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ..., session_id: _Optional[str] = ..., continuity: _Optional[str] = ...) -> None: ...
+    def __init__(self, agent: _Optional[_Union[ResourceRef, _Mapping]] = ..., session_id: _Optional[str] = ..., continuity: _Optional[str] = ...) -> None: ...
 
 class ChannelMessageConsumer(_message.Message):
     __slots__ = ("channel", "agent", "continuity", "reply_policy")
@@ -22,11 +29,11 @@ class ChannelMessageConsumer(_message.Message):
     AGENT_FIELD_NUMBER: _ClassVar[int]
     CONTINUITY_FIELD_NUMBER: _ClassVar[int]
     REPLY_POLICY_FIELD_NUMBER: _ClassVar[int]
-    channel: _common_pb2.ResourceRef
-    agent: _common_pb2.ResourceRef
+    channel: ResourceRef
+    agent: ResourceRef
     continuity: str
     reply_policy: str
-    def __init__(self, channel: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ..., agent: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ..., continuity: _Optional[str] = ..., reply_policy: _Optional[str] = ...) -> None: ...
+    def __init__(self, channel: _Optional[_Union[ResourceRef, _Mapping]] = ..., agent: _Optional[_Union[ResourceRef, _Mapping]] = ..., continuity: _Optional[str] = ..., reply_policy: _Optional[str] = ...) -> None: ...
 
 class MessageConsumer(_message.Message):
     __slots__ = ("session", "channel")

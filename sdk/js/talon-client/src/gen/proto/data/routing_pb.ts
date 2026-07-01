@@ -5,7 +5,54 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { ResourceRef } from "../resources/common_pb.js";
+
+/**
+ * @generated from message talon.data.ResourceRef
+ */
+export class ResourceRef extends Message<ResourceRef> {
+  /**
+   * Namespace containing the referenced Talon resource. Empty means the
+   * reference is resolved relative to the owning resource or route.
+   *
+   * @generated from field: string namespace = 1;
+   */
+  namespace = "";
+
+  /**
+   * Resource name within namespace.
+   *
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  constructor(data?: PartialMessage<ResourceRef>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.ResourceRef";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ResourceRef {
+    return new ResourceRef().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ResourceRef {
+    return new ResourceRef().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ResourceRef {
+    return new ResourceRef().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ResourceRef | PlainMessage<ResourceRef> | undefined, b: ResourceRef | PlainMessage<ResourceRef> | undefined): boolean {
+    return proto3.util.equals(ResourceRef, a, b);
+  }
+}
 
 /**
  * @generated from message talon.data.SessionMessageConsumer
@@ -14,7 +61,7 @@ export class SessionMessageConsumer extends Message<SessionMessageConsumer> {
   /**
    * Agent that consumes matching messages through a Talon Session.
    *
-   * @generated from field: talon.resources.ResourceRef agent = 1;
+   * @generated from field: talon.data.ResourceRef agent = 1;
    */
   agent?: ResourceRef;
 
@@ -73,14 +120,14 @@ export class ChannelMessageConsumer extends Message<ChannelMessageConsumer> {
   /**
    * Channel that receives matching messages before agent routing.
    *
-   * @generated from field: talon.resources.ResourceRef channel = 1;
+   * @generated from field: talon.data.ResourceRef channel = 1;
    */
   channel?: ResourceRef;
 
   /**
    * Agent that consumes the persisted Channel message.
    *
-   * @generated from field: talon.resources.ResourceRef agent = 2;
+   * @generated from field: talon.data.ResourceRef agent = 2;
    */
   agent?: ResourceRef;
 

@@ -4,10 +4,9 @@
 // 	protoc        v7.34.1
 // source: proto/data/connectors.proto
 
-package data
+package routing
 
 import (
-	resources "github.com/impalasys/talon/sdk/go/talon-client/talon/resources"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -28,7 +27,7 @@ type Route struct {
 	// controller uses this for cleanup and delete/recreate race safety.
 	ConnectorUid string `protobuf:"bytes,1,opt,name=connector_uid,json=connectorUid,proto3" json:"connector_uid,omitempty"`
 	// Namespace/name of the Connector resource that produced this route.
-	Connector *resources.ResourceRef `protobuf:"bytes,2,opt,name=connector,proto3" json:"connector,omitempty"`
+	Connector *ResourceRef `protobuf:"bytes,2,opt,name=connector,proto3" json:"connector,omitempty"`
 	// Snapshot of Connector.spec.consumer used by gateway dispatch.
 	Consumer      *MessageConsumer `protobuf:"bytes,3,opt,name=consumer,proto3" json:"consumer,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -72,7 +71,7 @@ func (x *Route) GetConnectorUid() string {
 	return ""
 }
 
-func (x *Route) GetConnector() *resources.ResourceRef {
+func (x *Route) GetConnector() *ResourceRef {
 	if x != nil {
 		return x.Connector
 	}
@@ -91,10 +90,10 @@ var File_proto_data_connectors_proto protoreflect.FileDescriptor
 const file_proto_data_connectors_proto_rawDesc = "" +
 	"\n" +
 	"\x1bproto/data/connectors.proto\x12\n" +
-	"talon.data\x1a\x1cproto/resources/common.proto\x1a\x18proto/data/routing.proto\"\xa1\x01\n" +
+	"talon.data\x1a\x18proto/data/routing.proto\"\x9c\x01\n" +
 	"\x05Route\x12#\n" +
-	"\rconnector_uid\x18\x01 \x01(\tR\fconnectorUid\x12:\n" +
-	"\tconnector\x18\x02 \x01(\v2\x1c.talon.resources.ResourceRefR\tconnector\x127\n" +
+	"\rconnector_uid\x18\x01 \x01(\tR\fconnectorUid\x125\n" +
+	"\tconnector\x18\x02 \x01(\v2\x17.talon.data.ResourceRefR\tconnector\x127\n" +
 	"\bconsumer\x18\x03 \x01(\v2\x1b.talon.data.MessageConsumerR\bconsumerb\x06proto3"
 
 var (
@@ -111,12 +110,12 @@ func file_proto_data_connectors_proto_rawDescGZIP() []byte {
 
 var file_proto_data_connectors_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_proto_data_connectors_proto_goTypes = []any{
-	(*Route)(nil),                 // 0: talon.data.Route
-	(*resources.ResourceRef)(nil), // 1: talon.resources.ResourceRef
-	(*MessageConsumer)(nil),       // 2: talon.data.MessageConsumer
+	(*Route)(nil),           // 0: talon.data.Route
+	(*ResourceRef)(nil),     // 1: talon.data.ResourceRef
+	(*MessageConsumer)(nil), // 2: talon.data.MessageConsumer
 }
 var file_proto_data_connectors_proto_depIdxs = []int32{
-	1, // 0: talon.data.Route.connector:type_name -> talon.resources.ResourceRef
+	1, // 0: talon.data.Route.connector:type_name -> talon.data.ResourceRef
 	2, // 1: talon.data.Route.consumer:type_name -> talon.data.MessageConsumer
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type

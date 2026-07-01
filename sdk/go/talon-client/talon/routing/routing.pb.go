@@ -4,10 +4,9 @@
 // 	protoc        v7.34.1
 // source: proto/data/routing.proto
 
-package data
+package routing
 
 import (
-	resources "github.com/impalasys/talon/sdk/go/talon-client/talon/resources"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -22,10 +21,65 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ResourceRef struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Namespace containing the referenced Talon resource. Empty means the
+	// reference is resolved relative to the owning resource or route.
+	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// Resource name within namespace.
+	Name          string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResourceRef) Reset() {
+	*x = ResourceRef{}
+	mi := &file_proto_data_routing_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResourceRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResourceRef) ProtoMessage() {}
+
+func (x *ResourceRef) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_data_routing_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResourceRef.ProtoReflect.Descriptor instead.
+func (*ResourceRef) Descriptor() ([]byte, []int) {
+	return file_proto_data_routing_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ResourceRef) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *ResourceRef) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 type SessionMessageConsumer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Agent that consumes matching messages through a Talon Session.
-	Agent *resources.ResourceRef `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
+	Agent *ResourceRef `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
 	// Existing Talon Session id to deliver matching messages into. The session
 	// is resolved under agent.namespace/name, with an empty agent namespace
 	// resolved relative to the owning Connector namespace.
@@ -40,7 +94,7 @@ type SessionMessageConsumer struct {
 
 func (x *SessionMessageConsumer) Reset() {
 	*x = SessionMessageConsumer{}
-	mi := &file_proto_data_routing_proto_msgTypes[0]
+	mi := &file_proto_data_routing_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -52,7 +106,7 @@ func (x *SessionMessageConsumer) String() string {
 func (*SessionMessageConsumer) ProtoMessage() {}
 
 func (x *SessionMessageConsumer) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_routing_proto_msgTypes[0]
+	mi := &file_proto_data_routing_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -65,10 +119,10 @@ func (x *SessionMessageConsumer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMessageConsumer.ProtoReflect.Descriptor instead.
 func (*SessionMessageConsumer) Descriptor() ([]byte, []int) {
-	return file_proto_data_routing_proto_rawDescGZIP(), []int{0}
+	return file_proto_data_routing_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *SessionMessageConsumer) GetAgent() *resources.ResourceRef {
+func (x *SessionMessageConsumer) GetAgent() *ResourceRef {
 	if x != nil {
 		return x.Agent
 	}
@@ -92,9 +146,9 @@ func (x *SessionMessageConsumer) GetContinuity() string {
 type ChannelMessageConsumer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Channel that receives matching messages before agent routing.
-	Channel *resources.ResourceRef `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
+	Channel *ResourceRef `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
 	// Agent that consumes the persisted Channel message.
-	Agent *resources.ResourceRef `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
+	Agent *ResourceRef `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
 	// Channel routing continuity policy. This is reserved for channel dispatch
 	// policies that create agent runtime context per message or thread.
 	Continuity string `protobuf:"bytes,3,opt,name=continuity,proto3" json:"continuity,omitempty"`
@@ -107,7 +161,7 @@ type ChannelMessageConsumer struct {
 
 func (x *ChannelMessageConsumer) Reset() {
 	*x = ChannelMessageConsumer{}
-	mi := &file_proto_data_routing_proto_msgTypes[1]
+	mi := &file_proto_data_routing_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -119,7 +173,7 @@ func (x *ChannelMessageConsumer) String() string {
 func (*ChannelMessageConsumer) ProtoMessage() {}
 
 func (x *ChannelMessageConsumer) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_routing_proto_msgTypes[1]
+	mi := &file_proto_data_routing_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -132,17 +186,17 @@ func (x *ChannelMessageConsumer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelMessageConsumer.ProtoReflect.Descriptor instead.
 func (*ChannelMessageConsumer) Descriptor() ([]byte, []int) {
-	return file_proto_data_routing_proto_rawDescGZIP(), []int{1}
+	return file_proto_data_routing_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ChannelMessageConsumer) GetChannel() *resources.ResourceRef {
+func (x *ChannelMessageConsumer) GetChannel() *ResourceRef {
 	if x != nil {
 		return x.Channel
 	}
 	return nil
 }
 
-func (x *ChannelMessageConsumer) GetAgent() *resources.ResourceRef {
+func (x *ChannelMessageConsumer) GetAgent() *ResourceRef {
 	if x != nil {
 		return x.Agent
 	}
@@ -176,7 +230,7 @@ type MessageConsumer struct {
 
 func (x *MessageConsumer) Reset() {
 	*x = MessageConsumer{}
-	mi := &file_proto_data_routing_proto_msgTypes[2]
+	mi := &file_proto_data_routing_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -188,7 +242,7 @@ func (x *MessageConsumer) String() string {
 func (*MessageConsumer) ProtoMessage() {}
 
 func (x *MessageConsumer) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_routing_proto_msgTypes[2]
+	mi := &file_proto_data_routing_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -201,7 +255,7 @@ func (x *MessageConsumer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MessageConsumer.ProtoReflect.Descriptor instead.
 func (*MessageConsumer) Descriptor() ([]byte, []int) {
-	return file_proto_data_routing_proto_rawDescGZIP(), []int{2}
+	return file_proto_data_routing_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *MessageConsumer) GetConsumer() isMessageConsumer_Consumer {
@@ -253,17 +307,20 @@ var File_proto_data_routing_proto protoreflect.FileDescriptor
 const file_proto_data_routing_proto_rawDesc = "" +
 	"\n" +
 	"\x18proto/data/routing.proto\x12\n" +
-	"talon.data\x1a\x1cproto/resources/common.proto\"\x8b\x01\n" +
-	"\x16SessionMessageConsumer\x122\n" +
-	"\x05agent\x18\x01 \x01(\v2\x1c.talon.resources.ResourceRefR\x05agent\x12\x1d\n" +
+	"talon.data\"?\n" +
+	"\vResourceRef\x12\x1c\n" +
+	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"\x86\x01\n" +
+	"\x16SessionMessageConsumer\x12-\n" +
+	"\x05agent\x18\x01 \x01(\v2\x17.talon.data.ResourceRefR\x05agent\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x02 \x01(\tR\tsessionId\x12\x1e\n" +
 	"\n" +
 	"continuity\x18\x03 \x01(\tR\n" +
-	"continuity\"\xc7\x01\n" +
-	"\x16ChannelMessageConsumer\x126\n" +
-	"\achannel\x18\x01 \x01(\v2\x1c.talon.resources.ResourceRefR\achannel\x122\n" +
-	"\x05agent\x18\x02 \x01(\v2\x1c.talon.resources.ResourceRefR\x05agent\x12\x1e\n" +
+	"continuity\"\xbd\x01\n" +
+	"\x16ChannelMessageConsumer\x121\n" +
+	"\achannel\x18\x01 \x01(\v2\x17.talon.data.ResourceRefR\achannel\x12-\n" +
+	"\x05agent\x18\x02 \x01(\v2\x17.talon.data.ResourceRefR\x05agent\x12\x1e\n" +
 	"\n" +
 	"continuity\x18\x03 \x01(\tR\n" +
 	"continuity\x12!\n" +
@@ -286,19 +343,19 @@ func file_proto_data_routing_proto_rawDescGZIP() []byte {
 	return file_proto_data_routing_proto_rawDescData
 }
 
-var file_proto_data_routing_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_proto_data_routing_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_proto_data_routing_proto_goTypes = []any{
-	(*SessionMessageConsumer)(nil), // 0: talon.data.SessionMessageConsumer
-	(*ChannelMessageConsumer)(nil), // 1: talon.data.ChannelMessageConsumer
-	(*MessageConsumer)(nil),        // 2: talon.data.MessageConsumer
-	(*resources.ResourceRef)(nil),  // 3: talon.resources.ResourceRef
+	(*ResourceRef)(nil),            // 0: talon.data.ResourceRef
+	(*SessionMessageConsumer)(nil), // 1: talon.data.SessionMessageConsumer
+	(*ChannelMessageConsumer)(nil), // 2: talon.data.ChannelMessageConsumer
+	(*MessageConsumer)(nil),        // 3: talon.data.MessageConsumer
 }
 var file_proto_data_routing_proto_depIdxs = []int32{
-	3, // 0: talon.data.SessionMessageConsumer.agent:type_name -> talon.resources.ResourceRef
-	3, // 1: talon.data.ChannelMessageConsumer.channel:type_name -> talon.resources.ResourceRef
-	3, // 2: talon.data.ChannelMessageConsumer.agent:type_name -> talon.resources.ResourceRef
-	0, // 3: talon.data.MessageConsumer.session:type_name -> talon.data.SessionMessageConsumer
-	1, // 4: talon.data.MessageConsumer.channel:type_name -> talon.data.ChannelMessageConsumer
+	0, // 0: talon.data.SessionMessageConsumer.agent:type_name -> talon.data.ResourceRef
+	0, // 1: talon.data.ChannelMessageConsumer.channel:type_name -> talon.data.ResourceRef
+	0, // 2: talon.data.ChannelMessageConsumer.agent:type_name -> talon.data.ResourceRef
+	1, // 3: talon.data.MessageConsumer.session:type_name -> talon.data.SessionMessageConsumer
+	2, // 4: talon.data.MessageConsumer.channel:type_name -> talon.data.ChannelMessageConsumer
 	5, // [5:5] is the sub-list for method output_type
 	5, // [5:5] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name
@@ -311,7 +368,7 @@ func file_proto_data_routing_proto_init() {
 	if File_proto_data_routing_proto != nil {
 		return
 	}
-	file_proto_data_routing_proto_msgTypes[2].OneofWrappers = []any{
+	file_proto_data_routing_proto_msgTypes[3].OneofWrappers = []any{
 		(*MessageConsumer_Session)(nil),
 		(*MessageConsumer_Channel)(nil),
 	}
@@ -321,7 +378,7 @@ func file_proto_data_routing_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_data_routing_proto_rawDesc), len(file_proto_data_routing_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

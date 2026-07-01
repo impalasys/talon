@@ -57,7 +57,7 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
      * Namespace/name of the Connector resource that produced this route.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef connector = 2;</code>
+     * <code>.talon.data.ResourceRef connector = 2;</code>
      * @return Whether the connector field is set.
      */
     boolean hasConnector();
@@ -66,18 +66,18 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
      * Namespace/name of the Connector resource that produced this route.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef connector = 2;</code>
+     * <code>.talon.data.ResourceRef connector = 2;</code>
      * @return The connector.
      */
-    talon.resources.Common.ResourceRef getConnector();
+    talon.data.Routing.ResourceRef getConnector();
     /**
      * <pre>
      * Namespace/name of the Connector resource that produced this route.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef connector = 2;</code>
+     * <code>.talon.data.ResourceRef connector = 2;</code>
      */
-    talon.resources.Common.ResourceRefOrBuilder getConnectorOrBuilder();
+    talon.data.Routing.ResourceRefOrBuilder getConnectorOrBuilder();
 
     /**
      * <pre>
@@ -200,13 +200,13 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     }
 
     public static final int CONNECTOR_FIELD_NUMBER = 2;
-    private talon.resources.Common.ResourceRef connector_;
+    private talon.data.Routing.ResourceRef connector_;
     /**
      * <pre>
      * Namespace/name of the Connector resource that produced this route.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef connector = 2;</code>
+     * <code>.talon.data.ResourceRef connector = 2;</code>
      * @return Whether the connector field is set.
      */
     @java.lang.Override
@@ -218,23 +218,23 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
      * Namespace/name of the Connector resource that produced this route.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef connector = 2;</code>
+     * <code>.talon.data.ResourceRef connector = 2;</code>
      * @return The connector.
      */
     @java.lang.Override
-    public talon.resources.Common.ResourceRef getConnector() {
-      return connector_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : connector_;
+    public talon.data.Routing.ResourceRef getConnector() {
+      return connector_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : connector_;
     }
     /**
      * <pre>
      * Namespace/name of the Connector resource that produced this route.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef connector = 2;</code>
+     * <code>.talon.data.ResourceRef connector = 2;</code>
      */
     @java.lang.Override
-    public talon.resources.Common.ResourceRefOrBuilder getConnectorOrBuilder() {
-      return connector_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : connector_;
+    public talon.data.Routing.ResourceRefOrBuilder getConnectorOrBuilder() {
+      return connector_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : connector_;
     }
 
     public static final int CONSUMER_FIELD_NUMBER = 3;
@@ -749,15 +749,15 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      private talon.resources.Common.ResourceRef connector_;
+      private talon.data.Routing.ResourceRef connector_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder> connectorBuilder_;
+          talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder> connectorBuilder_;
       /**
        * <pre>
        * Namespace/name of the Connector resource that produced this route.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef connector = 2;</code>
+       * <code>.talon.data.ResourceRef connector = 2;</code>
        * @return Whether the connector field is set.
        */
       public boolean hasConnector() {
@@ -768,12 +768,12 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Namespace/name of the Connector resource that produced this route.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef connector = 2;</code>
+       * <code>.talon.data.ResourceRef connector = 2;</code>
        * @return The connector.
        */
-      public talon.resources.Common.ResourceRef getConnector() {
+      public talon.data.Routing.ResourceRef getConnector() {
         if (connectorBuilder_ == null) {
-          return connector_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : connector_;
+          return connector_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : connector_;
         } else {
           return connectorBuilder_.getMessage();
         }
@@ -783,9 +783,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Namespace/name of the Connector resource that produced this route.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef connector = 2;</code>
+       * <code>.talon.data.ResourceRef connector = 2;</code>
        */
-      public Builder setConnector(talon.resources.Common.ResourceRef value) {
+      public Builder setConnector(talon.data.Routing.ResourceRef value) {
         if (connectorBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -803,10 +803,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Namespace/name of the Connector resource that produced this route.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef connector = 2;</code>
+       * <code>.talon.data.ResourceRef connector = 2;</code>
        */
       public Builder setConnector(
-          talon.resources.Common.ResourceRef.Builder builderForValue) {
+          talon.data.Routing.ResourceRef.Builder builderForValue) {
         if (connectorBuilder_ == null) {
           connector_ = builderForValue.build();
         } else {
@@ -821,13 +821,13 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Namespace/name of the Connector resource that produced this route.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef connector = 2;</code>
+       * <code>.talon.data.ResourceRef connector = 2;</code>
        */
-      public Builder mergeConnector(talon.resources.Common.ResourceRef value) {
+      public Builder mergeConnector(talon.data.Routing.ResourceRef value) {
         if (connectorBuilder_ == null) {
           if (((bitField0_ & 0x00000002) != 0) &&
             connector_ != null &&
-            connector_ != talon.resources.Common.ResourceRef.getDefaultInstance()) {
+            connector_ != talon.data.Routing.ResourceRef.getDefaultInstance()) {
             getConnectorBuilder().mergeFrom(value);
           } else {
             connector_ = value;
@@ -846,7 +846,7 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Namespace/name of the Connector resource that produced this route.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef connector = 2;</code>
+       * <code>.talon.data.ResourceRef connector = 2;</code>
        */
       public Builder clearConnector() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -863,9 +863,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Namespace/name of the Connector resource that produced this route.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef connector = 2;</code>
+       * <code>.talon.data.ResourceRef connector = 2;</code>
        */
-      public talon.resources.Common.ResourceRef.Builder getConnectorBuilder() {
+      public talon.data.Routing.ResourceRef.Builder getConnectorBuilder() {
         bitField0_ |= 0x00000002;
         onChanged();
         return internalGetConnectorFieldBuilder().getBuilder();
@@ -875,14 +875,14 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Namespace/name of the Connector resource that produced this route.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef connector = 2;</code>
+       * <code>.talon.data.ResourceRef connector = 2;</code>
        */
-      public talon.resources.Common.ResourceRefOrBuilder getConnectorOrBuilder() {
+      public talon.data.Routing.ResourceRefOrBuilder getConnectorOrBuilder() {
         if (connectorBuilder_ != null) {
           return connectorBuilder_.getMessageOrBuilder();
         } else {
           return connector_ == null ?
-              talon.resources.Common.ResourceRef.getDefaultInstance() : connector_;
+              talon.data.Routing.ResourceRef.getDefaultInstance() : connector_;
         }
       }
       /**
@@ -890,14 +890,14 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Namespace/name of the Connector resource that produced this route.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef connector = 2;</code>
+       * <code>.talon.data.ResourceRef connector = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>
+          talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder>
           internalGetConnectorFieldBuilder() {
         if (connectorBuilder_ == null) {
           connectorBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>(
+              talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder>(
                   getConnector(),
                   getParentForChildren(),
                   isClean());
@@ -1129,16 +1129,14 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
   static {
     java.lang.String[] descriptorData = {
       "\n\033proto/data/connectors.proto\022\ntalon.dat" +
-      "a\032\034proto/resources/common.proto\032\030proto/d" +
-      "ata/routing.proto\"~\n\005Route\022\025\n\rconnector_" +
-      "uid\030\001 \001(\t\022/\n\tconnector\030\002 \001(\0132\034.talon.res" +
-      "ources.ResourceRef\022-\n\010consumer\030\003 \001(\0132\033.t" +
-      "alon.data.MessageConsumerb\006proto3"
+      "a\032\030proto/data/routing.proto\"y\n\005Route\022\025\n\r" +
+      "connector_uid\030\001 \001(\t\022*\n\tconnector\030\002 \001(\0132\027" +
+      ".talon.data.ResourceRef\022-\n\010consumer\030\003 \001(" +
+      "\0132\033.talon.data.MessageConsumerb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          talon.resources.Common.getDescriptor(),
           talon.data.Routing.getDescriptor(),
         });
     internal_static_talon_data_Route_descriptor =
@@ -1148,7 +1146,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         internal_static_talon_data_Route_descriptor,
         new java.lang.String[] { "ConnectorUid", "Connector", "Consumer", });
     descriptor.resolveAllFeaturesImmutable();
-    talon.resources.Common.getDescriptor();
     talon.data.Routing.getDescriptor();
   }
 

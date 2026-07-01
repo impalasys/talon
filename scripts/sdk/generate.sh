@@ -104,9 +104,9 @@ GO_OPTS=(
   "--go_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/harness/llm.proto=${GO_MODULE}/talon/harness"
   "--go_opt=Mproto/data/api_keys.proto=${GO_MODULE}/talon/data"
-  "--go_opt=Mproto/data/connectors.proto=${GO_MODULE}/talon/data"
+  "--go_opt=Mproto/data/connectors.proto=${GO_MODULE}/talon/routing"
   "--go_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
-  "--go_opt=Mproto/data/routing.proto=${GO_MODULE}/talon/data"
+  "--go_opt=Mproto/data/routing.proto=${GO_MODULE}/talon/routing"
   "--go_opt=Mproto/data/search.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/session_journal_entry.proto=${GO_MODULE}/talon/data"
@@ -140,9 +140,9 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/harness/llm.proto=${GO_MODULE}/talon/harness"
   "--go-grpc_opt=Mproto/data/api_keys.proto=${GO_MODULE}/talon/data"
-  "--go-grpc_opt=Mproto/data/connectors.proto=${GO_MODULE}/talon/data"
+  "--go-grpc_opt=Mproto/data/connectors.proto=${GO_MODULE}/talon/routing"
   "--go-grpc_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
-  "--go-grpc_opt=Mproto/data/routing.proto=${GO_MODULE}/talon/data"
+  "--go-grpc_opt=Mproto/data/routing.proto=${GO_MODULE}/talon/routing"
   "--go-grpc_opt=Mproto/data/search.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/session_journal_entry.proto=${GO_MODULE}/talon/data"
@@ -256,12 +256,14 @@ for path in [
     text = path.read_text()
     text = text.replace("from proto import ", "from talon_client.proto import ")
     text = text.replace("from proto.data import ", "from talon_client.proto.data import ")
+    text = text.replace("from proto.external import ", "from talon_client.proto.external import ")
     text = text.replace("from proto.harness import ", "from talon_client.proto.harness import ")
     text = text.replace("from proto.resources import ", "from talon_client.proto.resources import ")
     text = text.replace("from proto.talon import ", "from talon_client.proto.talon import ")
     text = text.replace("from proto.talon.v1 import ", "from talon_client.proto.talon.v1 import ")
     text = text.replace("import proto.events_pb2 as ", "import talon_client.proto.events_pb2 as ")
     text = text.replace("import proto.data.data_pb2 as ", "import talon_client.proto.data.data_pb2 as ")
+    text = text.replace("import proto.external.", "import talon_client.proto.external.")
     text = text.replace("import proto.resources.", "import talon_client.proto.resources.")
     text = text.replace("import proto.talon.", "import talon_client.proto.talon.")
     path.write_text(text)

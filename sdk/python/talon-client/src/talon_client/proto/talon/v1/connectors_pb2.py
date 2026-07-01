@@ -22,7 +22,7 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
-from proto.external import connectors_pb2 as proto_dot_external_dot_connectors__pb2
+from talon_client.proto.external import connectors_pb2 as proto_dot_external_dot_connectors__pb2
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1fproto/talon/v1/connectors.proto\x12\x08talon.v1\x1a\x1fproto/external/connectors.proto2\xda\x01\n\x10\x43onnectorService\x12j\n\x12IngestMessageEvent\x12%.talon.external.ConnectorMessageEvent\x1a-.talon.external.ConnectorMessageEventResponse\x12Z\n\x0cReportStatus\x12$.talon.external.ConnectorStatusEvent\x1a$.talon.external.ConnectorAckResponseb\x06proto3')
