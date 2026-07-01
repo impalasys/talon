@@ -215,7 +215,7 @@ fn unix_timestamp() -> u64 {
 }
 
 async fn connect_native(options: GatewayClientOptions) -> Result<NativeTalonClient, BoxError> {
-    let endpoint_url = native_endpoint_url(&options.endpoint);
+    let endpoint_url = endpoint_url(&options.endpoint);
     if options
         .api_key
         .as_deref()
@@ -244,7 +244,7 @@ async fn connect_native(options: GatewayClientOptions) -> Result<NativeTalonClie
     Ok(TalonClientset::from_service(service))
 }
 
-fn native_endpoint_url(endpoint: &str) -> String {
+fn endpoint_url(endpoint: &str) -> String {
     let endpoint = endpoint.trim();
     if endpoint.starts_with("http://") || endpoint.starts_with("https://") {
         return endpoint.to_string();
@@ -261,31 +261,31 @@ fn native_endpoint_url(endpoint: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{native_endpoint_url, GatewayClientOptions, NativeTalonClient};
+    use super::{endpoint_url, GatewayClientOptions, NativeTalonClient};
 
     #[test]
-    fn native_endpoint_url_defaults_hosted_gateways_to_https() {
+    fn endpoint_url_defaults_hosted_gateways_to_https() {
         assert_eq!(
-            native_endpoint_url("talon.impala.systems"),
+            endpoint_url("talon.impala.systems"),
             "https://talon.impala.systems"
         );
         assert_eq!(
-            native_endpoint_url(" https://talon.impala.systems:443 "),
+            endpoint_url(" https://talon.impala.systems:443 "),
             "https://talon.impala.systems:443"
         );
     }
 
     #[test]
-    fn native_endpoint_url_keeps_local_gateways_on_http() {
+    fn endpoint_url_keeps_local_gateways_on_http() {
         assert_eq!(
-            native_endpoint_url("localhost:50051"),
+            endpoint_url("localhost:50051"),
             "http://localhost:50051"
         );
         assert_eq!(
-            native_endpoint_url("127.0.0.1:50051"),
+            endpoint_url("127.0.0.1:50051"),
             "http://127.0.0.1:50051"
         );
-        assert_eq!(native_endpoint_url("[::1]:50051"), "http://[::1]:50051");
+        assert_eq!(endpoint_url("[::1]:50051"), "http://[::1]:50051");
     }
 
     #[tokio::test]
@@ -329,7 +329,9 @@ impl GrpcWebHttpService {
         }
         Ok(Self {
             client: builder.build()?,
-            endpoint: options.endpoint.trim_end_matches('/').to_string(),
+            endpoint: endpoint_url(&options.endpoint)
+                .trim_end_matches('/')
+                .to_string(),
             authorization: options.authorization,
         })
     }

@@ -160,10 +160,19 @@ pub(crate) fn gateway_http_base(cli: &Cli) -> String {
             return trimmed.trim_end_matches('/').to_string();
         }
     }
-    let gateway = cli.gateway_url();
-    let trimmed = gateway.trim_end_matches('/');
+    gateway_http_base_from_endpoint(&cli.gateway_url())
+}
+
+fn gateway_http_base_from_endpoint(endpoint: &str) -> String {
+    let trimmed = endpoint.trim().trim_end_matches('/');
     if trimmed.starts_with("http://") || trimmed.starts_with("https://") {
         trimmed.to_string()
+    } else if trimmed.starts_with("localhost:")
+        || trimmed.starts_with("127.")
+        || trimmed.starts_with("0.0.0.0:")
+        || trimmed.starts_with("[::1]:")
+    {
+        format!("http://{trimmed}")
     } else {
         format!("https://{trimmed}")
     }
@@ -846,11 +855,14 @@ pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
 #[cfg(test)]
 mod tests {
     use super::{
-        api_key_cache_hash, google_token_request_form, mint_namespace_jwt, parse_ttl_seconds,
+        api_key_cache_hash, gateway_http_base, gateway_http_base_from_endpoint,
+        google_token_request_form, mint_namespace_jwt, parse_ttl_seconds,
         resolve_token_ttl_seconds, StoredGatewayAuth, DEFAULT_GOOGLE_CLI_CLIENT_SECRET,
         DEFAULT_TOKEN_TTL,
     };
+    use crate::cli::commands::Cli;
     use crate::gateway::auth::verify_jwt;
+    use clap::Parser;
 
     #[test]
     fn google_token_request_form_includes_client_secret_when_present() {
@@ -883,6 +895,47 @@ mod tests {
             DEFAULT_GOOGLE_CLI_CLIENT_SECRET,
             option_env!("TALON_GOOGLE_CLIENT_SECRET")
         );
+    }
+
+    #[test]
+    fn gateway_http_base_defaults_hosted_gateways_to_https() {
+        assert_eq!(
+            gateway_http_base_from_endpoint("talon.impala.systems"),
+            "https://talon.impala.systems"
+        );
+    }
+
+    #[test]
+    fn gateway_http_base_keeps_local_gateways_on_http() {
+        assert_eq!(
+            gateway_http_base_from_endpoint("localhost:50051"),
+            "http://localhost:50051"
+        );
+        assert_eq!(
+            gateway_http_base_from_endpoint("127.0.0.1:50051"),
+            "http://127.0.0.1:50051"
+        );
+        assert_eq!(
+            gateway_http_base_from_endpoint("[::1]:50051"),
+            "http://[::1]:50051"
+        );
+    }
+
+    #[test]
+    fn gateway_http_base_uses_cli_gateway_inference() {
+        let _guard = crate::test_support::env_lock();
+        std::env::remove_var("TALON_GATEWAY");
+        std::env::remove_var("TALON_GATEWAY_URL");
+        std::env::remove_var("TALON_GRPC_WEB");
+        let cli = Cli::parse_from([
+            "talon-cli",
+            "--gateway",
+            "localhost:50051",
+            "auth",
+            "whoami",
+        ]);
+
+        assert_eq!(gateway_http_base(&cli), "http://localhost:50051");
     }
 
     #[test]

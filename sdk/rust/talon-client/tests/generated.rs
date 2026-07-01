@@ -103,7 +103,7 @@ async fn grpc_web_talon_client_uses_http1_grpc_web_requests() {
             .expect("write response body");
     });
 
-    let gateway = format!("http://{addr}");
+    let gateway = addr.to_string();
     let mut client = talon_client::GrpcWebTalonClient::connect_grpc_web(gateway)
         .expect("connect gRPC-Web client");
     let response = client
