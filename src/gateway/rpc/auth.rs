@@ -1064,57 +1064,10 @@ mod tests {
     use super::*;
     use crate::control::{ControlPlane, KeyValueStore};
     use crate::gateway::auth::check_auth;
-    use crate::test_support::{EmptyPubSub, MockKvStore};
+    use crate::test_support::{
+        EmptyPubSub, MockKvStore, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER,
+    };
     use std::sync::Arc;
-
-    const TEST_PLATFORM_ISSUER: &str = "https://talon.example.com";
-
-    struct PlatformJwtEnvGuard {
-        _guard: tokio::sync::MutexGuard<'static, ()>,
-        previous_private_key: Option<String>,
-        previous_issuer: Option<String>,
-    }
-
-    impl PlatformJwtEnvGuard {
-        async fn acquire() -> Self {
-            let guard = crate::test_support::async_env_mutex().lock().await;
-            let previous_private_key =
-                std::env::var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV).ok();
-            let previous_issuer = std::env::var(platform_jwt::TALON_JWT_ISSUER_ENV).ok();
-            unsafe {
-                std::env::set_var(
-                    platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                    platform_jwt::TEST_RSA_PRIVATE_KEY,
-                );
-                std::env::set_var(platform_jwt::TALON_JWT_ISSUER_ENV, TEST_PLATFORM_ISSUER);
-            }
-            Self {
-                _guard: guard,
-                previous_private_key,
-                previous_issuer,
-            }
-        }
-    }
-
-    impl Drop for PlatformJwtEnvGuard {
-        fn drop(&mut self) {
-            unsafe {
-                if let Some(previous_private_key) = &self.previous_private_key {
-                    std::env::set_var(
-                        platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                        previous_private_key,
-                    );
-                } else {
-                    std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
-                }
-                if let Some(previous_issuer) = &self.previous_issuer {
-                    std::env::set_var(platform_jwt::TALON_JWT_ISSUER_ENV, previous_issuer);
-                } else {
-                    std::env::remove_var(platform_jwt::TALON_JWT_ISSUER_ENV);
-                }
-            }
-        }
-    }
 
     fn handler() -> GrpcGatewayHandler {
         handler_with_kv(Arc::new(MockKvStore::default()))
@@ -1163,7 +1116,7 @@ mod tests {
         if claims.exp == 0 {
             claims.exp = (unix_seconds().unwrap() + 3600) as usize;
         }
-        claims.iss = Some(TEST_PLATFORM_ISSUER.to_string());
+        claims.iss = Some(TEST_PLATFORM_JWT_ISSUER.to_string());
         claims.aud = platform_jwt::TALON_GATEWAY_AUDIENCE.to_string();
         claims.iat = Some(unix_seconds().unwrap() as usize);
         platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
@@ -1198,7 +1151,7 @@ mod tests {
         let claims: Claims = key
             .verify(
                 token,
-                TEST_PLATFORM_ISSUER,
+                TEST_PLATFORM_JWT_ISSUER,
                 platform_jwt::TALON_GATEWAY_AUDIENCE,
             )
             .unwrap();

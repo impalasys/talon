@@ -647,7 +647,9 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
 mod tests {
     use super::*;
     use crate::gateway::server::Gateway;
-    use crate::test_support::{EmptyPubSub, MockKvStore};
+    use crate::test_support::{
+        EmptyPubSub, MockKvStore, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER,
+    };
     use axum::{
         body::Body,
         http::{Request as HttpRequest, StatusCode as HttpStatusCode},
@@ -659,52 +661,6 @@ mod tests {
     use tonic::metadata::MetadataMap;
     use tonic::service::Interceptor;
     use tower::ServiceExt;
-
-    const TEST_PLATFORM_ISSUER: &str = "https://talon.example.com";
-
-    struct PlatformJwtEnvGuard {
-        previous_private_key: Option<String>,
-        previous_issuer: Option<String>,
-    }
-
-    impl PlatformJwtEnvGuard {
-        fn acquire() -> Self {
-            let previous_private_key =
-                std::env::var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV).ok();
-            let previous_issuer = std::env::var(platform_jwt::TALON_JWT_ISSUER_ENV).ok();
-            unsafe {
-                std::env::set_var(
-                    platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                    platform_jwt::TEST_RSA_PRIVATE_KEY,
-                );
-                std::env::set_var(platform_jwt::TALON_JWT_ISSUER_ENV, TEST_PLATFORM_ISSUER);
-            }
-            Self {
-                previous_private_key,
-                previous_issuer,
-            }
-        }
-    }
-
-    impl Drop for PlatformJwtEnvGuard {
-        fn drop(&mut self) {
-            unsafe {
-                if let Some(previous_private_key) = &self.previous_private_key {
-                    std::env::set_var(
-                        platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                        previous_private_key,
-                    );
-                } else {
-                    std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
-                }
-                if let Some(previous_issuer) = &self.previous_issuer {
-                    std::env::set_var(platform_jwt::TALON_JWT_ISSUER_ENV, previous_issuer);
-                } else {
-                    std::env::remove_var(platform_jwt::TALON_JWT_ISSUER_ENV);
-                }
-            }
-        }
-    }
 
     fn gateway_with_auth(auth_config: Option<AuthConfig>) -> Arc<Gateway> {
         let control_plane = crate::control::ControlPlane::builder(
@@ -726,7 +682,7 @@ mod tests {
 
     fn create_token(ns: Option<&str>, agent: Option<&str>, session: Option<&str>) -> String {
         sign_platform_claims(&Claims {
-            iss: Some(TEST_PLATFORM_ISSUER.to_string()),
+            iss: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
             sub: "user123".to_string(),
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(1),
@@ -742,7 +698,7 @@ mod tests {
 
     fn create_origin_token(origins: Vec<&str>) -> String {
         sign_platform_claims(&Claims {
-            iss: Some(TEST_PLATFORM_ISSUER.to_string()),
+            iss: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
             sub: "browser-client".to_string(),
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(1),
@@ -762,7 +718,7 @@ mod tests {
 
     fn platform_claims(audience: &str) -> Claims {
         Claims {
-            iss: Some(TEST_PLATFORM_ISSUER.to_string()),
+            iss: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
             sub: "talon".to_string(),
             aud: audience.to_string(),
             iat: Some(1),
@@ -791,8 +747,7 @@ mod tests {
 
     #[tokio::test]
     async fn platform_gateway_auth_accepts_access_profile_and_rejects_broker_assertion() {
-        let _env_lock = crate::test_support::async_env_mutex().lock().await;
-        let _guard = PlatformJwtEnvGuard::acquire();
+        let _guard = PlatformJwtEnvGuard::acquire().await;
         let config = jwt_auth_config();
 
         let access_token =
@@ -811,8 +766,7 @@ mod tests {
 
     #[test]
     fn test_check_auth_jwt_scopes() {
-        let _env_lock = crate::test_support::env_lock();
-        let _guard = PlatformJwtEnvGuard::acquire();
+        let _guard = PlatformJwtEnvGuard::acquire_blocking();
         let config = jwt_auth_config();
         let mut metadata = MetadataMap::new();
 
@@ -873,8 +827,7 @@ mod tests {
 
     #[test]
     fn test_origin_scoped_jwt_is_enforced_only_for_grpc_web_metadata() {
-        let _env_lock = crate::test_support::env_lock();
-        let _guard = PlatformJwtEnvGuard::acquire();
+        let _guard = PlatformJwtEnvGuard::acquire_blocking();
         let config = jwt_auth_config();
         let token = create_origin_token(vec!["https://app.example.com"]);
         let mut metadata = auth_metadata(&token);
@@ -907,7 +860,7 @@ mod tests {
 
     fn create_channel_token(ns: Option<&str>, channel: Option<&str>) -> String {
         sign_platform_claims(&Claims {
-            iss: Some(TEST_PLATFORM_ISSUER.to_string()),
+            iss: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
             sub: "channel-client".to_string(),
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(1),
@@ -923,7 +876,7 @@ mod tests {
 
     fn create_grant_token(grants: Vec<TalonGrantClaim>) -> String {
         sign_platform_claims(&Claims {
-            iss: Some(TEST_PLATFORM_ISSUER.to_string()),
+            iss: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
             sub: "oidc:user123".to_string(),
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(1),
@@ -948,8 +901,7 @@ mod tests {
 
     #[test]
     fn test_grant_read_allows_reads_but_denies_writes() {
-        let _env_lock = crate::test_support::env_lock();
-        let _guard = PlatformJwtEnvGuard::acquire();
+        let _guard = PlatformJwtEnvGuard::acquire_blocking();
         let token = create_grant_token(vec![TalonGrantClaim {
             kind: "read".to_string(),
             namespace: Some("ops".to_string()),
@@ -1009,8 +961,7 @@ mod tests {
 
     #[test]
     fn test_oidc_token_without_grants_is_denied() {
-        let _env_lock = crate::test_support::env_lock();
-        let _guard = PlatformJwtEnvGuard::acquire();
+        let _guard = PlatformJwtEnvGuard::acquire_blocking();
         let token = create_grant_token(Vec::new());
         let config = jwt_auth_config();
         let metadata = auth_metadata(&token);
@@ -1028,8 +979,7 @@ mod tests {
 
     #[test]
     fn test_grant_readwrite_matches_session_scope() {
-        let _env_lock = crate::test_support::env_lock();
-        let _guard = PlatformJwtEnvGuard::acquire();
+        let _guard = PlatformJwtEnvGuard::acquire_blocking();
         let token = create_grant_token(vec![TalonGrantClaim {
             kind: "readwrite".to_string(),
             namespace: Some("ops".to_string()),
@@ -1062,8 +1012,7 @@ mod tests {
 
     #[test]
     fn test_channel_scoped_jwt_only_authorizes_matching_channel_operations() {
-        let _env_lock = crate::test_support::env_lock();
-        let _guard = PlatformJwtEnvGuard::acquire();
+        let _guard = PlatformJwtEnvGuard::acquire_blocking();
         let config = jwt_auth_config();
         let mut metadata = MetadataMap::new();
         let token = create_channel_token(Some("ops"), Some("incident-room"));
@@ -1085,8 +1034,7 @@ mod tests {
 
     #[test]
     fn test_channel_scoped_jwt_requires_namespace() {
-        let _env_lock = crate::test_support::env_lock();
-        let _guard = PlatformJwtEnvGuard::acquire();
+        let _guard = PlatformJwtEnvGuard::acquire_blocking();
         let config = jwt_auth_config();
         let mut metadata = MetadataMap::new();
         let token = create_channel_token(None, Some("incident-room"));
@@ -1100,8 +1048,7 @@ mod tests {
 
     #[test]
     fn test_talon_auth_interceptor_covers_platform_jwt_mode() {
-        let _env_lock = crate::test_support::env_lock();
-        let _guard = PlatformJwtEnvGuard::acquire();
+        let _guard = PlatformJwtEnvGuard::acquire_blocking();
         let token = create_token(Some("ns"), Some("agent"), Some("session"));
         let mut jwt_interceptor = TalonAuthInterceptor {
             config: jwt_auth_config(),
@@ -1128,8 +1075,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_auth_layer_enforces_platform_jwt_mode() {
-        let _env_lock = crate::test_support::async_env_mutex().lock().await;
-        let _guard = PlatformJwtEnvGuard::acquire();
+        let _guard = PlatformJwtEnvGuard::acquire().await;
         async fn ok_handler() -> &'static str {
             "ok"
         }

@@ -1541,6 +1541,7 @@ mod tests {
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{data_proto, manifests, resources_proto};
+    use crate::test_support::{PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
     use crate::worker::{
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
@@ -1637,81 +1638,6 @@ mod tests {
             _topic: &str,
         ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
             Ok(Box::pin(stream::empty()))
-        }
-    }
-
-    fn env_mutex() -> &'static AsyncMutex<()> {
-        crate::test_support::async_env_mutex()
-    }
-
-    const TEST_PLATFORM_ISSUER: &str = "https://talon.example.com";
-
-    struct PlatformJwtEnvGuard {
-        _guard: tokio::sync::MutexGuard<'static, ()>,
-        previous_private_key: Option<String>,
-        previous_issuer: Option<String>,
-    }
-
-    impl PlatformJwtEnvGuard {
-        fn acquire_blocking() -> Self {
-            let guard = env_mutex().blocking_lock();
-            Self::from_guard(guard)
-        }
-
-        async fn acquire() -> Self {
-            let guard = env_mutex().lock().await;
-            Self::from_guard(guard)
-        }
-
-        fn from_guard(guard: tokio::sync::MutexGuard<'static, ()>) -> Self {
-            let previous_private_key = std::env::var(
-                crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-            )
-            .ok();
-            let previous_issuer =
-                std::env::var(crate::control::security::platform_jwt::TALON_JWT_ISSUER_ENV).ok();
-            unsafe {
-                std::env::set_var(
-                    crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                    crate::control::security::platform_jwt::TEST_RSA_PRIVATE_KEY,
-                );
-                std::env::set_var(
-                    crate::control::security::platform_jwt::TALON_JWT_ISSUER_ENV,
-                    TEST_PLATFORM_ISSUER,
-                );
-            }
-            Self {
-                _guard: guard,
-                previous_private_key,
-                previous_issuer,
-            }
-        }
-    }
-
-    impl Drop for PlatformJwtEnvGuard {
-        fn drop(&mut self) {
-            unsafe {
-                if let Some(previous_private_key) = &self.previous_private_key {
-                    std::env::set_var(
-                        crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                        previous_private_key,
-                    );
-                } else {
-                    std::env::remove_var(
-                        crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                    );
-                }
-                if let Some(previous_issuer) = &self.previous_issuer {
-                    std::env::set_var(
-                        crate::control::security::platform_jwt::TALON_JWT_ISSUER_ENV,
-                        previous_issuer,
-                    );
-                } else {
-                    std::env::remove_var(
-                        crate::control::security::platform_jwt::TALON_JWT_ISSUER_ENV,
-                    );
-                }
-            }
         }
     }
 
@@ -2048,22 +1974,24 @@ mod tests {
         let _guard = PlatformJwtEnvGuard::acquire_blocking();
 
         let access_token = mint_talon_ops_access_token(
-            TEST_PLATFORM_ISSUER,
+            TEST_PLATFORM_JWT_ISSUER,
             "conic",
             "talon-ops",
             Some("cmo"),
             4_102_444_800,
         )
         .expect("access token should mint");
-        let access_claims =
-            parse_talon_ops_access_claims(&format!("Bearer {access_token}"), TEST_PLATFORM_ISSUER)
-                .expect("claims should parse");
+        let access_claims = parse_talon_ops_access_claims(
+            &format!("Bearer {access_token}"),
+            TEST_PLATFORM_JWT_ISSUER,
+        )
+        .expect("claims should parse");
         assert_eq!(access_claims.namespace, "conic");
         assert_eq!(access_claims.mcp_server_name, "talon-ops");
         assert_eq!(access_claims.agent_name.as_deref(), Some("cmo"));
 
         let broker_claims_token = sign_test_claims(&super::McpAuthBrokerClaims {
-            iss: TEST_PLATFORM_ISSUER.to_string(),
+            iss: TEST_PLATFORM_JWT_ISSUER.to_string(),
             sub: "talon-mcp-client".to_string(),
             aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
             iat: 1usize,
@@ -2074,7 +2002,7 @@ mod tests {
         });
         let broker_claims = parse_mcp_auth_broker_claims(
             &format!("Bearer {broker_claims_token}"),
-            TEST_PLATFORM_ISSUER,
+            TEST_PLATFORM_JWT_ISSUER,
         )
         .expect("broker claims should parse");
         assert_eq!(broker_claims.namespace, "conic");
@@ -2082,7 +2010,7 @@ mod tests {
         assert!(broker_claims.agent_name.is_none());
 
         let invalid =
-            parse_talon_ops_access_claims("Bearer definitely-not-a-jwt", TEST_PLATFORM_ISSUER)
+            parse_talon_ops_access_claims("Bearer definitely-not-a-jwt", TEST_PLATFORM_JWT_ISSUER)
                 .expect_err("invalid token should fail");
         assert!(invalid.contains("invalid JWT header"));
     }
@@ -2092,7 +2020,7 @@ mod tests {
         let _guard = PlatformJwtEnvGuard::acquire_blocking();
 
         let access_token = sign_test_claims(&TalonOpsAccessClaims {
-            iss: TEST_PLATFORM_ISSUER.to_string(),
+            iss: TEST_PLATFORM_JWT_ISSUER.to_string(),
             sub: "talon-ops".to_string(),
             aud: crate::control::security::platform_jwt::TALON_OPS_AUDIENCE.to_string(),
             iat: 1usize,
@@ -2103,13 +2031,13 @@ mod tests {
         });
         assert!(parse_talon_ops_access_claims(
             &format!("Bearer {access_token}"),
-            TEST_PLATFORM_ISSUER
+            TEST_PLATFORM_JWT_ISSUER
         )
         .expect_err("blank namespace should fail")
         .contains("missing namespace or MCP server claim"));
 
         let broker_token = sign_test_claims(&McpAuthBrokerClaims {
-            iss: TEST_PLATFORM_ISSUER.to_string(),
+            iss: TEST_PLATFORM_JWT_ISSUER.to_string(),
             sub: "talon-mcp-client".to_string(),
             aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
             iat: 1usize,
@@ -2120,7 +2048,7 @@ mod tests {
         });
         assert!(parse_mcp_auth_broker_claims(
             &format!("Bearer {broker_token}"),
-            TEST_PLATFORM_ISSUER
+            TEST_PLATFORM_JWT_ISSUER
         )
         .expect_err("blank MCP server should fail")
         .contains("missing namespace or MCP server claim"));
@@ -2302,7 +2230,7 @@ mod tests {
 
         let _guard = PlatformJwtEnvGuard::acquire().await;
         let token = mint_talon_ops_access_token(
-            TEST_PLATFORM_ISSUER,
+            TEST_PLATFORM_JWT_ISSUER,
             "conic",
             "talon-ops",
             Some("ctl"),
@@ -2332,7 +2260,7 @@ mod tests {
         let _guard = PlatformJwtEnvGuard::acquire().await;
 
         let broker_claims_token = sign_test_claims(&McpAuthBrokerClaims {
-            iss: TEST_PLATFORM_ISSUER.to_string(),
+            iss: TEST_PLATFORM_JWT_ISSUER.to_string(),
             sub: "talon-mcp-client".to_string(),
             aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
             iat: 1usize,
@@ -2362,7 +2290,7 @@ mod tests {
         assert_eq!(mismatched.status(), StatusCode::FORBIDDEN);
 
         let unsupported_server_claims_token = sign_test_claims(&McpAuthBrokerClaims {
-            iss: TEST_PLATFORM_ISSUER.to_string(),
+            iss: TEST_PLATFORM_JWT_ISSUER.to_string(),
             sub: "talon-mcp-client".to_string(),
             aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
             iat: 1usize,

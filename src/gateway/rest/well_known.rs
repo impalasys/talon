@@ -135,65 +135,12 @@ fn external_base_url(issuer: &str) -> anyhow::Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_support::{EmptyPubSub, MockKvStore};
+    use crate::test_support::{
+        EmptyPubSub, EnvVarGuard, MockKvStore, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER,
+    };
     use axum::body::{to_bytes, Body};
     use axum::http::Request;
     use tower::ServiceExt;
-
-    const TEST_PLATFORM_ISSUER: &str = "https://talon.example.com";
-
-    struct PlatformJwtEnvGuard {
-        previous_private_key: Option<String>,
-        previous_issuer: Option<String>,
-        previous_gateway_base_url: Option<String>,
-    }
-
-    impl PlatformJwtEnvGuard {
-        fn acquire() -> Self {
-            let previous_private_key =
-                std::env::var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV).ok();
-            let previous_issuer = std::env::var(platform_jwt::TALON_JWT_ISSUER_ENV).ok();
-            let previous_gateway_base_url = std::env::var(TALON_GATEWAY_BASE_URL_ENV).ok();
-            unsafe {
-                std::env::set_var(
-                    platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                    platform_jwt::TEST_RSA_PRIVATE_KEY,
-                );
-                std::env::set_var(platform_jwt::TALON_JWT_ISSUER_ENV, TEST_PLATFORM_ISSUER);
-                std::env::set_var(TALON_GATEWAY_BASE_URL_ENV, "https://gateway.example.com");
-            }
-            Self {
-                previous_private_key,
-                previous_issuer,
-                previous_gateway_base_url,
-            }
-        }
-    }
-
-    impl Drop for PlatformJwtEnvGuard {
-        fn drop(&mut self) {
-            unsafe {
-                if let Some(previous_private_key) = &self.previous_private_key {
-                    std::env::set_var(
-                        platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                        previous_private_key,
-                    );
-                } else {
-                    std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
-                }
-                if let Some(previous_issuer) = &self.previous_issuer {
-                    std::env::set_var(platform_jwt::TALON_JWT_ISSUER_ENV, previous_issuer);
-                } else {
-                    std::env::remove_var(platform_jwt::TALON_JWT_ISSUER_ENV);
-                }
-                if let Some(previous_gateway_base_url) = &self.previous_gateway_base_url {
-                    std::env::set_var(TALON_GATEWAY_BASE_URL_ENV, previous_gateway_base_url);
-                } else {
-                    std::env::remove_var(TALON_GATEWAY_BASE_URL_ENV);
-                }
-            }
-        }
-    }
 
     fn gateway_with_platform_jwt() -> Arc<Gateway> {
         let cp = crate::control::ControlPlane::builder(
@@ -232,8 +179,9 @@ mod tests {
 
     #[tokio::test]
     async fn well_known_endpoints_publish_public_platform_jwks_and_metadata() {
-        let _env_lock = crate::test_support::async_env_mutex().lock().await;
-        let _guard = PlatformJwtEnvGuard::acquire();
+        let _guard = PlatformJwtEnvGuard::acquire().await;
+        let _gateway_base_url =
+            EnvVarGuard::set(TALON_GATEWAY_BASE_URL_ENV, "https://gateway.example.com");
         let app = router().with_state(gateway_with_platform_jwt());
 
         let (status, jwks) = json_response(app.clone(), "/.well-known/jwks.json").await;
@@ -249,7 +197,7 @@ mod tests {
         let (status, metadata) =
             json_response(app.clone(), "/.well-known/openid-configuration").await;
         assert_eq!(status, StatusCode::OK);
-        assert_eq!(metadata["issuer"], TEST_PLATFORM_ISSUER);
+        assert_eq!(metadata["issuer"], TEST_PLATFORM_JWT_ISSUER);
         assert_eq!(
             metadata["jwks_uri"],
             "https://gateway.example.com/.well-known/jwks.json"
@@ -258,7 +206,10 @@ mod tests {
         let (status, protected) =
             json_response(app, "/.well-known/oauth-protected-resource/talon").await;
         assert_eq!(status, StatusCode::OK);
-        assert_eq!(protected["authorization_servers"][0], TEST_PLATFORM_ISSUER);
+        assert_eq!(
+            protected["authorization_servers"][0],
+            TEST_PLATFORM_JWT_ISSUER
+        );
         assert_eq!(
             protected["jwks_uri"],
             "https://gateway.example.com/.well-known/jwks.json"
