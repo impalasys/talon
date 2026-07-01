@@ -115,13 +115,12 @@ def create_e2e_bootstrap_token(grpc_port):
             cli,
             "auth",
             "local-token",
-            "--issuer",
-            E2E_PLATFORM_JWT_ISSUER,
             "--private-key-pem-file",
             str(key_file),
             "--subject",
             "pytest-bootstrap",
         ],
+        env={**os.environ, "TALON_PLATFORM_JWT_ISSUER": E2E_PLATFORM_JWT_ISSUER},
         text=True,
         capture_output=True,
         check=False,
@@ -346,6 +345,7 @@ def talon_infrastructure():
     env["RUST_LOG"] = "info"
     env["GCP_PROJECT_ID"] = "talon-local"
     env["TALON_JWT_PRIVATE_KEY_PEM"] = E2E_JWT_PRIVATE_KEY_PEM
+    env["TALON_PLATFORM_JWT_ISSUER"] = E2E_PLATFORM_JWT_ISSUER
     
     # Pre-provision PubSub topics and subscriptions to avoid races
     try:
@@ -389,9 +389,6 @@ providers:
 server:
   host: "127.0.0.1"
   port: {test_grpc_port}
-platformAuth:
-  jwtIssuer:
-    issuer: {E2E_PLATFORM_JWT_ISSUER}
 control_plane:
   database:
     driver: postgres
@@ -500,6 +497,7 @@ def talon_infrastructure_sqlite():
     env["PORT"] = str(worker_port)
     env["TALON_SESSION_PROCESSING_TIMEOUT_SECONDS"] = "1"
     env["TALON_JWT_PRIVATE_KEY_PEM"] = E2E_JWT_PRIVATE_KEY_PEM
+    env["TALON_PLATFORM_JWT_ISSUER"] = E2E_PLATFORM_JWT_ISSUER
 
     temp_dir = Path(tempfile.mkdtemp(prefix="talon-sqlite-e2e-"))
     data_dir = temp_dir / "data"
@@ -519,9 +517,6 @@ providers:
 server:
   host: "127.0.0.1"
   port: {test_grpc_port}
-platformAuth:
-  jwtIssuer:
-    issuer: {E2E_PLATFORM_JWT_ISSUER}
 control_plane:
   database:
     driver: sqlite

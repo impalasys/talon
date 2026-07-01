@@ -1,7 +1,6 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::config::proto::JwtIssuerConfig;
 use anyhow::{anyhow, Result};
 use jsonwebtoken::{
     decode, decode_header,
@@ -11,11 +10,10 @@ use jsonwebtoken::{
 use serde::{de::DeserializeOwned, Serialize};
 
 pub const TALON_JWT_PRIVATE_KEY_PEM_ENV: &str = "TALON_JWT_PRIVATE_KEY_PEM";
+pub const TALON_PLATFORM_JWT_ISSUER_ENV: &str = "TALON_PLATFORM_JWT_ISSUER";
+pub const DEFAULT_PLATFORM_JWT_ISSUER: &str = "https://talon.impala.systems";
 pub const TALON_GATEWAY_AUDIENCE: &str = "talon.impala.systems";
 pub const MCP_AUTH_BROKER_AUDIENCE: &str = "mcps.talon.impala.systems";
-pub const ACCESS_TOKEN_TYPE: &str = "access";
-pub const MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE: &str = "mcp_auth_broker_assertion";
-pub const TALON_OPS_ACCESS_TOKEN_TYPE: &str = "talon_ops_access";
 pub const TALON_OPS_AUDIENCE: &str = "talon-ops";
 
 #[cfg(test)]
@@ -95,12 +93,31 @@ impl PlatformJwtKey {
     }
 }
 
-pub fn configured_issuer(config: &JwtIssuerConfig) -> Result<&str> {
-    let issuer = config.issuer.trim();
+pub fn issuer() -> Result<String> {
+    let issuer = std::env::var(TALON_PLATFORM_JWT_ISSUER_ENV)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| DEFAULT_PLATFORM_JWT_ISSUER.to_string());
+    validate_issuer(&issuer)?;
+    Ok(issuer)
+}
+
+fn validate_issuer(issuer: &str) -> Result<()> {
     if issuer.is_empty() {
         return Err(anyhow!("platform JWT issuer is not configured"));
     }
-    Ok(issuer)
+    let url = url::Url::parse(issuer)
+        .map_err(|err| anyhow!("platform JWT issuer must be a valid URL: {err}"))?;
+    if url.scheme() != "https" {
+        return Err(anyhow!("platform JWT issuer must use https"));
+    }
+    if url.query().is_some() || url.fragment().is_some() {
+        return Err(anyhow!(
+            "platform JWT issuer must not include query or fragment"
+        ));
+    }
+    Ok(())
 }
 
 pub fn load_key() -> Result<PlatformJwtKey> {
@@ -121,14 +138,47 @@ mod tests {
     use super::*;
     use serde::{Deserialize, Serialize};
 
+    struct EnvGuard {
+        key: &'static str,
+        previous: Option<std::ffi::OsString>,
+    }
+
+    impl EnvGuard {
+        fn set(key: &'static str, value: &str) -> Self {
+            let previous = std::env::var_os(key);
+            unsafe {
+                std::env::set_var(key, value);
+            }
+            Self { key, previous }
+        }
+
+        fn remove(key: &'static str) -> Self {
+            let previous = std::env::var_os(key);
+            unsafe {
+                std::env::remove_var(key);
+            }
+            Self { key, previous }
+        }
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            unsafe {
+                if let Some(previous) = &self.previous {
+                    std::env::set_var(self.key, previous);
+                } else {
+                    std::env::remove_var(self.key);
+                }
+            }
+        }
+    }
+
     #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
     struct TestClaims {
         iss: String,
         sub: String,
         aud: String,
         exp: usize,
-        #[serde(rename = "talon:token_type")]
-        token_type: String,
     }
 
     #[test]
@@ -139,7 +189,6 @@ mod tests {
             sub: "test".to_string(),
             aud: TALON_GATEWAY_AUDIENCE.to_string(),
             exp: 4_102_444_800,
-            token_type: ACCESS_TOKEN_TYPE.to_string(),
         };
 
         let token = key.sign(&claims).unwrap();
@@ -163,7 +212,6 @@ mod tests {
             sub: "test".to_string(),
             aud: TALON_GATEWAY_AUDIENCE.to_string(),
             exp: 4_102_444_800,
-            token_type: ACCESS_TOKEN_TYPE.to_string(),
         };
 
         let token = key.sign(&claims).unwrap();
@@ -176,5 +224,30 @@ mod tests {
             .unwrap_err();
 
         assert!(err.to_string().contains("InvalidAudience"));
+    }
+
+    #[test]
+    fn issuer_defaults_to_platform_url() {
+        let _guard = crate::test_support::env_lock();
+        let _issuer = EnvGuard::remove(TALON_PLATFORM_JWT_ISSUER_ENV);
+
+        assert_eq!(issuer().unwrap(), DEFAULT_PLATFORM_JWT_ISSUER);
+    }
+
+    #[test]
+    fn issuer_honors_env_override() {
+        let _guard = crate::test_support::env_lock();
+        let _issuer = EnvGuard::set(TALON_PLATFORM_JWT_ISSUER_ENV, "https://talon.localhost");
+
+        assert_eq!(issuer().unwrap(), "https://talon.localhost");
+    }
+
+    #[test]
+    fn issuer_rejects_invalid_env_override() {
+        let _guard = crate::test_support::env_lock();
+        let _issuer = EnvGuard::set(TALON_PLATFORM_JWT_ISSUER_ENV, "http://talon.localhost?x=1");
+
+        let err = issuer().unwrap_err();
+        assert!(err.to_string().contains("must use https"));
     }
 }

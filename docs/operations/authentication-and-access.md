@@ -7,18 +7,19 @@ Talon gateway authentication is based on Talon-issued platform JWTs.
 
 ## Gateway Auth
 
-When `platformAuth.jwtIssuer.issuer` is configured, the gateway accepts
-platform-signed JWT access tokens. Tokens are signed with the RSA private key in
-`TALON_JWT_PRIVATE_KEY_PEM`, and the gateway publishes the corresponding public
-key through JWKS. Production operators should master-authenticate through OIDC
-trust entries and exchange accepted identities for Talon access tokens.
+When `TALON_JWT_PRIVATE_KEY_PEM` is configured, the gateway accepts
+platform-signed JWT access tokens. Tokens are signed with that RSA private key,
+and the gateway publishes the corresponding public key through JWKS. JWT `iss`
+defaults to `https://talon.impala.systems`; set `TALON_PLATFORM_JWT_ISSUER` to a
+non-empty HTTPS URL to override it. Production operators should
+master-authenticate through OIDC trust entries and exchange accepted identities
+for Talon access tokens.
 
 Local development can mint a short-lived root access token directly from a test
 private key:
 
 ```bash
 talon-cli auth local-token \
-  --issuer https://talon.localhost \
   --private-key-pem-file ./src/control/security/test_rsa_private_key.pem
 ```
 
@@ -27,7 +28,6 @@ key against a local stack:
 
 ```bash
 BOOTSTRAP_TOKEN=$(talon-cli auth local-token \
-  --issuer https://talon.localhost \
   --private-key-pem-file ./src/control/security/test_rsa_private_key.pem)
 talon-cli --gateway http://localhost:50051 --token "$BOOTSTRAP_TOKEN" \
   auth api-key create --name local-root --grant readwrite
@@ -49,23 +49,21 @@ That makes JWT mode the most expressive option for browser or delegated access.
 
 Platform-signed Talon gateway access tokens use:
 
-- `iss`: `platformAuth.jwtIssuer.issuer`
+- `iss`: `TALON_PLATFORM_JWT_ISSUER`, or `https://talon.impala.systems` by default
 - `aud`: `talon.impala.systems`
-- `talon:token_type`: `access`
 - `alg`: `RS256`
 
 Talon publishes the public key at `/.well-known/jwks.json` and serves
 OAuth/OIDC metadata from `/.well-known/oauth-authorization-server`,
 `/.well-known/openid-configuration`, and
 `/.well-known/oauth-protected-resource`. The JWKS only proves that a token was
-signed by Talon; authorization still depends on the audience, token type, expiry,
+signed by Talon; authorization still depends on the audience, expiry,
 scope, and grants.
 
-MCP auth broker assertions are a separate token profile. They use
-`aud: "mcps.talon.impala.systems"` and
-`talon:token_type: "mcp_auth_broker_assertion"` so brokers can verify that an
-assertion came from Talon without receiving a token that can authenticate back to
-the Talon gateway.
+MCP auth broker assertions are separated by audience. They use
+`aud: "mcps.talon.impala.systems"` so brokers can verify that an assertion came
+from Talon without receiving a token that can authenticate back to the Talon
+gateway.
 
 Talon-issued JWTs can also carry structured `grants`. New tokens use the
 `grants` claim, and Talon continues to accept legacy `talon:grants`. Grants
@@ -106,7 +104,7 @@ TTLs and resource scopes.
 
 Use `auth local-token` only for local bootstrap from a PEM file:
 
-- `auth local-token --issuer <issuer> --private-key-pem-file <path>`
+- `auth local-token --private-key-pem-file <path>`
 - `auth api-key create --name <name> --grant readwrite,namespace=<ns>`
 - `auth api-key list`
 - `auth api-key revoke <id>`

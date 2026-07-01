@@ -711,27 +711,22 @@ fn mint_connector_callback_token(
     config: &crate::control::config::Config,
     namespace: &str,
 ) -> Result<String> {
-    let issuer = config
-        .platform_auth
-        .as_ref()
-        .and_then(|auth| auth.jwt_issuer.as_ref())
-        .map(|issuer| issuer.issuer.trim())
-        .filter(|issuer| !issuer.is_empty())
-        .context("platformAuth.jwtIssuer.issuer is required for connector callbacks")?;
+    let _ = config;
+    let issuer = platform_jwt::issuer()
+        .context("platform JWT issuer is required for connector callbacks")?;
     let key =
         platform_jwt::load_key().context("platform JWT key is required for connector callbacks")?;
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs();
     let claims = crate::gateway::auth::Claims {
-        iss: Some(issuer.to_string()),
+        iss: Some(issuer),
         sub: "connector-runtime".to_string(),
         aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
         iat: Some(now as usize),
         exp: now
             .checked_add(CONNECTOR_CALLBACK_TOKEN_TTL_SECONDS)
             .context("connector callback token ttl is too large")? as usize,
-        token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
         ns: Some(namespace.to_string()),
         agent: None,
         session: None,

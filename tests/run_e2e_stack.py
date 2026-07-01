@@ -109,13 +109,12 @@ def create_bootstrap_token(grpc_port):
             cli,
             "auth",
             "local-token",
-            "--issuer",
-            E2E_PLATFORM_JWT_ISSUER,
             "--private-key-pem-file",
             str(key_file),
             "--subject",
             "playwright-bootstrap",
         ],
+        env={**os.environ, "TALON_PLATFORM_JWT_ISSUER": E2E_PLATFORM_JWT_ISSUER},
         text=True,
         capture_output=True,
         check=False,
@@ -243,6 +242,7 @@ def main():
     env["GCP_PROJECT_ID"] = "talon-local"
     env["NOVITA_API_KEY"] = "test-dummy-key"
     env["TALON_JWT_PRIVATE_KEY_PEM"] = E2E_JWT_PRIVATE_KEY_PEM
+    env["TALON_PLATFORM_JWT_ISSUER"] = E2E_PLATFORM_JWT_ISSUER
     temp_dir = Path(tempfile.mkdtemp(prefix="talon-e2e-"))
     
     env["GRPC_ADDR"] = f"0.0.0.0:{GATEWAY_GRPC_PORT}"
@@ -280,9 +280,6 @@ providers:
 server:
   host: "0.0.0.0"
   port: {GATEWAY_GRPC_PORT}
-platformAuth:
-  jwtIssuer:
-    issuer: {E2E_PLATFORM_JWT_ISSUER}
 control_plane:
   database:
     driver: postgres

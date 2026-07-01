@@ -16,19 +16,6 @@ This page summarizes the major configuration messages exposed by Talon's runtime
 | `control_plane` | `ControlPlaneConfig` | - |
 | `controllers` | `map<string, ControllerConfig>` | - |
 | `trust` | `TrustConfig` | - |
-| `platform_auth` | `PlatformAuthConfig` | - |
-
-## `PlatformAuthConfig`
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `jwt_issuer` | `JwtIssuerConfig` | - |
-
-## `JwtIssuerConfig`
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `issuer` | `string` | Stable HTTPS issuer for Talon-issued JWTs and well-known metadata. |
 
 ## `TrustConfig`
 

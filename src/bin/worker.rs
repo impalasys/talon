@@ -261,18 +261,10 @@ fn build_worker_handler(
     worker_id: String,
     fanout_hub: Arc<talon::worker::fanout::FanoutHub>,
 ) -> WorkerEventHandler {
-    let jwt_issuer = config
-        .platform_auth
-        .as_ref()
-        .and_then(|auth| auth.jwt_issuer.as_ref())
-        .map(|issuer| issuer.issuer.trim().to_string())
-        .filter(|issuer| !issuer.is_empty());
     WorkerEventHandler {
         cp,
         config,
-        mcp_registry: Arc::new(
-            talon::worker::mcp_registry::McpRegistry::new_with_jwt_issuer(jwt_issuer),
-        ),
+        mcp_registry: Arc::new(talon::worker::mcp_registry::McpRegistry::new()),
         scheduler_authenticator,
         worker_id,
         fanout_hub,
@@ -1154,13 +1146,12 @@ where
     FShutdown: std::future::Future,
 {
     let config = load_config()?;
-    if config
-        .platform_auth
-        .as_ref()
-        .and_then(|auth| auth.jwt_issuer.as_ref())
-        .is_some()
+    if std::env::var(talon::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV)
+        .ok()
+        .is_some_and(|value| !value.trim().is_empty())
     {
         talon::control::security::platform_jwt::load_key()?;
+        talon::control::security::platform_jwt::issuer()?;
     }
     let cp = build_cp(&config).await?;
     let scheduler_authenticator = build_auth(&config).await?;

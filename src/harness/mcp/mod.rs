@@ -816,7 +816,6 @@ fn mint_auth_broker_jwt(
         aud: platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
         exp: now + 300,
         iat: now,
-        token_type: platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE.to_string(),
         talon_ns: namespace.to_string(),
         talon_mcp_server: mcp_server_name.to_string(),
         talon_agent: agent_name.map(str::to_string),
@@ -976,8 +975,6 @@ struct BrokerJwtClaims {
     aud: String,
     exp: i64,
     iat: i64,
-    #[serde(rename = "talon:token_type")]
-    token_type: String,
     #[serde(rename = "talon:ns")]
     talon_ns: String,
     #[serde(rename = "talon:mcp_server")]

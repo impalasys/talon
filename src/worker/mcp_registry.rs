@@ -6,6 +6,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
+use crate::control::security::platform_jwt;
 use crate::control::{keys, ns, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::manifests;
 use crate::harness::mcp::{list_tools_for_config, McpConnectionConfig, McpTool};
@@ -19,19 +20,11 @@ pub struct ResolvedMcpServer {
 #[derive(Default)]
 pub struct McpRegistry {
     cache: RwLock<HashMap<String, HashMap<String, Arc<ResolvedMcpServer>>>>,
-    jwt_issuer: Option<String>,
 }
 
 impl McpRegistry {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn new_with_jwt_issuer(jwt_issuer: Option<String>) -> Self {
-        Self {
-            cache: RwLock::new(HashMap::new()),
-            jwt_issuer,
-        }
     }
 
     pub async fn invalidate(&self, ns: &str, name: Option<&str>) {
@@ -70,11 +63,8 @@ impl McpRegistry {
         }
 
         let server = resolve_server_from_ancestry(cp, namespace, name).await?;
-        let config = config_for_resolution_namespace(
-            McpConnectionConfig::try_from(&server)?,
-            namespace,
-            self.jwt_issuer.clone(),
-        );
+        let config =
+            config_for_resolution_namespace(McpConnectionConfig::try_from(&server)?, namespace)?;
         let allowlist = server
             .spec
             .as_ref()
@@ -134,11 +124,10 @@ fn filter_allowed_tools(tools: Vec<McpTool>, allowlist: &[String]) -> Vec<McpToo
 fn config_for_resolution_namespace(
     mut config: McpConnectionConfig,
     namespace: &str,
-    jwt_issuer: Option<String>,
-) -> McpConnectionConfig {
+) -> Result<McpConnectionConfig> {
     config.namespace = Some(namespace.to_string());
-    config.jwt_issuer = jwt_issuer;
-    config
+    config.jwt_issuer = Some(platform_jwt::issuer()?);
+    Ok(config)
 }
 
 #[cfg(test)]
@@ -146,6 +135,7 @@ mod tests {
     use super::{config_for_resolution_namespace, filter_allowed_tools, McpRegistry};
     use crate::control::{
         keys::{ResourceKey, ResourceList},
+        security::platform_jwt,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::manifests;
@@ -301,13 +291,17 @@ mod tests {
             auth_broker: None,
         };
 
-        let scoped = config_for_resolution_namespace(config, "Tenant:conic:Customers:12", None);
+        let scoped = config_for_resolution_namespace(config, "Tenant:conic:Customers:12").unwrap();
 
         assert_eq!(
             scoped.namespace.as_deref(),
             Some("Tenant:conic:Customers:12")
         );
         assert_eq!(scoped.mcp_server_name.as_deref(), Some("conic"));
+        assert_eq!(
+            scoped.jwt_issuer.as_deref(),
+            Some(platform_jwt::issuer().unwrap().as_str())
+        );
     }
 
     #[tokio::test]

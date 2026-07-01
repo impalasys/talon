@@ -36,21 +36,18 @@ pub enum AuthMode {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthConfig {
     pub mode: AuthMode,
-    pub platform_jwt_issuer: Option<String>,
 }
 
 impl AuthConfig {
     pub fn open() -> Self {
         Self {
             mode: AuthMode::Open,
-            platform_jwt_issuer: None,
         }
     }
 
     pub fn jwt_platform() -> Self {
         Self {
             mode: AuthMode::Jwt,
-            platform_jwt_issuer: None,
         }
     }
 }
@@ -64,12 +61,6 @@ pub struct Claims {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub iat: Option<usize>,
     pub exp: usize,
-    #[serde(
-        rename = "talon:token_type",
-        default,
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub token_type: Option<String>,
     #[serde(rename = "talon:ns")]
     pub ns: Option<String>,
     #[serde(rename = "talon:agent")]
@@ -102,8 +93,6 @@ impl<'de> Deserialize<'de> for Claims {
             #[serde(default)]
             iat: Option<usize>,
             exp: usize,
-            #[serde(rename = "talon:token_type", default)]
-            token_type: Option<String>,
             #[serde(rename = "talon:ns")]
             ns: Option<String>,
             #[serde(rename = "talon:agent")]
@@ -128,7 +117,6 @@ impl<'de> Deserialize<'de> for Claims {
             aud: raw.aud,
             iat: raw.iat,
             exp: raw.exp,
-            token_type: raw.token_type,
             ns: raw.ns,
             agent: raw.agent,
             session: raw.session,
@@ -152,24 +140,19 @@ pub struct TalonGrantClaim {
     pub channel: Option<String>,
 }
 
-pub fn verify_platform_access_jwt(token: &str, issuer: &str) -> Result<Claims, Status> {
+pub fn verify_platform_access_jwt(token: &str) -> Result<Claims, Status> {
     let key = platform_jwt::load_key()
         .map_err(|err| Status::internal(format!("Platform JWT key is not configured: {err}")))?;
+    let issuer = platform_jwt::issuer()
+        .map_err(|err| Status::internal(format!("Platform JWT issuer is not configured: {err}")))?;
     let claims = key
-        .verify::<Claims>(token, issuer, platform_jwt::TALON_GATEWAY_AUDIENCE)
+        .verify::<Claims>(token, &issuer, platform_jwt::TALON_GATEWAY_AUDIENCE)
         .map_err(|err| Status::unauthenticated(format!("Invalid token: {err}")))?;
-    if claims.token_type.as_deref() != Some(platform_jwt::ACCESS_TOKEN_TYPE) {
-        return Err(Status::permission_denied("JWT is not a Talon access token"));
-    }
     Ok(claims)
 }
 
-fn verify_bearer_jwt(token: &str, auth_config: &AuthConfig) -> Result<Claims, Status> {
-    let issuer = auth_config
-        .platform_jwt_issuer
-        .as_deref()
-        .ok_or_else(|| Status::internal("JWT issuer not configured"))?;
-    verify_platform_access_jwt(token, issuer)
+fn verify_bearer_jwt(token: &str, _auth_config: &AuthConfig) -> Result<Claims, Status> {
+    verify_platform_access_jwt(token)
 }
 
 fn bearer_token(auth_header: &str) -> Result<&str, Status> {
@@ -681,31 +664,47 @@ mod tests {
 
     struct PlatformJwtEnvGuard {
         previous_private_key: Option<String>,
+        previous_issuer: Option<String>,
     }
 
     impl PlatformJwtEnvGuard {
         fn acquire() -> Self {
             let previous_private_key =
                 std::env::var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV).ok();
-            std::env::set_var(
-                platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                platform_jwt::TEST_RSA_PRIVATE_KEY,
-            );
+            let previous_issuer = std::env::var(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV).ok();
+            unsafe {
+                std::env::set_var(
+                    platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    platform_jwt::TEST_RSA_PRIVATE_KEY,
+                );
+                std::env::set_var(
+                    platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+                    TEST_PLATFORM_ISSUER,
+                );
+            }
             Self {
                 previous_private_key,
+                previous_issuer,
             }
         }
     }
 
     impl Drop for PlatformJwtEnvGuard {
         fn drop(&mut self) {
-            if let Some(previous_private_key) = &self.previous_private_key {
-                std::env::set_var(
-                    platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                    previous_private_key,
-                );
-            } else {
-                std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
+            unsafe {
+                if let Some(previous_private_key) = &self.previous_private_key {
+                    std::env::set_var(
+                        platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                        previous_private_key,
+                    );
+                } else {
+                    std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
+                }
+                if let Some(previous_issuer) = &self.previous_issuer {
+                    std::env::set_var(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV, previous_issuer);
+                } else {
+                    std::env::remove_var(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV);
+                }
             }
         }
     }
@@ -726,7 +725,6 @@ mod tests {
 
         let jwt = AuthConfig::jwt_platform();
         assert_eq!(jwt.mode, AuthMode::Jwt);
-        assert_eq!(jwt.platform_jwt_issuer, None);
     }
 
     fn create_token(ns: Option<&str>, agent: Option<&str>, session: Option<&str>) -> String {
@@ -736,7 +734,6 @@ mod tests {
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(1),
             exp: 10000000000, // far future
-            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: ns.map(|s| s.to_string()),
             agent: agent.map(|s| s.to_string()),
             session: session.map(|s| s.to_string()),
@@ -753,7 +750,6 @@ mod tests {
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(1),
             exp: 10000000000,
-            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: None,
             agent: None,
             session: None,
@@ -763,20 +759,17 @@ mod tests {
         })
     }
 
-    fn platform_auth_config() -> AuthConfig {
-        let mut config = AuthConfig::jwt_platform();
-        config.platform_jwt_issuer = Some(TEST_PLATFORM_ISSUER.to_string());
-        config
+    fn jwt_auth_config() -> AuthConfig {
+        AuthConfig::jwt_platform()
     }
 
-    fn platform_claims(audience: &str, token_type: &str) -> Claims {
+    fn platform_claims(audience: &str) -> Claims {
         Claims {
             iss: Some(TEST_PLATFORM_ISSUER.to_string()),
             sub: "talon".to_string(),
             aud: audience.to_string(),
             iat: Some(1),
             exp: 10000000000,
-            token_type: Some(token_type.to_string()),
             ns: Some("ns".to_string()),
             agent: None,
             session: None,
@@ -803,41 +796,27 @@ mod tests {
     async fn platform_gateway_auth_accepts_access_profile_and_rejects_broker_assertion() {
         let _env_lock = crate::test_support::async_env_mutex().lock().await;
         let _guard = PlatformJwtEnvGuard::acquire();
-        let config = platform_auth_config();
+        let config = jwt_auth_config();
 
-        let access_token = sign_platform_claims(&platform_claims(
-            platform_jwt::TALON_GATEWAY_AUDIENCE,
-            platform_jwt::ACCESS_TOKEN_TYPE,
-        ));
+        let access_token =
+            sign_platform_claims(&platform_claims(platform_jwt::TALON_GATEWAY_AUDIENCE));
         let access = jwt_claims_from_metadata(&metadata_with_bearer(&access_token), &config)
             .unwrap()
             .unwrap();
         assert_eq!(access.aud, platform_jwt::TALON_GATEWAY_AUDIENCE);
-        assert_eq!(
-            access.token_type.as_deref(),
-            Some(platform_jwt::ACCESS_TOKEN_TYPE)
-        );
 
-        let broker_assertion = sign_platform_claims(&platform_claims(
-            platform_jwt::MCP_AUTH_BROKER_AUDIENCE,
-            platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE,
-        ));
+        let broker_assertion =
+            sign_platform_claims(&platform_claims(platform_jwt::MCP_AUTH_BROKER_AUDIENCE));
         assert!(
             jwt_claims_from_metadata(&metadata_with_bearer(&broker_assertion), &config).is_err()
         );
-
-        let wrong_profile = sign_platform_claims(&platform_claims(
-            platform_jwt::TALON_GATEWAY_AUDIENCE,
-            platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE,
-        ));
-        assert!(jwt_claims_from_metadata(&metadata_with_bearer(&wrong_profile), &config).is_err());
     }
 
     #[test]
     fn test_check_auth_jwt_scopes() {
         let _env_lock = crate::test_support::env_lock();
         let _guard = PlatformJwtEnvGuard::acquire();
-        let config = platform_auth_config();
+        let config = jwt_auth_config();
         let mut metadata = MetadataMap::new();
 
         // 1. Namespace scope
@@ -899,7 +878,7 @@ mod tests {
     fn test_origin_scoped_jwt_is_enforced_only_for_grpc_web_metadata() {
         let _env_lock = crate::test_support::env_lock();
         let _guard = PlatformJwtEnvGuard::acquire();
-        let config = platform_auth_config();
+        let config = jwt_auth_config();
         let token = create_origin_token(vec!["https://app.example.com"]);
         let mut metadata = auth_metadata(&token);
 
@@ -936,7 +915,6 @@ mod tests {
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(1),
             exp: 10000000000,
-            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: ns.map(|s| s.to_string()),
             agent: None,
             session: None,
@@ -953,7 +931,6 @@ mod tests {
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(1),
             exp: 10000000000,
-            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: None,
             agent: None,
             session: None,
@@ -983,7 +960,7 @@ mod tests {
             session: None,
             channel: None,
         }]);
-        let config = platform_auth_config();
+        let config = jwt_auth_config();
         let metadata = auth_metadata(&token);
 
         assert!(check_auth_for_operation(
@@ -1038,7 +1015,7 @@ mod tests {
         let _env_lock = crate::test_support::env_lock();
         let _guard = PlatformJwtEnvGuard::acquire();
         let token = create_grant_token(Vec::new());
-        let config = platform_auth_config();
+        let config = jwt_auth_config();
         let metadata = auth_metadata(&token);
 
         assert!(check_auth_for_operation(
@@ -1063,7 +1040,7 @@ mod tests {
             session: Some("session-1".to_string()),
             channel: None,
         }]);
-        let config = platform_auth_config();
+        let config = jwt_auth_config();
         let metadata = auth_metadata(&token);
 
         assert!(check_auth_for_operation(
@@ -1090,7 +1067,7 @@ mod tests {
     fn test_channel_scoped_jwt_only_authorizes_matching_channel_operations() {
         let _env_lock = crate::test_support::env_lock();
         let _guard = PlatformJwtEnvGuard::acquire();
-        let config = platform_auth_config();
+        let config = jwt_auth_config();
         let mut metadata = MetadataMap::new();
         let token = create_channel_token(Some("ops"), Some("incident-room"));
         metadata.insert(
@@ -1113,7 +1090,7 @@ mod tests {
     fn test_channel_scoped_jwt_requires_namespace() {
         let _env_lock = crate::test_support::env_lock();
         let _guard = PlatformJwtEnvGuard::acquire();
-        let config = platform_auth_config();
+        let config = jwt_auth_config();
         let mut metadata = MetadataMap::new();
         let token = create_channel_token(None, Some("incident-room"));
         metadata.insert(
@@ -1130,7 +1107,7 @@ mod tests {
         let _guard = PlatformJwtEnvGuard::acquire();
         let token = create_token(Some("ns"), Some("agent"), Some("session"));
         let mut jwt_interceptor = TalonAuthInterceptor {
-            config: platform_auth_config(),
+            config: jwt_auth_config(),
         };
         let mut jwt_request = tonic::Request::new(());
         jwt_request
@@ -1143,7 +1120,7 @@ mod tests {
         assert_eq!(claims.session.as_deref(), Some("session"));
 
         let mut invalid_jwt = TalonAuthInterceptor {
-            config: platform_auth_config(),
+            config: jwt_auth_config(),
         };
         let mut invalid_jwt_request = tonic::Request::new(());
         invalid_jwt_request
@@ -1160,7 +1137,7 @@ mod tests {
             "ok"
         }
 
-        let jwt_gateway = gateway_with_auth(Some(platform_auth_config()));
+        let jwt_gateway = gateway_with_auth(Some(jwt_auth_config()));
         let jwt_app = Router::new()
             .route("/", get(ok_handler))
             .layer(from_fn_with_state(jwt_gateway.clone(), auth_layer))

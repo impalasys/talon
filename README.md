@@ -177,11 +177,13 @@ Common environment variables used by the runtime:
 - `TALON_LOCAL_SCHEDULER_TARGET_URL`
 - `TALON_LOCAL_SCHEDULER_RUNNER`
 - `TALON_JWT_PRIVATE_KEY_PEM`
+- `TALON_PLATFORM_JWT_ISSUER`
 
-When `platformAuth.jwtIssuer.issuer` is configured, Talon publishes public key
-material at `/.well-known/jwks.json` plus OAuth/OIDC metadata endpoints. JWKS
-proves a token was signed by Talon; gateway authorization still requires
-`aud: "talon.impala.systems"` and `talon:token_type: "access"`. MCP auth broker
+When `TALON_JWT_PRIVATE_KEY_PEM` is configured, Talon publishes public key
+material at `/.well-known/jwks.json` plus OAuth/OIDC metadata endpoints. JWT
+`iss` defaults to `https://talon.impala.systems` and can be overridden with
+`TALON_PLATFORM_JWT_ISSUER`. JWKS proves a token was signed by Talon; gateway
+authorization still requires `aud: "talon.impala.systems"`. MCP auth broker
 assertions use `aud: "mcps.talon.impala.systems"` and are rejected by gateway
 auth.
 

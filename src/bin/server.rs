@@ -4,11 +4,11 @@
 use anyhow::Result;
 use std::sync::Arc;
 use talon::control::build_control_plane;
-use talon::control::config::proto::{JwtIssuerConfig, TrustConfig};
+use talon::control::config::proto::TrustConfig;
 use talon::control::config::{Config, ConfigExt};
 use talon::control::security::platform_jwt;
 use talon::control::ControlPlane;
-use talon::gateway::auth::{AuthConfig, AuthMode};
+use talon::gateway::auth::AuthConfig;
 use talon::gateway::server::Gateway;
 use tokio::signal;
 use tokio::task::JoinHandle;
@@ -18,8 +18,14 @@ use tokio_util::sync::CancellationToken;
 #[global_allocator]
 static GLOBAL_ALLOCATOR: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
-fn select_auth_config(platform_jwt_config: Option<&JwtIssuerConfig>) -> AuthConfig {
-    if platform_jwt_config.is_some() {
+fn has_platform_jwt_private_key() -> bool {
+    std::env::var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV)
+        .ok()
+        .is_some_and(|value| !value.trim().is_empty())
+}
+
+fn select_auth_config() -> AuthConfig {
+    if has_platform_jwt_private_key() {
         AuthConfig::jwt_platform()
     } else {
         AuthConfig::open()
@@ -34,21 +40,13 @@ where
 }
 
 fn build_gateway(
-    mut auth_config: AuthConfig,
+    auth_config: AuthConfig,
     trust_config: Option<TrustConfig>,
-    platform_jwt_config: Option<JwtIssuerConfig>,
     cp: ControlPlane,
 ) -> Gateway {
-    if auth_config.mode == AuthMode::Jwt {
-        auth_config.platform_jwt_issuer = platform_jwt_config
-            .as_ref()
-            .map(|config| config.issuer.trim().to_string())
-            .filter(|issuer| !issuer.is_empty());
-    }
-    Gateway::new_with_trust_and_platform_jwt(
+    Gateway::new_with_trust(
         Some(auth_config),
         trust_config,
-        platform_jwt_config,
         cp.kv,
         cp.pubsub,
         cp.scheduler,
@@ -72,7 +70,6 @@ fn spawn_gateway_task(
 async fn run_gateway_with<FGetAddr, FShutdown>(
     cp: ControlPlane,
     trust_config: Option<TrustConfig>,
-    platform_jwt_config: Option<JwtIssuerConfig>,
     addr_get: FGetAddr,
     shutdown: FShutdown,
 ) -> Result<()>
@@ -80,8 +77,8 @@ where
     FGetAddr: FnMut(&str) -> Option<String>,
     FShutdown: std::future::Future,
 {
-    let auth_config = select_auth_config(platform_jwt_config.as_ref());
-    let gateway = build_gateway(auth_config, trust_config, platform_jwt_config, cp);
+    let auth_config = select_auth_config();
+    let gateway = build_gateway(auth_config, trust_config, cp);
     let rpc_addr = gateway_addr(addr_get);
     let shutdown_token = CancellationToken::new();
     let mut task = spawn_gateway_task(gateway, rpc_addr, shutdown_token.child_token());
@@ -127,15 +124,12 @@ where
 {
     let config = load_config()?;
     let trust_config = config.trust.clone();
-    let platform_jwt_config = config
-        .platform_auth
-        .as_ref()
-        .and_then(|auth| auth.jwt_issuer.clone());
-    if platform_jwt_config.is_some() {
+    if has_platform_jwt_private_key() {
         platform_jwt::load_key()?;
+        platform_jwt::issuer()?;
     }
     let cp = build_cp(&config).await?;
-    run_gateway_with(cp, trust_config, platform_jwt_config, addr_get, shutdown).await
+    run_gateway_with(cp, trust_config, addr_get, shutdown).await
 }
 
 #[tokio::main]
@@ -161,27 +155,50 @@ mod tests {
     use super::*;
     use talon::test_support::{EmptyPubSub, MockKvStore};
 
+    const TEST_RSA_PRIVATE_KEY: &str = include_str!("../control/security/test_rsa_private_key.pem");
+
+    struct EnvGuard {
+        key: &'static str,
+        previous: Option<std::ffi::OsString>,
+    }
+
+    impl EnvGuard {
+        fn set(key: &'static str, value: &str) -> Self {
+            let previous = std::env::var_os(key);
+            unsafe {
+                std::env::set_var(key, value);
+            }
+            Self { key, previous }
+        }
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            unsafe {
+                if let Some(previous) = &self.previous {
+                    std::env::set_var(self.key, previous);
+                } else {
+                    std::env::remove_var(self.key);
+                }
+            }
+        }
+    }
+
     fn test_control_plane() -> ControlPlane {
         ControlPlane::builder(Arc::new(MockKvStore::default()), Arc::new(EmptyPubSub)).build()
     }
 
     #[test]
-    fn build_gateway_uses_platform_jwt_when_issuer_is_configured() {
-        let platform_config = JwtIssuerConfig {
-            issuer: "https://talon.example.com".to_string(),
-        };
-        let gateway = build_gateway(
-            select_auth_config(Some(&platform_config)),
-            None,
-            Some(platform_config),
-            test_control_plane(),
+    fn build_gateway_uses_platform_jwt_when_private_key_is_configured() {
+        let _env_lock = talon::test_support::env_lock();
+        let _private_key = EnvGuard::set(
+            platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+            TEST_RSA_PRIVATE_KEY,
         );
+
+        let gateway = build_gateway(select_auth_config(), None, test_control_plane());
         let auth_config = gateway.auth_config.as_ref().unwrap();
 
-        assert_eq!(auth_config.mode, AuthMode::Jwt);
-        assert_eq!(
-            auth_config.platform_jwt_issuer.as_deref(),
-            Some("https://talon.example.com")
-        );
+        assert_eq!(auth_config.mode, talon::gateway::auth::AuthMode::Jwt);
     }
 }

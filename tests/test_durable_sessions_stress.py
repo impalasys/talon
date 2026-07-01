@@ -212,6 +212,7 @@ class DurableSessionStack:
         env["PORT"] = str(worker_port)
         env["TALON_SESSION_PROCESSING_TIMEOUT_SECONDS"] = "1"
         env["TALON_JWT_PRIVATE_KEY_PEM"] = conftest.E2E_JWT_PRIVATE_KEY_PEM
+        env["TALON_PLATFORM_JWT_ISSUER"] = conftest.E2E_PLATFORM_JWT_ISSUER
 
         temp_dir = Path(tempfile.mkdtemp(prefix="talon-durable-stress-"))
         data_dir = temp_dir / "data"
@@ -231,9 +232,6 @@ providers:
 server:
   host: "127.0.0.1"
   port: {test_grpc_port}
-platformAuth:
-  jwtIssuer:
-    issuer: {conftest.E2E_PLATFORM_JWT_ISSUER}
 control_plane:
   database:
     driver: sqlite

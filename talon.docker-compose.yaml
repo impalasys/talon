@@ -26,10 +26,6 @@ server:
   host: "0.0.0.0"
   port: 50051
 
-platformAuth:
-  jwtIssuer:
-    issuer: https://talon.localhost
-
 storage:
   # The compose stack uses one local Postgres instance for control-plane
   # metadata, session/data storage, and search document projections.

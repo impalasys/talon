@@ -518,26 +518,13 @@ pub(crate) struct LocalPlatformTokenScope<'a> {
 
 pub(crate) fn mint_local_platform_access_jwt(
     private_key_pem: &str,
-    issuer: &str,
     subject: &str,
     ttl_seconds: u64,
     scope: LocalPlatformTokenScope<'_>,
     origins: &[String],
     grants: &[ApiKeyGrant],
 ) -> Result<String> {
-    let issuer = issuer.trim();
-    if issuer.is_empty() {
-        anyhow::bail!("issuer cannot be empty");
-    }
-    let parsed_issuer =
-        Url::parse(issuer).with_context(|| format!("invalid issuer '{issuer}'"))?;
-    if parsed_issuer.scheme() != "https" {
-        anyhow::bail!("issuer must use https");
-    }
-    if parsed_issuer.query().is_some() || parsed_issuer.fragment().is_some() {
-        anyhow::bail!("issuer must not include query or fragment");
-    }
-
+    let issuer = platform_jwt::issuer()?;
     let subject = validate_token_part(subject, "subject")?;
     let namespace = validate_optional_token_part(scope.namespace, "namespace")?;
     let agent = validate_optional_token_part(scope.agent, "agent")?;
@@ -560,12 +547,11 @@ pub(crate) fn mint_local_platform_access_jwt(
         .as_secs();
     let exp = now.checked_add(ttl_seconds).context("ttl is too large")?;
     let claims = Claims {
-        iss: Some(issuer.to_string()),
+        iss: Some(issuer),
         sub: subject.to_string(),
         aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
         iat: Some(now as usize),
         exp: exp as usize,
-        token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
         ns: namespace.map(str::to_string),
         agent: agent.map(str::to_string),
         session: session.map(str::to_string),
@@ -735,6 +721,34 @@ mod tests {
     use crate::control::security::platform_jwt;
     use crate::gateway::auth::Claims;
     use clap::Parser;
+    use std::ffi::OsString;
+
+    struct EnvVarGuard {
+        key: &'static str,
+        previous: Option<OsString>,
+    }
+
+    impl EnvVarGuard {
+        fn set(key: &'static str, value: &str) -> Self {
+            let previous = std::env::var_os(key);
+            unsafe {
+                std::env::set_var(key, value);
+            }
+            Self { key, previous }
+        }
+    }
+
+    impl Drop for EnvVarGuard {
+        fn drop(&mut self) {
+            unsafe {
+                if let Some(previous) = &self.previous {
+                    std::env::set_var(self.key, previous);
+                } else {
+                    std::env::remove_var(self.key);
+                }
+            }
+        }
+    }
 
     #[test]
     fn google_token_request_form_includes_client_secret_when_present() {
@@ -836,10 +850,11 @@ mod tests {
 
     #[test]
     fn local_platform_access_jwt_sets_gateway_profile_and_scope() {
+        let _env_lock = crate::test_support::env_lock();
         let issuer = "https://talon.example.com";
+        let _issuer_guard = EnvVarGuard::set(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV, issuer);
         let token = mint_local_platform_access_jwt(
             platform_jwt::TEST_RSA_PRIVATE_KEY,
-            issuer,
             "tenant-client",
             60,
             LocalPlatformTokenScope {
@@ -860,10 +875,6 @@ mod tests {
         assert_eq!(claims.sub, "tenant-client");
         assert_eq!(claims.iss.as_deref(), Some(issuer));
         assert_eq!(claims.aud, platform_jwt::TALON_GATEWAY_AUDIENCE);
-        assert_eq!(
-            claims.token_type.as_deref(),
-            Some(platform_jwt::ACCESS_TOKEN_TYPE)
-        );
         assert_eq!(claims.ns.as_deref(), Some("customers:acme"));
         assert_eq!(claims.agent, None);
         assert_eq!(claims.session, None);
@@ -872,11 +883,10 @@ mod tests {
 
     #[test]
     fn local_platform_access_jwt_rejects_empty_or_incomplete_scope() {
-        let issuer = "https://talon.example.com";
+        let _env_lock = crate::test_support::env_lock();
         let mint = |scope| {
             mint_local_platform_access_jwt(
                 platform_jwt::TEST_RSA_PRIVATE_KEY,
-                issuer,
                 "tenant-client",
                 60,
                 scope,

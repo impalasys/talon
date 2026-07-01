@@ -129,12 +129,11 @@ impl GrpcGatewayHandler {
         let origins = delegated_origins(&parent_claims, &scope.origins)?;
         let now = unix_seconds()?;
         let claims = Claims {
-            iss: Some(platform_issuer(self.gateway.as_ref())?.to_string()),
+            iss: Some(platform_issuer()?),
             sub: format!("delegated:{}", parent_claims.sub),
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(now as usize),
             exp: expires_at as usize,
-            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: Some(scope.namespace),
             agent: scope.agent,
             session: scope.session,
@@ -288,12 +287,11 @@ impl GrpcGatewayHandler {
         };
         let (expires_in, expires_at) = api_key_access_token_expiration(request.expires_in)?;
         let claims = Claims {
-            iss: Some(platform_issuer(self.gateway.as_ref())?.to_string()),
+            iss: Some(platform_issuer()?),
             sub: format!("api_key:{}", record.id),
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(now as usize),
             exp: expires_at as usize,
-            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: effective_grant.namespace.clone(),
             agent: effective_grant.agent.clone(),
             session: effective_grant.session.clone(),
@@ -514,20 +512,19 @@ fn unix_seconds() -> Result<u64, tonic::Status> {
         .map(|duration| duration.as_secs())
 }
 
-fn platform_issuer(gateway: &Gateway) -> Result<&str, tonic::Status> {
-    gateway
-        .platform_jwt_config
-        .as_ref()
-        .map(|config| config.issuer.trim())
-        .filter(|issuer| !issuer.is_empty())
-        .ok_or_else(|| tonic::Status::internal("Platform JWT issuer is not configured"))
+fn platform_issuer() -> Result<String, tonic::Status> {
+    platform_jwt::issuer().map_err(|err| {
+        tonic::Status::internal(format!("Platform JWT issuer is not configured: {err}"))
+    })
 }
 
-fn mint_platform_access_token(gateway: &Gateway, claims: &Claims) -> Result<String, tonic::Status> {
-    let issuer = platform_issuer(gateway)?;
-    if claims.iss.as_deref() != Some(issuer)
+fn mint_platform_access_token(
+    _gateway: &Gateway,
+    claims: &Claims,
+) -> Result<String, tonic::Status> {
+    let issuer = platform_issuer()?;
+    if claims.iss.as_deref() != Some(issuer.as_str())
         || claims.aud != platform_jwt::TALON_GATEWAY_AUDIENCE
-        || claims.token_type.as_deref() != Some(platform_jwt::ACCESS_TOKEN_TYPE)
     {
         return Err(tonic::Status::internal(
             "Talon access token claims do not match the platform token profile",
@@ -1046,12 +1043,11 @@ fn mint_talon_access_token(
     let now = unix_seconds()?;
 
     let claims = Claims {
-        iss: Some(platform_issuer(gateway)?.to_string()),
+        iss: Some(platform_issuer()?),
         sub: format!("oidc:{}", identity.claims.sub),
         aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
         iat: Some(now as usize),
         exp: exp as usize,
-        token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
         ns: None,
         agent: None,
         session: None,
@@ -1076,6 +1072,7 @@ mod tests {
     struct PlatformJwtEnvGuard {
         _guard: tokio::sync::MutexGuard<'static, ()>,
         previous_private_key: Option<String>,
+        previous_issuer: Option<String>,
     }
 
     impl PlatformJwtEnvGuard {
@@ -1083,26 +1080,41 @@ mod tests {
             let guard = crate::test_support::async_env_mutex().lock().await;
             let previous_private_key =
                 std::env::var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV).ok();
-            std::env::set_var(
-                platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                platform_jwt::TEST_RSA_PRIVATE_KEY,
-            );
+            let previous_issuer = std::env::var(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV).ok();
+            unsafe {
+                std::env::set_var(
+                    platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    platform_jwt::TEST_RSA_PRIVATE_KEY,
+                );
+                std::env::set_var(
+                    platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+                    TEST_PLATFORM_ISSUER,
+                );
+            }
             Self {
                 _guard: guard,
                 previous_private_key,
+                previous_issuer,
             }
         }
     }
 
     impl Drop for PlatformJwtEnvGuard {
         fn drop(&mut self) {
-            if let Some(previous_private_key) = &self.previous_private_key {
-                std::env::set_var(
-                    platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                    previous_private_key,
-                );
-            } else {
-                std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
+            unsafe {
+                if let Some(previous_private_key) = &self.previous_private_key {
+                    std::env::set_var(
+                        platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                        previous_private_key,
+                    );
+                } else {
+                    std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
+                }
+                if let Some(previous_issuer) = &self.previous_issuer {
+                    std::env::set_var(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV, previous_issuer);
+                } else {
+                    std::env::remove_var(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV);
+                }
             }
         }
     }
@@ -1121,12 +1133,9 @@ mod tests {
             documents,
         } = control_plane;
         GrpcGatewayHandler {
-            gateway: Arc::new(Gateway::new_with_trust_and_platform_jwt(
-                Some(platform_auth_config()),
+            gateway: Arc::new(Gateway::new_with_trust(
+                Some(jwt_auth_config()),
                 None,
-                Some(config_proto::JwtIssuerConfig {
-                    issuer: TEST_PLATFORM_ISSUER.to_string(),
-                }),
                 kv,
                 pubsub,
                 scheduler,
@@ -1160,7 +1169,6 @@ mod tests {
         claims.iss = Some(TEST_PLATFORM_ISSUER.to_string());
         claims.aud = platform_jwt::TALON_GATEWAY_AUDIENCE.to_string();
         claims.iat = Some(unix_seconds().unwrap() as usize);
-        claims.token_type = Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string());
         platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
             .unwrap()
             .sign(&claims)
@@ -1174,7 +1182,6 @@ mod tests {
             aud: "talon".to_string(),
             iat: None,
             exp: 0,
-            token_type: None,
             ns: ns.map(str::to_string),
             agent: agent.map(str::to_string),
             session: session.map(str::to_string),
@@ -1184,10 +1191,8 @@ mod tests {
         }
     }
 
-    fn platform_auth_config() -> AuthConfig {
-        let mut config = AuthConfig::jwt_platform();
-        config.platform_jwt_issuer = Some(TEST_PLATFORM_ISSUER.to_string());
-        config
+    fn jwt_auth_config() -> AuthConfig {
+        AuthConfig::jwt_platform()
     }
 
     fn verify_platform_access_token(token: &str) -> Claims {
@@ -1200,10 +1205,6 @@ mod tests {
                 platform_jwt::TALON_GATEWAY_AUDIENCE,
             )
             .unwrap();
-        assert_eq!(
-            claims.token_type.as_deref(),
-            Some(platform_jwt::ACCESS_TOKEN_TYPE)
-        );
         claims
     }
 
@@ -1256,7 +1257,7 @@ mod tests {
         assert_eq!(minted.agent.as_deref(), Some("assistant"));
         assert!(minted.grants.is_empty());
 
-        let config = platform_auth_config();
+        let config = jwt_auth_config();
         let mut metadata = tonic::metadata::MetadataMap::new();
         metadata.insert(
             "authorization",
@@ -1432,7 +1433,7 @@ mod tests {
         assert_eq!(minted.grants.len(), 1);
         assert_eq!(minted.grants[0].kind, "readwrite");
 
-        let config = platform_auth_config();
+        let config = jwt_auth_config();
         let mut metadata = tonic::metadata::MetadataMap::new();
         metadata.insert(
             "authorization",

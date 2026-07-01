@@ -55,8 +55,6 @@ struct TalonOpsAccessClaims {
     aud: String,
     iat: usize,
     exp: usize,
-    #[serde(rename = "talon:token_type")]
-    token_type: String,
     #[serde(rename = "talon:ns")]
     namespace: String,
     #[serde(rename = "talon:mcp_server")]
@@ -72,8 +70,6 @@ struct McpAuthBrokerClaims {
     aud: String,
     iat: usize,
     exp: usize,
-    #[serde(rename = "talon:token_type")]
-    token_type: String,
     #[serde(rename = "talon:ns")]
     namespace: String,
     #[serde(rename = "talon:mcp_server")]
@@ -1369,9 +1365,6 @@ fn parse_mcp_auth_broker_claims(
     let token = bearer_token(raw_auth_header)?;
     decode_platform_claims(token, issuer, platform_jwt::MCP_AUTH_BROKER_AUDIENCE).and_then(
         |claims: McpAuthBrokerClaims| {
-            if claims.token_type != platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE {
-                return Err("invalid MCP auth broker token type".to_string());
-            }
             if claims.namespace.trim().is_empty() || claims.mcp_server_name.trim().is_empty() {
                 Err("missing namespace or MCP server claim".to_string())
             } else {
@@ -1388,9 +1381,6 @@ fn parse_talon_ops_access_claims(
     let token = bearer_token(raw_auth_header)?;
     decode_platform_claims(token, issuer, platform_jwt::TALON_OPS_AUDIENCE).and_then(
         |claims: TalonOpsAccessClaims| {
-            if claims.token_type != platform_jwt::TALON_OPS_ACCESS_TOKEN_TYPE {
-                return Err("invalid talon-ops access token type".to_string());
-            }
             if claims.namespace.trim().is_empty() || claims.mcp_server_name.trim().is_empty() {
                 Err("missing namespace or MCP server claim".to_string())
             } else {
@@ -1435,7 +1425,6 @@ fn mint_talon_ops_access_token(
         aud: platform_jwt::TALON_OPS_AUDIENCE.to_string(),
         iat: now,
         exp: expires_at_unix as usize,
-        token_type: platform_jwt::TALON_OPS_ACCESS_TOKEN_TYPE.to_string(),
         namespace: namespace.to_string(),
         mcp_server_name: mcp_server_name.to_string(),
         agent_name: agent_name.map(str::to_string),
@@ -1444,13 +1433,8 @@ fn mint_talon_ops_access_token(
 }
 
 fn platform_issuer_from_config(config: &crate::control::config::Config) -> Result<String> {
-    config
-        .platform_auth
-        .as_ref()
-        .and_then(|auth| auth.jwt_issuer.as_ref())
-        .map(|issuer| issuer.issuer.trim().to_string())
-        .filter(|issuer| !issuer.is_empty())
-        .ok_or_else(|| anyhow!("platformAuth.jwtIssuer.issuer is required"))
+    let _ = config;
+    platform_jwt::issuer()
 }
 
 fn bounded_limit(access: &TalonOpsAccess, requested: Option<usize>) -> usize {
@@ -1666,6 +1650,7 @@ mod tests {
     struct PlatformJwtEnvGuard {
         _guard: tokio::sync::MutexGuard<'static, ()>,
         previous_private_key: Option<String>,
+        previous_issuer: Option<String>,
     }
 
     impl PlatformJwtEnvGuard {
@@ -1684,28 +1669,51 @@ mod tests {
                 crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
             )
             .ok();
-            std::env::set_var(
-                crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                crate::control::security::platform_jwt::TEST_RSA_PRIVATE_KEY,
-            );
+            let previous_issuer = std::env::var(
+                crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+            )
+            .ok();
+            unsafe {
+                std::env::set_var(
+                    crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    crate::control::security::platform_jwt::TEST_RSA_PRIVATE_KEY,
+                );
+                std::env::set_var(
+                    crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+                    TEST_PLATFORM_ISSUER,
+                );
+            }
             Self {
                 _guard: guard,
                 previous_private_key,
+                previous_issuer,
             }
         }
     }
 
     impl Drop for PlatformJwtEnvGuard {
         fn drop(&mut self) {
-            if let Some(previous_private_key) = &self.previous_private_key {
-                std::env::set_var(
-                    crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                    previous_private_key,
-                );
-            } else {
-                std::env::remove_var(
-                    crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                );
+            unsafe {
+                if let Some(previous_private_key) = &self.previous_private_key {
+                    std::env::set_var(
+                        crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                        previous_private_key,
+                    );
+                } else {
+                    std::env::remove_var(
+                        crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    );
+                }
+                if let Some(previous_issuer) = &self.previous_issuer {
+                    std::env::set_var(
+                        crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+                        previous_issuer,
+                    );
+                } else {
+                    std::env::remove_var(
+                        crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+                    );
+                }
             }
         }
     }
@@ -1713,14 +1721,7 @@ mod tests {
     fn handler_with_kv(kv: Arc<MockKvStore>) -> WorkerEventHandler {
         WorkerEventHandler {
             cp: Arc::new(ControlPlane::builder(kv, Arc::new(MockPubSub)).build()),
-            config: Arc::new(Config {
-                platform_auth: Some(crate::control::config::proto::PlatformAuthConfig {
-                    jwt_issuer: Some(crate::control::config::proto::JwtIssuerConfig {
-                        issuer: TEST_PLATFORM_ISSUER.to_string(),
-                    }),
-                }),
-                ..Config::default()
-            }),
+            config: Arc::new(Config::default()),
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
             worker_id: "test-worker".to_string(),
@@ -2063,10 +2064,6 @@ mod tests {
         assert_eq!(access_claims.namespace, "conic");
         assert_eq!(access_claims.mcp_server_name, "talon-ops");
         assert_eq!(access_claims.agent_name.as_deref(), Some("cmo"));
-        assert_eq!(
-            access_claims.token_type,
-            crate::control::security::platform_jwt::TALON_OPS_ACCESS_TOKEN_TYPE
-        );
 
         let broker_claims_token = sign_test_claims(&super::McpAuthBrokerClaims {
             iss: TEST_PLATFORM_ISSUER.to_string(),
@@ -2074,9 +2071,6 @@ mod tests {
             aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
-            token_type:
-                crate::control::security::platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE
-                    .to_string(),
             namespace: "conic".to_string(),
             mcp_server_name: "talon-ops".to_string(),
             agent_name: None,
@@ -2089,10 +2083,6 @@ mod tests {
         assert_eq!(broker_claims.namespace, "conic");
         assert_eq!(broker_claims.mcp_server_name, "talon-ops");
         assert!(broker_claims.agent_name.is_none());
-        assert_eq!(
-            broker_claims.token_type,
-            crate::control::security::platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE
-        );
 
         let invalid =
             parse_talon_ops_access_claims("Bearer definitely-not-a-jwt", TEST_PLATFORM_ISSUER)
@@ -2110,8 +2100,6 @@ mod tests {
             aud: crate::control::security::platform_jwt::TALON_OPS_AUDIENCE.to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
-            token_type: crate::control::security::platform_jwt::TALON_OPS_ACCESS_TOKEN_TYPE
-                .to_string(),
             namespace: " ".to_string(),
             mcp_server_name: "talon-ops".to_string(),
             agent_name: None,
@@ -2129,9 +2117,6 @@ mod tests {
             aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
-            token_type:
-                crate::control::security::platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE
-                    .to_string(),
             namespace: "conic".to_string(),
             mcp_server_name: " ".to_string(),
             agent_name: None,
@@ -2355,9 +2340,6 @@ mod tests {
             aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
-            token_type:
-                crate::control::security::platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE
-                    .to_string(),
             namespace: "conic".to_string(),
             mcp_server_name: "talon-ops".to_string(),
             agent_name: Some("ctl".to_string()),
@@ -2388,9 +2370,6 @@ mod tests {
             aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
-            token_type:
-                crate::control::security::platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE
-                    .to_string(),
             namespace: "conic".to_string(),
             mcp_server_name: "github".to_string(),
             agent_name: Some("ctl".to_string()),

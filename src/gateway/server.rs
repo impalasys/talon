@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::search::DocumentStore;
+use crate::control::security::platform_jwt;
 use crate::control::{
-    config::proto::{JwtIssuerConfig, TrustConfig},
-    object_store::ObjectStore,
-    scheduler::SchedulerBackend,
+    config::proto::TrustConfig, object_store::ObjectStore, scheduler::SchedulerBackend,
     ControlPlane, KeyValueStore, MessagePublisher,
 };
 use crate::gateway::auth::AuthConfig;
@@ -29,7 +28,6 @@ use tower_http::cors::{Any, CorsLayer};
 pub struct Gateway {
     pub auth_config: Option<AuthConfig>,
     pub trust_config: Option<TrustConfig>,
-    pub platform_jwt_config: Option<JwtIssuerConfig>,
     pub kv: Arc<dyn KeyValueStore + Send + Sync>,
     pub pubsub: Arc<dyn MessagePublisher + Send + Sync>,
     pub scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
@@ -61,29 +59,6 @@ impl Gateway {
         Self {
             auth_config,
             trust_config,
-            platform_jwt_config: None,
-            kv,
-            pubsub,
-            scheduler,
-            objects,
-            documents,
-        }
-    }
-
-    pub fn new_with_trust_and_platform_jwt(
-        auth_config: Option<AuthConfig>,
-        trust_config: Option<TrustConfig>,
-        platform_jwt_config: Option<JwtIssuerConfig>,
-        kv: Arc<dyn KeyValueStore + Send + Sync>,
-        pubsub: Arc<dyn MessagePublisher + Send + Sync>,
-        scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
-        objects: Arc<dyn ObjectStore + Send + Sync>,
-        documents: Arc<dyn DocumentStore + Send + Sync>,
-    ) -> Self {
-        Self {
-            auth_config,
-            trust_config,
-            platform_jwt_config,
             kv,
             pubsub,
             scheduler,
@@ -110,7 +85,6 @@ impl Gateway {
         Self {
             auth_config: self.auth_config.clone(),
             trust_config: self.trust_config.clone(),
-            platform_jwt_config: self.platform_jwt_config.clone(),
             kv: self.kv.clone(),
             pubsub: self.pubsub.clone(),
             scheduler: self.scheduler.clone(),
@@ -255,10 +229,14 @@ fn well_known_router() -> Router<Arc<Gateway>> {
 }
 
 async fn jwks(State(gateway): State<Arc<Gateway>>) -> axum::response::Response {
-    if gateway.platform_jwt_config.is_none() {
+    let _ = gateway;
+    if std::env::var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV)
+        .ok()
+        .is_none_or(|value| value.trim().is_empty())
+    {
         return StatusCode::NOT_FOUND.into_response();
     }
-    match crate::control::security::platform_jwt::load_key() {
+    match platform_jwt::load_key() {
         Ok(key) => Json(key.jwks()).into_response(),
         Err(err) => (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -272,8 +250,16 @@ async fn authorization_server_metadata(
     State(gateway): State<Arc<Gateway>>,
     headers: HeaderMap,
 ) -> axum::response::Response {
-    let Some(issuer) = platform_issuer(&gateway) else {
-        return StatusCode::NOT_FOUND.into_response();
+    let _ = gateway;
+    let issuer = match platform_issuer() {
+        Ok(issuer) => issuer,
+        Err(err) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": format!("platform JWT issuer is not configured: {err}")})),
+            )
+                .into_response();
+        }
     };
     let jwks_uri = format!("{}/.well-known/jwks.json", external_base_url(&headers));
     Json(json!({
@@ -290,8 +276,16 @@ async fn protected_resource_metadata(
     State(gateway): State<Arc<Gateway>>,
     headers: HeaderMap,
 ) -> axum::response::Response {
-    let Some(issuer) = platform_issuer(&gateway) else {
-        return StatusCode::NOT_FOUND.into_response();
+    let _ = gateway;
+    let issuer = match platform_issuer() {
+        Ok(issuer) => issuer,
+        Err(err) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": format!("platform JWT issuer is not configured: {err}")})),
+            )
+                .into_response();
+        }
     };
     Json(json!({
         "resource": external_base_url(&headers),
@@ -301,18 +295,13 @@ async fn protected_resource_metadata(
     .into_response()
 }
 
-fn platform_issuer(gateway: &Gateway) -> Option<&str> {
-    gateway
-        .platform_jwt_config
-        .as_ref()
-        .map(|config| config.issuer.trim())
-        .filter(|issuer| !issuer.is_empty())
+fn platform_issuer() -> anyhow::Result<String> {
+    platform_jwt::issuer()
 }
 
 #[cfg(test)]
 mod well_known_tests {
     use super::*;
-    use crate::control::config::proto::JwtIssuerConfig;
     use crate::test_support::{EmptyPubSub, MockKvStore};
     use axum::body::{to_bytes, Body};
     use axum::http::Request;
@@ -322,6 +311,7 @@ mod well_known_tests {
 
     struct PlatformJwtEnvGuard {
         previous_private_key: Option<String>,
+        previous_issuer: Option<String>,
     }
 
     impl PlatformJwtEnvGuard {
@@ -330,27 +320,50 @@ mod well_known_tests {
                 crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
             )
             .ok();
-            std::env::set_var(
-                crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                crate::control::security::platform_jwt::TEST_RSA_PRIVATE_KEY,
-            );
+            let previous_issuer = std::env::var(
+                crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+            )
+            .ok();
+            unsafe {
+                std::env::set_var(
+                    crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    crate::control::security::platform_jwt::TEST_RSA_PRIVATE_KEY,
+                );
+                std::env::set_var(
+                    crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+                    TEST_PLATFORM_ISSUER,
+                );
+            }
             Self {
                 previous_private_key,
+                previous_issuer,
             }
         }
     }
 
     impl Drop for PlatformJwtEnvGuard {
         fn drop(&mut self) {
-            if let Some(previous_private_key) = &self.previous_private_key {
-                std::env::set_var(
-                    crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                    previous_private_key,
-                );
-            } else {
-                std::env::remove_var(
-                    crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                );
+            unsafe {
+                if let Some(previous_private_key) = &self.previous_private_key {
+                    std::env::set_var(
+                        crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                        previous_private_key,
+                    );
+                } else {
+                    std::env::remove_var(
+                        crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    );
+                }
+                if let Some(previous_issuer) = &self.previous_issuer {
+                    std::env::set_var(
+                        crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+                        previous_issuer,
+                    );
+                } else {
+                    std::env::remove_var(
+                        crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+                    );
+                }
             }
         }
     }
@@ -361,12 +374,9 @@ mod well_known_tests {
             Arc::new(EmptyPubSub),
         )
         .build();
-        Arc::new(Gateway::new_with_trust_and_platform_jwt(
+        Arc::new(Gateway::new_with_trust(
             None,
             None,
-            Some(JwtIssuerConfig {
-                issuer: TEST_PLATFORM_ISSUER.to_string(),
-            }),
             cp.kv,
             cp.pubsub,
             cp.scheduler,

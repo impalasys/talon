@@ -498,39 +498,53 @@ mod tests {
 
     struct PlatformJwtEnvGuard {
         previous_private_key: Option<String>,
+        previous_issuer: Option<String>,
     }
 
     impl PlatformJwtEnvGuard {
         fn acquire() -> Self {
             let previous_private_key =
                 std::env::var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV).ok();
-            std::env::set_var(
-                platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                platform_jwt::TEST_RSA_PRIVATE_KEY,
-            );
+            let previous_issuer = std::env::var(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV).ok();
+            unsafe {
+                std::env::set_var(
+                    platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    platform_jwt::TEST_RSA_PRIVATE_KEY,
+                );
+                std::env::set_var(
+                    platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
+                    TEST_PLATFORM_ISSUER,
+                );
+            }
             Self {
                 previous_private_key,
+                previous_issuer,
             }
         }
     }
 
     impl Drop for PlatformJwtEnvGuard {
         fn drop(&mut self) {
-            if let Some(previous_private_key) = &self.previous_private_key {
-                std::env::set_var(
-                    platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
-                    previous_private_key,
-                );
-            } else {
-                std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
+            unsafe {
+                if let Some(previous_private_key) = &self.previous_private_key {
+                    std::env::set_var(
+                        platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                        previous_private_key,
+                    );
+                } else {
+                    std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
+                }
+                if let Some(previous_issuer) = &self.previous_issuer {
+                    std::env::set_var(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV, previous_issuer);
+                } else {
+                    std::env::remove_var(platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV);
+                }
             }
         }
     }
 
-    fn platform_auth_config() -> AuthConfig {
-        let mut config = AuthConfig::jwt_platform();
-        config.platform_jwt_issuer = Some(TEST_PLATFORM_ISSUER.to_string());
-        config
+    fn jwt_auth_config() -> AuthConfig {
+        AuthConfig::jwt_platform()
     }
 
     fn scoped_token(ns: &str) -> String {
@@ -540,7 +554,6 @@ mod tests {
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(1),
             exp: 10000000000,
-            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: Some(ns.to_string()),
             agent: None,
             session: None,
@@ -695,7 +708,7 @@ mod tests {
         let _env_lock = crate::test_support::async_env_mutex().lock().await;
         let _guard = PlatformJwtEnvGuard::acquire();
         let token = scoped_token("Tenant:conic");
-        let handler = setup_mock_gateway_handler_with_auth(Some(platform_auth_config()));
+        let handler = setup_mock_gateway_handler_with_auth(Some(jwt_auth_config()));
 
         handler
             .handle_create_namespace(with_bearer(

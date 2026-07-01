@@ -49,9 +49,6 @@ enum AuthCommands {
         /// File containing the RSA private key PEM. Intended for local bootstrap only.
         #[arg(long)]
         private_key_pem_file: PathBuf,
-        /// Platform JWT issuer URL from platformAuth.jwtIssuer.issuer.
-        #[arg(long)]
-        issuer: String,
         #[arg(long, default_value = "talon-root-client")]
         subject: String,
         /// Token lifetime, such as 5min, 1wk, 3mo, or 1yr.
@@ -150,7 +147,6 @@ pub(super) async fn run(cli: &Cli, command: &AuthCommand) -> Result<RunOutcome> 
         }
         AuthCommands::LocalToken {
             private_key_pem_file,
-            issuer,
             namespace,
             agent,
             session,
@@ -176,7 +172,6 @@ pub(super) async fn run(cli: &Cli, command: &AuthCommand) -> Result<RunOutcome> 
                 .collect::<Result<Vec<_>>>()?;
             mint_local_platform_access_jwt(
                 &private_key_pem,
-                issuer,
                 subject,
                 ttl_seconds,
                 LocalPlatformTokenScope {
