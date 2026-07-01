@@ -244,6 +244,18 @@ Each workflow artifact bundle contains:
 
 That artifact is intended for single-host runtime validation or downstream packaging. It is not a full deployment bundle by itself because Talon still expects a backing config and control-plane dependencies.
 
+For macOS `arm64`, the latest CI-built CLI can be installed locally as `talon` with an ad-hoc signature:
+
+```bash
+scripts/install_latest_macos_cli.sh
+```
+
+The script uses the GitHub CLI to download the `talon-darwin-arm64-<sha>` artifact for the latest `main` commit, verifies `SHA256SUMS`, applies a local `codesign --sign -` signature, and installs the `talon-cli` binary to `/usr/local/bin/talon`. This is not Developer ID signing or notarization; it is a convenience path for local CLI installs until release assets are fully signed and notarized. If CI for the latest commit is not successful yet, use:
+
+```bash
+scripts/install_latest_macos_cli.sh --latest-successful
+```
+
 ## Documentation
 
 Start here:

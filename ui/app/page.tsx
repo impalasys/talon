@@ -1,8 +1,8 @@
 'use client';
 
-import { Suspense, useState, useRef, useEffect, useCallback } from 'react';
+import { Suspense, useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { dump } from 'js-yaml';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   Terminal, 
   Activity, 
@@ -30,11 +30,11 @@ import {
   ShieldCheck,
   Container,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { TalonChannel, TalonCopilot, type TalonChatObjectRef, type TalonImageUploadContext } from '@impalasys/talon-chat';
-import { NamespaceExplorer, type Selection } from '../components/Namespaces/NamespaceExplorer';
+import { NamespaceExplorer } from '../components/Namespaces/NamespaceExplorer';
 import { WorkspaceCommandPalette } from '../components/Search/WorkspaceCommandPalette';
 import {
   getDefaultGatewayUrl,
@@ -43,11 +43,23 @@ import {
   normalizeGatewayUrl,
   updateGatewayClient,
 } from '../lib/grpc';
-import { resourceToManifestDocument, yamlSafeValue } from '../lib/resourceManifest';
+import {
+  areSelectionsEqual,
+  buildSearchParams,
+  getSelectionSubtitle,
+  getSelectionTitle,
+  selectionFromSearchParams,
+  SYSTEM_NAMESPACE,
+  type Selection,
+} from '../lib/selection';
+import {
+  channelSubscriptionDocumentFromResource,
+  type ResourceEnvelope,
+} from '../lib/talon/resourceMappers';
+import { useResourceDocument } from '../hooks/useResourceDocument';
 
 const isStaticExport = process.env.NEXT_PUBLIC_TALON_STATIC_EXPORT === '1';
-const SYSTEM_NAMESPACE = 'Sys';
-
+const CONNECT_TIMEOUT_MS = 8000;
 declare global {
   interface Window {
     google?: {
@@ -61,296 +73,8 @@ declare global {
   }
 }
 
-const RESOURCE_KIND_BY_SELECTION: Partial<Record<Selection['type'], string>> = {
-  agent: 'Agent',
-  channel: 'Channel',
-  'channel-subscription': 'ChannelSubscription',
-  workflow: 'Workflow',
-  schedule: 'Schedule',
-  template: 'Template',
-  deployment: 'Deployment',
-  'deployment-replica': 'DeploymentReplica',
-  'sandbox-class': 'SandboxClass',
-  'sandbox-policy': 'SandboxPolicy',
-  sandbox: 'Sandbox',
-  'mcp-server': 'McpServer',
-  knowledge: 'Knowledge',
-};
-
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
-}
-
-type ResourceEnvelope = {
-  apiVersion?: string;
-  kind?: string;
-  metadata?: {
-    name?: string;
-    namespace?: string;
-    labels?: Record<string, string>;
-  };
-  spec?: {
-    kind?: {
-      case?: string;
-      value?: any;
-    };
-  };
-  status?: {
-    kind?: {
-      case?: string;
-      value?: any;
-    };
-  };
-};
-
-function resourceSpec(resource: ResourceEnvelope, caseName: string) {
-  return resource.spec?.kind?.case === caseName ? resource.spec.kind.value || {} : {};
-}
-
-function resourceStatus(resource: ResourceEnvelope, caseName: string) {
-  return resource.status?.kind?.case === caseName ? resource.status.kind.value || {} : {};
-}
-
-function isV2ResourceDocument(document: any): document is ResourceEnvelope {
-  return Boolean(
-    document &&
-      typeof document === 'object' &&
-      typeof document.apiVersion === 'string' &&
-      typeof document.kind === 'string' &&
-      document.metadata &&
-      document.spec?.kind?.case,
-  );
-}
-
-function channelDocumentFromResource(resource: ResourceEnvelope): ChannelDocument {
-  const spec = resourceSpec(resource, 'channel');
-  const status = resourceStatus(resource, 'channel');
-  return {
-    name: resource.metadata?.name,
-    ns: resource.metadata?.namespace,
-    title: spec.title,
-    status: status.phase,
-    metadata: spec.metadata,
-    labels: resource.metadata?.labels,
-  };
-}
-
-function channelSubscriptionDocumentFromResource(resource: ResourceEnvelope): ChannelSubscriptionDocument {
-  const spec = resourceSpec(resource, 'channelSubscription');
-  return {
-    name: resource.metadata?.name,
-    ns: resource.metadata?.namespace,
-    channel: spec.channel,
-    agent: spec.agent,
-    enabled: spec.enabled,
-    trigger: spec.trigger,
-    replyMode: spec.replyMode,
-    contextPolicy: spec.contextPolicy,
-  };
-}
-
-function scheduleDocumentFromResource(resource: ResourceEnvelope): ScheduleDocument {
-  return {
-    name: resource.metadata?.name,
-    ns: resource.metadata?.namespace,
-    labels: resource.metadata?.labels,
-    spec: resourceSpec(resource, 'schedule'),
-    status: resourceStatus(resource, 'schedule'),
-  };
-}
-
-function areSelectionsEqual(left: Selection | null, right: Selection | null) {
-  if (left === right) return true;
-  if (!left || !right) return false;
-  return (
-    left.type === right.type &&
-    left.ns === right.ns &&
-    left.agent === right.agent &&
-    left.channel === right.channel &&
-    left.sessionId === right.sessionId &&
-    left.resourceName === right.resourceName
-  );
-}
-
-function selectionFromSearchParams(searchParams: URLSearchParams): Selection | null {
-  const type = searchParams.get('type');
-  const ns = searchParams.get('ns');
-  const agent = searchParams.get('agent');
-  const channel = searchParams.get('channel');
-  const sessionId = searchParams.get('session');
-  const resourceName = searchParams.get('name');
-
-  if (type === 'template' && resourceName) {
-    return {
-      type: 'template',
-      ns: ns || SYSTEM_NAMESPACE,
-      resourceName,
-      fullPath: `${ns || SYSTEM_NAMESPACE}:template:${resourceName}`,
-    };
-  }
-
-  if (!ns) return null;
-
-  if (sessionId && agent) {
-    return {
-      type: 'session',
-      ns,
-      agent,
-      sessionId,
-      fullPath: `${ns}/${agent}/${sessionId}`,
-    };
-  }
-
-  if (agent) {
-    return {
-      type: 'agent',
-      ns,
-      agent,
-      fullPath: `${ns}/${agent}`,
-    };
-  }
-
-  if (type === 'channel-subscription' && channel && resourceName) {
-    return {
-      type: 'channel-subscription',
-      ns,
-      channel,
-      resourceName,
-      fullPath: `${ns}:channel:${channel}:subscription:${resourceName}`,
-    };
-  }
-
-  if (type === 'channel' && (resourceName || channel)) {
-    const channelName = resourceName || channel || '';
-    return {
-      type: 'channel',
-      ns,
-      channel: channelName,
-      resourceName: channelName,
-      fullPath: `${ns}:channel:${channelName}`,
-    };
-  }
-
-  if (type === 'schedule' && resourceName) {
-    return {
-      type: 'schedule',
-      ns,
-      resourceName,
-      fullPath: `${ns}:schedule:${resourceName}`,
-    };
-  }
-
-  if (type === 'mcp-server' && resourceName) {
-    return {
-      type: 'mcp-server',
-      ns,
-      resourceName,
-      fullPath: `${ns}:mcp-server:${resourceName}`,
-    };
-  }
-
-  if (type === 'knowledge' && resourceName) {
-    return {
-      type: 'knowledge',
-      ns,
-      resourceName,
-      fullPath: `${ns}:knowledge:${resourceName}`,
-    };
-  }
-
-  if (
-    (
-      type === 'deployment' ||
-      type === 'workflow' ||
-      type === 'deployment-replica' ||
-      type === 'sandbox-class' ||
-      type === 'sandbox-policy' ||
-      type === 'sandbox'
-    ) &&
-    ns &&
-    resourceName
-  ) {
-    return {
-      type,
-      ns,
-      resourceName,
-      fullPath: `${ns}:${type}:${resourceName}`,
-    };
-  }
-
-  return {
-    type: 'namespace',
-    ns,
-    fullPath: ns,
-  };
-}
-
-function buildSearchParams(isConnected: boolean, selection: Selection | null, currentSearchParams?: URLSearchParams) {
-  const params = new URLSearchParams();
-  const historyPageSize = currentSearchParams?.get('historyPageSize');
-
-  if (isConnected) {
-    params.set('connected', 'true');
-  }
-
-  if (historyPageSize && /^\d+$/.test(historyPageSize) && Number(historyPageSize) > 0) {
-    params.set('historyPageSize', historyPageSize);
-  }
-
-  if (selection?.ns) {
-    params.set('ns', selection.ns);
-  }
-
-  if (selection?.type) {
-    params.set('type', selection.type);
-  }
-
-  if (selection?.agent) {
-    params.set('agent', selection.agent);
-  }
-
-  if (selection?.channel) {
-    params.set('channel', selection.channel);
-  }
-
-  if (selection?.sessionId) {
-    params.set('session', selection.sessionId);
-  }
-
-  if (selection?.resourceName) {
-    params.set('name', selection.resourceName);
-  }
-
-  return params;
-}
-
-function getSelectionTitle(selection: Selection | null) {
-  if (!selection) return 'No Resource Selected';
-  if (selection.type === 'namespace') return selection.ns;
-  if (selection.type === 'agent') return selection.agent || 'Agent';
-  if (selection.type === 'session') return selection.sessionId || 'Session';
-  if (selection.type === 'channel') return selection.channel || selection.resourceName || 'Channel';
-  return selection.resourceName || selection.type;
-}
-
-function getSelectionSubtitle(selection: Selection | null) {
-  if (!selection) return 'Select a namespace, agent, deployment, sandbox, template, MCP server, or session.';
-  if (selection.type === 'namespace') return 'Namespace';
-  if (selection.type === 'agent') return `${selection.ns} / Agent`;
-  if (selection.type === 'session') return `${selection.ns} / ${selection.agent}`;
-  if (selection.type === 'channel') return `${selection.ns} / Channel`;
-  if (selection.type === 'channel-subscription') return `${selection.ns} / ${selection.channel} / ChannelSubscription`;
-  if (selection.type === 'workflow') return `${selection.ns} / Workflow`;
-  if (selection.type === 'schedule') return `${selection.ns} / Schedule`;
-  if (selection.type === 'mcp-server') return `${selection.ns} / MCPServer`;
-  if (selection.type === 'knowledge') return `${selection.ns} / Knowledge`;
-  if (selection.type === 'template') return `${selection.ns} / Template`;
-  if (selection.type === 'deployment') return `${selection.ns} / Deployment`;
-  if (selection.type === 'deployment-replica') return `${selection.ns} / DeploymentReplica`;
-  if (selection.type === 'sandbox-class') return `${selection.ns} / SandboxClass`;
-  if (selection.type === 'sandbox-policy') return `${selection.ns} / SandboxPolicy`;
-  if (selection.type === 'sandbox') return `${selection.ns} / Sandbox`;
-  return 'Sys / MCPServer';
 }
 
 function positiveIntParam(searchParams: URLSearchParams, name: string) {
@@ -503,6 +227,210 @@ function formatMicros(value: unknown) {
 
 function scheduleField<T>(primary: T | undefined, fallback: T | undefined): T | undefined {
   return primary ?? fallback;
+}
+
+function formatConnectionError(error: unknown) {
+  if (error instanceof Error && error.message === 'connection-timeout') {
+    return 'Could not connect to gateway: the request timed out.';
+  }
+
+  if (error instanceof DOMException && error.name === 'AbortError') {
+    return 'Could not connect to gateway: the request timed out.';
+  }
+
+  const candidate = error as {
+    message?: string;
+    rawMessage?: string;
+    code?: string | number;
+    codeName?: string;
+    cause?: { message?: string };
+  };
+  const lowerMessage = `${candidate?.rawMessage || candidate?.message || candidate?.cause?.message || ''}`.toLowerCase();
+  if (lowerMessage.includes('signal is aborted') || lowerMessage.includes('aborterror')) {
+    return 'Could not connect to gateway: the request timed out.';
+  }
+
+  const code = candidate?.codeName || candidate?.code;
+  const message =
+    candidate?.rawMessage ||
+    candidate?.message ||
+    candidate?.cause?.message ||
+    'The gateway did not respond.';
+  return `Could not connect to gateway${code ? ` (${code})` : ''}: ${message}`;
+}
+
+function timeoutSignal(timeoutMs: number) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  return {
+    signal: controller.signal,
+    abort: () => controller.abort(),
+    clear: () => window.clearTimeout(timeoutId),
+  };
+}
+
+function withConnectionTimeout<T>(promise: Promise<T>, timeoutMs: number, onTimeout: () => void) {
+  let timeoutId: number | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = window.setTimeout(() => {
+      onTimeout();
+      reject(new Error('connection-timeout'));
+    }, timeoutMs);
+  });
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+  });
+}
+
+function decodeJwtPayload(token: string) {
+  const [, payload] = token.split('.');
+  if (!payload) return null;
+  try {
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+    return JSON.parse(window.atob(padded)) as { exp?: number };
+  } catch {
+    return null;
+  }
+}
+
+function tokenExpiryError(token: string) {
+  const payload = decodeJwtPayload(token);
+  if (!payload?.exp) return null;
+  const expiresAt = payload.exp * 1000;
+  if (!Number.isFinite(expiresAt)) return null;
+  if (expiresAt > Date.now()) return null;
+  return `Authorization token expired at ${new Date(expiresAt).toLocaleString()}.`;
+}
+
+function AuthScreen({
+  gatewayUrl,
+  authToken,
+  isConnecting,
+  googleSsoEnabled,
+  googleSsoError,
+  connectionError,
+  onGatewayUrlChange,
+  onAuthTokenChange,
+  onGoogleSignIn,
+  onConnect,
+}: {
+  gatewayUrl: string;
+  authToken: string;
+  isConnecting: boolean;
+  googleSsoEnabled: boolean;
+  googleSsoError: string | null;
+  connectionError: string | null;
+  onGatewayUrlChange: (value: string) => void;
+  onAuthTokenChange: (value: string) => void;
+  onGoogleSignIn: () => void;
+  onConnect: (values: { gatewayUrl: string; authToken: string }) => void;
+}) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const submitConnection = () => {
+    const form = formRef.current;
+    if (!form) return;
+    const formData = new FormData(form);
+    onConnect({
+      gatewayUrl: String(formData.get('gatewayUrl') || ''),
+      authToken: String(formData.get('authToken') || ''),
+    });
+  };
+
+  return (
+    <main className="grid min-h-screen min-w-0 grid-cols-1 overflow-hidden bg-background text-foreground lg:grid-cols-2">
+        <section className="hidden min-h-0 flex-col border-r border-border/70 bg-muted/20 px-12 py-12 lg:flex">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-2xl"
+          >
+            <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-lg border border-border/70 bg-background">
+              <Activity className="h-6 w-6 text-foreground stroke-[1.5]" />
+            </div>
+            <h1 className="max-w-xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              Connect to Talon Engine
+            </h1>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
+              Choose the gateway endpoint for this Sightline workspace.
+            </p>
+          </motion.div>
+        </section>
+
+        <section className="flex min-h-screen items-center px-5 py-8 sm:px-8 lg:min-h-0 lg:px-12">
+          <motion.form
+            ref={formRef}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitConnection();
+            }}
+            className="w-full max-w-[460px] space-y-6"
+          >
+            <div>
+              <h2 className="text-base font-semibold text-foreground">Connection</h2>
+              <p className="mt-1 text-[13px] text-muted-foreground">Enter the endpoint and credentials for this session.</p>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="gateway-url-input" className="text-[12px] font-medium text-foreground">Gateway URL</label>
+              <input
+                id="gateway-url-input"
+                name="gatewayUrl"
+                type="text"
+                inputMode="url"
+                required
+                defaultValue={gatewayUrl}
+                onChange={(event) => onGatewayUrlChange(event.target.value)}
+                className="w-full rounded-lg border border-border/70 bg-background px-3 py-2.5 font-mono text-sm text-foreground transition-shadow focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+                placeholder="https://talon.impala.systems"
+                disabled={isConnecting}
+                autoFocus
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="auth-token-input" className="text-[12px] font-medium text-foreground">Authorization Token (Optional)</label>
+              <input
+                id="auth-token-input"
+                name="authToken"
+                type="password"
+                defaultValue={authToken}
+                onChange={(event) => onAuthTokenChange(event.target.value)}
+                className="w-full rounded-lg border border-border/70 bg-background px-3 py-2.5 font-mono text-sm text-foreground transition-shadow focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+                placeholder="Enter bearer token"
+                disabled={isConnecting}
+              />
+            </div>
+            {googleSsoEnabled ? (
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={onGoogleSignIn}
+                  disabled={isConnecting}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-border/70 bg-background py-2.5 text-[13px] font-medium text-foreground transition-all hover:bg-muted/45"
+                >
+                  <ShieldCheck className="h-4 w-4 stroke-[2]" />
+                  Sign in with Google
+                </button>
+                {googleSsoError ? <p className="text-[12px] text-red-400">{googleSsoError}</p> : null}
+              </div>
+            ) : null}
+            {connectionError ? <p className="text-[12px] leading-5 text-red-400">{connectionError}</p> : null}
+            <button
+              type="button"
+              onClick={submitConnection}
+              disabled={isConnecting}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-2.5 text-[13px] font-medium text-background transition-all hover:opacity-90 disabled:opacity-50"
+            >
+              <Settings2 className="h-4 w-4 stroke-[2]" />
+              {isConnecting ? 'Connecting...' : 'Initialize Connection'}
+            </button>
+          </motion.form>
+        </section>
+    </main>
+  );
 }
 
 function ScheduleInspector({
@@ -940,26 +868,46 @@ function DebuggerPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const nextHistoryModeRef = useRef<'push' | 'replace'>('replace');
+  const explicitConnectRef = useRef(false);
   const [gatewayUrl, setGatewayUrl] = useState('');
   const [authToken, setAuthToken] = useState('');
   const [googleSsoEnabled, setGoogleSsoEnabled] = useState(false);
   const [googleWebClientId, setGoogleWebClientId] = useState<string | null>(null);
   const [googleSsoError, setGoogleSsoError] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [authScreenOpen, setAuthScreenOpen] = useState(false);
   const [isHoveringConnection, setIsHoveringConnection] = useState(false);
   const [selectedNamespace, setSelectedNamespace] = useState<Selection | null>(null);
   const [isSidebarPinned, setIsSidebarPinned] = useState(true);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(true);
   const [isRightSidebarHovered, setIsRightSidebarHovered] = useState(false);
-  const [resourceYaml, setResourceYaml] = useState<string>('');
-  const [resourceDocument, setResourceDocument] = useState<any | null>(null);
-  const [resourceLoading, setResourceLoading] = useState(false);
-  const [resourceError, setResourceError] = useState<string | null>(null);
   const [storageHydrated, setStorageHydrated] = useState(false);
   const lastSyncedQueryRef = useRef<string | null>(null);
+  const queryScope = useMemo(
+    () => ({
+      gatewayUrl: normalizeGatewayUrl(gatewayUrl || getDefaultGatewayUrl()),
+      authToken: authToken || null,
+    }),
+    [authToken, gatewayUrl],
+  );
+  const resourceQuery = useResourceDocument({
+    isConnected,
+    scope: queryScope,
+    selection: selectedNamespace,
+  });
+  const resourceYaml = resourceQuery.yaml;
+  const resourceDocument = resourceQuery.document;
+  const resourceLoading = resourceQuery.isLoading || resourceQuery.isFetching;
+  const resourceError = resourceQuery.error
+    ? resourceQuery.error instanceof Error
+      ? resourceQuery.error.message
+      : 'Failed to load resource'
+    : null;
 
   const handleSelectionChange = useCallback(
     (selection: Selection | null, historyMode: 'push' | 'replace' = 'push') => {
@@ -1006,6 +954,7 @@ function DebuggerPageContent() {
       localStorage.setItem('talon_gateway_url', talonGatewayUrl);
       updateGatewayClient(talonGatewayUrl);
       setIsConnected(true);
+      setAuthScreenOpen(false);
       currentParams.delete('talon_gateway_url');
     }
     if (talonGatewayHttpUrl) {
@@ -1015,6 +964,7 @@ function DebuggerPageContent() {
       localStorage.removeItem('talon_gateway_http_url');
       updateGatewayClient(normalizedGatewayUrl);
       setIsConnected(true);
+      setAuthScreenOpen(false);
       currentParams.delete('talon_gateway_http_url');
     }
     if (hasTalonHandoff) {
@@ -1032,22 +982,34 @@ function DebuggerPageContent() {
     setSelectedNamespace(prev => areSelectionsEqual(prev, nextSelection) ? prev : nextSelection);
 
     const wantsConnected = searchParams.get('connected') === 'true';
+    if (wantsConnected) {
+      explicitConnectRef.current = false;
+    }
+    if (authScreenOpen) {
+      return;
+    }
     if (wantsConnected && gatewayUrl.trim()) {
       if (isBlockedMixedContentGatewayUrl(gatewayUrl)) {
         setConnectionError('Sightline is running over HTTPS, so the gateway URL must also use HTTPS or the same origin.');
         setIsConnected(false);
+        setAuthScreenOpen(true);
         return;
       }
       updateGatewayClient(normalizeGatewayUrl(gatewayUrl));
       setConnectionError(null);
       setIsConnected(true);
+      setAuthScreenOpen(false);
       return;
     }
 
     if (!wantsConnected) {
+      if (explicitConnectRef.current) {
+        return;
+      }
       setIsConnected(false);
+      setAuthScreenOpen(true);
     }
-  }, [storageHydrated, searchParams, gatewayUrl, pathname, router]);
+  }, [authScreenOpen, storageHydrated, searchParams, gatewayUrl, pathname, router]);
 
   const effectiveGatewayHttpUrl = gatewayUrl.trim();
 
@@ -1133,7 +1095,13 @@ function DebuggerPageContent() {
               localStorage.setItem('talon_gateway_url', normalizedGatewayUrl);
               updateGatewayClient(normalizedGatewayUrl);
               setConnectionError(null);
+              explicitConnectRef.current = true;
+              const connectedQuery = buildSearchParams(true, selectedNamespace, searchParams).toString();
+              lastSyncedQueryRef.current = connectedQuery;
+              router.replace(connectedQuery ? `${pathname}?${connectedQuery}` : pathname, { scroll: false });
+              queryClient.removeQueries({ queryKey: ['talon'] });
               setIsConnected(true);
+              setAuthScreenOpen(false);
             }
           } catch (err: any) {
             setGoogleSsoError(err?.message || 'Google sign-in failed');
@@ -1144,14 +1112,14 @@ function DebuggerPageContent() {
     } catch (err: any) {
       setGoogleSsoError(err?.message || 'Google sign-in failed');
     }
-  }, [effectiveGatewayHttpUrl, gatewayUrl, googleWebClientId]);
+  }, [effectiveGatewayHttpUrl, gatewayUrl, googleWebClientId, pathname, queryClient, router, searchParams, selectedNamespace]);
 
   useEffect(() => {
     if (!storageHydrated) return;
 
     const wantsConnected = searchParams.get('connected') === 'true';
     const queryHasSelection = searchParams.has('ns');
-    if ((wantsConnected && !isConnected) || (queryHasSelection && !selectedNamespace)) {
+    if ((wantsConnected && !isConnected && !authScreenOpen) || (queryHasSelection && !selectedNamespace)) {
       return;
     }
 
@@ -1167,128 +1135,111 @@ function DebuggerPageContent() {
     } else {
       router.replace(nextUrl, { scroll: false });
     }
-  }, [storageHydrated, isConnected, selectedNamespace, pathname, router, searchParams]);
+  }, [authScreenOpen, storageHydrated, isConnected, selectedNamespace, pathname, router, searchParams]);
 
-  useEffect(() => {
-    if (!isConnected || !selectedNamespace || selectedNamespace.type === 'session') {
-      setResourceYaml('');
-      setResourceDocument(null);
-      setResourceLoading(false);
-      setResourceError(null);
-      return;
-    }
+  const handleConnect = async ({ gatewayUrl: submittedGatewayUrlValue, authToken: submittedAuthTokenValue }: { gatewayUrl: string; authToken: string }) => {
+    const submittedGatewayUrl = (submittedGatewayUrlValue || gatewayUrl).trim();
+    const submittedAuthToken = (submittedAuthTokenValue || authToken).trim();
+    setGatewayUrl(submittedGatewayUrl);
+    setAuthToken(submittedAuthToken);
 
-    const selection = selectedNamespace;
-    let cancelled = false;
-    const fetchResource = async () => {
-      setResourceLoading(true);
-      setResourceError(null);
-
-      try {
-        let document: any;
-        switch (selection.type) {
-          case 'namespace':
-            document = await getGatewayClient().namespaces.get({ name: selection.ns });
-            break;
-          case 'agent':
-            document = (await getGatewayClient().resources.get({
-              ns: selection.ns,
-              kind: 'Agent',
-              name: selection.agent || '',
-            })).resource;
-            break;
-          case 'channel':
-            document = channelDocumentFromResource(((await getGatewayClient().resources.get({
-              ns: selection.ns,
-              kind: 'Channel',
-              name: selection.resourceName || selection.channel || '',
-            })).resource || {}) as ResourceEnvelope);
-            break;
-          case 'channel-subscription':
-            document = channelSubscriptionDocumentFromResource(((await getGatewayClient().resources.get({
-              ns: selection.ns,
-              kind: 'ChannelSubscription',
-              name: selection.resourceName || '',
-            })).resource || {}) as ResourceEnvelope);
-            break;
-          case 'schedule':
-            document = scheduleDocumentFromResource(((await getGatewayClient().resources.get({
-              ns: selection.ns,
-              kind: 'Schedule',
-              name: selection.resourceName || '',
-            })).resource || {}) as ResourceEnvelope);
-            break;
-          case 'template':
-          case 'workflow':
-          case 'deployment':
-          case 'deployment-replica':
-          case 'sandbox-class':
-          case 'sandbox-policy':
-          case 'sandbox':
-          case 'mcp-server':
-          case 'knowledge': {
-            const kind = RESOURCE_KIND_BY_SELECTION[selection.type];
-            if (!kind) throw new Error(`Unsupported resource selection '${selection.type}'`);
-            document = (await getGatewayClient().resources.get({
-              ns: selection.ns,
-              kind,
-              name: selection.resourceName || '',
-            })).resource;
-            break;
-          }
-        }
-        if (!document) {
-          throw new Error('Resource not found');
-        }
-
-        if (!cancelled) {
-          const displayDocument = isV2ResourceDocument(document)
-            ? resourceToManifestDocument(document)
-            : yamlSafeValue(document);
-          setResourceDocument(displayDocument);
-          setResourceYaml(dump(displayDocument, { noRefs: true, lineWidth: 100 }));
-        }
-      } catch (err: any) {
-        if (!cancelled) {
-          setResourceError(err?.message || 'Failed to load resource');
-          setResourceYaml('');
-          setResourceDocument(null);
-        }
-      } finally {
-        if (!cancelled) {
-          setResourceLoading(false);
-        }
-      }
-    };
-
-    fetchResource();
-    return () => {
-      cancelled = true;
-    };
-  }, [authToken, gatewayUrl, isConnected, selectedNamespace]);
-
-  const handleConnect = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (gatewayUrl.trim()) {
-      if (isBlockedMixedContentGatewayUrl(gatewayUrl)) {
+    if (submittedGatewayUrl) {
+      if (isBlockedMixedContentGatewayUrl(submittedGatewayUrl)) {
         setConnectionError('Sightline is running over HTTPS, so the gateway URL must also use HTTPS or the same origin.');
         setIsConnected(false);
+        setAuthScreenOpen(true);
         return;
       }
-      const normalizedGatewayUrl = normalizeGatewayUrl(gatewayUrl);
-      localStorage.setItem('talon_gateway_url', normalizedGatewayUrl);
-      localStorage.removeItem('talon_gateway_http_url');
-      if (authToken.trim()) {
-        localStorage.setItem('talon_auth_token', authToken.trim());
-      } else {
-        localStorage.removeItem('talon_auth_token');
+      const normalizedGatewayUrl = normalizeGatewayUrl(submittedGatewayUrl);
+      const nextAuthToken = submittedAuthToken;
+      const previousGatewayUrl = localStorage.getItem('talon_gateway_url');
+      const previousAuthToken = localStorage.getItem('talon_auth_token');
+      const expiredTokenMessage = nextAuthToken ? tokenExpiryError(nextAuthToken) : null;
+      if (expiredTokenMessage) {
+        setConnectionError(expiredTokenMessage);
+        setIsConnected(false);
+        setAuthScreenOpen(true);
+        return;
       }
-      setGatewayUrl(normalizedGatewayUrl);
-      updateGatewayClient(normalizedGatewayUrl);
+
+      setIsConnecting(true);
       setConnectionError(null);
-      setIsConnected(true);
+
+      try {
+        localStorage.setItem('talon_gateway_url', normalizedGatewayUrl);
+        localStorage.removeItem('talon_gateway_http_url');
+        if (nextAuthToken) {
+          localStorage.setItem('talon_auth_token', nextAuthToken);
+        } else {
+          localStorage.removeItem('talon_auth_token');
+        }
+        updateGatewayClient(normalizedGatewayUrl);
+        const probeTimeout = timeoutSignal(CONNECT_TIMEOUT_MS);
+        try {
+          await withConnectionTimeout(
+            getGatewayClient().namespaces.list({ parent: undefined }, { signal: probeTimeout.signal }),
+            CONNECT_TIMEOUT_MS,
+            () => probeTimeout.abort(),
+          );
+        } finally {
+          probeTimeout.clear();
+        }
+
+        setGatewayUrl(normalizedGatewayUrl);
+        setAuthToken(nextAuthToken);
+        setConnectionError(null);
+        explicitConnectRef.current = true;
+        const connectedQuery = buildSearchParams(true, selectedNamespace, searchParams).toString();
+        lastSyncedQueryRef.current = connectedQuery;
+        router.replace(connectedQuery ? `${pathname}?${connectedQuery}` : pathname, { scroll: false });
+        queryClient.removeQueries({ queryKey: ['talon'] });
+        setIsConnected(true);
+        setAuthScreenOpen(false);
+      } catch (error) {
+        if (previousGatewayUrl) {
+          localStorage.setItem('talon_gateway_url', previousGatewayUrl);
+          updateGatewayClient(previousGatewayUrl);
+        } else {
+          localStorage.removeItem('talon_gateway_url');
+          updateGatewayClient(getDefaultGatewayUrl());
+        }
+        if (previousAuthToken) {
+          localStorage.setItem('talon_auth_token', previousAuthToken);
+        } else {
+          localStorage.removeItem('talon_auth_token');
+        }
+        setConnectionError(formatConnectionError(error));
+        setIsConnected(false);
+        setAuthScreenOpen(true);
+      } finally {
+        setIsConnecting(false);
+      }
     }
   };
+
+  if (!storageHydrated) {
+    return <div className="h-screen bg-background" />;
+  }
+
+  if (authScreenOpen || !isConnected) {
+    return (
+      <AuthScreen
+        gatewayUrl={gatewayUrl}
+        authToken={authToken}
+        isConnecting={isConnecting}
+        googleSsoEnabled={googleSsoEnabled}
+        googleSsoError={googleSsoError}
+        connectionError={connectionError}
+        onGatewayUrlChange={(value) => {
+          setGatewayUrl(value);
+          setConnectionError(null);
+        }}
+        onAuthTokenChange={setAuthToken}
+        onGoogleSignIn={handleGoogleSignIn}
+        onConnect={handleConnect}
+      />
+    );
+  }
 
   return (
     <div className="flex h-screen min-w-0 flex-row overflow-x-hidden overflow-y-hidden bg-background text-foreground">
@@ -1336,6 +1287,7 @@ function DebuggerPageContent() {
             isConnected={isConnected} 
             selectedNode={selectedNamespace} 
             onSelect={setSelectedNamespace} 
+            queryScope={queryScope}
           />
         </div>
       </motion.div>
@@ -1372,7 +1324,13 @@ function DebuggerPageContent() {
             {isConnected ? (
               <div 
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[13px] font-medium transition-all bg-emerald-500/9 text-emerald-300 border border-emerald-500/16 cursor-pointer hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/16"
-                onClick={() => setIsConnected(false)}
+                onClick={() => {
+                  explicitConnectRef.current = false;
+                  queryClient.removeQueries({ queryKey: ['talon'] });
+                  setIsConnected(false);
+                  setAuthScreenOpen(true);
+                  setConnectionError(null);
+                }}
                 onMouseEnter={() => setIsHoveringConnection(true)}
                 onMouseLeave={() => setIsHoveringConnection(false)}
               >
@@ -1392,79 +1350,6 @@ function DebuggerPageContent() {
         <main className="flex min-w-0 flex-1 overflow-x-hidden overflow-y-hidden bg-transparent">
           {/* Center Pane */}
           <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-transparent">
-          {!isConnected ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/44 backdrop-blur-md z-20">
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="w-full max-w-md p-8 bg-background/84 border border-border/70 shadow-[0_24px_80px_rgba(0,0,0,0.42)] rounded-[1.5rem] backdrop-blur-xl"
-              >
-                <div className="flex flex-col items-center text-center space-y-4 mb-8">
-                  <div className="w-12 h-12 bg-white/[0.045] rounded-xl flex items-center justify-center border border-border/70">
-                    <Activity className="w-6 h-6 text-foreground stroke-[1.5]" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-foreground">Connect to Talon Engine</h2>
-                    <p className="text-[13px] text-muted-foreground mt-1">Provide the gateway endpoint for this workspace.</p>
-                  </div>
-                </div>
-                
-                <form onSubmit={handleConnect} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-[12px] font-medium text-foreground">Gateway URL</label>
-                    <input
-                      type="url"
-                      required
-                      value={gatewayUrl}
-                      onChange={(e) => {
-                        setGatewayUrl(e.target.value);
-                        setConnectionError(null);
-                      }}
-                      className="w-full bg-white/[0.03] border border-border/70 text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring text-sm transition-shadow font-mono"
-                      placeholder={getDefaultGatewayUrl()}
-                      autoFocus
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[12px] font-medium text-foreground">Authorization Token (Optional)</label>
-                    <input 
-                      type="password" 
-                      value={authToken}
-                      onChange={(e) => setAuthToken(e.target.value)}
-                      className="w-full bg-white/[0.03] border border-border/70 text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring text-sm transition-shadow font-mono"
-                      placeholder="Enter bearer token"
-                    />
-                  </div>
-                  {googleSsoEnabled ? (
-                    <div className="space-y-2">
-                      <button
-                        type="button"
-                        onClick={handleGoogleSignIn}
-                        className="w-full bg-white/[0.05] text-foreground py-2.5 rounded-xl text-[13px] font-medium hover:bg-white/[0.08] border border-border/70 transition-all flex items-center justify-center gap-2"
-                      >
-                        <ShieldCheck className="w-4 h-4 stroke-[2]" />
-                        Sign in with Google
-                      </button>
-                      {googleSsoError ? (
-                        <p className="text-[12px] text-red-400">{googleSsoError}</p>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {connectionError ? (
-                    <p className="text-[12px] leading-5 text-red-400">{connectionError}</p>
-                  ) : null}
-                  <button
-                    type="submit"
-                    disabled={!gatewayUrl.trim()}
-                    className="w-full bg-foreground text-background py-2.5 rounded-xl text-[13px] font-medium hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                  >
-                    <Settings2 className="w-4 h-4 stroke-[2]" />
-                    Initialize Connection
-                  </button>
-                </form>
-              </motion.div>
-            </div>
-          ) : null}
           {selectedNamespace?.type === 'session' ? (
             <div className={cn("min-h-0 min-w-0 flex-1 overflow-hidden transition-opacity duration-300", !isConnected && "opacity-20 pointer-events-none")}>
               <TalonCopilot
