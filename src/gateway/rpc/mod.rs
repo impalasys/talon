@@ -51,8 +51,8 @@ pub mod generated {
     }
     pub mod data {
         pub use talon_data_connectors_proto::talon::data::*;
-        pub use talon_data_routing_proto::talon::data::*;
         pub use talon_data_proto::talon::data::*;
+        pub use talon_data_routing_proto::talon::data::*;
     }
     pub mod harness {
         pub use talon_harness_proto::talon::harness::*;

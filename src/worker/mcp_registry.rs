@@ -291,6 +291,8 @@ mod tests {
             auth_broker: None,
         };
 
+        let _env_lock = crate::test_support::env_lock();
+        let expected_issuer = platform_jwt::issuer().unwrap();
         let scoped = config_for_resolution_namespace(config, "Tenant:conic:Customers:12").unwrap();
 
         assert_eq!(
@@ -298,10 +300,7 @@ mod tests {
             Some("Tenant:conic:Customers:12")
         );
         assert_eq!(scoped.mcp_server_name.as_deref(), Some("conic"));
-        assert_eq!(
-            scoped.jwt_issuer.as_deref(),
-            Some(platform_jwt::issuer().unwrap().as_str())
-        );
+        assert_eq!(scoped.jwt_issuer.as_deref(), Some(expected_issuer.as_str()));
     }
 
     #[tokio::test]

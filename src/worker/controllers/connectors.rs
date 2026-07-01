@@ -640,7 +640,7 @@ async fn register_connector_class(
         });
     let cluster_id =
         std::env::var("TALON_CONNECTOR_CLUSTER_ID").unwrap_or_else(|_| "talon-cluster".into());
-    let callback_auth_key = mint_connector_callback_token(config, class_namespace)
+    let callback_auth_key = mint_connector_callback_token(class_namespace)
         .context("failed to mint connector callback auth token")?;
     let url = format!(
         "{}/v1/clusters/register",
@@ -707,11 +707,7 @@ impl ConnectorSecretExt for crate::gateway::rpc::generated::config::Secret {
     }
 }
 
-fn mint_connector_callback_token(
-    config: &crate::control::config::Config,
-    namespace: &str,
-) -> Result<String> {
-    let _ = config;
+fn mint_connector_callback_token(namespace: &str) -> Result<String> {
     let issuer = platform_jwt::issuer()
         .context("platform JWT issuer is required for connector callbacks")?;
     let key =

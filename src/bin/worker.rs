@@ -1146,10 +1146,7 @@ where
     FShutdown: std::future::Future,
 {
     let config = load_config()?;
-    if std::env::var(talon::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV)
-        .ok()
-        .is_some_and(|value| !value.trim().is_empty())
-    {
+    if talon::control::security::platform_jwt::private_key_env_configured()? {
         talon::control::security::platform_jwt::load_key()?;
         talon::control::security::platform_jwt::issuer()?;
     }

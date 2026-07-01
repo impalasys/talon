@@ -436,7 +436,11 @@ impl TryFrom<&manifests::McpServer> for McpConnectionConfig {
             namespace: (!meta.namespace.is_empty()).then(|| meta.namespace.clone()),
             mcp_server_name: Some(meta.name.clone()),
             agent_name: None,
-            jwt_issuer: None,
+            jwt_issuer: spec
+                .auth_broker
+                .as_ref()
+                .map(|_| platform_jwt::issuer())
+                .transpose()?,
             auth_broker: spec.auth_broker.as_ref().map(|broker| McpAuthBrokerConfig {
                 kind: broker.kind.clone(),
                 url: broker.url.clone(),

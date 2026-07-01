@@ -12,7 +12,7 @@ use anyhow::Result;
 use axum::{
     body::Body,
     extract::State,
-    http::{header, HeaderMap, HeaderValue, Request, Response, StatusCode},
+    http::{header, HeaderValue, Request, Response, StatusCode},
     response::IntoResponse,
     routing::{get, RouterIntoService},
     Json, Router,
@@ -23,6 +23,9 @@ use std::sync::Arc;
 use tonic::body::BoxBody;
 use tower::{Service, ServiceExt};
 use tower_http::cors::{Any, CorsLayer};
+use url::Url;
+
+const TALON_GATEWAY_BASE_URL_ENV: &str = "TALON_GATEWAY_BASE_URL";
 
 #[derive(Clone)]
 pub struct Gateway {
@@ -230,11 +233,16 @@ fn well_known_router() -> Router<Arc<Gateway>> {
 
 async fn jwks(State(gateway): State<Arc<Gateway>>) -> axum::response::Response {
     let _ = gateway;
-    if std::env::var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV)
-        .ok()
-        .is_none_or(|value| value.trim().is_empty())
-    {
-        return StatusCode::NOT_FOUND.into_response();
+    match platform_jwt::private_key_env_configured() {
+        Ok(true) => {}
+        Ok(false) => return StatusCode::NOT_FOUND.into_response(),
+        Err(err) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": format!("platform JWT key is not configured: {err}")})),
+            )
+                .into_response();
+        }
     }
     match platform_jwt::load_key() {
         Ok(key) => Json(key.jwks()).into_response(),
@@ -248,7 +256,6 @@ async fn jwks(State(gateway): State<Arc<Gateway>>) -> axum::response::Response {
 
 async fn authorization_server_metadata(
     State(gateway): State<Arc<Gateway>>,
-    headers: HeaderMap,
 ) -> axum::response::Response {
     let _ = gateway;
     let issuer = match platform_issuer() {
@@ -261,7 +268,17 @@ async fn authorization_server_metadata(
                 .into_response();
         }
     };
-    let jwks_uri = format!("{}/.well-known/jwks.json", external_base_url(&headers));
+    let base_url = match external_base_url(&issuer) {
+        Ok(base_url) => base_url,
+        Err(err) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": format!("gateway base URL is not configured: {err}")})),
+            )
+                .into_response();
+        }
+    };
+    let jwks_uri = format!("{base_url}/.well-known/jwks.json");
     Json(json!({
         "issuer": issuer,
         "jwks_uri": jwks_uri,
@@ -274,7 +291,6 @@ async fn authorization_server_metadata(
 
 async fn protected_resource_metadata(
     State(gateway): State<Arc<Gateway>>,
-    headers: HeaderMap,
 ) -> axum::response::Response {
     let _ = gateway;
     let issuer = match platform_issuer() {
@@ -287,10 +303,20 @@ async fn protected_resource_metadata(
                 .into_response();
         }
     };
+    let base_url = match external_base_url(&issuer) {
+        Ok(base_url) => base_url,
+        Err(err) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": format!("gateway base URL is not configured: {err}")})),
+            )
+                .into_response();
+        }
+    };
     Json(json!({
-        "resource": external_base_url(&headers),
+        "resource": base_url.clone(),
         "authorization_servers": [issuer],
-        "jwks_uri": format!("{}/.well-known/jwks.json", external_base_url(&headers)),
+        "jwks_uri": format!("{base_url}/.well-known/jwks.json"),
     }))
     .into_response()
 }
@@ -312,6 +338,7 @@ mod well_known_tests {
     struct PlatformJwtEnvGuard {
         previous_private_key: Option<String>,
         previous_issuer: Option<String>,
+        previous_gateway_base_url: Option<String>,
     }
 
     impl PlatformJwtEnvGuard {
@@ -324,6 +351,7 @@ mod well_known_tests {
                 crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
             )
             .ok();
+            let previous_gateway_base_url = std::env::var(TALON_GATEWAY_BASE_URL_ENV).ok();
             unsafe {
                 std::env::set_var(
                     crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
@@ -333,10 +361,12 @@ mod well_known_tests {
                     crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
                     TEST_PLATFORM_ISSUER,
                 );
+                std::env::set_var(TALON_GATEWAY_BASE_URL_ENV, "https://gateway.example.com");
             }
             Self {
                 previous_private_key,
                 previous_issuer,
+                previous_gateway_base_url,
             }
         }
     }
@@ -363,6 +393,11 @@ mod well_known_tests {
                     std::env::remove_var(
                         crate::control::security::platform_jwt::TALON_PLATFORM_JWT_ISSUER_ENV,
                     );
+                }
+                if let Some(previous_gateway_base_url) = &self.previous_gateway_base_url {
+                    std::env::set_var(TALON_GATEWAY_BASE_URL_ENV, previous_gateway_base_url);
+                } else {
+                    std::env::remove_var(TALON_GATEWAY_BASE_URL_ENV);
                 }
             }
         }
@@ -439,23 +474,22 @@ mod well_known_tests {
     }
 }
 
-fn external_base_url(headers: &HeaderMap) -> String {
-    let scheme = headers
-        .get("x-forwarded-proto")
-        .and_then(|value| value.to_str().ok())
-        .and_then(|value| value.split(',').next())
-        .map(str::trim)
-        .filter(|value| value.eq_ignore_ascii_case("http") || value.eq_ignore_ascii_case("https"))
-        .unwrap_or("https");
-    let host = headers
-        .get("x-forwarded-host")
-        .or_else(|| headers.get(header::HOST))
-        .and_then(|value| value.to_str().ok())
-        .and_then(|value| value.split(',').next())
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .unwrap_or("localhost");
-    format!("{scheme}://{host}")
+fn external_base_url(issuer: &str) -> anyhow::Result<String> {
+    let configured = std::env::var(TALON_GATEWAY_BASE_URL_ENV)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty());
+    let base_url = configured.unwrap_or_else(|| issuer.trim().to_string());
+    let parsed = Url::parse(&base_url).map_err(|err| {
+        anyhow::anyhow!("{TALON_GATEWAY_BASE_URL_ENV} must be a valid URL: {err}")
+    })?;
+    if parsed.scheme() != "http" && parsed.scheme() != "https" {
+        anyhow::bail!("{TALON_GATEWAY_BASE_URL_ENV} must use http or https");
+    }
+    if parsed.query().is_some() || parsed.fragment().is_some() {
+        anyhow::bail!("{TALON_GATEWAY_BASE_URL_ENV} must not include query or fragment");
+    }
+    Ok(base_url.trim_end_matches('/').to_string())
 }
 
 fn grpc_fallback_service<S>(grpc_service: S) -> RouterIntoService<Body, ()>

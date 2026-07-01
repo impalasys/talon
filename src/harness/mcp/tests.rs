@@ -3,6 +3,7 @@
 
 #[cfg(test)]
 mod tests {
+    use crate::control::security::platform_jwt;
     use crate::gateway::rpc::manifests;
     use crate::harness::mcp::{
         authorization_bearer_token, authorization_header, call_tool_for_config,
@@ -36,6 +37,39 @@ mod tests {
     use tokio::sync::Barrier;
 
     const TEST_PLATFORM_ISSUER: &str = "https://talon.example.com";
+
+    fn assert_broker_assertion(
+        headers: &HeaderMap,
+        namespace: &str,
+        mcp_server_name: &str,
+        agent_name: Option<&str>,
+    ) {
+        let auth = headers
+            .get("authorization")
+            .and_then(|value| value.to_str().ok())
+            .expect("broker request should include authorization");
+        let token = auth
+            .strip_prefix("Bearer ")
+            .expect("broker authorization should be bearer");
+        let claims: serde_json::Value =
+            platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
+                .unwrap()
+                .verify(
+                    token,
+                    TEST_PLATFORM_ISSUER,
+                    platform_jwt::MCP_AUTH_BROKER_AUDIENCE,
+                )
+                .unwrap();
+        assert_eq!(claims["iss"], TEST_PLATFORM_ISSUER);
+        assert_eq!(claims["aud"], platform_jwt::MCP_AUTH_BROKER_AUDIENCE);
+        assert_eq!(claims["talon:ns"], namespace);
+        assert_eq!(claims["talon:mcp_server"], mcp_server_name);
+        if let Some(agent_name) = agent_name {
+            assert_eq!(claims["talon:agent"], agent_name);
+        } else {
+            assert!(claims.get("talon:agent").is_none());
+        }
+    }
 
     #[test]
     fn test_content_type_matches_ignores_case_and_parameters() {
@@ -497,7 +531,7 @@ mod tests {
                           headers: HeaderMap,
                           Json(payload): Json<serde_json::Value>| async move {
                         hits.fetch_add(1, Ordering::SeqCst);
-                        assert!(headers.get("authorization").is_some());
+                        assert_broker_assertion(&headers, "conic:wks:42", "github", Some("cmo"));
                         assert_eq!(payload["namespace"], "conic:wks:42");
                         assert_eq!(payload["mcp_server_name"], "github");
                         assert_eq!(payload["agent_name"], "cmo");
@@ -664,7 +698,7 @@ mod tests {
                           headers: HeaderMap,
                           Json(payload): Json<serde_json::Value>| async move {
                         hits.fetch_add(1, Ordering::SeqCst);
-                        assert!(headers.get("authorization").is_some());
+                        assert_broker_assertion(&headers, "conic:wks:42", "github", Some("cmo"));
                         assert_eq!(payload["namespace"], "conic:wks:42");
                         assert_eq!(payload["mcp_server_name"], "github");
                         assert_eq!(payload["agent_name"], "cmo");
@@ -1370,9 +1404,11 @@ mod tests {
                 "/broker",
                 post(
                     move |State(hits): State<Arc<AtomicUsize>>,
+                          headers: HeaderMap,
                           Json(payload): Json<serde_json::Value>| async move {
                         hits.fetch_add(1, Ordering::SeqCst);
                         let server_name = payload["mcp_server_name"].as_str().unwrap_or("missing");
+                        assert_broker_assertion(&headers, "conic:wks:42", server_name, Some("cmo"));
                         Json(json!({
                             "authorization_bearer_token": format!("token-{server_name}"),
                             "expires_at_unix": 4_102_444_800i64

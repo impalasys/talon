@@ -93,8 +93,14 @@ def cleanup_temp_dir(temp_dir: Path):
         shutil.rmtree(temp_dir, ignore_errors=True)
 
 def write_e2e_private_key_file(grpc_port):
-    path = Path(tempfile.gettempdir()) / f"talon-e2e-platform-jwt-key-{grpc_port}.pem"
-    path.write_text(E2E_JWT_PRIVATE_KEY_PEM)
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        prefix=f"talon-e2e-platform-jwt-key-{grpc_port}-",
+        suffix=".pem",
+        delete=False,
+    ) as file:
+        file.write(E2E_JWT_PRIVATE_KEY_PEM)
+        path = Path(file.name)
     try:
         path.chmod(0o600)
     except OSError:
@@ -104,22 +110,25 @@ def write_e2e_private_key_file(grpc_port):
 def create_bootstrap_token(grpc_port):
     cli = get_binary_path("talon_cli")
     key_file = write_e2e_private_key_file(grpc_port)
-    result = subprocess.run(
-        [
-            cli,
-            "auth",
-            "local-token",
-            "--private-key-pem-file",
-            str(key_file),
-            "--subject",
-            "playwright-bootstrap",
-        ],
-        env={**os.environ, "TALON_PLATFORM_JWT_ISSUER": E2E_PLATFORM_JWT_ISSUER},
-        text=True,
-        capture_output=True,
-        check=False,
-        timeout=30,
-    )
+    try:
+        result = subprocess.run(
+            [
+                cli,
+                "auth",
+                "local-token",
+                "--private-key-pem-file",
+                str(key_file),
+                "--subject",
+                "playwright-bootstrap",
+            ],
+            env={**os.environ, "TALON_PLATFORM_JWT_ISSUER": E2E_PLATFORM_JWT_ISSUER},
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    finally:
+        key_file.unlink(missing_ok=True)
     if result.returncode != 0:
         raise RuntimeError(
             "Failed to mint Playwright bootstrap token\n"

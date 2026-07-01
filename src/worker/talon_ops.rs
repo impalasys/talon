@@ -1432,8 +1432,7 @@ fn mint_talon_ops_access_token(
     key.sign(&claims)
 }
 
-fn platform_issuer_from_config(config: &crate::control::config::Config) -> Result<String> {
-    let _ = config;
+fn platform_issuer_from_config(_config: &crate::control::config::Config) -> Result<String> {
     platform_jwt::issuer()
 }
 

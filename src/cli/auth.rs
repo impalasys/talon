@@ -559,18 +559,39 @@ pub(crate) fn mint_local_platform_access_jwt(
         origins: validate_origins(origins)?,
         grants: grants
             .iter()
-            .map(|grant| TalonGrantClaim {
-                kind: grant.kind.clone(),
-                namespace: grant.namespace.clone(),
-                agent: grant.agent.clone(),
-                session: grant.session.clone(),
-                channel: grant.channel.clone(),
-            })
-            .collect(),
+            .map(validate_local_platform_grant)
+            .collect::<Result<Vec<_>>>()?,
     };
     platform_jwt::PlatformJwtKey::from_pem(private_key_pem)?
         .sign(&claims)
         .context("Failed to sign Talon platform access JWT")
+}
+
+fn validate_local_platform_grant(grant: &ApiKeyGrant) -> Result<TalonGrantClaim> {
+    let kind = validate_token_part(&grant.kind, "grant kind")?;
+    if kind != "read" && kind != "readwrite" {
+        anyhow::bail!("grant kind must be read or readwrite");
+    }
+    let namespace = validate_optional_token_part(grant.namespace.as_deref(), "grant namespace")?;
+    let agent = validate_optional_token_part(grant.agent.as_deref(), "grant agent")?;
+    let session = validate_optional_token_part(grant.session.as_deref(), "grant session")?;
+    let channel = validate_optional_token_part(grant.channel.as_deref(), "grant channel")?;
+    if agent.is_some() && namespace.is_none() {
+        anyhow::bail!("grant agent scope requires namespace scope");
+    }
+    if session.is_some() && (namespace.is_none() || agent.is_none()) {
+        anyhow::bail!("grant session scope requires namespace and agent scope");
+    }
+    if channel.is_some() && namespace.is_none() {
+        anyhow::bail!("grant channel scope requires namespace scope");
+    }
+    Ok(TalonGrantClaim {
+        kind: kind.to_string(),
+        namespace: namespace.map(str::to_string),
+        agent: agent.map(str::to_string),
+        session: session.map(str::to_string),
+        channel: channel.map(str::to_string),
+    })
 }
 
 pub(crate) fn parse_ttl_seconds(value: &str) -> Result<u64> {
@@ -722,6 +743,7 @@ mod tests {
     use crate::gateway::auth::Claims;
     use clap::Parser;
     use std::ffi::OsString;
+    use talon_client::data::ApiKeyGrant;
 
     struct EnvVarGuard {
         key: &'static str,
@@ -923,6 +945,37 @@ mod tests {
             channel: Some("incident-room"),
         })
         .is_err());
+    }
+
+    #[test]
+    fn local_platform_access_jwt_rejects_invalid_grant_selectors() {
+        let _env_lock = crate::test_support::env_lock();
+        let invalid_grant = ApiKeyGrant {
+            kind: "readwrite".to_string(),
+            namespace: None,
+            agent: Some("assistant".to_string()),
+            session: None,
+            channel: None,
+        };
+
+        let err = mint_local_platform_access_jwt(
+            platform_jwt::TEST_RSA_PRIVATE_KEY,
+            "tenant-client",
+            60,
+            LocalPlatformTokenScope {
+                namespace: None,
+                agent: None,
+                session: None,
+                channel: None,
+            },
+            &[],
+            &[invalid_grant],
+        )
+        .unwrap_err();
+
+        assert!(err
+            .to_string()
+            .contains("grant agent scope requires namespace scope"));
     }
 
     #[test]
