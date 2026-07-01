@@ -8,33 +8,36 @@ sidebar_position: 2
 ## Global flags
 
 - `--gateway`: gRPC gateway address, default `http://localhost:50051`
-- `--password`: basic-auth password
 - `--token`: bearer token
-- `--jwt-secret`: shared JWT secret for short-lived admin tokens
+- `--api-key`: Talon API key to exchange for a short-lived bearer token
 - `--grpc-web`: use gRPC-Web over HTTP/1.1 instead of native gRPC
 
 ## Commands
 
 ### `auth`
 
-Authenticate to the gateway or mint JWTs for clients when the gateway is
-running with `GATEWAY_JWT_SECRET`.
+Authenticate to the gateway or, for local environments only, mint a
+platform-signed bootstrap token from a private PEM file. API key and OIDC
+exchanges return platform-signed Talon access tokens when
+the required `TALON_JWT_PRIVATE_KEY_PEM` platform signing key is present. JWT
+`iss` defaults to `https://talon.impala.systems` and can be overridden with
+`TALON_JWT_ISSUER`.
 
 - `auth login`: sign in through Google OIDC and store a Talon access token
 - `auth logout`: remove stored CLI auth
 - `auth whoami`: show stored CLI auth
-- `auth root-token`: unrestricted root token
-- `auth namespace-token --namespace <ns>`: namespace scoped token
-- `auth agent-token --namespace <ns> --agent <agent>`: namespace and agent scoped token
-- `auth session-token --namespace <ns> --agent <agent> --session <session-id>`: namespace, agent, and session scoped token
-- `auth channel-token --namespace <ns> --channel <channel>`: namespace and channel scoped token
+- `auth local-token --private-key-pem-file <path>`: local-only RS256 platform access token
+- `auth api-key create --name <name> --grant <grant>`: create an API key
+- `auth api-key list`: list API keys
+- `auth api-key revoke <id>`: revoke an API key
 
-All token commands accept `--subject`, `--ttl <duration>`, repeatable `--origin
-<origin>` flags, and `--ttl-seconds <seconds>` retained for scripts. The
-default token TTL is `5min`; examples include `1wk`, `3mo`, and `1yr`. Origins
-are serialized into the `talon:origins` claim and require A2A REST or gRPC-Web
-browser requests to carry a matching `Origin` header. Native gRPC ignores the
-claim.
+`auth local-token` accepts `--subject`, `--ttl <duration>`, repeatable
+`--origin <origin>` flags, optional namespace/agent/session/channel scopes,
+optional `--grant` entries, and `--ttl-seconds <seconds>` retained for scripts.
+The default token TTL is `5min`; examples include `1wk`, `3mo`, and `1yr`.
+Origins are serialized into the `talon:origins` claim and require A2A REST or
+gRPC-Web browser requests to carry a matching `Origin` header. Native gRPC
+ignores the claim.
 
 `auth login` accepts `--google-client-id` and `--google-client-secret`, with
 environment fallbacks `TALON_GOOGLE_CLIENT_ID` and

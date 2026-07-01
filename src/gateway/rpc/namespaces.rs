@@ -394,13 +394,14 @@ impl GrpcGatewayHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::control::security::platform_jwt;
     use crate::control::{
         keys::{ResourceKey, ResourceList},
         ControlPlane, KeyValueStore, MessagePublisher,
     };
     use crate::gateway::auth::{AuthConfig, Claims};
     use crate::gateway::server::Gateway;
-    use jsonwebtoken::{encode, EncodingKey, Header};
+    use crate::test_support::{PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
     use std::collections::HashMap;
     use std::sync::Arc;
     use tokio::sync::Mutex;
@@ -494,11 +495,16 @@ mod tests {
         GrpcGatewayHandler { gateway }
     }
 
-    fn scoped_token(secret: &str, ns: &str) -> String {
-        crate::control::security::install_jwt_crypto_provider();
+    fn jwt_auth_config() -> AuthConfig {
+        AuthConfig::jwt_platform()
+    }
+
+    fn scoped_token(ns: &str) -> String {
         let claims = Claims {
+            iss: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
             sub: "tenant-admin".to_string(),
-            aud: "talon".to_string(),
+            aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+            iat: Some(1),
             exp: 10000000000,
             ns: Some(ns.to_string()),
             agent: None,
@@ -507,12 +513,10 @@ mod tests {
             origins: Vec::new(),
             grants: Vec::new(),
         };
-        encode(
-            &Header::default(),
-            &claims,
-            &EncodingKey::from_secret(secret.as_ref()),
-        )
-        .unwrap()
+        platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
+            .unwrap()
+            .sign(&claims)
+            .unwrap()
     }
 
     fn with_bearer<T>(mut req: tonic::Request<T>, token: &str) -> tonic::Request<T> {
@@ -653,10 +657,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_scoped_jwt_can_manage_descendant_namespaces_only() {
-        let secret = "namespace-secret";
-        let token = scoped_token(secret, "Tenant:conic");
-        let handler =
-            setup_mock_gateway_handler_with_auth(Some(AuthConfig::jwt(secret.to_string())));
+        let _guard = PlatformJwtEnvGuard::acquire().await;
+        let token = scoped_token("Tenant:conic");
+        let handler = setup_mock_gateway_handler_with_auth(Some(jwt_auth_config()));
 
         handler
             .handle_create_namespace(with_bearer(

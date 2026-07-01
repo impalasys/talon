@@ -126,13 +126,6 @@ def bool_field(value, snake_name, camel_name):
 
 def apply_manifest(path, gateway_url, api_key, auth_file):
     env = os.environ.copy()
-    for key in (
-        "TALON_GATEWAY_TOKEN",
-        "GATEWAY_TOKEN",
-        "TALON_GATEWAY_PASSWORD",
-        "GATEWAY_PASSWORD",
-    ):
-        env.pop(key, None)
     env["TALON_API_KEY"] = api_key
     env["TALON_AUTH_FILE"] = auth_file
     subprocess.run(

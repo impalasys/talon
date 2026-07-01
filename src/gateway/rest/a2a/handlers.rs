@@ -604,7 +604,10 @@ fn ensure_a2a_operation_auth(
     agent: &str,
     session: Option<&str>,
 ) -> Result<(), Response> {
-    let auth_config = gateway.auth_config.clone().unwrap_or_else(AuthConfig::open);
+    let auth_config = gateway
+        .auth_config
+        .clone()
+        .unwrap_or_else(AuthConfig::jwt_platform);
     let auth_header = headers
         .get(header::AUTHORIZATION)
         .and_then(|value| value.to_str().ok());

@@ -118,7 +118,10 @@ impl Gateway {
         };
         let http_gateway = handler.gateway.clone();
 
-        let auth_config = self.auth_config.clone().unwrap_or_else(AuthConfig::open);
+        let auth_config = self
+            .auth_config
+            .clone()
+            .unwrap_or_else(AuthConfig::jwt_platform);
         let interceptor = crate::gateway::auth::TalonAuthInterceptor {
             config: auth_config,
         };
@@ -188,7 +191,8 @@ impl Gateway {
             .add_service(auth_service)
             .into_service::<BoxBody>();
 
-        let app = crate::gateway::rest::a2a::router()
+        let app = crate::gateway::rest::well_known::router()
+            .merge(crate::gateway::rest::a2a::router())
             .with_state(http_gateway)
             .fallback_service(grpc_fallback_service(grpc_service))
             .layer(permissive_cors_layer());

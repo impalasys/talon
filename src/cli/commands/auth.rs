@@ -3,15 +3,16 @@
 
 use anyhow::{Context, Result};
 use clap::{Args, Subcommand};
+use std::path::PathBuf;
 use talon_client::data::ApiKeyGrant;
 use talon_client::v1::{CreateApiKeyRequest, ListApiKeysRequest, RevokeApiKeyRequest};
 
 use super::{Cli, RunOutcome};
 use crate::cli::{
     clear_stored_gateway_auth, describe_stored_auth, exchange_oidc_id_token,
-    login_with_google_loopback, mint_agent_jwt, mint_channel_jwt, mint_namespace_jwt,
-    mint_root_jwt, mint_session_jwt, parse_api_key_grant, resolve_gateway_jwt_secret,
-    resolve_token_ttl_seconds, save_stored_gateway_auth, DEFAULT_TOKEN_TTL,
+    login_with_google_loopback, mint_local_platform_access_jwt, parse_api_key_grant,
+    resolve_token_ttl_seconds, save_stored_gateway_auth, LocalPlatformTokenScope,
+    DEFAULT_TOKEN_TTL,
 };
 
 #[derive(Args)]
@@ -43,8 +44,11 @@ enum AuthCommands {
     Logout,
     /// Show stored Talon CLI auth.
     Whoami,
-    /// Mint a root JWT with unrestricted gateway scope.
-    RootToken {
+    /// Mint a local-only RS256 Talon access token from a platform private PEM.
+    LocalToken {
+        /// File containing the RSA private key PEM. Intended for local bootstrap only.
+        #[arg(long)]
+        private_key_pem_file: PathBuf,
         #[arg(long, default_value = "talon-root-client")]
         subject: String,
         /// Token lifetime, such as 5min, 1wk, 3mo, or 1yr.
@@ -53,78 +57,21 @@ enum AuthCommands {
         /// Token lifetime in seconds. Kept for script compatibility.
         #[arg(long)]
         ttl_seconds: Option<u64>,
-        /// Browser origin allowed to use this token. Repeat for multiple origins.
-        #[arg(long = "origin")]
-        origins: Vec<String>,
-    },
-    /// Mint a JWT that can access one namespace and its child namespaces.
-    NamespaceToken {
+        /// Optional namespace scope. Omit all scope and grant options to mint a root bootstrap token.
         #[arg(short, long)]
-        namespace: String,
-        #[arg(long, default_value = "talon-namespace-client")]
-        subject: String,
-        /// Token lifetime, such as 5min, 1wk, 3mo, or 1yr.
-        #[arg(long, default_value = DEFAULT_TOKEN_TTL)]
-        ttl: String,
-        /// Token lifetime in seconds. Kept for script compatibility.
-        #[arg(long)]
-        ttl_seconds: Option<u64>,
-        /// Browser origin allowed to use this token. Repeat for multiple origins.
-        #[arg(long = "origin")]
-        origins: Vec<String>,
-    },
-    /// Mint a JWT that can only access one agent in a namespace.
-    AgentToken {
+        namespace: Option<String>,
+        /// Optional agent scope.
         #[arg(short, long)]
-        namespace: String,
+        agent: Option<String>,
+        /// Optional session scope.
         #[arg(short, long)]
-        agent: String,
-        #[arg(long, default_value = "talon-agent-client")]
-        subject: String,
-        /// Token lifetime, such as 5min, 1wk, 3mo, or 1yr.
-        #[arg(long, default_value = DEFAULT_TOKEN_TTL)]
-        ttl: String,
-        /// Token lifetime in seconds. Kept for script compatibility.
-        #[arg(long)]
-        ttl_seconds: Option<u64>,
-        /// Browser origin allowed to use this token. Repeat for multiple origins.
-        #[arg(long = "origin")]
-        origins: Vec<String>,
-    },
-    /// Mint a JWT that can only access one session for one agent.
-    SessionToken {
+        session: Option<String>,
+        /// Optional channel scope.
         #[arg(short, long)]
-        namespace: String,
-        #[arg(short, long)]
-        agent: String,
-        #[arg(short, long)]
-        session: String,
-        #[arg(long, default_value = "talon-session-client")]
-        subject: String,
-        /// Token lifetime, such as 5min, 1wk, 3mo, or 1yr.
-        #[arg(long, default_value = DEFAULT_TOKEN_TTL)]
-        ttl: String,
-        /// Token lifetime in seconds. Kept for script compatibility.
-        #[arg(long)]
-        ttl_seconds: Option<u64>,
-        /// Browser origin allowed to use this token. Repeat for multiple origins.
-        #[arg(long = "origin")]
-        origins: Vec<String>,
-    },
-    /// Mint a JWT that can only access messages in one channel.
-    ChannelToken {
-        #[arg(short, long)]
-        namespace: String,
-        #[arg(short, long)]
-        channel: String,
-        #[arg(long, default_value = "talon-channel-client")]
-        subject: String,
-        /// Token lifetime, such as 5min, 1wk, 3mo, or 1yr.
-        #[arg(long, default_value = DEFAULT_TOKEN_TTL)]
-        ttl: String,
-        /// Token lifetime in seconds. Kept for script compatibility.
-        #[arg(long)]
-        ttl_seconds: Option<u64>,
+        channel: Option<String>,
+        /// Optional grant syntax: read|readwrite[,namespace=ns][,agent=name][,session=id][,channel=name].
+        #[arg(long = "grant")]
+        grants: Vec<String>,
         /// Browser origin allowed to use this token. Repeat for multiple origins.
         #[arg(long = "origin")]
         origins: Vec<String>,
@@ -198,76 +145,44 @@ pub(super) async fn run(cli: &Cli, command: &AuthCommand) -> Result<RunOutcome> 
             }
             return Ok(RunOutcome { exit_code: None });
         }
-        AuthCommands::RootToken {
-            subject,
-            ttl,
-            ttl_seconds,
-            origins,
-        } => {
-            let secret = resolve_gateway_jwt_secret(cli)
-                .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
-            let ttl_seconds = resolve_token_ttl_seconds(ttl, *ttl_seconds)?;
-            mint_root_jwt(&secret, subject, ttl_seconds, origins)?
-        }
-        AuthCommands::NamespaceToken {
-            namespace,
-            subject,
-            ttl,
-            ttl_seconds,
-            origins,
-        } => {
-            let secret = resolve_gateway_jwt_secret(cli)
-                .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
-            let ttl_seconds = resolve_token_ttl_seconds(ttl, *ttl_seconds)?;
-            mint_namespace_jwt(&secret, namespace, subject, ttl_seconds, origins)?
-        }
-        AuthCommands::AgentToken {
-            namespace,
-            agent,
-            subject,
-            ttl,
-            ttl_seconds,
-            origins,
-        } => {
-            let secret = resolve_gateway_jwt_secret(cli)
-                .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
-            let ttl_seconds = resolve_token_ttl_seconds(ttl, *ttl_seconds)?;
-            mint_agent_jwt(&secret, namespace, agent, subject, ttl_seconds, origins)?
-        }
-        AuthCommands::SessionToken {
+        AuthCommands::LocalToken {
+            private_key_pem_file,
             namespace,
             agent,
             session,
-            subject,
-            ttl,
-            ttl_seconds,
-            origins,
-        } => {
-            let secret = resolve_gateway_jwt_secret(cli)
-                .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
-            let ttl_seconds = resolve_token_ttl_seconds(ttl, *ttl_seconds)?;
-            mint_session_jwt(
-                &secret,
-                namespace,
-                agent,
-                session,
-                subject,
-                ttl_seconds,
-                origins,
-            )?
-        }
-        AuthCommands::ChannelToken {
-            namespace,
             channel,
             subject,
             ttl,
             ttl_seconds,
+            grants,
             origins,
         } => {
-            let secret = resolve_gateway_jwt_secret(cli)
-                .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
             let ttl_seconds = resolve_token_ttl_seconds(ttl, *ttl_seconds)?;
-            mint_channel_jwt(&secret, namespace, channel, subject, ttl_seconds, origins)?
+            let private_key_pem = std::fs::read_to_string(private_key_pem_file).with_context(
+                || {
+                    format!(
+                        "Failed to read private key PEM file {}",
+                        private_key_pem_file.display()
+                    )
+                },
+            )?;
+            let parsed_grants = grants
+                .iter()
+                .map(|grant| parse_api_key_grant(grant))
+                .collect::<Result<Vec<_>>>()?;
+            mint_local_platform_access_jwt(
+                &private_key_pem,
+                subject,
+                ttl_seconds,
+                LocalPlatformTokenScope {
+                    namespace: namespace.as_deref(),
+                    agent: agent.as_deref(),
+                    session: session.as_deref(),
+                    channel: channel.as_deref(),
+                },
+                origins,
+                &parsed_grants,
+            )?
         }
         AuthCommands::ApiKey { command } => {
             run_api_key_command(cli, command).await?;

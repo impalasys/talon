@@ -6,6 +6,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
+use crate::control::security::platform_jwt;
 use crate::control::{keys, ns, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::manifests;
 use crate::harness::mcp::{list_tools_for_config, McpConnectionConfig, McpTool};
@@ -63,7 +64,7 @@ impl McpRegistry {
 
         let server = resolve_server_from_ancestry(cp, namespace, name).await?;
         let config =
-            config_for_resolution_namespace(McpConnectionConfig::try_from(&server)?, namespace);
+            config_for_resolution_namespace(McpConnectionConfig::try_from(&server)?, namespace)?;
         let allowlist = server
             .spec
             .as_ref()
@@ -123,9 +124,10 @@ fn filter_allowed_tools(tools: Vec<McpTool>, allowlist: &[String]) -> Vec<McpToo
 fn config_for_resolution_namespace(
     mut config: McpConnectionConfig,
     namespace: &str,
-) -> McpConnectionConfig {
+) -> Result<McpConnectionConfig> {
     config.namespace = Some(namespace.to_string());
-    config
+    config.jwt_issuer = Some(platform_jwt::issuer()?);
+    Ok(config)
 }
 
 #[cfg(test)]
@@ -133,6 +135,7 @@ mod tests {
     use super::{config_for_resolution_namespace, filter_allowed_tools, McpRegistry};
     use crate::control::{
         keys::{ResourceKey, ResourceList},
+        security::platform_jwt,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::manifests;
@@ -284,16 +287,20 @@ mod tests {
             namespace: Some("Tenant:conic:Customers".to_string()),
             mcp_server_name: Some("conic".to_string()),
             agent_name: None,
+            jwt_issuer: None,
             auth_broker: None,
         };
 
-        let scoped = config_for_resolution_namespace(config, "Tenant:conic:Customers:12");
+        let _env_lock = crate::test_support::env_lock();
+        let expected_issuer = platform_jwt::issuer().unwrap();
+        let scoped = config_for_resolution_namespace(config, "Tenant:conic:Customers:12").unwrap();
 
         assert_eq!(
             scoped.namespace.as_deref(),
             Some("Tenant:conic:Customers:12")
         );
         assert_eq!(scoped.mcp_server_name.as_deref(), Some("conic"));
+        assert_eq!(scoped.jwt_issuer.as_deref(), Some(expected_issuer.as_str()));
     }
 
     #[tokio::test]
@@ -315,6 +322,7 @@ mod tests {
                         namespace: Some("conic".to_string()),
                         mcp_server_name: Some("github".to_string()),
                         agent_name: None,
+                        jwt_issuer: None,
                         auth_broker: None,
                     },
                     tools: Vec::new(),
@@ -341,6 +349,7 @@ mod tests {
                         namespace: Some("conic".to_string()),
                         mcp_server_name: Some("docs".to_string()),
                         agent_name: None,
+                        jwt_issuer: None,
                         auth_broker: None,
                     },
                     tools: Vec::new(),

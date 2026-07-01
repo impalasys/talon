@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use anyhow::{anyhow, bail, Context, Result};
-use jsonwebtoken::{EncodingKey, Header};
 use prost::Message;
 use std::collections::{HashMap, HashSet};
 
 use crate::control::resources::ResourceStore;
+use crate::control::security::platform_jwt;
 use crate::control::{keys, ControlPlane, KeyValueStore, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{data_proto, external_proto, resources_proto};
 
@@ -708,16 +708,18 @@ impl ConnectorSecretExt for crate::gateway::rpc::generated::config::Secret {
 }
 
 fn mint_connector_callback_token(namespace: &str) -> Result<String> {
-    crate::control::security::install_jwt_crypto_provider();
-    let secret = std::env::var("GATEWAY_JWT_SECRET")
-        .or_else(|_| std::env::var("TALON_JWT_SECRET"))
-        .unwrap_or_else(|_| "local-dev-talon-jwt".to_string());
+    let issuer = platform_jwt::issuer()
+        .context("platform JWT issuer is required for connector callbacks")?;
+    let key =
+        platform_jwt::load_key().context("platform JWT key is required for connector callbacks")?;
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs();
     let claims = crate::gateway::auth::Claims {
+        iss: Some(issuer),
         sub: "connector-runtime".to_string(),
-        aud: "talon".to_string(),
+        aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+        iat: Some(now as usize),
         exp: now
             .checked_add(CONNECTOR_CALLBACK_TOKEN_TTL_SECONDS)
             .context("connector callback token ttl is too large")? as usize,
@@ -734,12 +736,8 @@ fn mint_connector_callback_token(namespace: &str) -> Result<String> {
             channel: None,
         }],
     };
-    jsonwebtoken::encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
-    )
-    .context("failed to sign connector callback token")
+    key.sign(&claims)
+        .context("failed to sign connector callback token")
 }
 
 fn condition(

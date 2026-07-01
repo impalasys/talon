@@ -62,7 +62,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/src/talon/dist/talon-node /usr/local/bin/talon-node
-RUN mkdir -p /data/talon && command -v talon-node >/dev/null
+COPY --from=builder /usr/src/talon/dist/talon-cli /usr/local/bin/talon-cli
+RUN mkdir -p /data/talon && command -v talon-node >/dev/null && command -v talon-cli >/dev/null
 
 ENV TALON_DATA_DIR=/data/talon
 ENV RUST_LOG=info

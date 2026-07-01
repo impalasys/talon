@@ -468,10 +468,7 @@ fn route_connector_ref(
     Ok(connector)
 }
 
-fn consumer_ref_namespace(
-    reference: &data_proto::ResourceRef,
-    default_namespace: &str,
-) -> String {
+fn consumer_ref_namespace(reference: &data_proto::ResourceRef, default_namespace: &str) -> String {
     reference
         .namespace
         .trim()

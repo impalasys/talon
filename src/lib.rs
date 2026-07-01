@@ -15,9 +15,13 @@ pub use crate::harness::knowledge::{KnowledgeBook, KvKnowledgeBook};
 
 pub mod test_support {
     use crate::control::keys::{ResourceKey, ResourceList};
+    #[cfg(test)]
+    use crate::control::security::platform_jwt;
     use crate::control::{KeyValueStore, MessagePublisher};
     use futures::stream;
     use std::collections::HashMap;
+    #[cfg(test)]
+    use std::ffi::OsString;
     use std::pin::Pin;
     use std::process::Command;
     use std::sync::{Mutex, OnceLock};
@@ -30,6 +34,106 @@ pub mod test_support {
 
     pub fn env_lock() -> tokio::sync::MutexGuard<'static, ()> {
         async_env_mutex().blocking_lock()
+    }
+
+    #[cfg(test)]
+    pub const TEST_PLATFORM_JWT_ISSUER: &str = "https://talon.example.com";
+
+    #[cfg(test)]
+    pub struct EnvVarGuard {
+        key: &'static str,
+        previous: Option<OsString>,
+    }
+
+    #[cfg(test)]
+    impl EnvVarGuard {
+        pub fn set(key: &'static str, value: &str) -> Self {
+            let previous = std::env::var_os(key);
+            unsafe {
+                std::env::set_var(key, value);
+            }
+            Self { key, previous }
+        }
+
+        pub fn remove(key: &'static str) -> Self {
+            let previous = std::env::var_os(key);
+            unsafe {
+                std::env::remove_var(key);
+            }
+            Self { key, previous }
+        }
+    }
+
+    #[cfg(test)]
+    impl Drop for EnvVarGuard {
+        fn drop(&mut self) {
+            unsafe {
+                if let Some(previous) = &self.previous {
+                    std::env::set_var(self.key, previous);
+                } else {
+                    std::env::remove_var(self.key);
+                }
+            }
+        }
+    }
+
+    #[cfg(test)]
+    pub struct PlatformJwtEnvGuard {
+        previous_private_key: Option<OsString>,
+        previous_issuer: Option<OsString>,
+        _guard: tokio::sync::MutexGuard<'static, ()>,
+    }
+
+    #[cfg(test)]
+    impl PlatformJwtEnvGuard {
+        pub async fn acquire() -> Self {
+            let guard = async_env_mutex().lock().await;
+            Self::from_guard(guard)
+        }
+
+        pub fn acquire_blocking() -> Self {
+            let guard = env_lock();
+            Self::from_guard(guard)
+        }
+
+        fn from_guard(guard: tokio::sync::MutexGuard<'static, ()>) -> Self {
+            let previous_private_key =
+                std::env::var_os(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
+            let previous_issuer = std::env::var_os(platform_jwt::TALON_JWT_ISSUER_ENV);
+            unsafe {
+                std::env::set_var(
+                    platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    platform_jwt::TEST_RSA_PRIVATE_KEY,
+                );
+                std::env::set_var(platform_jwt::TALON_JWT_ISSUER_ENV, TEST_PLATFORM_JWT_ISSUER);
+            }
+            Self {
+                previous_private_key,
+                previous_issuer,
+                _guard: guard,
+            }
+        }
+    }
+
+    #[cfg(test)]
+    impl Drop for PlatformJwtEnvGuard {
+        fn drop(&mut self) {
+            unsafe {
+                if let Some(previous_private_key) = &self.previous_private_key {
+                    std::env::set_var(
+                        platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                        previous_private_key,
+                    );
+                } else {
+                    std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
+                }
+                if let Some(previous_issuer) = &self.previous_issuer {
+                    std::env::set_var(platform_jwt::TALON_JWT_ISSUER_ENV, previous_issuer);
+                } else {
+                    std::env::remove_var(platform_jwt::TALON_JWT_ISSUER_ENV);
+                }
+            }
+        }
     }
 
     #[derive(Default)]

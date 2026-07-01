@@ -3,23 +3,35 @@ title: Authentication and Access
 sidebar_position: 2
 ---
 
-Talon supports multiple gateway authentication modes.
+Talon gateway authentication is based on Talon-issued platform JWTs.
 
-## Gateway auth modes
+## Gateway Auth
 
-The gateway can run in one of these modes:
+`TALON_JWT_PRIVATE_KEY_PEM` is required at startup. The gateway accepts
+platform-signed JWT access tokens, Talon signs issued tokens with that RSA
+private key, and the gateway publishes the corresponding public key through
+JWKS. JWT `iss` defaults to `https://talon.impala.systems`; set
+`TALON_JWT_ISSUER` to a non-empty HTTPS URL to override it. Production
+operators should master-authenticate through OIDC trust entries and exchange
+accepted identities for Talon access tokens.
 
-- **open**: no auth configured
-- **password**: Basic auth with a shared password
-- **token**: bearer token auth
-- **JWT**: bearer JWTs with optional namespace, agent, session, and channel scoping
+Local development can mint a short-lived root access token directly from a test
+private key:
 
-At startup, the server chooses auth from environment in this order:
+```bash
+talon-cli auth local-token \
+  --private-key-pem-file ./src/control/security/test_rsa_private_key.pem
+```
 
-1. `GATEWAY_JWT_SECRET`
-2. `GATEWAY_TOKEN`
-3. `GATEWAY_PASSWORD`
-4. open mode
+Use that token only in local environments, for example to create the first API
+key against a local stack:
+
+```bash
+BOOTSTRAP_TOKEN=$(talon-cli auth local-token \
+  --private-key-pem-file ./src/control/security/test_rsa_private_key.pem)
+talon-cli --gateway http://localhost:50051 --token "$BOOTSTRAP_TOKEN" \
+  auth api-key create --name local-root --grant readwrite
+```
 
 ## JWT scoping
 
@@ -35,6 +47,24 @@ JWTs without resource scope are root tokens and can access the gateway wherever 
 
 That makes JWT mode the most expressive option for browser or delegated access.
 
+Platform-signed Talon gateway access tokens use:
+
+- `iss`: `TALON_JWT_ISSUER`, or `https://talon.impala.systems` by default
+- `aud`: `talon.impala.systems`
+- `alg`: `RS256`
+
+Talon publishes the public key at `/.well-known/jwks.json` and serves
+OAuth/OIDC metadata from `/.well-known/oauth-authorization-server`,
+`/.well-known/openid-configuration`, and
+`/.well-known/oauth-protected-resource`. The JWKS only proves that a token was
+signed by Talon; authorization still depends on the audience, expiry,
+scope, and grants.
+
+MCP auth broker assertions are separated by audience. They use
+`aud: "mcps.talon.impala.systems"` so brokers can verify that an assertion came
+from Talon without receiving a token that can authenticate back to the Talon
+gateway.
+
 Talon-issued JWTs can also carry structured `grants`. New tokens use the
 `grants` claim, and Talon continues to accept legacy `talon:grants`. Grants
 express `read` or `readwrite` access with optional namespace, agent, session, or
@@ -48,9 +78,9 @@ not accepted on normal gateway APIs. Instead, clients exchange an API key with
 `AuthService.ExchangeApiKey` and receive a short-lived Talon JWT whose grant is
 the same as, or narrower than, the API key's stored grants.
 
-API key lifecycle management is root-only. A root JWT can create, list, and
-revoke keys through `AuthService`; scoped JWTs, OIDC grant JWTs, and Basic auth
-cannot manage API keys. Revocation stops future exchanges immediately, while
+API key lifecycle management is root-only. A root platform JWT can create, list,
+and revoke keys through `AuthService`; scoped JWTs and OIDC grant JWTs cannot
+manage API keys. Revocation stops future exchanges immediately, while
 already-issued JWTs remain valid until their short expiry.
 
 Use API keys only in trusted backends, CLIs, workers, or CI jobs. Browser clients
@@ -69,25 +99,20 @@ TTLs and resource scopes.
 
 `talon-cli` supports:
 
-- `--password`
 - `--token`
-- `--jwt-secret`
+- `--api-key`
 
-Use the `auth` command to mint scoped tokens from `TALON_JWT_SECRET`, `GATEWAY_JWT_SECRET`, or `--jwt-secret`:
+Use `auth local-token` only for local bootstrap from a PEM file:
 
-- `auth root-token`
-- `auth namespace-token --namespace <ns>`
-- `auth agent-token --namespace <ns> --agent <agent>`
-- `auth session-token --namespace <ns> --agent <agent> --session <session-id>`
-- `auth channel-token --namespace <ns> --channel <channel>`
+- `auth local-token --private-key-pem-file <path>`
 - `auth api-key create --name <name> --grant readwrite,namespace=<ns>`
 - `auth api-key list`
 - `auth api-key revoke <id>`
 
-All token commands accept `--ttl <duration>` and repeatable `--origin <origin>`
-flags. The default TTL is `5min`; examples include `1wk`, `3mo`, and `1yr`.
-`--ttl-seconds <seconds>` remains available for scripts. Origin flags add
-`talon:origins` to the minted JWT.
+`auth local-token` accepts `--ttl <duration>`, `--ttl-seconds <seconds>`,
+repeatable `--origin <origin>`, optional resource scopes, and optional
+`--grant` entries. Omit scope and grants to mint the root token needed for
+local API-key bootstrap.
 
 Normal CLI commands also accept `--api-key` or `TALON_API_KEY`; the CLI exchanges
 the key for a cached short-lived JWT before calling the gateway.

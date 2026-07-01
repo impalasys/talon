@@ -37,15 +37,7 @@ fn gateway_addr() -> String {
 }
 
 fn select_auth_config() -> AuthConfig {
-    if let Ok(secret) = std::env::var("GATEWAY_JWT_SECRET") {
-        AuthConfig::jwt(secret)
-    } else if let Ok(token) = std::env::var("GATEWAY_TOKEN") {
-        AuthConfig::tokens(vec![token])
-    } else if let Ok(password) = std::env::var("GATEWAY_PASSWORD") {
-        AuthConfig::password(password)
-    } else {
-        AuthConfig::open()
-    }
+    AuthConfig::jwt_platform()
 }
 
 fn worker_session_concurrency() -> usize {
@@ -231,6 +223,8 @@ async fn join_unit_with_grace(task: &mut JoinHandle<()>) {
 
 async fn run() -> Result<()> {
     let config = Arc::new(Config::load_default()?);
+    talon::control::security::platform_jwt::load_key()?;
+    talon::control::security::platform_jwt::issuer()?;
     let cp = Arc::new(build_control_plane(&config).await?);
     let scheduler_authenticator =
         Arc::new(SchedulerRequestAuthenticator::from_config(&config).await?);
@@ -299,8 +293,10 @@ async fn run() -> Result<()> {
         )
         .await?,
     ];
-    let gateway = Gateway::new(
-        Some(select_auth_config()),
+    let auth_config = select_auth_config();
+    let gateway = Gateway::new_with_trust(
+        Some(auth_config),
+        config.trust.clone(),
         Arc::clone(&cp.kv),
         Arc::clone(&cp.pubsub),
         Arc::clone(&cp.scheduler),

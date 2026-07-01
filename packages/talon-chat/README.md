@@ -139,16 +139,18 @@ const gatewayClient = createTalonClient({
 />
 ```
 
-For untrusted frontends, mint a short-lived channel token on your backend and pass it as a Bearer token:
+For local development with untrusted frontends, mint a short-lived channel token from the platform private PEM and pass it as a Bearer token:
 
 ```bash
-talon-cli --jwt-secret "$GATEWAY_JWT_SECRET" auth channel-token \
+TALON_JWT_ISSUER=https://talon.localhost \
+talon-cli auth local-token \
+  --private-key-pem-file ./talon-jwt-private-key.pem \
   --namespace support \
   --channel incident-room \
   --ttl-seconds 900
 ```
 
-The token is scoped to channel message APIs for that namespace/channel only.
+In production, mint frontend tokens through your trusted backend after OIDC-authenticated authorization.
 
 ## Storybook and Chromatic
 

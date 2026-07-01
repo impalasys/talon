@@ -27,9 +27,13 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 GATEWAY_GRPC_PORT = int(os.environ.get("GRPC_PORT", "50051"))
 MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
 READY_PORT = int(os.environ.get("READY_PORT", os.environ.get("E2E_READY_PORT", "8090")))
-E2E_GATEWAY_JWT_SECRET = os.environ.get(
-    "TALON_E2E_GATEWAY_JWT_SECRET",
-    "talon-e2e-root-secret",
+E2E_JWT_ISSUER = os.environ.get(
+    "TALON_E2E_JWT_ISSUER",
+    "https://talon-e2e.example.com",
+)
+E2E_JWT_PRIVATE_KEY_PEM = os.environ.get(
+    "TALON_E2E_JWT_PRIVATE_KEY_PEM",
+    (REPO_ROOT / "src/control/security/test_rsa_private_key.pem").read_text(),
 )
 E2E_AUTH_FILE = Path(
     os.environ.get(
@@ -88,16 +92,60 @@ def cleanup_temp_dir(temp_dir: Path):
     if temp_dir.exists():
         shutil.rmtree(temp_dir, ignore_errors=True)
 
+def write_e2e_private_key_file(grpc_port):
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        prefix=f"talon-e2e-platform-jwt-key-{grpc_port}-",
+        suffix=".pem",
+        delete=False,
+    ) as file:
+        file.write(E2E_JWT_PRIVATE_KEY_PEM)
+        path = Path(file.name)
+    try:
+        path.chmod(0o600)
+    except OSError:
+        pass
+    return path
+
+def create_bootstrap_token(grpc_port):
+    cli = get_binary_path("talon_cli")
+    key_file = write_e2e_private_key_file(grpc_port)
+    try:
+        result = subprocess.run(
+            [
+                cli,
+                "auth",
+                "local-token",
+                "--private-key-pem-file",
+                str(key_file),
+                "--subject",
+                "playwright-bootstrap",
+            ],
+            env={**os.environ, "TALON_JWT_ISSUER": E2E_JWT_ISSUER},
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    finally:
+        key_file.unlink(missing_ok=True)
+    if result.returncode != 0:
+        raise RuntimeError(
+            "Failed to mint Playwright bootstrap token\n"
+            f"stdout:\n{result.stdout}\n"
+            f"stderr:\n{result.stderr}"
+        )
+    token = result.stdout.strip()
+    if not token:
+        raise RuntimeError("Bootstrap token command printed no token")
+    return token
+
 def create_api_key(grpc_port):
     cli = get_binary_path("talon_cli")
     env = os.environ.copy()
     for key in (
         "TALON_API_KEY",
         "TALON_AUTH_FILE",
-        "TALON_GATEWAY_TOKEN",
-        "GATEWAY_TOKEN",
-        "TALON_GATEWAY_PASSWORD",
-        "GATEWAY_PASSWORD",
     ):
         env.pop(key, None)
     env["TALON_AUTH_FILE"] = str(
@@ -108,8 +156,8 @@ def create_api_key(grpc_port):
             cli,
             "--gateway",
             f"http://127.0.0.1:{grpc_port}",
-            "--jwt-secret",
-            E2E_GATEWAY_JWT_SECRET,
+            "--token",
+            create_bootstrap_token(grpc_port),
             "auth",
             "api-key",
             "create",
@@ -202,7 +250,8 @@ def main():
     env["RUST_LOG"] = "info"
     env["GCP_PROJECT_ID"] = "talon-local"
     env["NOVITA_API_KEY"] = "test-dummy-key"
-    env["GATEWAY_JWT_SECRET"] = E2E_GATEWAY_JWT_SECRET
+    env["TALON_JWT_PRIVATE_KEY_PEM"] = E2E_JWT_PRIVATE_KEY_PEM
+    env["TALON_JWT_ISSUER"] = E2E_JWT_ISSUER
     temp_dir = Path(tempfile.mkdtemp(prefix="talon-e2e-"))
     
     env["GRPC_ADDR"] = f"0.0.0.0:{GATEWAY_GRPC_PORT}"
