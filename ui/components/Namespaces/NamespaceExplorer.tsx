@@ -1,517 +1,51 @@
-import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
-import { Box, Activity, ChevronRight, ChevronDown, Folder, Cpu, MessageSquare, Trash2, PlusCircle, Plug, Clock3, FileText, Hash, Radio, Layers3, Package, ShieldCheck, Container } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-import { getGatewayClient } from '../../lib/grpc';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Button } from "../tailgrids/core/button";
-import { DropdownMenu as Dropdown, DropdownMenuTrigger as DropdownTrigger, DropdownMenuContent as DropdownMenu, DropdownMenuItem as DropdownItem } from "../tailgrids/core/dropdown";
-import { Dialog as Modal, DialogOverlay, DialogContent as ModalContent, DialogHeader as ModalHeader, DialogBody as ModalBody, DialogFooter as ModalFooter, DialogTitle } from "../tailgrids/core/dialog";
-import { Input } from "../tailgrids/core/input";
-import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "../tailgrids/core/select";
-import { Label } from "react-aria-components";
-
-function parseSessionDate(id: string) {
-  // Try UUIDv7
-  if (id && id.length === 36 && id.charAt(8) === '-') {
-    const hex = id.substring(0, 13).replace('-', '');
-    const time = parseInt(hex, 16);
-    return new Date(time).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
-  
-  // Try ULID
-  if (id && id.length === 26) {
-    const ENCODING = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-    let time = 0;
-    for (let i = 0; i < 10; i++) {
-      const val = ENCODING.indexOf(id.charAt(i).toUpperCase());
-      if (val === -1) return id.substring(0, 8);
-      time = (time * 32) + val;
-    }
-    return new Date(time).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
-  
-  return id ? id.substring(0, 8) : 'Unknown';
-}
-
-function parseSessionTimestamp(id: string): number | null {
-  // UUIDv7
-  if (id && id.length === 36 && id.charAt(8) === '-') {
-    const hex = id.substring(0, 13).replace('-', '');
-    const time = parseInt(hex, 16);
-    return Number.isNaN(time) ? null : time;
-  }
-
-  // ULID
-  if (id && id.length === 26) {
-    const ENCODING = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-    let time = 0;
-    for (let i = 0; i < 10; i++) {
-      const val = ENCODING.indexOf(id.charAt(i).toUpperCase());
-      if (val === -1) return null;
-      time = (time * 32) + val;
-    }
-    return time;
-  }
-
-  return null;
-}
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-export type SelectionType =
-  | 'namespace'
-  | 'agent'
-  | 'session'
-  | 'channel'
-  | 'channel-subscription'
-  | 'workflow'
-  | 'schedule'
-  | 'template'
-  | 'deployment'
-  | 'deployment-replica'
-  | 'sandbox-class'
-  | 'sandbox-policy'
-  | 'sandbox'
-  | 'mcp-server'
-  | 'knowledge';
-
-export type Selection = {
-  type: SelectionType;
-  ns: string;
-  agent?: string;
-  channel?: string;
-  sessionId?: string;
-  resourceName?: string;
-  fullPath: string;
-};
-
-export type TreeNode = {
-  id: string;
-  name: string;
-  selection: Selection;
-  badge?: string;
-  children: { [key: string]: TreeNode };
-};
-
-type ExplorerMcpServer = {
-  metadata?: {
-    name?: string;
-    namespace?: string;
-    labels?: Record<string, string>;
-  };
-  spec?: {
-    transport?: string;
-    target?: string;
-    disabled?: boolean;
-    authBroker?: {
-      kind?: string;
-    };
-    policy?: {
-      tools?: {
-        allowlist?: string[];
-      };
-    };
-  };
-};
-
-type EffectiveMcpServer = {
-  server: ExplorerMcpServer;
-  originNamespace: string;
-  badge?: string;
-};
-
-type ExplorerSchedule = {
-  name?: string;
-  ns?: string;
-  labels?: Record<string, string>;
-  spec?: {
-    kind?: string;
-    enabled?: boolean;
-  };
-  status?: {
-    nextRunAt?: bigint | number | string;
-    lastError?: string;
-  };
-};
-
-type ExplorerKnowledge = {
-  metadata?: {
-    name?: string;
-    namespace?: string;
-    labels?: Record<string, string>;
-  };
-  spec?: {
-    path?: string;
-    content?: string;
-  };
-};
-
-type ExplorerControlResource = {
-  kind: string;
-  selectionType: SelectionType;
-  name?: string;
-  ns?: string;
-  badge?: string;
-  sortPrefix: string;
-};
-
-type ExplorerChannel = {
-  name?: string;
-  ns?: string;
-  title?: string;
-  status?: string;
-  updatedAt?: bigint | number | string;
-  updated_at?: bigint | number | string;
-  labels?: Record<string, string>;
-};
-
-type ExplorerChannelSubscription = {
-  name?: string;
-  ns?: string;
-  channel?: string;
-  agent?: string;
-  enabled?: boolean;
-  trigger?: string;
-  replyMode?: string;
-  reply_mode?: string;
-};
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
+import { Box, ChevronRight, Cpu, Hash, PlusCircle, Radio, Trash2 } from 'lucide-react';
+import { Label } from 'react-aria-components';
+import { Button } from '../tailgrids/core/button';
+import {
+  DialogBody as ModalBody,
+  DialogContent as ModalContent,
+  DialogFooter as ModalFooter,
+  DialogHeader as ModalHeader,
+  DialogOverlay,
+} from '../tailgrids/core/dialog';
+import {
+  DropdownMenu as Dropdown,
+  DropdownMenuContent as DropdownMenu,
+  DropdownMenuItem as DropdownItem,
+  DropdownMenuTrigger as DropdownTrigger,
+} from '../tailgrids/core/dropdown';
+import { Input } from '../tailgrids/core/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../tailgrids/core/select';
+import { useExplorerQueries } from '../../hooks/useExplorerQueries';
+import { useExplorerTree, type TreeNode } from '../../hooks/useExplorerTree';
+import {
+  RESOURCE_KIND_BY_SELECTION,
+  SYSTEM_NAMESPACE,
+  selectionExpansionIds,
+  type Selection,
+} from '../../lib/selection';
+import {
+  createNamespace,
+  createResource,
+  createSession,
+  deleteNamespace,
+  deleteResource,
+  deleteSession,
+  listResources,
+} from '../../lib/talon/client';
+import { talonQueryKeys, type TalonQueryScope } from '../../lib/talon/queryKeys';
+import {
+  parseJsonObject,
+  resourceMetadata,
+  resourceSpec,
+  type ResourceEnvelope,
+} from '../../lib/talon/resourceMappers';
+import { cn } from '../../utils/cn';
+import { ExplorerTree } from './ExplorerTree';
 
 const API_VERSION = 'talon.impalasys.com/v1';
-const SYSTEM_NAMESPACE = 'Sys';
-
-const RESOURCE_KIND_BY_SELECTION: Partial<Record<SelectionType, string>> = {
-  agent: 'Agent',
-  channel: 'Channel',
-  'channel-subscription': 'ChannelSubscription',
-  workflow: 'Workflow',
-  schedule: 'Schedule',
-  template: 'Template',
-  deployment: 'Deployment',
-  'deployment-replica': 'DeploymentReplica',
-  'sandbox-class': 'SandboxClass',
-  'sandbox-policy': 'SandboxPolicy',
-  sandbox: 'Sandbox',
-  'mcp-server': 'McpServer',
-  knowledge: 'Knowledge',
-};
-
-type ResourceEnvelope = {
-  apiVersion?: string;
-  kind?: string;
-  metadata?: {
-    name?: string;
-    namespace?: string;
-    labels?: Record<string, string>;
-  };
-  spec?: {
-    kind?: {
-      case?: string;
-      value?: any;
-    };
-  };
-  status?: {
-    kind?: {
-      case?: string;
-      value?: any;
-    };
-  };
-};
-
-function resourceSpec(resource: ResourceEnvelope, caseName: string) {
-  return resource.spec?.kind?.case === caseName ? resource.spec.kind.value || {} : {};
-}
-
-function resourceStatus(resource: ResourceEnvelope, caseName: string) {
-  return resource.status?.kind?.case === caseName ? resource.status.kind.value || {} : {};
-}
-
-function resourcePhase(resource: ResourceEnvelope, caseName: string) {
-  return resourceStatus(resource, caseName).phase || '';
-}
-
-function parseJsonObject(value: string | undefined) {
-  if (!value) return {};
-  try {
-    const parsed = JSON.parse(value);
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-async function listResourceKind(ns: string, kind: string, options?: { signal?: AbortSignal }) {
-  const response = await getGatewayClient().resources.list({ ns, kind }, options);
-  return (response.resources || []) as ResourceEnvelope[];
-}
-
-function resourceMetadata(name: string, namespace: string) {
-  return {
-    name,
-    namespace,
-    labels: {},
-    annotations: {},
-    ownerReferences: [],
-    finalizers: [],
-    generation: BigInt(0),
-    resourceVersion: '',
-    uid: '',
-  };
-}
-
-function channelFromResource(resource: ResourceEnvelope): ExplorerChannel {
-  const spec = resourceSpec(resource, 'channel');
-  const status = resourceStatus(resource, 'channel');
-  return {
-    name: resource.metadata?.name,
-    ns: resource.metadata?.namespace,
-    title: spec.title,
-    status: status.phase,
-    updatedAt: status.updatedAt,
-    labels: resource.metadata?.labels,
-  };
-}
-
-function channelSubscriptionFromResource(resource: ResourceEnvelope): ExplorerChannelSubscription {
-  const spec = resourceSpec(resource, 'channelSubscription');
-  return {
-    name: resource.metadata?.name,
-    ns: resource.metadata?.namespace,
-    channel: spec.channel,
-    agent: spec.agent,
-    enabled: spec.enabled,
-    trigger: spec.trigger,
-    replyMode: spec.replyMode,
-  };
-}
-
-function scheduleFromResource(resource: ResourceEnvelope): ExplorerSchedule {
-  return {
-    name: resource.metadata?.name,
-    ns: resource.metadata?.namespace,
-    labels: resource.metadata?.labels,
-    spec: resourceSpec(resource, 'schedule'),
-    status: resourceStatus(resource, 'schedule'),
-  };
-}
-
-function knowledgeFromResource(resource: ResourceEnvelope): ExplorerKnowledge {
-  return {
-    metadata: resource.metadata,
-    spec: resourceSpec(resource, 'knowledge'),
-  };
-}
-
-function mcpServerFromResource(resource: ResourceEnvelope): ExplorerMcpServer {
-  return {
-    metadata: resource.metadata,
-    spec: resourceSpec(resource, 'mcpServer'),
-  };
-}
-
-function templateSummary(resource: ResourceEnvelope) {
-  const spec = resourceSpec(resource, 'template');
-  const targetKind = spec.kind || 'Resource';
-  const targetName = spec.metadata?.name || 'unnamed';
-  const targetSpec = parseJsonObject(spec.specJson);
-  const prompt = typeof targetSpec.systemPrompt === 'string' ? targetSpec.systemPrompt.trim() : '';
-  return prompt ? `${targetKind}/${targetName}: ${prompt.slice(0, 120)}` : `${targetKind}/${targetName}`;
-}
-
-function controlResourceFromResource(
-  resource: ResourceEnvelope,
-  kind: string,
-  selectionType: SelectionType,
-  sortPrefix: string,
-): ExplorerControlResource {
-  const name = resource.metadata?.name || `unknown-${kind.toLowerCase()}`;
-  const ns = resource.metadata?.namespace || '';
-  let badge: string | undefined;
-
-  switch (kind) {
-    case 'Template': {
-      const spec = resourceSpec(resource, 'template');
-      badge = spec.kind || 'template';
-      break;
-    }
-    case 'Deployment': {
-      const spec = resourceSpec(resource, 'deployment');
-      badge = resourcePhase(resource, 'deployment') || `${spec.templates?.length || 0} templates`;
-      break;
-    }
-    case 'DeploymentReplica': {
-      const spec = resourceSpec(resource, 'deploymentReplica');
-      const status = resourceStatus(resource, 'deploymentReplica');
-      badge = status.conflicts?.length ? `${status.conflicts.length} conflicts` : (spec.targetNamespace || 'replica');
-      break;
-    }
-    case 'SandboxClass': {
-      const spec = resourceSpec(resource, 'sandboxClass');
-      badge = spec.provider || 'provider';
-      break;
-    }
-    case 'SandboxPolicy': {
-      const spec = resourceSpec(resource, 'sandboxPolicy');
-      badge = spec.classRef?.name || 'policy';
-      break;
-    }
-    case 'Sandbox': {
-      const status = resourceStatus(resource, 'sandbox');
-      badge = status.lease?.ownerSessionId ? 'leased' : (status.phase || 'sandbox');
-      break;
-    }
-    default:
-      badge = kind;
-  }
-
-  return { kind, selectionType, name, ns, badge, sortPrefix };
-}
-
-function namespaceLabel(labels?: Record<string, string>) {
-  return labels?.workspace_name || labels?.workspace || labels?.display_name || labels?.name;
-}
-
-function nodeSortWeight(node: TreeNode) {
-  switch (node.selection.type) {
-    case 'namespace':
-      return 0;
-    case 'agent':
-      return 1;
-    case 'channel':
-      return 2;
-    case 'channel-subscription':
-      return 3;
-    case 'mcp-server':
-      return 4;
-    case 'sandbox':
-      return 5;
-    case 'sandbox-policy':
-      return 6;
-    case 'sandbox-class':
-      return 7;
-    case 'deployment':
-      return 8;
-    case 'deployment-replica':
-      return 9;
-    case 'template':
-      return 10;
-    case 'schedule':
-      return 11;
-    case 'session':
-      return 12;
-    default:
-      return 20;
-  }
-}
-
-function compareTreeNodes(a: TreeNode, b: TreeNode) {
-  const weightDiff = nodeSortWeight(a) - nodeSortWeight(b);
-  if (weightDiff !== 0) return weightDiff;
-
-  if (a.selection.type === 'session' && b.selection.type === 'session') {
-    const aTime = parseSessionTimestamp(a.selection.sessionId || '');
-    const bTime = parseSessionTimestamp(b.selection.sessionId || '');
-    if (aTime !== null && bTime !== null && aTime !== bTime) {
-      return bTime - aTime;
-    }
-  }
-
-  return a.name.localeCompare(b.name);
-}
-
-function namespaceAncestors(ns: string) {
-  if (!ns) return [''];
-  const parts = ns.split(':');
-  const ancestors = [''];
-  for (let i = 0; i < parts.length; i++) {
-    ancestors.push(parts.slice(0, i + 1).join(':'));
-  }
-  return ancestors;
-}
-
-function namespaceResolutionAncestry(ns: string) {
-  if (!ns) return [];
-  const parts = ns.split(':').filter(Boolean);
-  return parts.map((_, index) => parts.slice(0, parts.length - index).join(':'));
-}
-
-function collectMcpLookupNamespaceIds(expanded: Set<string>, selectedNode: Selection | null) {
-  const namespaces = new Set<string>();
-  for (const ns of collectExpandedNamespaceIds(expanded, selectedNode)) {
-    for (const candidate of namespaceResolutionAncestry(ns)) {
-      namespaces.add(candidate);
-    }
-  }
-  return namespaces;
-}
-
-function effectiveMcpServersForNamespace(
-  ns: string,
-  serversByNamespace: Record<string, ExplorerMcpServer[]>,
-): EffectiveMcpServer[] {
-  const ancestry = namespaceResolutionAncestry(ns);
-  const inheritedNames = new Set<string>();
-
-  for (const ancestor of ancestry.slice(1)) {
-    for (const server of serversByNamespace[ancestor] || []) {
-      const name = server.metadata?.name;
-      if (name) inheritedNames.add(name);
-    }
-  }
-
-  const effective = new Map<string, EffectiveMcpServer>();
-  for (const originNamespace of ancestry) {
-    for (const server of serversByNamespace[originNamespace] || []) {
-      const name = server.metadata?.name;
-      if (!name || effective.has(name)) continue;
-      effective.set(name, {
-        server,
-        originNamespace,
-        badge: originNamespace === ns
-          ? (inheritedNames.has(name) ? 'override' : undefined)
-          : `from ${originNamespace}`,
-      });
-    }
-  }
-
-  return Array.from(effective.values()).sort((left, right) =>
-    (left.server.metadata?.name || '').localeCompare(right.server.metadata?.name || ''),
-  );
-}
-
-function selectionExpansionIds(selection: Selection | null) {
-  if (!selection?.ns) return [];
-  const ids = namespaceAncestors(selection.ns);
-  if (selection.agent) {
-    ids.push(`${selection.ns}:${selection.agent}`);
-  }
-  if (selection.channel) {
-    ids.push(`${selection.ns}:channel:${selection.channel}`);
-  }
-  return ids;
-}
-
-function collectExpandedNamespaceIds(expanded: Set<string>, selectedNode: Selection | null) {
-  const namespaces = new Set<string>();
-
-  for (const id of expanded) {
-    if (id) {
-      namespaces.add(id);
-    }
-  }
-
-  if (selectedNode?.ns) {
-    for (const ns of selectionExpansionIds(selectedNode)) {
-      if (ns) {
-        namespaces.add(ns);
-      }
-    }
-  }
-
-  return namespaces;
-}
 
 function SectionShell({
   icon,
@@ -520,7 +54,6 @@ function SectionShell({
   collapsed,
   onToggle,
   grow = false,
-  height,
 }: {
   icon: ReactNode;
   title: string;
@@ -528,567 +61,82 @@ function SectionShell({
   collapsed: boolean;
   onToggle: () => void;
   grow?: boolean;
-  height?: number;
 }) {
   return (
     <section
-      className={cn("flex min-h-0 flex-col overflow-hidden", grow && "flex-1", !grow && "flex-none")}
-      style={!grow && !collapsed && height ? { height: `${height}px` } : undefined}
+      className={cn('flex min-h-0 flex-col overflow-hidden', grow && 'flex-1', !grow && 'flex-none')}
     >
       <button
         type="button"
         onClick={onToggle}
         className="flex items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-white/[0.04]"
       >
-        <ChevronRight className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", !collapsed && "rotate-90")} />
+        <ChevronRight className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform', !collapsed && 'rotate-90')} />
         {icon}
         <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{title}</h3>
       </button>
-      {!collapsed && (
-        <div className={cn("min-h-0 flex-1 overflow-y-auto px-4 pb-4 custom-scrollbar", !grow && "flex-shrink-0")}>
+      {!collapsed ? (
+        <div className={cn('min-h-0 flex-1 overflow-y-auto px-4 pb-4 custom-scrollbar', !grow && 'flex-shrink-0')}>
           {children}
         </div>
-      )}
+      ) : null}
     </section>
   );
 }
 
-function SplitHandle({ onMouseDown }: { onMouseDown: (event: React.MouseEvent<HTMLButtonElement>) => void }) {
-  return (
-    <button
-      type="button"
-      aria-label="Resize panels"
-      onMouseDown={onMouseDown}
-      className="flex h-3 flex-none cursor-row-resize items-center justify-center border-y border-border/70 hover:bg-white/[0.035]"
-    >
-      <span className="h-px w-10 rounded-full bg-white/10" />
-    </button>
-  );
+function namespaceParent(ns: string) {
+  const parts = ns.split(':').filter(Boolean);
+  parts.pop();
+  return parts.join(':');
 }
 
-function ResourceList({
-  items,
-  emptyState,
-  selectedId,
+function templateOptionId(template: ResourceEnvelope) {
+  return `${template.metadata?.namespace || SYSTEM_NAMESPACE}/${template.metadata?.name || ''}`;
+}
+
+export function NamespaceExplorer({
+  isConnected,
+  selectedNode,
   onSelect,
+  queryScope,
 }: {
-  items: Array<{
-    id: string;
-    name: string;
-    subtitle?: string;
-    tag?: string;
-    tone?: 'default' | 'success' | 'warning';
-    selection: Selection;
-  }>;
-  emptyState: string;
-  selectedId: string | null;
+  isConnected: boolean;
+  selectedNode: Selection | null;
   onSelect: (selection: Selection) => void;
+  queryScope: TalonQueryScope;
 }) {
-  if (items.length === 0) {
-    return <div className="py-3 text-center text-[11px] text-muted-foreground">{emptyState}</div>;
-  }
-
-  return (
-    <div className="space-y-2">
-      {items.map((item) => (
-        <button
-          type="button"
-          key={item.id}
-          onClick={() => onSelect(item.selection)}
-          className={cn(
-            "w-full rounded-2xl border px-3 py-2.5 text-left transition-colors",
-            selectedId === item.id
-              ? "border-border/80 bg-white/[0.05] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
-              : "border-border/70 bg-white/[0.028] hover:bg-white/[0.045]"
-          )}
-        >
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="truncate text-[13px] font-medium text-foreground">{item.name}</div>
-              {item.subtitle && (
-                <div className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">{item.subtitle}</div>
-              )}
-            </div>
-            {item.tag && (
-              <span
-                className={cn(
-                  "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                  item.tone === 'success' && "border-emerald-500/14 bg-emerald-500/8 text-emerald-300",
-                  item.tone === 'warning' && "border-amber-500/14 bg-amber-500/8 text-amber-300",
-                  item.tone !== 'success' && item.tone !== 'warning' && "border-border/70 bg-white/[0.03] text-muted-foreground",
-                )}
-              >
-                {item.tag}
-              </span>
-            )}
-          </div>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function NamespaceNode({ 
-  node, 
-  level, 
-  selectedNodeId, 
-  onSelect, 
-  onContextMenu,
-  expanded, 
-  toggleExpanded 
-}: { 
-  node: TreeNode, 
-  level: number,
-  selectedNodeId: string | null,
-  onSelect: (selection: Selection) => void,
-  onContextMenu: (e: React.MouseEvent, node: TreeNode) => void,
-  expanded: Set<string>,
-  toggleExpanded: (id: string) => void
-}) {
-  const childNodes = Object.values(node.children).sort(compareTreeNodes);
-  const hasChildrenOrCanHaveChildren = ![
-    'session',
-    'schedule',
-    'knowledge',
-    'mcp-server',
-    'channel-subscription',
-    'workflow',
-    'template',
-    'deployment-replica',
-    'sandbox-class',
-    'sandbox-policy',
-    'sandbox',
-  ].includes(node.selection.type);
-  const isExpanded = expanded.has(node.id);
-  const isSelected = selectedNodeId === node.id;
-
-  if (level === -1) {
-    return (
-      <div className="space-y-0.5 relative">
-        {childNodes.map(child => (
-          <NamespaceNode 
-            key={child.id} 
-            node={child} 
-            level={0} 
-            selectedNodeId={selectedNodeId} 
-            onSelect={onSelect} 
-            onContextMenu={onContextMenu}
-            expanded={expanded} 
-            toggleExpanded={toggleExpanded} 
-          />
-        ))}
-      </div>
-    );
-  }
-
-  const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation(); 
-    if (hasChildrenOrCanHaveChildren) toggleExpanded(node.id);
-  };
-
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onSelect(node.selection);
-  };
-
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onContextMenu(e, node);
-  };
-
-  return (
-    <div>
-      <div 
-        className={cn(
-          "flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-[13px] font-medium select-none group transition-colors hover:bg-white/[0.04]",
-          isSelected ? "border border-border/70 bg-white/[0.055] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]" : "text-muted-foreground"
-        )}
-        style={{ paddingLeft: `${level * 16 + 8}px` }}
-        onClick={handleClick}
-        onContextMenu={handleContextMenu}
-      >
-         <div 
-           className={cn("p-0.5 rounded-sm flex items-center justify-center transition-colors", 
-            hasChildrenOrCanHaveChildren && "hover:bg-white/[0.05]",
-            !hasChildrenOrCanHaveChildren && "opacity-0 cursor-default"
-           )}
-           onClick={hasChildrenOrCanHaveChildren ? handleToggle : undefined}
-         >
-           {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-         </div>
-         
-         {node.selection.type === 'namespace' && <Folder className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-muted-foreground")} />}
-         {node.selection.type === 'agent' && <Cpu className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-emerald-500")} />}
-         {node.selection.type === 'session' && <MessageSquare className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-blue-500")} />}
-         {node.selection.type === 'channel' && <Hash className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-cyan-400")} />}
-         {node.selection.type === 'channel-subscription' && <Radio className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-cyan-300")} />}
-         {node.selection.type === 'workflow' && <Activity className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-purple-400")} />}
-         {node.selection.type === 'schedule' && <Clock3 className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-amber-500")} />}
-         {node.selection.type === 'template' && <FileText className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-emerald-400")} />}
-         {node.selection.type === 'deployment' && <Layers3 className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-indigo-400")} />}
-         {node.selection.type === 'deployment-replica' && <Package className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-indigo-300")} />}
-         {node.selection.type === 'sandbox-class' && <ShieldCheck className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-fuchsia-400")} />}
-         {node.selection.type === 'sandbox-policy' && <Box className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-fuchsia-300")} />}
-         {node.selection.type === 'sandbox' && <Container className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-orange-400")} />}
-         {node.selection.type === 'mcp-server' && <Plug className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-blue-500")} />}
-         {node.selection.type === 'knowledge' && <FileText className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-violet-400")} />}
-
-         <span className="truncate flex-1">{node.name}</span>
-         {node.badge && (
-           <span className="max-w-[8rem] truncate rounded-full border border-border/70 bg-white/[0.03] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-             {node.badge}
-           </span>
-         )}
-         {isSelected && <Activity className="w-3.5 h-3.5 opacity-70 flex-shrink-0" />}
-      </div>
-      
-      <AnimatePresence initial={false}>
-        {isExpanded && hasChildrenOrCanHaveChildren && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.15, ease: "easeInOut" }}
-            className="overflow-hidden"
-          >
-             <div className="mt-0.5 space-y-0.5">
-               {childNodes.length > 0 ? childNodes.map(child => (
-                 <NamespaceNode 
-                   key={child.id} 
-                   node={child} 
-                   level={level + 1} 
-                   selectedNodeId={selectedNodeId} 
-                   onSelect={onSelect} 
-                   onContextMenu={onContextMenu}
-                   expanded={expanded} 
-                   toggleExpanded={toggleExpanded} 
-                 />
-               )) : (
-                 <div 
-                   className="flex items-center gap-1.5 px-2 py-1.5 text-[12px] italic text-muted-foreground/60"
-                   style={{ paddingLeft: `${(level+1) * 16 + 28}px` }}
-                 >
-                   Empty
-                 </div>
-               )}
-             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-export function NamespaceExplorer({ 
-  isConnected, 
-  selectedNode, 
-  onSelect 
-}: { 
-  isConnected: boolean, 
-  selectedNode: Selection | null, 
-  onSelect: (selection: Selection) => void 
-}) {
-  const [treeStructure, setTreeStructure] = useState<TreeNode>({
-    id: '', name: 'root', selection: { type: 'namespace', ns: '', fullPath: '' }, children: {}
-  });
-  
+  const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState<Set<string>>(new Set(['']));
   const [namespaceModalOpen, setNamespaceModalOpen] = useState(false);
-  const [isCreatingNamespace, setIsCreatingNamespace] = useState(false);
   const [newNamespace, setNewNamespace] = useState('');
-
-  // Context Menu State
-  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, node: TreeNode } | null>(null);
-
-  // Modals state
-  const [agentModalOpen, setAgentModalOpen] = useState<{ isOpen: boolean, ns: string }>({ isOpen: false, ns: '' });
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; node: TreeNode } | null>(null);
+  const [agentModalOpen, setAgentModalOpen] = useState<{ isOpen: boolean; ns: string }>({ isOpen: false, ns: '' });
   const [agentForm, setAgentForm] = useState({ name: '', template: '' });
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [agentCreateTemplates, setAgentCreateTemplates] = useState<any[]>([]);
-  const [mcpServersByNamespace, setMcpServersByNamespace] = useState<Record<string, ExplorerMcpServer[]>>({});
-  const [schedulesByNamespace, setSchedulesByNamespace] = useState<Record<string, ExplorerSchedule[]>>({});
-  const [knowledgeByNamespace, setKnowledgeByNamespace] = useState<Record<string, ExplorerKnowledge[]>>({});
-  const [channelsByNamespace, setChannelsByNamespace] = useState<Record<string, ExplorerChannel[]>>({});
-  const [channelSubscriptionsByKey, setChannelSubscriptionsByKey] = useState<Record<string, ExplorerChannelSubscription[]>>({});
-  const [controlResourcesByNamespace, setControlResourcesByNamespace] = useState<Record<string, ExplorerControlResource[]>>({});
-  const [isSubmittingAgent, setIsSubmittingAgent] = useState(false);
-  const [channelModalOpen, setChannelModalOpen] = useState<{ isOpen: boolean, ns: string }>({ isOpen: false, ns: '' });
+  const [channelModalOpen, setChannelModalOpen] = useState<{ isOpen: boolean; ns: string }>({ isOpen: false, ns: '' });
   const [channelForm, setChannelForm] = useState({ name: '', title: '' });
-  const [isSubmittingChannel, setIsSubmittingChannel] = useState(false);
-  const [subscriptionModalOpen, setSubscriptionModalOpen] = useState<{ isOpen: boolean, ns: string, channel: string }>({ isOpen: false, ns: '', channel: '' });
-  const [subscriptionForm, setSubscriptionForm] = useState({ name: '', agent: '', trigger: 'mention', replyMode: 'tool', enabled: true });
-  const [isSubmittingSubscription, setIsSubmittingSubscription] = useState(false);
-
-  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean, node: TreeNode | null }>({ isOpen: false, node: null });
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [collapsedSections, setCollapsedSections] = useState({
-    explorer: false,
-    templates: false,
-    mcpServers: false,
+  const [subscriptionModalOpen, setSubscriptionModalOpen] = useState<{ isOpen: boolean; ns: string; channel: string }>({
+    isOpen: false,
+    ns: '',
+    channel: '',
   });
-  const [sectionHeights, setSectionHeights] = useState({
-    explorer: 360,
-    templates: 168,
+  const [subscriptionForm, setSubscriptionForm] = useState({
+    name: '',
+    agent: '',
+    trigger: 'mention',
+    replyMode: 'tool',
+    enabled: true,
   });
-  const expandedRef = useRef(expanded);
-  const selectedNodeRef = useRef(selectedNode);
-  const refreshChannelsInFlightRef = useRef(false);
-  const refreshChannelsDebounceRef = useRef<number | null>(null);
-  const refreshChannelsQueuedRef = useRef(false);
-  const refreshChannelsAbortRef = useRef<AbortController | null>(null);
-  const refreshChannelsConfigVersionRef = useRef(0);
-
-  useEffect(() => {
-    expandedRef.current = expanded;
-  }, [expanded]);
-
-  useEffect(() => {
-    selectedNodeRef.current = selectedNode;
-  }, [selectedNode]);
-
-  useEffect(() => {
-    refreshChannelsConfigVersionRef.current += 1;
-    refreshChannelsAbortRef.current?.abort();
-  }, [isConnected]);
-
-  useEffect(() => {
-    return () => {
-      refreshChannelsAbortRef.current?.abort();
-      if (refreshChannelsDebounceRef.current !== null) {
-        window.clearTimeout(refreshChannelsDebounceRef.current);
-        refreshChannelsDebounceRef.current = null;
-      }
-    };
-  }, []);
-
-  const refreshData = useCallback(async () => {
-    if (!isConnected) return;
-    try {
-      const newTree: TreeNode = {
-        id: '', name: 'root', selection: { type: 'namespace', ns: '', fullPath: '' }, children: {}
-      };
-
-      // We discover namespaces starting from the root
-      const discoverQueue: string[] = Array.from(
-        new Set([
-          '',
-          ...Array.from(expanded),
-          ...selectionExpansionIds(selectedNode),
-        ]),
-      );
-      const processedNamespaces = new Set<string>();
-
-      while (discoverQueue.length > 0) {
-        const parentNs = discoverQueue.shift()!;
-        if (processedNamespaces.has(parentNs)) continue;
-        processedNamespaces.add(parentNs);
-
-        try {
-          const res = await getGatewayClient().namespaces.list({ parent: parentNs || undefined });
-          const namespaces = (res.namespaces || []).slice().sort((left, right) => left.name.localeCompare(right.name));
-
-          for (const namespace of namespaces) {
-            const ns = namespace.name;
-            const parts = ns.split(':');
-            let currentLevel = newTree;
-            
-            for (let i = 0; i < parts.length; i++) {
-               const part = parts[i];
-               const currentNsId = parts.slice(0, i + 1).join(':');
-               if (!currentLevel.children[part]) {
-                   currentLevel.children[part] = {
-                       id: currentNsId,
-                       name: part,
-                       badge: i === parts.length - 1 ? namespaceLabel(namespace.labels) : undefined,
-                       selection: { type: 'namespace', ns: currentNsId, fullPath: currentNsId },
-                       children: {}
-                   };
-               } else if (i === parts.length - 1) {
-                   currentLevel.children[part].badge = namespaceLabel(namespace.labels);
-               }
-               currentLevel = currentLevel.children[part];
-            }
-            
-            // If this namespace is expanded, we need to discover its children too
-            if (expanded.has(ns)) {
-              discoverQueue.push(ns);
-            }
-
-            // Fetch agents for this namespace
-            try {
-              const agentResources = await listResourceKind(ns, 'Agent');
-              for (const agentResource of agentResources) {
-                const agent = agentResource.metadata?.name || '';
-                if (!agent) continue;
-                const agentId = `${ns}:${agent}`;
-                currentLevel.children[agent] = {
-                  id: agentId,
-                  name: agent,
-                  selection: { type: 'agent', ns, agent, fullPath: agentId },
-                  children: {}
-                };
-                
-                if (expanded.has(agentId)) {
-                    try {
-                      const sessionRes = await getGatewayClient().sessions.list({ ns, agent });
-                      for (const sessionId of (sessionRes.sessionIds || [])) {
-                        const sessionFullId = `${ns}:${agent}:${sessionId}`;
-                        currentLevel.children[agent].children[sessionId] = {
-                          id: sessionFullId,
-                          name: parseSessionDate(sessionId),
-                          selection: { type: 'session', ns, agent, sessionId, fullPath: sessionFullId },
-                          children: {}
-                        };
-                      }
-                    } catch (e) {
-                      console.warn(`Could not fetch sessions for agent ${agentId}`, e);
-                    }
-                }
-              }
-            } catch (e) {
-              console.warn(`Could not fetch agents for ns ${ns}`, e);
-            }
-
-            const namespaceChannels = channelsByNamespace[ns] || [];
-            for (const channel of namespaceChannels) {
-              const channelName = channel.name || 'unknown-channel';
-              const channelId = `${ns}:channel:${channelName}`;
-              const status = channel.status || 'open';
-              currentLevel.children[`channel:${channelName}`] = {
-                id: channelId,
-                name: channelName,
-                badge: status === 'closed' ? 'closed' : (channel.title || 'channel'),
-                selection: {
-                  type: 'channel',
-                  ns,
-                  channel: channelName,
-                  resourceName: channelName,
-                  fullPath: channelId,
-                },
-                children: {},
-              };
-
-              if (expanded.has(channelId)) {
-                const subscriptions = channelSubscriptionsByKey[`${ns}/${channelName}`] || [];
-                for (const subscription of subscriptions) {
-                  const subscriptionName = subscription.name || 'unknown-subscription';
-                  const subscriptionId = `${channelId}:subscription:${subscriptionName}`;
-                  currentLevel.children[`channel:${channelName}`].children[`subscription:${subscriptionName}`] = {
-                    id: subscriptionId,
-                    name: subscriptionName,
-                    badge: subscription.enabled === false
-                      ? 'disabled'
-                      : `${subscription.trigger || 'mention'}${(subscription.replyMode || subscription.reply_mode) === 'none' ? ' / no reply' : ''}`,
-                    selection: {
-                      type: 'channel-subscription',
-                      ns,
-                      channel: channelName,
-                      resourceName: subscriptionName,
-                      fullPath: subscriptionId,
-                    },
-                    children: {},
-                  };
-                }
-              }
-            }
-
-            const namespaceMcpServers = effectiveMcpServersForNamespace(ns, mcpServersByNamespace);
-            for (const effective of namespaceMcpServers) {
-              const server = effective.server;
-              const serverName = server.metadata?.name || 'unknown-server';
-              const originNamespace = effective.originNamespace;
-              const serverId = originNamespace === ns
-                ? `${ns}:mcp-server:${serverName}`
-                : `${ns}:mcp-server:${originNamespace}:${serverName}`;
-              currentLevel.children[`mcp-server:${originNamespace}:${serverName}`] = {
-                id: serverId,
-                name: serverName,
-                badge: effective.badge,
-                selection: {
-                  type: 'mcp-server',
-                  ns: originNamespace,
-                  resourceName: serverName,
-                  fullPath: serverId,
-                },
-                children: {},
-              };
-            }
-
-            const namespaceSchedules = schedulesByNamespace[ns] || [];
-            for (const schedule of namespaceSchedules) {
-              const scheduleName = schedule.name || 'unknown-schedule';
-              const scheduleId = `${ns}:schedule:${scheduleName}`;
-              const scheduleEnabled = schedule.spec?.enabled !== false;
-              currentLevel.children[`schedule:${scheduleName}`] = {
-                id: scheduleId,
-                name: scheduleName,
-                badge: scheduleEnabled ? (schedule.spec?.kind || 'schedule') : 'disabled',
-                selection: {
-                  type: 'schedule',
-                  ns,
-                  resourceName: scheduleName,
-                  fullPath: scheduleId,
-                },
-                children: {},
-              };
-            }
-
-            const namespaceKnowledge = knowledgeByNamespace[ns] || [];
-            for (const knowledge of namespaceKnowledge) {
-              const knowledgeName = knowledge.metadata?.name || knowledge.spec?.path || 'unknown-knowledge';
-              const knowledgePath = knowledge.spec?.path || '';
-              const knowledgeId = `${ns}:knowledge:${knowledgeName}`;
-              currentLevel.children[`knowledge:${knowledgeName}`] = {
-                id: knowledgeId,
-                name: knowledgePath || knowledgeName,
-                badge: 'knowledge',
-                selection: {
-                  type: 'knowledge',
-                  ns,
-                  resourceName: knowledgeName,
-                  fullPath: knowledgeId,
-                },
-                children: {},
-              };
-            }
-
-            const namespaceControlResources = controlResourcesByNamespace[ns] || [];
-            for (const resource of namespaceControlResources) {
-              const name = resource.name || `unknown-${resource.kind.toLowerCase()}`;
-              const id = `${ns}:${resource.sortPrefix}:${name}`;
-              currentLevel.children[`${resource.sortPrefix}:${name}`] = {
-                id,
-                name,
-                badge: resource.badge,
-                selection: {
-                  type: resource.selectionType,
-                  ns,
-                  resourceName: name,
-                  fullPath: id,
-                },
-                children: {},
-              };
-            }
-          }
-        } catch (e) {
-          console.warn(`Could not list namespaces for parent ${parentNs}`, e);
-        }
-      }
-      setTreeStructure(newTree);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [channelSubscriptionsByKey, channelsByNamespace, controlResourcesByNamespace, isConnected, expanded, knowledgeByNamespace, mcpServersByNamespace, schedulesByNamespace, selectedNode]);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; node: TreeNode | null }>({ isOpen: false, node: null });
+  const [explorerCollapsed, setExplorerCollapsed] = useState(false);
 
   useEffect(() => {
     if (!selectedNode?.ns) return;
     setExpanded((prev) => {
       const next = new Set(prev);
       let changed = false;
-      for (const ns of selectionExpansionIds(selectedNode)) {
-        if (!next.has(ns)) {
-          next.add(ns);
+      for (const id of selectionExpansionIds(selectedNode)) {
+        if (!next.has(id)) {
+          next.add(id);
           changed = true;
         }
       }
@@ -1096,494 +144,175 @@ export function NamespaceExplorer({
     });
   }, [selectedNode]);
 
-  const refreshTemplates = useCallback(async () => {
-    if (!isConnected) {
-      setTemplates([]);
-      return;
-    }
-
-    try {
-      const templates = await listResourceKind(SYSTEM_NAMESPACE, 'Template');
-      setTemplates(templates);
-    } catch (e) {
-      console.warn('Could not fetch templates', e);
-      setTemplates([]);
-    }
-  }, [isConnected]);
-
-  const refreshAgentCreateTemplates = useCallback(async (targetNamespace: string) => {
-    if (!isConnected) {
-      setAgentCreateTemplates([]);
-      return;
-    }
-
-    try {
-      const namespaces = Array.from(new Set([SYSTEM_NAMESPACE, targetNamespace].filter(Boolean)));
-      const loaded = await Promise.all(
-        namespaces.map(async (ns) => {
-          try {
-            return await listResourceKind(ns, 'Template');
-          } catch (e) {
-            console.warn(`Could not fetch templates for ns ${ns}`, e);
-            return [];
-          }
-        }),
-      );
-      setAgentCreateTemplates(loaded.flat());
-    } catch (e) {
-      console.warn('Could not fetch agent create templates', e);
-      setAgentCreateTemplates([]);
-    }
-  }, [isConnected]);
-
-  const templateOptionId = useCallback((template: any) => {
-    return `${template.metadata?.namespace || SYSTEM_NAMESPACE}/${template.metadata?.name || ''}`;
-  }, []);
-
-  const refreshControlResources = useCallback(async () => {
-    if (!isConnected) {
-      setControlResourcesByNamespace({});
-      return;
-    }
-
-    const resourceKinds: Array<{
-      kind: string;
-      selectionType: SelectionType;
-      sortPrefix: string;
-    }> = [
-      { kind: 'Template', selectionType: 'template', sortPrefix: 'template' },
-      { kind: 'Deployment', selectionType: 'deployment', sortPrefix: 'deployment' },
-      { kind: 'DeploymentReplica', selectionType: 'deployment-replica', sortPrefix: 'deployment-replica' },
-      { kind: 'SandboxClass', selectionType: 'sandbox-class', sortPrefix: 'sandbox-class' },
-      { kind: 'SandboxPolicy', selectionType: 'sandbox-policy', sortPrefix: 'sandbox-policy' },
-      { kind: 'Sandbox', selectionType: 'sandbox', sortPrefix: 'sandbox' },
-    ];
-
-    try {
-      const namespaces = collectExpandedNamespaceIds(expanded, selectedNode);
-      const entries = await Promise.all(
-        Array.from(namespaces).map(async (ns) => {
-          const resources: ExplorerControlResource[] = [];
-          for (const config of resourceKinds) {
-            try {
-              const listed = await listResourceKind(ns, config.kind);
-              resources.push(
-                ...listed.map((resource) =>
-                  controlResourceFromResource(resource, config.kind, config.selectionType, config.sortPrefix),
-                ),
-              );
-            } catch (e) {
-              console.warn(`Could not fetch ${config.kind} resources for ns ${ns}`, e);
-            }
-          }
-          return [ns, resources] as const;
-        }),
-      );
-      setControlResourcesByNamespace(Object.fromEntries(entries));
-    } catch (e) {
-      console.warn('Could not list v2 control resources', e);
-      setControlResourcesByNamespace({});
-    }
-  }, [expanded, isConnected, selectedNode]);
-
-  const refreshMcpServers = useCallback(async () => {
-    if (!isConnected) {
-      setMcpServersByNamespace({});
-      return;
-    }
-
-    try {
-      const namespaces = collectMcpLookupNamespaceIds(expanded, selectedNode);
-      const serverEntries = await Promise.all(
-        Array.from(namespaces).map(async (ns) => {
-          try {
-            const resources = await listResourceKind(ns, 'McpServer');
-            return [ns, resources.map(mcpServerFromResource)] as const;
-          } catch (e) {
-            console.warn(`Could not fetch MCP servers for ns ${ns}`, e);
-            return [ns, []] as const;
-          }
-        }),
-      );
-      setMcpServersByNamespace(Object.fromEntries(serverEntries));
-    } catch (e) {
-      console.warn('Could not list namespace MCP servers', e);
-      setMcpServersByNamespace({});
-    }
-  }, [expanded, isConnected, selectedNode]);
-
-  const refreshSchedules = useCallback(async () => {
-    if (!isConnected) {
-      setSchedulesByNamespace({});
-      return;
-    }
-
-    try {
-      const namespaces = collectExpandedNamespaceIds(expanded, selectedNode);
-      const scheduleEntries = await Promise.all(
-        Array.from(namespaces).map(async (ns) => {
-          try {
-            const resources = await listResourceKind(ns, 'Schedule');
-            return [ns, resources.map(scheduleFromResource)] as const;
-          } catch (e) {
-            console.warn(`Could not fetch schedules for ns ${ns}`, e);
-            return [ns, []] as const;
-          }
-        }),
-      );
-      setSchedulesByNamespace(Object.fromEntries(scheduleEntries));
-    } catch (e) {
-      console.warn('Could not list namespaces for schedules', e);
-      setSchedulesByNamespace({});
-    }
-  }, [expanded, isConnected, selectedNode]);
-
-  const refreshKnowledge = useCallback(async () => {
-    if (!isConnected) {
-      setKnowledgeByNamespace({});
-      return;
-    }
-
-    try {
-      const namespaces = collectExpandedNamespaceIds(expanded, selectedNode);
-      const knowledgeEntries = await Promise.all(
-        Array.from(namespaces).map(async (ns) => {
-          try {
-            const resources = await listResourceKind(ns, 'Knowledge');
-            return [ns, resources.map(knowledgeFromResource)] as const;
-          } catch (e) {
-            console.warn(`Could not fetch knowledge for ns ${ns}`, e);
-            return [ns, []] as const;
-          }
-        }),
-      );
-      setKnowledgeByNamespace(Object.fromEntries(knowledgeEntries));
-    } catch (e) {
-      console.warn('Could not list namespaces for knowledge', e);
-      setKnowledgeByNamespace({});
-    }
-  }, [expanded, isConnected, selectedNode]);
-
-  const refreshChannels = useCallback(async () => {
-    if (!isConnected) {
-      refreshChannelsAbortRef.current?.abort();
-      setChannelsByNamespace({});
-      setChannelSubscriptionsByKey({});
-      refreshChannelsQueuedRef.current = false;
-      return;
-    }
-    if (refreshChannelsInFlightRef.current) {
-      refreshChannelsQueuedRef.current = true;
-      return;
-    }
-
-    refreshChannelsInFlightRef.current = true;
-    refreshChannelsQueuedRef.current = false;
-    const requestVersion = refreshChannelsConfigVersionRef.current;
-    const abortController = new AbortController();
-    refreshChannelsAbortRef.current?.abort();
-    refreshChannelsAbortRef.current = abortController;
-    try {
-      const currentExpanded = expandedRef.current;
-      const namespaces = collectExpandedNamespaceIds(currentExpanded, selectedNodeRef.current);
-      const channelEntries = await Promise.all(
-        Array.from(namespaces).map(async (ns) => {
-          try {
-            const resources = await listResourceKind(ns, 'Channel', { signal: abortController.signal });
-            return [ns, resources.map(channelFromResource)] as const;
-          } catch (e) {
-            if (abortController.signal.aborted) throw e;
-            console.warn(`Could not fetch channels for ns ${ns}`, e);
-            return [ns, []] as const;
-          }
-        }),
-      );
-      if (abortController.signal.aborted || requestVersion !== refreshChannelsConfigVersionRef.current) {
-        return;
-      }
-      const channelMap = Object.fromEntries(channelEntries);
-      setChannelsByNamespace(prev => {
-        const next = { ...prev };
-        for (const ns of Object.keys(next)) {
-          if (!namespaces.has(ns)) {
-            delete next[ns];
-          }
-        }
-        return { ...next, ...channelMap };
-      });
-
-      const expandedChannels = Object.entries(channelMap).flatMap(([ns, channels]) =>
-        (channels as ExplorerChannel[])
-          .map((channel) => channel.name || '')
-          .filter((name) => name && currentExpanded.has(`${ns}:channel:${name}`))
-          .map((name) => ({ ns, name })),
-      );
-      const subscriptionEntries = await Promise.all(
-        expandedChannels.map(async ({ ns, name }) => {
-          try {
-            const resources = await listResourceKind(ns, 'ChannelSubscription', { signal: abortController.signal });
-            const subscriptions = resources
-              .map(channelSubscriptionFromResource)
-              .filter((subscription) => subscription.channel === name);
-            return [`${ns}/${name}`, subscriptions] as const;
-          } catch (e) {
-            if (abortController.signal.aborted) throw e;
-            console.warn(`Could not fetch channel subscriptions for ${ns}/${name}`, e);
-            return [`${ns}/${name}`, []] as const;
-          }
-        }),
-      );
-      if (abortController.signal.aborted || requestVersion !== refreshChannelsConfigVersionRef.current) {
-        return;
-      }
-      setChannelSubscriptionsByKey(Object.fromEntries(subscriptionEntries));
-    } catch (e) {
-      if (abortController.signal.aborted || requestVersion !== refreshChannelsConfigVersionRef.current) {
-        return;
-      }
-      console.warn('Could not list namespaces for channels', e);
-      setChannelsByNamespace({});
-      setChannelSubscriptionsByKey({});
-    } finally {
-      if (refreshChannelsAbortRef.current === abortController) {
-        refreshChannelsAbortRef.current = null;
-      }
-      refreshChannelsInFlightRef.current = false;
-      if (refreshChannelsQueuedRef.current) {
-        void refreshChannels();
-      }
-    }
-  }, [isConnected]);
-
   useEffect(() => {
-    refreshData();
-    const interval = setInterval(refreshData, 3000);
-    return () => clearInterval(interval);
-  }, [refreshData]);
-
-  useEffect(() => {
-    refreshTemplates();
-    const interval = setInterval(refreshTemplates, 5000);
-    return () => clearInterval(interval);
-  }, [refreshTemplates]);
-
-  useEffect(() => {
-    refreshMcpServers();
-    const interval = setInterval(refreshMcpServers, 5000);
-    return () => clearInterval(interval);
-  }, [refreshMcpServers]);
-
-  useEffect(() => {
-    refreshSchedules();
-    const interval = setInterval(refreshSchedules, 5000);
-    return () => clearInterval(interval);
-  }, [refreshSchedules]);
-
-  useEffect(() => {
-    refreshKnowledge();
-    const interval = setInterval(refreshKnowledge, 5000);
-    return () => clearInterval(interval);
-  }, [refreshKnowledge]);
-
-  useEffect(() => {
-    refreshControlResources();
-    const interval = setInterval(refreshControlResources, 5000);
-    return () => clearInterval(interval);
-  }, [refreshControlResources]);
-
-  useEffect(() => {
-    refreshChannels();
-    const interval = setInterval(refreshChannels, 5000);
-    return () => clearInterval(interval);
-  }, [refreshChannels]);
-
-  useEffect(() => {
-    if (!isConnected) return;
-    if (refreshChannelsDebounceRef.current !== null) {
-      window.clearTimeout(refreshChannelsDebounceRef.current);
-    }
-    refreshChannelsDebounceRef.current = window.setTimeout(() => {
-      refreshChannelsDebounceRef.current = null;
-      void refreshChannels();
-    }, 150);
-    return () => {
-      if (refreshChannelsDebounceRef.current !== null) {
-        window.clearTimeout(refreshChannelsDebounceRef.current);
-        refreshChannelsDebounceRef.current = null;
-      }
-    };
-  }, [expanded, selectedNode, isConnected, refreshChannels]);
-
-  useEffect(() => {
-    if (selectedNode && selectedNode.type === 'namespace' && !newNamespace) {
-      setNewNamespace(`${selectedNode.ns}:`);
-    } else if (selectedNode && selectedNode.type === 'agent' && !newNamespace) {
+    if (selectedNode && (selectedNode.type === 'namespace' || selectedNode.type === 'agent') && !newNamespace) {
       setNewNamespace(`${selectedNode.ns}:`);
     }
-  }, [selectedNode, newNamespace]);
+  }, [newNamespace, selectedNode]);
 
-  const handleCreateNamespace = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newNamespace.trim()) return;
-    setIsCreatingNamespace(true);
-    try {
-      await getGatewayClient().namespaces.create({
-        name: newNamespace.trim(),
-        recursive: true
-      });
-      await refreshData();
-      
-      const newExpansions = new Set(expanded);
-      newExpansions.add(newNamespace.trim());
-      setExpanded(newExpansions);
+  const queries = useExplorerQueries({
+    isConnected,
+    scope: queryScope,
+    expanded,
+    selectedNode,
+  });
+  const treeStructure = useExplorerTree({ queries, expanded, selectedNode });
+
+  const agentTemplateQueries = useQueries({
+    queries: Array.from(new Set([SYSTEM_NAMESPACE, agentModalOpen.ns].filter(Boolean))).map((ns) => ({
+      queryKey: talonQueryKeys.resources(queryScope, ns, 'Template'),
+      queryFn: ({ signal }) => listResources(ns, 'Template', { signal }),
+      enabled: isConnected && agentModalOpen.isOpen,
+    })),
+  });
+  const agentCreateTemplates = useMemo(
+    () =>
+      agentTemplateQueries
+        .flatMap((query) => query.data || [])
+        .filter((template) => resourceSpec(template, 'template').kind === 'Agent')
+        .sort((left, right) => {
+          const leftNs = left.metadata?.namespace || SYSTEM_NAMESPACE;
+          const rightNs = right.metadata?.namespace || SYSTEM_NAMESPACE;
+          return leftNs === rightNs
+            ? (left.metadata?.name || '').localeCompare(right.metadata?.name || '')
+            : leftNs.localeCompare(rightNs);
+        }),
+    [agentTemplateQueries],
+  );
+
+  const invalidateNamespace = useCallback(
+    async (ns: string, kinds: string[] = []) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: talonQueryKeys.namespaces(queryScope, namespaceParent(ns)) }),
+        ...kinds.map((kind) => queryClient.invalidateQueries({ queryKey: talonQueryKeys.resources(queryScope, ns, kind) })),
+      ]);
+    },
+    [queryClient, queryScope],
+  );
+
+  const createNamespaceMutation = useMutation({
+    mutationFn: (name: string) => createNamespace(name),
+    onSuccess: async (_, name) => {
+      await invalidateNamespace(name);
+      setExpanded((prev) => new Set(prev).add(name));
       setNewNamespace('');
       setNamespaceModalOpen(false);
-    } catch (e) {
-      console.error(e);
-      alert(e instanceof Error ? e.message : 'Error creating namespace');
-    } finally {
-      setIsCreatingNamespace(false);
-    }
-  };
+    },
+  });
 
-  const handleCreateAgentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmittingAgent(true);
-    try {
+  const createAgentMutation = useMutation({
+    mutationFn: async () => {
       const selectedTemplate = agentCreateTemplates.find((template) => templateOptionId(template) === agentForm.template);
       const templateSpec = selectedTemplate ? resourceSpec(selectedTemplate, 'template') : null;
       if (templateSpec && templateSpec.kind !== 'Agent') {
         throw new Error(`Template '${agentForm.template}' renders ${templateSpec.kind}, not Agent`);
       }
       const agentSpec = templateSpec ? parseJsonObject(templateSpec.specJson) : { systemPrompt: '' };
-      await getGatewayClient().resources.create({
-        ns: agentModalOpen.ns,
-        manifest: {
-          apiVersion: API_VERSION,
-          kind: 'Agent',
-          metadata: resourceMetadata(agentForm.name.trim(), agentModalOpen.ns),
-          spec: { kind: { case: 'agent', value: agentSpec } },
-        },
+      return createResource(agentModalOpen.ns, {
+        apiVersion: API_VERSION,
+        kind: 'Agent',
+        metadata: resourceMetadata(agentForm.name.trim(), agentModalOpen.ns),
+        spec: { kind: { case: 'agent', value: agentSpec } },
       });
-      setExpanded(prev => new Set(prev).add(agentModalOpen.ns));
-      await refreshData();
+    },
+    onSuccess: async () => {
+      await invalidateNamespace(agentModalOpen.ns, ['Agent']);
+      setExpanded((prev) => new Set(prev).add(agentModalOpen.ns));
       setAgentModalOpen({ isOpen: false, ns: '' });
       setAgentForm({ name: '', template: '' });
-    } catch (e) {
-      console.error(e);
-      alert(e instanceof Error ? e.message : 'Error creating agent');
-    } finally {
-      setIsSubmittingAgent(false);
-    }
-  };
+    },
+  });
 
-  const handleCreateChannelSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!channelForm.name.trim()) return;
-    setIsSubmittingChannel(true);
-    try {
-      await getGatewayClient().resources.create({
-        ns: channelModalOpen.ns,
-        manifest: {
-          apiVersion: API_VERSION,
-          kind: 'Channel',
-          metadata: resourceMetadata(channelForm.name.trim(), channelModalOpen.ns),
-          spec: { kind: { case: 'channel', value: { title: channelForm.title.trim(), metadata: {} } } },
-        },
-      });
-      setExpanded(prev => new Set(prev).add(channelModalOpen.ns));
-      await refreshChannels();
-      await refreshData();
+  const createChannelMutation = useMutation({
+    mutationFn: () =>
+      createResource(channelModalOpen.ns, {
+        apiVersion: API_VERSION,
+        kind: 'Channel',
+        metadata: resourceMetadata(channelForm.name.trim(), channelModalOpen.ns),
+        spec: { kind: { case: 'channel', value: { title: channelForm.title.trim(), metadata: {} } } },
+      }),
+    onSuccess: async () => {
+      await invalidateNamespace(channelModalOpen.ns, ['Channel']);
+      setExpanded((prev) => new Set(prev).add(channelModalOpen.ns));
       setChannelModalOpen({ isOpen: false, ns: '' });
       setChannelForm({ name: '', title: '' });
-    } catch (e) {
-      console.error(e);
-      alert(e instanceof Error ? e.message : 'Error creating channel');
-    } finally {
-      setIsSubmittingChannel(false);
-    }
-  };
+    },
+  });
 
-  const handleCreateSubscriptionSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!subscriptionForm.name.trim() || !subscriptionForm.agent.trim()) return;
-    setIsSubmittingSubscription(true);
-    try {
-      await getGatewayClient().resources.create({
-        ns: subscriptionModalOpen.ns,
-        manifest: {
-          apiVersion: API_VERSION,
-          kind: 'ChannelSubscription',
-          metadata: resourceMetadata(subscriptionForm.name.trim(), subscriptionModalOpen.ns),
-          spec: {
-            kind: {
-              case: 'channelSubscription',
-              value: {
-                channel: subscriptionModalOpen.channel,
-                agent: subscriptionForm.agent.trim(),
-                enabled: subscriptionForm.enabled,
-                trigger: subscriptionForm.trigger,
-                replyMode: subscriptionForm.replyMode,
-              },
+  const createSubscriptionMutation = useMutation({
+    mutationFn: () =>
+      createResource(subscriptionModalOpen.ns, {
+        apiVersion: API_VERSION,
+        kind: 'ChannelSubscription',
+        metadata: resourceMetadata(subscriptionForm.name.trim(), subscriptionModalOpen.ns),
+        spec: {
+          kind: {
+            case: 'channelSubscription',
+            value: {
+              channel: subscriptionModalOpen.channel,
+              agent: subscriptionForm.agent.trim(),
+              enabled: subscriptionForm.enabled,
+              trigger: subscriptionForm.trigger,
+              replyMode: subscriptionForm.replyMode,
             },
           },
         },
-      });
-      setExpanded(prev => new Set(prev).add(`${subscriptionModalOpen.ns}:channel:${subscriptionModalOpen.channel}`));
-      await refreshChannels();
-      await refreshData();
+      }),
+    onSuccess: async () => {
+      await invalidateNamespace(subscriptionModalOpen.ns, ['ChannelSubscription']);
+      setExpanded((prev) => new Set(prev).add(`${subscriptionModalOpen.ns}:channel:${subscriptionModalOpen.channel}`));
       setSubscriptionModalOpen({ isOpen: false, ns: '', channel: '' });
       setSubscriptionForm({ name: '', agent: '', trigger: 'mention', replyMode: 'tool', enabled: true });
-    } catch (e) {
-      console.error(e);
-      alert(e instanceof Error ? e.message : 'Error creating channel subscription');
-    } finally {
-      setIsSubmittingSubscription(false);
-    }
-  };
+    },
+  });
 
-  const handleDeleteConfirmed = async () => {
-    if (!deleteConfirm.node) return;
-    const { selection } = deleteConfirm.node;
-    setIsDeleting(true);
-    try {
+  const createSessionMutation = useMutation({
+    mutationFn: ({ ns, agent }: { ns: string; agent: string }) => createSession(ns, agent),
+    onSuccess: async (_, { ns, agent }) => {
+      await queryClient.invalidateQueries({ queryKey: talonQueryKeys.sessions(queryScope, ns, agent) });
+      setExpanded((prev) => new Set(prev).add(`${ns}:${agent}`));
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (node: TreeNode) => {
+      const { selection } = node;
       if (selection.type === 'namespace') {
-        await getGatewayClient().namespaces.delete({ name: selection.ns });
-      } else if (selection.type === 'agent') {
-        await getGatewayClient().resources.delete({ ns: selection.ns, kind: 'Agent', name: selection.agent || '' });
-      } else if (selection.type === 'session') {
-        await getGatewayClient().sessions.delete({ ns: selection.ns, agent: selection.agent!, sessionId: selection.sessionId! });
-      } else if (selection.type === 'channel') {
-        await getGatewayClient().resources.delete({ ns: selection.ns, kind: 'Channel', name: selection.resourceName || selection.channel || '' });
-      } else if (selection.type === 'channel-subscription') {
-        await getGatewayClient().resources.delete({ ns: selection.ns, kind: 'ChannelSubscription', name: selection.resourceName || '' });
-      } else if (selection.type === 'schedule') {
-        await getGatewayClient().resources.delete({ ns: selection.ns, kind: 'Schedule', name: selection.resourceName || '' });
-      } else {
-        const kind = RESOURCE_KIND_BY_SELECTION[selection.type];
-        if (kind && selection.resourceName) {
-          await getGatewayClient().resources.delete({ ns: selection.ns, kind, name: selection.resourceName });
-        }
+        await deleteNamespace(selection.ns);
+        return { ns: selection.ns, kinds: [] as string[] };
       }
-      await refreshControlResources();
-      await refreshChannels();
-      await refreshData();
+      if (selection.type === 'agent') {
+        await deleteResource(selection.ns, 'Agent', selection.agent || '');
+        return { ns: selection.ns, kinds: ['Agent'] };
+      }
+      if (selection.type === 'session') {
+        await deleteSession(selection.ns, selection.agent!, selection.sessionId!);
+        return { ns: selection.ns, agent: selection.agent || '', kinds: [] as string[] };
+      }
+      const kind = RESOURCE_KIND_BY_SELECTION[selection.type];
+      if (kind && selection.resourceName) {
+        await deleteResource(selection.ns, kind, selection.resourceName);
+        return { ns: selection.ns, kinds: [kind] };
+      }
+      return { ns: selection.ns, kinds: [] as string[] };
+    },
+    onSuccess: async (target) => {
+      if ('agent' in target && target.agent) {
+        await queryClient.invalidateQueries({ queryKey: talonQueryKeys.sessions(queryScope, target.ns, target.agent) });
+      } else {
+        await invalidateNamespace(target.ns, target.kinds);
+      }
       setDeleteConfirm({ isOpen: false, node: null });
-    } catch (e) {
-      console.error(e);
-      alert(e instanceof Error ? e.message : 'Error deleting item');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+    },
+  });
 
-  const handleContextMenu = (e: React.MouseEvent, node: TreeNode) => {
-    e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY, node });
+  const handleContextMenu = (event: React.MouseEvent, node: TreeNode) => {
+    event.preventDefault();
+    setContextMenu({ x: event.clientX, y: event.clientY, node });
   };
 
   const toggleExpanded = (id: string) => {
-    setExpanded(prev => {
+    setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -1591,406 +320,283 @@ export function NamespaceExplorer({
     });
   };
 
-  const resizeLowerPanels = useCallback((delta: number) => {
-    setSectionHeights((prev) => {
-      const nextTemplates = Math.max(116, prev.templates + delta);
-      return {
-        ...prev,
-        templates: nextTemplates,
-      };
-    });
-  }, []);
-
-  const resizeUpperPanels = useCallback((delta: number) => {
-    setSectionHeights((prev) => {
-      const nextExplorer = Math.max(180, prev.explorer + delta);
-      const actualDelta = nextExplorer - prev.explorer;
-      const nextTemplates = Math.max(116, prev.templates - actualDelta);
-      const templatesAdjustedDelta = prev.templates - nextTemplates;
-      return {
-        ...prev,
-        explorer: prev.explorer + templatesAdjustedDelta,
-        templates: nextTemplates,
-      };
-    });
-  }, []);
-
   const menuNode = contextMenu?.node;
-  const templateCards = templates
-    .map((template) => ({
-      id: `template:${template.metadata?.namespace || SYSTEM_NAMESPACE}:${template.metadata?.name || 'unknown-template'}`,
-      name: template.metadata?.name || 'Unnamed template',
-      subtitle: templateSummary(template),
-      tag: resourceSpec(template, 'template').kind || 'template',
-      selection: {
-        type: 'template' as const,
-        ns: template.metadata?.namespace || SYSTEM_NAMESPACE,
-        resourceName: template.metadata?.name || '',
-        fullPath: `${template.metadata?.namespace || SYSTEM_NAMESPACE}:template:${template.metadata?.name || 'unknown-template'}`,
-      },
-    }))
-    .sort((left, right) => left.name.localeCompare(right.name));
-  const agentTemplateOptions = agentCreateTemplates
-    .filter((template) => resourceSpec(template, 'template').kind === 'Agent')
-    .sort((left, right) => {
-      const leftNs = left.metadata?.namespace || SYSTEM_NAMESPACE;
-      const rightNs = right.metadata?.namespace || SYSTEM_NAMESPACE;
-      return leftNs === rightNs
-        ? (left.metadata?.name || '').localeCompare(right.metadata?.name || '')
-        : leftNs.localeCompare(rightNs);
-    });
-  const visibleMcpServers: EffectiveMcpServer[] = selectedNode?.ns
-    ? effectiveMcpServersForNamespace(selectedNode.ns, mcpServersByNamespace)
-    : Object.entries(mcpServersByNamespace)
-        .flatMap(([originNamespace, servers]) => servers.map((server) => ({ server, originNamespace })))
-        .sort((left, right) =>
-          `${left.originNamespace}/${left.server.metadata?.name || ''}`.localeCompare(
-            `${right.originNamespace}/${right.server.metadata?.name || ''}`,
-          ),
-        );
-  const mcpCards = visibleMcpServers
-    .map(({ server, originNamespace, badge }) => ({
-      id: `mcp:${originNamespace}:${server.metadata?.name || 'unknown-server'}`,
-      name: server.metadata?.name || 'Unnamed MCP server',
-      subtitle: `${originNamespace} / ${server.spec?.target || 'No target configured'}`,
-      tag: badge || (server.spec?.disabled ? 'disabled' : (server.spec?.transport || 'unknown')),
-      tone: server.spec?.disabled ? 'warning' as const : (badge ? 'default' as const : 'success' as const),
-      selection: {
-        type: 'mcp-server' as const,
-        ns: originNamespace,
-        resourceName: server.metadata?.name || '',
-        fullPath: selectedNode?.ns
-          ? `${selectedNode.ns}:mcp-server:${originNamespace}:${server.metadata?.name || 'unknown-server'}`
-          : `${originNamespace}:mcp-server:${server.metadata?.name || 'unknown-server'}`,
-      },
-    }))
-    .sort((left, right) => left.name.localeCompare(right.name));
+
+  const submitNamespace = (event: React.FormEvent) => {
+    event.preventDefault();
+    const name = newNamespace.trim();
+    if (!name) return;
+    createNamespaceMutation.mutate(name);
+  };
+
+  const submitAgent = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!agentForm.name.trim()) return;
+    createAgentMutation.mutate();
+  };
+
+  const submitChannel = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!channelForm.name.trim()) return;
+    createChannelMutation.mutate();
+  };
+
+  const submitSubscription = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!subscriptionForm.name.trim() || !subscriptionForm.agent.trim()) return;
+    createSubscriptionMutation.mutate();
+  };
+
+  const mutationError =
+    createNamespaceMutation.error ||
+    createAgentMutation.error ||
+    createChannelMutation.error ||
+    createSubscriptionMutation.error ||
+    deleteMutation.error ||
+    createSessionMutation.error;
+
+  useEffect(() => {
+    if (mutationError) {
+      alert(mutationError instanceof Error ? mutationError.message : 'Explorer action failed');
+    }
+  }, [mutationError]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden relative divide-y divide-border/70 bg-background/68 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+    <div className="relative flex h-full flex-col divide-y divide-border/70 overflow-hidden bg-background/68 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] backdrop-blur-xl">
       <SectionShell
-        icon={<Box className="w-3.5 h-3.5 text-muted-foreground stroke-[1.5]" />}
+        icon={<Box className="h-3.5 w-3.5 text-muted-foreground stroke-[1.5]" />}
         title="Explorer"
-        collapsed={collapsedSections.explorer}
-        onToggle={() => setCollapsedSections(prev => ({ ...prev, explorer: !prev.explorer }))}
-        height={sectionHeights.explorer}
-      >
-        <div onContextMenu={(e) => handleContextMenu(e, treeStructure)}>
-          {Object.keys(treeStructure.children).length > 0 ? (
-            <NamespaceNode 
-              node={treeStructure} 
-              level={-1} 
-              selectedNodeId={selectedNode?.fullPath || null} 
-              onSelect={onSelect} 
-              onContextMenu={handleContextMenu}
-              expanded={expanded} 
-              toggleExpanded={toggleExpanded}
-            />
-          ) : (
-            <div className="py-4 text-center text-[11px] text-muted-foreground">No namespaces discovered.</div>
-          )}
-        </div>
-      </SectionShell>
-      {!collapsedSections.explorer && !collapsedSections.templates && (
-        <SplitHandle
-          onMouseDown={(event) => {
-            event.preventDefault();
-            let lastY = event.clientY;
-
-            const handleMouseMove = (moveEvent: MouseEvent) => {
-              const delta = moveEvent.clientY - lastY;
-              lastY = moveEvent.clientY;
-              resizeUpperPanels(delta);
-            };
-
-            const handleMouseUp = () => {
-              window.removeEventListener('mousemove', handleMouseMove);
-              window.removeEventListener('mouseup', handleMouseUp);
-            };
-
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
-          }}
-        />
-      )}
-
-      <SectionShell
-        icon={<FileText className="w-3.5 h-3.5 text-emerald-500 stroke-[1.5]" />}
-        title="System Templates"
-        collapsed={collapsedSections.templates}
-        onToggle={() => setCollapsedSections(prev => ({ ...prev, templates: !prev.templates }))}
-        height={sectionHeights.templates}
-      >
-        <ResourceList
-          items={templateCards}
-          emptyState="No system templates found."
-          selectedId={selectedNode?.fullPath || null}
-          onSelect={onSelect}
-        />
-      </SectionShell>
-      {!collapsedSections.templates && !collapsedSections.mcpServers && (
-        <SplitHandle
-          onMouseDown={(event) => {
-            event.preventDefault();
-            let lastY = event.clientY;
-
-            const handleMouseMove = (moveEvent: MouseEvent) => {
-              const delta = moveEvent.clientY - lastY;
-              lastY = moveEvent.clientY;
-              resizeLowerPanels(delta);
-            };
-
-            const handleMouseUp = () => {
-              window.removeEventListener('mousemove', handleMouseMove);
-              window.removeEventListener('mouseup', handleMouseUp);
-            };
-
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
-          }}
-        />
-      )}
-
-      <SectionShell
-        icon={<Plug className="w-3.5 h-3.5 text-blue-500 stroke-[1.5]" />}
-        title="MCP Servers"
-        collapsed={collapsedSections.mcpServers}
-        onToggle={() => setCollapsedSections(prev => ({ ...prev, mcpServers: !prev.mcpServers }))}
+        collapsed={explorerCollapsed}
+        onToggle={() => setExplorerCollapsed((collapsed) => !collapsed)}
         grow
       >
-        <ResourceList
-          items={mcpCards}
-          emptyState="No MCP servers found for this namespace."
-          selectedId={selectedNode?.fullPath || null}
-          onSelect={onSelect}
-        />
+        <div onContextMenu={(event) => handleContextMenu(event, treeStructure)}>
+          <ExplorerTree
+            tree={treeStructure}
+            selectedNode={selectedNode}
+            onSelect={onSelect}
+            onContextMenu={handleContextMenu}
+            expanded={expanded}
+            toggleExpanded={toggleExpanded}
+          />
+          {queries.isInitialLoading ? (
+            <div className="px-2 py-2 text-[11px] text-muted-foreground">Loading namespaces...</div>
+          ) : null}
+        </div>
       </SectionShell>
 
-      {/* Context Menu Dropdown */}
-      <Dropdown 
-        isOpen={!!contextMenu} 
-        onOpenChange={(open) => !open && setContextMenu(null)}
-      >
-        <DropdownTrigger 
-          className="fixed" 
+      <Dropdown isOpen={!!contextMenu} onOpenChange={(open) => !open && setContextMenu(null)}>
+        <DropdownTrigger
+          className="fixed"
           style={{ top: contextMenu?.y || 0, left: contextMenu?.x || 0, width: 1, height: 1, padding: 0 }}
-        >
-          <span />
-        </DropdownTrigger>
+          aria-label="Explorer context menu"
+        />
         <DropdownMenu aria-label="Context Actions" variant="outline">
-          {menuNode?.selection.type === 'namespace' && (
-             <DropdownItem 
-               id="create_namespace" 
-               onAction={() => {
+          {menuNode?.selection.type === 'namespace' ? (
+            <DropdownItem
+              id="create_namespace"
+              onAction={() => {
                 setContextMenu(null);
                 setNewNamespace(menuNode.selection.ns ? `${menuNode.selection.ns}:` : '');
                 setNamespaceModalOpen(true);
-               }}
-             >
-               <div className="flex items-center gap-2">
-                 <PlusCircle className="w-4 h-4 text-muted-foreground"/>
-                 New Namespace
-               </div>
-             </DropdownItem>
-          )}
-          
-          {menuNode?.selection.type === 'namespace' && (
-             <DropdownItem 
-               id="create_agent" 
-               onAction={async () => {
-                setContextMenu(null);
-                await refreshAgentCreateTemplates(menuNode.selection.ns);
-                setAgentModalOpen({ isOpen: true, ns: menuNode.selection.ns });
-               }}
-             >
-               <div className="flex items-center gap-2">
-                 <Cpu className="w-4 h-4 text-muted-foreground"/>
-                 Create Agent
-               </div>
-             </DropdownItem>
-          )}
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <PlusCircle className="h-4 w-4 text-muted-foreground" />
+                New Namespace
+              </div>
+            </DropdownItem>
+          ) : null}
 
-          {menuNode?.selection.type === 'namespace' && (
-             <DropdownItem
-               id="create_channel"
-               onAction={() => {
+          {menuNode?.selection.type === 'namespace' ? (
+            <DropdownItem
+              id="create_agent"
+              onAction={() => {
+                setContextMenu(null);
+                setAgentModalOpen({ isOpen: true, ns: menuNode.selection.ns });
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <Cpu className="h-4 w-4 text-muted-foreground" />
+                Create Agent
+              </div>
+            </DropdownItem>
+          ) : null}
+
+          {menuNode?.selection.type === 'namespace' ? (
+            <DropdownItem
+              id="create_channel"
+              onAction={() => {
                 setContextMenu(null);
                 setChannelModalOpen({ isOpen: true, ns: menuNode.selection.ns });
-               }}
-             >
-               <div className="flex items-center gap-2">
-                 <Hash className="w-4 h-4 text-muted-foreground"/>
-                 Create Channel
-               </div>
-             </DropdownItem>
-          )}
-          
-          {menuNode?.selection.type === 'agent' && (
-             <DropdownItem 
-               id="create_session" 
-               onAction={async () => {
-                setContextMenu(null);
-                try {
-                  await getGatewayClient().sessions.create({ ns: menuNode.selection.ns, agent: menuNode.selection.agent });
-                  setExpanded(prev => new Set(prev).add(menuNode.id));
-                  await refreshData();
-                } catch (e) {
-                  alert('Error creating session');
-                }
-               }}
-             >
-               <div className="flex items-center gap-2">
-                 <PlusCircle className="w-4 h-4 text-muted-foreground"/>
-                 Create Session
-               </div>
-             </DropdownItem>
-          )}
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <Hash className="h-4 w-4 text-muted-foreground" />
+                Create Channel
+              </div>
+            </DropdownItem>
+          ) : null}
 
-          {menuNode?.selection.type === 'channel' && (
-             <DropdownItem
-               id="create_channel_subscription"
-               onAction={() => {
+          {menuNode?.selection.type === 'agent' ? (
+            <DropdownItem
+              id="create_session"
+              onAction={() => {
+                setContextMenu(null);
+                createSessionMutation.mutate({
+                  ns: menuNode.selection.ns,
+                  agent: menuNode.selection.agent || '',
+                });
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <PlusCircle className="h-4 w-4 text-muted-foreground" />
+                Create Session
+              </div>
+            </DropdownItem>
+          ) : null}
+
+          {menuNode?.selection.type === 'channel' ? (
+            <DropdownItem
+              id="create_channel_subscription"
+              onAction={() => {
                 setContextMenu(null);
                 setSubscriptionModalOpen({
                   isOpen: true,
                   ns: menuNode.selection.ns,
                   channel: menuNode.selection.channel || menuNode.selection.resourceName || '',
                 });
-               }}
-             >
-               <div className="flex items-center gap-2">
-                 <Radio className="w-4 h-4 text-muted-foreground"/>
-                 Create Subscription
-               </div>
-             </DropdownItem>
-          )}
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <Radio className="h-4 w-4 text-muted-foreground" />
+                Create Subscription
+              </div>
+            </DropdownItem>
+          ) : null}
 
-           <DropdownItem 
-             id="delete_item" 
-             className="text-danger" 
-             color="danger"
-             onAction={() => {
-                setContextMenu(null);
-                setDeleteConfirm({ isOpen: true, node: menuNode });
-             }}
-           >
-             <div className="flex items-center gap-2">
-               <Trash2 className="w-4 h-4"/>
-               Delete {menuNode?.selection.type}
-             </div>
-           </DropdownItem>
+          <DropdownItem
+            id="delete_item"
+            className="text-danger"
+            color="danger"
+            onAction={() => {
+              setContextMenu(null);
+              setDeleteConfirm({ isOpen: true, node: menuNode || null });
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Trash2 className="h-4 w-4" />
+              Delete {menuNode?.selection.type}
+            </div>
+          </DropdownItem>
         </DropdownMenu>
       </Dropdown>
 
-      {/* Namespace Creation Modal */}
       <DialogOverlay isOpen={namespaceModalOpen} onOpenChange={(open) => !open && setNamespaceModalOpen(false)}>
         <ModalContent className="sm:max-w-md">
           <ModalHeader className="flex flex-col gap-1">New Namespace</ModalHeader>
           <ModalBody>
-            <form id="create-namespace-form" onSubmit={handleCreateNamespace} className="space-y-4">
+            <form id="create-namespace-form" onSubmit={submitNamespace} className="space-y-4">
               <div>
-                <Label className="block text-sm font-medium mb-1">Namespace Path</Label>
-                <Input 
+                <Label className="mb-1 block text-sm font-medium">Namespace Path</Label>
+                <Input
                   className="w-full"
                   autoFocus
                   placeholder="org:team:child"
                   value={newNamespace}
-                  onChange={(e) => setNewNamespace(e.target.value)}
-                  disabled={isCreatingNamespace}
+                  onChange={(event) => setNewNamespace(event.target.value)}
+                  disabled={createNamespaceMutation.isPending}
                   required
                 />
               </div>
             </form>
           </ModalBody>
-          <ModalFooter className="flex justify-end gap-3 mt-4">
+          <ModalFooter className="mt-4 flex justify-end gap-3">
             <Button variant="ghost" appearance="outline" onClick={() => setNamespaceModalOpen(false)}>
               Cancel
             </Button>
-            <Button variant="primary" type="submit" form="create-namespace-form" disabled={isCreatingNamespace || !newNamespace.trim()}>
+            <Button
+              variant="primary"
+              type="submit"
+              form="create-namespace-form"
+              disabled={createNamespaceMutation.isPending || !newNamespace.trim()}
+            >
               Create Namespace
             </Button>
           </ModalFooter>
         </ModalContent>
       </DialogOverlay>
 
-      {/* Create Agent Modal */}
-      <Modal isOpen={agentModalOpen.isOpen} onOpenChange={(open) => !open && setAgentModalOpen({ isOpen: false, ns: '' })}>
+      <DialogOverlay isOpen={agentModalOpen.isOpen} onOpenChange={(open) => !open && setAgentModalOpen({ isOpen: false, ns: '' })}>
         <ModalContent className="sm:max-w-md">
-            <>
-              <ModalHeader className="flex flex-col gap-1">Create Agent</ModalHeader>
-              <ModalBody>
-                <form id="create-agent-form" onSubmit={handleCreateAgentSubmit} className="space-y-4">
-                  <div>
-                    <Label className="block text-sm font-medium mb-1">Agent Name</Label>
-                    <Input 
-                      className="w-full"
-                      placeholder="my-agent"
-                      value={agentForm.name}
-                      onChange={(e) => setAgentForm(prev => ({ ...prev, name: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label className="block text-sm font-medium mb-1">Template</Label>
-                    <Select 
-                      value={agentForm.template || null}
-                      onChange={(key) => {
-                         setAgentForm(prev => ({ ...prev, template: key as string }));
-                      }}
-                      isRequired
-                      placeholder="Select an Agent template"
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {agentTemplateOptions.length > 0 ? agentTemplateOptions.map(t => (
-                          <SelectItem id={templateOptionId(t)} key={templateOptionId(t)}>
-                            {t.metadata?.namespace || SYSTEM_NAMESPACE}/{t.metadata?.name}
-                          </SelectItem>
-                        )) : (
-                          <SelectItem id="default" key="default">Blank Agent</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </form>
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="ghost" appearance="outline" onClick={() => setAgentModalOpen({ isOpen: false, ns: '' })}>
-                  Cancel
-                </Button>
-                <Button color="primary" type="submit" form="create-agent-form" disabled={isSubmittingAgent || !agentForm.name || !agentForm.template}>
-                  Create Agent
-                </Button>
-              </ModalFooter>
-            </>
-        </ModalContent>
-      </Modal>
+          <ModalHeader className="flex flex-col gap-1">Create Agent</ModalHeader>
+          <ModalBody>
+            <form id="create-agent-form" onSubmit={submitAgent} className="space-y-4">
+              <div>
+                <Label className="mb-1 block text-sm font-medium">Agent Name</Label>
+                <Input
+                  className="w-full"
+                  placeholder="my-agent"
+                  value={agentForm.name}
+                  onChange={(event) => setAgentForm((prev) => ({ ...prev, name: event.target.value }))}
+                  required
+                />
+              </div>
 
-      <Modal isOpen={channelModalOpen.isOpen} onOpenChange={(open) => !open && setChannelModalOpen({ isOpen: false, ns: '' })}>
+              <div>
+                <Label className="mb-1 block text-sm font-medium">Template</Label>
+                <Select
+                  value={agentForm.template || null}
+                  onChange={(key) => setAgentForm((prev) => ({ ...prev, template: key as string }))}
+                  placeholder="Blank Agent"
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {agentCreateTemplates.map((template) => (
+                      <SelectItem id={templateOptionId(template)} key={templateOptionId(template)}>
+                        {template.metadata?.namespace || SYSTEM_NAMESPACE}/{template.metadata?.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </form>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" appearance="outline" onClick={() => setAgentModalOpen({ isOpen: false, ns: '' })}>
+              Cancel
+            </Button>
+            <Button color="primary" type="submit" form="create-agent-form" disabled={createAgentMutation.isPending || !agentForm.name.trim()}>
+              Create Agent
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </DialogOverlay>
+
+      <DialogOverlay isOpen={channelModalOpen.isOpen} onOpenChange={(open) => !open && setChannelModalOpen({ isOpen: false, ns: '' })}>
         <ModalContent className="sm:max-w-md">
           <ModalHeader className="flex flex-col gap-1">Create Channel</ModalHeader>
           <ModalBody>
-            <form id="create-channel-form" onSubmit={handleCreateChannelSubmit} className="space-y-4">
+            <form id="create-channel-form" onSubmit={submitChannel} className="space-y-4">
               <div>
-                <Label className="block text-sm font-medium mb-1">Channel Name</Label>
+                <Label className="mb-1 block text-sm font-medium">Channel Name</Label>
                 <Input
                   className="w-full"
                   placeholder="incident-room"
                   value={channelForm.name}
-                  onChange={(e) => setChannelForm(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(event) => setChannelForm((prev) => ({ ...prev, name: event.target.value }))}
                   required
                 />
               </div>
               <div>
-                <Label className="block text-sm font-medium mb-1">Title</Label>
+                <Label className="mb-1 block text-sm font-medium">Title</Label>
                 <Input
                   className="w-full"
                   placeholder="Incident Room"
                   value={channelForm.title}
-                  onChange={(e) => setChannelForm(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={(event) => setChannelForm((prev) => ({ ...prev, title: event.target.value }))}
                 />
               </div>
             </form>
@@ -1999,43 +605,46 @@ export function NamespaceExplorer({
             <Button variant="ghost" appearance="outline" onClick={() => setChannelModalOpen({ isOpen: false, ns: '' })}>
               Cancel
             </Button>
-            <Button color="primary" type="submit" form="create-channel-form" disabled={isSubmittingChannel || !channelForm.name.trim()}>
+            <Button color="primary" type="submit" form="create-channel-form" disabled={createChannelMutation.isPending || !channelForm.name.trim()}>
               Create Channel
             </Button>
           </ModalFooter>
         </ModalContent>
-      </Modal>
+      </DialogOverlay>
 
-      <Modal isOpen={subscriptionModalOpen.isOpen} onOpenChange={(open) => !open && setSubscriptionModalOpen({ isOpen: false, ns: '', channel: '' })}>
+      <DialogOverlay
+        isOpen={subscriptionModalOpen.isOpen}
+        onOpenChange={(open) => !open && setSubscriptionModalOpen({ isOpen: false, ns: '', channel: '' })}
+      >
         <ModalContent className="sm:max-w-md">
           <ModalHeader className="flex flex-col gap-1">Create Channel Subscription</ModalHeader>
           <ModalBody>
-            <form id="create-channel-subscription-form" onSubmit={handleCreateSubscriptionSubmit} className="space-y-4">
+            <form id="create-channel-subscription-form" onSubmit={submitSubscription} className="space-y-4">
               <div>
-                <Label className="block text-sm font-medium mb-1">Subscription Name</Label>
+                <Label className="mb-1 block text-sm font-medium">Subscription Name</Label>
                 <Input
                   className="w-full"
                   placeholder="triage"
                   value={subscriptionForm.name}
-                  onChange={(e) => setSubscriptionForm(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(event) => setSubscriptionForm((prev) => ({ ...prev, name: event.target.value }))}
                   required
                 />
               </div>
               <div>
-                <Label className="block text-sm font-medium mb-1">Agent</Label>
+                <Label className="mb-1 block text-sm font-medium">Agent</Label>
                 <Input
                   className="w-full"
                   placeholder="triage-agent"
                   value={subscriptionForm.agent}
-                  onChange={(e) => setSubscriptionForm(prev => ({ ...prev, agent: e.target.value }))}
+                  onChange={(event) => setSubscriptionForm((prev) => ({ ...prev, agent: event.target.value }))}
                   required
                 />
               </div>
               <div>
-                <Label className="block text-sm font-medium mb-1">Trigger</Label>
+                <Label className="mb-1 block text-sm font-medium">Trigger</Label>
                 <Select
                   value={subscriptionForm.trigger}
-                  onChange={(key) => setSubscriptionForm(prev => ({ ...prev, trigger: key as string }))}
+                  onChange={(key) => setSubscriptionForm((prev) => ({ ...prev, trigger: key as string }))}
                   isRequired
                 >
                   <SelectTrigger className="w-full">
@@ -2050,10 +659,10 @@ export function NamespaceExplorer({
                 </Select>
               </div>
               <div>
-                <Label className="block text-sm font-medium mb-1">Reply Mode</Label>
+                <Label className="mb-1 block text-sm font-medium">Reply Mode</Label>
                 <Select
                   value={subscriptionForm.replyMode}
-                  onChange={(key) => setSubscriptionForm(prev => ({ ...prev, replyMode: key as string }))}
+                  onChange={(key) => setSubscriptionForm((prev) => ({ ...prev, replyMode: key as string }))}
                   isRequired
                 >
                   <SelectTrigger className="w-full">
@@ -2069,7 +678,7 @@ export function NamespaceExplorer({
                 <input
                   type="checkbox"
                   checked={subscriptionForm.enabled}
-                  onChange={(e) => setSubscriptionForm(prev => ({ ...prev, enabled: e.target.checked }))}
+                  onChange={(event) => setSubscriptionForm((prev) => ({ ...prev, enabled: event.target.checked }))}
                 />
                 Enabled
               </label>
@@ -2079,30 +688,40 @@ export function NamespaceExplorer({
             <Button variant="ghost" appearance="outline" onClick={() => setSubscriptionModalOpen({ isOpen: false, ns: '', channel: '' })}>
               Cancel
             </Button>
-            <Button color="primary" type="submit" form="create-channel-subscription-form" disabled={isSubmittingSubscription || !subscriptionForm.name.trim() || !subscriptionForm.agent.trim()}>
+            <Button
+              color="primary"
+              type="submit"
+              form="create-channel-subscription-form"
+              disabled={createSubscriptionMutation.isPending || !subscriptionForm.name.trim() || !subscriptionForm.agent.trim()}
+            >
               Create Subscription
             </Button>
           </ModalFooter>
         </ModalContent>
-      </Modal>
+      </DialogOverlay>
 
-      {/* TailGrids Modal Update */}
       <DialogOverlay isOpen={deleteConfirm.isOpen} onOpenChange={(open) => !open && setDeleteConfirm({ isOpen: false, node: null })}>
         <ModalContent className="sm:max-w-md">
           <ModalHeader className="flex flex-col gap-1 text-red-500">Confirm Deletion</ModalHeader>
           <ModalBody>
-            <div className="text-[13px] text-muted-foreground whitespace-pre-wrap">
+            <div className="whitespace-pre-wrap text-[13px] text-muted-foreground">
               Are you sure you want to delete the {deleteConfirm.node?.selection.type} <b>{deleteConfirm.node?.name}</b>?
-              {deleteConfirm.node?.selection.type === 'namespace' && "\n\nThis will permanently delete all enclosed agents and sessions natively."}
-              {deleteConfirm.node?.selection.type === 'agent' && "\n\nThis action will also sever and erase all associated execution history contexts and sessions."}
+              {deleteConfirm.node?.selection.type === 'namespace' &&
+                '\n\nThis will permanently delete all enclosed agents and sessions natively.'}
+              {deleteConfirm.node?.selection.type === 'agent' &&
+                '\n\nThis action will also sever and erase all associated execution history contexts and sessions.'}
             </div>
           </ModalBody>
-          <ModalFooter className="flex justify-end gap-3 mt-4">
+          <ModalFooter className="mt-4 flex justify-end gap-3">
             <Button variant="ghost" appearance="outline" onClick={() => setDeleteConfirm({ isOpen: false, node: null })}>
               Cancel
             </Button>
-            <Button variant="danger" onClick={handleDeleteConfirmed} disabled={isDeleting}>
-              {isDeleting ? "Deleting..." : "Permanently Delete"}
+            <Button
+              variant="danger"
+              onClick={() => deleteConfirm.node && deleteMutation.mutate(deleteConfirm.node)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Permanently Delete'}
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -2110,3 +729,5 @@ export function NamespaceExplorer({
     </div>
   );
 }
+
+export type { Selection };
