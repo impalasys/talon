@@ -39,6 +39,7 @@ except ImportError as exc:
 REPO_ROOT = Path(__file__).resolve().parents[1]
 TESTS_DIR = REPO_ROOT / "tests"
 GENERATED_DIR = TESTS_DIR / "generated"
+DEV_JWT_ENV_PATH = REPO_ROOT / "dockerfiles" / "dev-jwt.env"
 sys.path.insert(0, str(GENERATED_DIR))
 sys.path.insert(0, str(TESTS_DIR))
 
@@ -277,6 +278,17 @@ def json_quote(value: str | Path) -> str:
     return json.dumps(str(value))
 
 
+def benchmark_jwt_private_key_pem() -> str:
+    env_value = os.environ.get("TALON_JWT_PRIVATE_KEY_PEM", "").strip()
+    if env_value:
+        return env_value
+    for line in DEV_JWT_ENV_PATH.read_text(encoding="utf-8").splitlines():
+        key, separator, value = line.partition("=")
+        if separator and key == "TALON_JWT_PRIVATE_KEY_PEM" and value.strip():
+            return value.strip()
+    raise RuntimeError(f"{DEV_JWT_ENV_PATH} must define TALON_JWT_PRIVATE_KEY_PEM")
+
+
 def indent_block(value: str, spaces: int) -> str:
     prefix = " " * spaces
     return "\n".join(prefix + line for line in value.splitlines())
@@ -474,6 +486,7 @@ def write_compose_file(
         depends_on += """
       jaeger:
         condition: service_started"""
+    jwt_private_key_pem = benchmark_jwt_private_key_pem()
     path.write_text(
         f"""
 name: {project_name}
@@ -519,6 +532,7 @@ services:
     environment:
       TALON_CONFIG_PATH: /data/talon/talon.bench.yaml
       RUST_LOG: {json_quote(rust_log)}
+      TALON_JWT_PRIVATE_KEY_PEM: {json_quote(jwt_private_key_pem)}
       NOVITA_API_KEY: bench-dummy-key
       GRPC_ADDR: 0.0.0.0:{TALON_GRPC_PORT}
       PORT: "8081"
