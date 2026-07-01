@@ -285,6 +285,61 @@ spec:
     }
 
     #[test]
+    fn deployment_status_replica_counts_round_trip_yaml() {
+        let rendered = render_resource_yaml(&resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Deployment".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "company-builder".to_string(),
+                namespace: "customers".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resource_spec::Kind::Deployment(Default::default())),
+            }),
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resource_status::Kind::Deployment(
+                    resources_proto::DeploymentStatus {
+                        observed_generation: 4,
+                        phase: "Ready".to_string(),
+                        conditions: Vec::new(),
+                        replicas: Vec::new(),
+                        replica_counts: Some(resources_proto::DeploymentReplicaCounts {
+                            desired: 1200,
+                            updated: 1200,
+                            ready: 1198,
+                            pending: 0,
+                            degraded: 2,
+                        }),
+                    },
+                )),
+            }),
+        })
+        .expect("render resource YAML");
+
+        let rendered_yaml: serde_yaml::Value =
+            serde_yaml::from_str(&rendered).expect("rendered YAML parses");
+        assert!(rendered_yaml["status"]["replicas"].is_null());
+        assert_eq!(
+            rendered_yaml["status"]["replicaCounts"]["desired"].as_u64(),
+            Some(1200)
+        );
+        assert_eq!(
+            rendered_yaml["status"]["replicaCounts"]["ready"].as_u64(),
+            Some(1198)
+        );
+        let parsed = parse_resource(&rendered).expect("parse rendered deployment");
+        let Some(resource_status::Kind::Deployment(status)) =
+            parsed.status.and_then(|status| status.kind)
+        else {
+            panic!("expected Deployment status");
+        };
+        let counts = status.replica_counts.expect("replica counts");
+        assert_eq!(counts.updated, 1200);
+        assert_eq!(counts.degraded, 2);
+    }
+
+    #[test]
     fn agent_spec_serde_preserves_capabilities() {
         let spec: resources_proto::AgentSpec = serde_json::from_value(serde_json::json!({
             "capabilities": {

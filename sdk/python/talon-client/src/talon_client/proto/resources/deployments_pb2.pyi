@@ -70,16 +70,32 @@ class DeploymentReplica(_message.Message):
     def __init__(self, metadata: _Optional[_Union[_common_pb2.ResourceMeta, _Mapping]] = ..., spec: _Optional[_Union[DeploymentReplicaSpec, _Mapping]] = ..., status: _Optional[_Union[DeploymentReplicaStatus, _Mapping]] = ...) -> None: ...
 
 class DeploymentStatus(_message.Message):
-    __slots__ = ("observed_generation", "phase", "conditions", "replicas")
+    __slots__ = ("observed_generation", "phase", "conditions", "replicas", "replica_counts")
     OBSERVED_GENERATION_FIELD_NUMBER: _ClassVar[int]
     PHASE_FIELD_NUMBER: _ClassVar[int]
     CONDITIONS_FIELD_NUMBER: _ClassVar[int]
     REPLICAS_FIELD_NUMBER: _ClassVar[int]
+    REPLICA_COUNTS_FIELD_NUMBER: _ClassVar[int]
     observed_generation: int
     phase: str
     conditions: _containers.RepeatedCompositeFieldContainer[_common_pb2.ResourceCondition]
     replicas: _containers.RepeatedCompositeFieldContainer[_common_pb2.ResourceRef]
-    def __init__(self, observed_generation: _Optional[int] = ..., phase: _Optional[str] = ..., conditions: _Optional[_Iterable[_Union[_common_pb2.ResourceCondition, _Mapping]]] = ..., replicas: _Optional[_Iterable[_Union[_common_pb2.ResourceRef, _Mapping]]] = ...) -> None: ...
+    replica_counts: DeploymentReplicaCounts
+    def __init__(self, observed_generation: _Optional[int] = ..., phase: _Optional[str] = ..., conditions: _Optional[_Iterable[_Union[_common_pb2.ResourceCondition, _Mapping]]] = ..., replicas: _Optional[_Iterable[_Union[_common_pb2.ResourceRef, _Mapping]]] = ..., replica_counts: _Optional[_Union[DeploymentReplicaCounts, _Mapping]] = ...) -> None: ...
+
+class DeploymentReplicaCounts(_message.Message):
+    __slots__ = ("desired", "updated", "ready", "pending", "degraded")
+    DESIRED_FIELD_NUMBER: _ClassVar[int]
+    UPDATED_FIELD_NUMBER: _ClassVar[int]
+    READY_FIELD_NUMBER: _ClassVar[int]
+    PENDING_FIELD_NUMBER: _ClassVar[int]
+    DEGRADED_FIELD_NUMBER: _ClassVar[int]
+    desired: int
+    updated: int
+    ready: int
+    pending: int
+    degraded: int
+    def __init__(self, desired: _Optional[int] = ..., updated: _Optional[int] = ..., ready: _Optional[int] = ..., pending: _Optional[int] = ..., degraded: _Optional[int] = ...) -> None: ...
 
 class DeploymentReplicaStatus(_message.Message):
     __slots__ = ("observed_generation", "phase", "conditions", "rendered_resources", "rendered_hashes", "conflicts", "last_rendered_json", "owned_json_pointers")

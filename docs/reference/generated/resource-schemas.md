@@ -615,6 +615,17 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `phase` | `string` | - |
 | `conditions` | `ResourceCondition` | repeated |
 | `replicas` | `ResourceRef` | repeated |
+| `replica_counts` | `DeploymentReplicaCounts` | - |
+
+## `DeploymentReplicaCounts`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `desired` | `uint64` | - |
+| `updated` | `uint64` | - |
+| `ready` | `uint64` | - |
+| `pending` | `uint64` | - |
+| `degraded` | `uint64` | - |
 
 ## `DeploymentReplicaStatus`
 

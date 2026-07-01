@@ -60,7 +60,9 @@ pub(super) async fn run(cli: &Cli, command: &GetCommand) -> Result<()> {
             let value = get_json(cli, &command.kind, name, command.namespace.as_ref()).await?;
             serde_json::to_string_pretty(&value)?
         }
-        GetOutput::Table => anyhow::bail!("single resource output format 'table' is not supported"),
+        GetOutput::Table => {
+            get_table(cli, &command.kind, name, command.namespace.as_ref()).await?
+        }
     };
     println!("{}", output);
     Ok(())
@@ -241,6 +243,36 @@ async fn get_json(
     resource_manifest_json(&resource)
 }
 
+async fn get_table(
+    cli: &Cli,
+    kind: &str,
+    name: &str,
+    namespace: Option<&String>,
+) -> Result<String> {
+    let mut client = connect_gateway(cli).await?;
+
+    let target = get_target(kind, name, namespace)?;
+    if target.kind != "Deployment" {
+        anyhow::bail!("single resource output format 'table' is only supported for Deployment");
+    }
+    let resp = client
+        .get_resource(GetResourceRequest {
+            ns: target.ns.clone(),
+            kind: target.kind.clone(),
+            name: target.name.clone(),
+        })
+        .await
+        .with_context(|| {
+            format!(
+                "Failed to fetch {} '{}/{}'",
+                target.kind, target.ns, target.name
+            )
+        })?;
+    let resource = resp.into_inner().resource.context("Resource not found.")?;
+    let resource = to_internal_resource(&resource)?;
+    Ok(render_deployment_list_table(&[resource]))
+}
+
 async fn list_resources_table(
     cli: &Cli,
     kind: &str,
@@ -250,6 +282,7 @@ async fn list_resources_table(
 
     match resource_list_target(kind, namespace)? {
         ResourceListTarget::Resources { ns, kind } => {
+            let deployment_table = kind.as_deref() == Some("Deployment");
             let resources = client
                 .list_resources(ListResourcesRequest {
                     ns: ns.clone(),
@@ -263,7 +296,11 @@ async fn list_resources_table(
                 .iter()
                 .map(to_internal_resource)
                 .collect::<Result<Vec<_>>>()?;
-            Ok(render_resource_list_table(&resources))
+            Ok(if deployment_table {
+                render_deployment_list_table(&resources)
+            } else {
+                render_resource_list_table(&resources)
+            })
         }
         ResourceListTarget::Namespaces { parent } => {
             let namespaces = client
@@ -350,6 +387,54 @@ fn render_resource_list_table(resources: &[resources_proto::Resource]) -> String
     render_table(rows)
 }
 
+fn render_deployment_list_table(resources: &[resources_proto::Resource]) -> String {
+    let mut rows = vec![vec![
+        "KIND".to_string(),
+        "NAMESPACE".to_string(),
+        "NAME".to_string(),
+        "PHASE".to_string(),
+        "READY".to_string(),
+        "UPDATED".to_string(),
+        "DESIRED".to_string(),
+        "PENDING".to_string(),
+        "DEGRADED".to_string(),
+    ]];
+    for resource in resources {
+        let metadata = resource.metadata.as_ref();
+        let counts = deployment_replica_counts(resource);
+        rows.push(vec![
+            resource.kind.clone(),
+            metadata
+                .map(|meta| meta.namespace.clone())
+                .filter(|value| !value.is_empty())
+                .unwrap_or_else(|| "-".to_string()),
+            metadata
+                .map(|meta| meta.name.clone())
+                .filter(|value| !value.is_empty())
+                .unwrap_or_else(|| "-".to_string()),
+            resource_status_phase(resource)
+                .filter(|value| !value.is_empty())
+                .unwrap_or_else(|| "-".to_string()),
+            counts
+                .map(|counts| counts.ready.to_string())
+                .unwrap_or_else(|| "-".to_string()),
+            counts
+                .map(|counts| counts.updated.to_string())
+                .unwrap_or_else(|| "-".to_string()),
+            counts
+                .map(|counts| counts.desired.to_string())
+                .unwrap_or_else(|| "-".to_string()),
+            counts
+                .map(|counts| counts.pending.to_string())
+                .unwrap_or_else(|| "-".to_string()),
+            counts
+                .map(|counts| counts.degraded.to_string())
+                .unwrap_or_else(|| "-".to_string()),
+        ]);
+    }
+    render_table(rows)
+}
+
 fn render_namespace_list_table_from_proto(
     namespaces: &[talon_client::v1::NamespaceResponse],
 ) -> String {
@@ -381,6 +466,17 @@ fn resource_manifest_json(resource: &resources_proto::Resource) -> Result<serde_
     let yaml_value: serde_yaml::Value =
         serde_yaml::from_str(&yaml).context("Failed to parse rendered resource YAML")?;
     serde_json::to_value(yaml_value).context("Failed to convert rendered resource YAML to JSON")
+}
+
+fn deployment_replica_counts(
+    resource: &resources_proto::Resource,
+) -> Option<&resources_proto::DeploymentReplicaCounts> {
+    match resource.status.as_ref()?.kind.as_ref()? {
+        resources_proto::resource_status::Kind::Deployment(status) => {
+            status.replica_counts.as_ref()
+        }
+        _ => None,
+    }
 }
 
 fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String> {
@@ -541,5 +637,56 @@ mod tests {
         assert!(table.contains("customers:acme"));
         assert!(table.contains("coding"));
         assert!(table.contains("Ready"));
+    }
+
+    #[test]
+    fn render_deployment_list_table_includes_replica_counts() {
+        let resources = vec![resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Deployment".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "company-builder".to_string(),
+                namespace: "customers".to_string(),
+                labels: HashMap::new(),
+                annotations: HashMap::new(),
+                owner_references: Vec::new(),
+                finalizers: Vec::new(),
+                generation: 1,
+                resource_version: "1".to_string(),
+                uid: "uid".to_string(),
+                deletion_timestamp: None,
+            }),
+            spec: None,
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resources_proto::resource_status::Kind::Deployment(
+                    resources_proto::DeploymentStatus {
+                        observed_generation: 1,
+                        phase: "Degraded".to_string(),
+                        conditions: Vec::new(),
+                        replicas: Vec::new(),
+                        replica_counts: Some(resources_proto::DeploymentReplicaCounts {
+                            desired: 10,
+                            updated: 9,
+                            ready: 8,
+                            pending: 1,
+                            degraded: 1,
+                        }),
+                    },
+                )),
+            }),
+        }];
+
+        let table = render_deployment_list_table(&resources);
+
+        assert!(table.contains("READY"));
+        assert!(table.contains("UPDATED"));
+        assert!(table.contains("DESIRED"));
+        assert!(table.contains("PENDING"));
+        assert!(table.contains("DEGRADED"));
+        assert!(table.contains("company-builder"));
+        assert!(table.contains("Degraded"));
+        assert!(table.contains("8"));
+        assert!(table.contains("9"));
+        assert!(table.contains("10"));
     }
 }

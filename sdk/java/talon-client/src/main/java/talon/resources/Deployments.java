@@ -6022,6 +6022,21 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
      */
     talon.resources.Common.ResourceRefOrBuilder getReplicasOrBuilder(
         int index);
+
+    /**
+     * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+     * @return Whether the replicaCounts field is set.
+     */
+    boolean hasReplicaCounts();
+    /**
+     * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+     * @return The replicaCounts.
+     */
+    talon.resources.Deployments.DeploymentReplicaCounts getReplicaCounts();
+    /**
+     * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+     */
+    talon.resources.Deployments.DeploymentReplicaCountsOrBuilder getReplicaCountsOrBuilder();
   }
   /**
    * Protobuf type {@code talon.resources.DeploymentStatus}
@@ -6068,6 +6083,7 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
               talon.resources.Deployments.DeploymentStatus.class, talon.resources.Deployments.DeploymentStatus.Builder.class);
     }
 
+    private int bitField0_;
     public static final int OBSERVED_GENERATION_FIELD_NUMBER = 1;
     private long observedGeneration_ = 0L;
     /**
@@ -6200,6 +6216,32 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
       return replicas_.get(index);
     }
 
+    public static final int REPLICA_COUNTS_FIELD_NUMBER = 5;
+    private talon.resources.Deployments.DeploymentReplicaCounts replicaCounts_;
+    /**
+     * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+     * @return Whether the replicaCounts field is set.
+     */
+    @java.lang.Override
+    public boolean hasReplicaCounts() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+     * @return The replicaCounts.
+     */
+    @java.lang.Override
+    public talon.resources.Deployments.DeploymentReplicaCounts getReplicaCounts() {
+      return replicaCounts_ == null ? talon.resources.Deployments.DeploymentReplicaCounts.getDefaultInstance() : replicaCounts_;
+    }
+    /**
+     * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Deployments.DeploymentReplicaCountsOrBuilder getReplicaCountsOrBuilder() {
+      return replicaCounts_ == null ? talon.resources.Deployments.DeploymentReplicaCounts.getDefaultInstance() : replicaCounts_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -6225,6 +6267,9 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
       }
       for (int i = 0; i < replicas_.size(); i++) {
         output.writeMessage(4, replicas_.get(i));
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(5, getReplicaCounts());
       }
       getUnknownFields().writeTo(output);
     }
@@ -6260,6 +6305,10 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
             }
             size += 1 * count;
           }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, getReplicaCounts());
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -6283,6 +6332,11 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
           .equals(other.getConditionsList())) return false;
       if (!getReplicasList()
           .equals(other.getReplicasList())) return false;
+      if (hasReplicaCounts() != other.hasReplicaCounts()) return false;
+      if (hasReplicaCounts()) {
+        if (!getReplicaCounts()
+            .equals(other.getReplicaCounts())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -6306,6 +6360,10 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
       if (getReplicasCount() > 0) {
         hash = (37 * hash) + REPLICAS_FIELD_NUMBER;
         hash = (53 * hash) + getReplicasList().hashCode();
+      }
+      if (hasReplicaCounts()) {
+        hash = (37 * hash) + REPLICA_COUNTS_FIELD_NUMBER;
+        hash = (53 * hash) + getReplicaCounts().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -6426,13 +6484,21 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
 
       // Construct using talon.resources.Deployments.DeploymentStatus.newBuilder()
       private Builder() {
-
+        maybeForceBuilderInitialization();
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetConditionsFieldBuilder();
+          internalGetReplicasFieldBuilder();
+          internalGetReplicaCountsFieldBuilder();
+        }
       }
       @java.lang.Override
       public Builder clear() {
@@ -6454,6 +6520,11 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
           replicasBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000008);
+        replicaCounts_ = null;
+        if (replicaCountsBuilder_ != null) {
+          replicaCountsBuilder_.dispose();
+          replicaCountsBuilder_ = null;
+        }
         return this;
       }
 
@@ -6515,6 +6586,14 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000002) != 0)) {
           result.phase_ = phase_;
         }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.replicaCounts_ = replicaCountsBuilder_ == null
+              ? replicaCounts_
+              : replicaCountsBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
       }
 
       @java.lang.Override
@@ -6589,6 +6668,9 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
             }
           }
         }
+        if (other.hasReplicaCounts()) {
+          mergeReplicaCounts(other.getReplicaCounts());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -6651,6 +6733,13 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
                 }
                 break;
               } // case 34
+              case 42: {
+                input.readMessage(
+                    internalGetReplicaCountsFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -7252,6 +7341,127 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
         return replicasBuilder_;
       }
 
+      private talon.resources.Deployments.DeploymentReplicaCounts replicaCounts_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Deployments.DeploymentReplicaCounts, talon.resources.Deployments.DeploymentReplicaCounts.Builder, talon.resources.Deployments.DeploymentReplicaCountsOrBuilder> replicaCountsBuilder_;
+      /**
+       * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+       * @return Whether the replicaCounts field is set.
+       */
+      public boolean hasReplicaCounts() {
+        return ((bitField0_ & 0x00000010) != 0);
+      }
+      /**
+       * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+       * @return The replicaCounts.
+       */
+      public talon.resources.Deployments.DeploymentReplicaCounts getReplicaCounts() {
+        if (replicaCountsBuilder_ == null) {
+          return replicaCounts_ == null ? talon.resources.Deployments.DeploymentReplicaCounts.getDefaultInstance() : replicaCounts_;
+        } else {
+          return replicaCountsBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+       */
+      public Builder setReplicaCounts(talon.resources.Deployments.DeploymentReplicaCounts value) {
+        if (replicaCountsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          replicaCounts_ = value;
+        } else {
+          replicaCountsBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+       */
+      public Builder setReplicaCounts(
+          talon.resources.Deployments.DeploymentReplicaCounts.Builder builderForValue) {
+        if (replicaCountsBuilder_ == null) {
+          replicaCounts_ = builderForValue.build();
+        } else {
+          replicaCountsBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+       */
+      public Builder mergeReplicaCounts(talon.resources.Deployments.DeploymentReplicaCounts value) {
+        if (replicaCountsBuilder_ == null) {
+          if (((bitField0_ & 0x00000010) != 0) &&
+            replicaCounts_ != null &&
+            replicaCounts_ != talon.resources.Deployments.DeploymentReplicaCounts.getDefaultInstance()) {
+            getReplicaCountsBuilder().mergeFrom(value);
+          } else {
+            replicaCounts_ = value;
+          }
+        } else {
+          replicaCountsBuilder_.mergeFrom(value);
+        }
+        if (replicaCounts_ != null) {
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+       */
+      public Builder clearReplicaCounts() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        replicaCounts_ = null;
+        if (replicaCountsBuilder_ != null) {
+          replicaCountsBuilder_.dispose();
+          replicaCountsBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+       */
+      public talon.resources.Deployments.DeploymentReplicaCounts.Builder getReplicaCountsBuilder() {
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return internalGetReplicaCountsFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+       */
+      public talon.resources.Deployments.DeploymentReplicaCountsOrBuilder getReplicaCountsOrBuilder() {
+        if (replicaCountsBuilder_ != null) {
+          return replicaCountsBuilder_.getMessageOrBuilder();
+        } else {
+          return replicaCounts_ == null ?
+              talon.resources.Deployments.DeploymentReplicaCounts.getDefaultInstance() : replicaCounts_;
+        }
+      }
+      /**
+       * <code>.talon.resources.DeploymentReplicaCounts replica_counts = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Deployments.DeploymentReplicaCounts, talon.resources.Deployments.DeploymentReplicaCounts.Builder, talon.resources.Deployments.DeploymentReplicaCountsOrBuilder>
+          internalGetReplicaCountsFieldBuilder() {
+        if (replicaCountsBuilder_ == null) {
+          replicaCountsBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Deployments.DeploymentReplicaCounts, talon.resources.Deployments.DeploymentReplicaCounts.Builder, talon.resources.Deployments.DeploymentReplicaCountsOrBuilder>(
+                  getReplicaCounts(),
+                  getParentForChildren(),
+                  isClean());
+          replicaCounts_ = null;
+        }
+        return replicaCountsBuilder_;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.resources.DeploymentStatus)
     }
 
@@ -7298,6 +7508,738 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
 
     @java.lang.Override
     public talon.resources.Deployments.DeploymentStatus getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface DeploymentReplicaCountsOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.resources.DeploymentReplicaCounts)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>uint64 desired = 1;</code>
+     * @return The desired.
+     */
+    long getDesired();
+
+    /**
+     * <code>uint64 updated = 2;</code>
+     * @return The updated.
+     */
+    long getUpdated();
+
+    /**
+     * <code>uint64 ready = 3;</code>
+     * @return The ready.
+     */
+    long getReady();
+
+    /**
+     * <code>uint64 pending = 4;</code>
+     * @return The pending.
+     */
+    long getPending();
+
+    /**
+     * <code>uint64 degraded = 5;</code>
+     * @return The degraded.
+     */
+    long getDegraded();
+  }
+  /**
+   * Protobuf type {@code talon.resources.DeploymentReplicaCounts}
+   */
+  public static final class DeploymentReplicaCounts extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.resources.DeploymentReplicaCounts)
+      DeploymentReplicaCountsOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "DeploymentReplicaCounts");
+    }
+    // Use DeploymentReplicaCounts.newBuilder() to construct.
+    private DeploymentReplicaCounts(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private DeploymentReplicaCounts() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.resources.Deployments.internal_static_talon_resources_DeploymentReplicaCounts_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.resources.Deployments.internal_static_talon_resources_DeploymentReplicaCounts_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.resources.Deployments.internal_static_talon_resources_DeploymentReplicaCounts_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.resources.Deployments.DeploymentReplicaCounts.class, talon.resources.Deployments.DeploymentReplicaCounts.Builder.class);
+    }
+
+    public static final int DESIRED_FIELD_NUMBER = 1;
+    private long desired_ = 0L;
+    /**
+     * <code>uint64 desired = 1;</code>
+     * @return The desired.
+     */
+    @java.lang.Override
+    public long getDesired() {
+      return desired_;
+    }
+
+    public static final int UPDATED_FIELD_NUMBER = 2;
+    private long updated_ = 0L;
+    /**
+     * <code>uint64 updated = 2;</code>
+     * @return The updated.
+     */
+    @java.lang.Override
+    public long getUpdated() {
+      return updated_;
+    }
+
+    public static final int READY_FIELD_NUMBER = 3;
+    private long ready_ = 0L;
+    /**
+     * <code>uint64 ready = 3;</code>
+     * @return The ready.
+     */
+    @java.lang.Override
+    public long getReady() {
+      return ready_;
+    }
+
+    public static final int PENDING_FIELD_NUMBER = 4;
+    private long pending_ = 0L;
+    /**
+     * <code>uint64 pending = 4;</code>
+     * @return The pending.
+     */
+    @java.lang.Override
+    public long getPending() {
+      return pending_;
+    }
+
+    public static final int DEGRADED_FIELD_NUMBER = 5;
+    private long degraded_ = 0L;
+    /**
+     * <code>uint64 degraded = 5;</code>
+     * @return The degraded.
+     */
+    @java.lang.Override
+    public long getDegraded() {
+      return degraded_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (desired_ != 0L) {
+        output.writeUInt64(1, desired_);
+      }
+      if (updated_ != 0L) {
+        output.writeUInt64(2, updated_);
+      }
+      if (ready_ != 0L) {
+        output.writeUInt64(3, ready_);
+      }
+      if (pending_ != 0L) {
+        output.writeUInt64(4, pending_);
+      }
+      if (degraded_ != 0L) {
+        output.writeUInt64(5, degraded_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (desired_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(1, desired_);
+      }
+      if (updated_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(2, updated_);
+      }
+      if (ready_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(3, ready_);
+      }
+      if (pending_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(4, pending_);
+      }
+      if (degraded_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(5, degraded_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.resources.Deployments.DeploymentReplicaCounts)) {
+        return super.equals(obj);
+      }
+      talon.resources.Deployments.DeploymentReplicaCounts other = (talon.resources.Deployments.DeploymentReplicaCounts) obj;
+
+      if (getDesired()
+          != other.getDesired()) return false;
+      if (getUpdated()
+          != other.getUpdated()) return false;
+      if (getReady()
+          != other.getReady()) return false;
+      if (getPending()
+          != other.getPending()) return false;
+      if (getDegraded()
+          != other.getDegraded()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + DESIRED_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getDesired());
+      hash = (37 * hash) + UPDATED_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getUpdated());
+      hash = (37 * hash) + READY_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getReady());
+      hash = (37 * hash) + PENDING_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getPending());
+      hash = (37 * hash) + DEGRADED_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getDegraded());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.resources.Deployments.DeploymentReplicaCounts parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Deployments.DeploymentReplicaCounts parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Deployments.DeploymentReplicaCounts parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Deployments.DeploymentReplicaCounts parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Deployments.DeploymentReplicaCounts parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Deployments.DeploymentReplicaCounts parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Deployments.DeploymentReplicaCounts parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Deployments.DeploymentReplicaCounts parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.resources.Deployments.DeploymentReplicaCounts parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.resources.Deployments.DeploymentReplicaCounts parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.resources.Deployments.DeploymentReplicaCounts parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Deployments.DeploymentReplicaCounts parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.resources.Deployments.DeploymentReplicaCounts prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.resources.DeploymentReplicaCounts}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.resources.DeploymentReplicaCounts)
+        talon.resources.Deployments.DeploymentReplicaCountsOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.resources.Deployments.internal_static_talon_resources_DeploymentReplicaCounts_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.resources.Deployments.internal_static_talon_resources_DeploymentReplicaCounts_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.resources.Deployments.DeploymentReplicaCounts.class, talon.resources.Deployments.DeploymentReplicaCounts.Builder.class);
+      }
+
+      // Construct using talon.resources.Deployments.DeploymentReplicaCounts.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        desired_ = 0L;
+        updated_ = 0L;
+        ready_ = 0L;
+        pending_ = 0L;
+        degraded_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.resources.Deployments.internal_static_talon_resources_DeploymentReplicaCounts_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.resources.Deployments.DeploymentReplicaCounts getDefaultInstanceForType() {
+        return talon.resources.Deployments.DeploymentReplicaCounts.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.resources.Deployments.DeploymentReplicaCounts build() {
+        talon.resources.Deployments.DeploymentReplicaCounts result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.resources.Deployments.DeploymentReplicaCounts buildPartial() {
+        talon.resources.Deployments.DeploymentReplicaCounts result = new talon.resources.Deployments.DeploymentReplicaCounts(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.resources.Deployments.DeploymentReplicaCounts result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.desired_ = desired_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.updated_ = updated_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.ready_ = ready_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.pending_ = pending_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.degraded_ = degraded_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.resources.Deployments.DeploymentReplicaCounts) {
+          return mergeFrom((talon.resources.Deployments.DeploymentReplicaCounts)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.resources.Deployments.DeploymentReplicaCounts other) {
+        if (other == talon.resources.Deployments.DeploymentReplicaCounts.getDefaultInstance()) return this;
+        if (other.getDesired() != 0L) {
+          setDesired(other.getDesired());
+        }
+        if (other.getUpdated() != 0L) {
+          setUpdated(other.getUpdated());
+        }
+        if (other.getReady() != 0L) {
+          setReady(other.getReady());
+        }
+        if (other.getPending() != 0L) {
+          setPending(other.getPending());
+        }
+        if (other.getDegraded() != 0L) {
+          setDegraded(other.getDegraded());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 8: {
+                desired_ = input.readUInt64();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 8
+              case 16: {
+                updated_ = input.readUInt64();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              case 24: {
+                ready_ = input.readUInt64();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              case 32: {
+                pending_ = input.readUInt64();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+              case 40: {
+                degraded_ = input.readUInt64();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 40
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private long desired_ ;
+      /**
+       * <code>uint64 desired = 1;</code>
+       * @return The desired.
+       */
+      @java.lang.Override
+      public long getDesired() {
+        return desired_;
+      }
+      /**
+       * <code>uint64 desired = 1;</code>
+       * @param value The desired to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDesired(long value) {
+
+        desired_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 desired = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDesired() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        desired_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long updated_ ;
+      /**
+       * <code>uint64 updated = 2;</code>
+       * @return The updated.
+       */
+      @java.lang.Override
+      public long getUpdated() {
+        return updated_;
+      }
+      /**
+       * <code>uint64 updated = 2;</code>
+       * @param value The updated to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUpdated(long value) {
+
+        updated_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 updated = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUpdated() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        updated_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long ready_ ;
+      /**
+       * <code>uint64 ready = 3;</code>
+       * @return The ready.
+       */
+      @java.lang.Override
+      public long getReady() {
+        return ready_;
+      }
+      /**
+       * <code>uint64 ready = 3;</code>
+       * @param value The ready to set.
+       * @return This builder for chaining.
+       */
+      public Builder setReady(long value) {
+
+        ready_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 ready = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearReady() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        ready_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long pending_ ;
+      /**
+       * <code>uint64 pending = 4;</code>
+       * @return The pending.
+       */
+      @java.lang.Override
+      public long getPending() {
+        return pending_;
+      }
+      /**
+       * <code>uint64 pending = 4;</code>
+       * @param value The pending to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPending(long value) {
+
+        pending_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 pending = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPending() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        pending_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long degraded_ ;
+      /**
+       * <code>uint64 degraded = 5;</code>
+       * @return The degraded.
+       */
+      @java.lang.Override
+      public long getDegraded() {
+        return degraded_;
+      }
+      /**
+       * <code>uint64 degraded = 5;</code>
+       * @param value The degraded to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDegraded(long value) {
+
+        degraded_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 degraded = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDegraded() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        degraded_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.resources.DeploymentReplicaCounts)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.resources.DeploymentReplicaCounts)
+    private static final talon.resources.Deployments.DeploymentReplicaCounts DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.resources.Deployments.DeploymentReplicaCounts();
+    }
+
+    public static talon.resources.Deployments.DeploymentReplicaCounts getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<DeploymentReplicaCounts>
+        PARSER = new com.google.protobuf.AbstractParser<DeploymentReplicaCounts>() {
+      @java.lang.Override
+      public DeploymentReplicaCounts parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<DeploymentReplicaCounts> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DeploymentReplicaCounts> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.resources.Deployments.DeploymentReplicaCounts getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -9552,6 +10494,11 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_DeploymentStatus_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_resources_DeploymentReplicaCounts_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_resources_DeploymentReplicaCounts_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_DeploymentReplicaStatus_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -9599,24 +10546,28 @@ java.lang.String defaultValue) {
       "esources.ResourceMeta\0224\n\004spec\030\002 \001(\0132&.ta" +
       "lon.resources.DeploymentReplicaSpec\0228\n\006s" +
       "tatus\030\003 \001(\0132(.talon.resources.Deployment" +
-      "ReplicaStatus\"\246\001\n\020DeploymentStatus\022\033\n\023ob" +
+      "ReplicaStatus\"\350\001\n\020DeploymentStatus\022\033\n\023ob" +
       "served_generation\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226" +
       "\n\nconditions\030\003 \003(\0132\".talon.resources.Res" +
       "ourceCondition\022.\n\010replicas\030\004 \003(\0132\034.talon" +
-      ".resources.ResourceRef\"\354\003\n\027DeploymentRep" +
-      "licaStatus\022\033\n\023observed_generation\030\001 \001(\004\022" +
-      "\r\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\".tal" +
-      "on.resources.ResourceCondition\022\032\n\022render" +
-      "ed_resources\030\004 \003(\t\022U\n\017rendered_hashes\030\005 " +
-      "\003(\0132<.talon.resources.DeploymentReplicaS" +
-      "tatus.RenderedHashesEntry\022\021\n\tconflicts\030\006" +
-      " \003(\t\022Z\n\022last_rendered_json\030\007 \003(\0132>.talon" +
-      ".resources.DeploymentReplicaStatus.LastR" +
-      "enderedJsonEntry\022\033\n\023owned_json_pointers\030" +
-      "\010 \003(\t\0325\n\023RenderedHashesEntry\022\013\n\003key\030\001 \001(" +
-      "\t\022\r\n\005value\030\002 \001(\t:\0028\001\0327\n\025LastRenderedJson" +
-      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001b\006p" +
-      "roto3"
+      ".resources.ResourceRef\022@\n\016replica_counts" +
+      "\030\005 \001(\0132(.talon.resources.DeploymentRepli" +
+      "caCounts\"m\n\027DeploymentReplicaCounts\022\017\n\007d" +
+      "esired\030\001 \001(\004\022\017\n\007updated\030\002 \001(\004\022\r\n\005ready\030\003" +
+      " \001(\004\022\017\n\007pending\030\004 \001(\004\022\020\n\010degraded\030\005 \001(\004\"" +
+      "\354\003\n\027DeploymentReplicaStatus\022\033\n\023observed_" +
+      "generation\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\ncondi" +
+      "tions\030\003 \003(\0132\".talon.resources.ResourceCo" +
+      "ndition\022\032\n\022rendered_resources\030\004 \003(\t\022U\n\017r" +
+      "endered_hashes\030\005 \003(\0132<.talon.resources.D" +
+      "eploymentReplicaStatus.RenderedHashesEnt" +
+      "ry\022\021\n\tconflicts\030\006 \003(\t\022Z\n\022last_rendered_j" +
+      "son\030\007 \003(\0132>.talon.resources.DeploymentRe" +
+      "plicaStatus.LastRenderedJsonEntry\022\033\n\023own" +
+      "ed_json_pointers\030\010 \003(\t\0325\n\023RenderedHashes" +
+      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\0327\n" +
+      "\025LastRenderedJsonEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005v" +
+      "alue\030\002 \001(\t:\0028\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -9670,9 +10621,15 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_DeploymentStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_DeploymentStatus_descriptor,
-        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "Replicas", });
-    internal_static_talon_resources_DeploymentReplicaStatus_descriptor =
+        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "Replicas", "ReplicaCounts", });
+    internal_static_talon_resources_DeploymentReplicaCounts_descriptor =
       getDescriptor().getMessageType(8);
+    internal_static_talon_resources_DeploymentReplicaCounts_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_resources_DeploymentReplicaCounts_descriptor,
+        new java.lang.String[] { "Desired", "Updated", "Ready", "Pending", "Degraded", });
+    internal_static_talon_resources_DeploymentReplicaStatus_descriptor =
+      getDescriptor().getMessageType(9);
     internal_static_talon_resources_DeploymentReplicaStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_DeploymentReplicaStatus_descriptor,
