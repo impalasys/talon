@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use anyhow::{Context, Result};
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -12,7 +13,9 @@ use crate::gateway::rpc::resources_proto;
 use talon_client::v1::{CreateNamespaceRequest, CreateResourceRequest};
 
 use super::Cli;
-use crate::cli::{connect_gateway, parse_raw_manifest, render_manifest_file, to_sdk_resource_manifest};
+use crate::cli::{
+    connect_gateway, parse_raw_manifest, render_manifest_file, to_sdk_resource_manifest,
+};
 
 #[derive(clap::Args)]
 pub(crate) struct ApplyCommand {
@@ -213,6 +216,10 @@ fn resource_manifest_from_manifest(
 fn reject_status_field(content: &str) -> Result<()> {
     let value: serde_yaml::Value =
         serde_yaml::from_str(content).context("Failed to parse resource manifest YAML")?;
+    reject_status_field_in_value(&value)
+}
+
+fn reject_status_field_in_value(value: &serde_yaml::Value) -> Result<()> {
     let has_status = value
         .as_mapping()
         .map(|mapping| mapping.contains_key(serde_yaml::Value::String("status".to_string())))
@@ -258,6 +265,22 @@ fn build_apply_plan(content: &str) -> Result<ApplyPlan> {
     }
 }
 
+fn build_apply_plans(content: &str) -> Result<Vec<ApplyPlan>> {
+    let mut plans = Vec::new();
+    for document in serde_yaml::Deserializer::from_str(content) {
+        let value = serde_yaml::Value::deserialize(document)
+            .context("Failed to parse resource manifest YAML")?;
+        if matches!(value, serde_yaml::Value::Null) {
+            continue;
+        }
+        reject_status_field_in_value(&value)?;
+        let document =
+            serde_yaml::to_string(&value).context("Failed to serialize YAML document")?;
+        plans.push(build_apply_plan(&document)?);
+    }
+    Ok(plans)
+}
+
 fn plan_namespace_to_ensure(plan: &ApplyPlan) -> Option<&str> {
     match plan {
         ApplyPlan::Resource { ns, .. } => Some(ns.as_str())
@@ -268,50 +291,54 @@ fn plan_namespace_to_ensure(plan: &ApplyPlan) -> Option<&str> {
 }
 
 pub(super) async fn apply_manifest(cli: &Cli, content: &str) -> Result<String> {
-    let plan = build_apply_plan(content)?;
+    let plans = build_apply_plans(content)?;
     let mut client = connect_gateway(cli).await?;
-    if let Some(namespace) = plan_namespace_to_ensure(&plan) {
-        client
-            .create_namespace(CreateNamespaceRequest {
-                name: namespace.to_string(),
-                recursive: true,
-                labels: HashMap::new(),
-            })
-            .await
-            .with_context(|| format!("Gateway rejected implicit Namespace '{}'", namespace))?;
-    }
-
-    match plan {
-        ApplyPlan::Namespace { name, labels } => {
+    let mut messages = Vec::new();
+    for plan in plans {
+        if let Some(namespace) = plan_namespace_to_ensure(&plan) {
             client
                 .create_namespace(CreateNamespaceRequest {
-                    name: name.clone(),
+                    name: namespace.to_string(),
                     recursive: true,
-                    labels,
+                    labels: HashMap::new(),
                 })
                 .await
-                .with_context(|| format!("Gateway rejected Namespace '{}'", name))?;
-            Ok(format!("✓ Namespace '{}' applied successfully.", name))
+                .with_context(|| format!("Gateway rejected implicit Namespace '{}'", namespace))?;
         }
-        ApplyPlan::Resource {
-            ns,
-            kind,
-            name,
-            manifest,
-        } => {
-            client
-                .create_resource(CreateResourceRequest {
-                    ns: ns.clone(),
-                    manifest: Some(to_sdk_resource_manifest(&manifest)?),
-                })
-                .await
-                .with_context(|| format!("Gateway rejected {} '{}/{}'", kind, ns, name))?;
-            Ok(format!(
-                "✓ {} '{}/{}' applied successfully.",
-                kind, ns, name
-            ))
+
+        match plan {
+            ApplyPlan::Namespace { name, labels } => {
+                client
+                    .create_namespace(CreateNamespaceRequest {
+                        name: name.clone(),
+                        recursive: true,
+                        labels,
+                    })
+                    .await
+                    .with_context(|| format!("Gateway rejected Namespace '{}'", name))?;
+                messages.push(format!("✓ Namespace '{}' applied successfully.", name));
+            }
+            ApplyPlan::Resource {
+                ns,
+                kind,
+                name,
+                manifest,
+            } => {
+                client
+                    .create_resource(CreateResourceRequest {
+                        ns: ns.clone(),
+                        manifest: Some(to_sdk_resource_manifest(&manifest)?),
+                    })
+                    .await
+                    .with_context(|| format!("Gateway rejected {} '{}/{}'", kind, ns, name))?;
+                messages.push(format!(
+                    "✓ {} '{}/{}' applied successfully.",
+                    kind, ns, name
+                ));
+            }
         }
     }
+    Ok(messages.join("\n"))
 }
 
 #[cfg(test)]
@@ -360,11 +387,64 @@ mod tests {
 
     #[test]
     fn worker_manifest_is_not_user_authorable() {
-        let err = build_apply_plan(
+        let err = build_apply_plans(
             "apiVersion: talon.impalasys.com/v1\nkind: Worker\nmetadata:\n  name: worker-a\n",
         )
         .expect_err("Worker manifests should not be accepted by apply");
 
         assert!(err.to_string().contains("Unsupported manifest kind"));
+    }
+
+    #[test]
+    fn build_apply_plans_accepts_multi_document_yaml() {
+        let plans = build_apply_plans(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: demo
+---
+apiVersion: talon.impalasys.com/v1
+kind: Knowledge
+metadata:
+  namespace: demo
+  name: guide
+spec:
+  path: guide.md
+  content: hello
+---
+"#,
+        )
+        .expect("multi-document YAML should plan");
+
+        assert_eq!(plans.len(), 2);
+        assert!(matches!(plans[0], ApplyPlan::Namespace { .. }));
+        assert!(matches!(plans[1], ApplyPlan::Resource { .. }));
+    }
+
+    #[test]
+    fn build_apply_plans_rejects_status_in_any_document() {
+        let err = build_apply_plans(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: demo
+---
+apiVersion: talon.impalasys.com/v1
+kind: Knowledge
+metadata:
+  namespace: demo
+  name: guide
+spec:
+  path: guide.md
+  content: hello
+status:
+  phase: ready
+"#,
+        )
+        .expect_err("status should be rejected in a YAML stream");
+
+        assert!(err.to_string().contains("status is controller-owned"));
     }
 }
