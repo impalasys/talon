@@ -26,11 +26,23 @@ pub struct TalonConfig {
     >,
     #[prost(message, optional, tag = "8")]
     pub trust: ::core::option::Option<TrustConfig>,
+    #[prost(message, optional, tag = "9")]
+    pub platform_auth: ::core::option::Option<PlatformAuthConfig>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TrustConfig {
     #[prost(message, repeated, tag = "1")]
     pub oidc: ::prost::alloc::vec::Vec<OidcTrustEntry>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PlatformAuthConfig {
+    #[prost(message, optional, tag = "1")]
+    pub jwt_issuer: ::core::option::Option<JwtIssuerConfig>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct JwtIssuerConfig {
+    #[prost(string, tag = "1")]
+    pub issuer: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OidcTrustEntry {

@@ -12,7 +12,6 @@ use axum::{
 };
 use chrono::Utc;
 use futures::{stream, StreamExt};
-use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use prost::Message;
 use rmcp::{
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
@@ -35,7 +34,9 @@ use crate::{
     control::{
         keys::{self, ResourceKey},
         resource_model::{self, ChannelResourceExt, NamespaceResourceExt, TypedResource},
-        scheduling, ProtoKeyValueStoreExt,
+        scheduling,
+        security::platform_jwt,
+        ProtoKeyValueStoreExt,
     },
     gateway::rpc::{data_proto, manifests, resources_proto},
 };
@@ -43,17 +44,19 @@ use crate::{
 use super::WorkerEventHandler;
 
 const TALON_OPS_SERVER_NAME: &str = "talon-ops";
-const TALON_OPS_AUDIENCE: &str = "talon-ops";
-const MCP_AUTH_BROKER_AUDIENCE: &str = "conic-mcp-auth-broker";
 const DEFAULT_MAX_LIST_LIMIT: i32 = 100;
 const DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS: i32 = 7 * 24 * 60 * 60;
 const DEFAULT_ACCESS_TOKEN_TTL_SECONDS: i64 = 3600;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct TalonOpsAccessClaims {
+    iss: String,
     sub: String,
     aud: String,
+    iat: usize,
     exp: usize,
+    #[serde(rename = "talon:token_type")]
+    token_type: String,
     #[serde(rename = "talon:ns")]
     namespace: String,
     #[serde(rename = "talon:mcp_server")]
@@ -64,9 +67,13 @@ struct TalonOpsAccessClaims {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct McpAuthBrokerClaims {
+    iss: String,
     sub: String,
     aud: String,
+    iat: usize,
     exp: usize,
+    #[serde(rename = "talon:token_type")]
+    token_type: String,
     #[serde(rename = "talon:ns")]
     namespace: String,
     #[serde(rename = "talon:mcp_server")]
@@ -1128,10 +1135,15 @@ async fn talon_ops_auth_broker(
     let Some(auth_header) = headers.get(header::AUTHORIZATION) else {
         return (StatusCode::UNAUTHORIZED, "missing authorization header").into_response();
     };
-    let claims = match parse_mcp_auth_broker_claims(auth_header.to_str().unwrap_or_default()) {
-        Ok(claims) => claims,
-        Err(error) => return (StatusCode::UNAUTHORIZED, error).into_response(),
+    let issuer = match platform_issuer_from_config(handler.config.as_ref()) {
+        Ok(issuer) => issuer,
+        Err(error) => return (StatusCode::UNAUTHORIZED, error.to_string()).into_response(),
     };
+    let claims =
+        match parse_mcp_auth_broker_claims(auth_header.to_str().unwrap_or_default(), &issuer) {
+            Ok(claims) => claims,
+            Err(error) => return (StatusCode::UNAUTHORIZED, error).into_response(),
+        };
     if claims.namespace != payload.namespace || claims.mcp_server_name != payload.mcp_server_name {
         return (StatusCode::FORBIDDEN, "namespace or MCP server mismatch").into_response();
     }
@@ -1164,6 +1176,7 @@ async fn talon_ops_auth_broker(
     let issued_at_unix = Utc::now().timestamp();
     let expires_at_unix = issued_at_unix + DEFAULT_ACCESS_TOKEN_TTL_SECONDS;
     let token = match mint_talon_ops_access_token(
+        &issuer,
         &access.namespace,
         &access.mcp_server_name,
         access.agent_name.as_deref(),
@@ -1199,7 +1212,9 @@ async fn talon_ops_access_from_request(
                 "missing authorization header".to_string(),
             )
         })?;
-    let claims = parse_talon_ops_access_claims(auth_header)
+    let issuer = platform_issuer_from_config(handler.config.as_ref())
+        .map_err(|error| (StatusCode::UNAUTHORIZED, error.to_string()))?;
+    let claims = parse_talon_ops_access_claims(auth_header, &issuer)
         .map_err(|error| (StatusCode::UNAUTHORIZED, error))?;
     load_talon_ops_server_access(
         handler.cp.kv.as_ref(),
@@ -1349,28 +1364,40 @@ fn parse_non_negative_i32_query_param(key: &str, value: &str) -> Result<i32> {
 
 fn parse_mcp_auth_broker_claims(
     raw_auth_header: &str,
+    issuer: &str,
 ) -> std::result::Result<McpAuthBrokerClaims, String> {
     let token = bearer_token(raw_auth_header)?;
-    decode_claims(token, MCP_AUTH_BROKER_AUDIENCE).and_then(|claims: McpAuthBrokerClaims| {
-        if claims.namespace.trim().is_empty() || claims.mcp_server_name.trim().is_empty() {
-            Err("missing namespace or MCP server claim".to_string())
-        } else {
-            Ok(claims)
-        }
-    })
+    decode_platform_claims(token, issuer, platform_jwt::MCP_AUTH_BROKER_AUDIENCE).and_then(
+        |claims: McpAuthBrokerClaims| {
+            if claims.token_type != platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE {
+                return Err("invalid MCP auth broker token type".to_string());
+            }
+            if claims.namespace.trim().is_empty() || claims.mcp_server_name.trim().is_empty() {
+                Err("missing namespace or MCP server claim".to_string())
+            } else {
+                Ok(claims)
+            }
+        },
+    )
 }
 
 fn parse_talon_ops_access_claims(
     raw_auth_header: &str,
+    issuer: &str,
 ) -> std::result::Result<TalonOpsAccessClaims, String> {
     let token = bearer_token(raw_auth_header)?;
-    decode_claims(token, TALON_OPS_AUDIENCE).and_then(|claims: TalonOpsAccessClaims| {
-        if claims.namespace.trim().is_empty() || claims.mcp_server_name.trim().is_empty() {
-            Err("missing namespace or MCP server claim".to_string())
-        } else {
-            Ok(claims)
-        }
-    })
+    decode_platform_claims(token, issuer, platform_jwt::TALON_OPS_AUDIENCE).and_then(
+        |claims: TalonOpsAccessClaims| {
+            if claims.token_type != platform_jwt::TALON_OPS_ACCESS_TOKEN_TYPE {
+                return Err("invalid talon-ops access token type".to_string());
+            }
+            if claims.namespace.trim().is_empty() || claims.mcp_server_name.trim().is_empty() {
+                Err("missing namespace or MCP server claim".to_string())
+            } else {
+                Ok(claims)
+            }
+        },
+    )
 }
 
 fn bearer_token(raw_auth_header: &str) -> std::result::Result<&str, String> {
@@ -1379,55 +1406,51 @@ fn bearer_token(raw_auth_header: &str) -> std::result::Result<&str, String> {
         .ok_or_else(|| "missing bearer token".to_string())
 }
 
-fn decode_claims<T>(token: &str, audience: &str) -> std::result::Result<T, String>
+fn decode_platform_claims<T>(
+    token: &str,
+    issuer: &str,
+    audience: &str,
+) -> std::result::Result<T, String>
 where
     T: for<'de> Deserialize<'de> + Clone,
 {
-    crate::control::security::install_jwt_crypto_provider();
-    let secret = talon_jwt_secret().ok_or_else(|| "missing talon jwt secret".to_string())?;
-    let mut validation = Validation::new(Algorithm::HS256);
-    validation.set_audience(&[audience]);
-    decode::<T>(
-        token,
-        &DecodingKey::from_secret(secret.as_bytes()),
-        &validation,
-    )
-    .map(|data| data.claims)
-    .map_err(|error| format!("invalid token: {error}"))
+    let key = platform_jwt::load_key().map_err(|error| error.to_string())?;
+    key.verify::<T>(token, issuer, audience)
+        .map_err(|error| error.to_string())
 }
 
 fn mint_talon_ops_access_token(
+    issuer: &str,
     namespace: &str,
     mcp_server_name: &str,
     agent_name: Option<&str>,
     expires_at_unix: i64,
 ) -> Result<String> {
     crate::control::security::install_jwt_crypto_provider();
-    let secret = talon_jwt_secret().ok_or_else(|| anyhow!("missing talon jwt secret"))?;
+    let key = platform_jwt::load_key()?;
+    let now = Utc::now().timestamp() as usize;
     let claims = TalonOpsAccessClaims {
+        iss: issuer.to_string(),
         sub: TALON_OPS_SERVER_NAME.to_string(),
-        aud: TALON_OPS_AUDIENCE.to_string(),
+        aud: platform_jwt::TALON_OPS_AUDIENCE.to_string(),
+        iat: now,
         exp: expires_at_unix as usize,
+        token_type: platform_jwt::TALON_OPS_ACCESS_TOKEN_TYPE.to_string(),
         namespace: namespace.to_string(),
         mcp_server_name: mcp_server_name.to_string(),
         agent_name: agent_name.map(str::to_string),
     };
-    Ok(encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
-    )?)
+    key.sign(&claims)
 }
 
-fn talon_jwt_secret() -> Option<String> {
-    std::env::var("TALON_JWT_SECRET")
-        .ok()
-        .filter(|value| !value.trim().is_empty())
-        .or_else(|| {
-            std::env::var("GATEWAY_JWT_SECRET")
-                .ok()
-                .filter(|value| !value.trim().is_empty())
-        })
+fn platform_issuer_from_config(config: &crate::control::config::Config) -> Result<String> {
+    config
+        .platform_auth
+        .as_ref()
+        .and_then(|auth| auth.jwt_issuer.as_ref())
+        .map(|issuer| issuer.issuer.trim().to_string())
+        .filter(|issuer| !issuer.is_empty())
+        .ok_or_else(|| anyhow!("platformAuth.jwtIssuer.issuer is required"))
 }
 
 fn bounded_limit(access: &TalonOpsAccess, requested: Option<usize>) -> usize {
@@ -1520,7 +1543,7 @@ mod tests {
         bearer_token, bounded_limit, load_talon_ops_server_access, mint_talon_ops_access_token,
         parse_bool_query_param, parse_mcp_auth_broker_claims, parse_non_negative_i32_query_param,
         parse_talon_ops_access_claims, parse_talon_ops_policy_from_target,
-        require_namespace_access, schedule_json, talon_jwt_secret, talon_ops_access_from_parts,
+        require_namespace_access, schedule_json, talon_ops_access_from_parts,
         talon_ops_access_from_request, talon_ops_auth_broker, talon_ops_policy_from_server,
         to_json_string, DeleteScheduleArgs, GetAgentArgs, GetChannelArgs, GetChannelMessageArgs,
         GetScheduleArgs, ListChannelMessagesArgs, ListChannelsArgs, ListMcpServersArgs,
@@ -1547,7 +1570,6 @@ mod tests {
         Json,
     };
     use futures::stream;
-    use jsonwebtoken::{encode, EncodingKey, Header};
     use rmcp::handler::server::wrapper::Parameters;
     use serde_json::json;
     use std::{collections::HashMap, pin::Pin, sync::Arc};
@@ -1639,16 +1661,81 @@ mod tests {
         crate::test_support::async_env_mutex()
     }
 
+    const TEST_PLATFORM_ISSUER: &str = "https://talon.example.com";
+
+    struct PlatformJwtEnvGuard {
+        _guard: tokio::sync::MutexGuard<'static, ()>,
+        previous_private_key: Option<String>,
+    }
+
+    impl PlatformJwtEnvGuard {
+        fn acquire_blocking() -> Self {
+            let guard = env_mutex().blocking_lock();
+            Self::from_guard(guard)
+        }
+
+        async fn acquire() -> Self {
+            let guard = env_mutex().lock().await;
+            Self::from_guard(guard)
+        }
+
+        fn from_guard(guard: tokio::sync::MutexGuard<'static, ()>) -> Self {
+            let previous_private_key = std::env::var(
+                crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+            )
+            .ok();
+            std::env::set_var(
+                crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                crate::control::security::platform_jwt::TEST_RSA_PRIVATE_KEY,
+            );
+            Self {
+                _guard: guard,
+                previous_private_key,
+            }
+        }
+    }
+
+    impl Drop for PlatformJwtEnvGuard {
+        fn drop(&mut self) {
+            if let Some(previous_private_key) = &self.previous_private_key {
+                std::env::set_var(
+                    crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    previous_private_key,
+                );
+            } else {
+                std::env::remove_var(
+                    crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                );
+            }
+        }
+    }
+
     fn handler_with_kv(kv: Arc<MockKvStore>) -> WorkerEventHandler {
         WorkerEventHandler {
             cp: Arc::new(ControlPlane::builder(kv, Arc::new(MockPubSub)).build()),
-            config: Arc::new(Config::default()),
+            config: Arc::new(Config {
+                platform_auth: Some(crate::control::config::proto::PlatformAuthConfig {
+                    jwt_issuer: Some(crate::control::config::proto::JwtIssuerConfig {
+                        issuer: TEST_PLATFORM_ISSUER.to_string(),
+                    }),
+                }),
+                ..Config::default()
+            }),
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
             worker_id: "test-worker".to_string(),
             fanout_hub: Arc::new(crate::worker::fanout::FanoutHub::new()),
             session_cancellations: Arc::new(AsyncMutex::new(HashMap::new())),
         }
+    }
+
+    fn sign_test_claims<T: serde::Serialize>(claims: &T) -> String {
+        crate::control::security::platform_jwt::PlatformJwtKey::from_pem(
+            crate::control::security::platform_jwt::TEST_RSA_PRIVATE_KEY,
+        )
+        .unwrap()
+        .sign(claims)
+        .unwrap()
     }
 
     async fn seed_talon_ops_server(kv: &MockKvStore, namespace: &str, mcp_server_name: &str) {
@@ -1959,127 +2046,102 @@ mod tests {
     }
 
     #[test]
-    fn talon_jwt_secret_prefers_talon_and_falls_back_to_gateway() {
-        let _guard = env_mutex().blocking_lock();
-        unsafe {
-            std::env::remove_var("TALON_JWT_SECRET");
-            std::env::remove_var("GATEWAY_JWT_SECRET");
-        }
-        assert!(talon_jwt_secret().is_none());
-
-        unsafe {
-            std::env::set_var("GATEWAY_JWT_SECRET", "gateway-secret");
-        }
-        assert_eq!(talon_jwt_secret().as_deref(), Some("gateway-secret"));
-
-        unsafe {
-            std::env::set_var("TALON_JWT_SECRET", "talon-secret");
-        }
-        assert_eq!(talon_jwt_secret().as_deref(), Some("talon-secret"));
-
-        unsafe {
-            std::env::set_var("TALON_JWT_SECRET", "   ");
-        }
-        assert_eq!(talon_jwt_secret().as_deref(), Some("gateway-secret"));
-
-        unsafe {
-            std::env::remove_var("TALON_JWT_SECRET");
-            std::env::remove_var("GATEWAY_JWT_SECRET");
-        }
-    }
-
-    #[test]
     fn access_and_auth_broker_claims_round_trip_from_minted_tokens() {
-        let _guard = env_mutex().blocking_lock();
-        unsafe {
-            std::env::set_var("TALON_JWT_SECRET", "secret-for-tests");
-        }
+        let _guard = PlatformJwtEnvGuard::acquire_blocking();
 
-        let access_token =
-            mint_talon_ops_access_token("conic", "talon-ops", Some("cmo"), 4_102_444_800)
-                .expect("access token should mint");
-        let access_claims = parse_talon_ops_access_claims(&format!("Bearer {access_token}"))
-            .expect("claims should parse");
+        let access_token = mint_talon_ops_access_token(
+            TEST_PLATFORM_ISSUER,
+            "conic",
+            "talon-ops",
+            Some("cmo"),
+            4_102_444_800,
+        )
+        .expect("access token should mint");
+        let access_claims =
+            parse_talon_ops_access_claims(&format!("Bearer {access_token}"), TEST_PLATFORM_ISSUER)
+                .expect("claims should parse");
         assert_eq!(access_claims.namespace, "conic");
         assert_eq!(access_claims.mcp_server_name, "talon-ops");
         assert_eq!(access_claims.agent_name.as_deref(), Some("cmo"));
+        assert_eq!(
+            access_claims.token_type,
+            crate::control::security::platform_jwt::TALON_OPS_ACCESS_TOKEN_TYPE
+        );
 
-        let broker_claims_token = jsonwebtoken::encode(
-            &jsonwebtoken::Header::default(),
-            &super::McpAuthBrokerClaims {
-                sub: "talon-ops".to_string(),
-                aud: "conic-mcp-auth-broker".to_string(),
-                exp: 4_102_444_800usize,
-                namespace: "conic".to_string(),
-                mcp_server_name: "talon-ops".to_string(),
-                agent_name: None,
-            },
-            &jsonwebtoken::EncodingKey::from_secret("secret-for-tests".as_bytes()),
+        let broker_claims_token = sign_test_claims(&super::McpAuthBrokerClaims {
+            iss: TEST_PLATFORM_ISSUER.to_string(),
+            sub: "talon-mcp-client".to_string(),
+            aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
+            iat: 1usize,
+            exp: 4_102_444_800usize,
+            token_type:
+                crate::control::security::platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE
+                    .to_string(),
+            namespace: "conic".to_string(),
+            mcp_server_name: "talon-ops".to_string(),
+            agent_name: None,
+        });
+        let broker_claims = parse_mcp_auth_broker_claims(
+            &format!("Bearer {broker_claims_token}"),
+            TEST_PLATFORM_ISSUER,
         )
-        .expect("broker token should mint");
-        let broker_claims = parse_mcp_auth_broker_claims(&format!("Bearer {broker_claims_token}"))
-            .expect("broker claims should parse");
+        .expect("broker claims should parse");
         assert_eq!(broker_claims.namespace, "conic");
         assert_eq!(broker_claims.mcp_server_name, "talon-ops");
         assert!(broker_claims.agent_name.is_none());
+        assert_eq!(
+            broker_claims.token_type,
+            crate::control::security::platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE
+        );
 
-        let invalid = parse_talon_ops_access_claims("Bearer definitely-not-a-jwt")
-            .expect_err("invalid token should fail");
-        assert!(invalid.contains("invalid token"));
-
-        unsafe {
-            std::env::remove_var("TALON_JWT_SECRET");
-        }
+        let invalid =
+            parse_talon_ops_access_claims("Bearer definitely-not-a-jwt", TEST_PLATFORM_ISSUER)
+                .expect_err("invalid token should fail");
+        assert!(invalid.contains("invalid JWT header"));
     }
 
     #[test]
     fn claim_parsers_reject_blank_namespace_or_mcp_server() {
-        let _guard = env_mutex().blocking_lock();
-        unsafe {
-            std::env::set_var("TALON_JWT_SECRET", "secret-for-tests");
-        }
+        let _guard = PlatformJwtEnvGuard::acquire_blocking();
 
-        let access_token = encode(
-            &Header::default(),
-            &TalonOpsAccessClaims {
-                sub: "talon-ops".to_string(),
-                aud: "talon-ops".to_string(),
-                exp: 4_102_444_800usize,
-                namespace: " ".to_string(),
-                mcp_server_name: "talon-ops".to_string(),
-                agent_name: None,
-            },
-            &EncodingKey::from_secret("secret-for-tests".as_bytes()),
+        let access_token = sign_test_claims(&TalonOpsAccessClaims {
+            iss: TEST_PLATFORM_ISSUER.to_string(),
+            sub: "talon-ops".to_string(),
+            aud: crate::control::security::platform_jwt::TALON_OPS_AUDIENCE.to_string(),
+            iat: 1usize,
+            exp: 4_102_444_800usize,
+            token_type: crate::control::security::platform_jwt::TALON_OPS_ACCESS_TOKEN_TYPE
+                .to_string(),
+            namespace: " ".to_string(),
+            mcp_server_name: "talon-ops".to_string(),
+            agent_name: None,
+        });
+        assert!(parse_talon_ops_access_claims(
+            &format!("Bearer {access_token}"),
+            TEST_PLATFORM_ISSUER
         )
-        .expect("access token should mint");
-        assert!(
-            parse_talon_ops_access_claims(&format!("Bearer {access_token}"))
-                .expect_err("blank namespace should fail")
-                .contains("missing namespace or MCP server claim")
-        );
+        .expect_err("blank namespace should fail")
+        .contains("missing namespace or MCP server claim"));
 
-        let broker_token = encode(
-            &Header::default(),
-            &McpAuthBrokerClaims {
-                sub: "talon-ops".to_string(),
-                aud: "conic-mcp-auth-broker".to_string(),
-                exp: 4_102_444_800usize,
-                namespace: "conic".to_string(),
-                mcp_server_name: " ".to_string(),
-                agent_name: None,
-            },
-            &EncodingKey::from_secret("secret-for-tests".as_bytes()),
+        let broker_token = sign_test_claims(&McpAuthBrokerClaims {
+            iss: TEST_PLATFORM_ISSUER.to_string(),
+            sub: "talon-mcp-client".to_string(),
+            aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
+            iat: 1usize,
+            exp: 4_102_444_800usize,
+            token_type:
+                crate::control::security::platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE
+                    .to_string(),
+            namespace: "conic".to_string(),
+            mcp_server_name: " ".to_string(),
+            agent_name: None,
+        });
+        assert!(parse_mcp_auth_broker_claims(
+            &format!("Bearer {broker_token}"),
+            TEST_PLATFORM_ISSUER
         )
-        .expect("broker token should mint");
-        assert!(
-            parse_mcp_auth_broker_claims(&format!("Bearer {broker_token}"))
-                .expect_err("blank MCP server should fail")
-                .contains("missing namespace or MCP server claim")
-        );
-
-        unsafe {
-            std::env::remove_var("TALON_JWT_SECRET");
-        }
+        .expect_err("blank MCP server should fail")
+        .contains("missing namespace or MCP server claim"));
     }
 
     #[test]
@@ -2256,12 +2318,15 @@ mod tests {
             .expect_err("missing header should fail");
         assert_eq!(missing.0, StatusCode::UNAUTHORIZED);
 
-        let _guard = env_mutex().lock().await;
-        unsafe {
-            std::env::set_var("TALON_JWT_SECRET", "secret-for-tests");
-        }
-        let token = mint_talon_ops_access_token("conic", "talon-ops", Some("ctl"), 4_102_444_800)
-            .expect("access token should mint");
+        let _guard = PlatformJwtEnvGuard::acquire().await;
+        let token = mint_talon_ops_access_token(
+            TEST_PLATFORM_ISSUER,
+            "conic",
+            "talon-ops",
+            Some("ctl"),
+            4_102_444_800,
+        )
+        .expect("access token should mint");
         let header = HeaderValue::from_str(&format!("Bearer {token}")).unwrap();
         let access = talon_ops_access_from_request(&handler, Some(&header))
             .await
@@ -2275,10 +2340,6 @@ mod tests {
             .await
             .expect_err("invalid token should fail");
         assert_eq!(invalid_error.0, StatusCode::UNAUTHORIZED);
-
-        unsafe {
-            std::env::remove_var("TALON_JWT_SECRET");
-        }
     }
 
     #[tokio::test]
@@ -2286,24 +2347,21 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         seed_talon_ops_server(kv.as_ref(), "conic", "talon-ops").await;
         let handler = handler_with_kv(kv);
-        let _guard = env_mutex().lock().await;
-        unsafe {
-            std::env::set_var("TALON_JWT_SECRET", "secret-for-tests");
-        }
+        let _guard = PlatformJwtEnvGuard::acquire().await;
 
-        let broker_claims_token = encode(
-            &Header::default(),
-            &McpAuthBrokerClaims {
-                sub: "talon-ops".to_string(),
-                aud: "conic-mcp-auth-broker".to_string(),
-                exp: 4_102_444_800usize,
-                namespace: "conic".to_string(),
-                mcp_server_name: "talon-ops".to_string(),
-                agent_name: Some("ctl".to_string()),
-            },
-            &EncodingKey::from_secret("secret-for-tests".as_bytes()),
-        )
-        .expect("broker token should mint");
+        let broker_claims_token = sign_test_claims(&McpAuthBrokerClaims {
+            iss: TEST_PLATFORM_ISSUER.to_string(),
+            sub: "talon-mcp-client".to_string(),
+            aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
+            iat: 1usize,
+            exp: 4_102_444_800usize,
+            token_type:
+                crate::control::security::platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE
+                    .to_string(),
+            namespace: "conic".to_string(),
+            mcp_server_name: "talon-ops".to_string(),
+            agent_name: Some("ctl".to_string()),
+        });
         let mut headers = HeaderMap::new();
         headers.insert(
             header::AUTHORIZATION,
@@ -2324,19 +2382,19 @@ mod tests {
         .into_response();
         assert_eq!(mismatched.status(), StatusCode::FORBIDDEN);
 
-        let unsupported_server_claims_token = encode(
-            &Header::default(),
-            &McpAuthBrokerClaims {
-                sub: "talon-ops".to_string(),
-                aud: "conic-mcp-auth-broker".to_string(),
-                exp: 4_102_444_800usize,
-                namespace: "conic".to_string(),
-                mcp_server_name: "github".to_string(),
-                agent_name: Some("ctl".to_string()),
-            },
-            &EncodingKey::from_secret("secret-for-tests".as_bytes()),
-        )
-        .expect("broker token should mint");
+        let unsupported_server_claims_token = sign_test_claims(&McpAuthBrokerClaims {
+            iss: TEST_PLATFORM_ISSUER.to_string(),
+            sub: "talon-mcp-client".to_string(),
+            aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
+            iat: 1usize,
+            exp: 4_102_444_800usize,
+            token_type:
+                crate::control::security::platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE
+                    .to_string(),
+            namespace: "conic".to_string(),
+            mcp_server_name: "github".to_string(),
+            agent_name: Some("ctl".to_string()),
+        });
         let mut unsupported_server_headers = HeaderMap::new();
         unsupported_server_headers.insert(
             header::AUTHORIZATION,
@@ -2369,10 +2427,6 @@ mod tests {
         .await
         .into_response();
         assert_eq!(response.status(), StatusCode::OK);
-
-        unsafe {
-            std::env::remove_var("TALON_JWT_SECRET");
-        }
     }
 
     #[tokio::test]

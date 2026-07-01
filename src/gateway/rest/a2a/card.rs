@@ -166,14 +166,6 @@ fn agent_card_security(
 
     let scheme = match auth_config.mode {
         AuthMode::Open => return (None, Vec::new()),
-        AuthMode::Password => json!({
-            "type": "http",
-            "scheme": "basic"
-        }),
-        AuthMode::Token => json!({
-            "type": "http",
-            "scheme": "bearer"
-        }),
         AuthMode::Jwt => json!({
             "type": "http",
             "scheme": "bearer",

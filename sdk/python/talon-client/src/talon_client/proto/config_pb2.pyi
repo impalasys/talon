@@ -8,7 +8,7 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class TalonConfig(_message.Message):
-    __slots__ = ("providers", "database", "server", "default_provider", "workspace_dir", "control_plane", "controllers", "trust")
+    __slots__ = ("providers", "database", "server", "default_provider", "workspace_dir", "control_plane", "controllers", "trust", "platform_auth")
     class ProvidersEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -31,6 +31,7 @@ class TalonConfig(_message.Message):
     CONTROL_PLANE_FIELD_NUMBER: _ClassVar[int]
     CONTROLLERS_FIELD_NUMBER: _ClassVar[int]
     TRUST_FIELD_NUMBER: _ClassVar[int]
+    PLATFORM_AUTH_FIELD_NUMBER: _ClassVar[int]
     providers: _containers.MessageMap[str, LlmProviderConfig]
     database: DatabaseConfig
     server: ServerConfig
@@ -39,13 +40,26 @@ class TalonConfig(_message.Message):
     control_plane: ControlPlaneConfig
     controllers: _containers.MessageMap[str, ControllerConfig]
     trust: TrustConfig
-    def __init__(self, providers: _Optional[_Mapping[str, LlmProviderConfig]] = ..., database: _Optional[_Union[DatabaseConfig, _Mapping]] = ..., server: _Optional[_Union[ServerConfig, _Mapping]] = ..., default_provider: _Optional[str] = ..., workspace_dir: _Optional[str] = ..., control_plane: _Optional[_Union[ControlPlaneConfig, _Mapping]] = ..., controllers: _Optional[_Mapping[str, ControllerConfig]] = ..., trust: _Optional[_Union[TrustConfig, _Mapping]] = ...) -> None: ...
+    platform_auth: PlatformAuthConfig
+    def __init__(self, providers: _Optional[_Mapping[str, LlmProviderConfig]] = ..., database: _Optional[_Union[DatabaseConfig, _Mapping]] = ..., server: _Optional[_Union[ServerConfig, _Mapping]] = ..., default_provider: _Optional[str] = ..., workspace_dir: _Optional[str] = ..., control_plane: _Optional[_Union[ControlPlaneConfig, _Mapping]] = ..., controllers: _Optional[_Mapping[str, ControllerConfig]] = ..., trust: _Optional[_Union[TrustConfig, _Mapping]] = ..., platform_auth: _Optional[_Union[PlatformAuthConfig, _Mapping]] = ...) -> None: ...
 
 class TrustConfig(_message.Message):
     __slots__ = ("oidc",)
     OIDC_FIELD_NUMBER: _ClassVar[int]
     oidc: _containers.RepeatedCompositeFieldContainer[OidcTrustEntry]
     def __init__(self, oidc: _Optional[_Iterable[_Union[OidcTrustEntry, _Mapping]]] = ...) -> None: ...
+
+class PlatformAuthConfig(_message.Message):
+    __slots__ = ("jwt_issuer",)
+    JWT_ISSUER_FIELD_NUMBER: _ClassVar[int]
+    jwt_issuer: JwtIssuerConfig
+    def __init__(self, jwt_issuer: _Optional[_Union[JwtIssuerConfig, _Mapping]] = ...) -> None: ...
+
+class JwtIssuerConfig(_message.Message):
+    __slots__ = ("issuer",)
+    ISSUER_FIELD_NUMBER: _ClassVar[int]
+    issuer: str
+    def __init__(self, issuer: _Optional[str] = ...) -> None: ...
 
 class OidcTrustEntry(_message.Message):
     __slots__ = ("name", "issuer", "audiences", "allowed_domains", "allowed_emails", "jwks_url", "clock_skew_seconds", "grants")

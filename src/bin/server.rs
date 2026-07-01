@@ -4,10 +4,11 @@
 use anyhow::Result;
 use std::sync::Arc;
 use talon::control::build_control_plane;
-use talon::control::config::proto::TrustConfig;
+use talon::control::config::proto::{JwtIssuerConfig, TrustConfig};
 use talon::control::config::{Config, ConfigExt};
+use talon::control::security::platform_jwt;
 use talon::control::ControlPlane;
-use talon::gateway::auth::AuthConfig;
+use talon::gateway::auth::{AuthConfig, AuthMode};
 use talon::gateway::server::Gateway;
 use tokio::signal;
 use tokio::task::JoinHandle;
@@ -17,16 +18,9 @@ use tokio_util::sync::CancellationToken;
 #[global_allocator]
 static GLOBAL_ALLOCATOR: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
-fn select_auth_config<F>(mut get: F) -> AuthConfig
-where
-    F: FnMut(&str) -> Option<String>,
-{
-    if let Some(secret) = get("GATEWAY_JWT_SECRET") {
-        AuthConfig::jwt(secret)
-    } else if let Some(token) = get("GATEWAY_TOKEN") {
-        AuthConfig::tokens(vec![token])
-    } else if let Some(password) = get("GATEWAY_PASSWORD") {
-        AuthConfig::password(password)
+fn select_auth_config(platform_jwt_config: Option<&JwtIssuerConfig>) -> AuthConfig {
+    if platform_jwt_config.is_some() {
+        AuthConfig::jwt_platform()
     } else {
         AuthConfig::open()
     }
@@ -40,13 +34,21 @@ where
 }
 
 fn build_gateway(
-    auth_config: AuthConfig,
+    mut auth_config: AuthConfig,
     trust_config: Option<TrustConfig>,
+    platform_jwt_config: Option<JwtIssuerConfig>,
     cp: ControlPlane,
 ) -> Gateway {
-    Gateway::new_with_trust(
+    if auth_config.mode == AuthMode::Jwt {
+        auth_config.platform_jwt_issuer = platform_jwt_config
+            .as_ref()
+            .map(|config| config.issuer.trim().to_string())
+            .filter(|issuer| !issuer.is_empty());
+    }
+    Gateway::new_with_trust_and_platform_jwt(
         Some(auth_config),
         trust_config,
+        platform_jwt_config,
         cp.kv,
         cp.pubsub,
         cp.scheduler,
@@ -67,20 +69,19 @@ fn spawn_gateway_task(
     })
 }
 
-async fn run_gateway_with<FGetAuth, FGetAddr, FShutdown>(
+async fn run_gateway_with<FGetAddr, FShutdown>(
     cp: ControlPlane,
     trust_config: Option<TrustConfig>,
-    auth_get: FGetAuth,
+    platform_jwt_config: Option<JwtIssuerConfig>,
     addr_get: FGetAddr,
     shutdown: FShutdown,
 ) -> Result<()>
 where
-    FGetAuth: FnMut(&str) -> Option<String>,
     FGetAddr: FnMut(&str) -> Option<String>,
     FShutdown: std::future::Future,
 {
-    let auth_config = select_auth_config(auth_get);
-    let gateway = build_gateway(auth_config, trust_config, cp);
+    let auth_config = select_auth_config(platform_jwt_config.as_ref());
+    let gateway = build_gateway(auth_config, trust_config, platform_jwt_config, cp);
     let rpc_addr = gateway_addr(addr_get);
     let shutdown_token = CancellationToken::new();
     let mut task = spawn_gateway_task(gateway, rpc_addr, shutdown_token.child_token());
@@ -111,10 +112,9 @@ where
     result
 }
 
-async fn run_server_main_with<FLoad, FBuild, FBuildFuture, FGetAuth, FGetAddr, FShutdown>(
+async fn run_server_main_with<FLoad, FBuild, FBuildFuture, FGetAddr, FShutdown>(
     load_config: FLoad,
     build_cp: FBuild,
-    auth_get: FGetAuth,
     addr_get: FGetAddr,
     shutdown: FShutdown,
 ) -> Result<()>
@@ -122,14 +122,20 @@ where
     FLoad: FnOnce() -> Result<Arc<Config>>,
     FBuild: FnOnce(&Arc<Config>) -> FBuildFuture,
     FBuildFuture: std::future::Future<Output = Result<ControlPlane>>,
-    FGetAuth: FnMut(&str) -> Option<String>,
     FGetAddr: FnMut(&str) -> Option<String>,
     FShutdown: std::future::Future,
 {
     let config = load_config()?;
     let trust_config = config.trust.clone();
+    let platform_jwt_config = config
+        .platform_auth
+        .as_ref()
+        .and_then(|auth| auth.jwt_issuer.clone());
+    if platform_jwt_config.is_some() {
+        platform_jwt::load_key()?;
+    }
     let cp = build_cp(&config).await?;
-    run_gateway_with(cp, trust_config, auth_get, addr_get, shutdown).await
+    run_gateway_with(cp, trust_config, platform_jwt_config, addr_get, shutdown).await
 }
 
 #[tokio::main]
@@ -145,8 +151,37 @@ async fn main() -> Result<()> {
             async move { build_control_plane(&config).await }
         },
         |name| std::env::var(name).ok(),
-        |name| std::env::var(name).ok(),
         signal::ctrl_c(),
     )
     .await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use talon::test_support::{EmptyPubSub, MockKvStore};
+
+    fn test_control_plane() -> ControlPlane {
+        ControlPlane::builder(Arc::new(MockKvStore::default()), Arc::new(EmptyPubSub)).build()
+    }
+
+    #[test]
+    fn build_gateway_uses_platform_jwt_when_issuer_is_configured() {
+        let platform_config = JwtIssuerConfig {
+            issuer: "https://talon.example.com".to_string(),
+        };
+        let gateway = build_gateway(
+            select_auth_config(Some(&platform_config)),
+            None,
+            Some(platform_config),
+            test_control_plane(),
+        );
+        let auth_config = gateway.auth_config.as_ref().unwrap();
+
+        assert_eq!(auth_config.mode, AuthMode::Jwt);
+        assert_eq!(
+            auth_config.platform_jwt_issuer.as_deref(),
+            Some("https://talon.example.com")
+        );
+    }
 }

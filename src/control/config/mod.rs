@@ -44,6 +44,8 @@ pub struct SerdeConfig {
     #[serde(default)]
     pub controllers: HashMap<String, ControllerConfigWrapper>,
     pub trust: Option<TrustConfigWrapper>,
+    #[serde(default, rename = "platformAuth")]
+    pub platform_auth: Option<PlatformAuthConfigWrapper>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -180,6 +182,17 @@ pub enum SchedulerCallbackAuthConfigWrapper {
 pub struct TrustConfigWrapper {
     #[serde(default)]
     pub oidc: Vec<OidcTrustEntryConfigWrapper>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct PlatformAuthConfigWrapper {
+    #[serde(default, rename = "jwtIssuer")]
+    pub jwt_issuer: Option<JwtIssuerConfigWrapper>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct JwtIssuerConfigWrapper {
+    pub issuer: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -345,6 +358,7 @@ impl From<SerdeConfig> for Config {
                 })
                 .collect(),
             trust: s.trust.map(Into::into),
+            platform_auth: s.platform_auth.map(Into::into),
         }
     }
 }
@@ -533,6 +547,29 @@ fn validate_trust_config(config: &SerdeConfig) -> Result<()> {
     Ok(())
 }
 
+fn validate_platform_auth_config(config: &SerdeConfig) -> Result<()> {
+    let Some(platform_auth) = &config.platform_auth else {
+        return Ok(());
+    };
+    let Some(jwt_issuer) = &platform_auth.jwt_issuer else {
+        return Ok(());
+    };
+    if jwt_issuer.issuer.trim().is_empty() {
+        return Err(anyhow!("platformAuth.jwtIssuer.issuer cannot be empty"));
+    }
+    let issuer = url::Url::parse(jwt_issuer.issuer.trim())
+        .map_err(|err| anyhow!("platformAuth.jwtIssuer.issuer must be a valid URL: {err}"))?;
+    if issuer.scheme() != "https" {
+        return Err(anyhow!("platformAuth.jwtIssuer.issuer must use https"));
+    }
+    if issuer.query().is_some() || issuer.fragment().is_some() {
+        return Err(anyhow!(
+            "platformAuth.jwtIssuer.issuer must not include query or fragment"
+        ));
+    }
+    Ok(())
+}
+
 fn validate_oidc_trust_grant(entry_name: &str, grant: &OidcTrustGrantConfigWrapper) -> Result<()> {
     let (namespace, agent, session, channel) = match grant {
         OidcTrustGrantConfigWrapper::Read {
@@ -681,6 +718,20 @@ impl From<TrustConfigWrapper> for proto::TrustConfig {
     }
 }
 
+impl From<PlatformAuthConfigWrapper> for proto::PlatformAuthConfig {
+    fn from(s: PlatformAuthConfigWrapper) -> Self {
+        Self {
+            jwt_issuer: s.jwt_issuer.map(Into::into),
+        }
+    }
+}
+
+impl From<JwtIssuerConfigWrapper> for proto::JwtIssuerConfig {
+    fn from(s: JwtIssuerConfigWrapper) -> Self {
+        Self { issuer: s.issuer }
+    }
+}
+
 impl From<OidcTrustEntryConfigWrapper> for proto::OidcTrustEntry {
     fn from(mut s: OidcTrustEntryConfigWrapper) -> Self {
         if let Some(audience) = s.audience.take() {
@@ -779,6 +830,7 @@ impl ConfigExt for Config {
         };
         resolve_config_relative_paths(path, &mut serde_config);
         validate_trust_config(&serde_config)?;
+        validate_platform_auth_config(&serde_config)?;
         Ok(serde_config.into())
     }
 
@@ -788,6 +840,7 @@ impl ConfigExt for Config {
                 let inline_yaml = expand_env_placeholders(&inline_yaml);
                 let serde_config: SerdeConfig = serde_yaml::from_str(&inline_yaml)?;
                 validate_trust_config(&serde_config)?;
+                validate_platform_auth_config(&serde_config)?;
                 return Ok(serde_config.into());
             }
         }

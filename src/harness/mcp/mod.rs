@@ -1,12 +1,11 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::gateway::rpc::manifests;
+use crate::{control::security::platform_jwt, gateway::rpc::manifests};
 use anyhow::{anyhow, Result};
 use axum::http::{HeaderName, HeaderValue};
 use base64::{engine::general_purpose, Engine as _};
 use futures::{stream::BoxStream, StreamExt};
-use jsonwebtoken::{encode, EncodingKey, Header};
 use reqwest::header::ACCEPT;
 use rmcp::{
     model::{CallToolRequestParams, Content, ResourceContents},
@@ -74,6 +73,7 @@ pub struct McpConnectionConfig {
     pub namespace: Option<String>,
     pub mcp_server_name: Option<String>,
     pub agent_name: Option<String>,
+    pub jwt_issuer: Option<String>,
     pub auth_broker: Option<McpAuthBrokerConfig>,
 }
 
@@ -436,6 +436,7 @@ impl TryFrom<&manifests::McpServer> for McpConnectionConfig {
             namespace: (!meta.namespace.is_empty()).then(|| meta.namespace.clone()),
             mcp_server_name: Some(meta.name.clone()),
             agent_name: None,
+            jwt_issuer: None,
             auth_broker: spec.auth_broker.as_ref().map(|broker| McpAuthBrokerConfig {
                 kind: broker.kind.clone(),
                 url: broker.url.clone(),
@@ -682,7 +683,13 @@ async fn resolve_broker_bearer_token(
             agent_name: agent_name.clone(),
             audience: empty_to_none(auth_broker.audience.trim()),
         };
-        let token = mint_auth_broker_jwt(namespace, mcp_server_name, agent_name.as_deref())?;
+        let issuer = config
+            .jwt_issuer
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+            .ok_or_else(|| anyhow!("MCP auth broker requires platform JWT issuer"))?;
+        let token =
+            mint_auth_broker_jwt(issuer, namespace, mcp_server_name, agent_name.as_deref())?;
         let mut response = auth_broker_client()
             .post(auth_broker.url.trim())
             .bearer_auth(token)
@@ -796,36 +803,27 @@ fn resolve_auth_expiry(expires_at_unix: Option<i64>, cache_ttl_seconds: i32) -> 
 }
 
 fn mint_auth_broker_jwt(
+    issuer: &str,
     namespace: &str,
     mcp_server_name: &str,
     agent_name: Option<&str>,
 ) -> Result<String> {
     crate::control::security::install_jwt_crypto_provider();
-    let secret = broker_jwt_secret()?;
     let now = current_unix_timestamp();
     let claims = BrokerJwtClaims {
+        iss: issuer.to_string(),
         sub: "talon-mcp-client".to_string(),
-        aud: "conic-mcp-auth-broker".to_string(),
+        aud: platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
         exp: now + 300,
         iat: now,
+        token_type: platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE.to_string(),
         talon_ns: namespace.to_string(),
         talon_mcp_server: mcp_server_name.to_string(),
         talon_agent: agent_name.map(str::to_string),
     };
-    encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
-    )
-    .map_err(|err| anyhow!("failed to mint MCP auth broker JWT: {}", err))
-}
-
-fn broker_jwt_secret() -> Result<String> {
-    std::env::var("TALON_JWT_SECRET")
-        .or_else(|_| std::env::var("GATEWAY_JWT_SECRET"))
-        .map_err(|_| {
-            anyhow!("TALON_JWT_SECRET or GATEWAY_JWT_SECRET must be set for MCP auth broker")
-        })
+    let key = platform_jwt::load_key()?;
+    key.sign(&claims)
+        .map_err(|err| anyhow!("failed to mint MCP auth broker JWT: {}", err))
 }
 
 fn current_unix_timestamp() -> i64 {
@@ -973,10 +971,13 @@ struct AuthBrokerResponse {
 
 #[derive(Debug, Serialize)]
 struct BrokerJwtClaims {
+    iss: String,
     sub: String,
     aud: String,
     exp: i64,
     iat: i64,
+    #[serde(rename = "talon:token_type")]
+    token_type: String,
     #[serde(rename = "talon:ns")]
     talon_ns: String,
     #[serde(rename = "talon:mcp_server")]

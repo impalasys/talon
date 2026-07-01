@@ -50,6 +50,11 @@ export class TalonConfig extends Message<TalonConfig> {
    */
   trust?: TrustConfig;
 
+  /**
+   * @generated from field: talon.config.PlatformAuthConfig platform_auth = 9;
+   */
+  platformAuth?: PlatformAuthConfig;
+
   constructor(data?: PartialMessage<TalonConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -66,6 +71,7 @@ export class TalonConfig extends Message<TalonConfig> {
     { no: 6, name: "control_plane", kind: "message", T: ControlPlaneConfig },
     { no: 7, name: "controllers", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ControllerConfig} },
     { no: 8, name: "trust", kind: "message", T: TrustConfig },
+    { no: 9, name: "platform_auth", kind: "message", T: PlatformAuthConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TalonConfig {
@@ -119,6 +125,80 @@ export class TrustConfig extends Message<TrustConfig> {
 
   static equals(a: TrustConfig | PlainMessage<TrustConfig> | undefined, b: TrustConfig | PlainMessage<TrustConfig> | undefined): boolean {
     return proto3.util.equals(TrustConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.config.PlatformAuthConfig
+ */
+export class PlatformAuthConfig extends Message<PlatformAuthConfig> {
+  /**
+   * @generated from field: talon.config.JwtIssuerConfig jwt_issuer = 1;
+   */
+  jwtIssuer?: JwtIssuerConfig;
+
+  constructor(data?: PartialMessage<PlatformAuthConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.PlatformAuthConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "jwt_issuer", kind: "message", T: JwtIssuerConfig },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PlatformAuthConfig {
+    return new PlatformAuthConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PlatformAuthConfig {
+    return new PlatformAuthConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PlatformAuthConfig {
+    return new PlatformAuthConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PlatformAuthConfig | PlainMessage<PlatformAuthConfig> | undefined, b: PlatformAuthConfig | PlainMessage<PlatformAuthConfig> | undefined): boolean {
+    return proto3.util.equals(PlatformAuthConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.config.JwtIssuerConfig
+ */
+export class JwtIssuerConfig extends Message<JwtIssuerConfig> {
+  /**
+   * @generated from field: string issuer = 1;
+   */
+  issuer = "";
+
+  constructor(data?: PartialMessage<JwtIssuerConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.JwtIssuerConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "issuer", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JwtIssuerConfig {
+    return new JwtIssuerConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JwtIssuerConfig {
+    return new JwtIssuerConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JwtIssuerConfig {
+    return new JwtIssuerConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JwtIssuerConfig | PlainMessage<JwtIssuerConfig> | undefined, b: JwtIssuerConfig | PlainMessage<JwtIssuerConfig> | undefined): boolean {
+    return proto3.util.equals(JwtIssuerConfig, a, b);
   }
 }
 

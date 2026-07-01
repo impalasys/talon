@@ -11,10 +11,19 @@ message TalonConfig {
   ControlPlaneConfig control_plane = 6;
   map<string, ControllerConfig> controllers = 7;
   TrustConfig trust = 8;
+  PlatformAuthConfig platform_auth = 9;
 }
 
 message TrustConfig {
   repeated OidcTrustEntry oidc = 1;
+}
+
+message PlatformAuthConfig {
+  JwtIssuerConfig jwt_issuer = 1;
+}
+
+message JwtIssuerConfig {
+  string issuer = 1;
 }
 
 message OidcTrustEntry {

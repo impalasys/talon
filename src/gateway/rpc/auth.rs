@@ -3,15 +3,14 @@
 
 use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::control::config::proto as config_proto;
+use crate::control::security::platform_jwt;
 use crate::control::{keys, ns};
 use crate::gateway::auth::{
     self as gateway_auth, AuthConfig, AuthMode, AuthzOperation, Claims, TalonGrantClaim,
 };
 use crate::gateway::Gateway;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
-use jsonwebtoken::{
-    decode, decode_header, jwk::JwkSet, Algorithm, DecodingKey, EncodingKey, Header, Validation,
-};
+use jsonwebtoken::{decode, decode_header, jwk::JwkSet, Algorithm, DecodingKey, Validation};
 use prost::Message;
 use rand::RngCore;
 use serde::Deserialize;
@@ -116,18 +115,11 @@ impl GrpcGatewayHandler {
             .auth_config
             .as_ref()
             .ok_or_else(|| tonic::Status::unauthenticated("JWT auth is not configured"))?;
-        let secret = match auth_config {
-            AuthConfig {
-                mode: AuthMode::Jwt,
-                jwt_secret: Some(secret),
-                ..
-            } => secret,
-            _ => {
-                return Err(tonic::Status::unauthenticated(
-                    "JWT auth is required to mint Talon access tokens",
-                ));
-            }
-        };
+        if auth_config.mode != AuthMode::Jwt {
+            return Err(tonic::Status::unauthenticated(
+                "JWT auth is required to mint Talon access tokens",
+            ));
+        }
 
         let parent_claims = gateway_auth::jwt_claims_from_metadata(&metadata, auth_config)?
             .ok_or_else(|| tonic::Status::unauthenticated("Bearer JWT is required"))?;
@@ -135,10 +127,14 @@ impl GrpcGatewayHandler {
 
         let (expires_in, expires_at) = delegated_expiration(&parent_claims, scope.expires_in)?;
         let origins = delegated_origins(&parent_claims, &scope.origins)?;
+        let now = unix_seconds()?;
         let claims = Claims {
+            iss: Some(platform_issuer(self.gateway.as_ref())?.to_string()),
             sub: format!("delegated:{}", parent_claims.sub),
-            aud: "talon".to_string(),
+            aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+            iat: Some(now as usize),
             exp: expires_at as usize,
+            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: Some(scope.namespace),
             agent: scope.agent,
             session: scope.session,
@@ -147,14 +143,7 @@ impl GrpcGatewayHandler {
             grants: Vec::new(),
         };
 
-        let access_token = jsonwebtoken::encode(
-            &Header::new(Algorithm::HS256),
-            &claims,
-            &EncodingKey::from_secret(secret.as_bytes()),
-        )
-        .map_err(|err| {
-            tonic::Status::internal(format!("failed to mint Talon access token: {err}"))
-        })?;
+        let access_token = mint_platform_access_token(self.gateway.as_ref(), &claims)?;
 
         Ok(tonic::Response::new(proto::MintAccessTokenResponse {
             access_token,
@@ -298,11 +287,13 @@ impl GrpcGatewayHandler {
             return Err(tonic::Status::unauthenticated("Invalid API key"));
         };
         let (expires_in, expires_at) = api_key_access_token_expiration(request.expires_in)?;
-        let secret = gateway_jwt_secret(self.gateway.as_ref())?;
         let claims = Claims {
+            iss: Some(platform_issuer(self.gateway.as_ref())?.to_string()),
             sub: format!("api_key:{}", record.id),
-            aud: "talon".to_string(),
+            aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+            iat: Some(now as usize),
             exp: expires_at as usize,
+            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: effective_grant.namespace.clone(),
             agent: effective_grant.agent.clone(),
             session: effective_grant.session.clone(),
@@ -310,14 +301,7 @@ impl GrpcGatewayHandler {
             origins: Vec::new(),
             grants: vec![effective_grant],
         };
-        let access_token = jsonwebtoken::encode(
-            &Header::new(Algorithm::HS256),
-            &claims,
-            &EncodingKey::from_secret(secret.as_bytes()),
-        )
-        .map_err(|err| {
-            tonic::Status::internal(format!("failed to mint Talon access token: {err}"))
-        })?;
+        let access_token = mint_platform_access_token(self.gateway.as_ref(), &claims)?;
         Ok(tonic::Response::new(proto::ExchangeApiKeyResponse {
             access_token,
             token_type: "Bearer".to_string(),
@@ -530,17 +514,30 @@ fn unix_seconds() -> Result<u64, tonic::Status> {
         .map(|duration| duration.as_secs())
 }
 
-fn gateway_jwt_secret(gateway: &Gateway) -> Result<&str, tonic::Status> {
-    match gateway.auth_config.as_ref() {
-        Some(AuthConfig {
-            mode: AuthMode::Jwt,
-            jwt_secret: Some(secret),
-            ..
-        }) => Ok(secret),
-        _ => Err(tonic::Status::unauthenticated(
-            "JWT auth is required to mint Talon access tokens",
-        )),
+fn platform_issuer(gateway: &Gateway) -> Result<&str, tonic::Status> {
+    gateway
+        .platform_jwt_config
+        .as_ref()
+        .map(|config| config.issuer.trim())
+        .filter(|issuer| !issuer.is_empty())
+        .ok_or_else(|| tonic::Status::internal("Platform JWT issuer is not configured"))
+}
+
+fn mint_platform_access_token(gateway: &Gateway, claims: &Claims) -> Result<String, tonic::Status> {
+    let issuer = platform_issuer(gateway)?;
+    if claims.iss.as_deref() != Some(issuer)
+        || claims.aud != platform_jwt::TALON_GATEWAY_AUDIENCE
+        || claims.token_type.as_deref() != Some(platform_jwt::ACCESS_TOKEN_TYPE)
+    {
+        return Err(tonic::Status::internal(
+            "Talon access token claims do not match the platform token profile",
+        ));
     }
+    let key = platform_jwt::load_key().map_err(|err| {
+        tonic::Status::internal(format!("Platform JWT key is not configured: {err}"))
+    })?;
+    key.sign(claims)
+        .map_err(|err| tonic::Status::internal(format!("failed to mint Talon access token: {err}")))
 }
 
 fn ensure_root_jwt(
@@ -1041,29 +1038,20 @@ fn mint_talon_access_token(
     gateway: &Gateway,
     identity: &VerifiedOidcIdentity,
 ) -> Result<String, tonic::Status> {
-    let secret = match gateway.auth_config.as_ref() {
-        Some(AuthConfig {
-            mode: AuthMode::Jwt,
-            jwt_secret: Some(secret),
-            ..
-        }) => secret,
-        _ => {
-            return Err(tonic::Status::internal(
-                "Gateway JWT auth must be configured to issue Talon access tokens",
-            ));
-        }
-    };
-
     let exp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_err(|err| tonic::Status::internal(err.to_string()))?
         .as_secs()
         + TALON_ACCESS_TOKEN_TTL_SECONDS;
+    let now = unix_seconds()?;
 
     let claims = Claims {
+        iss: Some(platform_issuer(gateway)?.to_string()),
         sub: format!("oidc:{}", identity.claims.sub),
-        aud: "talon".to_string(),
+        aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+        iat: Some(now as usize),
         exp: exp as usize,
+        token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
         ns: None,
         agent: None,
         session: None,
@@ -1072,33 +1060,78 @@ fn mint_talon_access_token(
         grants: identity.grants.clone(),
     };
 
-    jsonwebtoken::encode(
-        &Header::new(Algorithm::HS256),
-        &claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
-    )
-    .map_err(|err| tonic::Status::internal(format!("failed to mint Talon access token: {err}")))
+    mint_platform_access_token(gateway, &claims)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::control::{ControlPlane, KeyValueStore};
-    use crate::gateway::auth::{check_auth, verify_jwt};
+    use crate::gateway::auth::check_auth;
     use crate::test_support::{EmptyPubSub, MockKvStore};
-    use jsonwebtoken::{encode, EncodingKey, Header};
     use std::sync::Arc;
 
-    fn handler(secret: &str) -> GrpcGatewayHandler {
-        handler_with_kv(secret, Arc::new(MockKvStore::default()))
+    const TEST_PLATFORM_ISSUER: &str = "https://talon.example.com";
+
+    struct PlatformJwtEnvGuard {
+        _guard: tokio::sync::MutexGuard<'static, ()>,
+        previous_private_key: Option<String>,
     }
 
-    fn handler_with_kv(secret: &str, kv: Arc<MockKvStore>) -> GrpcGatewayHandler {
+    impl PlatformJwtEnvGuard {
+        async fn acquire() -> Self {
+            let guard = crate::test_support::async_env_mutex().lock().await;
+            let previous_private_key =
+                std::env::var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV).ok();
+            std::env::set_var(
+                platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                platform_jwt::TEST_RSA_PRIVATE_KEY,
+            );
+            Self {
+                _guard: guard,
+                previous_private_key,
+            }
+        }
+    }
+
+    impl Drop for PlatformJwtEnvGuard {
+        fn drop(&mut self) {
+            if let Some(previous_private_key) = &self.previous_private_key {
+                std::env::set_var(
+                    platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    previous_private_key,
+                );
+            } else {
+                std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
+            }
+        }
+    }
+
+    fn handler() -> GrpcGatewayHandler {
+        handler_with_kv(Arc::new(MockKvStore::default()))
+    }
+
+    fn handler_with_kv(kv: Arc<MockKvStore>) -> GrpcGatewayHandler {
         let control_plane = ControlPlane::builder(kv, Arc::new(EmptyPubSub)).build();
+        let ControlPlane {
+            kv,
+            pubsub,
+            scheduler,
+            objects,
+            documents,
+        } = control_plane;
         GrpcGatewayHandler {
-            gateway: Arc::new(Gateway::from_control_plane(
-                Some(AuthConfig::jwt(secret.to_string())),
-                control_plane,
+            gateway: Arc::new(Gateway::new_with_trust_and_platform_jwt(
+                Some(platform_auth_config()),
+                None,
+                Some(config_proto::JwtIssuerConfig {
+                    issuer: TEST_PLATFORM_ISSUER.to_string(),
+                }),
+                kv,
+                pubsub,
+                scheduler,
+                objects,
+                documents,
             )),
         }
     }
@@ -1120,24 +1153,28 @@ mod tests {
         req
     }
 
-    fn token(secret: &str, mut claims: Claims) -> String {
-        crate::control::security::install_jwt_crypto_provider();
+    fn token(mut claims: Claims) -> String {
         if claims.exp == 0 {
             claims.exp = (unix_seconds().unwrap() + 3600) as usize;
         }
-        encode(
-            &Header::new(Algorithm::HS256),
-            &claims,
-            &EncodingKey::from_secret(secret.as_ref()),
-        )
-        .unwrap()
+        claims.iss = Some(TEST_PLATFORM_ISSUER.to_string());
+        claims.aud = platform_jwt::TALON_GATEWAY_AUDIENCE.to_string();
+        claims.iat = Some(unix_seconds().unwrap() as usize);
+        claims.token_type = Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string());
+        platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
+            .unwrap()
+            .sign(&claims)
+            .unwrap()
     }
 
     fn claims(ns: Option<&str>, agent: Option<&str>, session: Option<&str>) -> Claims {
         Claims {
+            iss: None,
             sub: "tenant-admin".to_string(),
             aud: "talon".to_string(),
+            iat: None,
             exp: 0,
+            token_type: None,
             ns: ns.map(str::to_string),
             agent: agent.map(str::to_string),
             session: session.map(str::to_string),
@@ -1145,6 +1182,29 @@ mod tests {
             origins: Vec::new(),
             grants: Vec::new(),
         }
+    }
+
+    fn platform_auth_config() -> AuthConfig {
+        let mut config = AuthConfig::jwt_platform();
+        config.platform_jwt_issuer = Some(TEST_PLATFORM_ISSUER.to_string());
+        config
+    }
+
+    fn verify_platform_access_token(token: &str) -> Claims {
+        let key =
+            platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY).unwrap();
+        let claims: Claims = key
+            .verify(
+                token,
+                TEST_PLATFORM_ISSUER,
+                platform_jwt::TALON_GATEWAY_AUDIENCE,
+            )
+            .unwrap();
+        assert_eq!(
+            claims.token_type.as_deref(),
+            Some(platform_jwt::ACCESS_TOKEN_TYPE)
+        );
+        claims
     }
 
     fn mint_request(namespace: &str) -> proto::MintAccessTokenRequest {
@@ -1176,9 +1236,9 @@ mod tests {
 
     #[tokio::test]
     async fn mint_access_token_allows_descendant_namespace_and_agent_narrowing() {
-        let secret = "delegate-secret";
-        let parent = token(secret, claims(Some("Tenant:acme"), None, None));
-        let handler = handler(secret);
+        let _env_guard = PlatformJwtEnvGuard::acquire().await;
+        let parent = token(claims(Some("Tenant:acme"), None, None));
+        let handler = handler();
         let mut request = mint_request("Tenant:acme:child");
         request.agent = Some("assistant".to_string());
 
@@ -1190,13 +1250,13 @@ mod tests {
 
         assert_eq!(response.token_type, "Bearer");
         assert_eq!(response.expires_in, 60);
-        let minted = verify_jwt(&response.access_token, secret).unwrap();
+        let minted = verify_platform_access_token(&response.access_token);
         assert_eq!(minted.sub, "delegated:tenant-admin");
         assert_eq!(minted.ns.as_deref(), Some("Tenant:acme:child"));
         assert_eq!(minted.agent.as_deref(), Some("assistant"));
         assert!(minted.grants.is_empty());
 
-        let config = AuthConfig::jwt(secret.to_string());
+        let config = platform_auth_config();
         let mut metadata = tonic::metadata::MetadataMap::new();
         metadata.insert(
             "authorization",
@@ -1222,9 +1282,9 @@ mod tests {
 
     #[tokio::test]
     async fn mint_access_token_rejects_scope_widening() {
-        let secret = "delegate-secret";
-        let parent = token(secret, claims(Some("Tenant:acme"), Some("assistant"), None));
-        let handler = handler(secret);
+        let _env_guard = PlatformJwtEnvGuard::acquire().await;
+        let parent = token(claims(Some("Tenant:acme"), Some("assistant"), None));
+        let handler = handler();
 
         let sibling = handler
             .handle_mint_access_token(bearer_request(&parent, mint_request("Tenant:acme2")))
@@ -1252,11 +1312,11 @@ mod tests {
 
     #[tokio::test]
     async fn mint_access_token_rejects_later_expiry() {
-        let secret = "delegate-secret";
+        let _env_guard = PlatformJwtEnvGuard::acquire().await;
         let mut parent_claims = claims(Some("Tenant:acme"), None, None);
         parent_claims.exp = (unix_seconds().unwrap() + 30) as usize;
-        let parent = token(secret, parent_claims);
-        let handler = handler(secret);
+        let parent = token(parent_claims);
+        let handler = handler();
         let mut request = mint_request("Tenant:acme");
         request.expires_in = 31;
 
@@ -1269,11 +1329,11 @@ mod tests {
 
     #[tokio::test]
     async fn mint_access_token_honors_parent_origin_scope() {
-        let secret = "delegate-secret";
+        let _env_guard = PlatformJwtEnvGuard::acquire().await;
         let mut parent_claims = claims(Some("Tenant:acme"), None, None);
         parent_claims.origins = vec!["https://app.example.com".to_string()];
-        let parent = token(secret, parent_claims);
-        let handler = handler(secret);
+        let parent = token(parent_claims);
+        let handler = handler();
 
         let mut request = mint_request("Tenant:acme");
         request.origins = vec!["https://APP.example.com:443".to_string()];
@@ -1282,7 +1342,7 @@ mod tests {
             .await
             .unwrap()
             .into_inner();
-        let minted = verify_jwt(&response.access_token, secret).unwrap();
+        let minted = verify_platform_access_token(&response.access_token);
         assert_eq!(minted.origins, vec!["https://app.example.com"]);
 
         let mut request = mint_request("Tenant:acme");
@@ -1296,8 +1356,8 @@ mod tests {
 
     #[tokio::test]
     async fn mint_access_token_accepts_readwrite_grants_but_rejects_read_grants() {
-        let secret = "delegate-secret";
-        let handler = handler(secret);
+        let _env_guard = PlatformJwtEnvGuard::acquire().await;
+        let handler = handler();
         let mut parent_claims = claims(None, None, None);
         parent_claims.sub = "oidc:user123".to_string();
         parent_claims.grants = vec![TalonGrantClaim {
@@ -1307,7 +1367,7 @@ mod tests {
             session: None,
             channel: None,
         }];
-        let parent = token(secret, parent_claims.clone());
+        let parent = token(parent_claims.clone());
 
         let mut request = mint_request("Tenant:acme:child");
         request.agent = Some("assistant".to_string());
@@ -1317,7 +1377,7 @@ mod tests {
             .unwrap();
 
         parent_claims.grants[0].kind = "read".to_string();
-        let parent = token(secret, parent_claims);
+        let parent = token(parent_claims);
         let mut request = mint_request("Tenant:acme:child");
         request.agent = Some("assistant".to_string());
         let err = handler
@@ -1329,9 +1389,9 @@ mod tests {
 
     #[tokio::test]
     async fn api_key_create_exchange_and_revoke_are_scoped() {
-        let secret = "api-key-secret";
-        let handler = handler(secret);
-        let root = token(secret, claims(None, None, None));
+        let _env_guard = PlatformJwtEnvGuard::acquire().await;
+        let handler = handler();
+        let root = token(claims(None, None, None));
 
         let created = handler
             .handle_create_api_key(auth_request(
@@ -1366,13 +1426,13 @@ mod tests {
             .unwrap()
             .into_inner();
         assert_eq!(exchanged.token_type, "Bearer");
-        let minted = verify_jwt(&exchanged.access_token, secret).unwrap();
+        let minted = verify_platform_access_token(&exchanged.access_token);
         assert_eq!(minted.sub, format!("api_key:{}", info.id));
         assert_eq!(minted.ns.as_deref(), Some("Tenant:acme"));
         assert_eq!(minted.grants.len(), 1);
         assert_eq!(minted.grants[0].kind, "readwrite");
 
-        let config = AuthConfig::jwt(secret.to_string());
+        let config = platform_auth_config();
         let mut metadata = tonic::metadata::MetadataMap::new();
         metadata.insert(
             "authorization",
@@ -1405,9 +1465,9 @@ mod tests {
 
     #[tokio::test]
     async fn api_key_management_requires_root_jwt() {
-        let secret = "api-key-secret";
-        let handler = handler(secret);
-        let scoped = token(secret, claims(Some("Tenant:acme"), None, None));
+        let _env_guard = PlatformJwtEnvGuard::acquire().await;
+        let handler = handler();
+        let scoped = token(claims(Some("Tenant:acme"), None, None));
 
         let err = handler
             .handle_create_api_key(auth_request(
@@ -1425,10 +1485,10 @@ mod tests {
 
     #[tokio::test]
     async fn api_key_list_skips_invalid_records() {
-        let secret = "api-key-secret";
+        let _env_guard = PlatformJwtEnvGuard::acquire().await;
         let kv = Arc::new(MockKvStore::default());
-        let handler = handler_with_kv(secret, kv.clone());
-        let root = token(secret, claims(None, None, None));
+        let handler = handler_with_kv(kv.clone());
+        let root = token(claims(None, None, None));
 
         handler
             .handle_create_api_key(auth_request(
@@ -1456,9 +1516,9 @@ mod tests {
 
     #[tokio::test]
     async fn api_key_exchange_requires_explicit_grant_for_multiple_grants_and_allows_narrowing() {
-        let secret = "api-key-secret";
-        let handler = handler(secret);
-        let root = token(secret, claims(None, None, None));
+        let _env_guard = PlatformJwtEnvGuard::acquire().await;
+        let handler = handler();
+        let root = token(claims(None, None, None));
 
         let created = handler
             .handle_create_api_key(auth_request(
@@ -1501,7 +1561,7 @@ mod tests {
             .await
             .unwrap()
             .into_inner();
-        let claims = verify_jwt(&narrowed.access_token, secret).unwrap();
+        let claims = verify_platform_access_token(&narrowed.access_token);
         assert_eq!(claims.grants[0].kind, "read");
         assert_eq!(
             claims.grants[0].namespace.as_deref(),
@@ -1528,8 +1588,6 @@ mod tests {
 
     #[test]
     fn jwt_decode_accepts_grants_and_legacy_talon_grants() {
-        let secret = "compat-secret";
-        crate::control::security::install_jwt_crypto_provider();
         let value = serde_json::json!({
             "sub": "api_key:test",
             "aud": "talon",
@@ -1541,13 +1599,7 @@ mod tests {
                 {"kind": "readwrite", "namespace": "Tenant:ops"}
             ]
         });
-        let token = encode(
-            &Header::new(Algorithm::HS256),
-            &value,
-            &EncodingKey::from_secret(secret.as_ref()),
-        )
-        .unwrap();
-        let claims = verify_jwt(&token, secret).unwrap();
+        let claims: Claims = serde_json::from_value(value).unwrap();
         assert_eq!(claims.grants.len(), 2);
         assert_eq!(claims.grants[0].kind, "read");
         assert_eq!(claims.grants[1].kind, "readwrite");

@@ -36,13 +36,11 @@ fn gateway_addr() -> String {
     std::env::var("GRPC_ADDR").unwrap_or_else(|_| "0.0.0.0:50051".to_string())
 }
 
-fn select_auth_config() -> AuthConfig {
-    if let Ok(secret) = std::env::var("GATEWAY_JWT_SECRET") {
-        AuthConfig::jwt(secret)
-    } else if let Ok(token) = std::env::var("GATEWAY_TOKEN") {
-        AuthConfig::tokens(vec![token])
-    } else if let Ok(password) = std::env::var("GATEWAY_PASSWORD") {
-        AuthConfig::password(password)
+fn select_auth_config(
+    platform_jwt_config: Option<&talon::control::config::proto::JwtIssuerConfig>,
+) -> AuthConfig {
+    if platform_jwt_config.is_some() {
+        AuthConfig::jwt_platform()
     } else {
         AuthConfig::open()
     }
@@ -63,10 +61,16 @@ fn worker_handler(
     worker_id: String,
     fanout_hub: Arc<FanoutHub>,
 ) -> WorkerEventHandler {
+    let jwt_issuer = config
+        .platform_auth
+        .as_ref()
+        .and_then(|auth| auth.jwt_issuer.as_ref())
+        .map(|issuer| issuer.issuer.trim().to_string())
+        .filter(|issuer| !issuer.is_empty());
     WorkerEventHandler {
         cp,
         config,
-        mcp_registry: Arc::new(McpRegistry::new()),
+        mcp_registry: Arc::new(McpRegistry::new_with_jwt_issuer(jwt_issuer)),
         scheduler_authenticator,
         worker_id,
         fanout_hub,
@@ -231,6 +235,14 @@ async fn join_unit_with_grace(task: &mut JoinHandle<()>) {
 
 async fn run() -> Result<()> {
     let config = Arc::new(Config::load_default()?);
+    if config
+        .platform_auth
+        .as_ref()
+        .and_then(|auth| auth.jwt_issuer.as_ref())
+        .is_some()
+    {
+        talon::control::security::platform_jwt::load_key()?;
+    }
     let cp = Arc::new(build_control_plane(&config).await?);
     let scheduler_authenticator =
         Arc::new(SchedulerRequestAuthenticator::from_config(&config).await?);
@@ -299,8 +311,21 @@ async fn run() -> Result<()> {
         )
         .await?,
     ];
-    let gateway = Gateway::new(
-        Some(select_auth_config()),
+    let platform_jwt_config = config
+        .platform_auth
+        .as_ref()
+        .and_then(|auth| auth.jwt_issuer.clone());
+    let mut auth_config = select_auth_config(platform_jwt_config.as_ref());
+    if auth_config.mode == talon::gateway::auth::AuthMode::Jwt {
+        auth_config.platform_jwt_issuer = platform_jwt_config
+            .as_ref()
+            .map(|config| config.issuer.trim().to_string())
+            .filter(|issuer| !issuer.is_empty());
+    }
+    let gateway = Gateway::new_with_trust_and_platform_jwt(
+        Some(auth_config),
+        config.trust.clone(),
+        platform_jwt_config,
         Arc::clone(&cp.kv),
         Arc::clone(&cp.pubsub),
         Arc::clone(&cp.scheduler),

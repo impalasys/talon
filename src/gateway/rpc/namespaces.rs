@@ -394,13 +394,13 @@ impl GrpcGatewayHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::control::security::platform_jwt;
     use crate::control::{
         keys::{ResourceKey, ResourceList},
         ControlPlane, KeyValueStore, MessagePublisher,
     };
     use crate::gateway::auth::{AuthConfig, Claims};
     use crate::gateway::server::Gateway;
-    use jsonwebtoken::{encode, EncodingKey, Header};
     use std::collections::HashMap;
     use std::sync::Arc;
     use tokio::sync::Mutex;
@@ -494,12 +494,53 @@ mod tests {
         GrpcGatewayHandler { gateway }
     }
 
-    fn scoped_token(secret: &str, ns: &str) -> String {
-        crate::control::security::install_jwt_crypto_provider();
+    const TEST_PLATFORM_ISSUER: &str = "https://talon.example.com";
+
+    struct PlatformJwtEnvGuard {
+        previous_private_key: Option<String>,
+    }
+
+    impl PlatformJwtEnvGuard {
+        fn acquire() -> Self {
+            let previous_private_key =
+                std::env::var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV).ok();
+            std::env::set_var(
+                platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                platform_jwt::TEST_RSA_PRIVATE_KEY,
+            );
+            Self {
+                previous_private_key,
+            }
+        }
+    }
+
+    impl Drop for PlatformJwtEnvGuard {
+        fn drop(&mut self) {
+            if let Some(previous_private_key) = &self.previous_private_key {
+                std::env::set_var(
+                    platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    previous_private_key,
+                );
+            } else {
+                std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
+            }
+        }
+    }
+
+    fn platform_auth_config() -> AuthConfig {
+        let mut config = AuthConfig::jwt_platform();
+        config.platform_jwt_issuer = Some(TEST_PLATFORM_ISSUER.to_string());
+        config
+    }
+
+    fn scoped_token(ns: &str) -> String {
         let claims = Claims {
+            iss: Some(TEST_PLATFORM_ISSUER.to_string()),
             sub: "tenant-admin".to_string(),
-            aud: "talon".to_string(),
+            aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+            iat: Some(1),
             exp: 10000000000,
+            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: Some(ns.to_string()),
             agent: None,
             session: None,
@@ -507,12 +548,10 @@ mod tests {
             origins: Vec::new(),
             grants: Vec::new(),
         };
-        encode(
-            &Header::default(),
-            &claims,
-            &EncodingKey::from_secret(secret.as_ref()),
-        )
-        .unwrap()
+        platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
+            .unwrap()
+            .sign(&claims)
+            .unwrap()
     }
 
     fn with_bearer<T>(mut req: tonic::Request<T>, token: &str) -> tonic::Request<T> {
@@ -653,10 +692,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_scoped_jwt_can_manage_descendant_namespaces_only() {
-        let secret = "namespace-secret";
-        let token = scoped_token(secret, "Tenant:conic");
-        let handler =
-            setup_mock_gateway_handler_with_auth(Some(AuthConfig::jwt(secret.to_string())));
+        let _env_lock = crate::test_support::async_env_mutex().lock().await;
+        let _guard = PlatformJwtEnvGuard::acquire();
+        let token = scoped_token("Tenant:conic");
+        let handler = setup_mock_gateway_handler_with_auth(Some(platform_auth_config()));
 
         handler
             .handle_create_namespace(with_bearer(

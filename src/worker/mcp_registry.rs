@@ -19,11 +19,19 @@ pub struct ResolvedMcpServer {
 #[derive(Default)]
 pub struct McpRegistry {
     cache: RwLock<HashMap<String, HashMap<String, Arc<ResolvedMcpServer>>>>,
+    jwt_issuer: Option<String>,
 }
 
 impl McpRegistry {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn new_with_jwt_issuer(jwt_issuer: Option<String>) -> Self {
+        Self {
+            cache: RwLock::new(HashMap::new()),
+            jwt_issuer,
+        }
     }
 
     pub async fn invalidate(&self, ns: &str, name: Option<&str>) {
@@ -62,8 +70,11 @@ impl McpRegistry {
         }
 
         let server = resolve_server_from_ancestry(cp, namespace, name).await?;
-        let config =
-            config_for_resolution_namespace(McpConnectionConfig::try_from(&server)?, namespace);
+        let config = config_for_resolution_namespace(
+            McpConnectionConfig::try_from(&server)?,
+            namespace,
+            self.jwt_issuer.clone(),
+        );
         let allowlist = server
             .spec
             .as_ref()
@@ -123,8 +134,10 @@ fn filter_allowed_tools(tools: Vec<McpTool>, allowlist: &[String]) -> Vec<McpToo
 fn config_for_resolution_namespace(
     mut config: McpConnectionConfig,
     namespace: &str,
+    jwt_issuer: Option<String>,
 ) -> McpConnectionConfig {
     config.namespace = Some(namespace.to_string());
+    config.jwt_issuer = jwt_issuer;
     config
 }
 
@@ -284,10 +297,11 @@ mod tests {
             namespace: Some("Tenant:conic:Customers".to_string()),
             mcp_server_name: Some("conic".to_string()),
             agent_name: None,
+            jwt_issuer: None,
             auth_broker: None,
         };
 
-        let scoped = config_for_resolution_namespace(config, "Tenant:conic:Customers:12");
+        let scoped = config_for_resolution_namespace(config, "Tenant:conic:Customers:12", None);
 
         assert_eq!(
             scoped.namespace.as_deref(),
@@ -315,6 +329,7 @@ mod tests {
                         namespace: Some("conic".to_string()),
                         mcp_server_name: Some("github".to_string()),
                         agent_name: None,
+                        jwt_issuer: None,
                         auth_broker: None,
                     },
                     tools: Vec::new(),
@@ -341,6 +356,7 @@ mod tests {
                         namespace: Some("conic".to_string()),
                         mcp_server_name: Some("docs".to_string()),
                         agent_name: None,
+                        jwt_issuer: None,
                         auth_broker: None,
                     },
                     tools: Vec::new(),

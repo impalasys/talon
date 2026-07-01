@@ -1,9 +1,10 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// Gateway Authentication - token/password auth middleware for the Gateway
+// Gateway Authentication - platform JWT auth middleware for the Gateway
 // This file is owned by: Agent 4 (Gateway Auth & Tools)
 
+use crate::control::security::platform_jwt;
 use crate::gateway::server::Gateway;
 use axum::{
     extract::{Request, State},
@@ -12,8 +13,6 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
-use base64::{engine::general_purpose, Engine as _};
-use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::sync::Arc;
 use tonic::{metadata::MetadataMap, Status};
@@ -31,62 +30,46 @@ pub enum AuthzOperation {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum AuthMode {
     Open,
-    Password,
-    Token,
     Jwt,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthConfig {
     pub mode: AuthMode,
-    pub password: Option<String>,
-    pub tokens: Vec<String>,
-    pub jwt_secret: Option<String>,
+    pub platform_jwt_issuer: Option<String>,
 }
 
 impl AuthConfig {
     pub fn open() -> Self {
         Self {
             mode: AuthMode::Open,
-            password: None,
-            tokens: Vec::new(),
-            jwt_secret: None,
+            platform_jwt_issuer: None,
         }
     }
 
-    pub fn password(password: String) -> Self {
-        Self {
-            mode: AuthMode::Password,
-            password: Some(password),
-            tokens: Vec::new(),
-            jwt_secret: None,
-        }
-    }
-
-    pub fn tokens(tokens: Vec<String>) -> Self {
-        Self {
-            mode: AuthMode::Token,
-            password: None,
-            tokens,
-            jwt_secret: None,
-        }
-    }
-
-    pub fn jwt(secret: String) -> Self {
+    pub fn jwt_platform() -> Self {
         Self {
             mode: AuthMode::Jwt,
-            password: None,
-            tokens: Vec::new(),
-            jwt_secret: Some(secret),
+            platform_jwt_issuer: None,
         }
     }
 }
 
 #[derive(Debug, Serialize, Clone)]
 pub struct Claims {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub iss: Option<String>,
     pub sub: String,
     pub aud: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub iat: Option<usize>,
     pub exp: usize,
+    #[serde(
+        rename = "talon:token_type",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub token_type: Option<String>,
     #[serde(rename = "talon:ns")]
     pub ns: Option<String>,
     #[serde(rename = "talon:agent")]
@@ -112,9 +95,15 @@ impl<'de> Deserialize<'de> for Claims {
     {
         #[derive(Deserialize)]
         struct RawClaims {
+            #[serde(default)]
+            iss: Option<String>,
             sub: String,
             aud: String,
+            #[serde(default)]
+            iat: Option<usize>,
             exp: usize,
+            #[serde(rename = "talon:token_type", default)]
+            token_type: Option<String>,
             #[serde(rename = "talon:ns")]
             ns: Option<String>,
             #[serde(rename = "talon:agent")]
@@ -134,9 +123,12 @@ impl<'de> Deserialize<'de> for Claims {
         let mut raw = RawClaims::deserialize(deserializer)?;
         raw.grants.extend(raw.legacy_grants);
         Ok(Self {
+            iss: raw.iss,
             sub: raw.sub,
             aud: raw.aud,
+            iat: raw.iat,
             exp: raw.exp,
+            token_type: raw.token_type,
             ns: raw.ns,
             agent: raw.agent,
             session: raw.session,
@@ -160,46 +152,24 @@ pub struct TalonGrantClaim {
     pub channel: Option<String>,
 }
 
-pub fn verify_jwt(token: &str, secret: &str) -> Result<Claims, Status> {
-    crate::control::security::install_jwt_crypto_provider();
-    let mut validation = Validation::new(Algorithm::HS256);
-    validation.set_audience(&["talon"]);
-
-    let token_data = decode::<Claims>(
-        token,
-        &DecodingKey::from_secret(secret.as_ref()),
-        &validation,
-    )
-    .map_err(|e| Status::unauthenticated(format!("Invalid token: {}", e)))?;
-
-    Ok(token_data.claims)
-}
-
-fn basic_password_from_auth_header(auth_header: &str) -> Result<Option<String>, Status> {
-    if !auth_header.starts_with("Basic ") {
-        return Ok(None);
+pub fn verify_platform_access_jwt(token: &str, issuer: &str) -> Result<Claims, Status> {
+    let key = platform_jwt::load_key()
+        .map_err(|err| Status::internal(format!("Platform JWT key is not configured: {err}")))?;
+    let claims = key
+        .verify::<Claims>(token, issuer, platform_jwt::TALON_GATEWAY_AUDIENCE)
+        .map_err(|err| Status::unauthenticated(format!("Invalid token: {err}")))?;
+    if claims.token_type.as_deref() != Some(platform_jwt::ACCESS_TOKEN_TYPE) {
+        return Err(Status::permission_denied("JWT is not a Talon access token"));
     }
-
-    let base64_str = &auth_header[6..];
-    let decoded = general_purpose::STANDARD
-        .decode(base64_str)
-        .map_err(|_| Status::unauthenticated("Invalid base64"))?;
-    let decoded_str =
-        String::from_utf8(decoded).map_err(|_| Status::unauthenticated("Invalid utf8"))?;
-
-    Ok(decoded_str
-        .split_once(':')
-        .map(|(_, pass)| pass.to_string()))
+    Ok(claims)
 }
 
-fn check_basic_password(auth_header: &str, expected_pass: Option<&String>) -> Result<bool, Status> {
-    let Some(expected_pass) = expected_pass else {
-        return Ok(false);
-    };
-    Ok(matches!(
-        basic_password_from_auth_header(auth_header)?,
-        Some(pass) if pass == *expected_pass
-    ))
+fn verify_bearer_jwt(token: &str, auth_config: &AuthConfig) -> Result<Claims, Status> {
+    let issuer = auth_config
+        .platform_jwt_issuer
+        .as_deref()
+        .ok_or_else(|| Status::internal("JWT issuer not configured"))?;
+    verify_platform_access_jwt(token, issuer)
 }
 
 fn bearer_token(auth_header: &str) -> Result<&str, Status> {
@@ -260,8 +230,8 @@ pub fn check_auth_for_operation(
 /// `DocumentStore`. It still enforces token validity conditions that require
 /// request metadata, such as `talon:origins`.
 ///
-/// Returns `Ok(None)` for non-JWT auth modes and for JWT mode's basic-password
-/// fallback, because there are no bearer JWT claims to inspect in those cases.
+/// Returns `Ok(None)` for non-JWT auth modes, because there are no bearer JWT
+/// claims to inspect in those cases.
 pub fn jwt_claims_from_metadata(
     metadata: &MetadataMap,
     auth_config: &AuthConfig,
@@ -273,15 +243,8 @@ pub fn jwt_claims_from_metadata(
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
-    if check_basic_password(auth_header, auth_config.jwt_secret.as_ref())? {
-        return Ok(None);
-    }
     let token = bearer_token(auth_header)?;
-    let secret = auth_config
-        .jwt_secret
-        .as_ref()
-        .ok_or_else(|| Status::internal("JWT secret not configured"))?;
-    let claims = verify_jwt(token, secret)?;
+    let claims = verify_bearer_jwt(token, auth_config)?;
     check_origin_scope(&claims, metadata_origin_scope(metadata))?;
     Ok(Some(claims))
 }
@@ -353,49 +316,15 @@ fn check_auth_header_for_operation_with_origin_scope(
 ) -> Result<(), Status> {
     match auth_config.mode {
         AuthMode::Open => Ok(()),
-        AuthMode::Token => {
-            let auth_header = auth_header
-                .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
-
-            let token = bearer_token(auth_header)?;
-
-            if auth_config.tokens.iter().any(|t| t == token) {
-                Ok(())
-            } else {
-                Err(Status::unauthenticated("Invalid token"))
-            }
-        }
         AuthMode::Jwt => {
             let auth_header = auth_header
                 .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
 
-            if check_basic_password(auth_header, auth_config.jwt_secret.as_ref())? {
-                return Ok(());
-            }
-
             let token = bearer_token(auth_header)?;
 
-            let secret = auth_config
-                .jwt_secret
-                .as_ref()
-                .ok_or_else(|| Status::internal("JWT secret not configured"))?;
-            let claims = verify_jwt(token, secret)?;
+            let claims = verify_bearer_jwt(token, auth_config)?;
 
             check_claim_scope(&claims, operation, ns, agent, session, None, origin_scope)
-        }
-        AuthMode::Password => {
-            let auth_header = auth_header
-                .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
-
-            if !auth_header.starts_with("Basic ") {
-                return Err(Status::unauthenticated(
-                    "Invalid auth scheme, expected Basic",
-                ));
-            }
-            if check_basic_password(auth_header, auth_config.password.as_ref())? {
-                return Ok(());
-            }
-            Err(Status::unauthenticated("Invalid password"))
         }
     }
 }
@@ -430,17 +359,9 @@ pub fn check_channel_auth_for_operation(
                 .and_then(|v| v.to_str().ok())
                 .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
 
-            if check_basic_password(auth_header, auth_config.jwt_secret.as_ref())? {
-                return Ok(());
-            }
-
             let token = bearer_token(auth_header)?;
 
-            let secret = auth_config
-                .jwt_secret
-                .as_ref()
-                .ok_or_else(|| Status::internal("JWT secret not configured"))?;
-            let claims = verify_jwt(token, secret)?;
+            let claims = verify_bearer_jwt(token, auth_config)?;
             check_claim_scope(
                 &claims,
                 operation,
@@ -688,48 +609,20 @@ impl tonic::service::Interceptor for TalonAuthInterceptor {
             .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
 
         match self.config.mode {
-            AuthMode::Password => {
-                if !auth_header.starts_with("Basic ") {
-                    return Err(Status::unauthenticated(
-                        "Invalid auth scheme, expected Basic",
-                    ));
-                }
-                if check_basic_password(auth_header, self.config.password.as_ref())? {
-                    return Ok(request);
-                }
-                Err(Status::unauthenticated("Invalid password"))
-            }
-            AuthMode::Token => {
-                let token = bearer_token(auth_header)?;
-                if self.config.tokens.iter().any(|t| t == token) {
-                    Ok(request)
-                } else {
-                    Err(Status::unauthenticated("Invalid static token"))
-                }
-            }
             AuthMode::Jwt => {
-                if check_basic_password(auth_header, self.config.jwt_secret.as_ref())? {
-                    return Ok(request);
-                }
-
                 let token = bearer_token(auth_header)?;
-                let secret = self
-                    .config
-                    .jwt_secret
-                    .as_ref()
-                    .ok_or_else(|| Status::internal("JWT secret not configured"))?;
-                let claims = verify_jwt(token, secret)?;
+                let claims = verify_bearer_jwt(token, &self.config)?;
 
                 // Attach claims to request extensions so handlers can access them
                 request.extensions_mut().insert(claims);
                 Ok(request)
             }
-            _ => Ok(request),
+            AuthMode::Open => Ok(request),
         }
     }
 }
 
-// Legacy Axum auth layer (keeping for now, but focus is on tonic)
+// Axum auth layer for REST surfaces served by the gateway.
 pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: Next) -> Response {
     let auth_config = match &state.auth_config {
         Some(config) => config,
@@ -738,39 +631,6 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
 
     match auth_config.mode {
         AuthMode::Open => next.run(req).await,
-        AuthMode::Password => {
-            if let Some(auth_header) = req.headers().get(header::AUTHORIZATION) {
-                if let Ok(auth_str) = auth_header.to_str() {
-                    if matches!(
-                        check_basic_password(auth_str, auth_config.password.as_ref()),
-                        Ok(true)
-                    ) {
-                        return next.run(req).await;
-                    }
-                }
-            }
-            (
-                StatusCode::UNAUTHORIZED,
-                Json(serde_json::json!({"error": "Unauthorized"})),
-            )
-                .into_response()
-        }
-        AuthMode::Token => {
-            if let Some(auth_header) = req.headers().get(header::AUTHORIZATION) {
-                if let Ok(auth_str) = auth_header.to_str() {
-                    if let Ok(token) = bearer_token(auth_str) {
-                        if auth_config.tokens.iter().any(|t| t == token) {
-                            return next.run(req).await;
-                        }
-                    }
-                }
-            }
-            (
-                StatusCode::UNAUTHORIZED,
-                Json(serde_json::json!({"error": "Unauthorized"})),
-            )
-                .into_response()
-        }
         AuthMode::Jwt => {
             let origin = req
                 .headers()
@@ -778,23 +638,15 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
                 .and_then(|value| value.to_str().ok());
             if let Some(auth_header) = req.headers().get(header::AUTHORIZATION) {
                 if let Ok(auth_str) = auth_header.to_str() {
-                    if matches!(
-                        check_basic_password(auth_str, auth_config.jwt_secret.as_ref()),
-                        Ok(true)
-                    ) {
-                        return next.run(req).await;
-                    }
                     if let Ok(token) = bearer_token(auth_str) {
-                        if let Some(secret) = &auth_config.jwt_secret {
-                            if verify_jwt(token, secret)
-                                .and_then(|claims| {
-                                    check_origin_scope(&claims, OriginScope::Enforce(origin))?;
-                                    Ok(claims)
-                                })
-                                .is_ok()
-                            {
-                                return next.run(req).await;
-                            }
+                        if verify_bearer_jwt(token, auth_config)
+                            .and_then(|claims| {
+                                check_origin_scope(&claims, OriginScope::Enforce(origin))?;
+                                Ok(claims)
+                            })
+                            .is_ok()
+                        {
+                            return next.run(req).await;
                         }
                     }
                 }
@@ -820,11 +672,43 @@ mod tests {
         routing::get,
         Router,
     };
-    use jsonwebtoken::{encode, EncodingKey, Header};
     use std::sync::Arc;
     use tonic::metadata::MetadataMap;
     use tonic::service::Interceptor;
     use tower::ServiceExt;
+
+    const TEST_PLATFORM_ISSUER: &str = "https://talon.example.com";
+
+    struct PlatformJwtEnvGuard {
+        previous_private_key: Option<String>,
+    }
+
+    impl PlatformJwtEnvGuard {
+        fn acquire() -> Self {
+            let previous_private_key =
+                std::env::var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV).ok();
+            std::env::set_var(
+                platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                platform_jwt::TEST_RSA_PRIVATE_KEY,
+            );
+            Self {
+                previous_private_key,
+            }
+        }
+    }
+
+    impl Drop for PlatformJwtEnvGuard {
+        fn drop(&mut self) {
+            if let Some(previous_private_key) = &self.previous_private_key {
+                std::env::set_var(
+                    platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    previous_private_key,
+                );
+            } else {
+                std::env::remove_var(platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
+            }
+        }
+    }
 
     fn gateway_with_auth(auth_config: Option<AuthConfig>) -> Arc<Gateway> {
         let control_plane = crate::control::ControlPlane::builder(
@@ -840,104 +724,124 @@ mod tests {
         let open = AuthConfig::open();
         assert_eq!(open.mode, AuthMode::Open);
 
-        let pass = AuthConfig::password("test".to_string());
-        assert_eq!(pass.mode, AuthMode::Password);
-        assert_eq!(pass.password, Some("test".to_string()));
-
-        let token = AuthConfig::tokens(vec!["t1".to_string()]);
-        assert_eq!(token.mode, AuthMode::Token);
-        assert_eq!(token.tokens, vec!["t1".to_string()]);
-
-        let jwt = AuthConfig::jwt("secret".to_string());
+        let jwt = AuthConfig::jwt_platform();
         assert_eq!(jwt.mode, AuthMode::Jwt);
-        assert_eq!(jwt.jwt_secret, Some("secret".to_string()));
+        assert_eq!(jwt.platform_jwt_issuer, None);
     }
 
-    fn create_token(
-        secret: &str,
-        ns: Option<&str>,
-        agent: Option<&str>,
-        session: Option<&str>,
-    ) -> String {
-        crate::control::security::install_jwt_crypto_provider();
-        let claims = Claims {
+    fn create_token(ns: Option<&str>, agent: Option<&str>, session: Option<&str>) -> String {
+        sign_platform_claims(&Claims {
+            iss: Some(TEST_PLATFORM_ISSUER.to_string()),
             sub: "user123".to_string(),
-            aud: "talon".to_string(),
+            aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+            iat: Some(1),
             exp: 10000000000, // far future
+            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: ns.map(|s| s.to_string()),
             agent: agent.map(|s| s.to_string()),
             session: session.map(|s| s.to_string()),
             channel: None,
             origins: Vec::new(),
             grants: Vec::new(),
-        };
-        encode(
-            &Header::default(),
-            &claims,
-            &EncodingKey::from_secret(secret.as_ref()),
-        )
-        .unwrap()
+        })
     }
 
-    fn create_origin_token(secret: &str, origins: Vec<&str>) -> String {
-        crate::control::security::install_jwt_crypto_provider();
-        let claims = Claims {
+    fn create_origin_token(origins: Vec<&str>) -> String {
+        sign_platform_claims(&Claims {
+            iss: Some(TEST_PLATFORM_ISSUER.to_string()),
             sub: "browser-client".to_string(),
-            aud: "talon".to_string(),
+            aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+            iat: Some(1),
             exp: 10000000000,
+            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: None,
             agent: None,
             session: None,
             channel: None,
             origins: origins.into_iter().map(str::to_string).collect(),
             grants: Vec::new(),
-        };
-        encode(
-            &Header::default(),
-            &claims,
-            &EncodingKey::from_secret(secret.as_ref()),
-        )
-        .unwrap()
+        })
     }
 
-    #[test]
-    fn test_jwt_verification() {
-        let secret = "test-secret";
-        let token = create_token(secret, Some("ns1"), Some("agent1"), None);
-
-        let claims = verify_jwt(&token, secret).unwrap();
-        assert_eq!(claims.ns, Some("ns1".to_string()));
-        assert_eq!(claims.agent, Some("agent1".to_string()));
+    fn platform_auth_config() -> AuthConfig {
+        let mut config = AuthConfig::jwt_platform();
+        config.platform_jwt_issuer = Some(TEST_PLATFORM_ISSUER.to_string());
+        config
     }
 
-    #[test]
-    fn test_check_auth_static_token() {
-        let config = AuthConfig::tokens(vec!["valid-token".to_string()]);
+    fn platform_claims(audience: &str, token_type: &str) -> Claims {
+        Claims {
+            iss: Some(TEST_PLATFORM_ISSUER.to_string()),
+            sub: "talon".to_string(),
+            aud: audience.to_string(),
+            iat: Some(1),
+            exp: 10000000000,
+            token_type: Some(token_type.to_string()),
+            ns: Some("ns".to_string()),
+            agent: None,
+            session: None,
+            channel: None,
+            origins: Vec::new(),
+            grants: Vec::new(),
+        }
+    }
+
+    fn sign_platform_claims(claims: &Claims) -> String {
+        platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
+            .unwrap()
+            .sign(claims)
+            .unwrap()
+    }
+
+    fn metadata_with_bearer(token: &str) -> MetadataMap {
         let mut metadata = MetadataMap::new();
+        metadata.insert("authorization", format!("Bearer {token}").parse().unwrap());
+        metadata
+    }
 
-        // Fail: Missing
-        let res = check_auth(&metadata, &config, "any", None, None);
-        assert!(res.is_err());
+    #[tokio::test]
+    async fn platform_gateway_auth_accepts_access_profile_and_rejects_broker_assertion() {
+        let _env_lock = crate::test_support::async_env_mutex().lock().await;
+        let _guard = PlatformJwtEnvGuard::acquire();
+        let config = platform_auth_config();
 
-        // Fail: Invalid
-        metadata.insert("authorization", "Bearer invalid".parse().unwrap());
-        let res = check_auth(&metadata, &config, "any", None, None);
-        assert!(res.is_err());
+        let access_token = sign_platform_claims(&platform_claims(
+            platform_jwt::TALON_GATEWAY_AUDIENCE,
+            platform_jwt::ACCESS_TOKEN_TYPE,
+        ));
+        let access = jwt_claims_from_metadata(&metadata_with_bearer(&access_token), &config)
+            .unwrap()
+            .unwrap();
+        assert_eq!(access.aud, platform_jwt::TALON_GATEWAY_AUDIENCE);
+        assert_eq!(
+            access.token_type.as_deref(),
+            Some(platform_jwt::ACCESS_TOKEN_TYPE)
+        );
 
-        // Success
-        metadata.insert("authorization", "Bearer valid-token".parse().unwrap());
-        let res = check_auth(&metadata, &config, "any", None, None);
-        assert!(res.is_ok());
+        let broker_assertion = sign_platform_claims(&platform_claims(
+            platform_jwt::MCP_AUTH_BROKER_AUDIENCE,
+            platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE,
+        ));
+        assert!(
+            jwt_claims_from_metadata(&metadata_with_bearer(&broker_assertion), &config).is_err()
+        );
+
+        let wrong_profile = sign_platform_claims(&platform_claims(
+            platform_jwt::TALON_GATEWAY_AUDIENCE,
+            platform_jwt::MCP_AUTH_BROKER_ASSERTION_TOKEN_TYPE,
+        ));
+        assert!(jwt_claims_from_metadata(&metadata_with_bearer(&wrong_profile), &config).is_err());
     }
 
     #[test]
     fn test_check_auth_jwt_scopes() {
-        let secret = "test-secret";
-        let config = AuthConfig::jwt(secret.to_string());
+        let _env_lock = crate::test_support::env_lock();
+        let _guard = PlatformJwtEnvGuard::acquire();
+        let config = platform_auth_config();
         let mut metadata = MetadataMap::new();
 
         // 1. Namespace scope
-        let token = create_token(secret, Some("my-ns"), None, None);
+        let token = create_token(Some("my-ns"), None, None);
         metadata.insert(
             "authorization",
             format!("Bearer {}", token).parse().unwrap(),
@@ -953,7 +857,7 @@ mod tests {
         assert!(check_auth(&metadata, &config, "my-ns2", None, None).is_err());
 
         // 2. Agent scope
-        let token = create_token(secret, Some("my-ns"), Some("agent-42"), None);
+        let token = create_token(Some("my-ns"), Some("agent-42"), None);
         metadata.insert(
             "authorization",
             format!("Bearer {}", token).parse().unwrap(),
@@ -965,7 +869,7 @@ mod tests {
         assert!(check_auth(&metadata, &config, "my-ns", Some("agent-99"), None).is_err());
 
         // 3. Session scope
-        let token = create_token(secret, Some("my-ns"), Some("agent-42"), Some("sess-1"));
+        let token = create_token(Some("my-ns"), Some("agent-42"), Some("sess-1"));
         metadata.insert(
             "authorization",
             format!("Bearer {}", token).parse().unwrap(),
@@ -993,9 +897,10 @@ mod tests {
 
     #[test]
     fn test_origin_scoped_jwt_is_enforced_only_for_grpc_web_metadata() {
-        let secret = "test-secret";
-        let config = AuthConfig::jwt(secret.to_string());
-        let token = create_origin_token(secret, vec!["https://app.example.com"]);
+        let _env_lock = crate::test_support::env_lock();
+        let _guard = PlatformJwtEnvGuard::acquire();
+        let config = platform_auth_config();
+        let token = create_origin_token(vec!["https://app.example.com"]);
         let mut metadata = auth_metadata(&token);
 
         assert!(check_auth(&metadata, &config, "any", None, None).is_ok());
@@ -1024,46 +929,38 @@ mod tests {
         assert_eq!(claims.origins, vec!["https://app.example.com"]);
     }
 
-    fn create_channel_token(secret: &str, ns: Option<&str>, channel: Option<&str>) -> String {
-        crate::control::security::install_jwt_crypto_provider();
-        let claims = Claims {
+    fn create_channel_token(ns: Option<&str>, channel: Option<&str>) -> String {
+        sign_platform_claims(&Claims {
+            iss: Some(TEST_PLATFORM_ISSUER.to_string()),
             sub: "channel-client".to_string(),
-            aud: "talon".to_string(),
+            aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+            iat: Some(1),
             exp: 10000000000,
+            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: ns.map(|s| s.to_string()),
             agent: None,
             session: None,
             channel: channel.map(|s| s.to_string()),
             origins: Vec::new(),
             grants: Vec::new(),
-        };
-        encode(
-            &Header::default(),
-            &claims,
-            &EncodingKey::from_secret(secret.as_ref()),
-        )
-        .unwrap()
+        })
     }
 
-    fn create_grant_token(secret: &str, grants: Vec<TalonGrantClaim>) -> String {
-        crate::control::security::install_jwt_crypto_provider();
-        let claims = Claims {
+    fn create_grant_token(grants: Vec<TalonGrantClaim>) -> String {
+        sign_platform_claims(&Claims {
+            iss: Some(TEST_PLATFORM_ISSUER.to_string()),
             sub: "oidc:user123".to_string(),
-            aud: "talon".to_string(),
+            aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+            iat: Some(1),
             exp: 10000000000,
+            token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
             ns: None,
             agent: None,
             session: None,
             channel: None,
             origins: Vec::new(),
             grants,
-        };
-        encode(
-            &Header::default(),
-            &claims,
-            &EncodingKey::from_secret(secret.as_ref()),
-        )
-        .unwrap()
+        })
     }
 
     fn auth_metadata(token: &str) -> MetadataMap {
@@ -1077,18 +974,16 @@ mod tests {
 
     #[test]
     fn test_grant_read_allows_reads_but_denies_writes() {
-        let secret = "test-secret";
-        let token = create_grant_token(
-            secret,
-            vec![TalonGrantClaim {
-                kind: "read".to_string(),
-                namespace: Some("ops".to_string()),
-                agent: None,
-                session: None,
-                channel: None,
-            }],
-        );
-        let config = AuthConfig::jwt(secret.to_string());
+        let _env_lock = crate::test_support::env_lock();
+        let _guard = PlatformJwtEnvGuard::acquire();
+        let token = create_grant_token(vec![TalonGrantClaim {
+            kind: "read".to_string(),
+            namespace: Some("ops".to_string()),
+            agent: None,
+            session: None,
+            channel: None,
+        }]);
+        let config = platform_auth_config();
         let metadata = auth_metadata(&token);
 
         assert!(check_auth_for_operation(
@@ -1140,9 +1035,10 @@ mod tests {
 
     #[test]
     fn test_oidc_token_without_grants_is_denied() {
-        let secret = "test-secret";
-        let token = create_grant_token(secret, Vec::new());
-        let config = AuthConfig::jwt(secret.to_string());
+        let _env_lock = crate::test_support::env_lock();
+        let _guard = PlatformJwtEnvGuard::acquire();
+        let token = create_grant_token(Vec::new());
+        let config = platform_auth_config();
         let metadata = auth_metadata(&token);
 
         assert!(check_auth_for_operation(
@@ -1158,18 +1054,16 @@ mod tests {
 
     #[test]
     fn test_grant_readwrite_matches_session_scope() {
-        let secret = "test-secret";
-        let token = create_grant_token(
-            secret,
-            vec![TalonGrantClaim {
-                kind: "readwrite".to_string(),
-                namespace: Some("ops".to_string()),
-                agent: Some("triage".to_string()),
-                session: Some("session-1".to_string()),
-                channel: None,
-            }],
-        );
-        let config = AuthConfig::jwt(secret.to_string());
+        let _env_lock = crate::test_support::env_lock();
+        let _guard = PlatformJwtEnvGuard::acquire();
+        let token = create_grant_token(vec![TalonGrantClaim {
+            kind: "readwrite".to_string(),
+            namespace: Some("ops".to_string()),
+            agent: Some("triage".to_string()),
+            session: Some("session-1".to_string()),
+            channel: None,
+        }]);
+        let config = platform_auth_config();
         let metadata = auth_metadata(&token);
 
         assert!(check_auth_for_operation(
@@ -1194,10 +1088,11 @@ mod tests {
 
     #[test]
     fn test_channel_scoped_jwt_only_authorizes_matching_channel_operations() {
-        let secret = "test-secret";
-        let config = AuthConfig::jwt(secret.to_string());
+        let _env_lock = crate::test_support::env_lock();
+        let _guard = PlatformJwtEnvGuard::acquire();
+        let config = platform_auth_config();
         let mut metadata = MetadataMap::new();
-        let token = create_channel_token(secret, Some("ops"), Some("incident-room"));
+        let token = create_channel_token(Some("ops"), Some("incident-room"));
         metadata.insert(
             "authorization",
             format!("Bearer {}", token).parse().unwrap(),
@@ -1216,10 +1111,11 @@ mod tests {
 
     #[test]
     fn test_channel_scoped_jwt_requires_namespace() {
-        let secret = "test-secret";
-        let config = AuthConfig::jwt(secret.to_string());
+        let _env_lock = crate::test_support::env_lock();
+        let _guard = PlatformJwtEnvGuard::acquire();
+        let config = platform_auth_config();
         let mut metadata = MetadataMap::new();
-        let token = create_channel_token(secret, None, Some("incident-room"));
+        let token = create_channel_token(None, Some("incident-room"));
         metadata.insert(
             "authorization",
             format!("Bearer {}", token).parse().unwrap(),
@@ -1229,67 +1125,12 @@ mod tests {
     }
 
     #[test]
-    fn test_basic_password_helpers_cover_invalid_and_matching_inputs() {
-        let encoded = general_purpose::STANDARD.encode(":secret");
-        let auth_header = format!("Basic {encoded}");
-        assert_eq!(
-            basic_password_from_auth_header(&auth_header).unwrap(),
-            Some("secret".to_string())
-        );
-        assert_eq!(
-            basic_password_from_auth_header("Bearer token").unwrap(),
-            None
-        );
-        assert!(basic_password_from_auth_header("Basic !!!").is_err());
-
-        assert!(check_basic_password(&auth_header, Some(&"secret".to_string())).unwrap());
-        assert!(!check_basic_password(&auth_header, Some(&"wrong".to_string())).unwrap());
-        assert!(!check_basic_password(&auth_header, None).unwrap());
-    }
-
-    #[test]
-    fn test_check_auth_password_and_jwt_basic_fallback() {
-        let password = "pw".to_string();
-        let mut metadata = MetadataMap::new();
-        let encoded = general_purpose::STANDARD.encode(":pw");
-        metadata.insert("authorization", format!("Basic {encoded}").parse().unwrap());
-
-        assert!(check_auth(
-            &metadata,
-            &AuthConfig::password(password.clone()),
-            "ns",
-            None,
-            None
-        )
-        .is_ok());
-        assert!(check_auth(&metadata, &AuthConfig::jwt(password), "ns", None, None).is_ok());
-    }
-
-    #[test]
-    fn test_talon_auth_interceptor_covers_password_token_and_jwt_modes() {
-        let mut password_interceptor = TalonAuthInterceptor {
-            config: AuthConfig::password("pw".to_string()),
-        };
-        let mut password_request = tonic::Request::new(());
-        let encoded = general_purpose::STANDARD.encode(":pw");
-        password_request
-            .metadata_mut()
-            .insert("authorization", format!("Basic {encoded}").parse().unwrap());
-        assert!(password_interceptor.call(password_request).is_ok());
-
-        let mut token_interceptor = TalonAuthInterceptor {
-            config: AuthConfig::tokens(vec!["good".to_string()]),
-        };
-        let mut token_request = tonic::Request::new(());
-        token_request
-            .metadata_mut()
-            .insert("authorization", "bearer good".parse().unwrap());
-        assert!(token_interceptor.call(token_request).is_ok());
-
-        let secret = "jwt-secret";
-        let token = create_token(secret, Some("ns"), Some("agent"), Some("session"));
+    fn test_talon_auth_interceptor_covers_platform_jwt_mode() {
+        let _env_lock = crate::test_support::env_lock();
+        let _guard = PlatformJwtEnvGuard::acquire();
+        let token = create_token(Some("ns"), Some("agent"), Some("session"));
         let mut jwt_interceptor = TalonAuthInterceptor {
-            config: AuthConfig::jwt(secret.to_string()),
+            config: platform_auth_config(),
         };
         let mut jwt_request = tonic::Request::new(());
         jwt_request
@@ -1301,26 +1142,8 @@ mod tests {
         assert_eq!(claims.agent.as_deref(), Some("agent"));
         assert_eq!(claims.session.as_deref(), Some("session"));
 
-        let mut wrong_scheme = TalonAuthInterceptor {
-            config: AuthConfig::password("pw".to_string()),
-        };
-        let mut wrong_scheme_request = tonic::Request::new(());
-        wrong_scheme_request
-            .metadata_mut()
-            .insert("authorization", "Bearer nope".parse().unwrap());
-        assert!(wrong_scheme.call(wrong_scheme_request).is_err());
-
-        let mut missing_bearer = TalonAuthInterceptor {
-            config: AuthConfig::tokens(vec!["good".to_string()]),
-        };
-        let mut missing_bearer_request = tonic::Request::new(());
-        missing_bearer_request
-            .metadata_mut()
-            .insert("authorization", "Basic Zm9vOmJhcg==".parse().unwrap());
-        assert!(missing_bearer.call(missing_bearer_request).is_err());
-
         let mut invalid_jwt = TalonAuthInterceptor {
-            config: AuthConfig::jwt("jwt-secret".to_string()),
+            config: platform_auth_config(),
         };
         let mut invalid_jwt_request = tonic::Request::new(());
         invalid_jwt_request
@@ -1330,61 +1153,19 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_auth_layer_enforces_password_token_and_jwt_modes() {
+    async fn test_auth_layer_enforces_platform_jwt_mode() {
+        let _env_lock = crate::test_support::async_env_mutex().lock().await;
+        let _guard = PlatformJwtEnvGuard::acquire();
         async fn ok_handler() -> &'static str {
             "ok"
         }
 
-        let password_gateway = gateway_with_auth(Some(AuthConfig::password("pw".to_string())));
-        let password_app = Router::new()
-            .route("/", get(ok_handler))
-            .layer(from_fn_with_state(password_gateway.clone(), auth_layer))
-            .with_state(password_gateway);
-
-        let unauthorized = password_app
-            .clone()
-            .oneshot(HttpRequest::builder().uri("/").body(Body::empty()).unwrap())
-            .await
-            .unwrap();
-        assert_eq!(unauthorized.status(), HttpStatusCode::UNAUTHORIZED);
-
-        let encoded = general_purpose::STANDARD.encode(":pw");
-        let authorized = password_app
-            .oneshot(
-                HttpRequest::builder()
-                    .uri("/")
-                    .header(header::AUTHORIZATION, format!("Basic {encoded}"))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-        assert_eq!(authorized.status(), HttpStatusCode::OK);
-
-        let token_gateway = gateway_with_auth(Some(AuthConfig::tokens(vec!["good".to_string()])));
-        let token_app = Router::new()
-            .route("/", get(ok_handler))
-            .layer(from_fn_with_state(token_gateway.clone(), auth_layer))
-            .with_state(token_gateway);
-        let token_res = token_app
-            .oneshot(
-                HttpRequest::builder()
-                    .uri("/")
-                    .header(header::AUTHORIZATION, "Bearer good")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-        assert_eq!(token_res.status(), HttpStatusCode::OK);
-
-        let secret = "jwt-secret";
-        let jwt_gateway = gateway_with_auth(Some(AuthConfig::jwt(secret.to_string())));
+        let jwt_gateway = gateway_with_auth(Some(platform_auth_config()));
         let jwt_app = Router::new()
             .route("/", get(ok_handler))
             .layer(from_fn_with_state(jwt_gateway.clone(), auth_layer))
             .with_state(jwt_gateway);
-        let token = create_token(secret, Some("ns"), None, None);
+        let token = create_token(Some("ns"), None, None);
         let jwt_res = jwt_app
             .clone()
             .oneshot(

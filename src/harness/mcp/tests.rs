@@ -35,6 +35,8 @@ mod tests {
     use tokio::net::TcpListener;
     use tokio::sync::Barrier;
 
+    const TEST_PLATFORM_ISSUER: &str = "https://talon.example.com";
+
     #[test]
     fn test_content_type_matches_ignores_case_and_parameters() {
         let event_stream =
@@ -450,6 +452,7 @@ mod tests {
             namespace: None,
             mcp_server_name: None,
             agent_name: None,
+            jwt_issuer: None,
             auth_broker: None,
         };
         assert!(list_tools_for_config(&disabled)
@@ -524,6 +527,7 @@ mod tests {
             namespace: Some("conic:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
+            jwt_issuer: Some(TEST_PLATFORM_ISSUER.to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "http_bearer".to_string(),
                 url: format!("http://{}/broker", addr),
@@ -562,6 +566,7 @@ mod tests {
             namespace: Some("conic:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
+            jwt_issuer: Some(TEST_PLATFORM_ISSUER.to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "http_bearer".to_string(),
                 url: "http://127.0.0.1:9/broker".to_string(),
@@ -600,7 +605,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_resolve_http_headers_rejects_unsupported_broker_kind_and_missing_secret() {
+    async fn test_resolve_http_headers_rejects_unsupported_broker_kind_and_missing_private_key() {
         let _test_guard = BrokerAuthTestGuard::acquire().await;
 
         let unsupported_kind = McpConnectionConfig {
@@ -614,6 +619,7 @@ mod tests {
             namespace: Some("conic:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
+            jwt_issuer: Some(TEST_PLATFORM_ISSUER.to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "custom".to_string(),
                 url: "http://127.0.0.1:9/broker".to_string(),
@@ -627,8 +633,7 @@ mod tests {
             .to_string()
             .contains("Unsupported MCP auth broker kind"));
 
-        std::env::remove_var("TALON_JWT_SECRET");
-        std::env::remove_var("GATEWAY_JWT_SECRET");
+        std::env::remove_var(crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV);
         let missing_secret = McpConnectionConfig {
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "http_bearer".to_string(),
@@ -642,7 +647,7 @@ mod tests {
             .await
             .unwrap_err()
             .to_string()
-            .contains("TALON_JWT_SECRET or GATEWAY_JWT_SECRET must be set"));
+            .contains("TALON_JWT_PRIVATE_KEY_PEM is required"));
     }
 
     #[tokio::test]
@@ -690,6 +695,7 @@ mod tests {
             namespace: Some("conic:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
+            jwt_issuer: Some(TEST_PLATFORM_ISSUER.to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "http_bearer".to_string(),
                 url: format!("http://{}/broker", addr),
@@ -787,6 +793,7 @@ mod tests {
             namespace: Some("conic:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
+            jwt_issuer: Some(TEST_PLATFORM_ISSUER.to_string()),
             auth_broker: None,
         };
 
@@ -1392,6 +1399,7 @@ mod tests {
             namespace: Some("conic:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
+            jwt_issuer: Some(TEST_PLATFORM_ISSUER.to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "http_bearer".to_string(),
                 url: format!("http://{addr}/broker"),
@@ -1433,18 +1441,24 @@ mod tests {
 
     struct BrokerAuthTestGuard {
         _guard: tokio::sync::MutexGuard<'static, ()>,
-        previous_secret: Option<String>,
+        previous_private_key: Option<String>,
     }
 
     impl BrokerAuthTestGuard {
         async fn acquire() -> Self {
             let guard = crate::test_support::async_env_mutex().lock().await;
-            let previous_secret = std::env::var("TALON_JWT_SECRET").ok();
-            std::env::set_var("TALON_JWT_SECRET", "test-secret");
+            let previous_private_key = std::env::var(
+                crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+            )
+            .ok();
+            std::env::set_var(
+                crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                crate::control::security::platform_jwt::TEST_RSA_PRIVATE_KEY,
+            );
             invalidate_all_broker_auth_cache().await;
             Self {
                 _guard: guard,
-                previous_secret,
+                previous_private_key,
             }
         }
     }
@@ -1452,10 +1466,15 @@ mod tests {
     impl Drop for BrokerAuthTestGuard {
         fn drop(&mut self) {
             clear_broker_auth_cache_for_test();
-            if let Some(previous_secret) = &self.previous_secret {
-                std::env::set_var("TALON_JWT_SECRET", previous_secret);
+            if let Some(previous_private_key) = &self.previous_private_key {
+                std::env::set_var(
+                    crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    previous_private_key,
+                );
             } else {
-                std::env::remove_var("TALON_JWT_SECRET");
+                std::env::remove_var(
+                    crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                );
             }
         }
     }

@@ -3,6 +3,7 @@
 
 pub mod encryption;
 pub mod jwt;
+pub mod platform_jwt;
 pub mod sandbox;
 
 pub use encryption::{AesSecurityProvider, BasicSecurityProvider, SecurityProvider};

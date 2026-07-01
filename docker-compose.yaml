@@ -1,3 +1,33 @@
+x-talon-jwt-private-key-pem: &talon-jwt-private-key-pem |
+  -----BEGIN PRIVATE KEY-----
+  MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDJETqse41HRBsc
+  7cfcq3ak4oZWFCoZlcic525A3FfO4qW9BMtRO/iXiyCCHn8JhiL9y8j5JdVP2Q9Z
+  IpfElcFd3/guS9w+5RqQGgCR+H56IVUyHZWtTJbKPcwWXQdNUX0rBFcsBzCRESJL
+  eelOEdHIjG7LRkx5l/FUvlqsyHDVJEQsHwegZ8b8C0fz0EgT2MMEdn10t6Ur1rXz
+  jMB/wvCg8vG8lvciXmedyo9xJ8oMOh0wUEgxziVDMMovmC+aJctcHUAYubwoGN8T
+  yzcvnGqL7JSh36Pwy28iPzXZ2RLhAyJFU39vLaHdljwthUaupldlNyCfa6Ofy4qN
+  ctlUPlN1AgMBAAECggEAdESTQjQ70O8QIp1ZSkCYXeZjuhj081CK7jhhp/4ChK7J
+  GlFQZMwiBze7d6K84TwAtfQGZhQ7km25E1kOm+3hIDCoKdVSKch/oL54f/BK6sKl
+  qlIzQEAenho4DuKCm3I4yAw9gEc0DV70DuMTR0LEpYyXcNJY3KNBOTjN5EYQAR9s
+  2MeurpgK2MdJlIuZaIbzSGd+diiz2E6vkmcufJLtmYUT/k/ddWvEtz+1DnO6bRHh
+  xuuDMeJA/lGB/EYloSLtdyCF6sII6C6slJJtgfb0bPy7l8VtL5iDyz46IKyzdyzW
+  tKAn394dm7MYR1RlUBEfqFUyNK7C+pVMVoTwCC2V4QKBgQD64syfiQ2oeUlLYDm4
+  CcKSP3RnES02bcTyEDFSuGyyS1jldI4A8GXHJ/lG5EYgiYa1RUivge4lJrlNfjyf
+  dV230xgKms7+JiXqag1FI+3mqjAgg4mYiNjaao8N8O3/PD59wMPeWYImsWXNyeHS
+  55rUKiHERtCcvdzKl4u35ZtTqQKBgQDNKnX2bVqOJ4WSqCgHRhOm386ugPHfy+8j
+  m6cicmUR46ND6ggBB03bCnEG9OtGisxTo/TuYVRu3WP4KjoJs2LD5fwdwJqpgtHl
+  yVsk45Y1Hfo+7M6lAuR8rzCi6kHHNb0HyBmZjysHWZsn79ZM+sQnLpgaYgQGRbKV
+  DZWlbw7g7QKBgQCl1u+98UGXAP1jFutwbPsx40IVszP4y5ypCe0gqgon3UiY/G+1
+  zTLp79GGe/SjI2VpQ7AlW7TI2A0bXXvDSDi3/5Dfya9ULnFXv9yfvH1QwWToySpW
+  Kvd1gYSoiX84/WCtjZOr0e0HmLIb0vw0hqZA4szJSqoxQgvF22EfIWaIaQKBgQCf
+  34+OmMYw8fEvSCPxDxVvOwW2i7pvV14hFEDYIeZKW2W1HWBhVMzBfFB5SE8yaCQy
+  pRfOzj9aKOCm2FjjiErVNpkQoi6jGtLvScnhZAt/lr2TXTrl8OwVkPrIaN0bG/AS
+  aUYxmBPCpXu3UjhfQiWqFq/mFyzlqlgvuCc9g95HPQKBgAscKP8mLxdKwOgX8yFW
+  GcZ0izY/30012ajdHY+/QK5lsMoxTnn0skdS+spLxaS5ZEO4qvPVb8RAoCkWMMal
+  2pOhmquJQVDPDLuZHdrIiKiDM20dy9sMfHygWcZjQ4WSxf/J7T9canLZIXFhHAZT
+  3wc9h4G8BBCtWN2TN/LsGZdB
+  -----END PRIVATE KEY-----
+
 services:
   gateway:
     build:
@@ -5,24 +35,24 @@ services:
       dockerfile: dockerfiles/oss-runtime.Dockerfile
     command: ["talon-server"]
     environment:
-      - RUST_LOG=${RUST_LOG:-info}
-      - TALON_CONTROL_DATABASE_URL=postgres://talon:password@postgres:5432/talon
-      - TALON_DATA_DATABASE_URL=postgres://talon:password@postgres:5432/talon
-      - TALON_DOCUMENT_DATABASE_URL=postgres://talon:password@postgres:5432/talon
-      - GCP_PROJECT_ID=talon-local
-      - PUBSUB_EMULATOR_HOST=pubsub:8085
-      - TALON_SCHEDULER_DRIVER=local_postgres
-      - TALON_SCHEDULER_AUTH_TOKEN=${TALON_SCHEDULER_AUTH_TOKEN:-local-scheduler-token}
-      - TALON_LOCAL_SCHEDULER_TARGET_URL=http://worker:8081/schedules/fire
-      - TALON_LOCAL_SCHEDULER_RUNNER=0
-      - OPENAI_API_KEY
-      - NOVITA_API_KEY
-      - ANTHROPIC_API_KEY
-      - TALON_GOOGLE_CLIENT_ID
-      - TALON_GOOGLE_WEB_CLIENT_ID
-      - TALON_GOOGLE_WEB_CLIENT_SECRET
-      - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET:-local-dev-talon-jwt}
-      - TALON_CONFIG_PATH=/data/talon/talon.docker-compose.yaml
+      RUST_LOG: ${RUST_LOG:-info}
+      TALON_CONTROL_DATABASE_URL: postgres://talon:password@postgres:5432/talon
+      TALON_DATA_DATABASE_URL: postgres://talon:password@postgres:5432/talon
+      TALON_DOCUMENT_DATABASE_URL: postgres://talon:password@postgres:5432/talon
+      GCP_PROJECT_ID: talon-local
+      PUBSUB_EMULATOR_HOST: pubsub:8085
+      TALON_SCHEDULER_DRIVER: local_postgres
+      TALON_SCHEDULER_AUTH_TOKEN: ${TALON_SCHEDULER_AUTH_TOKEN:-local-scheduler-token}
+      TALON_LOCAL_SCHEDULER_TARGET_URL: http://worker:8081/schedules/fire
+      TALON_LOCAL_SCHEDULER_RUNNER: "0"
+      OPENAI_API_KEY:
+      NOVITA_API_KEY:
+      ANTHROPIC_API_KEY:
+      TALON_GOOGLE_CLIENT_ID:
+      TALON_GOOGLE_WEB_CLIENT_ID:
+      TALON_GOOGLE_WEB_CLIENT_SECRET:
+      TALON_JWT_PRIVATE_KEY_PEM: *talon-jwt-private-key-pem
+      TALON_CONFIG_PATH: /data/talon/talon.docker-compose.yaml
     env_file:
       - path: .env
         required: false
@@ -53,9 +83,11 @@ services:
     volumes:
       - talon-auth:/data/talon/auth
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
-      - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET:-local-dev-talon-jwt}
+      TALON_JWT_PRIVATE_KEY_PEM: *talon-jwt-private-key-pem
+      TALON_PLATFORM_JWT_ISSUER: https://talon.localhost
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
@@ -64,7 +96,10 @@ services:
         API_KEY_FILE=/data/talon/auth/api-key
         if [ ! -s "$$API_KEY_FILE" ]; then
           umask 077
-          talon-cli --gateway "$$GRPC_GATEWAY" --jwt-secret "$$GATEWAY_JWT_SECRET" auth api-key create --name docker-compose-root --grant readwrite \
+          PRIVATE_KEY_FILE=/tmp/talon-jwt-private-key.pem
+          printf '%s\n' "$$TALON_JWT_PRIVATE_KEY_PEM" > "$$PRIVATE_KEY_FILE"
+          BOOTSTRAP_TOKEN=$$(talon-cli auth local-token --issuer "$$TALON_PLATFORM_JWT_ISSUER" --private-key-pem-file "$$PRIVATE_KEY_FILE")
+          talon-cli --gateway "$$GRPC_GATEWAY" --token "$$BOOTSTRAP_TOKEN" auth api-key create --name docker-compose-root --grant readwrite \
             | awk '/^secret=/{sub(/^secret=/, ""); print}' > "$$API_KEY_FILE.tmp"
           test -s "$$API_KEY_FILE.tmp"
           mv "$$API_KEY_FILE.tmp" "$$API_KEY_FILE"
@@ -77,26 +112,26 @@ services:
       dockerfile: dockerfiles/oss-runtime.Dockerfile
     command: ["talon-worker"]
     environment:
-      - RUST_LOG=${RUST_LOG:-info}
-      - TALON_CONTROL_DATABASE_URL=postgres://talon:password@postgres:5432/talon
-      - TALON_DATA_DATABASE_URL=postgres://talon:password@postgres:5432/talon
-      - TALON_DOCUMENT_DATABASE_URL=postgres://talon:password@postgres:5432/talon
-      - GCP_PROJECT_ID=talon-local
-      - PUBSUB_EMULATOR_HOST=pubsub:8085
-      - TALON_SCHEDULER_DRIVER=local_postgres
-      - TALON_SCHEDULER_AUTH_TOKEN=${TALON_SCHEDULER_AUTH_TOKEN:-local-scheduler-token}
-      - TALON_LOCAL_SCHEDULER_TARGET_URL=http://worker:8081/schedules/fire
-      - TALON_LOCAL_SCHEDULER_RUNNER=1
-      - OPENAI_API_KEY
-      - NOVITA_API_KEY
-      - ANTHROPIC_API_KEY
-      - TALON_GOOGLE_CLIENT_ID
-      - TALON_GOOGLE_WEB_CLIENT_ID
-      - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET:-local-dev-talon-jwt}
-      - PULL_MODE=1
-      - TALON_CONFIG_PATH=/data/talon/talon.docker-compose.yaml
-      - TALON_WORKER_ENDPOINT_URL=http://worker:8081
-      - TALON_WORKER_ENDPOINT_PROTOCOL=grpc
+      RUST_LOG: ${RUST_LOG:-info}
+      TALON_CONTROL_DATABASE_URL: postgres://talon:password@postgres:5432/talon
+      TALON_DATA_DATABASE_URL: postgres://talon:password@postgres:5432/talon
+      TALON_DOCUMENT_DATABASE_URL: postgres://talon:password@postgres:5432/talon
+      GCP_PROJECT_ID: talon-local
+      PUBSUB_EMULATOR_HOST: pubsub:8085
+      TALON_SCHEDULER_DRIVER: local_postgres
+      TALON_SCHEDULER_AUTH_TOKEN: ${TALON_SCHEDULER_AUTH_TOKEN:-local-scheduler-token}
+      TALON_LOCAL_SCHEDULER_TARGET_URL: http://worker:8081/schedules/fire
+      TALON_LOCAL_SCHEDULER_RUNNER: "1"
+      OPENAI_API_KEY:
+      NOVITA_API_KEY:
+      ANTHROPIC_API_KEY:
+      TALON_GOOGLE_CLIENT_ID:
+      TALON_GOOGLE_WEB_CLIENT_ID:
+      PULL_MODE: "1"
+      TALON_JWT_PRIVATE_KEY_PEM: *talon-jwt-private-key-pem
+      TALON_CONFIG_PATH: /data/talon/talon.docker-compose.yaml
+      TALON_WORKER_ENDPOINT_URL: http://worker:8081
+      TALON_WORKER_ENDPOINT_PROTOCOL: grpc
     env_file:
       - path: .env
         required: false
@@ -142,7 +177,6 @@ services:
         required: false
     environment:
       - TALON_GATEWAY=http://gateway:50051
-      - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET:-local-dev-talon-jwt}
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
@@ -169,8 +203,6 @@ services:
     env_file:
       - path: .env
         required: false
-    environment:
-      - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET:-local-dev-talon-jwt}
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |

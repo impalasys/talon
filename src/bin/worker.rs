@@ -261,10 +261,18 @@ fn build_worker_handler(
     worker_id: String,
     fanout_hub: Arc<talon::worker::fanout::FanoutHub>,
 ) -> WorkerEventHandler {
+    let jwt_issuer = config
+        .platform_auth
+        .as_ref()
+        .and_then(|auth| auth.jwt_issuer.as_ref())
+        .map(|issuer| issuer.issuer.trim().to_string())
+        .filter(|issuer| !issuer.is_empty());
     WorkerEventHandler {
         cp,
         config,
-        mcp_registry: Arc::new(talon::worker::mcp_registry::McpRegistry::new()),
+        mcp_registry: Arc::new(
+            talon::worker::mcp_registry::McpRegistry::new_with_jwt_issuer(jwt_issuer),
+        ),
         scheduler_authenticator,
         worker_id,
         fanout_hub,
@@ -1146,6 +1154,14 @@ where
     FShutdown: std::future::Future,
 {
     let config = load_config()?;
+    if config
+        .platform_auth
+        .as_ref()
+        .and_then(|auth| auth.jwt_issuer.as_ref())
+        .is_some()
+    {
+        talon::control::security::platform_jwt::load_key()?;
+    }
     let cp = build_cp(&config).await?;
     let scheduler_authenticator = build_auth(&config).await?;
     run_worker_with(

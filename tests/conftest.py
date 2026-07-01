@@ -35,9 +35,13 @@ RESOURCE_LIFECYCLE_TOPIC = "talon.resource.lifecycle"
 WORKFLOW_DISPATCH_TOPIC = "talon.workflow.dispatch"
 INDEX_EVENTS_TOPIC = "talon.index.events"
 MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
-E2E_GATEWAY_JWT_SECRET = os.environ.get(
-    "TALON_E2E_GATEWAY_JWT_SECRET",
-    "talon-e2e-root-secret",
+E2E_PLATFORM_JWT_ISSUER = os.environ.get(
+    "TALON_E2E_PLATFORM_JWT_ISSUER",
+    "https://talon-e2e.example.com",
+)
+E2E_JWT_PRIVATE_KEY_PEM = os.environ.get(
+    "TALON_E2E_JWT_PRIVATE_KEY_PEM",
+    (REPO_ROOT / "src/control/security/test_rsa_private_key.pem").read_text(),
 )
 
 
@@ -93,16 +97,54 @@ def api_key_auth_file_env_name(grpc_port):
     return f"TALON_E2E_AUTH_FILE_{grpc_port}"
 
 
+def write_e2e_private_key_file(grpc_port):
+    path = Path(tempfile.gettempdir()) / f"talon-e2e-platform-jwt-key-{grpc_port}.pem"
+    path.write_text(E2E_JWT_PRIVATE_KEY_PEM)
+    try:
+        path.chmod(0o600)
+    except OSError:
+        pass
+    return path
+
+
+def create_e2e_bootstrap_token(grpc_port):
+    cli = get_binary_path("talon_cli")
+    key_file = write_e2e_private_key_file(grpc_port)
+    result = subprocess.run(
+        [
+            cli,
+            "auth",
+            "local-token",
+            "--issuer",
+            E2E_PLATFORM_JWT_ISSUER,
+            "--private-key-pem-file",
+            str(key_file),
+            "--subject",
+            "pytest-bootstrap",
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=30,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            "Failed to mint E2E bootstrap token\n"
+            f"stdout:\n{result.stdout}\n"
+            f"stderr:\n{result.stderr}"
+        )
+    token = result.stdout.strip()
+    if not token:
+        raise RuntimeError("E2E bootstrap token command printed no token")
+    return token
+
+
 def create_e2e_api_key(grpc_port, name):
     cli = get_binary_path("talon_cli")
     env = os.environ.copy()
     for key in (
         "TALON_API_KEY",
         "TALON_AUTH_FILE",
-        "TALON_GATEWAY_TOKEN",
-        "GATEWAY_TOKEN",
-        "TALON_GATEWAY_PASSWORD",
-        "GATEWAY_PASSWORD",
     ):
         env.pop(key, None)
     env["TALON_AUTH_FILE"] = str(
@@ -113,8 +155,8 @@ def create_e2e_api_key(grpc_port, name):
             cli,
             "--gateway",
             f"http://127.0.0.1:{grpc_port}",
-            "--jwt-secret",
-            E2E_GATEWAY_JWT_SECRET,
+            "--token",
+            create_e2e_bootstrap_token(grpc_port),
             "auth",
             "api-key",
             "create",
@@ -303,7 +345,7 @@ def talon_infrastructure():
     env["PUBSUB_EMULATOR_HOST"] = pubsub_host
     env["RUST_LOG"] = "info"
     env["GCP_PROJECT_ID"] = "talon-local"
-    env["GATEWAY_JWT_SECRET"] = E2E_GATEWAY_JWT_SECRET
+    env["TALON_JWT_PRIVATE_KEY_PEM"] = E2E_JWT_PRIVATE_KEY_PEM
     
     # Pre-provision PubSub topics and subscriptions to avoid races
     try:
@@ -347,6 +389,9 @@ providers:
 server:
   host: "127.0.0.1"
   port: {test_grpc_port}
+platformAuth:
+  jwtIssuer:
+    issuer: {E2E_PLATFORM_JWT_ISSUER}
 control_plane:
   database:
     driver: postgres
@@ -454,7 +499,7 @@ def talon_infrastructure_sqlite():
     env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
     env["PORT"] = str(worker_port)
     env["TALON_SESSION_PROCESSING_TIMEOUT_SECONDS"] = "1"
-    env["GATEWAY_JWT_SECRET"] = E2E_GATEWAY_JWT_SECRET
+    env["TALON_JWT_PRIVATE_KEY_PEM"] = E2E_JWT_PRIVATE_KEY_PEM
 
     temp_dir = Path(tempfile.mkdtemp(prefix="talon-sqlite-e2e-"))
     data_dir = temp_dir / "data"
@@ -474,6 +519,9 @@ providers:
 server:
   host: "127.0.0.1"
   port: {test_grpc_port}
+platformAuth:
+  jwtIssuer:
+    issuer: {E2E_PLATFORM_JWT_ISSUER}
 control_plane:
   database:
     driver: sqlite

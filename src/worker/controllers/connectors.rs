@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use anyhow::{anyhow, bail, Context, Result};
-use jsonwebtoken::{EncodingKey, Header};
 use prost::Message;
 use std::collections::{HashMap, HashSet};
 
 use crate::control::resources::ResourceStore;
+use crate::control::security::platform_jwt;
 use crate::control::{keys, ControlPlane, KeyValueStore, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{data_proto, external_proto, resources_proto};
 
@@ -640,7 +640,7 @@ async fn register_connector_class(
         });
     let cluster_id =
         std::env::var("TALON_CONNECTOR_CLUSTER_ID").unwrap_or_else(|_| "talon-cluster".into());
-    let callback_auth_key = mint_connector_callback_token(class_namespace)
+    let callback_auth_key = mint_connector_callback_token(config, class_namespace)
         .context("failed to mint connector callback auth token")?;
     let url = format!(
         "{}/v1/clusters/register",
@@ -707,20 +707,31 @@ impl ConnectorSecretExt for crate::gateway::rpc::generated::config::Secret {
     }
 }
 
-fn mint_connector_callback_token(namespace: &str) -> Result<String> {
-    crate::control::security::install_jwt_crypto_provider();
-    let secret = std::env::var("GATEWAY_JWT_SECRET")
-        .or_else(|_| std::env::var("TALON_JWT_SECRET"))
-        .unwrap_or_else(|_| "local-dev-talon-jwt".to_string());
+fn mint_connector_callback_token(
+    config: &crate::control::config::Config,
+    namespace: &str,
+) -> Result<String> {
+    let issuer = config
+        .platform_auth
+        .as_ref()
+        .and_then(|auth| auth.jwt_issuer.as_ref())
+        .map(|issuer| issuer.issuer.trim())
+        .filter(|issuer| !issuer.is_empty())
+        .context("platformAuth.jwtIssuer.issuer is required for connector callbacks")?;
+    let key =
+        platform_jwt::load_key().context("platform JWT key is required for connector callbacks")?;
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs();
     let claims = crate::gateway::auth::Claims {
+        iss: Some(issuer.to_string()),
         sub: "connector-runtime".to_string(),
-        aud: "talon".to_string(),
+        aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+        iat: Some(now as usize),
         exp: now
             .checked_add(CONNECTOR_CALLBACK_TOKEN_TTL_SECONDS)
             .context("connector callback token ttl is too large")? as usize,
+        token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
         ns: Some(namespace.to_string()),
         agent: None,
         session: None,
@@ -734,12 +745,8 @@ fn mint_connector_callback_token(namespace: &str) -> Result<String> {
             channel: None,
         }],
     };
-    jsonwebtoken::encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
-    )
-    .context("failed to sign connector callback token")
+    key.sign(&claims)
+        .context("failed to sign connector callback token")
 }
 
 fn condition(

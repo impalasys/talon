@@ -3,18 +3,22 @@
 
 use crate::control::search::DocumentStore;
 use crate::control::{
-    config::proto::TrustConfig, object_store::ObjectStore, scheduler::SchedulerBackend,
+    config::proto::{JwtIssuerConfig, TrustConfig},
+    object_store::ObjectStore,
+    scheduler::SchedulerBackend,
     ControlPlane, KeyValueStore, MessagePublisher,
 };
 use crate::gateway::auth::AuthConfig;
 use anyhow::Result;
 use axum::{
     body::Body,
-    http::{header, HeaderValue, Request, Response, StatusCode},
+    extract::State,
+    http::{header, HeaderMap, HeaderValue, Request, Response, StatusCode},
     response::IntoResponse,
-    routing::RouterIntoService,
-    Router,
+    routing::{get, RouterIntoService},
+    Json, Router,
 };
+use serde_json::json;
 use std::convert::Infallible;
 use std::sync::Arc;
 use tonic::body::BoxBody;
@@ -25,6 +29,7 @@ use tower_http::cors::{Any, CorsLayer};
 pub struct Gateway {
     pub auth_config: Option<AuthConfig>,
     pub trust_config: Option<TrustConfig>,
+    pub platform_jwt_config: Option<JwtIssuerConfig>,
     pub kv: Arc<dyn KeyValueStore + Send + Sync>,
     pub pubsub: Arc<dyn MessagePublisher + Send + Sync>,
     pub scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
@@ -56,6 +61,29 @@ impl Gateway {
         Self {
             auth_config,
             trust_config,
+            platform_jwt_config: None,
+            kv,
+            pubsub,
+            scheduler,
+            objects,
+            documents,
+        }
+    }
+
+    pub fn new_with_trust_and_platform_jwt(
+        auth_config: Option<AuthConfig>,
+        trust_config: Option<TrustConfig>,
+        platform_jwt_config: Option<JwtIssuerConfig>,
+        kv: Arc<dyn KeyValueStore + Send + Sync>,
+        pubsub: Arc<dyn MessagePublisher + Send + Sync>,
+        scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
+        objects: Arc<dyn ObjectStore + Send + Sync>,
+        documents: Arc<dyn DocumentStore + Send + Sync>,
+    ) -> Self {
+        Self {
+            auth_config,
+            trust_config,
+            platform_jwt_config,
             kv,
             pubsub,
             scheduler,
@@ -82,6 +110,7 @@ impl Gateway {
         Self {
             auth_config: self.auth_config.clone(),
             trust_config: self.trust_config.clone(),
+            platform_jwt_config: self.platform_jwt_config.clone(),
             kv: self.kv.clone(),
             pubsub: self.pubsub.clone(),
             scheduler: self.scheduler.clone(),
@@ -188,7 +217,8 @@ impl Gateway {
             .add_service(auth_service)
             .into_service::<BoxBody>();
 
-        let app = crate::gateway::rest::a2a::router()
+        let app = well_known_router()
+            .merge(crate::gateway::rest::a2a::router())
             .with_state(http_gateway)
             .fallback_service(grpc_fallback_service(grpc_service))
             .layer(permissive_cors_layer());
@@ -201,6 +231,221 @@ impl Gateway {
 
         Ok(())
     }
+}
+
+fn well_known_router() -> Router<Arc<Gateway>> {
+    Router::new()
+        .route("/.well-known/jwks.json", get(jwks))
+        .route(
+            "/.well-known/oauth-authorization-server",
+            get(authorization_server_metadata),
+        )
+        .route(
+            "/.well-known/openid-configuration",
+            get(authorization_server_metadata),
+        )
+        .route(
+            "/.well-known/oauth-protected-resource",
+            get(protected_resource_metadata),
+        )
+        .route(
+            "/.well-known/oauth-protected-resource/*tail",
+            get(protected_resource_metadata),
+        )
+}
+
+async fn jwks(State(gateway): State<Arc<Gateway>>) -> axum::response::Response {
+    if gateway.platform_jwt_config.is_none() {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    match crate::control::security::platform_jwt::load_key() {
+        Ok(key) => Json(key.jwks()).into_response(),
+        Err(err) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({"error": format!("platform JWT key is not configured: {err}")})),
+        )
+            .into_response(),
+    }
+}
+
+async fn authorization_server_metadata(
+    State(gateway): State<Arc<Gateway>>,
+    headers: HeaderMap,
+) -> axum::response::Response {
+    let Some(issuer) = platform_issuer(&gateway) else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+    let jwks_uri = format!("{}/.well-known/jwks.json", external_base_url(&headers));
+    Json(json!({
+        "issuer": issuer,
+        "jwks_uri": jwks_uri,
+        "response_types_supported": [],
+        "grant_types_supported": [],
+        "token_endpoint_auth_methods_supported": [],
+    }))
+    .into_response()
+}
+
+async fn protected_resource_metadata(
+    State(gateway): State<Arc<Gateway>>,
+    headers: HeaderMap,
+) -> axum::response::Response {
+    let Some(issuer) = platform_issuer(&gateway) else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+    Json(json!({
+        "resource": external_base_url(&headers),
+        "authorization_servers": [issuer],
+        "jwks_uri": format!("{}/.well-known/jwks.json", external_base_url(&headers)),
+    }))
+    .into_response()
+}
+
+fn platform_issuer(gateway: &Gateway) -> Option<&str> {
+    gateway
+        .platform_jwt_config
+        .as_ref()
+        .map(|config| config.issuer.trim())
+        .filter(|issuer| !issuer.is_empty())
+}
+
+#[cfg(test)]
+mod well_known_tests {
+    use super::*;
+    use crate::control::config::proto::JwtIssuerConfig;
+    use crate::test_support::{EmptyPubSub, MockKvStore};
+    use axum::body::{to_bytes, Body};
+    use axum::http::Request;
+    use tower::ServiceExt;
+
+    const TEST_PLATFORM_ISSUER: &str = "https://talon.example.com";
+
+    struct PlatformJwtEnvGuard {
+        previous_private_key: Option<String>,
+    }
+
+    impl PlatformJwtEnvGuard {
+        fn acquire() -> Self {
+            let previous_private_key = std::env::var(
+                crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+            )
+            .ok();
+            std::env::set_var(
+                crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                crate::control::security::platform_jwt::TEST_RSA_PRIVATE_KEY,
+            );
+            Self {
+                previous_private_key,
+            }
+        }
+    }
+
+    impl Drop for PlatformJwtEnvGuard {
+        fn drop(&mut self) {
+            if let Some(previous_private_key) = &self.previous_private_key {
+                std::env::set_var(
+                    crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                    previous_private_key,
+                );
+            } else {
+                std::env::remove_var(
+                    crate::control::security::platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+                );
+            }
+        }
+    }
+
+    fn gateway_with_platform_jwt() -> Arc<Gateway> {
+        let cp = crate::control::ControlPlane::builder(
+            Arc::new(MockKvStore::default()),
+            Arc::new(EmptyPubSub),
+        )
+        .build();
+        Arc::new(Gateway::new_with_trust_and_platform_jwt(
+            None,
+            None,
+            Some(JwtIssuerConfig {
+                issuer: TEST_PLATFORM_ISSUER.to_string(),
+            }),
+            cp.kv,
+            cp.pubsub,
+            cp.scheduler,
+            cp.objects,
+            cp.documents,
+        ))
+    }
+
+    async fn json_response(app: Router, uri: &str) -> (StatusCode, serde_json::Value) {
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri(uri)
+                    .header("host", "gateway.example.com")
+                    .header("x-forwarded-proto", "https")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let status = response.status();
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let json = serde_json::from_slice(&body).unwrap();
+        (status, json)
+    }
+
+    #[tokio::test]
+    async fn well_known_endpoints_publish_public_platform_jwks_and_metadata() {
+        let _env_lock = crate::test_support::async_env_mutex().lock().await;
+        let _guard = PlatformJwtEnvGuard::acquire();
+        let app = well_known_router().with_state(gateway_with_platform_jwt());
+
+        let (status, jwks) = json_response(app.clone(), "/.well-known/jwks.json").await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(jwks["keys"].as_array().unwrap().len(), 1);
+        assert_eq!(jwks["keys"][0]["use"], "sig");
+        assert_eq!(jwks["keys"][0]["alg"], "RS256");
+        assert!(jwks["keys"][0].get("n").is_some());
+        assert!(jwks["keys"][0].get("e").is_some());
+        assert!(jwks["keys"][0].get("d").is_none());
+        assert!(jwks["keys"][0].get("p").is_none());
+
+        let (status, metadata) =
+            json_response(app.clone(), "/.well-known/openid-configuration").await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(metadata["issuer"], TEST_PLATFORM_ISSUER);
+        assert_eq!(
+            metadata["jwks_uri"],
+            "https://gateway.example.com/.well-known/jwks.json"
+        );
+
+        let (status, protected) =
+            json_response(app, "/.well-known/oauth-protected-resource/talon").await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(protected["authorization_servers"][0], TEST_PLATFORM_ISSUER);
+        assert_eq!(
+            protected["jwks_uri"],
+            "https://gateway.example.com/.well-known/jwks.json"
+        );
+    }
+}
+
+fn external_base_url(headers: &HeaderMap) -> String {
+    let scheme = headers
+        .get("x-forwarded-proto")
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.split(',').next())
+        .map(str::trim)
+        .filter(|value| value.eq_ignore_ascii_case("http") || value.eq_ignore_ascii_case("https"))
+        .unwrap_or("https");
+    let host = headers
+        .get("x-forwarded-host")
+        .or_else(|| headers.get(header::HOST))
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.split(',').next())
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .unwrap_or("localhost");
+    format!("{scheme}://{host}")
 }
 
 fn grpc_fallback_service<S>(grpc_service: S) -> RouterIntoService<Body, ()>

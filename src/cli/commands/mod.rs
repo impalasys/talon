@@ -36,10 +36,6 @@ pub(crate) struct Cli {
     #[arg(long)]
     pub(crate) gateway: Option<String>,
 
-    /// Gateway password for Basic auth. Uses username "" and password value.
-    #[arg(long)]
-    pub(crate) password: Option<String>,
-
     /// Gateway bearer token.
     #[arg(long)]
     pub(crate) token: Option<String>,
@@ -51,10 +47,6 @@ pub(crate) struct Cli {
     /// Grant to request when exchanging a multi-grant API key.
     #[arg(long)]
     pub(crate) api_key_grant: Option<String>,
-
-    /// Shared JWT secret for minting a short-lived Talon admin token.
-    #[arg(long)]
-    pub(crate) jwt_secret: Option<String>,
 
     /// Use gRPC-Web over HTTP/1.1 instead of native gRPC.
     #[arg(long, default_value_t = false)]

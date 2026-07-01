@@ -12,8 +12,6 @@ class TalonCli:
         grpc_web=False,
         token=None,
         api_key=None,
-        jwt_secret=None,
-        password=None,
         env=None,
         timeout=120,
     ):
@@ -22,8 +20,6 @@ class TalonCli:
         self.grpc_web = grpc_web
         self.token = token
         self.api_key = api_key
-        self.jwt_secret = jwt_secret
-        self.password = password
         self.env = env
         self.timeout = timeout
 
@@ -35,10 +31,6 @@ class TalonCli:
             args.extend(["--token", self.token])
         if self.api_key:
             args.extend(["--api-key", self.api_key])
-        if self.jwt_secret:
-            args.extend(["--jwt-secret", self.jwt_secret])
-        if self.password:
-            args.extend(["--password", self.password])
         return args
 
     def run(self, *args, timeout=None, check=True):
@@ -86,6 +78,6 @@ class TalonCli:
                 redact_next = False
                 continue
             redacted.append(arg)
-            if arg in {"--token", "--api-key", "--jwt-secret", "--password"}:
+            if arg in {"--token", "--api-key"}:
                 redact_next = True
         return redacted

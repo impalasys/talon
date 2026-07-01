@@ -844,6 +844,7 @@ control_plane:
             pubsub: None,
             controllers: std::collections::HashMap::new(),
             trust: None,
+            platform_auth: None,
         };
 
         let config: Config = serde.into();

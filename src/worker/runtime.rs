@@ -606,6 +606,7 @@ mod tests {
             namespace: None,
             mcp_server_name: mcp_server_name.map(str::to_string),
             agent_name: None,
+            jwt_issuer: None,
             auth_broker: None,
         }
     }

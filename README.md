@@ -163,6 +163,7 @@ Talon reads config from `TALON_CONFIG_PATH` or the default config loader. The ch
 - message broker driver
 - optional object store configuration
 - optional scheduler configuration
+- optional platform JWT issuer for asymmetric Talon-issued access tokens and JWKS
 
 Common environment variables used by the runtime:
 
@@ -175,7 +176,14 @@ Common environment variables used by the runtime:
 - `TALON_SCHEDULER_DRIVER`
 - `TALON_LOCAL_SCHEDULER_TARGET_URL`
 - `TALON_LOCAL_SCHEDULER_RUNNER`
-- `GATEWAY_PASSWORD`, `GATEWAY_TOKEN`, or `GATEWAY_JWT_SECRET`
+- `TALON_JWT_PRIVATE_KEY_PEM`
+
+When `platformAuth.jwtIssuer.issuer` is configured, Talon publishes public key
+material at `/.well-known/jwks.json` plus OAuth/OIDC metadata endpoints. JWKS
+proves a token was signed by Talon; gateway authorization still requires
+`aud: "talon.impala.systems"` and `talon:token_type: "access"`. MCP auth broker
+assertions use `aud: "mcps.talon.impala.systems"` and are rejected by gateway
+auth.
 
 ## CLI
 

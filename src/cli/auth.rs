@@ -3,7 +3,6 @@
 
 use anyhow::{Context, Result};
 use base64::{engine::general_purpose, Engine};
-use jsonwebtoken::{EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::io::{Read, Write};
@@ -14,28 +13,12 @@ use talon_client::v1::{ExchangeApiKeyRequest, ExchangeOidcTokenRequest};
 use talon_client::{GatewayClientOptions, GatewayTransport, TalonClient};
 use url::Url;
 
-use crate::gateway::auth::Claims;
+use crate::control::security::platform_jwt;
+use crate::gateway::auth::{Claims, TalonGrantClaim};
 
 use super::commands::Cli;
 
 pub(crate) const DEFAULT_TOKEN_TTL: &str = "5min";
-
-#[derive(Debug, Serialize, Deserialize)]
-struct CliClaims {
-    sub: String,
-    aud: String,
-    exp: u64,
-    #[serde(rename = "talon:ns", skip_serializing_if = "Option::is_none")]
-    ns: Option<String>,
-    #[serde(rename = "talon:agent", skip_serializing_if = "Option::is_none")]
-    agent: Option<String>,
-    #[serde(rename = "talon:session", skip_serializing_if = "Option::is_none")]
-    session: Option<String>,
-    #[serde(rename = "talon:channel", skip_serializing_if = "Option::is_none")]
-    channel: Option<String>,
-    #[serde(rename = "talon:origins", skip_serializing_if = "Vec::is_empty")]
-    origins: Vec<String>,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct StoredGatewayAuth {
@@ -68,26 +51,6 @@ const DEFAULT_GOOGLE_CLI_CLIENT_ID: Option<&str> = option_env!("TALON_GOOGLE_CLI
 // See:
 // https://stackoverflow.com/questions/78438540/is-google-oauth-for-native-desktop-applications-mean-to-expose-the-client-secret
 const DEFAULT_GOOGLE_CLI_CLIENT_SECRET: Option<&str> = option_env!("TALON_GOOGLE_CLIENT_SECRET");
-
-pub(crate) fn resolve_gateway_password(cli: &Cli) -> Option<String> {
-    cli.password
-        .clone()
-        .or_else(|| std::env::var("TALON_GATEWAY_PASSWORD").ok())
-        .or_else(|| std::env::var("GATEWAY_PASSWORD").ok())
-}
-
-pub(crate) fn resolve_gateway_token(cli: &Cli) -> Option<String> {
-    cli.token
-        .clone()
-        .or_else(|| std::env::var("TALON_GATEWAY_TOKEN").ok())
-        .or_else(|| std::env::var("GATEWAY_TOKEN").ok())
-        .or_else(|| {
-            load_stored_gateway_auth(cli)
-                .ok()
-                .flatten()
-                .map(|auth| auth.access_token)
-        })
-}
 
 pub(crate) fn resolve_gateway_api_key(cli: &Cli) -> Option<String> {
     cli.api_key
@@ -133,17 +96,6 @@ pub(crate) fn parse_api_key_grant(value: &str) -> Result<ApiKeyGrant> {
         }
     }
     Ok(grant)
-}
-
-pub(crate) fn resolve_gateway_jwt_secret(cli: &Cli) -> Option<String> {
-    cli.jwt_secret
-        .clone()
-        .or_else(|| std::env::var("TALON_JWT_SECRET").ok())
-        .or_else(|| std::env::var("GATEWAY_JWT_SECRET").ok())
-}
-
-pub(crate) fn mint_gateway_jwt(secret: &str) -> Result<String> {
-    mint_root_jwt(secret, "talon-cli", 3600, &[])
 }
 
 impl StoredGatewayAuth {
@@ -557,44 +509,82 @@ fn decode_jwt_payload<T: for<'de> Deserialize<'de>>(token: &str) -> Result<T> {
     serde_json::from_slice(&bytes).context("stored token payload is not JSON")
 }
 
-pub(crate) fn mint_scoped_jwt(
-    secret: &str,
+pub(crate) struct LocalPlatformTokenScope<'a> {
+    pub(crate) namespace: Option<&'a str>,
+    pub(crate) agent: Option<&'a str>,
+    pub(crate) session: Option<&'a str>,
+    pub(crate) channel: Option<&'a str>,
+}
+
+pub(crate) fn mint_local_platform_access_jwt(
+    private_key_pem: &str,
+    issuer: &str,
     subject: &str,
     ttl_seconds: u64,
-    ns: Option<&str>,
-    agent: Option<&str>,
-    session: Option<&str>,
-    channel: Option<&str>,
+    scope: LocalPlatformTokenScope<'_>,
     origins: &[String],
+    grants: &[ApiKeyGrant],
 ) -> Result<String> {
-    let subject = subject.trim();
-    if subject.is_empty() {
-        anyhow::bail!("subject cannot be empty");
+    let issuer = issuer.trim();
+    if issuer.is_empty() {
+        anyhow::bail!("issuer cannot be empty");
+    }
+    let parsed_issuer =
+        Url::parse(issuer).with_context(|| format!("invalid issuer '{issuer}'"))?;
+    if parsed_issuer.scheme() != "https" {
+        anyhow::bail!("issuer must use https");
+    }
+    if parsed_issuer.query().is_some() || parsed_issuer.fragment().is_some() {
+        anyhow::bail!("issuer must not include query or fragment");
+    }
+
+    let subject = validate_token_part(subject, "subject")?;
+    let namespace = validate_optional_token_part(scope.namespace, "namespace")?;
+    let agent = validate_optional_token_part(scope.agent, "agent")?;
+    let session = validate_optional_token_part(scope.session, "session")?;
+    let channel = validate_optional_token_part(scope.channel, "channel")?;
+    if agent.is_some() && namespace.is_none() {
+        anyhow::bail!("agent scope requires namespace scope");
+    }
+    if session.is_some() && (namespace.is_none() || agent.is_none()) {
+        anyhow::bail!("session scope requires namespace and agent scope");
+    }
+    if channel.is_some() && namespace.is_none() {
+        anyhow::bail!("channel scope requires namespace scope");
     }
     if ttl_seconds == 0 {
         anyhow::bail!("ttl-seconds must be greater than zero");
     }
-    let exp = std::time::SystemTime::now()
+    let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
-        .as_secs()
-        .checked_add(ttl_seconds)
-        .context("ttl is too large")?;
-    let claims = CliClaims {
+        .as_secs();
+    let exp = now.checked_add(ttl_seconds).context("ttl is too large")?;
+    let claims = Claims {
+        iss: Some(issuer.to_string()),
         sub: subject.to_string(),
-        aud: "talon".to_string(),
-        exp,
-        ns: ns.map(str::to_string),
+        aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+        iat: Some(now as usize),
+        exp: exp as usize,
+        token_type: Some(platform_jwt::ACCESS_TOKEN_TYPE.to_string()),
+        ns: namespace.map(str::to_string),
         agent: agent.map(str::to_string),
         session: session.map(str::to_string),
         channel: channel.map(str::to_string),
         origins: validate_origins(origins)?,
+        grants: grants
+            .iter()
+            .map(|grant| TalonGrantClaim {
+                kind: grant.kind.clone(),
+                namespace: grant.namespace.clone(),
+                agent: grant.agent.clone(),
+                session: grant.session.clone(),
+                channel: grant.channel.clone(),
+            })
+            .collect(),
     };
-    jsonwebtoken::encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
-    )
-    .context("Failed to sign Talon JWT")
+    platform_jwt::PlatformJwtKey::from_pem(private_key_pem)?
+        .sign(&claims)
+        .context("Failed to sign Talon platform access JWT")
 }
 
 pub(crate) fn parse_ttl_seconds(value: &str) -> Result<u64> {
@@ -646,25 +636,6 @@ pub(crate) fn resolve_token_ttl_seconds(ttl: &str, ttl_seconds: Option<u64>) -> 
     parse_ttl_seconds(ttl)
 }
 
-pub(crate) fn mint_root_jwt(
-    secret: &str,
-    subject: &str,
-    ttl_seconds: u64,
-    origins: &[String],
-) -> Result<String> {
-    mint_scoped_jwt(
-        secret,
-        subject,
-        ttl_seconds,
-        None,
-        None,
-        None,
-        None,
-        origins,
-    )
-    .context("Failed to sign Talon root JWT")
-}
-
 pub(crate) fn validate_token_part<'a>(value: &'a str, name: &str) -> Result<&'a str> {
     let value = value.trim();
     if value.is_empty() {
@@ -673,96 +644,10 @@ pub(crate) fn validate_token_part<'a>(value: &'a str, name: &str) -> Result<&'a 
     Ok(value)
 }
 
-pub(crate) fn mint_namespace_jwt(
-    secret: &str,
-    namespace: &str,
-    subject: &str,
-    ttl_seconds: u64,
-    origins: &[String],
-) -> Result<String> {
-    let namespace = validate_token_part(namespace, "namespace")?;
-    mint_scoped_jwt(
-        secret,
-        subject,
-        ttl_seconds,
-        Some(namespace),
-        None,
-        None,
-        None,
-        origins,
-    )
-    .context("Failed to sign Talon namespace JWT")
-}
-
-pub(crate) fn mint_agent_jwt(
-    secret: &str,
-    namespace: &str,
-    agent: &str,
-    subject: &str,
-    ttl_seconds: u64,
-    origins: &[String],
-) -> Result<String> {
-    let namespace = validate_token_part(namespace, "namespace")?;
-    let agent = validate_token_part(agent, "agent")?;
-    mint_scoped_jwt(
-        secret,
-        subject,
-        ttl_seconds,
-        Some(namespace),
-        Some(agent),
-        None,
-        None,
-        origins,
-    )
-    .context("Failed to sign Talon agent JWT")
-}
-
-pub(crate) fn mint_session_jwt(
-    secret: &str,
-    namespace: &str,
-    agent: &str,
-    session: &str,
-    subject: &str,
-    ttl_seconds: u64,
-    origins: &[String],
-) -> Result<String> {
-    let namespace = validate_token_part(namespace, "namespace")?;
-    let agent = validate_token_part(agent, "agent")?;
-    let session = validate_token_part(session, "session")?;
-    mint_scoped_jwt(
-        secret,
-        subject,
-        ttl_seconds,
-        Some(namespace),
-        Some(agent),
-        Some(session),
-        None,
-        origins,
-    )
-    .context("Failed to sign Talon session JWT")
-}
-
-pub(crate) fn mint_channel_jwt(
-    secret: &str,
-    namespace: &str,
-    channel: &str,
-    subject: &str,
-    ttl_seconds: u64,
-    origins: &[String],
-) -> Result<String> {
-    let namespace = validate_token_part(namespace, "namespace")?;
-    let channel = validate_token_part(channel, "channel")?;
-    mint_scoped_jwt(
-        secret,
-        subject,
-        ttl_seconds,
-        Some(namespace),
-        None,
-        None,
-        Some(channel),
-        origins,
-    )
-    .context("Failed to sign Talon channel JWT")
+fn validate_optional_token_part<'a>(value: Option<&'a str>, name: &str) -> Result<Option<&'a str>> {
+    value
+        .map(|value| validate_token_part(value, name))
+        .transpose()
 }
 
 fn validate_origins(origins: &[String]) -> Result<Vec<String>> {
@@ -799,14 +684,6 @@ async fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
         .filter(|value| !value.is_empty())
     {
         Ok(Some(format!("Bearer {}", token)))
-    } else if let Some(secret) = cli
-        .jwt_secret
-        .as_ref()
-        .map(|value| value.trim())
-        .filter(|value| !value.is_empty())
-    {
-        let token = mint_gateway_jwt(secret)?;
-        Ok(Some(format!("Bearer {}", token)))
     } else if let Some(api_key) = resolve_gateway_api_key(cli) {
         if let Some(auth) = load_stored_gateway_auth(cli)?
             .filter(|auth| auth.matches_api_key(&api_key, cli.api_key_grant.as_deref()))
@@ -816,14 +693,8 @@ async fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
         let auth = exchange_api_key(cli, &api_key).await?;
         save_stored_gateway_auth(&auth)?;
         Ok(Some(format!("Bearer {}", auth.access_token)))
-    } else if let Some(token) = resolve_gateway_token(cli) {
-        Ok(Some(format!("Bearer {}", token)))
-    } else if let Some(secret) = resolve_gateway_jwt_secret(cli) {
-        let token = mint_gateway_jwt(&secret)?;
-        Ok(Some(format!("Bearer {}", token)))
-    } else if let Some(password) = resolve_gateway_password(cli) {
-        let token = base64::engine::general_purpose::STANDARD.encode(format!(":{}", password));
-        Ok(Some(format!("Basic {}", token)))
+    } else if let Some(auth) = load_stored_gateway_auth(cli)? {
+        Ok(Some(format!("Bearer {}", auth.access_token)))
     } else {
         Ok(None)
     }
@@ -856,12 +727,13 @@ pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
 mod tests {
     use super::{
         api_key_cache_hash, gateway_http_base, gateway_http_base_from_endpoint,
-        google_token_request_form, mint_namespace_jwt, parse_ttl_seconds,
+        google_token_request_form, mint_local_platform_access_jwt, parse_ttl_seconds,
         resolve_token_ttl_seconds, StoredGatewayAuth, DEFAULT_GOOGLE_CLI_CLIENT_SECRET,
-        DEFAULT_TOKEN_TTL,
+        LocalPlatformTokenScope, DEFAULT_TOKEN_TTL,
     };
     use crate::cli::commands::Cli;
-    use crate::gateway::auth::verify_jwt;
+    use crate::control::security::platform_jwt;
+    use crate::gateway::auth::Claims;
     use clap::Parser;
 
     #[test]
@@ -963,16 +835,84 @@ mod tests {
     }
 
     #[test]
-    fn mint_namespace_jwt_sets_only_namespace_scope() {
-        let token =
-            mint_namespace_jwt("secret", " customers:acme ", "tenant-client", 60, &[]).unwrap();
-        let claims = verify_jwt(&token, "secret").unwrap();
+    fn local_platform_access_jwt_sets_gateway_profile_and_scope() {
+        let issuer = "https://talon.example.com";
+        let token = mint_local_platform_access_jwt(
+            platform_jwt::TEST_RSA_PRIVATE_KEY,
+            issuer,
+            "tenant-client",
+            60,
+            LocalPlatformTokenScope {
+                namespace: Some("customers:acme"),
+                agent: None,
+                session: None,
+                channel: None,
+            },
+            &[],
+            &[],
+        )
+        .unwrap();
+        let claims = platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
+            .unwrap()
+            .verify::<Claims>(&token, issuer, platform_jwt::TALON_GATEWAY_AUDIENCE)
+            .unwrap();
 
         assert_eq!(claims.sub, "tenant-client");
+        assert_eq!(claims.iss.as_deref(), Some(issuer));
+        assert_eq!(claims.aud, platform_jwt::TALON_GATEWAY_AUDIENCE);
+        assert_eq!(
+            claims.token_type.as_deref(),
+            Some(platform_jwt::ACCESS_TOKEN_TYPE)
+        );
         assert_eq!(claims.ns.as_deref(), Some("customers:acme"));
         assert_eq!(claims.agent, None);
         assert_eq!(claims.session, None);
         assert_eq!(claims.channel, None);
+    }
+
+    #[test]
+    fn local_platform_access_jwt_rejects_empty_or_incomplete_scope() {
+        let issuer = "https://talon.example.com";
+        let mint = |scope| {
+            mint_local_platform_access_jwt(
+                platform_jwt::TEST_RSA_PRIVATE_KEY,
+                issuer,
+                "tenant-client",
+                60,
+                scope,
+                &[],
+                &[],
+            )
+        };
+
+        assert!(mint(LocalPlatformTokenScope {
+            namespace: Some(" "),
+            agent: None,
+            session: None,
+            channel: None,
+        })
+        .is_err());
+        assert!(mint(LocalPlatformTokenScope {
+            namespace: None,
+            agent: Some("assistant"),
+            session: None,
+            channel: None,
+        })
+        .is_err());
+        assert!(mint(LocalPlatformTokenScope {
+            namespace: Some("customers:acme"),
+            agent: None,
+            session: Some("session-1"),
+            channel: None,
+        })
+        .is_err());
+        assert!(mint(LocalPlatformTokenScope {
+            namespace: None,
+            agent: None,
+            session: None,
+            channel: Some("incident-room"),
+        })
+        .is_err());
     }
 
     #[test]
