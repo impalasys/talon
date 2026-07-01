@@ -148,8 +148,8 @@ func connectNative(ctx context.Context, opts GatewayClientOptions) (*Clientset, 
 			MinVersion: tls.VersionTLS13,
 		})))
 	} else {
-		if opts.Authorization != "" || strings.TrimSpace(opts.APIKey) != "" {
-			return nil, errors.New("authorization requires a TLS native gRPC endpoint; api key auth does too; use https:// or omit auth")
+		if strings.TrimSpace(opts.APIKey) != "" {
+			return nil, errors.New("api key auth requires a TLS native gRPC endpoint; use https:// or omit api key auth")
 		}
 		dialOptions = append(dialOptions, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
@@ -199,7 +199,7 @@ func (c authorizationCredentials) GetRequestMetadata(context.Context, ...string)
 }
 
 func (authorizationCredentials) RequireTransportSecurity() bool {
-	return true
+	return false
 }
 
 type apiKeyCredentials struct {

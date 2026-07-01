@@ -216,16 +216,13 @@ fn unix_timestamp() -> u64 {
 
 async fn connect_native(options: GatewayClientOptions) -> Result<NativeTalonClient, BoxError> {
     let endpoint_url = native_endpoint_url(&options.endpoint);
-    if options.authorization.is_some()
-        || options
-            .api_key
-            .as_deref()
-            .is_some_and(|value| !value.trim().is_empty())
+    if options
+        .api_key
+        .as_deref()
+        .is_some_and(|value| !value.trim().is_empty())
     {
         if endpoint_url.starts_with("http://") {
-            return Err(
-                "authorization and api_key auth require an HTTPS native gRPC endpoint".into(),
-            );
+            return Err("api_key auth requires an HTTPS native gRPC endpoint".into());
         }
     }
     let mut endpoint = tonic::transport::Endpoint::new(endpoint_url)?;
@@ -298,7 +295,7 @@ mod tests {
         let err = NativeTalonClient::connect_with_options(options)
             .await
             .expect_err("plaintext api_key auth should be rejected");
-        assert!(err.to_string().contains("require an HTTPS"));
+        assert!(err.to_string().contains("requires an HTTPS"));
     }
 }
 
