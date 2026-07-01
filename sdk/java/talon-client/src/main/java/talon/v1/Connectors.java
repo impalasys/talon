@@ -2866,8 +2866,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
     /**
      * <pre>
-     * Registration identifier assigned to the ConnectorClass by the connector
-     * service. This scopes webhook delivery to one Talon cluster registration.
+     * Talon-owned ConnectorClass registration identifier, formatted as
+     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. This scopes webhook delivery
+     * to one ConnectorClass registration.
      * </pre>
      *
      * <code>string registration_id = 3;</code>
@@ -2876,8 +2877,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     java.lang.String getRegistrationId();
     /**
      * <pre>
-     * Registration identifier assigned to the ConnectorClass by the connector
-     * service. This scopes webhook delivery to one Talon cluster registration.
+     * Talon-owned ConnectorClass registration identifier, formatted as
+     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. This scopes webhook delivery
+     * to one ConnectorClass registration.
      * </pre>
      *
      * <code>string registration_id = 3;</code>
@@ -3394,8 +3396,9 @@ java.lang.String defaultValue);
     private volatile java.lang.Object registrationId_ = "";
     /**
      * <pre>
-     * Registration identifier assigned to the ConnectorClass by the connector
-     * service. This scopes webhook delivery to one Talon cluster registration.
+     * Talon-owned ConnectorClass registration identifier, formatted as
+     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. This scopes webhook delivery
+     * to one ConnectorClass registration.
      * </pre>
      *
      * <code>string registration_id = 3;</code>
@@ -3416,8 +3419,9 @@ java.lang.String defaultValue);
     }
     /**
      * <pre>
-     * Registration identifier assigned to the ConnectorClass by the connector
-     * service. This scopes webhook delivery to one Talon cluster registration.
+     * Talon-owned ConnectorClass registration identifier, formatted as
+     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. This scopes webhook delivery
+     * to one ConnectorClass registration.
      * </pre>
      *
      * <code>string registration_id = 3;</code>
@@ -4991,8 +4995,9 @@ java.lang.String defaultValue) {
       private java.lang.Object registrationId_ = "";
       /**
        * <pre>
-       * Registration identifier assigned to the ConnectorClass by the connector
-       * service. This scopes webhook delivery to one Talon cluster registration.
+       * Talon-owned ConnectorClass registration identifier, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. This scopes webhook delivery
+       * to one ConnectorClass registration.
        * </pre>
        *
        * <code>string registration_id = 3;</code>
@@ -5012,8 +5017,9 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier assigned to the ConnectorClass by the connector
-       * service. This scopes webhook delivery to one Talon cluster registration.
+       * Talon-owned ConnectorClass registration identifier, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. This scopes webhook delivery
+       * to one ConnectorClass registration.
        * </pre>
        *
        * <code>string registration_id = 3;</code>
@@ -5034,8 +5040,9 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier assigned to the ConnectorClass by the connector
-       * service. This scopes webhook delivery to one Talon cluster registration.
+       * Talon-owned ConnectorClass registration identifier, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. This scopes webhook delivery
+       * to one ConnectorClass registration.
        * </pre>
        *
        * <code>string registration_id = 3;</code>
@@ -5052,8 +5059,9 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier assigned to the ConnectorClass by the connector
-       * service. This scopes webhook delivery to one Talon cluster registration.
+       * Talon-owned ConnectorClass registration identifier, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. This scopes webhook delivery
+       * to one ConnectorClass registration.
        * </pre>
        *
        * <code>string registration_id = 3;</code>
@@ -5067,8 +5075,9 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier assigned to the ConnectorClass by the connector
-       * service. This scopes webhook delivery to one Talon cluster registration.
+       * Talon-owned ConnectorClass registration identifier, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. This scopes webhook delivery
+       * to one ConnectorClass registration.
        * </pre>
        *
        * <code>string registration_id = 3;</code>
@@ -6582,7 +6591,8 @@ java.lang.String defaultValue) {
 
     /**
      * <pre>
-     * True when Talon had already seen registration_id + event_id.
+     * True when Talon had already seen this event_id under the ConnectorClass
+     * registration.
      * </pre>
      *
      * <code>bool duplicate = 2;</code>
@@ -6750,7 +6760,8 @@ java.lang.String defaultValue) {
     private boolean duplicate_ = false;
     /**
      * <pre>
-     * True when Talon had already seen registration_id + event_id.
+     * True when Talon had already seen this event_id under the ConnectorClass
+     * registration.
      * </pre>
      *
      * <code>bool duplicate = 2;</code>
@@ -7432,7 +7443,8 @@ java.lang.String defaultValue) {
       private boolean duplicate_ ;
       /**
        * <pre>
-       * True when Talon had already seen registration_id + event_id.
+       * True when Talon had already seen this event_id under the ConnectorClass
+       * registration.
        * </pre>
        *
        * <code>bool duplicate = 2;</code>
@@ -7444,7 +7456,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * True when Talon had already seen registration_id + event_id.
+       * True when Talon had already seen this event_id under the ConnectorClass
+       * registration.
        * </pre>
        *
        * <code>bool duplicate = 2;</code>
@@ -7460,7 +7473,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * True when Talon had already seen registration_id + event_id.
+       * True when Talon had already seen this event_id under the ConnectorClass
+       * registration.
        * </pre>
        *
        * <code>bool duplicate = 2;</code>
@@ -8002,8 +8016,8 @@ java.lang.String defaultValue) {
 
     /**
      * <pre>
-     * Registration identifier for the connector service that should perform
-     * provider delivery.
+     * Talon-owned ConnectorClass registration identifier for the connector
+     * service that should perform provider delivery.
      * </pre>
      *
      * <code>string registration_id = 2;</code>
@@ -8012,8 +8026,8 @@ java.lang.String defaultValue) {
     java.lang.String getRegistrationId();
     /**
      * <pre>
-     * Registration identifier for the connector service that should perform
-     * provider delivery.
+     * Talon-owned ConnectorClass registration identifier for the connector
+     * service that should perform provider delivery.
      * </pre>
      *
      * <code>string registration_id = 2;</code>
@@ -8451,8 +8465,8 @@ java.lang.String defaultValue);
     private volatile java.lang.Object registrationId_ = "";
     /**
      * <pre>
-     * Registration identifier for the connector service that should perform
-     * provider delivery.
+     * Talon-owned ConnectorClass registration identifier for the connector
+     * service that should perform provider delivery.
      * </pre>
      *
      * <code>string registration_id = 2;</code>
@@ -8473,8 +8487,8 @@ java.lang.String defaultValue);
     }
     /**
      * <pre>
-     * Registration identifier for the connector service that should perform
-     * provider delivery.
+     * Talon-owned ConnectorClass registration identifier for the connector
+     * service that should perform provider delivery.
      * </pre>
      *
      * <code>string registration_id = 2;</code>
@@ -9875,8 +9889,8 @@ java.lang.String defaultValue) {
       private java.lang.Object registrationId_ = "";
       /**
        * <pre>
-       * Registration identifier for the connector service that should perform
-       * provider delivery.
+       * Talon-owned ConnectorClass registration identifier for the connector
+       * service that should perform provider delivery.
        * </pre>
        *
        * <code>string registration_id = 2;</code>
@@ -9896,8 +9910,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier for the connector service that should perform
-       * provider delivery.
+       * Talon-owned ConnectorClass registration identifier for the connector
+       * service that should perform provider delivery.
        * </pre>
        *
        * <code>string registration_id = 2;</code>
@@ -9918,8 +9932,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier for the connector service that should perform
-       * provider delivery.
+       * Talon-owned ConnectorClass registration identifier for the connector
+       * service that should perform provider delivery.
        * </pre>
        *
        * <code>string registration_id = 2;</code>
@@ -9936,8 +9950,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier for the connector service that should perform
-       * provider delivery.
+       * Talon-owned ConnectorClass registration identifier for the connector
+       * service that should perform provider delivery.
        * </pre>
        *
        * <code>string registration_id = 2;</code>
@@ -9951,8 +9965,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier for the connector service that should perform
-       * provider delivery.
+       * Talon-owned ConnectorClass registration identifier for the connector
+       * service that should perform provider delivery.
        * </pre>
        *
        * <code>string registration_id = 2;</code>
@@ -12152,7 +12166,8 @@ java.lang.String defaultValue) {
 
     /**
      * <pre>
-     * Registration identifier whose health is being reported.
+     * Talon-owned ConnectorClass registration identifier whose health is being
+     * reported.
      * </pre>
      *
      * <code>string registration_id = 1;</code>
@@ -12161,7 +12176,8 @@ java.lang.String defaultValue) {
     java.lang.String getRegistrationId();
     /**
      * <pre>
-     * Registration identifier whose health is being reported.
+     * Talon-owned ConnectorClass registration identifier whose health is being
+     * reported.
      * </pre>
      *
      * <code>string registration_id = 1;</code>
@@ -12333,7 +12349,8 @@ java.lang.String defaultValue);
     private volatile java.lang.Object registrationId_ = "";
     /**
      * <pre>
-     * Registration identifier whose health is being reported.
+     * Talon-owned ConnectorClass registration identifier whose health is being
+     * reported.
      * </pre>
      *
      * <code>string registration_id = 1;</code>
@@ -12354,7 +12371,8 @@ java.lang.String defaultValue);
     }
     /**
      * <pre>
-     * Registration identifier whose health is being reported.
+     * Talon-owned ConnectorClass registration identifier whose health is being
+     * reported.
      * </pre>
      *
      * <code>string registration_id = 1;</code>
@@ -12976,7 +12994,8 @@ java.lang.String defaultValue) {
       private java.lang.Object registrationId_ = "";
       /**
        * <pre>
-       * Registration identifier whose health is being reported.
+       * Talon-owned ConnectorClass registration identifier whose health is being
+       * reported.
        * </pre>
        *
        * <code>string registration_id = 1;</code>
@@ -12996,7 +13015,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier whose health is being reported.
+       * Talon-owned ConnectorClass registration identifier whose health is being
+       * reported.
        * </pre>
        *
        * <code>string registration_id = 1;</code>
@@ -13017,7 +13037,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier whose health is being reported.
+       * Talon-owned ConnectorClass registration identifier whose health is being
+       * reported.
        * </pre>
        *
        * <code>string registration_id = 1;</code>
@@ -13034,7 +13055,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier whose health is being reported.
+       * Talon-owned ConnectorClass registration identifier whose health is being
+       * reported.
        * </pre>
        *
        * <code>string registration_id = 1;</code>
@@ -13048,7 +13070,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier whose health is being reported.
+       * Talon-owned ConnectorClass registration identifier whose health is being
+       * reported.
        * </pre>
        *
        * <code>string registration_id = 1;</code>

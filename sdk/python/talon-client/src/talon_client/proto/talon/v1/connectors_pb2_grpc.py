@@ -59,8 +59,9 @@ class ConnectorServiceServicer(object):
 
     def IngestMessageEvent(self, request, context):
         """IngestMessageEvent delivers one normalized provider message event to Talon.
-        Talon deduplicates by registration_id + event_id, resolves a Connector by
-        match_fields, and dispatches the message to the resolved Connector target.
+        Talon deduplicates under the ConnectorClass registration by event_id,
+        resolves a Connector by match_fields, and dispatches the message to the
+        resolved Connector target.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')

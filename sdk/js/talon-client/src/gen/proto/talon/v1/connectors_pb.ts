@@ -189,8 +189,9 @@ export class ConnectorMessageEvent extends Message<ConnectorMessageEvent> {
   eventKind = "";
 
   /**
-   * Registration identifier assigned to the ConnectorClass by the connector
-   * service. This scopes webhook delivery to one Talon cluster registration.
+   * Talon-owned ConnectorClass registration identifier, formatted as
+   * Namespace/<namespace>/ConnectorClass/<name>. This scopes webhook delivery
+   * to one ConnectorClass registration.
    *
    * @generated from field: string registration_id = 3;
    */
@@ -335,7 +336,8 @@ export class ConnectorMessageEventResponse extends Message<ConnectorMessageEvent
   accepted = false;
 
   /**
-   * True when Talon had already seen registration_id + event_id.
+   * True when Talon had already seen this event_id under the ConnectorClass
+   * registration.
    *
    * @generated from field: bool duplicate = 2;
    */
@@ -417,8 +419,8 @@ export class ConnectorDeliveryRequest extends Message<ConnectorDeliveryRequest> 
   deliveryId = "";
 
   /**
-   * Registration identifier for the connector service that should perform
-   * provider delivery.
+   * Talon-owned ConnectorClass registration identifier for the connector
+   * service that should perform provider delivery.
    *
    * @generated from field: string registration_id = 2;
    */
@@ -595,7 +597,8 @@ export class ConnectorDeliveryResponse extends Message<ConnectorDeliveryResponse
  */
 export class ConnectorStatusEvent extends Message<ConnectorStatusEvent> {
   /**
-   * Registration identifier whose health is being reported.
+   * Talon-owned ConnectorClass registration identifier whose health is being
+   * reported.
    *
    * @generated from field: string registration_id = 1;
    */

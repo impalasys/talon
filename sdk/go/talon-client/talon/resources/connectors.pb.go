@@ -269,9 +269,9 @@ type ConnectorClassStatus struct {
 	// Detailed readiness and error conditions from registration with the
 	// connector service.
 	Conditions []*ResourceCondition `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
-	// Registration identifier assigned by the connector service. Incoming
-	// connector webhooks include this value so Talon can route within the correct
-	// ConnectorClass registration.
+	// Talon-owned registration identifier for this ConnectorClass, formatted as
+	// Namespace/<namespace>/ConnectorClass/<name>. Connector callbacks include
+	// this value so Talon can route within the correct ConnectorClass.
 	RegistrationId string `protobuf:"bytes,4,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
@@ -829,9 +829,18 @@ func (x *Connector) GetStatus() *ConnectorStatus {
 	return nil
 }
 
+// Stored registration cache for one ConnectorClass registration with an
+// external connector service. The ConnectorController writes this message as
+// `ConnectorRegistration/current` under the owning ConnectorClass after the
+// connector runtime accepts `/v1/clusters/register`, refreshes it when the
+// ConnectorClass generation changes, and deletes it when the ConnectorClass is
+// deleted. Gateway ingest uses this entry to authenticate the callback
+// registration id and recover the ConnectorClass match indexes without scanning
+// namespaced resources.
 type ConnectorRegistrationEntry struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Registration identifier assigned by the connector service.
+	// Talon-owned registration identifier, formatted as
+	// Namespace/<namespace>/ConnectorClass/<name>.
 	RegistrationId string `protobuf:"bytes,1,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
 	// Namespace that owns the ConnectorClass for this registration.
 	ClassNamespace string `protobuf:"bytes,2,opt,name=class_namespace,json=classNamespace,proto3" json:"class_namespace,omitempty"`
@@ -912,6 +921,14 @@ func (x *ConnectorRegistrationEntry) GetClassSpec() *ConnectorClassSpec {
 	return nil
 }
 
+// Stored routing entry for one compiled Connector match key. The
+// ConnectorController writes this message under the owning
+// ConnectorRegistration/current child key `ConnectorMatch/<compiled_match_key>`,
+// where the compiled key includes the match-index name and encoded provider
+// match fields. Inbound connector callbacks compute candidate match keys from
+// the event matchFields and read these entries directly; dispatch is therefore
+// indexed by provider account/conversation fields rather than by scanning all
+// Connector resources.
 type ConnectorMatchEntry struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// UID of the Connector resource that produced this compiled route.

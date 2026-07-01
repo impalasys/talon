@@ -213,8 +213,9 @@ type ConnectorMessageEvent struct {
 	// Normalized event kind, such as message_created, message_updated, or
 	// message_deleted. V1 dispatch primarily handles message_created.
 	EventKind string `protobuf:"bytes,2,opt,name=event_kind,json=eventKind,proto3" json:"event_kind,omitempty"`
-	// Registration identifier assigned to the ConnectorClass by the connector
-	// service. This scopes webhook delivery to one Talon cluster registration.
+	// Talon-owned ConnectorClass registration identifier, formatted as
+	// Namespace/<namespace>/ConnectorClass/<name>. This scopes webhook delivery
+	// to one ConnectorClass registration.
 	RegistrationId string `protobuf:"bytes,3,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
 	// ConnectorClass name expected by the connector service. Talon uses this as a
 	// defensive consistency check when resolving the registration.
@@ -383,7 +384,8 @@ type ConnectorMessageEventResponse struct {
 	// True when Talon accepted responsibility for the event, including duplicate
 	// events that were already handled.
 	Accepted bool `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
-	// True when Talon had already seen registration_id + event_id.
+	// True when Talon had already seen this event_id under the ConnectorClass
+	// registration.
 	Duplicate bool `protobuf:"varint,2,opt,name=duplicate,proto3" json:"duplicate,omitempty"`
 	// Machine-readable outcome, such as dispatched, duplicate, or unmatched.
 	Disposition string `protobuf:"bytes,3,opt,name=disposition,proto3" json:"disposition,omitempty"`
@@ -476,8 +478,8 @@ type ConnectorDeliveryRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Talon-generated idempotency key for this outbound delivery request.
 	DeliveryId string `protobuf:"bytes,1,opt,name=delivery_id,json=deliveryId,proto3" json:"delivery_id,omitempty"`
-	// Registration identifier for the connector service that should perform
-	// provider delivery.
+	// Talon-owned ConnectorClass registration identifier for the connector
+	// service that should perform provider delivery.
 	RegistrationId string `protobuf:"bytes,2,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
 	// ConnectorClass name associated with the outbound route.
 	ConnectorClass string `protobuf:"bytes,3,opt,name=connector_class,json=connectorClass,proto3" json:"connector_class,omitempty"`
@@ -684,7 +686,8 @@ func (x *ConnectorDeliveryResponse) GetError() string {
 
 type ConnectorStatusEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Registration identifier whose health is being reported.
+	// Talon-owned ConnectorClass registration identifier whose health is being
+	// reported.
 	RegistrationId string `protobuf:"bytes,1,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
 	// Optional provider-specific route fields identifying the affected Connector
 	// or provider account.

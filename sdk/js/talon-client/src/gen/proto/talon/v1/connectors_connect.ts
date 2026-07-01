@@ -19,8 +19,9 @@ export const ConnectorService = {
   methods: {
     /**
      * IngestMessageEvent delivers one normalized provider message event to Talon.
-     * Talon deduplicates by registration_id + event_id, resolves a Connector by
-     * match_fields, and dispatches the message to the resolved Connector target.
+     * Talon deduplicates under the ConnectorClass registration by event_id,
+     * resolves a Connector by match_fields, and dispatches the message to the
+     * resolved Connector target.
      *
      * @generated from rpc talon.v1.ConnectorService.IngestMessageEvent
      */

@@ -4107,9 +4107,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
     /**
      * <pre>
-     * Registration identifier assigned by the connector service. Incoming
-     * connector webhooks include this value so Talon can route within the correct
-     * ConnectorClass registration.
+     * Talon-owned registration identifier for this ConnectorClass, formatted as
+     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
+     * this value so Talon can route within the correct ConnectorClass.
      * </pre>
      *
      * <code>string registration_id = 4;</code>
@@ -4118,9 +4118,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     java.lang.String getRegistrationId();
     /**
      * <pre>
-     * Registration identifier assigned by the connector service. Incoming
-     * connector webhooks include this value so Talon can route within the correct
-     * ConnectorClass registration.
+     * Talon-owned registration identifier for this ConnectorClass, formatted as
+     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
+     * this value so Talon can route within the correct ConnectorClass.
      * </pre>
      *
      * <code>string registration_id = 4;</code>
@@ -4309,9 +4309,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     private volatile java.lang.Object registrationId_ = "";
     /**
      * <pre>
-     * Registration identifier assigned by the connector service. Incoming
-     * connector webhooks include this value so Talon can route within the correct
-     * ConnectorClass registration.
+     * Talon-owned registration identifier for this ConnectorClass, formatted as
+     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
+     * this value so Talon can route within the correct ConnectorClass.
      * </pre>
      *
      * <code>string registration_id = 4;</code>
@@ -4332,9 +4332,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     }
     /**
      * <pre>
-     * Registration identifier assigned by the connector service. Incoming
-     * connector webhooks include this value so Talon can route within the correct
-     * ConnectorClass registration.
+     * Talon-owned registration identifier for this ConnectorClass, formatted as
+     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
+     * this value so Talon can route within the correct ConnectorClass.
      * </pre>
      *
      * <code>string registration_id = 4;</code>
@@ -5248,9 +5248,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       private java.lang.Object registrationId_ = "";
       /**
        * <pre>
-       * Registration identifier assigned by the connector service. Incoming
-       * connector webhooks include this value so Talon can route within the correct
-       * ConnectorClass registration.
+       * Talon-owned registration identifier for this ConnectorClass, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
+       * this value so Talon can route within the correct ConnectorClass.
        * </pre>
        *
        * <code>string registration_id = 4;</code>
@@ -5270,9 +5270,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Registration identifier assigned by the connector service. Incoming
-       * connector webhooks include this value so Talon can route within the correct
-       * ConnectorClass registration.
+       * Talon-owned registration identifier for this ConnectorClass, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
+       * this value so Talon can route within the correct ConnectorClass.
        * </pre>
        *
        * <code>string registration_id = 4;</code>
@@ -5293,9 +5293,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Registration identifier assigned by the connector service. Incoming
-       * connector webhooks include this value so Talon can route within the correct
-       * ConnectorClass registration.
+       * Talon-owned registration identifier for this ConnectorClass, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
+       * this value so Talon can route within the correct ConnectorClass.
        * </pre>
        *
        * <code>string registration_id = 4;</code>
@@ -5312,9 +5312,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Registration identifier assigned by the connector service. Incoming
-       * connector webhooks include this value so Talon can route within the correct
-       * ConnectorClass registration.
+       * Talon-owned registration identifier for this ConnectorClass, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
+       * this value so Talon can route within the correct ConnectorClass.
        * </pre>
        *
        * <code>string registration_id = 4;</code>
@@ -5328,9 +5328,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Registration identifier assigned by the connector service. Incoming
-       * connector webhooks include this value so Talon can route within the correct
-       * ConnectorClass registration.
+       * Talon-owned registration identifier for this ConnectorClass, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
+       * this value so Talon can route within the correct ConnectorClass.
        * </pre>
        *
        * <code>string registration_id = 4;</code>
@@ -13537,7 +13537,8 @@ java.lang.String defaultValue) {
 
     /**
      * <pre>
-     * Registration identifier assigned by the connector service.
+     * Talon-owned registration identifier, formatted as
+     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
      * </pre>
      *
      * <code>string registration_id = 1;</code>
@@ -13546,7 +13547,8 @@ java.lang.String defaultValue) {
     java.lang.String getRegistrationId();
     /**
      * <pre>
-     * Registration identifier assigned by the connector service.
+     * Talon-owned registration identifier, formatted as
+     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
      * </pre>
      *
      * <code>string registration_id = 1;</code>
@@ -13637,6 +13639,17 @@ java.lang.String defaultValue) {
     talon.resources.Connectors.ConnectorClassSpecOrBuilder getClassSpecOrBuilder();
   }
   /**
+   * <pre>
+   * Stored registration cache for one ConnectorClass registration with an
+   * external connector service. The ConnectorController writes this message as
+   * `ConnectorRegistration/current` under the owning ConnectorClass after the
+   * connector runtime accepts `/v1/clusters/register`, refreshes it when the
+   * ConnectorClass generation changes, and deletes it when the ConnectorClass is
+   * deleted. Gateway ingest uses this entry to authenticate the callback
+   * registration id and recover the ConnectorClass match indexes without scanning
+   * namespaced resources.
+   * </pre>
+   *
    * Protobuf type {@code talon.resources.ConnectorRegistrationEntry}
    */
   public static final class ConnectorRegistrationEntry extends
@@ -13687,7 +13700,8 @@ java.lang.String defaultValue) {
     private volatile java.lang.Object registrationId_ = "";
     /**
      * <pre>
-     * Registration identifier assigned by the connector service.
+     * Talon-owned registration identifier, formatted as
+     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
      * </pre>
      *
      * <code>string registration_id = 1;</code>
@@ -13708,7 +13722,8 @@ java.lang.String defaultValue) {
     }
     /**
      * <pre>
-     * Registration identifier assigned by the connector service.
+     * Talon-owned registration identifier, formatted as
+     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
      * </pre>
      *
      * <code>string registration_id = 1;</code>
@@ -14085,6 +14100,17 @@ java.lang.String defaultValue) {
       return builder;
     }
     /**
+     * <pre>
+     * Stored registration cache for one ConnectorClass registration with an
+     * external connector service. The ConnectorController writes this message as
+     * `ConnectorRegistration/current` under the owning ConnectorClass after the
+     * connector runtime accepts `/v1/clusters/register`, refreshes it when the
+     * ConnectorClass generation changes, and deletes it when the ConnectorClass is
+     * deleted. Gateway ingest uses this entry to authenticate the callback
+     * registration id and recover the ConnectorClass match indexes without scanning
+     * namespaced resources.
+     * </pre>
+     *
      * Protobuf type {@code talon.resources.ConnectorRegistrationEntry}
      */
     public static final class Builder extends
@@ -14294,7 +14320,8 @@ java.lang.String defaultValue) {
       private java.lang.Object registrationId_ = "";
       /**
        * <pre>
-       * Registration identifier assigned by the connector service.
+       * Talon-owned registration identifier, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
        * </pre>
        *
        * <code>string registration_id = 1;</code>
@@ -14314,7 +14341,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier assigned by the connector service.
+       * Talon-owned registration identifier, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
        * </pre>
        *
        * <code>string registration_id = 1;</code>
@@ -14335,7 +14363,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier assigned by the connector service.
+       * Talon-owned registration identifier, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
        * </pre>
        *
        * <code>string registration_id = 1;</code>
@@ -14352,7 +14381,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier assigned by the connector service.
+       * Talon-owned registration identifier, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
        * </pre>
        *
        * <code>string registration_id = 1;</code>
@@ -14366,7 +14396,8 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Registration identifier assigned by the connector service.
+       * Talon-owned registration identifier, formatted as
+       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
        * </pre>
        *
        * <code>string registration_id = 1;</code>
@@ -14976,6 +15007,17 @@ java.lang.String defaultValue) {
         getClassNamespaceBytes();
   }
   /**
+   * <pre>
+   * Stored routing entry for one compiled Connector match key. The
+   * ConnectorController writes this message under the owning
+   * ConnectorRegistration/current child key `ConnectorMatch/&lt;compiled_match_key&gt;`,
+   * where the compiled key includes the match-index name and encoded provider
+   * match fields. Inbound connector callbacks compute candidate match keys from
+   * the event matchFields and read these entries directly; dispatch is therefore
+   * indexed by provider account/conversation fields rather than by scanning all
+   * Connector resources.
+   * </pre>
+   *
    * Protobuf type {@code talon.resources.ConnectorMatchEntry}
    */
   public static final class ConnectorMatchEntry extends
@@ -15539,6 +15581,17 @@ java.lang.String defaultValue) {
       return builder;
     }
     /**
+     * <pre>
+     * Stored routing entry for one compiled Connector match key. The
+     * ConnectorController writes this message under the owning
+     * ConnectorRegistration/current child key `ConnectorMatch/&lt;compiled_match_key&gt;`,
+     * where the compiled key includes the match-index name and encoded provider
+     * match fields. Inbound connector callbacks compute candidate match keys from
+     * the event matchFields and read these entries directly; dispatch is therefore
+     * indexed by provider account/conversation fields rather than by scanning all
+     * Connector resources.
+     * </pre>
+     *
      * Protobuf type {@code talon.resources.ConnectorMatchEntry}
      */
     public static final class Builder extends

@@ -33,8 +33,9 @@ const (
 // Channels after a normalized event is accepted here.
 type ConnectorServiceClient interface {
 	// IngestMessageEvent delivers one normalized provider message event to Talon.
-	// Talon deduplicates by registration_id + event_id, resolves a Connector by
-	// match_fields, and dispatches the message to the resolved Connector target.
+	// Talon deduplicates under the ConnectorClass registration by event_id,
+	// resolves a Connector by match_fields, and dispatches the message to the
+	// resolved Connector target.
 	IngestMessageEvent(ctx context.Context, in *ConnectorMessageEvent, opts ...grpc.CallOption) (*ConnectorMessageEventResponse, error)
 	// ReportStatus lets the connector service report registration or provider
 	// connection health without sending a message event.
@@ -79,8 +80,9 @@ func (c *connectorServiceClient) ReportStatus(ctx context.Context, in *Connector
 // Channels after a normalized event is accepted here.
 type ConnectorServiceServer interface {
 	// IngestMessageEvent delivers one normalized provider message event to Talon.
-	// Talon deduplicates by registration_id + event_id, resolves a Connector by
-	// match_fields, and dispatches the message to the resolved Connector target.
+	// Talon deduplicates under the ConnectorClass registration by event_id,
+	// resolves a Connector by match_fields, and dispatches the message to the
+	// resolved Connector target.
 	IngestMessageEvent(context.Context, *ConnectorMessageEvent) (*ConnectorMessageEventResponse, error)
 	// ReportStatus lets the connector service report registration or provider
 	// connection health without sending a message event.

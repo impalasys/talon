@@ -1104,9 +1104,9 @@ pub struct ConnectorClassStatus {
     /// connector service.
     #[prost(message, repeated, tag = "3")]
     pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
-    /// Registration identifier assigned by the connector service. Incoming
-    /// connector webhooks include this value so Talon can route within the correct
-    /// ConnectorClass registration.
+    /// Talon-owned registration identifier for this ConnectorClass, formatted as
+    /// Namespace/<namespace>/ConnectorClass/<name>. Connector callbacks include
+    /// this value so Talon can route within the correct ConnectorClass.
     #[prost(string, tag = "4")]
     pub registration_id: ::prost::alloc::string::String,
 }
@@ -1222,9 +1222,18 @@ pub struct Connector {
     #[prost(message, optional, tag = "3")]
     pub status: ::core::option::Option<ConnectorStatus>,
 }
+/// Stored registration cache for one ConnectorClass registration with an
+/// external connector service. The ConnectorController writes this message as
+/// `ConnectorRegistration/current` under the owning ConnectorClass after the
+/// connector runtime accepts `/v1/clusters/register`, refreshes it when the
+/// ConnectorClass generation changes, and deletes it when the ConnectorClass is
+/// deleted. Gateway ingest uses this entry to authenticate the callback
+/// registration id and recover the ConnectorClass match indexes without scanning
+/// namespaced resources.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorRegistrationEntry {
-    /// Registration identifier assigned by the connector service.
+    /// Talon-owned registration identifier, formatted as
+    /// Namespace/<namespace>/ConnectorClass/<name>.
     #[prost(string, tag = "1")]
     pub registration_id: ::prost::alloc::string::String,
     /// Namespace that owns the ConnectorClass for this registration.
@@ -1242,6 +1251,14 @@ pub struct ConnectorRegistrationEntry {
     #[prost(message, optional, tag = "5")]
     pub class_spec: ::core::option::Option<ConnectorClassSpec>,
 }
+/// Stored routing entry for one compiled Connector match key. The
+/// ConnectorController writes this message under the owning
+/// ConnectorRegistration/current child key `ConnectorMatch/<compiled_match_key>`,
+/// where the compiled key includes the match-index name and encoded provider
+/// match fields. Inbound connector callbacks compute candidate match keys from
+/// the event matchFields and read these entries directly; dispatch is therefore
+/// indexed by provider account/conversation fields rather than by scanning all
+/// Connector resources.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorMatchEntry {
     /// UID of the Connector resource that produced this compiled route.
