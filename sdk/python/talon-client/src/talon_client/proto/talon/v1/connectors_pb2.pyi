@@ -1,4 +1,4 @@
-from talon_client.proto.resources import connectors_pb2 as _connectors_pb2
+from talon_client.proto.resources import routing_pb2 as _routing_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -86,20 +86,20 @@ class ConnectorMessageEvent(_message.Message):
     def __init__(self, event_id: _Optional[str] = ..., event_kind: _Optional[str] = ..., registration_id: _Optional[str] = ..., connector_class: _Optional[str] = ..., match_fields: _Optional[_Mapping[str, str]] = ..., external_conversation_id: _Optional[str] = ..., external_thread_id: _Optional[str] = ..., external_message_id: _Optional[str] = ..., conversation_type: _Optional[str] = ..., sender: _Optional[_Union[ConnectorActor, _Mapping]] = ..., text: _Optional[str] = ..., attachments: _Optional[_Iterable[_Union[ConnectorAttachment, _Mapping]]] = ..., event_time_ms: _Optional[int] = ..., labels: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class ConnectorMessageEventResponse(_message.Message):
-    __slots__ = ("accepted", "duplicate", "disposition", "namespace", "connector_name", "target")
+    __slots__ = ("accepted", "duplicate", "disposition", "namespace", "connector_name", "consumer")
     ACCEPTED_FIELD_NUMBER: _ClassVar[int]
     DUPLICATE_FIELD_NUMBER: _ClassVar[int]
     DISPOSITION_FIELD_NUMBER: _ClassVar[int]
     NAMESPACE_FIELD_NUMBER: _ClassVar[int]
     CONNECTOR_NAME_FIELD_NUMBER: _ClassVar[int]
-    TARGET_FIELD_NUMBER: _ClassVar[int]
+    CONSUMER_FIELD_NUMBER: _ClassVar[int]
     accepted: bool
     duplicate: bool
     disposition: str
     namespace: str
     connector_name: str
-    target: _connectors_pb2.ConnectorTarget
-    def __init__(self, accepted: bool = ..., duplicate: bool = ..., disposition: _Optional[str] = ..., namespace: _Optional[str] = ..., connector_name: _Optional[str] = ..., target: _Optional[_Union[_connectors_pb2.ConnectorTarget, _Mapping]] = ...) -> None: ...
+    consumer: _routing_pb2.MessageConsumer
+    def __init__(self, accepted: bool = ..., duplicate: bool = ..., disposition: _Optional[str] = ..., namespace: _Optional[str] = ..., connector_name: _Optional[str] = ..., consumer: _Optional[_Union[_routing_pb2.MessageConsumer, _Mapping]] = ...) -> None: ...
 
 class ConnectorDeliveryRequest(_message.Message):
     __slots__ = ("delivery_id", "registration_id", "connector_class", "namespace", "connector_name", "match_fields", "external_conversation_id", "external_thread_id", "reply_to_external_message_id", "text", "attachments", "labels")

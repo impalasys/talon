@@ -103,7 +103,7 @@ impl ControllerHost {
                         } else if event.change_type
                             == crate::control::events::ResourceChangeType::Deleted as i32
                         {
-                            crate::worker::controllers::connectors::delete_registration_entries_for_class(
+                            crate::worker::controllers::connectors::delete_connector_class_entries(
                                 self.cp.kv.as_ref(),
                                 &event.namespace,
                                 &event.name,
@@ -150,7 +150,7 @@ impl ControllerHost {
                                     let Some(meta) = class.metadata.as_ref() else {
                                         continue;
                                     };
-                                    crate::worker::controllers::connectors::delete_match_entries_for_uid(
+                                    crate::worker::controllers::connectors::delete_route_entries_for_uid(
                                         self.cp.kv.as_ref(),
                                         &meta.namespace,
                                         &meta.name,

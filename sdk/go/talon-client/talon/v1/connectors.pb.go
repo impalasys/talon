@@ -395,9 +395,9 @@ type ConnectorMessageEventResponse struct {
 	// Name of the Connector that matched the event. Empty when unmatched or
 	// duplicate without a fresh route lookup.
 	ConnectorName string `protobuf:"bytes,5,opt,name=connector_name,json=connectorName,proto3" json:"connector_name,omitempty"`
-	// Target snapshot used for dispatch. Returned for observability so connector
-	// services can log which Talon destination accepted the event.
-	Target        *resources.ConnectorTarget `protobuf:"bytes,6,opt,name=target,proto3" json:"target,omitempty"`
+	// Consumer snapshot used for dispatch. Returned for observability so
+	// connector services can log which Talon destination accepted the event.
+	Consumer      *resources.MessageConsumer `protobuf:"bytes,6,opt,name=consumer,proto3" json:"consumer,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -467,9 +467,9 @@ func (x *ConnectorMessageEventResponse) GetConnectorName() string {
 	return ""
 }
 
-func (x *ConnectorMessageEventResponse) GetTarget() *resources.ConnectorTarget {
+func (x *ConnectorMessageEventResponse) GetConsumer() *resources.MessageConsumer {
 	if x != nil {
-		return x.Target
+		return x.Consumer
 	}
 	return nil
 }
@@ -817,7 +817,7 @@ var File_proto_talon_v1_connectors_proto protoreflect.FileDescriptor
 
 const file_proto_talon_v1_connectors_proto_rawDesc = "" +
 	"\n" +
-	"\x1fproto/talon/v1/connectors.proto\x12\btalon.v1\x1a proto/resources/connectors.proto\"\x9c\x01\n" +
+	"\x1fproto/talon/v1/connectors.proto\x12\btalon.v1\x1a\x1dproto/resources/routing.proto\"\x9c\x01\n" +
 	"\x0eConnectorActor\x12(\n" +
 	"\x10external_user_id\x18\x01 \x01(\tR\x0eexternalUserId\x12)\n" +
 	"\x10external_address\x18\x02 \x01(\tR\x0fexternalAddress\x12!\n" +
@@ -859,14 +859,14 @@ const file_proto_talon_v1_connectors_proto_rawDesc = "" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x15\n" +
-	"\x13_external_thread_id\"\xfa\x01\n" +
+	"\x13_external_thread_id\"\xfe\x01\n" +
 	"\x1dConnectorMessageEventResponse\x12\x1a\n" +
 	"\baccepted\x18\x01 \x01(\bR\baccepted\x12\x1c\n" +
 	"\tduplicate\x18\x02 \x01(\bR\tduplicate\x12 \n" +
 	"\vdisposition\x18\x03 \x01(\tR\vdisposition\x12\x1c\n" +
 	"\tnamespace\x18\x04 \x01(\tR\tnamespace\x12%\n" +
-	"\x0econnector_name\x18\x05 \x01(\tR\rconnectorName\x128\n" +
-	"\x06target\x18\x06 \x01(\v2 .talon.resources.ConnectorTargetR\x06target\"\xac\x06\n" +
+	"\x0econnector_name\x18\x05 \x01(\tR\rconnectorName\x12<\n" +
+	"\bconsumer\x18\x06 \x01(\v2 .talon.resources.MessageConsumerR\bconsumer\"\xac\x06\n" +
 	"\x18ConnectorDeliveryRequest\x12\x1f\n" +
 	"\vdelivery_id\x18\x01 \x01(\tR\n" +
 	"deliveryId\x12'\n" +
@@ -936,14 +936,14 @@ var file_proto_talon_v1_connectors_proto_goTypes = []any{
 	nil,                                   // 10: talon.v1.ConnectorDeliveryRequest.MatchFieldsEntry
 	nil,                                   // 11: talon.v1.ConnectorDeliveryRequest.LabelsEntry
 	nil,                                   // 12: talon.v1.ConnectorStatusEvent.MatchFieldsEntry
-	(*resources.ConnectorTarget)(nil),     // 13: talon.resources.ConnectorTarget
+	(*resources.MessageConsumer)(nil),     // 13: talon.resources.MessageConsumer
 }
 var file_proto_talon_v1_connectors_proto_depIdxs = []int32{
 	8,  // 0: talon.v1.ConnectorMessageEvent.match_fields:type_name -> talon.v1.ConnectorMessageEvent.MatchFieldsEntry
 	0,  // 1: talon.v1.ConnectorMessageEvent.sender:type_name -> talon.v1.ConnectorActor
 	1,  // 2: talon.v1.ConnectorMessageEvent.attachments:type_name -> talon.v1.ConnectorAttachment
 	9,  // 3: talon.v1.ConnectorMessageEvent.labels:type_name -> talon.v1.ConnectorMessageEvent.LabelsEntry
-	13, // 4: talon.v1.ConnectorMessageEventResponse.target:type_name -> talon.resources.ConnectorTarget
+	13, // 4: talon.v1.ConnectorMessageEventResponse.consumer:type_name -> talon.resources.MessageConsumer
 	10, // 5: talon.v1.ConnectorDeliveryRequest.match_fields:type_name -> talon.v1.ConnectorDeliveryRequest.MatchFieldsEntry
 	1,  // 6: talon.v1.ConnectorDeliveryRequest.attachments:type_name -> talon.v1.ConnectorAttachment
 	11, // 7: talon.v1.ConnectorDeliveryRequest.labels:type_name -> talon.v1.ConnectorDeliveryRequest.LabelsEntry

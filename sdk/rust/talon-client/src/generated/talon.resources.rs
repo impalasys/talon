@@ -1047,6 +1047,52 @@ pub struct Worker {
     pub status: ::core::option::Option<WorkerStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SessionMessageConsumer {
+    /// Agent that consumes matching messages through a Talon Session.
+    #[prost(message, optional, tag = "1")]
+    pub agent: ::core::option::Option<ResourceRef>,
+    /// Session continuity policy. "reuse" reuses the connector session pointer
+    /// for the external conversation/thread; any other value creates a new
+    /// Session for each message.
+    #[prost(string, tag = "2")]
+    pub continuity: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ChannelMessageConsumer {
+    /// Channel that receives matching messages before agent routing.
+    #[prost(message, optional, tag = "1")]
+    pub channel: ::core::option::Option<ResourceRef>,
+    /// Agent that consumes the persisted Channel message.
+    #[prost(message, optional, tag = "2")]
+    pub agent: ::core::option::Option<ResourceRef>,
+    /// Channel routing continuity policy. This is reserved for channel dispatch
+    /// policies that create agent runtime context per message or thread.
+    #[prost(string, tag = "3")]
+    pub continuity: ::prost::alloc::string::String,
+    /// Reply behavior requested from the connector-aware channel router, such as
+    /// replying in the provider thread instead of the root conversation.
+    #[prost(string, tag = "4")]
+    pub reply_policy: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MessageConsumer {
+    #[prost(oneof = "message_consumer::Consumer", tags = "1, 2")]
+    pub consumer: ::core::option::Option<message_consumer::Consumer>,
+}
+/// Nested message and enum types in `MessageConsumer`.
+pub mod message_consumer {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Consumer {
+        /// Deliver matching messages directly to a Talon Session.
+        #[prost(message, tag = "1")]
+        Session(super::SessionMessageConsumer),
+        /// Persist matching messages into a Talon Channel, then route the message to
+        /// the configured Agent.
+        #[prost(message, tag = "2")]
+        Channel(super::ChannelMessageConsumer),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorClassRuntimeSpec {
     /// Runtime implementation type, for example an HTTP connector service.
     #[prost(string, tag = "1")]
@@ -1104,57 +1150,6 @@ pub struct ConnectorClassStatus {
     /// connector service.
     #[prost(message, repeated, tag = "3")]
     pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
-    /// Talon-owned registration identifier for this ConnectorClass, formatted as
-    /// Namespace/<namespace>/ConnectorClass/<name>. Connector callbacks include
-    /// this value so Talon can route within the correct ConnectorClass.
-    #[prost(string, tag = "4")]
-    pub registration_id: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ConnectorSessionTarget {
-    /// Talon Agent name that receives matching connector messages.
-    #[prost(string, tag = "1")]
-    pub agent: ::prost::alloc::string::String,
-    /// Session continuity policy. "reuse" reuses the Connector's session pointer
-    /// for the external conversation/thread; any other value creates a new
-    /// Session for each message.
-    #[prost(string, tag = "2")]
-    pub continuity: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ConnectorChannelTarget {
-    /// Talon Channel name that receives matching connector messages.
-    #[prost(string, tag = "1")]
-    pub channel: ::prost::alloc::string::String,
-    /// Talon Agent name to route the channel message to after it is persisted.
-    #[prost(string, tag = "2")]
-    pub agent: ::prost::alloc::string::String,
-    /// Channel routing continuity policy. This is reserved for channel dispatch
-    /// policies that create agent runtime context per message or thread.
-    #[prost(string, tag = "3")]
-    pub continuity: ::prost::alloc::string::String,
-    /// Reply behavior requested from the connector-aware channel router, such as
-    /// replying in the provider thread instead of the root conversation.
-    #[prost(string, tag = "4")]
-    pub reply_policy: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ConnectorTarget {
-    #[prost(oneof = "connector_target::Destination", tags = "1, 2")]
-    pub destination: ::core::option::Option<connector_target::Destination>,
-}
-/// Nested message and enum types in `ConnectorTarget`.
-pub mod connector_target {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Destination {
-        /// Deliver matching connector messages directly to a Talon Session.
-        #[prost(message, tag = "1")]
-        Session(super::ConnectorSessionTarget),
-        /// Persist matching connector messages into a Talon Channel, then route the
-        /// message to the configured Agent.
-        #[prost(message, tag = "2")]
-        Channel(super::ConnectorChannelTarget),
-    }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorSpec {
@@ -1175,9 +1170,9 @@ pub struct ConnectorSpec {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
-    /// Single Talon destination for messages that match this Connector.
+    /// Single Talon message consumer for messages that match this Connector.
     #[prost(message, optional, tag = "4")]
-    pub target: ::core::option::Option<ConnectorTarget>,
+    pub consumer: ::core::option::Option<MessageConsumer>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorStatus {
@@ -1190,10 +1185,10 @@ pub struct ConnectorStatus {
     /// Detailed route-indexing readiness and validation conditions.
     #[prost(message, repeated, tag = "3")]
     pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
-    /// Materialized KV routing keys generated from match_fields and the owning
+    /// Materialized route IDs generated from match_fields and the owning
     /// ConnectorClass match indexes.
     #[prost(string, repeated, tag = "4")]
-    pub compiled_match_keys: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    pub compiled_route_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorClass {
@@ -1215,74 +1210,12 @@ pub struct Connector {
     /// namespace whose messages it routes into Talon.
     #[prost(message, optional, tag = "1")]
     pub metadata: ::core::option::Option<ResourceMeta>,
-    /// Desired provider match and Talon destination for one route.
+    /// Desired provider match and Talon message consumer for one route.
     #[prost(message, optional, tag = "2")]
     pub spec: ::core::option::Option<ConnectorSpec>,
     /// Observed route-indexing state for this Connector.
     #[prost(message, optional, tag = "3")]
     pub status: ::core::option::Option<ConnectorStatus>,
-}
-/// Stored registration cache for one ConnectorClass registration with an
-/// external connector service. The ConnectorController writes this message as
-/// `ConnectorRegistration/current` under the owning ConnectorClass after the
-/// connector runtime accepts `/v1/clusters/register`, refreshes it when the
-/// ConnectorClass generation changes, and deletes it when the ConnectorClass is
-/// deleted. Gateway ingest uses this entry to authenticate the callback
-/// registration id and recover the ConnectorClass match indexes without scanning
-/// namespaced resources.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ConnectorRegistrationEntry {
-    /// Talon-owned registration identifier, formatted as
-    /// Namespace/<namespace>/ConnectorClass/<name>.
-    #[prost(string, tag = "1")]
-    pub registration_id: ::prost::alloc::string::String,
-    /// Namespace that owns the ConnectorClass for this registration.
-    #[prost(string, tag = "2")]
-    pub class_namespace: ::prost::alloc::string::String,
-    /// ConnectorClass name for this registration.
-    #[prost(string, tag = "3")]
-    pub class_name: ::prost::alloc::string::String,
-    /// ConnectorClass generation captured when this registration index was
-    /// written.
-    #[prost(uint64, tag = "4")]
-    pub generation: u64,
-    /// Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-    /// hot ingest path resolve provider match keys with one registration lookup.
-    #[prost(message, optional, tag = "5")]
-    pub class_spec: ::core::option::Option<ConnectorClassSpec>,
-}
-/// Stored routing entry for one compiled Connector match key. The
-/// ConnectorController writes this message under the owning
-/// ConnectorRegistration/current child key `ConnectorMatch/<compiled_match_key>`,
-/// where the compiled key includes the match-index name and encoded provider
-/// match fields. Inbound connector callbacks compute candidate match keys from
-/// the event matchFields and read these entries directly; dispatch is therefore
-/// indexed by provider account/conversation fields rather than by scanning all
-/// Connector resources.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ConnectorMatchEntry {
-    /// UID of the Connector resource that produced this compiled route.
-    #[prost(string, tag = "1")]
-    pub connector_uid: ::prost::alloc::string::String,
-    /// Namespace that owns the matching Connector and dispatch target.
-    #[prost(string, tag = "2")]
-    pub namespace: ::prost::alloc::string::String,
-    /// Name of the Connector resource that produced this compiled route.
-    #[prost(string, tag = "3")]
-    pub connector_name: ::prost::alloc::string::String,
-    /// ConnectorClass name used to compile this route.
-    #[prost(string, tag = "4")]
-    pub class_name: ::prost::alloc::string::String,
-    /// Connector resource generation captured when this route entry was compiled.
-    #[prost(uint64, tag = "5")]
-    pub generation: u64,
-    /// Snapshot of the Connector target stored in the route index so ingest can
-    /// dispatch without re-reading the full Connector resource.
-    #[prost(message, optional, tag = "6")]
-    pub target: ::core::option::Option<ConnectorTarget>,
-    /// Namespace of the ConnectorClass used to compile this route.
-    #[prost(string, tag = "7")]
-    pub class_namespace: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Resource {

@@ -24,6 +24,7 @@ PROTO_SRCS=(
   proto/resources/knowledge.proto
   proto/resources/namespaces.proto
   proto/resources/channels.proto
+  proto/resources/routing.proto
   proto/resources/connectors.proto
   proto/resources/schedules.proto
   proto/resources/workflows.proto
@@ -36,6 +37,7 @@ PROTO_SRCS=(
   proto/resources/resource.proto
   proto/harness/llm.proto
   proto/data/api_keys.proto
+  proto/data/connectors.proto
   proto/data/data.proto
   proto/data/search.proto
   proto/data/session_submission.proto
@@ -89,6 +91,7 @@ GO_OPTS=(
   "--go_opt=Mproto/resources/knowledge.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/namespaces.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/channels.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/routing.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/connectors.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/schedules.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/workflows.proto=${GO_MODULE}/talon/resources"
@@ -101,6 +104,7 @@ GO_OPTS=(
   "--go_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/harness/llm.proto=${GO_MODULE}/talon/harness"
   "--go_opt=Mproto/data/api_keys.proto=${GO_MODULE}/talon/data"
+  "--go_opt=Mproto/data/connectors.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/search.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"
@@ -122,6 +126,7 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/resources/knowledge.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/namespaces.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/channels.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/routing.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/connectors.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/schedules.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/workflows.proto=${GO_MODULE}/talon/resources"
@@ -134,6 +139,7 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/harness/llm.proto=${GO_MODULE}/talon/harness"
   "--go-grpc_opt=Mproto/data/api_keys.proto=${GO_MODULE}/talon/data"
+  "--go-grpc_opt=Mproto/data/connectors.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/search.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"

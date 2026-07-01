@@ -268,13 +268,9 @@ type ConnectorClassStatus struct {
 	Phase string `protobuf:"bytes,2,opt,name=phase,proto3" json:"phase,omitempty"`
 	// Detailed readiness and error conditions from registration with the
 	// connector service.
-	Conditions []*ResourceCondition `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
-	// Talon-owned registration identifier for this ConnectorClass, formatted as
-	// Namespace/<namespace>/ConnectorClass/<name>. Connector callbacks include
-	// this value so Talon can route within the correct ConnectorClass.
-	RegistrationId string `protobuf:"bytes,4,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	Conditions    []*ResourceCondition `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ConnectorClassStatus) Reset() {
@@ -328,228 +324,6 @@ func (x *ConnectorClassStatus) GetConditions() []*ResourceCondition {
 	return nil
 }
 
-func (x *ConnectorClassStatus) GetRegistrationId() string {
-	if x != nil {
-		return x.RegistrationId
-	}
-	return ""
-}
-
-type ConnectorSessionTarget struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Talon Agent name that receives matching connector messages.
-	Agent string `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
-	// Session continuity policy. "reuse" reuses the Connector's session pointer
-	// for the external conversation/thread; any other value creates a new
-	// Session for each message.
-	Continuity    string `protobuf:"bytes,2,opt,name=continuity,proto3" json:"continuity,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ConnectorSessionTarget) Reset() {
-	*x = ConnectorSessionTarget{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ConnectorSessionTarget) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ConnectorSessionTarget) ProtoMessage() {}
-
-func (x *ConnectorSessionTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ConnectorSessionTarget.ProtoReflect.Descriptor instead.
-func (*ConnectorSessionTarget) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *ConnectorSessionTarget) GetAgent() string {
-	if x != nil {
-		return x.Agent
-	}
-	return ""
-}
-
-func (x *ConnectorSessionTarget) GetContinuity() string {
-	if x != nil {
-		return x.Continuity
-	}
-	return ""
-}
-
-type ConnectorChannelTarget struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Talon Channel name that receives matching connector messages.
-	Channel string `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
-	// Talon Agent name to route the channel message to after it is persisted.
-	Agent string `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
-	// Channel routing continuity policy. This is reserved for channel dispatch
-	// policies that create agent runtime context per message or thread.
-	Continuity string `protobuf:"bytes,3,opt,name=continuity,proto3" json:"continuity,omitempty"`
-	// Reply behavior requested from the connector-aware channel router, such as
-	// replying in the provider thread instead of the root conversation.
-	ReplyPolicy   string `protobuf:"bytes,4,opt,name=reply_policy,json=replyPolicy,proto3" json:"reply_policy,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ConnectorChannelTarget) Reset() {
-	*x = ConnectorChannelTarget{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ConnectorChannelTarget) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ConnectorChannelTarget) ProtoMessage() {}
-
-func (x *ConnectorChannelTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ConnectorChannelTarget.ProtoReflect.Descriptor instead.
-func (*ConnectorChannelTarget) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *ConnectorChannelTarget) GetChannel() string {
-	if x != nil {
-		return x.Channel
-	}
-	return ""
-}
-
-func (x *ConnectorChannelTarget) GetAgent() string {
-	if x != nil {
-		return x.Agent
-	}
-	return ""
-}
-
-func (x *ConnectorChannelTarget) GetContinuity() string {
-	if x != nil {
-		return x.Continuity
-	}
-	return ""
-}
-
-func (x *ConnectorChannelTarget) GetReplyPolicy() string {
-	if x != nil {
-		return x.ReplyPolicy
-	}
-	return ""
-}
-
-type ConnectorTarget struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Destination:
-	//
-	//	*ConnectorTarget_Session
-	//	*ConnectorTarget_Channel
-	Destination   isConnectorTarget_Destination `protobuf_oneof:"destination"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ConnectorTarget) Reset() {
-	*x = ConnectorTarget{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ConnectorTarget) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ConnectorTarget) ProtoMessage() {}
-
-func (x *ConnectorTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ConnectorTarget.ProtoReflect.Descriptor instead.
-func (*ConnectorTarget) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *ConnectorTarget) GetDestination() isConnectorTarget_Destination {
-	if x != nil {
-		return x.Destination
-	}
-	return nil
-}
-
-func (x *ConnectorTarget) GetSession() *ConnectorSessionTarget {
-	if x != nil {
-		if x, ok := x.Destination.(*ConnectorTarget_Session); ok {
-			return x.Session
-		}
-	}
-	return nil
-}
-
-func (x *ConnectorTarget) GetChannel() *ConnectorChannelTarget {
-	if x != nil {
-		if x, ok := x.Destination.(*ConnectorTarget_Channel); ok {
-			return x.Channel
-		}
-	}
-	return nil
-}
-
-type isConnectorTarget_Destination interface {
-	isConnectorTarget_Destination()
-}
-
-type ConnectorTarget_Session struct {
-	// Deliver matching connector messages directly to a Talon Session.
-	Session *ConnectorSessionTarget `protobuf:"bytes,1,opt,name=session,proto3,oneof"`
-}
-
-type ConnectorTarget_Channel struct {
-	// Persist matching connector messages into a Talon Channel, then route the
-	// message to the configured Agent.
-	Channel *ConnectorChannelTarget `protobuf:"bytes,2,opt,name=channel,proto3,oneof"`
-}
-
-func (*ConnectorTarget_Session) isConnectorTarget_Destination() {}
-
-func (*ConnectorTarget_Channel) isConnectorTarget_Destination() {}
-
 type ConnectorSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// ConnectorClass that owns the platform adapter and match index definitions.
@@ -563,15 +337,15 @@ type ConnectorSpec struct {
 	// iMessage profile identifier. Talon treats these as opaque keys described by
 	// the ConnectorClass match indexes.
 	MatchFields map[string]string `protobuf:"bytes,3,rep,name=match_fields,json=matchFields,proto3" json:"match_fields,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Single Talon destination for messages that match this Connector.
-	Target        *ConnectorTarget `protobuf:"bytes,4,opt,name=target,proto3" json:"target,omitempty"`
+	// Single Talon message consumer for messages that match this Connector.
+	Consumer      *MessageConsumer `protobuf:"bytes,4,opt,name=consumer,proto3" json:"consumer,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ConnectorSpec) Reset() {
 	*x = ConnectorSpec{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[8]
+	mi := &file_proto_resources_connectors_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -583,7 +357,7 @@ func (x *ConnectorSpec) String() string {
 func (*ConnectorSpec) ProtoMessage() {}
 
 func (x *ConnectorSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[8]
+	mi := &file_proto_resources_connectors_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -596,7 +370,7 @@ func (x *ConnectorSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectorSpec.ProtoReflect.Descriptor instead.
 func (*ConnectorSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{8}
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ConnectorSpec) GetClassRef() *ResourceRef {
@@ -620,9 +394,9 @@ func (x *ConnectorSpec) GetMatchFields() map[string]string {
 	return nil
 }
 
-func (x *ConnectorSpec) GetTarget() *ConnectorTarget {
+func (x *ConnectorSpec) GetConsumer() *MessageConsumer {
 	if x != nil {
-		return x.Target
+		return x.Consumer
 	}
 	return nil
 }
@@ -635,16 +409,16 @@ type ConnectorStatus struct {
 	Phase string `protobuf:"bytes,2,opt,name=phase,proto3" json:"phase,omitempty"`
 	// Detailed route-indexing readiness and validation conditions.
 	Conditions []*ResourceCondition `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
-	// Materialized KV routing keys generated from match_fields and the owning
+	// Materialized route IDs generated from match_fields and the owning
 	// ConnectorClass match indexes.
-	CompiledMatchKeys []string `protobuf:"bytes,4,rep,name=compiled_match_keys,json=compiledMatchKeys,proto3" json:"compiled_match_keys,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	CompiledRouteIds []string `protobuf:"bytes,4,rep,name=compiled_route_ids,json=compiledRouteIds,proto3" json:"compiled_route_ids,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *ConnectorStatus) Reset() {
 	*x = ConnectorStatus{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[9]
+	mi := &file_proto_resources_connectors_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -656,7 +430,7 @@ func (x *ConnectorStatus) String() string {
 func (*ConnectorStatus) ProtoMessage() {}
 
 func (x *ConnectorStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[9]
+	mi := &file_proto_resources_connectors_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -669,7 +443,7 @@ func (x *ConnectorStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectorStatus.ProtoReflect.Descriptor instead.
 func (*ConnectorStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{9}
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ConnectorStatus) GetObservedGeneration() uint64 {
@@ -693,9 +467,9 @@ func (x *ConnectorStatus) GetConditions() []*ResourceCondition {
 	return nil
 }
 
-func (x *ConnectorStatus) GetCompiledMatchKeys() []string {
+func (x *ConnectorStatus) GetCompiledRouteIds() []string {
 	if x != nil {
-		return x.CompiledMatchKeys
+		return x.CompiledRouteIds
 	}
 	return nil
 }
@@ -716,7 +490,7 @@ type ConnectorClass struct {
 
 func (x *ConnectorClass) Reset() {
 	*x = ConnectorClass{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[10]
+	mi := &file_proto_resources_connectors_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -728,7 +502,7 @@ func (x *ConnectorClass) String() string {
 func (*ConnectorClass) ProtoMessage() {}
 
 func (x *ConnectorClass) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[10]
+	mi := &file_proto_resources_connectors_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -741,7 +515,7 @@ func (x *ConnectorClass) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectorClass.ProtoReflect.Descriptor instead.
 func (*ConnectorClass) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{10}
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ConnectorClass) GetMetadata() *ResourceMeta {
@@ -770,7 +544,7 @@ type Connector struct {
 	// Standard namespaced resource metadata. Each Connector is owned by the
 	// namespace whose messages it routes into Talon.
 	Metadata *ResourceMeta `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	// Desired provider match and Talon destination for one route.
+	// Desired provider match and Talon message consumer for one route.
 	Spec *ConnectorSpec `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
 	// Observed route-indexing state for this Connector.
 	Status        *ConnectorStatus `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
@@ -780,7 +554,7 @@ type Connector struct {
 
 func (x *Connector) Reset() {
 	*x = Connector{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[11]
+	mi := &file_proto_resources_connectors_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -792,7 +566,7 @@ func (x *Connector) String() string {
 func (*Connector) ProtoMessage() {}
 
 func (x *Connector) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[11]
+	mi := &file_proto_resources_connectors_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -805,7 +579,7 @@ func (x *Connector) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Connector.ProtoReflect.Descriptor instead.
 func (*Connector) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{11}
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Connector) GetMetadata() *ResourceMeta {
@@ -829,211 +603,11 @@ func (x *Connector) GetStatus() *ConnectorStatus {
 	return nil
 }
 
-// Stored registration cache for one ConnectorClass registration with an
-// external connector service. The ConnectorController writes this message as
-// `ConnectorRegistration/current` under the owning ConnectorClass after the
-// connector runtime accepts `/v1/clusters/register`, refreshes it when the
-// ConnectorClass generation changes, and deletes it when the ConnectorClass is
-// deleted. Gateway ingest uses this entry to authenticate the callback
-// registration id and recover the ConnectorClass match indexes without scanning
-// namespaced resources.
-type ConnectorRegistrationEntry struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Talon-owned registration identifier, formatted as
-	// Namespace/<namespace>/ConnectorClass/<name>.
-	RegistrationId string `protobuf:"bytes,1,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
-	// Namespace that owns the ConnectorClass for this registration.
-	ClassNamespace string `protobuf:"bytes,2,opt,name=class_namespace,json=classNamespace,proto3" json:"class_namespace,omitempty"`
-	// ConnectorClass name for this registration.
-	ClassName string `protobuf:"bytes,3,opt,name=class_name,json=className,proto3" json:"class_name,omitempty"`
-	// ConnectorClass generation captured when this registration index was
-	// written.
-	Generation uint64 `protobuf:"varint,4,opt,name=generation,proto3" json:"generation,omitempty"`
-	// Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-	// hot ingest path resolve provider match keys with one registration lookup.
-	ClassSpec     *ConnectorClassSpec `protobuf:"bytes,5,opt,name=class_spec,json=classSpec,proto3" json:"class_spec,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ConnectorRegistrationEntry) Reset() {
-	*x = ConnectorRegistrationEntry{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ConnectorRegistrationEntry) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ConnectorRegistrationEntry) ProtoMessage() {}
-
-func (x *ConnectorRegistrationEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ConnectorRegistrationEntry.ProtoReflect.Descriptor instead.
-func (*ConnectorRegistrationEntry) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *ConnectorRegistrationEntry) GetRegistrationId() string {
-	if x != nil {
-		return x.RegistrationId
-	}
-	return ""
-}
-
-func (x *ConnectorRegistrationEntry) GetClassNamespace() string {
-	if x != nil {
-		return x.ClassNamespace
-	}
-	return ""
-}
-
-func (x *ConnectorRegistrationEntry) GetClassName() string {
-	if x != nil {
-		return x.ClassName
-	}
-	return ""
-}
-
-func (x *ConnectorRegistrationEntry) GetGeneration() uint64 {
-	if x != nil {
-		return x.Generation
-	}
-	return 0
-}
-
-func (x *ConnectorRegistrationEntry) GetClassSpec() *ConnectorClassSpec {
-	if x != nil {
-		return x.ClassSpec
-	}
-	return nil
-}
-
-// Stored routing entry for one compiled Connector match key. The
-// ConnectorController writes this message under the owning
-// ConnectorRegistration/current child key `ConnectorMatch/<compiled_match_key>`,
-// where the compiled key includes the match-index name and encoded provider
-// match fields. Inbound connector callbacks compute candidate match keys from
-// the event matchFields and read these entries directly; dispatch is therefore
-// indexed by provider account/conversation fields rather than by scanning all
-// Connector resources.
-type ConnectorMatchEntry struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// UID of the Connector resource that produced this compiled route.
-	ConnectorUid string `protobuf:"bytes,1,opt,name=connector_uid,json=connectorUid,proto3" json:"connector_uid,omitempty"`
-	// Namespace that owns the matching Connector and dispatch target.
-	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	// Name of the Connector resource that produced this compiled route.
-	ConnectorName string `protobuf:"bytes,3,opt,name=connector_name,json=connectorName,proto3" json:"connector_name,omitempty"`
-	// ConnectorClass name used to compile this route.
-	ClassName string `protobuf:"bytes,4,opt,name=class_name,json=className,proto3" json:"class_name,omitempty"`
-	// Connector resource generation captured when this route entry was compiled.
-	Generation uint64 `protobuf:"varint,5,opt,name=generation,proto3" json:"generation,omitempty"`
-	// Snapshot of the Connector target stored in the route index so ingest can
-	// dispatch without re-reading the full Connector resource.
-	Target *ConnectorTarget `protobuf:"bytes,6,opt,name=target,proto3" json:"target,omitempty"`
-	// Namespace of the ConnectorClass used to compile this route.
-	ClassNamespace string `protobuf:"bytes,7,opt,name=class_namespace,json=classNamespace,proto3" json:"class_namespace,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
-}
-
-func (x *ConnectorMatchEntry) Reset() {
-	*x = ConnectorMatchEntry{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ConnectorMatchEntry) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ConnectorMatchEntry) ProtoMessage() {}
-
-func (x *ConnectorMatchEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ConnectorMatchEntry.ProtoReflect.Descriptor instead.
-func (*ConnectorMatchEntry) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *ConnectorMatchEntry) GetConnectorUid() string {
-	if x != nil {
-		return x.ConnectorUid
-	}
-	return ""
-}
-
-func (x *ConnectorMatchEntry) GetNamespace() string {
-	if x != nil {
-		return x.Namespace
-	}
-	return ""
-}
-
-func (x *ConnectorMatchEntry) GetConnectorName() string {
-	if x != nil {
-		return x.ConnectorName
-	}
-	return ""
-}
-
-func (x *ConnectorMatchEntry) GetClassName() string {
-	if x != nil {
-		return x.ClassName
-	}
-	return ""
-}
-
-func (x *ConnectorMatchEntry) GetGeneration() uint64 {
-	if x != nil {
-		return x.Generation
-	}
-	return 0
-}
-
-func (x *ConnectorMatchEntry) GetTarget() *ConnectorTarget {
-	if x != nil {
-		return x.Target
-	}
-	return nil
-}
-
-func (x *ConnectorMatchEntry) GetClassNamespace() string {
-	if x != nil {
-		return x.ClassNamespace
-	}
-	return ""
-}
-
 var File_proto_resources_connectors_proto protoreflect.FileDescriptor
 
 const file_proto_resources_connectors_proto_rawDesc = "" +
 	"\n" +
-	" proto/resources/connectors.proto\x12\x0ftalon.resources\x1a\x12proto/config.proto\x1a\x1cproto/resources/common.proto\"K\n" +
+	" proto/resources/connectors.proto\x12\x0ftalon.resources\x1a\x12proto/config.proto\x1a\x1cproto/resources/common.proto\x1a\x1dproto/resources/routing.proto\"K\n" +
 	"\x19ConnectorClassRuntimeSpec\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x1a\n" +
 	"\bendpoint\x18\x02 \x01(\tR\bendpoint\"[\n" +
@@ -1047,45 +621,28 @@ const file_proto_resources_connectors_proto_rawDesc = "" +
 	"\bplatform\x18\x01 \x01(\tR\bplatform\x12D\n" +
 	"\aruntime\x18\x02 \x01(\v2*.talon.resources.ConnectorClassRuntimeSpecR\aruntime\x12;\n" +
 	"\x04auth\x18\x03 \x01(\v2'.talon.resources.ConnectorClassAuthSpecR\x04auth\x12I\n" +
-	"\rmatch_indexes\x18\x04 \x03(\v2$.talon.resources.ConnectorMatchIndexR\fmatchIndexes\"\xca\x01\n" +
+	"\rmatch_indexes\x18\x04 \x03(\v2$.talon.resources.ConnectorMatchIndexR\fmatchIndexes\"\xa1\x01\n" +
 	"\x14ConnectorClassStatus\x12/\n" +
 	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x12\x14\n" +
 	"\x05phase\x18\x02 \x01(\tR\x05phase\x12B\n" +
 	"\n" +
 	"conditions\x18\x03 \x03(\v2\".talon.resources.ResourceConditionR\n" +
-	"conditions\x12'\n" +
-	"\x0fregistration_id\x18\x04 \x01(\tR\x0eregistrationId\"N\n" +
-	"\x16ConnectorSessionTarget\x12\x14\n" +
-	"\x05agent\x18\x01 \x01(\tR\x05agent\x12\x1e\n" +
-	"\n" +
-	"continuity\x18\x02 \x01(\tR\n" +
-	"continuity\"\x8b\x01\n" +
-	"\x16ConnectorChannelTarget\x12\x18\n" +
-	"\achannel\x18\x01 \x01(\tR\achannel\x12\x14\n" +
-	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x1e\n" +
-	"\n" +
-	"continuity\x18\x03 \x01(\tR\n" +
-	"continuity\x12!\n" +
-	"\freply_policy\x18\x04 \x01(\tR\vreplyPolicy\"\xaa\x01\n" +
-	"\x0fConnectorTarget\x12C\n" +
-	"\asession\x18\x01 \x01(\v2'.talon.resources.ConnectorSessionTargetH\x00R\asession\x12C\n" +
-	"\achannel\x18\x02 \x01(\v2'.talon.resources.ConnectorChannelTargetH\x00R\achannelB\r\n" +
-	"\vdestination\"\xb2\x02\n" +
+	"conditions\"\xb6\x02\n" +
 	"\rConnectorSpec\x129\n" +
 	"\tclass_ref\x18\x01 \x01(\v2\x1c.talon.resources.ResourceRefR\bclassRef\x12\x18\n" +
 	"\aenabled\x18\x02 \x01(\bR\aenabled\x12R\n" +
-	"\fmatch_fields\x18\x03 \x03(\v2/.talon.resources.ConnectorSpec.MatchFieldsEntryR\vmatchFields\x128\n" +
-	"\x06target\x18\x04 \x01(\v2 .talon.resources.ConnectorTargetR\x06target\x1a>\n" +
+	"\fmatch_fields\x18\x03 \x03(\v2/.talon.resources.ConnectorSpec.MatchFieldsEntryR\vmatchFields\x12<\n" +
+	"\bconsumer\x18\x04 \x01(\v2 .talon.resources.MessageConsumerR\bconsumer\x1a>\n" +
 	"\x10MatchFieldsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xcc\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xca\x01\n" +
 	"\x0fConnectorStatus\x12/\n" +
 	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x12\x14\n" +
 	"\x05phase\x18\x02 \x01(\tR\x05phase\x12B\n" +
 	"\n" +
 	"conditions\x18\x03 \x03(\v2\".talon.resources.ResourceConditionR\n" +
-	"conditions\x12.\n" +
-	"\x13compiled_match_keys\x18\x04 \x03(\tR\x11compiledMatchKeys\"\xc3\x01\n" +
+	"conditions\x12,\n" +
+	"\x12compiled_route_ids\x18\x04 \x03(\tR\x10compiledRouteIds\"\xc3\x01\n" +
 	"\x0eConnectorClass\x129\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x127\n" +
 	"\x04spec\x18\x02 \x01(\v2#.talon.resources.ConnectorClassSpecR\x04spec\x12=\n" +
@@ -1093,28 +650,7 @@ const file_proto_resources_connectors_proto_rawDesc = "" +
 	"\tConnector\x129\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x122\n" +
 	"\x04spec\x18\x02 \x01(\v2\x1e.talon.resources.ConnectorSpecR\x04spec\x128\n" +
-	"\x06status\x18\x03 \x01(\v2 .talon.resources.ConnectorStatusR\x06status\"\xf1\x01\n" +
-	"\x1aConnectorRegistrationEntry\x12'\n" +
-	"\x0fregistration_id\x18\x01 \x01(\tR\x0eregistrationId\x12'\n" +
-	"\x0fclass_namespace\x18\x02 \x01(\tR\x0eclassNamespace\x12\x1d\n" +
-	"\n" +
-	"class_name\x18\x03 \x01(\tR\tclassName\x12\x1e\n" +
-	"\n" +
-	"generation\x18\x04 \x01(\x04R\n" +
-	"generation\x12B\n" +
-	"\n" +
-	"class_spec\x18\x05 \x01(\v2#.talon.resources.ConnectorClassSpecR\tclassSpec\"\xa1\x02\n" +
-	"\x13ConnectorMatchEntry\x12#\n" +
-	"\rconnector_uid\x18\x01 \x01(\tR\fconnectorUid\x12\x1c\n" +
-	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12%\n" +
-	"\x0econnector_name\x18\x03 \x01(\tR\rconnectorName\x12\x1d\n" +
-	"\n" +
-	"class_name\x18\x04 \x01(\tR\tclassName\x12\x1e\n" +
-	"\n" +
-	"generation\x18\x05 \x01(\x04R\n" +
-	"generation\x128\n" +
-	"\x06target\x18\x06 \x01(\v2 .talon.resources.ConnectorTargetR\x06target\x12'\n" +
-	"\x0fclass_namespace\x18\a \x01(\tR\x0eclassNamespaceb\x06proto3"
+	"\x06status\x18\x03 \x01(\v2 .talon.resources.ConnectorStatusR\x06statusb\x06proto3"
 
 var (
 	file_proto_resources_connectors_proto_rawDescOnce sync.Once
@@ -1128,53 +664,45 @@ func file_proto_resources_connectors_proto_rawDescGZIP() []byte {
 	return file_proto_resources_connectors_proto_rawDescData
 }
 
-var file_proto_resources_connectors_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_proto_resources_connectors_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_resources_connectors_proto_goTypes = []any{
-	(*ConnectorClassRuntimeSpec)(nil),  // 0: talon.resources.ConnectorClassRuntimeSpec
-	(*ConnectorClassAuthSpec)(nil),     // 1: talon.resources.ConnectorClassAuthSpec
-	(*ConnectorMatchIndex)(nil),        // 2: talon.resources.ConnectorMatchIndex
-	(*ConnectorClassSpec)(nil),         // 3: talon.resources.ConnectorClassSpec
-	(*ConnectorClassStatus)(nil),       // 4: talon.resources.ConnectorClassStatus
-	(*ConnectorSessionTarget)(nil),     // 5: talon.resources.ConnectorSessionTarget
-	(*ConnectorChannelTarget)(nil),     // 6: talon.resources.ConnectorChannelTarget
-	(*ConnectorTarget)(nil),            // 7: talon.resources.ConnectorTarget
-	(*ConnectorSpec)(nil),              // 8: talon.resources.ConnectorSpec
-	(*ConnectorStatus)(nil),            // 9: talon.resources.ConnectorStatus
-	(*ConnectorClass)(nil),             // 10: talon.resources.ConnectorClass
-	(*Connector)(nil),                  // 11: talon.resources.Connector
-	(*ConnectorRegistrationEntry)(nil), // 12: talon.resources.ConnectorRegistrationEntry
-	(*ConnectorMatchEntry)(nil),        // 13: talon.resources.ConnectorMatchEntry
-	nil,                                // 14: talon.resources.ConnectorSpec.MatchFieldsEntry
-	(*config.Secret)(nil),              // 15: talon.config.Secret
-	(*ResourceCondition)(nil),          // 16: talon.resources.ResourceCondition
-	(*ResourceRef)(nil),                // 17: talon.resources.ResourceRef
-	(*ResourceMeta)(nil),               // 18: talon.resources.ResourceMeta
+	(*ConnectorClassRuntimeSpec)(nil), // 0: talon.resources.ConnectorClassRuntimeSpec
+	(*ConnectorClassAuthSpec)(nil),    // 1: talon.resources.ConnectorClassAuthSpec
+	(*ConnectorMatchIndex)(nil),       // 2: talon.resources.ConnectorMatchIndex
+	(*ConnectorClassSpec)(nil),        // 3: talon.resources.ConnectorClassSpec
+	(*ConnectorClassStatus)(nil),      // 4: talon.resources.ConnectorClassStatus
+	(*ConnectorSpec)(nil),             // 5: talon.resources.ConnectorSpec
+	(*ConnectorStatus)(nil),           // 6: talon.resources.ConnectorStatus
+	(*ConnectorClass)(nil),            // 7: talon.resources.ConnectorClass
+	(*Connector)(nil),                 // 8: talon.resources.Connector
+	nil,                               // 9: talon.resources.ConnectorSpec.MatchFieldsEntry
+	(*config.Secret)(nil),             // 10: talon.config.Secret
+	(*ResourceCondition)(nil),         // 11: talon.resources.ResourceCondition
+	(*ResourceRef)(nil),               // 12: talon.resources.ResourceRef
+	(*MessageConsumer)(nil),           // 13: talon.resources.MessageConsumer
+	(*ResourceMeta)(nil),              // 14: talon.resources.ResourceMeta
 }
 var file_proto_resources_connectors_proto_depIdxs = []int32{
-	15, // 0: talon.resources.ConnectorClassAuthSpec.api_key:type_name -> talon.config.Secret
+	10, // 0: talon.resources.ConnectorClassAuthSpec.api_key:type_name -> talon.config.Secret
 	0,  // 1: talon.resources.ConnectorClassSpec.runtime:type_name -> talon.resources.ConnectorClassRuntimeSpec
 	1,  // 2: talon.resources.ConnectorClassSpec.auth:type_name -> talon.resources.ConnectorClassAuthSpec
 	2,  // 3: talon.resources.ConnectorClassSpec.match_indexes:type_name -> talon.resources.ConnectorMatchIndex
-	16, // 4: talon.resources.ConnectorClassStatus.conditions:type_name -> talon.resources.ResourceCondition
-	5,  // 5: talon.resources.ConnectorTarget.session:type_name -> talon.resources.ConnectorSessionTarget
-	6,  // 6: talon.resources.ConnectorTarget.channel:type_name -> talon.resources.ConnectorChannelTarget
-	17, // 7: talon.resources.ConnectorSpec.class_ref:type_name -> talon.resources.ResourceRef
-	14, // 8: talon.resources.ConnectorSpec.match_fields:type_name -> talon.resources.ConnectorSpec.MatchFieldsEntry
-	7,  // 9: talon.resources.ConnectorSpec.target:type_name -> talon.resources.ConnectorTarget
-	16, // 10: talon.resources.ConnectorStatus.conditions:type_name -> talon.resources.ResourceCondition
-	18, // 11: talon.resources.ConnectorClass.metadata:type_name -> talon.resources.ResourceMeta
-	3,  // 12: talon.resources.ConnectorClass.spec:type_name -> talon.resources.ConnectorClassSpec
-	4,  // 13: talon.resources.ConnectorClass.status:type_name -> talon.resources.ConnectorClassStatus
-	18, // 14: talon.resources.Connector.metadata:type_name -> talon.resources.ResourceMeta
-	8,  // 15: talon.resources.Connector.spec:type_name -> talon.resources.ConnectorSpec
-	9,  // 16: talon.resources.Connector.status:type_name -> talon.resources.ConnectorStatus
-	3,  // 17: talon.resources.ConnectorRegistrationEntry.class_spec:type_name -> talon.resources.ConnectorClassSpec
-	7,  // 18: talon.resources.ConnectorMatchEntry.target:type_name -> talon.resources.ConnectorTarget
-	19, // [19:19] is the sub-list for method output_type
-	19, // [19:19] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	11, // 4: talon.resources.ConnectorClassStatus.conditions:type_name -> talon.resources.ResourceCondition
+	12, // 5: talon.resources.ConnectorSpec.class_ref:type_name -> talon.resources.ResourceRef
+	9,  // 6: talon.resources.ConnectorSpec.match_fields:type_name -> talon.resources.ConnectorSpec.MatchFieldsEntry
+	13, // 7: talon.resources.ConnectorSpec.consumer:type_name -> talon.resources.MessageConsumer
+	11, // 8: talon.resources.ConnectorStatus.conditions:type_name -> talon.resources.ResourceCondition
+	14, // 9: talon.resources.ConnectorClass.metadata:type_name -> talon.resources.ResourceMeta
+	3,  // 10: talon.resources.ConnectorClass.spec:type_name -> talon.resources.ConnectorClassSpec
+	4,  // 11: talon.resources.ConnectorClass.status:type_name -> talon.resources.ConnectorClassStatus
+	14, // 12: talon.resources.Connector.metadata:type_name -> talon.resources.ResourceMeta
+	5,  // 13: talon.resources.Connector.spec:type_name -> talon.resources.ConnectorSpec
+	6,  // 14: talon.resources.Connector.status:type_name -> talon.resources.ConnectorStatus
+	15, // [15:15] is the sub-list for method output_type
+	15, // [15:15] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_connectors_proto_init() }
@@ -1183,17 +711,14 @@ func file_proto_resources_connectors_proto_init() {
 		return
 	}
 	file_proto_resources_common_proto_init()
-	file_proto_resources_connectors_proto_msgTypes[7].OneofWrappers = []any{
-		(*ConnectorTarget_Session)(nil),
-		(*ConnectorTarget_Channel)(nil),
-	}
+	file_proto_resources_routing_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_connectors_proto_rawDesc), len(file_proto_resources_connectors_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   15,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

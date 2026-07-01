@@ -154,7 +154,7 @@ public final class ConnectorServiceGrpc {
      * IngestMessageEvent delivers one normalized provider message event to Talon.
      * Talon deduplicates under the ConnectorClass registration by event_id,
      * resolves a Connector by match_fields, and dispatches the message to the
-     * resolved Connector target.
+     * resolved message consumer.
      * </pre>
      */
     default void ingestMessageEvent(talon.v1.Connectors.ConnectorMessageEvent request,
@@ -218,7 +218,7 @@ public final class ConnectorServiceGrpc {
      * IngestMessageEvent delivers one normalized provider message event to Talon.
      * Talon deduplicates under the ConnectorClass registration by event_id,
      * resolves a Connector by match_fields, and dispatches the message to the
-     * resolved Connector target.
+     * resolved message consumer.
      * </pre>
      */
     public void ingestMessageEvent(talon.v1.Connectors.ConnectorMessageEvent request,
@@ -267,7 +267,7 @@ public final class ConnectorServiceGrpc {
      * IngestMessageEvent delivers one normalized provider message event to Talon.
      * Talon deduplicates under the ConnectorClass registration by event_id,
      * resolves a Connector by match_fields, and dispatches the message to the
-     * resolved Connector target.
+     * resolved message consumer.
      * </pre>
      */
     public talon.v1.Connectors.ConnectorMessageEventResponse ingestMessageEvent(talon.v1.Connectors.ConnectorMessageEvent request) throws io.grpc.StatusException {
@@ -314,7 +314,7 @@ public final class ConnectorServiceGrpc {
      * IngestMessageEvent delivers one normalized provider message event to Talon.
      * Talon deduplicates under the ConnectorClass registration by event_id,
      * resolves a Connector by match_fields, and dispatches the message to the
-     * resolved Connector target.
+     * resolved message consumer.
      * </pre>
      */
     public talon.v1.Connectors.ConnectorMessageEventResponse ingestMessageEvent(talon.v1.Connectors.ConnectorMessageEvent request) {
@@ -361,7 +361,7 @@ public final class ConnectorServiceGrpc {
      * IngestMessageEvent delivers one normalized provider message event to Talon.
      * Talon deduplicates under the ConnectorClass registration by event_id,
      * resolves a Connector by match_fields, and dispatches the message to the
-     * resolved Connector target.
+     * resolved message consumer.
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<talon.v1.Connectors.ConnectorMessageEventResponse> ingestMessageEvent(

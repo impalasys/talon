@@ -350,37 +350,12 @@ async fn deliver_connector_channel_message(
     let connector_name = required_label(&session.labels, LABEL_CONNECTOR)?;
     let connector_class = required_label(&session.labels, LABEL_CONNECTOR_CLASS)?;
     let external_conversation_id = required_label(&session.labels, LABEL_EXTERNAL_CONVERSATION)?;
-    let registration = cp
-        .kv
-        .get_msg::<resources_proto::ConnectorRegistrationEntry>(
-            &super::connectors::connector_registration_key(registration_id)?,
-        )
-        .await?
-        .ok_or_else(|| anyhow::anyhow!("connector registration not found"))?;
-    super::connectors::ensure_connector_class_matches(&registration, connector_class)?;
-    let class_spec = registration
-        .class_spec
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("connector registration missing class spec"))?;
-    let runtime = class_spec
-        .runtime
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("connector class runtime is required"))?;
-    if runtime.endpoint.trim().is_empty() {
-        anyhow::bail!("connector class runtime endpoint is required");
-    }
-    let auth = class_spec
-        .auth
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("connector class auth is required"))?;
-    if auth.kind != "apiKey" {
-        anyhow::bail!("connector class auth.kind must be apiKey");
-    }
-    let api_key = auth
-        .api_key
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("connector class auth.apiKey is required"))
-        .and_then(resolve_connector_secret)?;
+    let (runtime_endpoint, api_key) = super::connectors::connector_runtime_endpoint_and_api_key(
+        cp,
+        registration_id,
+        connector_class,
+    )
+    .await?;
 
     let mut match_fields = HashMap::new();
     for (key, value) in &session.labels {
@@ -427,7 +402,7 @@ async fn deliver_connector_channel_message(
         delivery_labels.insert("talon.connectorEvent".to_string(), source_event);
     }
 
-    let url = format!("{}/v1/deliveries", runtime.endpoint.trim_end_matches('/'));
+    let url = format!("{}/v1/deliveries", runtime_endpoint);
     let response = connector_http_client()?
         .post(url)
         .bearer_auth(api_key)
@@ -469,20 +444,6 @@ fn required_label<'a>(labels: &'a HashMap<String, String>, name: &str) -> anyhow
         .map(|value| value.trim())
         .filter(|value| !value.is_empty())
         .ok_or_else(|| anyhow::anyhow!("missing connector label {name}"))
-}
-
-fn resolve_connector_secret(
-    secret: &crate::gateway::rpc::generated::config::Secret,
-) -> anyhow::Result<String> {
-    use crate::gateway::rpc::generated::config::secret;
-
-    match secret.source.as_ref() {
-        Some(secret::Source::Plain(value)) => Ok(value.clone()),
-        Some(secret::Source::Ref(_)) => {
-            anyhow::bail!("ConnectorClass auth.apiKey must be a plain value; secret refs are not allowed on namespace-scoped connector resources")
-        }
-        None => anyhow::bail!("secret source missing"),
-    }
 }
 
 fn connector_http_client() -> anyhow::Result<reqwest::Client> {

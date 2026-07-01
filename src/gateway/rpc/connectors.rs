@@ -3,6 +3,7 @@
 
 use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
 use crate::control::resource_model::ChannelResourceExt;
+use crate::control::resources::ResourceStore;
 use crate::control::scheduling;
 use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
 use crate::worker::controllers::connectors;
@@ -25,6 +26,12 @@ const LABEL_CONVERSATION_TYPE: &str = "talon.impalasys.com/conversation-type";
 const LABEL_CONNECTOR_MATCH_PREFIX: &str = "talon.impalasys.com/connector-match/";
 const CONNECTOR_HTTP_TIMEOUT: Duration = Duration::from_secs(15);
 const CONNECTOR_SESSION_RESERVATION_PREFIX: &str = "reserved:";
+
+struct ConnectorClassRegistration {
+    namespace: String,
+    name: String,
+    spec: resources_proto::ConnectorClassSpec,
+}
 
 #[derive(Debug, Serialize)]
 struct ConnectorDeliveryRequest {
@@ -105,18 +112,11 @@ impl GrpcGatewayHandler {
             )));
         }
 
-        let registration = self
+        let class = self
             .class_for_registration(&event.registration_id, &event.connector_class)
             .await?;
-        let class_spec = registration.class_spec.clone().ok_or_else(|| {
-            tonic::Status::failed_precondition("ConnectorClass registration missing spec snapshot")
-        })?;
 
-        let event_key = keys::connector_event(
-            &registration.class_namespace,
-            &registration.class_name,
-            &event.event_id,
-        );
+        let event_key = keys::connector_event(&class.namespace, &class.name, &event.event_id);
         if !self
             .gateway
             .kv
@@ -130,15 +130,15 @@ impl GrpcGatewayHandler {
                 disposition: "duplicate".to_string(),
                 namespace: String::new(),
                 connector_name: String::new(),
-                target: None,
+                consumer: None,
             }));
         }
 
-        let Some(match_entry) = connectors::resolve_match(
+        let Some(route) = connectors::resolve_route(
             self.gateway.kv.as_ref(),
-            &registration.class_namespace,
-            &registration.class_name,
-            &class_spec,
+            &class.namespace,
+            &class.name,
+            &class.spec,
             &event.match_fields,
         )
         .await
@@ -161,16 +161,16 @@ impl GrpcGatewayHandler {
                 disposition: "unmatched".to_string(),
                 namespace: String::new(),
                 connector_name: String::new(),
-                target: None,
+                consumer: None,
             }));
         };
 
-        let target = match_entry
-            .target
+        let consumer = route
+            .consumer
             .clone()
-            .ok_or_else(|| tonic::Status::failed_precondition("Connector target is missing"))?;
+            .ok_or_else(|| tonic::Status::failed_precondition("Route consumer is missing"))?;
         if let Err(err) =
-            dispatch_connector_message(&self.gateway.control_plane(), &match_entry, &target, &event)
+            dispatch_connector_message(&self.gateway.control_plane(), &route, &consumer, &event)
                 .await
         {
             if let Err(delete_err) = self.gateway.kv.delete(&event_key).await {
@@ -190,13 +190,14 @@ impl GrpcGatewayHandler {
             .await
             .map_err(internal_error)?;
 
+        let connector = route_connector_ref(&route)?;
         Ok(tonic::Response::new(proto::ConnectorMessageEventResponse {
             accepted: true,
             duplicate: false,
             disposition: "dispatched".to_string(),
-            namespace: match_entry.namespace,
-            connector_name: match_entry.connector_name,
-            target: Some(target),
+            namespace: connector.namespace.clone(),
+            connector_name: connector.name.clone(),
+            consumer: Some(consumer),
         }))
     }
 
@@ -226,42 +227,46 @@ impl GrpcGatewayHandler {
         &self,
         registration_id: &str,
         requested_class: &str,
-    ) -> Result<resources_proto::ConnectorRegistrationEntry, tonic::Status> {
-        let (class_namespace, class_name) = keys::parse_connector_registration_id(registration_id)
+    ) -> Result<ConnectorClassRegistration, tonic::Status> {
+        let (namespace, name) = keys::parse_connector_registration_id(registration_id)
             .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
-        if !requested_class.trim().is_empty() && requested_class != class_name {
+        if !requested_class.trim().is_empty() && requested_class != name {
             return Err(tonic::Status::failed_precondition(
                 "connector_class conflicts with ConnectorClass registration",
             ));
         }
-        let entry =
-            self.gateway
-                .kv
-                .get_msg::<resources_proto::ConnectorRegistrationEntry>(
-                    &keys::connector_registration(&class_namespace, &class_name),
-                )
-                .await
-                .map_err(internal_error)?
-                .ok_or_else(|| tonic::Status::not_found("ConnectorClass registration not found"))?;
-
-        if entry.registration_id != registration_id {
-            return Err(tonic::Status::failed_precondition(
-                "ConnectorClass registration index is inconsistent",
-            ));
+        let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
+        let class = store
+            .get(&namespace, "ConnectorClass", &name)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| tonic::Status::not_found("ConnectorClass registration not found"))?;
+        match class
+            .status
+            .as_ref()
+            .and_then(|status| status.kind.as_ref())
+        {
+            Some(resources_proto::resource_status::Kind::ConnectorClass(status))
+                if status.phase == "Ready" => {}
+            _ => {
+                return Err(tonic::Status::failed_precondition(
+                    "ConnectorClass registration is not Ready",
+                ));
+            }
         }
-
-        if entry.class_namespace != class_namespace || entry.class_name != class_name {
-            return Err(tonic::Status::failed_precondition(
-                "ConnectorClass registration index is incomplete",
-            ));
-        }
-
-        if entry.class_spec.is_none() {
-            return Err(tonic::Status::failed_precondition(
-                "ConnectorClass registration missing spec snapshot",
-            ));
-        }
-        Ok(entry)
+        let spec = match class.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
+            Some(resources_proto::resource_spec::Kind::ConnectorClass(spec)) => spec.clone(),
+            _ => {
+                return Err(tonic::Status::failed_precondition(
+                    "ConnectorClass registration missing spec",
+                ));
+            }
+        };
+        Ok(ConnectorClassRegistration {
+            namespace,
+            name,
+            spec,
+        })
     }
 }
 
@@ -286,37 +291,8 @@ pub async fn deliver_connector_session_message(
     let connector_name = required_label(&session.labels, LABEL_CONNECTOR)?;
     let connector_class = required_label(&session.labels, LABEL_CONNECTOR_CLASS)?;
     let external_conversation_id = required_label(&session.labels, LABEL_EXTERNAL_CONVERSATION)?;
-    let registration = cp
-        .kv
-        .get_msg::<resources_proto::ConnectorRegistrationEntry>(&connector_registration_key(
-            registration_id,
-        )?)
-        .await?
-        .ok_or_else(|| anyhow::anyhow!("connector registration not found"))?;
-    ensure_connector_class_matches(&registration, connector_class)?;
-    let class_spec = registration
-        .class_spec
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("connector registration missing class spec"))?;
-    let runtime = class_spec
-        .runtime
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("connector class runtime is required"))?;
-    if runtime.endpoint.trim().is_empty() {
-        anyhow::bail!("connector class runtime endpoint is required");
-    }
-    let auth = class_spec
-        .auth
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("connector class auth is required"))?;
-    if auth.kind != "apiKey" {
-        anyhow::bail!("connector class auth.kind must be apiKey");
-    }
-    let api_key = auth
-        .api_key
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("connector class auth.apiKey is required"))
-        .and_then(resolve_connector_secret)?;
+    let (runtime_endpoint, api_key) =
+        connector_runtime_endpoint_and_api_key(cp, registration_id, connector_class).await?;
 
     let mut match_fields = HashMap::new();
     for (key, value) in &session.labels {
@@ -333,7 +309,7 @@ pub async fn deliver_connector_session_message(
         delivery_labels.insert("talon.connectorEvent".to_string(), source_event);
     }
 
-    let url = format!("{}/v1/deliveries", runtime.endpoint.trim_end_matches('/'));
+    let url = format!("{}/v1/deliveries", runtime_endpoint);
     let response = connector_http_client()?
         .post(url)
         .bearer_auth(api_key)
@@ -384,37 +360,8 @@ pub async fn send_connector_session_activity(
     let connector_name = required_label(&session.labels, LABEL_CONNECTOR)?;
     let connector_class = required_label(&session.labels, LABEL_CONNECTOR_CLASS)?;
     let external_conversation_id = required_label(&session.labels, LABEL_EXTERNAL_CONVERSATION)?;
-    let registration = cp
-        .kv
-        .get_msg::<resources_proto::ConnectorRegistrationEntry>(&connector_registration_key(
-            registration_id,
-        )?)
-        .await?
-        .ok_or_else(|| anyhow::anyhow!("connector registration not found"))?;
-    ensure_connector_class_matches(&registration, connector_class)?;
-    let class_spec = registration
-        .class_spec
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("connector registration missing class spec"))?;
-    let runtime = class_spec
-        .runtime
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("connector class runtime is required"))?;
-    if runtime.endpoint.trim().is_empty() {
-        anyhow::bail!("connector class runtime endpoint is required");
-    }
-    let auth = class_spec
-        .auth
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("connector class auth is required"))?;
-    if auth.kind != "apiKey" {
-        anyhow::bail!("connector class auth.kind must be apiKey");
-    }
-    let api_key = auth
-        .api_key
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("connector class auth.apiKey is required"))
-        .and_then(resolve_connector_secret)?;
+    let (runtime_endpoint, api_key) =
+        connector_runtime_endpoint_and_api_key(cp, registration_id, connector_class).await?;
 
     let mut match_fields = HashMap::new();
     for (key, value) in &session.labels {
@@ -431,10 +378,7 @@ pub async fn send_connector_session_activity(
     }
 
     let response = connector_http_client()?
-        .post(format!(
-            "{}/v1/activities",
-            runtime.endpoint.trim_end_matches('/')
-        ))
+        .post(format!("{}/v1/activities", runtime_endpoint))
         .bearer_auth(api_key)
         .json(&ConnectorActivityRequest {
             activity_id: activity_id.to_string(),
@@ -480,25 +424,68 @@ fn required_label<'a>(labels: &'a HashMap<String, String>, name: &str) -> anyhow
         .ok_or_else(|| anyhow::anyhow!("missing connector label {name}"))
 }
 
-pub fn connector_registration_key(
+pub async fn connector_runtime_endpoint_and_api_key(
+    cp: &ControlPlane,
     registration_id: &str,
-) -> anyhow::Result<crate::control::keys::ResourceKey> {
-    let (class_namespace, class_name) = keys::parse_connector_registration_id(registration_id)?;
-    Ok(keys::connector_registration(&class_namespace, &class_name))
+    connector_class: &str,
+) -> anyhow::Result<(String, String)> {
+    let class = connector_class_registration(cp, registration_id, connector_class).await?;
+    let runtime = class
+        .spec
+        .runtime
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector class runtime is required"))?;
+    if runtime.endpoint.trim().is_empty() {
+        anyhow::bail!("connector class runtime endpoint is required");
+    }
+    let auth = class
+        .spec
+        .auth
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector class auth is required"))?;
+    if auth.kind != "apiKey" {
+        anyhow::bail!("connector class auth.kind must be apiKey");
+    }
+    let api_key = auth
+        .api_key
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("connector class auth.apiKey is required"))
+        .and_then(resolve_connector_secret)?;
+    Ok((runtime.endpoint.trim_end_matches('/').to_string(), api_key))
 }
 
-pub fn ensure_connector_class_matches(
-    registration: &resources_proto::ConnectorRegistrationEntry,
-    connector_class: &str,
-) -> anyhow::Result<()> {
-    if registration.class_name != connector_class {
-        anyhow::bail!(
-            "connector class '{}' does not match registration '{}'",
-            connector_class,
-            registration.registration_id
-        );
+async fn connector_class_registration(
+    cp: &ControlPlane,
+    registration_id: &str,
+    requested_class: &str,
+) -> anyhow::Result<ConnectorClassRegistration> {
+    let (namespace, name) = keys::parse_connector_registration_id(registration_id)?;
+    if !requested_class.trim().is_empty() && requested_class != name {
+        anyhow::bail!("connector_class conflicts with ConnectorClass registration");
     }
-    Ok(())
+    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+    let class = store
+        .get(&namespace, "ConnectorClass", &name)
+        .await?
+        .ok_or_else(|| anyhow::anyhow!("ConnectorClass registration not found"))?;
+    match class
+        .status
+        .as_ref()
+        .and_then(|status| status.kind.as_ref())
+    {
+        Some(resources_proto::resource_status::Kind::ConnectorClass(status))
+            if status.phase == "Ready" => {}
+        _ => anyhow::bail!("ConnectorClass registration is not Ready"),
+    }
+    let spec = match class.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
+        Some(resources_proto::resource_spec::Kind::ConnectorClass(spec)) => spec.clone(),
+        _ => anyhow::bail!("ConnectorClass registration missing spec"),
+    };
+    Ok(ConnectorClassRegistration {
+        namespace,
+        name,
+        spec,
+    })
 }
 
 fn resolve_connector_secret(
@@ -522,45 +509,96 @@ fn connector_http_client() -> anyhow::Result<reqwest::Client> {
         .context("failed to build connector HTTP client")
 }
 
+fn route_connector_ref(
+    route: &data_proto::Route,
+) -> Result<&resources_proto::ResourceRef, tonic::Status> {
+    let connector = route
+        .connector
+        .as_ref()
+        .ok_or_else(|| tonic::Status::failed_precondition("Route connector is missing"))?;
+    if connector.namespace.trim().is_empty() || connector.name.trim().is_empty() {
+        return Err(tonic::Status::failed_precondition(
+            "Route connector reference is incomplete",
+        ));
+    }
+    Ok(connector)
+}
+
+fn consumer_ref_namespace(
+    reference: &resources_proto::ResourceRef,
+    default_namespace: &str,
+) -> String {
+    reference
+        .namespace
+        .trim()
+        .is_empty()
+        .then(|| default_namespace.to_string())
+        .unwrap_or_else(|| reference.namespace.clone())
+}
+
+fn consumer_ref_name<'a>(
+    reference: &'a resources_proto::ResourceRef,
+    message: &'static str,
+) -> Result<&'a str, tonic::Status> {
+    reference
+        .name
+        .trim()
+        .is_empty()
+        .then_some(())
+        .map(|_| Err(tonic::Status::failed_precondition(message)))
+        .unwrap_or_else(|| Ok(reference.name.as_str()))
+}
+
 async fn dispatch_connector_message(
     cp: &ControlPlane,
-    entry: &resources_proto::ConnectorMatchEntry,
-    target: &resources_proto::ConnectorTarget,
+    route: &data_proto::Route,
+    consumer: &resources_proto::MessageConsumer,
     event: &proto::ConnectorMessageEvent,
 ) -> Result<(), tonic::Status> {
-    match target.destination.as_ref() {
-        Some(resources_proto::connector_target::Destination::Session(session)) => {
-            dispatch_to_session(cp, entry, session, event).await
+    match consumer.consumer.as_ref() {
+        Some(resources_proto::message_consumer::Consumer::Session(session)) => {
+            dispatch_to_session(cp, route, session, event).await
         }
-        Some(resources_proto::connector_target::Destination::Channel(channel)) => {
-            dispatch_to_channel(cp, entry, channel, event).await
+        Some(resources_proto::message_consumer::Consumer::Channel(channel)) => {
+            dispatch_to_channel(cp, route, channel, event).await
         }
         None => Err(tonic::Status::failed_precondition(
-            "Connector target destination is missing",
+            "MessageConsumer is missing",
         )),
     }
 }
 
 async fn dispatch_to_session(
     cp: &ControlPlane,
-    entry: &resources_proto::ConnectorMatchEntry,
-    target: &resources_proto::ConnectorSessionTarget,
+    route: &data_proto::Route,
+    consumer: &resources_proto::SessionMessageConsumer,
     event: &proto::ConnectorMessageEvent,
 ) -> Result<(), tonic::Status> {
-    if target.agent.trim().is_empty() {
-        return Err(tonic::Status::failed_precondition(
-            "Connector session target requires agent",
-        ));
-    }
-    let mut labels = connector_labels(entry, event);
+    let connector = route_connector_ref(route)?;
+    let agent = consumer
+        .agent
+        .as_ref()
+        .ok_or_else(|| tonic::Status::failed_precondition("Session consumer requires agent"))?;
+    let agent_namespace = consumer_ref_namespace(agent, &connector.namespace);
+    let agent_name = consumer_ref_name(agent, "Session consumer requires agent name")?;
+    let mut labels = connector_labels(route, event)?;
     labels.insert(LABEL_MESSAGE_SOURCE.to_string(), "connector".to_string());
-    let session_id = connector_session_id(cp, entry, target, event, labels.clone()).await?;
+    let session_id = connector_session_id(
+        cp,
+        route,
+        consumer,
+        &agent_namespace,
+        agent_name,
+        event,
+        labels.clone(),
+    )
+    .await?;
     let message = connector_session_message(event, labels)?;
     scheduling::send_session_message(
         cp.kv.as_ref(),
         cp.pubsub.as_ref(),
-        &entry.namespace,
-        &target.agent,
+        &agent_namespace,
+        agent_name,
         &session_id,
         message,
         chrono::Utc::now(),
@@ -572,29 +610,37 @@ async fn dispatch_to_session(
 
 async fn dispatch_to_channel(
     cp: &ControlPlane,
-    entry: &resources_proto::ConnectorMatchEntry,
-    target: &resources_proto::ConnectorChannelTarget,
+    route: &data_proto::Route,
+    consumer: &resources_proto::ChannelMessageConsumer,
     event: &proto::ConnectorMessageEvent,
 ) -> Result<(), tonic::Status> {
-    if target.channel.trim().is_empty() {
+    let connector = route_connector_ref(route)?;
+    let channel_ref = consumer
+        .channel
+        .as_ref()
+        .ok_or_else(|| tonic::Status::failed_precondition("Channel consumer requires channel"))?;
+    let channel_namespace = consumer_ref_namespace(channel_ref, &connector.namespace);
+    let channel_name = consumer_ref_name(channel_ref, "Channel consumer requires channel name")?;
+    let agent_ref = consumer
+        .agent
+        .as_ref()
+        .ok_or_else(|| tonic::Status::failed_precondition("Channel consumer requires agent"))?;
+    let agent_namespace = consumer_ref_namespace(agent_ref, &connector.namespace);
+    if agent_namespace != channel_namespace {
         return Err(tonic::Status::failed_precondition(
-            "Connector channel target requires channel",
+            "Channel consumer agent namespace must match channel namespace",
         ));
     }
-    if target.agent.trim().is_empty() {
-        return Err(tonic::Status::failed_precondition(
-            "Connector channel target requires agent",
-        ));
-    }
+    let agent_name = consumer_ref_name(agent_ref, "Channel consumer requires agent name")?;
     let channel = cp
         .kv
-        .get_msg::<resources_proto::Channel>(&keys::channel(&entry.namespace, &target.channel))
+        .get_msg::<resources_proto::Channel>(&keys::channel(&channel_namespace, channel_name))
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| tonic::Status::not_found("Connector target channel not found"))?;
+        .ok_or_else(|| tonic::Status::not_found("Connector consumer channel not found"))?;
     if channel.phase() == "closed" {
         return Err(tonic::Status::failed_precondition(
-            "Connector target channel is closed",
+            "Connector consumer channel is closed",
         ));
     }
 
@@ -602,15 +648,15 @@ async fn dispatch_to_channel(
         cp,
         data_proto::ChannelMessage {
             id: connector_message_id(event),
-            ns: entry.namespace.clone(),
-            channel: target.channel.clone(),
+            ns: channel_namespace.clone(),
+            channel: channel_name.to_string(),
             author_kind: connector_author_kind(event),
             author: connector_author(event),
             content: connector_channel_content(event),
             created_at: event_time_micros(event),
             source_agent: String::new(),
             source_session_id: String::new(),
-            labels: connector_labels(entry, event),
+            labels: connector_labels(route, event)?,
         },
     )
     .await
@@ -619,9 +665,9 @@ async fn dispatch_to_channel(
     super::channels::route_connector_channel_message(
         cp,
         &message,
-        &target.agent,
-        &entry.connector_name,
-        &target.reply_policy,
+        agent_name,
+        &connector.name,
+        &consumer.reply_policy,
     )
     .await
     .map_err(map_dispatch_error)?;
@@ -630,18 +676,25 @@ async fn dispatch_to_channel(
 
 async fn connector_session_id(
     cp: &ControlPlane,
-    entry: &resources_proto::ConnectorMatchEntry,
-    target: &resources_proto::ConnectorSessionTarget,
+    route: &data_proto::Route,
+    consumer: &resources_proto::SessionMessageConsumer,
+    agent_namespace: &str,
+    agent_name: &str,
     event: &proto::ConnectorMessageEvent,
     labels: HashMap<String, String>,
 ) -> Result<String, tonic::Status> {
-    if target.continuity.eq_ignore_ascii_case("reuse") {
+    if consumer.continuity.eq_ignore_ascii_case("reuse") {
+        let (class_namespace, class_name) =
+            keys::parse_connector_registration_id(&event.registration_id)
+                .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
         let key = keys::connector_session(
-            &entry.class_namespace,
-            &entry.class_name,
-            &connector_session_pointer_name(entry, target, event),
+            &class_namespace,
+            &class_name,
+            &connector_session_pointer_name(route, agent_namespace, agent_name, event)?,
         );
-        if let Some(session_id) = existing_connector_session(cp, &key, entry, target).await? {
+        if let Some(session_id) =
+            existing_connector_session(cp, &key, agent_namespace, agent_name).await?
+        {
             return Ok(session_id);
         }
         let reservation = format!(
@@ -654,10 +707,10 @@ async fn connector_session_id(
             .await
             .map_err(internal_error)?
         {
-            return wait_for_connector_session(cp, &key, entry, target).await;
+            return wait_for_connector_session(cp, &key, agent_namespace, agent_name).await;
         }
         let session_id =
-            scheduling::create_session_with_labels(cp, &entry.namespace, &target.agent, labels)
+            scheduling::create_session_with_labels(cp, agent_namespace, agent_name, labels)
                 .await
                 .map_err(map_dispatch_error)?;
         if !cp
@@ -673,22 +726,24 @@ async fn connector_session_id(
         }
         Ok(session_id)
     } else {
-        scheduling::create_session_with_labels(cp, &entry.namespace, &target.agent, labels)
+        scheduling::create_session_with_labels(cp, agent_namespace, agent_name, labels)
             .await
             .map_err(map_dispatch_error)
     }
 }
 
 fn connector_session_pointer_name(
-    entry: &resources_proto::ConnectorMatchEntry,
-    target: &resources_proto::ConnectorSessionTarget,
+    route: &data_proto::Route,
+    agent_namespace: &str,
+    agent_name: &str,
     event: &proto::ConnectorMessageEvent,
-) -> String {
+) -> Result<String, tonic::Status> {
+    let connector = route_connector_ref(route)?;
     let mut source = format!(
         "{}\x1f{}\x1f{}\x1f{}\x1f{}",
-        entry.connector_uid,
-        entry.namespace,
-        target.agent,
+        route.connector_uid,
+        agent_namespace,
+        agent_name,
         event.external_conversation_id,
         event.external_thread_id.as_deref().unwrap_or_default()
     );
@@ -708,14 +763,19 @@ fn connector_session_pointer_name(
             source.push_str(value);
         }
     }
-    format!("{}-{}", entry.connector_uid, hex_sha256(source.as_bytes()))
+    Ok(format!(
+        "{}-{}-{}",
+        route.connector_uid,
+        connector.name,
+        hex_sha256(source.as_bytes())
+    ))
 }
 
 async fn existing_connector_session(
     cp: &ControlPlane,
     key: &crate::control::keys::ResourceKey,
-    entry: &resources_proto::ConnectorMatchEntry,
-    target: &resources_proto::ConnectorSessionTarget,
+    agent_namespace: &str,
+    agent_name: &str,
 ) -> Result<Option<String>, tonic::Status> {
     let Some(bytes) = cp.kv.get(key).await.map_err(internal_error)? else {
         return Ok(None);
@@ -729,7 +789,7 @@ async fn existing_connector_session(
     }
     if cp
         .kv
-        .get(&keys::session(&entry.namespace, &target.agent, &session_id))
+        .get(&keys::session(agent_namespace, agent_name, &session_id))
         .await
         .map_err(internal_error)?
         .is_some()
@@ -743,11 +803,13 @@ async fn existing_connector_session(
 async fn wait_for_connector_session(
     cp: &ControlPlane,
     key: &crate::control::keys::ResourceKey,
-    entry: &resources_proto::ConnectorMatchEntry,
-    target: &resources_proto::ConnectorSessionTarget,
+    agent_namespace: &str,
+    agent_name: &str,
 ) -> Result<String, tonic::Status> {
     for _ in 0..40 {
-        if let Some(session_id) = existing_connector_session(cp, key, entry, target).await? {
+        if let Some(session_id) =
+            existing_connector_session(cp, key, agent_namespace, agent_name).await?
+        {
             return Ok(session_id);
         }
         tokio::time::sleep(Duration::from_millis(50)).await;
@@ -836,12 +898,15 @@ fn connector_attachment_part_type(
 }
 
 fn connector_labels(
-    entry: &resources_proto::ConnectorMatchEntry,
+    route: &data_proto::Route,
     event: &proto::ConnectorMessageEvent,
-) -> HashMap<String, String> {
+) -> Result<HashMap<String, String>, tonic::Status> {
+    let connector = route_connector_ref(route)?;
+    let (_, class_name) = keys::parse_connector_registration_id(&event.registration_id)
+        .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
     let mut labels = HashMap::new();
-    labels.insert(LABEL_CONNECTOR.to_string(), entry.connector_name.clone());
-    labels.insert(LABEL_CONNECTOR_CLASS.to_string(), entry.class_name.clone());
+    labels.insert(LABEL_CONNECTOR.to_string(), connector.name.clone());
+    labels.insert(LABEL_CONNECTOR_CLASS.to_string(), class_name);
     labels.insert(
         LABEL_CONNECTOR_REGISTRATION.to_string(),
         event.registration_id.clone(),
@@ -878,7 +943,7 @@ fn connector_labels(
             );
         }
     }
-    labels
+    Ok(labels)
 }
 
 fn insert_label(labels: &mut HashMap<String, String>, key: &str, value: &str) {

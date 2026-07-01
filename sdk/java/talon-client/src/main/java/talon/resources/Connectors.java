@@ -4104,30 +4104,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
      */
     talon.resources.Common.ResourceConditionOrBuilder getConditionsOrBuilder(
         int index);
-
-    /**
-     * <pre>
-     * Talon-owned registration identifier for this ConnectorClass, formatted as
-     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
-     * this value so Talon can route within the correct ConnectorClass.
-     * </pre>
-     *
-     * <code>string registration_id = 4;</code>
-     * @return The registrationId.
-     */
-    java.lang.String getRegistrationId();
-    /**
-     * <pre>
-     * Talon-owned registration identifier for this ConnectorClass, formatted as
-     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
-     * this value so Talon can route within the correct ConnectorClass.
-     * </pre>
-     *
-     * <code>string registration_id = 4;</code>
-     * @return The bytes for registrationId.
-     */
-    com.google.protobuf.ByteString
-        getRegistrationIdBytes();
   }
   /**
    * Protobuf type {@code talon.resources.ConnectorClassStatus}
@@ -4153,7 +4129,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     private ConnectorClassStatus() {
       phase_ = "";
       conditions_ = java.util.Collections.emptyList();
-      registrationId_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -4304,57 +4279,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       return conditions_.get(index);
     }
 
-    public static final int REGISTRATION_ID_FIELD_NUMBER = 4;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object registrationId_ = "";
-    /**
-     * <pre>
-     * Talon-owned registration identifier for this ConnectorClass, formatted as
-     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
-     * this value so Talon can route within the correct ConnectorClass.
-     * </pre>
-     *
-     * <code>string registration_id = 4;</code>
-     * @return The registrationId.
-     */
-    @java.lang.Override
-    public java.lang.String getRegistrationId() {
-      java.lang.Object ref = registrationId_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        registrationId_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Talon-owned registration identifier for this ConnectorClass, formatted as
-     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
-     * this value so Talon can route within the correct ConnectorClass.
-     * </pre>
-     *
-     * <code>string registration_id = 4;</code>
-     * @return The bytes for registrationId.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getRegistrationIdBytes() {
-      java.lang.Object ref = registrationId_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        registrationId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -4377,9 +4301,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
       for (int i = 0; i < conditions_.size(); i++) {
         output.writeMessage(3, conditions_.get(i));
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(registrationId_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 4, registrationId_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -4406,9 +4327,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
             }
             size += 1 * count;
           }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(registrationId_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, registrationId_);
-      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -4430,8 +4348,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
           .equals(other.getPhase())) return false;
       if (!getConditionsList()
           .equals(other.getConditionsList())) return false;
-      if (!getRegistrationId()
-          .equals(other.getRegistrationId())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -4452,8 +4368,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         hash = (37 * hash) + CONDITIONS_FIELD_NUMBER;
         hash = (53 * hash) + getConditionsList().hashCode();
       }
-      hash = (37 * hash) + REGISTRATION_ID_FIELD_NUMBER;
-      hash = (53 * hash) + getRegistrationId().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -4594,7 +4508,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
           conditionsBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000004);
-        registrationId_ = "";
         return this;
       }
 
@@ -4647,9 +4560,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000002) != 0)) {
           result.phase_ = phase_;
         }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.registrationId_ = registrationId_;
-        }
       }
 
       @java.lang.Override
@@ -4697,11 +4607,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
               conditionsBuilder_.addAllMessages(other.conditions_);
             }
           }
-        }
-        if (!other.getRegistrationId().isEmpty()) {
-          registrationId_ = other.registrationId_;
-          bitField0_ |= 0x00000008;
-          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -4752,11 +4657,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
                 }
                 break;
               } // case 26
-              case 34: {
-                registrationId_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 34
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -5245,108 +5145,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return conditionsBuilder_;
       }
 
-      private java.lang.Object registrationId_ = "";
-      /**
-       * <pre>
-       * Talon-owned registration identifier for this ConnectorClass, formatted as
-       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
-       * this value so Talon can route within the correct ConnectorClass.
-       * </pre>
-       *
-       * <code>string registration_id = 4;</code>
-       * @return The registrationId.
-       */
-      public java.lang.String getRegistrationId() {
-        java.lang.Object ref = registrationId_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          registrationId_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Talon-owned registration identifier for this ConnectorClass, formatted as
-       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
-       * this value so Talon can route within the correct ConnectorClass.
-       * </pre>
-       *
-       * <code>string registration_id = 4;</code>
-       * @return The bytes for registrationId.
-       */
-      public com.google.protobuf.ByteString
-          getRegistrationIdBytes() {
-        java.lang.Object ref = registrationId_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          registrationId_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Talon-owned registration identifier for this ConnectorClass, formatted as
-       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
-       * this value so Talon can route within the correct ConnectorClass.
-       * </pre>
-       *
-       * <code>string registration_id = 4;</code>
-       * @param value The registrationId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setRegistrationId(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        registrationId_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Talon-owned registration identifier for this ConnectorClass, formatted as
-       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
-       * this value so Talon can route within the correct ConnectorClass.
-       * </pre>
-       *
-       * <code>string registration_id = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearRegistrationId() {
-        registrationId_ = getDefaultInstance().getRegistrationId();
-        bitField0_ = (bitField0_ & ~0x00000008);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Talon-owned registration identifier for this ConnectorClass, formatted as
-       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;. Connector callbacks include
-       * this value so Talon can route within the correct ConnectorClass.
-       * </pre>
-       *
-       * <code>string registration_id = 4;</code>
-       * @param value The bytes for registrationId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setRegistrationIdBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        registrationId_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-
       // @@protoc_insertion_point(builder_scope:talon.resources.ConnectorClassStatus)
     }
 
@@ -5393,2905 +5191,6 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
     @java.lang.Override
     public talon.resources.Connectors.ConnectorClassStatus getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface ConnectorSessionTargetOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.resources.ConnectorSessionTarget)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <pre>
-     * Talon Agent name that receives matching connector messages.
-     * </pre>
-     *
-     * <code>string agent = 1;</code>
-     * @return The agent.
-     */
-    java.lang.String getAgent();
-    /**
-     * <pre>
-     * Talon Agent name that receives matching connector messages.
-     * </pre>
-     *
-     * <code>string agent = 1;</code>
-     * @return The bytes for agent.
-     */
-    com.google.protobuf.ByteString
-        getAgentBytes();
-
-    /**
-     * <pre>
-     * Session continuity policy. "reuse" reuses the Connector's session pointer
-     * for the external conversation/thread; any other value creates a new
-     * Session for each message.
-     * </pre>
-     *
-     * <code>string continuity = 2;</code>
-     * @return The continuity.
-     */
-    java.lang.String getContinuity();
-    /**
-     * <pre>
-     * Session continuity policy. "reuse" reuses the Connector's session pointer
-     * for the external conversation/thread; any other value creates a new
-     * Session for each message.
-     * </pre>
-     *
-     * <code>string continuity = 2;</code>
-     * @return The bytes for continuity.
-     */
-    com.google.protobuf.ByteString
-        getContinuityBytes();
-  }
-  /**
-   * Protobuf type {@code talon.resources.ConnectorSessionTarget}
-   */
-  public static final class ConnectorSessionTarget extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.resources.ConnectorSessionTarget)
-      ConnectorSessionTargetOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "ConnectorSessionTarget");
-    }
-    // Use ConnectorSessionTarget.newBuilder() to construct.
-    private ConnectorSessionTarget(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private ConnectorSessionTarget() {
-      agent_ = "";
-      continuity_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorSessionTarget_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorSessionTarget_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorSessionTarget_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.resources.Connectors.ConnectorSessionTarget.class, talon.resources.Connectors.ConnectorSessionTarget.Builder.class);
-    }
-
-    public static final int AGENT_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object agent_ = "";
-    /**
-     * <pre>
-     * Talon Agent name that receives matching connector messages.
-     * </pre>
-     *
-     * <code>string agent = 1;</code>
-     * @return The agent.
-     */
-    @java.lang.Override
-    public java.lang.String getAgent() {
-      java.lang.Object ref = agent_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        agent_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Talon Agent name that receives matching connector messages.
-     * </pre>
-     *
-     * <code>string agent = 1;</code>
-     * @return The bytes for agent.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getAgentBytes() {
-      java.lang.Object ref = agent_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        agent_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int CONTINUITY_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object continuity_ = "";
-    /**
-     * <pre>
-     * Session continuity policy. "reuse" reuses the Connector's session pointer
-     * for the external conversation/thread; any other value creates a new
-     * Session for each message.
-     * </pre>
-     *
-     * <code>string continuity = 2;</code>
-     * @return The continuity.
-     */
-    @java.lang.Override
-    public java.lang.String getContinuity() {
-      java.lang.Object ref = continuity_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        continuity_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Session continuity policy. "reuse" reuses the Connector's session pointer
-     * for the external conversation/thread; any other value creates a new
-     * Session for each message.
-     * </pre>
-     *
-     * <code>string continuity = 2;</code>
-     * @return The bytes for continuity.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getContinuityBytes() {
-      java.lang.Object ref = continuity_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        continuity_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, agent_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(continuity_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, continuity_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, agent_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(continuity_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, continuity_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.resources.Connectors.ConnectorSessionTarget)) {
-        return super.equals(obj);
-      }
-      talon.resources.Connectors.ConnectorSessionTarget other = (talon.resources.Connectors.ConnectorSessionTarget) obj;
-
-      if (!getAgent()
-          .equals(other.getAgent())) return false;
-      if (!getContinuity()
-          .equals(other.getContinuity())) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + AGENT_FIELD_NUMBER;
-      hash = (53 * hash) + getAgent().hashCode();
-      hash = (37 * hash) + CONTINUITY_FIELD_NUMBER;
-      hash = (53 * hash) + getContinuity().hashCode();
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.resources.Connectors.ConnectorSessionTarget parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorSessionTarget parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorSessionTarget parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorSessionTarget parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorSessionTarget parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorSessionTarget parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorSessionTarget parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Connectors.ConnectorSessionTarget parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.resources.Connectors.ConnectorSessionTarget parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.resources.Connectors.ConnectorSessionTarget parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorSessionTarget parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Connectors.ConnectorSessionTarget parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.resources.Connectors.ConnectorSessionTarget prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.resources.ConnectorSessionTarget}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.resources.ConnectorSessionTarget)
-        talon.resources.Connectors.ConnectorSessionTargetOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorSessionTarget_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorSessionTarget_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.resources.Connectors.ConnectorSessionTarget.class, talon.resources.Connectors.ConnectorSessionTarget.Builder.class);
-      }
-
-      // Construct using talon.resources.Connectors.ConnectorSessionTarget.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        agent_ = "";
-        continuity_ = "";
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorSessionTarget_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorSessionTarget getDefaultInstanceForType() {
-        return talon.resources.Connectors.ConnectorSessionTarget.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorSessionTarget build() {
-        talon.resources.Connectors.ConnectorSessionTarget result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorSessionTarget buildPartial() {
-        talon.resources.Connectors.ConnectorSessionTarget result = new talon.resources.Connectors.ConnectorSessionTarget(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.resources.Connectors.ConnectorSessionTarget result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.agent_ = agent_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.continuity_ = continuity_;
-        }
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.resources.Connectors.ConnectorSessionTarget) {
-          return mergeFrom((talon.resources.Connectors.ConnectorSessionTarget)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.resources.Connectors.ConnectorSessionTarget other) {
-        if (other == talon.resources.Connectors.ConnectorSessionTarget.getDefaultInstance()) return this;
-        if (!other.getAgent().isEmpty()) {
-          agent_ = other.agent_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getContinuity().isEmpty()) {
-          continuity_ = other.continuity_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                agent_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                continuity_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object agent_ = "";
-      /**
-       * <pre>
-       * Talon Agent name that receives matching connector messages.
-       * </pre>
-       *
-       * <code>string agent = 1;</code>
-       * @return The agent.
-       */
-      public java.lang.String getAgent() {
-        java.lang.Object ref = agent_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          agent_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Talon Agent name that receives matching connector messages.
-       * </pre>
-       *
-       * <code>string agent = 1;</code>
-       * @return The bytes for agent.
-       */
-      public com.google.protobuf.ByteString
-          getAgentBytes() {
-        java.lang.Object ref = agent_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          agent_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Talon Agent name that receives matching connector messages.
-       * </pre>
-       *
-       * <code>string agent = 1;</code>
-       * @param value The agent to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAgent(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        agent_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Talon Agent name that receives matching connector messages.
-       * </pre>
-       *
-       * <code>string agent = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearAgent() {
-        agent_ = getDefaultInstance().getAgent();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Talon Agent name that receives matching connector messages.
-       * </pre>
-       *
-       * <code>string agent = 1;</code>
-       * @param value The bytes for agent to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAgentBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        agent_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object continuity_ = "";
-      /**
-       * <pre>
-       * Session continuity policy. "reuse" reuses the Connector's session pointer
-       * for the external conversation/thread; any other value creates a new
-       * Session for each message.
-       * </pre>
-       *
-       * <code>string continuity = 2;</code>
-       * @return The continuity.
-       */
-      public java.lang.String getContinuity() {
-        java.lang.Object ref = continuity_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          continuity_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Session continuity policy. "reuse" reuses the Connector's session pointer
-       * for the external conversation/thread; any other value creates a new
-       * Session for each message.
-       * </pre>
-       *
-       * <code>string continuity = 2;</code>
-       * @return The bytes for continuity.
-       */
-      public com.google.protobuf.ByteString
-          getContinuityBytes() {
-        java.lang.Object ref = continuity_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          continuity_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Session continuity policy. "reuse" reuses the Connector's session pointer
-       * for the external conversation/thread; any other value creates a new
-       * Session for each message.
-       * </pre>
-       *
-       * <code>string continuity = 2;</code>
-       * @param value The continuity to set.
-       * @return This builder for chaining.
-       */
-      public Builder setContinuity(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        continuity_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Session continuity policy. "reuse" reuses the Connector's session pointer
-       * for the external conversation/thread; any other value creates a new
-       * Session for each message.
-       * </pre>
-       *
-       * <code>string continuity = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearContinuity() {
-        continuity_ = getDefaultInstance().getContinuity();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Session continuity policy. "reuse" reuses the Connector's session pointer
-       * for the external conversation/thread; any other value creates a new
-       * Session for each message.
-       * </pre>
-       *
-       * <code>string continuity = 2;</code>
-       * @param value The bytes for continuity to set.
-       * @return This builder for chaining.
-       */
-      public Builder setContinuityBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        continuity_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.resources.ConnectorSessionTarget)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.resources.ConnectorSessionTarget)
-    private static final talon.resources.Connectors.ConnectorSessionTarget DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.resources.Connectors.ConnectorSessionTarget();
-    }
-
-    public static talon.resources.Connectors.ConnectorSessionTarget getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<ConnectorSessionTarget>
-        PARSER = new com.google.protobuf.AbstractParser<ConnectorSessionTarget>() {
-      @java.lang.Override
-      public ConnectorSessionTarget parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<ConnectorSessionTarget> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ConnectorSessionTarget> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.resources.Connectors.ConnectorSessionTarget getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface ConnectorChannelTargetOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.resources.ConnectorChannelTarget)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <pre>
-     * Talon Channel name that receives matching connector messages.
-     * </pre>
-     *
-     * <code>string channel = 1;</code>
-     * @return The channel.
-     */
-    java.lang.String getChannel();
-    /**
-     * <pre>
-     * Talon Channel name that receives matching connector messages.
-     * </pre>
-     *
-     * <code>string channel = 1;</code>
-     * @return The bytes for channel.
-     */
-    com.google.protobuf.ByteString
-        getChannelBytes();
-
-    /**
-     * <pre>
-     * Talon Agent name to route the channel message to after it is persisted.
-     * </pre>
-     *
-     * <code>string agent = 2;</code>
-     * @return The agent.
-     */
-    java.lang.String getAgent();
-    /**
-     * <pre>
-     * Talon Agent name to route the channel message to after it is persisted.
-     * </pre>
-     *
-     * <code>string agent = 2;</code>
-     * @return The bytes for agent.
-     */
-    com.google.protobuf.ByteString
-        getAgentBytes();
-
-    /**
-     * <pre>
-     * Channel routing continuity policy. This is reserved for channel dispatch
-     * policies that create agent runtime context per message or thread.
-     * </pre>
-     *
-     * <code>string continuity = 3;</code>
-     * @return The continuity.
-     */
-    java.lang.String getContinuity();
-    /**
-     * <pre>
-     * Channel routing continuity policy. This is reserved for channel dispatch
-     * policies that create agent runtime context per message or thread.
-     * </pre>
-     *
-     * <code>string continuity = 3;</code>
-     * @return The bytes for continuity.
-     */
-    com.google.protobuf.ByteString
-        getContinuityBytes();
-
-    /**
-     * <pre>
-     * Reply behavior requested from the connector-aware channel router, such as
-     * replying in the provider thread instead of the root conversation.
-     * </pre>
-     *
-     * <code>string reply_policy = 4;</code>
-     * @return The replyPolicy.
-     */
-    java.lang.String getReplyPolicy();
-    /**
-     * <pre>
-     * Reply behavior requested from the connector-aware channel router, such as
-     * replying in the provider thread instead of the root conversation.
-     * </pre>
-     *
-     * <code>string reply_policy = 4;</code>
-     * @return The bytes for replyPolicy.
-     */
-    com.google.protobuf.ByteString
-        getReplyPolicyBytes();
-  }
-  /**
-   * Protobuf type {@code talon.resources.ConnectorChannelTarget}
-   */
-  public static final class ConnectorChannelTarget extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.resources.ConnectorChannelTarget)
-      ConnectorChannelTargetOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "ConnectorChannelTarget");
-    }
-    // Use ConnectorChannelTarget.newBuilder() to construct.
-    private ConnectorChannelTarget(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private ConnectorChannelTarget() {
-      channel_ = "";
-      agent_ = "";
-      continuity_ = "";
-      replyPolicy_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorChannelTarget_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorChannelTarget_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorChannelTarget_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.resources.Connectors.ConnectorChannelTarget.class, talon.resources.Connectors.ConnectorChannelTarget.Builder.class);
-    }
-
-    public static final int CHANNEL_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object channel_ = "";
-    /**
-     * <pre>
-     * Talon Channel name that receives matching connector messages.
-     * </pre>
-     *
-     * <code>string channel = 1;</code>
-     * @return The channel.
-     */
-    @java.lang.Override
-    public java.lang.String getChannel() {
-      java.lang.Object ref = channel_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        channel_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Talon Channel name that receives matching connector messages.
-     * </pre>
-     *
-     * <code>string channel = 1;</code>
-     * @return The bytes for channel.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getChannelBytes() {
-      java.lang.Object ref = channel_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        channel_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int AGENT_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object agent_ = "";
-    /**
-     * <pre>
-     * Talon Agent name to route the channel message to after it is persisted.
-     * </pre>
-     *
-     * <code>string agent = 2;</code>
-     * @return The agent.
-     */
-    @java.lang.Override
-    public java.lang.String getAgent() {
-      java.lang.Object ref = agent_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        agent_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Talon Agent name to route the channel message to after it is persisted.
-     * </pre>
-     *
-     * <code>string agent = 2;</code>
-     * @return The bytes for agent.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getAgentBytes() {
-      java.lang.Object ref = agent_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        agent_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int CONTINUITY_FIELD_NUMBER = 3;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object continuity_ = "";
-    /**
-     * <pre>
-     * Channel routing continuity policy. This is reserved for channel dispatch
-     * policies that create agent runtime context per message or thread.
-     * </pre>
-     *
-     * <code>string continuity = 3;</code>
-     * @return The continuity.
-     */
-    @java.lang.Override
-    public java.lang.String getContinuity() {
-      java.lang.Object ref = continuity_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        continuity_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Channel routing continuity policy. This is reserved for channel dispatch
-     * policies that create agent runtime context per message or thread.
-     * </pre>
-     *
-     * <code>string continuity = 3;</code>
-     * @return The bytes for continuity.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getContinuityBytes() {
-      java.lang.Object ref = continuity_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        continuity_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int REPLY_POLICY_FIELD_NUMBER = 4;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object replyPolicy_ = "";
-    /**
-     * <pre>
-     * Reply behavior requested from the connector-aware channel router, such as
-     * replying in the provider thread instead of the root conversation.
-     * </pre>
-     *
-     * <code>string reply_policy = 4;</code>
-     * @return The replyPolicy.
-     */
-    @java.lang.Override
-    public java.lang.String getReplyPolicy() {
-      java.lang.Object ref = replyPolicy_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        replyPolicy_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Reply behavior requested from the connector-aware channel router, such as
-     * replying in the provider thread instead of the root conversation.
-     * </pre>
-     *
-     * <code>string reply_policy = 4;</code>
-     * @return The bytes for replyPolicy.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getReplyPolicyBytes() {
-      java.lang.Object ref = replyPolicy_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        replyPolicy_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(channel_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, channel_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, agent_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(continuity_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, continuity_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(replyPolicy_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 4, replyPolicy_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(channel_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, channel_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, agent_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(continuity_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, continuity_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(replyPolicy_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, replyPolicy_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.resources.Connectors.ConnectorChannelTarget)) {
-        return super.equals(obj);
-      }
-      talon.resources.Connectors.ConnectorChannelTarget other = (talon.resources.Connectors.ConnectorChannelTarget) obj;
-
-      if (!getChannel()
-          .equals(other.getChannel())) return false;
-      if (!getAgent()
-          .equals(other.getAgent())) return false;
-      if (!getContinuity()
-          .equals(other.getContinuity())) return false;
-      if (!getReplyPolicy()
-          .equals(other.getReplyPolicy())) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + CHANNEL_FIELD_NUMBER;
-      hash = (53 * hash) + getChannel().hashCode();
-      hash = (37 * hash) + AGENT_FIELD_NUMBER;
-      hash = (53 * hash) + getAgent().hashCode();
-      hash = (37 * hash) + CONTINUITY_FIELD_NUMBER;
-      hash = (53 * hash) + getContinuity().hashCode();
-      hash = (37 * hash) + REPLY_POLICY_FIELD_NUMBER;
-      hash = (53 * hash) + getReplyPolicy().hashCode();
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.resources.Connectors.ConnectorChannelTarget parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorChannelTarget parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorChannelTarget parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorChannelTarget parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorChannelTarget parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorChannelTarget parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorChannelTarget parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Connectors.ConnectorChannelTarget parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.resources.Connectors.ConnectorChannelTarget parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.resources.Connectors.ConnectorChannelTarget parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorChannelTarget parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Connectors.ConnectorChannelTarget parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.resources.Connectors.ConnectorChannelTarget prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.resources.ConnectorChannelTarget}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.resources.ConnectorChannelTarget)
-        talon.resources.Connectors.ConnectorChannelTargetOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorChannelTarget_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorChannelTarget_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.resources.Connectors.ConnectorChannelTarget.class, talon.resources.Connectors.ConnectorChannelTarget.Builder.class);
-      }
-
-      // Construct using talon.resources.Connectors.ConnectorChannelTarget.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        channel_ = "";
-        agent_ = "";
-        continuity_ = "";
-        replyPolicy_ = "";
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorChannelTarget_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorChannelTarget getDefaultInstanceForType() {
-        return talon.resources.Connectors.ConnectorChannelTarget.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorChannelTarget build() {
-        talon.resources.Connectors.ConnectorChannelTarget result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorChannelTarget buildPartial() {
-        talon.resources.Connectors.ConnectorChannelTarget result = new talon.resources.Connectors.ConnectorChannelTarget(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.resources.Connectors.ConnectorChannelTarget result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.channel_ = channel_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.agent_ = agent_;
-        }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.continuity_ = continuity_;
-        }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.replyPolicy_ = replyPolicy_;
-        }
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.resources.Connectors.ConnectorChannelTarget) {
-          return mergeFrom((talon.resources.Connectors.ConnectorChannelTarget)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.resources.Connectors.ConnectorChannelTarget other) {
-        if (other == talon.resources.Connectors.ConnectorChannelTarget.getDefaultInstance()) return this;
-        if (!other.getChannel().isEmpty()) {
-          channel_ = other.channel_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getAgent().isEmpty()) {
-          agent_ = other.agent_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        if (!other.getContinuity().isEmpty()) {
-          continuity_ = other.continuity_;
-          bitField0_ |= 0x00000004;
-          onChanged();
-        }
-        if (!other.getReplyPolicy().isEmpty()) {
-          replyPolicy_ = other.replyPolicy_;
-          bitField0_ |= 0x00000008;
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                channel_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                agent_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              case 26: {
-                continuity_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
-              case 34: {
-                replyPolicy_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 34
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object channel_ = "";
-      /**
-       * <pre>
-       * Talon Channel name that receives matching connector messages.
-       * </pre>
-       *
-       * <code>string channel = 1;</code>
-       * @return The channel.
-       */
-      public java.lang.String getChannel() {
-        java.lang.Object ref = channel_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          channel_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Talon Channel name that receives matching connector messages.
-       * </pre>
-       *
-       * <code>string channel = 1;</code>
-       * @return The bytes for channel.
-       */
-      public com.google.protobuf.ByteString
-          getChannelBytes() {
-        java.lang.Object ref = channel_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          channel_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Talon Channel name that receives matching connector messages.
-       * </pre>
-       *
-       * <code>string channel = 1;</code>
-       * @param value The channel to set.
-       * @return This builder for chaining.
-       */
-      public Builder setChannel(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        channel_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Talon Channel name that receives matching connector messages.
-       * </pre>
-       *
-       * <code>string channel = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearChannel() {
-        channel_ = getDefaultInstance().getChannel();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Talon Channel name that receives matching connector messages.
-       * </pre>
-       *
-       * <code>string channel = 1;</code>
-       * @param value The bytes for channel to set.
-       * @return This builder for chaining.
-       */
-      public Builder setChannelBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        channel_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object agent_ = "";
-      /**
-       * <pre>
-       * Talon Agent name to route the channel message to after it is persisted.
-       * </pre>
-       *
-       * <code>string agent = 2;</code>
-       * @return The agent.
-       */
-      public java.lang.String getAgent() {
-        java.lang.Object ref = agent_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          agent_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Talon Agent name to route the channel message to after it is persisted.
-       * </pre>
-       *
-       * <code>string agent = 2;</code>
-       * @return The bytes for agent.
-       */
-      public com.google.protobuf.ByteString
-          getAgentBytes() {
-        java.lang.Object ref = agent_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          agent_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Talon Agent name to route the channel message to after it is persisted.
-       * </pre>
-       *
-       * <code>string agent = 2;</code>
-       * @param value The agent to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAgent(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        agent_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Talon Agent name to route the channel message to after it is persisted.
-       * </pre>
-       *
-       * <code>string agent = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearAgent() {
-        agent_ = getDefaultInstance().getAgent();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Talon Agent name to route the channel message to after it is persisted.
-       * </pre>
-       *
-       * <code>string agent = 2;</code>
-       * @param value The bytes for agent to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAgentBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        agent_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object continuity_ = "";
-      /**
-       * <pre>
-       * Channel routing continuity policy. This is reserved for channel dispatch
-       * policies that create agent runtime context per message or thread.
-       * </pre>
-       *
-       * <code>string continuity = 3;</code>
-       * @return The continuity.
-       */
-      public java.lang.String getContinuity() {
-        java.lang.Object ref = continuity_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          continuity_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Channel routing continuity policy. This is reserved for channel dispatch
-       * policies that create agent runtime context per message or thread.
-       * </pre>
-       *
-       * <code>string continuity = 3;</code>
-       * @return The bytes for continuity.
-       */
-      public com.google.protobuf.ByteString
-          getContinuityBytes() {
-        java.lang.Object ref = continuity_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          continuity_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Channel routing continuity policy. This is reserved for channel dispatch
-       * policies that create agent runtime context per message or thread.
-       * </pre>
-       *
-       * <code>string continuity = 3;</code>
-       * @param value The continuity to set.
-       * @return This builder for chaining.
-       */
-      public Builder setContinuity(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        continuity_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Channel routing continuity policy. This is reserved for channel dispatch
-       * policies that create agent runtime context per message or thread.
-       * </pre>
-       *
-       * <code>string continuity = 3;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearContinuity() {
-        continuity_ = getDefaultInstance().getContinuity();
-        bitField0_ = (bitField0_ & ~0x00000004);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Channel routing continuity policy. This is reserved for channel dispatch
-       * policies that create agent runtime context per message or thread.
-       * </pre>
-       *
-       * <code>string continuity = 3;</code>
-       * @param value The bytes for continuity to set.
-       * @return This builder for chaining.
-       */
-      public Builder setContinuityBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        continuity_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object replyPolicy_ = "";
-      /**
-       * <pre>
-       * Reply behavior requested from the connector-aware channel router, such as
-       * replying in the provider thread instead of the root conversation.
-       * </pre>
-       *
-       * <code>string reply_policy = 4;</code>
-       * @return The replyPolicy.
-       */
-      public java.lang.String getReplyPolicy() {
-        java.lang.Object ref = replyPolicy_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          replyPolicy_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Reply behavior requested from the connector-aware channel router, such as
-       * replying in the provider thread instead of the root conversation.
-       * </pre>
-       *
-       * <code>string reply_policy = 4;</code>
-       * @return The bytes for replyPolicy.
-       */
-      public com.google.protobuf.ByteString
-          getReplyPolicyBytes() {
-        java.lang.Object ref = replyPolicy_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          replyPolicy_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Reply behavior requested from the connector-aware channel router, such as
-       * replying in the provider thread instead of the root conversation.
-       * </pre>
-       *
-       * <code>string reply_policy = 4;</code>
-       * @param value The replyPolicy to set.
-       * @return This builder for chaining.
-       */
-      public Builder setReplyPolicy(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        replyPolicy_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Reply behavior requested from the connector-aware channel router, such as
-       * replying in the provider thread instead of the root conversation.
-       * </pre>
-       *
-       * <code>string reply_policy = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearReplyPolicy() {
-        replyPolicy_ = getDefaultInstance().getReplyPolicy();
-        bitField0_ = (bitField0_ & ~0x00000008);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Reply behavior requested from the connector-aware channel router, such as
-       * replying in the provider thread instead of the root conversation.
-       * </pre>
-       *
-       * <code>string reply_policy = 4;</code>
-       * @param value The bytes for replyPolicy to set.
-       * @return This builder for chaining.
-       */
-      public Builder setReplyPolicyBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        replyPolicy_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.resources.ConnectorChannelTarget)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.resources.ConnectorChannelTarget)
-    private static final talon.resources.Connectors.ConnectorChannelTarget DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.resources.Connectors.ConnectorChannelTarget();
-    }
-
-    public static talon.resources.Connectors.ConnectorChannelTarget getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<ConnectorChannelTarget>
-        PARSER = new com.google.protobuf.AbstractParser<ConnectorChannelTarget>() {
-      @java.lang.Override
-      public ConnectorChannelTarget parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<ConnectorChannelTarget> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ConnectorChannelTarget> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.resources.Connectors.ConnectorChannelTarget getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface ConnectorTargetOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.resources.ConnectorTarget)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <pre>
-     * Deliver matching connector messages directly to a Talon Session.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-     * @return Whether the session field is set.
-     */
-    boolean hasSession();
-    /**
-     * <pre>
-     * Deliver matching connector messages directly to a Talon Session.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-     * @return The session.
-     */
-    talon.resources.Connectors.ConnectorSessionTarget getSession();
-    /**
-     * <pre>
-     * Deliver matching connector messages directly to a Talon Session.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-     */
-    talon.resources.Connectors.ConnectorSessionTargetOrBuilder getSessionOrBuilder();
-
-    /**
-     * <pre>
-     * Persist matching connector messages into a Talon Channel, then route the
-     * message to the configured Agent.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-     * @return Whether the channel field is set.
-     */
-    boolean hasChannel();
-    /**
-     * <pre>
-     * Persist matching connector messages into a Talon Channel, then route the
-     * message to the configured Agent.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-     * @return The channel.
-     */
-    talon.resources.Connectors.ConnectorChannelTarget getChannel();
-    /**
-     * <pre>
-     * Persist matching connector messages into a Talon Channel, then route the
-     * message to the configured Agent.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-     */
-    talon.resources.Connectors.ConnectorChannelTargetOrBuilder getChannelOrBuilder();
-
-    talon.resources.Connectors.ConnectorTarget.DestinationCase getDestinationCase();
-  }
-  /**
-   * Protobuf type {@code talon.resources.ConnectorTarget}
-   */
-  public static final class ConnectorTarget extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.resources.ConnectorTarget)
-      ConnectorTargetOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "ConnectorTarget");
-    }
-    // Use ConnectorTarget.newBuilder() to construct.
-    private ConnectorTarget(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private ConnectorTarget() {
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorTarget_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorTarget_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorTarget_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.resources.Connectors.ConnectorTarget.class, talon.resources.Connectors.ConnectorTarget.Builder.class);
-    }
-
-    private int destinationCase_ = 0;
-    @SuppressWarnings("serial")
-    private java.lang.Object destination_;
-    public enum DestinationCase
-        implements com.google.protobuf.Internal.EnumLite,
-            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
-      SESSION(1),
-      CHANNEL(2),
-      DESTINATION_NOT_SET(0);
-      private final int value;
-      private DestinationCase(int value) {
-        this.value = value;
-      }
-      /**
-       * @param value The number of the enum to look for.
-       * @return The enum associated with the given number.
-       * @deprecated Use {@link #forNumber(int)} instead.
-       */
-      @java.lang.Deprecated
-      public static DestinationCase valueOf(int value) {
-        return forNumber(value);
-      }
-
-      public static DestinationCase forNumber(int value) {
-        switch (value) {
-          case 1: return SESSION;
-          case 2: return CHANNEL;
-          case 0: return DESTINATION_NOT_SET;
-          default: return null;
-        }
-      }
-      public int getNumber() {
-        return this.value;
-      }
-    };
-
-    public DestinationCase
-    getDestinationCase() {
-      return DestinationCase.forNumber(
-          destinationCase_);
-    }
-
-    public static final int SESSION_FIELD_NUMBER = 1;
-    /**
-     * <pre>
-     * Deliver matching connector messages directly to a Talon Session.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-     * @return Whether the session field is set.
-     */
-    @java.lang.Override
-    public boolean hasSession() {
-      return destinationCase_ == 1;
-    }
-    /**
-     * <pre>
-     * Deliver matching connector messages directly to a Talon Session.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-     * @return The session.
-     */
-    @java.lang.Override
-    public talon.resources.Connectors.ConnectorSessionTarget getSession() {
-      if (destinationCase_ == 1) {
-         return (talon.resources.Connectors.ConnectorSessionTarget) destination_;
-      }
-      return talon.resources.Connectors.ConnectorSessionTarget.getDefaultInstance();
-    }
-    /**
-     * <pre>
-     * Deliver matching connector messages directly to a Talon Session.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-     */
-    @java.lang.Override
-    public talon.resources.Connectors.ConnectorSessionTargetOrBuilder getSessionOrBuilder() {
-      if (destinationCase_ == 1) {
-         return (talon.resources.Connectors.ConnectorSessionTarget) destination_;
-      }
-      return talon.resources.Connectors.ConnectorSessionTarget.getDefaultInstance();
-    }
-
-    public static final int CHANNEL_FIELD_NUMBER = 2;
-    /**
-     * <pre>
-     * Persist matching connector messages into a Talon Channel, then route the
-     * message to the configured Agent.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-     * @return Whether the channel field is set.
-     */
-    @java.lang.Override
-    public boolean hasChannel() {
-      return destinationCase_ == 2;
-    }
-    /**
-     * <pre>
-     * Persist matching connector messages into a Talon Channel, then route the
-     * message to the configured Agent.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-     * @return The channel.
-     */
-    @java.lang.Override
-    public talon.resources.Connectors.ConnectorChannelTarget getChannel() {
-      if (destinationCase_ == 2) {
-         return (talon.resources.Connectors.ConnectorChannelTarget) destination_;
-      }
-      return talon.resources.Connectors.ConnectorChannelTarget.getDefaultInstance();
-    }
-    /**
-     * <pre>
-     * Persist matching connector messages into a Talon Channel, then route the
-     * message to the configured Agent.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-     */
-    @java.lang.Override
-    public talon.resources.Connectors.ConnectorChannelTargetOrBuilder getChannelOrBuilder() {
-      if (destinationCase_ == 2) {
-         return (talon.resources.Connectors.ConnectorChannelTarget) destination_;
-      }
-      return talon.resources.Connectors.ConnectorChannelTarget.getDefaultInstance();
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (destinationCase_ == 1) {
-        output.writeMessage(1, (talon.resources.Connectors.ConnectorSessionTarget) destination_);
-      }
-      if (destinationCase_ == 2) {
-        output.writeMessage(2, (talon.resources.Connectors.ConnectorChannelTarget) destination_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (destinationCase_ == 1) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, (talon.resources.Connectors.ConnectorSessionTarget) destination_);
-      }
-      if (destinationCase_ == 2) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, (talon.resources.Connectors.ConnectorChannelTarget) destination_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.resources.Connectors.ConnectorTarget)) {
-        return super.equals(obj);
-      }
-      talon.resources.Connectors.ConnectorTarget other = (talon.resources.Connectors.ConnectorTarget) obj;
-
-      if (!getDestinationCase().equals(other.getDestinationCase())) return false;
-      switch (destinationCase_) {
-        case 1:
-          if (!getSession()
-              .equals(other.getSession())) return false;
-          break;
-        case 2:
-          if (!getChannel()
-              .equals(other.getChannel())) return false;
-          break;
-        case 0:
-        default:
-      }
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      switch (destinationCase_) {
-        case 1:
-          hash = (37 * hash) + SESSION_FIELD_NUMBER;
-          hash = (53 * hash) + getSession().hashCode();
-          break;
-        case 2:
-          hash = (37 * hash) + CHANNEL_FIELD_NUMBER;
-          hash = (53 * hash) + getChannel().hashCode();
-          break;
-        case 0:
-        default:
-      }
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.resources.Connectors.ConnectorTarget parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorTarget parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorTarget parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorTarget parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorTarget parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorTarget parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorTarget parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Connectors.ConnectorTarget parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.resources.Connectors.ConnectorTarget parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.resources.Connectors.ConnectorTarget parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorTarget parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Connectors.ConnectorTarget parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.resources.Connectors.ConnectorTarget prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.resources.ConnectorTarget}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.resources.ConnectorTarget)
-        talon.resources.Connectors.ConnectorTargetOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorTarget_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorTarget_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.resources.Connectors.ConnectorTarget.class, talon.resources.Connectors.ConnectorTarget.Builder.class);
-      }
-
-      // Construct using talon.resources.Connectors.ConnectorTarget.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        if (sessionBuilder_ != null) {
-          sessionBuilder_.clear();
-        }
-        if (channelBuilder_ != null) {
-          channelBuilder_.clear();
-        }
-        destinationCase_ = 0;
-        destination_ = null;
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorTarget_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorTarget getDefaultInstanceForType() {
-        return talon.resources.Connectors.ConnectorTarget.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorTarget build() {
-        talon.resources.Connectors.ConnectorTarget result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorTarget buildPartial() {
-        talon.resources.Connectors.ConnectorTarget result = new talon.resources.Connectors.ConnectorTarget(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        buildPartialOneofs(result);
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.resources.Connectors.ConnectorTarget result) {
-        int from_bitField0_ = bitField0_;
-      }
-
-      private void buildPartialOneofs(talon.resources.Connectors.ConnectorTarget result) {
-        result.destinationCase_ = destinationCase_;
-        result.destination_ = this.destination_;
-        if (destinationCase_ == 1 &&
-            sessionBuilder_ != null) {
-          result.destination_ = sessionBuilder_.build();
-        }
-        if (destinationCase_ == 2 &&
-            channelBuilder_ != null) {
-          result.destination_ = channelBuilder_.build();
-        }
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.resources.Connectors.ConnectorTarget) {
-          return mergeFrom((talon.resources.Connectors.ConnectorTarget)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.resources.Connectors.ConnectorTarget other) {
-        if (other == talon.resources.Connectors.ConnectorTarget.getDefaultInstance()) return this;
-        switch (other.getDestinationCase()) {
-          case SESSION: {
-            mergeSession(other.getSession());
-            break;
-          }
-          case CHANNEL: {
-            mergeChannel(other.getChannel());
-            break;
-          }
-          case DESTINATION_NOT_SET: {
-            break;
-          }
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                input.readMessage(
-                    internalGetSessionFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                destinationCase_ = 1;
-                break;
-              } // case 10
-              case 18: {
-                input.readMessage(
-                    internalGetChannelFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                destinationCase_ = 2;
-                break;
-              } // case 18
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int destinationCase_ = 0;
-      private java.lang.Object destination_;
-      public DestinationCase
-          getDestinationCase() {
-        return DestinationCase.forNumber(
-            destinationCase_);
-      }
-
-      public Builder clearDestination() {
-        destinationCase_ = 0;
-        destination_ = null;
-        onChanged();
-        return this;
-      }
-
-      private int bitField0_;
-
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Connectors.ConnectorSessionTarget, talon.resources.Connectors.ConnectorSessionTarget.Builder, talon.resources.Connectors.ConnectorSessionTargetOrBuilder> sessionBuilder_;
-      /**
-       * <pre>
-       * Deliver matching connector messages directly to a Talon Session.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-       * @return Whether the session field is set.
-       */
-      @java.lang.Override
-      public boolean hasSession() {
-        return destinationCase_ == 1;
-      }
-      /**
-       * <pre>
-       * Deliver matching connector messages directly to a Talon Session.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-       * @return The session.
-       */
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorSessionTarget getSession() {
-        if (sessionBuilder_ == null) {
-          if (destinationCase_ == 1) {
-            return (talon.resources.Connectors.ConnectorSessionTarget) destination_;
-          }
-          return talon.resources.Connectors.ConnectorSessionTarget.getDefaultInstance();
-        } else {
-          if (destinationCase_ == 1) {
-            return sessionBuilder_.getMessage();
-          }
-          return talon.resources.Connectors.ConnectorSessionTarget.getDefaultInstance();
-        }
-      }
-      /**
-       * <pre>
-       * Deliver matching connector messages directly to a Talon Session.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-       */
-      public Builder setSession(talon.resources.Connectors.ConnectorSessionTarget value) {
-        if (sessionBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          destination_ = value;
-          onChanged();
-        } else {
-          sessionBuilder_.setMessage(value);
-        }
-        destinationCase_ = 1;
-        return this;
-      }
-      /**
-       * <pre>
-       * Deliver matching connector messages directly to a Talon Session.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-       */
-      public Builder setSession(
-          talon.resources.Connectors.ConnectorSessionTarget.Builder builderForValue) {
-        if (sessionBuilder_ == null) {
-          destination_ = builderForValue.build();
-          onChanged();
-        } else {
-          sessionBuilder_.setMessage(builderForValue.build());
-        }
-        destinationCase_ = 1;
-        return this;
-      }
-      /**
-       * <pre>
-       * Deliver matching connector messages directly to a Talon Session.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-       */
-      public Builder mergeSession(talon.resources.Connectors.ConnectorSessionTarget value) {
-        if (sessionBuilder_ == null) {
-          if (destinationCase_ == 1 &&
-              destination_ != talon.resources.Connectors.ConnectorSessionTarget.getDefaultInstance()) {
-            destination_ = talon.resources.Connectors.ConnectorSessionTarget.newBuilder((talon.resources.Connectors.ConnectorSessionTarget) destination_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            destination_ = value;
-          }
-          onChanged();
-        } else {
-          if (destinationCase_ == 1) {
-            sessionBuilder_.mergeFrom(value);
-          } else {
-            sessionBuilder_.setMessage(value);
-          }
-        }
-        destinationCase_ = 1;
-        return this;
-      }
-      /**
-       * <pre>
-       * Deliver matching connector messages directly to a Talon Session.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-       */
-      public Builder clearSession() {
-        if (sessionBuilder_ == null) {
-          if (destinationCase_ == 1) {
-            destinationCase_ = 0;
-            destination_ = null;
-            onChanged();
-          }
-        } else {
-          if (destinationCase_ == 1) {
-            destinationCase_ = 0;
-            destination_ = null;
-          }
-          sessionBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Deliver matching connector messages directly to a Talon Session.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-       */
-      public talon.resources.Connectors.ConnectorSessionTarget.Builder getSessionBuilder() {
-        return internalGetSessionFieldBuilder().getBuilder();
-      }
-      /**
-       * <pre>
-       * Deliver matching connector messages directly to a Talon Session.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-       */
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorSessionTargetOrBuilder getSessionOrBuilder() {
-        if ((destinationCase_ == 1) && (sessionBuilder_ != null)) {
-          return sessionBuilder_.getMessageOrBuilder();
-        } else {
-          if (destinationCase_ == 1) {
-            return (talon.resources.Connectors.ConnectorSessionTarget) destination_;
-          }
-          return talon.resources.Connectors.ConnectorSessionTarget.getDefaultInstance();
-        }
-      }
-      /**
-       * <pre>
-       * Deliver matching connector messages directly to a Talon Session.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorSessionTarget session = 1;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Connectors.ConnectorSessionTarget, talon.resources.Connectors.ConnectorSessionTarget.Builder, talon.resources.Connectors.ConnectorSessionTargetOrBuilder>
-          internalGetSessionFieldBuilder() {
-        if (sessionBuilder_ == null) {
-          if (!(destinationCase_ == 1)) {
-            destination_ = talon.resources.Connectors.ConnectorSessionTarget.getDefaultInstance();
-          }
-          sessionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Connectors.ConnectorSessionTarget, talon.resources.Connectors.ConnectorSessionTarget.Builder, talon.resources.Connectors.ConnectorSessionTargetOrBuilder>(
-                  (talon.resources.Connectors.ConnectorSessionTarget) destination_,
-                  getParentForChildren(),
-                  isClean());
-          destination_ = null;
-        }
-        destinationCase_ = 1;
-        onChanged();
-        return sessionBuilder_;
-      }
-
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Connectors.ConnectorChannelTarget, talon.resources.Connectors.ConnectorChannelTarget.Builder, talon.resources.Connectors.ConnectorChannelTargetOrBuilder> channelBuilder_;
-      /**
-       * <pre>
-       * Persist matching connector messages into a Talon Channel, then route the
-       * message to the configured Agent.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-       * @return Whether the channel field is set.
-       */
-      @java.lang.Override
-      public boolean hasChannel() {
-        return destinationCase_ == 2;
-      }
-      /**
-       * <pre>
-       * Persist matching connector messages into a Talon Channel, then route the
-       * message to the configured Agent.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-       * @return The channel.
-       */
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorChannelTarget getChannel() {
-        if (channelBuilder_ == null) {
-          if (destinationCase_ == 2) {
-            return (talon.resources.Connectors.ConnectorChannelTarget) destination_;
-          }
-          return talon.resources.Connectors.ConnectorChannelTarget.getDefaultInstance();
-        } else {
-          if (destinationCase_ == 2) {
-            return channelBuilder_.getMessage();
-          }
-          return talon.resources.Connectors.ConnectorChannelTarget.getDefaultInstance();
-        }
-      }
-      /**
-       * <pre>
-       * Persist matching connector messages into a Talon Channel, then route the
-       * message to the configured Agent.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-       */
-      public Builder setChannel(talon.resources.Connectors.ConnectorChannelTarget value) {
-        if (channelBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          destination_ = value;
-          onChanged();
-        } else {
-          channelBuilder_.setMessage(value);
-        }
-        destinationCase_ = 2;
-        return this;
-      }
-      /**
-       * <pre>
-       * Persist matching connector messages into a Talon Channel, then route the
-       * message to the configured Agent.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-       */
-      public Builder setChannel(
-          talon.resources.Connectors.ConnectorChannelTarget.Builder builderForValue) {
-        if (channelBuilder_ == null) {
-          destination_ = builderForValue.build();
-          onChanged();
-        } else {
-          channelBuilder_.setMessage(builderForValue.build());
-        }
-        destinationCase_ = 2;
-        return this;
-      }
-      /**
-       * <pre>
-       * Persist matching connector messages into a Talon Channel, then route the
-       * message to the configured Agent.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-       */
-      public Builder mergeChannel(talon.resources.Connectors.ConnectorChannelTarget value) {
-        if (channelBuilder_ == null) {
-          if (destinationCase_ == 2 &&
-              destination_ != talon.resources.Connectors.ConnectorChannelTarget.getDefaultInstance()) {
-            destination_ = talon.resources.Connectors.ConnectorChannelTarget.newBuilder((talon.resources.Connectors.ConnectorChannelTarget) destination_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            destination_ = value;
-          }
-          onChanged();
-        } else {
-          if (destinationCase_ == 2) {
-            channelBuilder_.mergeFrom(value);
-          } else {
-            channelBuilder_.setMessage(value);
-          }
-        }
-        destinationCase_ = 2;
-        return this;
-      }
-      /**
-       * <pre>
-       * Persist matching connector messages into a Talon Channel, then route the
-       * message to the configured Agent.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-       */
-      public Builder clearChannel() {
-        if (channelBuilder_ == null) {
-          if (destinationCase_ == 2) {
-            destinationCase_ = 0;
-            destination_ = null;
-            onChanged();
-          }
-        } else {
-          if (destinationCase_ == 2) {
-            destinationCase_ = 0;
-            destination_ = null;
-          }
-          channelBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Persist matching connector messages into a Talon Channel, then route the
-       * message to the configured Agent.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-       */
-      public talon.resources.Connectors.ConnectorChannelTarget.Builder getChannelBuilder() {
-        return internalGetChannelFieldBuilder().getBuilder();
-      }
-      /**
-       * <pre>
-       * Persist matching connector messages into a Talon Channel, then route the
-       * message to the configured Agent.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-       */
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorChannelTargetOrBuilder getChannelOrBuilder() {
-        if ((destinationCase_ == 2) && (channelBuilder_ != null)) {
-          return channelBuilder_.getMessageOrBuilder();
-        } else {
-          if (destinationCase_ == 2) {
-            return (talon.resources.Connectors.ConnectorChannelTarget) destination_;
-          }
-          return talon.resources.Connectors.ConnectorChannelTarget.getDefaultInstance();
-        }
-      }
-      /**
-       * <pre>
-       * Persist matching connector messages into a Talon Channel, then route the
-       * message to the configured Agent.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorChannelTarget channel = 2;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Connectors.ConnectorChannelTarget, talon.resources.Connectors.ConnectorChannelTarget.Builder, talon.resources.Connectors.ConnectorChannelTargetOrBuilder>
-          internalGetChannelFieldBuilder() {
-        if (channelBuilder_ == null) {
-          if (!(destinationCase_ == 2)) {
-            destination_ = talon.resources.Connectors.ConnectorChannelTarget.getDefaultInstance();
-          }
-          channelBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Connectors.ConnectorChannelTarget, talon.resources.Connectors.ConnectorChannelTarget.Builder, talon.resources.Connectors.ConnectorChannelTargetOrBuilder>(
-                  (talon.resources.Connectors.ConnectorChannelTarget) destination_,
-                  getParentForChildren(),
-                  isClean());
-          destination_ = null;
-        }
-        destinationCase_ = 2;
-        onChanged();
-        return channelBuilder_;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.resources.ConnectorTarget)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.resources.ConnectorTarget)
-    private static final talon.resources.Connectors.ConnectorTarget DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.resources.Connectors.ConnectorTarget();
-    }
-
-    public static talon.resources.Connectors.ConnectorTarget getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<ConnectorTarget>
-        PARSER = new com.google.protobuf.AbstractParser<ConnectorTarget>() {
-      @java.lang.Override
-      public ConnectorTarget parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<ConnectorTarget> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ConnectorTarget> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.resources.Connectors.ConnectorTarget getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -8413,30 +5312,30 @@ java.lang.String defaultValue);
 
     /**
      * <pre>
-     * Single Talon destination for messages that match this Connector.
+     * Single Talon message consumer for messages that match this Connector.
      * </pre>
      *
-     * <code>.talon.resources.ConnectorTarget target = 4;</code>
-     * @return Whether the target field is set.
+     * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+     * @return Whether the consumer field is set.
      */
-    boolean hasTarget();
+    boolean hasConsumer();
     /**
      * <pre>
-     * Single Talon destination for messages that match this Connector.
+     * Single Talon message consumer for messages that match this Connector.
      * </pre>
      *
-     * <code>.talon.resources.ConnectorTarget target = 4;</code>
-     * @return The target.
+     * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+     * @return The consumer.
      */
-    talon.resources.Connectors.ConnectorTarget getTarget();
+    talon.resources.Routing.MessageConsumer getConsumer();
     /**
      * <pre>
-     * Single Talon destination for messages that match this Connector.
+     * Single Talon message consumer for messages that match this Connector.
      * </pre>
      *
-     * <code>.talon.resources.ConnectorTarget target = 4;</code>
+     * <code>.talon.resources.MessageConsumer consumer = 4;</code>
      */
-    talon.resources.Connectors.ConnectorTargetOrBuilder getTargetOrBuilder();
+    talon.resources.Routing.MessageConsumerOrBuilder getConsumerOrBuilder();
   }
   /**
    * Protobuf type {@code talon.resources.ConnectorSpec}
@@ -8658,42 +5557,42 @@ java.lang.String defaultValue) {
       return map.get(key);
     }
 
-    public static final int TARGET_FIELD_NUMBER = 4;
-    private talon.resources.Connectors.ConnectorTarget target_;
+    public static final int CONSUMER_FIELD_NUMBER = 4;
+    private talon.resources.Routing.MessageConsumer consumer_;
     /**
      * <pre>
-     * Single Talon destination for messages that match this Connector.
+     * Single Talon message consumer for messages that match this Connector.
      * </pre>
      *
-     * <code>.talon.resources.ConnectorTarget target = 4;</code>
-     * @return Whether the target field is set.
+     * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+     * @return Whether the consumer field is set.
      */
     @java.lang.Override
-    public boolean hasTarget() {
+    public boolean hasConsumer() {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <pre>
-     * Single Talon destination for messages that match this Connector.
+     * Single Talon message consumer for messages that match this Connector.
      * </pre>
      *
-     * <code>.talon.resources.ConnectorTarget target = 4;</code>
-     * @return The target.
+     * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+     * @return The consumer.
      */
     @java.lang.Override
-    public talon.resources.Connectors.ConnectorTarget getTarget() {
-      return target_ == null ? talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
+    public talon.resources.Routing.MessageConsumer getConsumer() {
+      return consumer_ == null ? talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
     }
     /**
      * <pre>
-     * Single Talon destination for messages that match this Connector.
+     * Single Talon message consumer for messages that match this Connector.
      * </pre>
      *
-     * <code>.talon.resources.ConnectorTarget target = 4;</code>
+     * <code>.talon.resources.MessageConsumer consumer = 4;</code>
      */
     @java.lang.Override
-    public talon.resources.Connectors.ConnectorTargetOrBuilder getTargetOrBuilder() {
-      return target_ == null ? talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
+    public talon.resources.Routing.MessageConsumerOrBuilder getConsumerOrBuilder() {
+      return consumer_ == null ? talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -8723,7 +5622,7 @@ java.lang.String defaultValue) {
           MatchFieldsDefaultEntryHolder.defaultEntry,
           3);
       if (((bitField0_ & 0x00000002) != 0)) {
-        output.writeMessage(4, getTarget());
+        output.writeMessage(4, getConsumer());
       }
       getUnknownFields().writeTo(output);
     }
@@ -8754,7 +5653,7 @@ java.lang.String defaultValue) {
       }
       if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, getTarget());
+          .computeMessageSize(4, getConsumer());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -8780,10 +5679,10 @@ java.lang.String defaultValue) {
           != other.getEnabled()) return false;
       if (!internalGetMatchFields().equals(
           other.internalGetMatchFields())) return false;
-      if (hasTarget() != other.hasTarget()) return false;
-      if (hasTarget()) {
-        if (!getTarget()
-            .equals(other.getTarget())) return false;
+      if (hasConsumer() != other.hasConsumer()) return false;
+      if (hasConsumer()) {
+        if (!getConsumer()
+            .equals(other.getConsumer())) return false;
       }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
@@ -8807,9 +5706,9 @@ java.lang.String defaultValue) {
         hash = (37 * hash) + MATCH_FIELDS_FIELD_NUMBER;
         hash = (53 * hash) + internalGetMatchFields().hashCode();
       }
-      if (hasTarget()) {
-        hash = (37 * hash) + TARGET_FIELD_NUMBER;
-        hash = (53 * hash) + getTarget().hashCode();
+      if (hasConsumer()) {
+        hash = (37 * hash) + CONSUMER_FIELD_NUMBER;
+        hash = (53 * hash) + getConsumer().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -8964,7 +5863,7 @@ java.lang.String defaultValue) {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
           internalGetClassRefFieldBuilder();
-          internalGetTargetFieldBuilder();
+          internalGetConsumerFieldBuilder();
         }
       }
       @java.lang.Override
@@ -8978,10 +5877,10 @@ java.lang.String defaultValue) {
         }
         enabled_ = false;
         internalGetMutableMatchFields().clear();
-        target_ = null;
-        if (targetBuilder_ != null) {
-          targetBuilder_.dispose();
-          targetBuilder_ = null;
+        consumer_ = null;
+        if (consumerBuilder_ != null) {
+          consumerBuilder_.dispose();
+          consumerBuilder_ = null;
         }
         return this;
       }
@@ -9031,9 +5930,9 @@ java.lang.String defaultValue) {
           result.matchFields_.makeImmutable();
         }
         if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.target_ = targetBuilder_ == null
-              ? target_
-              : targetBuilder_.build();
+          result.consumer_ = consumerBuilder_ == null
+              ? consumer_
+              : consumerBuilder_.build();
           to_bitField0_ |= 0x00000002;
         }
         result.bitField0_ |= to_bitField0_;
@@ -9060,8 +5959,8 @@ java.lang.String defaultValue) {
         internalGetMutableMatchFields().mergeFrom(
             other.internalGetMatchFields());
         bitField0_ |= 0x00000004;
-        if (other.hasTarget()) {
-          mergeTarget(other.getTarget());
+        if (other.hasConsumer()) {
+          mergeConsumer(other.getConsumer());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -9112,7 +6011,7 @@ java.lang.String defaultValue) {
               } // case 26
               case 34: {
                 input.readMessage(
-                    internalGetTargetFieldBuilder().getBuilder(),
+                    internalGetConsumerFieldBuilder().getBuilder(),
                     extensionRegistry);
                 bitField0_ |= 0x00000008;
                 break;
@@ -9531,50 +6430,50 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.resources.Connectors.ConnectorTarget target_;
+      private talon.resources.Routing.MessageConsumer consumer_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Connectors.ConnectorTarget, talon.resources.Connectors.ConnectorTarget.Builder, talon.resources.Connectors.ConnectorTargetOrBuilder> targetBuilder_;
+          talon.resources.Routing.MessageConsumer, talon.resources.Routing.MessageConsumer.Builder, talon.resources.Routing.MessageConsumerOrBuilder> consumerBuilder_;
       /**
        * <pre>
-       * Single Talon destination for messages that match this Connector.
+       * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 4;</code>
-       * @return Whether the target field is set.
+       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+       * @return Whether the consumer field is set.
        */
-      public boolean hasTarget() {
+      public boolean hasConsumer() {
         return ((bitField0_ & 0x00000008) != 0);
       }
       /**
        * <pre>
-       * Single Talon destination for messages that match this Connector.
+       * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 4;</code>
-       * @return The target.
+       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+       * @return The consumer.
        */
-      public talon.resources.Connectors.ConnectorTarget getTarget() {
-        if (targetBuilder_ == null) {
-          return target_ == null ? talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
+      public talon.resources.Routing.MessageConsumer getConsumer() {
+        if (consumerBuilder_ == null) {
+          return consumer_ == null ? talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
         } else {
-          return targetBuilder_.getMessage();
+          return consumerBuilder_.getMessage();
         }
       }
       /**
        * <pre>
-       * Single Talon destination for messages that match this Connector.
+       * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 4;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
        */
-      public Builder setTarget(talon.resources.Connectors.ConnectorTarget value) {
-        if (targetBuilder_ == null) {
+      public Builder setConsumer(talon.resources.Routing.MessageConsumer value) {
+        if (consumerBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          target_ = value;
+          consumer_ = value;
         } else {
-          targetBuilder_.setMessage(value);
+          consumerBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00000008;
         onChanged();
@@ -9582,17 +6481,17 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Single Talon destination for messages that match this Connector.
+       * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 4;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
        */
-      public Builder setTarget(
-          talon.resources.Connectors.ConnectorTarget.Builder builderForValue) {
-        if (targetBuilder_ == null) {
-          target_ = builderForValue.build();
+      public Builder setConsumer(
+          talon.resources.Routing.MessageConsumer.Builder builderForValue) {
+        if (consumerBuilder_ == null) {
+          consumer_ = builderForValue.build();
         } else {
-          targetBuilder_.setMessage(builderForValue.build());
+          consumerBuilder_.setMessage(builderForValue.build());
         }
         bitField0_ |= 0x00000008;
         onChanged();
@@ -9600,24 +6499,24 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Single Talon destination for messages that match this Connector.
+       * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 4;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
        */
-      public Builder mergeTarget(talon.resources.Connectors.ConnectorTarget value) {
-        if (targetBuilder_ == null) {
+      public Builder mergeConsumer(talon.resources.Routing.MessageConsumer value) {
+        if (consumerBuilder_ == null) {
           if (((bitField0_ & 0x00000008) != 0) &&
-            target_ != null &&
-            target_ != talon.resources.Connectors.ConnectorTarget.getDefaultInstance()) {
-            getTargetBuilder().mergeFrom(value);
+            consumer_ != null &&
+            consumer_ != talon.resources.Routing.MessageConsumer.getDefaultInstance()) {
+            getConsumerBuilder().mergeFrom(value);
           } else {
-            target_ = value;
+            consumer_ = value;
           }
         } else {
-          targetBuilder_.mergeFrom(value);
+          consumerBuilder_.mergeFrom(value);
         }
-        if (target_ != null) {
+        if (consumer_ != null) {
           bitField0_ |= 0x00000008;
           onChanged();
         }
@@ -9625,67 +6524,67 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Single Talon destination for messages that match this Connector.
+       * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 4;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
        */
-      public Builder clearTarget() {
+      public Builder clearConsumer() {
         bitField0_ = (bitField0_ & ~0x00000008);
-        target_ = null;
-        if (targetBuilder_ != null) {
-          targetBuilder_.dispose();
-          targetBuilder_ = null;
+        consumer_ = null;
+        if (consumerBuilder_ != null) {
+          consumerBuilder_.dispose();
+          consumerBuilder_ = null;
         }
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * Single Talon destination for messages that match this Connector.
+       * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 4;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
        */
-      public talon.resources.Connectors.ConnectorTarget.Builder getTargetBuilder() {
+      public talon.resources.Routing.MessageConsumer.Builder getConsumerBuilder() {
         bitField0_ |= 0x00000008;
         onChanged();
-        return internalGetTargetFieldBuilder().getBuilder();
+        return internalGetConsumerFieldBuilder().getBuilder();
       }
       /**
        * <pre>
-       * Single Talon destination for messages that match this Connector.
+       * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 4;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
        */
-      public talon.resources.Connectors.ConnectorTargetOrBuilder getTargetOrBuilder() {
-        if (targetBuilder_ != null) {
-          return targetBuilder_.getMessageOrBuilder();
+      public talon.resources.Routing.MessageConsumerOrBuilder getConsumerOrBuilder() {
+        if (consumerBuilder_ != null) {
+          return consumerBuilder_.getMessageOrBuilder();
         } else {
-          return target_ == null ?
-              talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
+          return consumer_ == null ?
+              talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
         }
       }
       /**
        * <pre>
-       * Single Talon destination for messages that match this Connector.
+       * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 4;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Connectors.ConnectorTarget, talon.resources.Connectors.ConnectorTarget.Builder, talon.resources.Connectors.ConnectorTargetOrBuilder>
-          internalGetTargetFieldBuilder() {
-        if (targetBuilder_ == null) {
-          targetBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Connectors.ConnectorTarget, talon.resources.Connectors.ConnectorTarget.Builder, talon.resources.Connectors.ConnectorTargetOrBuilder>(
-                  getTarget(),
+          talon.resources.Routing.MessageConsumer, talon.resources.Routing.MessageConsumer.Builder, talon.resources.Routing.MessageConsumerOrBuilder>
+          internalGetConsumerFieldBuilder() {
+        if (consumerBuilder_ == null) {
+          consumerBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Routing.MessageConsumer, talon.resources.Routing.MessageConsumer.Builder, talon.resources.Routing.MessageConsumerOrBuilder>(
+                  getConsumer(),
                   getParentForChildren(),
                   isClean());
-          target_ = null;
+          consumer_ = null;
         }
-        return targetBuilder_;
+        return consumerBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.resources.ConnectorSpec)
@@ -9819,48 +6718,48 @@ java.lang.String defaultValue) {
 
     /**
      * <pre>
-     * Materialized KV routing keys generated from match_fields and the owning
+     * Materialized route IDs generated from match_fields and the owning
      * ConnectorClass match indexes.
      * </pre>
      *
-     * <code>repeated string compiled_match_keys = 4;</code>
-     * @return A list containing the compiledMatchKeys.
+     * <code>repeated string compiled_route_ids = 4;</code>
+     * @return A list containing the compiledRouteIds.
      */
     java.util.List<java.lang.String>
-        getCompiledMatchKeysList();
+        getCompiledRouteIdsList();
     /**
      * <pre>
-     * Materialized KV routing keys generated from match_fields and the owning
+     * Materialized route IDs generated from match_fields and the owning
      * ConnectorClass match indexes.
      * </pre>
      *
-     * <code>repeated string compiled_match_keys = 4;</code>
-     * @return The count of compiledMatchKeys.
+     * <code>repeated string compiled_route_ids = 4;</code>
+     * @return The count of compiledRouteIds.
      */
-    int getCompiledMatchKeysCount();
+    int getCompiledRouteIdsCount();
     /**
      * <pre>
-     * Materialized KV routing keys generated from match_fields and the owning
+     * Materialized route IDs generated from match_fields and the owning
      * ConnectorClass match indexes.
      * </pre>
      *
-     * <code>repeated string compiled_match_keys = 4;</code>
+     * <code>repeated string compiled_route_ids = 4;</code>
      * @param index The index of the element to return.
-     * @return The compiledMatchKeys at the given index.
+     * @return The compiledRouteIds at the given index.
      */
-    java.lang.String getCompiledMatchKeys(int index);
+    java.lang.String getCompiledRouteIds(int index);
     /**
      * <pre>
-     * Materialized KV routing keys generated from match_fields and the owning
+     * Materialized route IDs generated from match_fields and the owning
      * ConnectorClass match indexes.
      * </pre>
      *
-     * <code>repeated string compiled_match_keys = 4;</code>
+     * <code>repeated string compiled_route_ids = 4;</code>
      * @param index The index of the value to return.
-     * @return The bytes of the compiledMatchKeys at the given index.
+     * @return The bytes of the compiledRouteIds at the given index.
      */
     com.google.protobuf.ByteString
-        getCompiledMatchKeysBytes(int index);
+        getCompiledRouteIdsBytes(int index);
   }
   /**
    * Protobuf type {@code talon.resources.ConnectorStatus}
@@ -9886,7 +6785,7 @@ java.lang.String defaultValue) {
     private ConnectorStatus() {
       phase_ = "";
       conditions_ = java.util.Collections.emptyList();
-      compiledMatchKeys_ =
+      compiledRouteIds_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
     }
 
@@ -10031,61 +6930,61 @@ java.lang.String defaultValue) {
       return conditions_.get(index);
     }
 
-    public static final int COMPILED_MATCH_KEYS_FIELD_NUMBER = 4;
+    public static final int COMPILED_ROUTE_IDS_FIELD_NUMBER = 4;
     @SuppressWarnings("serial")
-    private com.google.protobuf.LazyStringArrayList compiledMatchKeys_ =
+    private com.google.protobuf.LazyStringArrayList compiledRouteIds_ =
         com.google.protobuf.LazyStringArrayList.emptyList();
     /**
      * <pre>
-     * Materialized KV routing keys generated from match_fields and the owning
+     * Materialized route IDs generated from match_fields and the owning
      * ConnectorClass match indexes.
      * </pre>
      *
-     * <code>repeated string compiled_match_keys = 4;</code>
-     * @return A list containing the compiledMatchKeys.
+     * <code>repeated string compiled_route_ids = 4;</code>
+     * @return A list containing the compiledRouteIds.
      */
     public com.google.protobuf.ProtocolStringList
-        getCompiledMatchKeysList() {
-      return compiledMatchKeys_;
+        getCompiledRouteIdsList() {
+      return compiledRouteIds_;
     }
     /**
      * <pre>
-     * Materialized KV routing keys generated from match_fields and the owning
+     * Materialized route IDs generated from match_fields and the owning
      * ConnectorClass match indexes.
      * </pre>
      *
-     * <code>repeated string compiled_match_keys = 4;</code>
-     * @return The count of compiledMatchKeys.
+     * <code>repeated string compiled_route_ids = 4;</code>
+     * @return The count of compiledRouteIds.
      */
-    public int getCompiledMatchKeysCount() {
-      return compiledMatchKeys_.size();
+    public int getCompiledRouteIdsCount() {
+      return compiledRouteIds_.size();
     }
     /**
      * <pre>
-     * Materialized KV routing keys generated from match_fields and the owning
+     * Materialized route IDs generated from match_fields and the owning
      * ConnectorClass match indexes.
      * </pre>
      *
-     * <code>repeated string compiled_match_keys = 4;</code>
+     * <code>repeated string compiled_route_ids = 4;</code>
      * @param index The index of the element to return.
-     * @return The compiledMatchKeys at the given index.
+     * @return The compiledRouteIds at the given index.
      */
-    public java.lang.String getCompiledMatchKeys(int index) {
-      return compiledMatchKeys_.get(index);
+    public java.lang.String getCompiledRouteIds(int index) {
+      return compiledRouteIds_.get(index);
     }
     /**
      * <pre>
-     * Materialized KV routing keys generated from match_fields and the owning
+     * Materialized route IDs generated from match_fields and the owning
      * ConnectorClass match indexes.
      * </pre>
      *
-     * <code>repeated string compiled_match_keys = 4;</code>
+     * <code>repeated string compiled_route_ids = 4;</code>
      * @param index The index of the value to return.
-     * @return The bytes of the compiledMatchKeys at the given index.
+     * @return The bytes of the compiledRouteIds at the given index.
      */
     public com.google.protobuf.ByteString
-        getCompiledMatchKeysBytes(int index) {
-      return compiledMatchKeys_.getByteString(index);
+        getCompiledRouteIdsBytes(int index) {
+      return compiledRouteIds_.getByteString(index);
     }
 
     private byte memoizedIsInitialized = -1;
@@ -10111,8 +7010,8 @@ java.lang.String defaultValue) {
       for (int i = 0; i < conditions_.size(); i++) {
         output.writeMessage(3, conditions_.get(i));
       }
-      for (int i = 0; i < compiledMatchKeys_.size(); i++) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 4, compiledMatchKeys_.getRaw(i));
+      for (int i = 0; i < compiledRouteIds_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, compiledRouteIds_.getRaw(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -10141,11 +7040,11 @@ java.lang.String defaultValue) {
           }
       {
         int dataSize = 0;
-        for (int i = 0; i < compiledMatchKeys_.size(); i++) {
-          dataSize += computeStringSizeNoTag(compiledMatchKeys_.getRaw(i));
+        for (int i = 0; i < compiledRouteIds_.size(); i++) {
+          dataSize += computeStringSizeNoTag(compiledRouteIds_.getRaw(i));
         }
         size += dataSize;
-        size += 1 * getCompiledMatchKeysList().size();
+        size += 1 * getCompiledRouteIdsList().size();
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -10168,8 +7067,8 @@ java.lang.String defaultValue) {
           .equals(other.getPhase())) return false;
       if (!getConditionsList()
           .equals(other.getConditionsList())) return false;
-      if (!getCompiledMatchKeysList()
-          .equals(other.getCompiledMatchKeysList())) return false;
+      if (!getCompiledRouteIdsList()
+          .equals(other.getCompiledRouteIdsList())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -10190,9 +7089,9 @@ java.lang.String defaultValue) {
         hash = (37 * hash) + CONDITIONS_FIELD_NUMBER;
         hash = (53 * hash) + getConditionsList().hashCode();
       }
-      if (getCompiledMatchKeysCount() > 0) {
-        hash = (37 * hash) + COMPILED_MATCH_KEYS_FIELD_NUMBER;
-        hash = (53 * hash) + getCompiledMatchKeysList().hashCode();
+      if (getCompiledRouteIdsCount() > 0) {
+        hash = (37 * hash) + COMPILED_ROUTE_IDS_FIELD_NUMBER;
+        hash = (53 * hash) + getCompiledRouteIdsList().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -10334,7 +7233,7 @@ java.lang.String defaultValue) {
           conditionsBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000004);
-        compiledMatchKeys_ =
+        compiledRouteIds_ =
             com.google.protobuf.LazyStringArrayList.emptyList();
         return this;
       }
@@ -10389,8 +7288,8 @@ java.lang.String defaultValue) {
           result.phase_ = phase_;
         }
         if (((from_bitField0_ & 0x00000008) != 0)) {
-          compiledMatchKeys_.makeImmutable();
-          result.compiledMatchKeys_ = compiledMatchKeys_;
+          compiledRouteIds_.makeImmutable();
+          result.compiledRouteIds_ = compiledRouteIds_;
         }
       }
 
@@ -10440,13 +7339,13 @@ java.lang.String defaultValue) {
             }
           }
         }
-        if (!other.compiledMatchKeys_.isEmpty()) {
-          if (compiledMatchKeys_.isEmpty()) {
-            compiledMatchKeys_ = other.compiledMatchKeys_;
+        if (!other.compiledRouteIds_.isEmpty()) {
+          if (compiledRouteIds_.isEmpty()) {
+            compiledRouteIds_ = other.compiledRouteIds_;
             bitField0_ |= 0x00000008;
           } else {
-            ensureCompiledMatchKeysIsMutable();
-            compiledMatchKeys_.addAll(other.compiledMatchKeys_);
+            ensureCompiledRouteIdsIsMutable();
+            compiledRouteIds_.addAll(other.compiledRouteIds_);
           }
           onChanged();
         }
@@ -10500,8 +7399,8 @@ java.lang.String defaultValue) {
                 break;
               } // case 26
               case 34: {
-                ensureCompiledMatchKeysIsMutable();
-                compiledMatchKeys_.add(input.readStringRequireUtf8());
+                ensureCompiledRouteIdsIsMutable();
+                compiledRouteIds_.add(input.readStringRequireUtf8());
                 break;
               } // case 34
               default: {
@@ -10969,136 +7868,136 @@ java.lang.String defaultValue) {
         return conditionsBuilder_;
       }
 
-      private com.google.protobuf.LazyStringArrayList compiledMatchKeys_ =
+      private com.google.protobuf.LazyStringArrayList compiledRouteIds_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
-      private void ensureCompiledMatchKeysIsMutable() {
-        if (!compiledMatchKeys_.isModifiable()) {
-          compiledMatchKeys_ = new com.google.protobuf.LazyStringArrayList(compiledMatchKeys_);
+      private void ensureCompiledRouteIdsIsMutable() {
+        if (!compiledRouteIds_.isModifiable()) {
+          compiledRouteIds_ = new com.google.protobuf.LazyStringArrayList(compiledRouteIds_);
         }
         bitField0_ |= 0x00000008;
       }
       /**
        * <pre>
-       * Materialized KV routing keys generated from match_fields and the owning
+       * Materialized route IDs generated from match_fields and the owning
        * ConnectorClass match indexes.
        * </pre>
        *
-       * <code>repeated string compiled_match_keys = 4;</code>
-       * @return A list containing the compiledMatchKeys.
+       * <code>repeated string compiled_route_ids = 4;</code>
+       * @return A list containing the compiledRouteIds.
        */
       public com.google.protobuf.ProtocolStringList
-          getCompiledMatchKeysList() {
-        compiledMatchKeys_.makeImmutable();
-        return compiledMatchKeys_;
+          getCompiledRouteIdsList() {
+        compiledRouteIds_.makeImmutable();
+        return compiledRouteIds_;
       }
       /**
        * <pre>
-       * Materialized KV routing keys generated from match_fields and the owning
+       * Materialized route IDs generated from match_fields and the owning
        * ConnectorClass match indexes.
        * </pre>
        *
-       * <code>repeated string compiled_match_keys = 4;</code>
-       * @return The count of compiledMatchKeys.
+       * <code>repeated string compiled_route_ids = 4;</code>
+       * @return The count of compiledRouteIds.
        */
-      public int getCompiledMatchKeysCount() {
-        return compiledMatchKeys_.size();
+      public int getCompiledRouteIdsCount() {
+        return compiledRouteIds_.size();
       }
       /**
        * <pre>
-       * Materialized KV routing keys generated from match_fields and the owning
+       * Materialized route IDs generated from match_fields and the owning
        * ConnectorClass match indexes.
        * </pre>
        *
-       * <code>repeated string compiled_match_keys = 4;</code>
+       * <code>repeated string compiled_route_ids = 4;</code>
        * @param index The index of the element to return.
-       * @return The compiledMatchKeys at the given index.
+       * @return The compiledRouteIds at the given index.
        */
-      public java.lang.String getCompiledMatchKeys(int index) {
-        return compiledMatchKeys_.get(index);
+      public java.lang.String getCompiledRouteIds(int index) {
+        return compiledRouteIds_.get(index);
       }
       /**
        * <pre>
-       * Materialized KV routing keys generated from match_fields and the owning
+       * Materialized route IDs generated from match_fields and the owning
        * ConnectorClass match indexes.
        * </pre>
        *
-       * <code>repeated string compiled_match_keys = 4;</code>
+       * <code>repeated string compiled_route_ids = 4;</code>
        * @param index The index of the value to return.
-       * @return The bytes of the compiledMatchKeys at the given index.
+       * @return The bytes of the compiledRouteIds at the given index.
        */
       public com.google.protobuf.ByteString
-          getCompiledMatchKeysBytes(int index) {
-        return compiledMatchKeys_.getByteString(index);
+          getCompiledRouteIdsBytes(int index) {
+        return compiledRouteIds_.getByteString(index);
       }
       /**
        * <pre>
-       * Materialized KV routing keys generated from match_fields and the owning
+       * Materialized route IDs generated from match_fields and the owning
        * ConnectorClass match indexes.
        * </pre>
        *
-       * <code>repeated string compiled_match_keys = 4;</code>
+       * <code>repeated string compiled_route_ids = 4;</code>
        * @param index The index to set the value at.
-       * @param value The compiledMatchKeys to set.
+       * @param value The compiledRouteIds to set.
        * @return This builder for chaining.
        */
-      public Builder setCompiledMatchKeys(
+      public Builder setCompiledRouteIds(
           int index, java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        ensureCompiledMatchKeysIsMutable();
-        compiledMatchKeys_.set(index, value);
+        ensureCompiledRouteIdsIsMutable();
+        compiledRouteIds_.set(index, value);
         bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * Materialized KV routing keys generated from match_fields and the owning
+       * Materialized route IDs generated from match_fields and the owning
        * ConnectorClass match indexes.
        * </pre>
        *
-       * <code>repeated string compiled_match_keys = 4;</code>
-       * @param value The compiledMatchKeys to add.
+       * <code>repeated string compiled_route_ids = 4;</code>
+       * @param value The compiledRouteIds to add.
        * @return This builder for chaining.
        */
-      public Builder addCompiledMatchKeys(
+      public Builder addCompiledRouteIds(
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        ensureCompiledMatchKeysIsMutable();
-        compiledMatchKeys_.add(value);
+        ensureCompiledRouteIdsIsMutable();
+        compiledRouteIds_.add(value);
         bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * Materialized KV routing keys generated from match_fields and the owning
+       * Materialized route IDs generated from match_fields and the owning
        * ConnectorClass match indexes.
        * </pre>
        *
-       * <code>repeated string compiled_match_keys = 4;</code>
-       * @param values The compiledMatchKeys to add.
+       * <code>repeated string compiled_route_ids = 4;</code>
+       * @param values The compiledRouteIds to add.
        * @return This builder for chaining.
        */
-      public Builder addAllCompiledMatchKeys(
+      public Builder addAllCompiledRouteIds(
           java.lang.Iterable<java.lang.String> values) {
-        ensureCompiledMatchKeysIsMutable();
+        ensureCompiledRouteIdsIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, compiledMatchKeys_);
+            values, compiledRouteIds_);
         bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * Materialized KV routing keys generated from match_fields and the owning
+       * Materialized route IDs generated from match_fields and the owning
        * ConnectorClass match indexes.
        * </pre>
        *
-       * <code>repeated string compiled_match_keys = 4;</code>
+       * <code>repeated string compiled_route_ids = 4;</code>
        * @return This builder for chaining.
        */
-      public Builder clearCompiledMatchKeys() {
-        compiledMatchKeys_ =
+      public Builder clearCompiledRouteIds() {
+        compiledRouteIds_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
         bitField0_ = (bitField0_ & ~0x00000008);;
         onChanged();
@@ -11106,20 +8005,20 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Materialized KV routing keys generated from match_fields and the owning
+       * Materialized route IDs generated from match_fields and the owning
        * ConnectorClass match indexes.
        * </pre>
        *
-       * <code>repeated string compiled_match_keys = 4;</code>
-       * @param value The bytes of the compiledMatchKeys to add.
+       * <code>repeated string compiled_route_ids = 4;</code>
+       * @param value The bytes of the compiledRouteIds to add.
        * @return This builder for chaining.
        */
-      public Builder addCompiledMatchKeysBytes(
+      public Builder addCompiledRouteIdsBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
-        ensureCompiledMatchKeysIsMutable();
-        compiledMatchKeys_.add(value);
+        ensureCompiledRouteIdsIsMutable();
+        compiledRouteIds_.add(value);
         bitField0_ |= 0x00000008;
         onChanged();
         return this;
@@ -12397,7 +9296,7 @@ java.lang.String defaultValue) {
 
     /**
      * <pre>
-     * Desired provider match and Talon destination for one route.
+     * Desired provider match and Talon message consumer for one route.
      * </pre>
      *
      * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -12406,7 +9305,7 @@ java.lang.String defaultValue) {
     boolean hasSpec();
     /**
      * <pre>
-     * Desired provider match and Talon destination for one route.
+     * Desired provider match and Talon message consumer for one route.
      * </pre>
      *
      * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -12415,7 +9314,7 @@ java.lang.String defaultValue) {
     talon.resources.Connectors.ConnectorSpec getSpec();
     /**
      * <pre>
-     * Desired provider match and Talon destination for one route.
+     * Desired provider match and Talon message consumer for one route.
      * </pre>
      *
      * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -12537,7 +9436,7 @@ java.lang.String defaultValue) {
     private talon.resources.Connectors.ConnectorSpec spec_;
     /**
      * <pre>
-     * Desired provider match and Talon destination for one route.
+     * Desired provider match and Talon message consumer for one route.
      * </pre>
      *
      * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -12549,7 +9448,7 @@ java.lang.String defaultValue) {
     }
     /**
      * <pre>
-     * Desired provider match and Talon destination for one route.
+     * Desired provider match and Talon message consumer for one route.
      * </pre>
      *
      * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -12561,7 +9460,7 @@ java.lang.String defaultValue) {
     }
     /**
      * <pre>
-     * Desired provider match and Talon destination for one route.
+     * Desired provider match and Talon message consumer for one route.
      * </pre>
      *
      * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -13171,7 +10070,7 @@ java.lang.String defaultValue) {
           talon.resources.Connectors.ConnectorSpec, talon.resources.Connectors.ConnectorSpec.Builder, talon.resources.Connectors.ConnectorSpecOrBuilder> specBuilder_;
       /**
        * <pre>
-       * Desired provider match and Talon destination for one route.
+       * Desired provider match and Talon message consumer for one route.
        * </pre>
        *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -13182,7 +10081,7 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Desired provider match and Talon destination for one route.
+       * Desired provider match and Talon message consumer for one route.
        * </pre>
        *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -13197,7 +10096,7 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Desired provider match and Talon destination for one route.
+       * Desired provider match and Talon message consumer for one route.
        * </pre>
        *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -13217,7 +10116,7 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Desired provider match and Talon destination for one route.
+       * Desired provider match and Talon message consumer for one route.
        * </pre>
        *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -13235,7 +10134,7 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Desired provider match and Talon destination for one route.
+       * Desired provider match and Talon message consumer for one route.
        * </pre>
        *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -13260,7 +10159,7 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Desired provider match and Talon destination for one route.
+       * Desired provider match and Talon message consumer for one route.
        * </pre>
        *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -13277,7 +10176,7 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Desired provider match and Talon destination for one route.
+       * Desired provider match and Talon message consumer for one route.
        * </pre>
        *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -13289,7 +10188,7 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Desired provider match and Talon destination for one route.
+       * Desired provider match and Talon message consumer for one route.
        * </pre>
        *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -13304,7 +10203,7 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Desired provider match and Talon destination for one route.
+       * Desired provider match and Talon message consumer for one route.
        * </pre>
        *
        * <code>.talon.resources.ConnectorSpec spec = 2;</code>
@@ -13531,3022 +10430,6 @@ java.lang.String defaultValue) {
 
   }
 
-  public interface ConnectorRegistrationEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.resources.ConnectorRegistrationEntry)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <pre>
-     * Talon-owned registration identifier, formatted as
-     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
-     * </pre>
-     *
-     * <code>string registration_id = 1;</code>
-     * @return The registrationId.
-     */
-    java.lang.String getRegistrationId();
-    /**
-     * <pre>
-     * Talon-owned registration identifier, formatted as
-     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
-     * </pre>
-     *
-     * <code>string registration_id = 1;</code>
-     * @return The bytes for registrationId.
-     */
-    com.google.protobuf.ByteString
-        getRegistrationIdBytes();
-
-    /**
-     * <pre>
-     * Namespace that owns the ConnectorClass for this registration.
-     * </pre>
-     *
-     * <code>string class_namespace = 2;</code>
-     * @return The classNamespace.
-     */
-    java.lang.String getClassNamespace();
-    /**
-     * <pre>
-     * Namespace that owns the ConnectorClass for this registration.
-     * </pre>
-     *
-     * <code>string class_namespace = 2;</code>
-     * @return The bytes for classNamespace.
-     */
-    com.google.protobuf.ByteString
-        getClassNamespaceBytes();
-
-    /**
-     * <pre>
-     * ConnectorClass name for this registration.
-     * </pre>
-     *
-     * <code>string class_name = 3;</code>
-     * @return The className.
-     */
-    java.lang.String getClassName();
-    /**
-     * <pre>
-     * ConnectorClass name for this registration.
-     * </pre>
-     *
-     * <code>string class_name = 3;</code>
-     * @return The bytes for className.
-     */
-    com.google.protobuf.ByteString
-        getClassNameBytes();
-
-    /**
-     * <pre>
-     * ConnectorClass generation captured when this registration index was
-     * written.
-     * </pre>
-     *
-     * <code>uint64 generation = 4;</code>
-     * @return The generation.
-     */
-    long getGeneration();
-
-    /**
-     * <pre>
-     * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-     * hot ingest path resolve provider match keys with one registration lookup.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-     * @return Whether the classSpec field is set.
-     */
-    boolean hasClassSpec();
-    /**
-     * <pre>
-     * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-     * hot ingest path resolve provider match keys with one registration lookup.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-     * @return The classSpec.
-     */
-    talon.resources.Connectors.ConnectorClassSpec getClassSpec();
-    /**
-     * <pre>
-     * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-     * hot ingest path resolve provider match keys with one registration lookup.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-     */
-    talon.resources.Connectors.ConnectorClassSpecOrBuilder getClassSpecOrBuilder();
-  }
-  /**
-   * <pre>
-   * Stored registration cache for one ConnectorClass registration with an
-   * external connector service. The ConnectorController writes this message as
-   * `ConnectorRegistration/current` under the owning ConnectorClass after the
-   * connector runtime accepts `/v1/clusters/register`, refreshes it when the
-   * ConnectorClass generation changes, and deletes it when the ConnectorClass is
-   * deleted. Gateway ingest uses this entry to authenticate the callback
-   * registration id and recover the ConnectorClass match indexes without scanning
-   * namespaced resources.
-   * </pre>
-   *
-   * Protobuf type {@code talon.resources.ConnectorRegistrationEntry}
-   */
-  public static final class ConnectorRegistrationEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.resources.ConnectorRegistrationEntry)
-      ConnectorRegistrationEntryOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "ConnectorRegistrationEntry");
-    }
-    // Use ConnectorRegistrationEntry.newBuilder() to construct.
-    private ConnectorRegistrationEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private ConnectorRegistrationEntry() {
-      registrationId_ = "";
-      classNamespace_ = "";
-      className_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorRegistrationEntry_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorRegistrationEntry_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorRegistrationEntry_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.resources.Connectors.ConnectorRegistrationEntry.class, talon.resources.Connectors.ConnectorRegistrationEntry.Builder.class);
-    }
-
-    private int bitField0_;
-    public static final int REGISTRATION_ID_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object registrationId_ = "";
-    /**
-     * <pre>
-     * Talon-owned registration identifier, formatted as
-     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
-     * </pre>
-     *
-     * <code>string registration_id = 1;</code>
-     * @return The registrationId.
-     */
-    @java.lang.Override
-    public java.lang.String getRegistrationId() {
-      java.lang.Object ref = registrationId_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        registrationId_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Talon-owned registration identifier, formatted as
-     * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
-     * </pre>
-     *
-     * <code>string registration_id = 1;</code>
-     * @return The bytes for registrationId.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getRegistrationIdBytes() {
-      java.lang.Object ref = registrationId_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        registrationId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int CLASS_NAMESPACE_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object classNamespace_ = "";
-    /**
-     * <pre>
-     * Namespace that owns the ConnectorClass for this registration.
-     * </pre>
-     *
-     * <code>string class_namespace = 2;</code>
-     * @return The classNamespace.
-     */
-    @java.lang.Override
-    public java.lang.String getClassNamespace() {
-      java.lang.Object ref = classNamespace_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        classNamespace_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Namespace that owns the ConnectorClass for this registration.
-     * </pre>
-     *
-     * <code>string class_namespace = 2;</code>
-     * @return The bytes for classNamespace.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getClassNamespaceBytes() {
-      java.lang.Object ref = classNamespace_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        classNamespace_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int CLASS_NAME_FIELD_NUMBER = 3;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object className_ = "";
-    /**
-     * <pre>
-     * ConnectorClass name for this registration.
-     * </pre>
-     *
-     * <code>string class_name = 3;</code>
-     * @return The className.
-     */
-    @java.lang.Override
-    public java.lang.String getClassName() {
-      java.lang.Object ref = className_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        className_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * ConnectorClass name for this registration.
-     * </pre>
-     *
-     * <code>string class_name = 3;</code>
-     * @return The bytes for className.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getClassNameBytes() {
-      java.lang.Object ref = className_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        className_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int GENERATION_FIELD_NUMBER = 4;
-    private long generation_ = 0L;
-    /**
-     * <pre>
-     * ConnectorClass generation captured when this registration index was
-     * written.
-     * </pre>
-     *
-     * <code>uint64 generation = 4;</code>
-     * @return The generation.
-     */
-    @java.lang.Override
-    public long getGeneration() {
-      return generation_;
-    }
-
-    public static final int CLASS_SPEC_FIELD_NUMBER = 5;
-    private talon.resources.Connectors.ConnectorClassSpec classSpec_;
-    /**
-     * <pre>
-     * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-     * hot ingest path resolve provider match keys with one registration lookup.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-     * @return Whether the classSpec field is set.
-     */
-    @java.lang.Override
-    public boolean hasClassSpec() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <pre>
-     * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-     * hot ingest path resolve provider match keys with one registration lookup.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-     * @return The classSpec.
-     */
-    @java.lang.Override
-    public talon.resources.Connectors.ConnectorClassSpec getClassSpec() {
-      return classSpec_ == null ? talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance() : classSpec_;
-    }
-    /**
-     * <pre>
-     * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-     * hot ingest path resolve provider match keys with one registration lookup.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-     */
-    @java.lang.Override
-    public talon.resources.Connectors.ConnectorClassSpecOrBuilder getClassSpecOrBuilder() {
-      return classSpec_ == null ? talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance() : classSpec_;
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(registrationId_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, registrationId_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(classNamespace_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, classNamespace_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(className_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, className_);
-      }
-      if (generation_ != 0L) {
-        output.writeUInt64(4, generation_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(5, getClassSpec());
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(registrationId_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, registrationId_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(classNamespace_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, classNamespace_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(className_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, className_);
-      }
-      if (generation_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(4, generation_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(5, getClassSpec());
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.resources.Connectors.ConnectorRegistrationEntry)) {
-        return super.equals(obj);
-      }
-      talon.resources.Connectors.ConnectorRegistrationEntry other = (talon.resources.Connectors.ConnectorRegistrationEntry) obj;
-
-      if (!getRegistrationId()
-          .equals(other.getRegistrationId())) return false;
-      if (!getClassNamespace()
-          .equals(other.getClassNamespace())) return false;
-      if (!getClassName()
-          .equals(other.getClassName())) return false;
-      if (getGeneration()
-          != other.getGeneration()) return false;
-      if (hasClassSpec() != other.hasClassSpec()) return false;
-      if (hasClassSpec()) {
-        if (!getClassSpec()
-            .equals(other.getClassSpec())) return false;
-      }
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + REGISTRATION_ID_FIELD_NUMBER;
-      hash = (53 * hash) + getRegistrationId().hashCode();
-      hash = (37 * hash) + CLASS_NAMESPACE_FIELD_NUMBER;
-      hash = (53 * hash) + getClassNamespace().hashCode();
-      hash = (37 * hash) + CLASS_NAME_FIELD_NUMBER;
-      hash = (53 * hash) + getClassName().hashCode();
-      hash = (37 * hash) + GENERATION_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getGeneration());
-      if (hasClassSpec()) {
-        hash = (37 * hash) + CLASS_SPEC_FIELD_NUMBER;
-        hash = (53 * hash) + getClassSpec().hashCode();
-      }
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.resources.Connectors.ConnectorRegistrationEntry parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.resources.Connectors.ConnectorRegistrationEntry parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Connectors.ConnectorRegistrationEntry parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.resources.Connectors.ConnectorRegistrationEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * <pre>
-     * Stored registration cache for one ConnectorClass registration with an
-     * external connector service. The ConnectorController writes this message as
-     * `ConnectorRegistration/current` under the owning ConnectorClass after the
-     * connector runtime accepts `/v1/clusters/register`, refreshes it when the
-     * ConnectorClass generation changes, and deletes it when the ConnectorClass is
-     * deleted. Gateway ingest uses this entry to authenticate the callback
-     * registration id and recover the ConnectorClass match indexes without scanning
-     * namespaced resources.
-     * </pre>
-     *
-     * Protobuf type {@code talon.resources.ConnectorRegistrationEntry}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.resources.ConnectorRegistrationEntry)
-        talon.resources.Connectors.ConnectorRegistrationEntryOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorRegistrationEntry_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorRegistrationEntry_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.resources.Connectors.ConnectorRegistrationEntry.class, talon.resources.Connectors.ConnectorRegistrationEntry.Builder.class);
-      }
-
-      // Construct using talon.resources.Connectors.ConnectorRegistrationEntry.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage
-                .alwaysUseFieldBuilders) {
-          internalGetClassSpecFieldBuilder();
-        }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        registrationId_ = "";
-        classNamespace_ = "";
-        className_ = "";
-        generation_ = 0L;
-        classSpec_ = null;
-        if (classSpecBuilder_ != null) {
-          classSpecBuilder_.dispose();
-          classSpecBuilder_ = null;
-        }
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorRegistrationEntry_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorRegistrationEntry getDefaultInstanceForType() {
-        return talon.resources.Connectors.ConnectorRegistrationEntry.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorRegistrationEntry build() {
-        talon.resources.Connectors.ConnectorRegistrationEntry result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorRegistrationEntry buildPartial() {
-        talon.resources.Connectors.ConnectorRegistrationEntry result = new talon.resources.Connectors.ConnectorRegistrationEntry(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.resources.Connectors.ConnectorRegistrationEntry result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.registrationId_ = registrationId_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.classNamespace_ = classNamespace_;
-        }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.className_ = className_;
-        }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.generation_ = generation_;
-        }
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000010) != 0)) {
-          result.classSpec_ = classSpecBuilder_ == null
-              ? classSpec_
-              : classSpecBuilder_.build();
-          to_bitField0_ |= 0x00000001;
-        }
-        result.bitField0_ |= to_bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.resources.Connectors.ConnectorRegistrationEntry) {
-          return mergeFrom((talon.resources.Connectors.ConnectorRegistrationEntry)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.resources.Connectors.ConnectorRegistrationEntry other) {
-        if (other == talon.resources.Connectors.ConnectorRegistrationEntry.getDefaultInstance()) return this;
-        if (!other.getRegistrationId().isEmpty()) {
-          registrationId_ = other.registrationId_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getClassNamespace().isEmpty()) {
-          classNamespace_ = other.classNamespace_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        if (!other.getClassName().isEmpty()) {
-          className_ = other.className_;
-          bitField0_ |= 0x00000004;
-          onChanged();
-        }
-        if (other.getGeneration() != 0L) {
-          setGeneration(other.getGeneration());
-        }
-        if (other.hasClassSpec()) {
-          mergeClassSpec(other.getClassSpec());
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                registrationId_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                classNamespace_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              case 26: {
-                className_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
-              case 32: {
-                generation_ = input.readUInt64();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 32
-              case 42: {
-                input.readMessage(
-                    internalGetClassSpecFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000010;
-                break;
-              } // case 42
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object registrationId_ = "";
-      /**
-       * <pre>
-       * Talon-owned registration identifier, formatted as
-       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
-       * </pre>
-       *
-       * <code>string registration_id = 1;</code>
-       * @return The registrationId.
-       */
-      public java.lang.String getRegistrationId() {
-        java.lang.Object ref = registrationId_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          registrationId_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Talon-owned registration identifier, formatted as
-       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
-       * </pre>
-       *
-       * <code>string registration_id = 1;</code>
-       * @return The bytes for registrationId.
-       */
-      public com.google.protobuf.ByteString
-          getRegistrationIdBytes() {
-        java.lang.Object ref = registrationId_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          registrationId_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Talon-owned registration identifier, formatted as
-       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
-       * </pre>
-       *
-       * <code>string registration_id = 1;</code>
-       * @param value The registrationId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setRegistrationId(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        registrationId_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Talon-owned registration identifier, formatted as
-       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
-       * </pre>
-       *
-       * <code>string registration_id = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearRegistrationId() {
-        registrationId_ = getDefaultInstance().getRegistrationId();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Talon-owned registration identifier, formatted as
-       * Namespace/&lt;namespace&gt;/ConnectorClass/&lt;name&gt;.
-       * </pre>
-       *
-       * <code>string registration_id = 1;</code>
-       * @param value The bytes for registrationId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setRegistrationIdBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        registrationId_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object classNamespace_ = "";
-      /**
-       * <pre>
-       * Namespace that owns the ConnectorClass for this registration.
-       * </pre>
-       *
-       * <code>string class_namespace = 2;</code>
-       * @return The classNamespace.
-       */
-      public java.lang.String getClassNamespace() {
-        java.lang.Object ref = classNamespace_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          classNamespace_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Namespace that owns the ConnectorClass for this registration.
-       * </pre>
-       *
-       * <code>string class_namespace = 2;</code>
-       * @return The bytes for classNamespace.
-       */
-      public com.google.protobuf.ByteString
-          getClassNamespaceBytes() {
-        java.lang.Object ref = classNamespace_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          classNamespace_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Namespace that owns the ConnectorClass for this registration.
-       * </pre>
-       *
-       * <code>string class_namespace = 2;</code>
-       * @param value The classNamespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setClassNamespace(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        classNamespace_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Namespace that owns the ConnectorClass for this registration.
-       * </pre>
-       *
-       * <code>string class_namespace = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearClassNamespace() {
-        classNamespace_ = getDefaultInstance().getClassNamespace();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Namespace that owns the ConnectorClass for this registration.
-       * </pre>
-       *
-       * <code>string class_namespace = 2;</code>
-       * @param value The bytes for classNamespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setClassNamespaceBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        classNamespace_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object className_ = "";
-      /**
-       * <pre>
-       * ConnectorClass name for this registration.
-       * </pre>
-       *
-       * <code>string class_name = 3;</code>
-       * @return The className.
-       */
-      public java.lang.String getClassName() {
-        java.lang.Object ref = className_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          className_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * ConnectorClass name for this registration.
-       * </pre>
-       *
-       * <code>string class_name = 3;</code>
-       * @return The bytes for className.
-       */
-      public com.google.protobuf.ByteString
-          getClassNameBytes() {
-        java.lang.Object ref = className_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          className_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * ConnectorClass name for this registration.
-       * </pre>
-       *
-       * <code>string class_name = 3;</code>
-       * @param value The className to set.
-       * @return This builder for chaining.
-       */
-      public Builder setClassName(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        className_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * ConnectorClass name for this registration.
-       * </pre>
-       *
-       * <code>string class_name = 3;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearClassName() {
-        className_ = getDefaultInstance().getClassName();
-        bitField0_ = (bitField0_ & ~0x00000004);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * ConnectorClass name for this registration.
-       * </pre>
-       *
-       * <code>string class_name = 3;</code>
-       * @param value The bytes for className to set.
-       * @return This builder for chaining.
-       */
-      public Builder setClassNameBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        className_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-
-      private long generation_ ;
-      /**
-       * <pre>
-       * ConnectorClass generation captured when this registration index was
-       * written.
-       * </pre>
-       *
-       * <code>uint64 generation = 4;</code>
-       * @return The generation.
-       */
-      @java.lang.Override
-      public long getGeneration() {
-        return generation_;
-      }
-      /**
-       * <pre>
-       * ConnectorClass generation captured when this registration index was
-       * written.
-       * </pre>
-       *
-       * <code>uint64 generation = 4;</code>
-       * @param value The generation to set.
-       * @return This builder for chaining.
-       */
-      public Builder setGeneration(long value) {
-
-        generation_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * ConnectorClass generation captured when this registration index was
-       * written.
-       * </pre>
-       *
-       * <code>uint64 generation = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearGeneration() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        generation_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private talon.resources.Connectors.ConnectorClassSpec classSpec_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Connectors.ConnectorClassSpec, talon.resources.Connectors.ConnectorClassSpec.Builder, talon.resources.Connectors.ConnectorClassSpecOrBuilder> classSpecBuilder_;
-      /**
-       * <pre>
-       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-       * hot ingest path resolve provider match keys with one registration lookup.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-       * @return Whether the classSpec field is set.
-       */
-      public boolean hasClassSpec() {
-        return ((bitField0_ & 0x00000010) != 0);
-      }
-      /**
-       * <pre>
-       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-       * hot ingest path resolve provider match keys with one registration lookup.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-       * @return The classSpec.
-       */
-      public talon.resources.Connectors.ConnectorClassSpec getClassSpec() {
-        if (classSpecBuilder_ == null) {
-          return classSpec_ == null ? talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance() : classSpec_;
-        } else {
-          return classSpecBuilder_.getMessage();
-        }
-      }
-      /**
-       * <pre>
-       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-       * hot ingest path resolve provider match keys with one registration lookup.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-       */
-      public Builder setClassSpec(talon.resources.Connectors.ConnectorClassSpec value) {
-        if (classSpecBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          classSpec_ = value;
-        } else {
-          classSpecBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-       * hot ingest path resolve provider match keys with one registration lookup.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-       */
-      public Builder setClassSpec(
-          talon.resources.Connectors.ConnectorClassSpec.Builder builderForValue) {
-        if (classSpecBuilder_ == null) {
-          classSpec_ = builderForValue.build();
-        } else {
-          classSpecBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-       * hot ingest path resolve provider match keys with one registration lookup.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-       */
-      public Builder mergeClassSpec(talon.resources.Connectors.ConnectorClassSpec value) {
-        if (classSpecBuilder_ == null) {
-          if (((bitField0_ & 0x00000010) != 0) &&
-            classSpec_ != null &&
-            classSpec_ != talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance()) {
-            getClassSpecBuilder().mergeFrom(value);
-          } else {
-            classSpec_ = value;
-          }
-        } else {
-          classSpecBuilder_.mergeFrom(value);
-        }
-        if (classSpec_ != null) {
-          bitField0_ |= 0x00000010;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-       * hot ingest path resolve provider match keys with one registration lookup.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-       */
-      public Builder clearClassSpec() {
-        bitField0_ = (bitField0_ & ~0x00000010);
-        classSpec_ = null;
-        if (classSpecBuilder_ != null) {
-          classSpecBuilder_.dispose();
-          classSpecBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-       * hot ingest path resolve provider match keys with one registration lookup.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-       */
-      public talon.resources.Connectors.ConnectorClassSpec.Builder getClassSpecBuilder() {
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return internalGetClassSpecFieldBuilder().getBuilder();
-      }
-      /**
-       * <pre>
-       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-       * hot ingest path resolve provider match keys with one registration lookup.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-       */
-      public talon.resources.Connectors.ConnectorClassSpecOrBuilder getClassSpecOrBuilder() {
-        if (classSpecBuilder_ != null) {
-          return classSpecBuilder_.getMessageOrBuilder();
-        } else {
-          return classSpec_ == null ?
-              talon.resources.Connectors.ConnectorClassSpec.getDefaultInstance() : classSpec_;
-        }
-      }
-      /**
-       * <pre>
-       * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-       * hot ingest path resolve provider match keys with one registration lookup.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorClassSpec class_spec = 5;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Connectors.ConnectorClassSpec, talon.resources.Connectors.ConnectorClassSpec.Builder, talon.resources.Connectors.ConnectorClassSpecOrBuilder>
-          internalGetClassSpecFieldBuilder() {
-        if (classSpecBuilder_ == null) {
-          classSpecBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Connectors.ConnectorClassSpec, talon.resources.Connectors.ConnectorClassSpec.Builder, talon.resources.Connectors.ConnectorClassSpecOrBuilder>(
-                  getClassSpec(),
-                  getParentForChildren(),
-                  isClean());
-          classSpec_ = null;
-        }
-        return classSpecBuilder_;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.resources.ConnectorRegistrationEntry)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.resources.ConnectorRegistrationEntry)
-    private static final talon.resources.Connectors.ConnectorRegistrationEntry DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.resources.Connectors.ConnectorRegistrationEntry();
-    }
-
-    public static talon.resources.Connectors.ConnectorRegistrationEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<ConnectorRegistrationEntry>
-        PARSER = new com.google.protobuf.AbstractParser<ConnectorRegistrationEntry>() {
-      @java.lang.Override
-      public ConnectorRegistrationEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<ConnectorRegistrationEntry> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ConnectorRegistrationEntry> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.resources.Connectors.ConnectorRegistrationEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface ConnectorMatchEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.resources.ConnectorMatchEntry)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <pre>
-     * UID of the Connector resource that produced this compiled route.
-     * </pre>
-     *
-     * <code>string connector_uid = 1;</code>
-     * @return The connectorUid.
-     */
-    java.lang.String getConnectorUid();
-    /**
-     * <pre>
-     * UID of the Connector resource that produced this compiled route.
-     * </pre>
-     *
-     * <code>string connector_uid = 1;</code>
-     * @return The bytes for connectorUid.
-     */
-    com.google.protobuf.ByteString
-        getConnectorUidBytes();
-
-    /**
-     * <pre>
-     * Namespace that owns the matching Connector and dispatch target.
-     * </pre>
-     *
-     * <code>string namespace = 2;</code>
-     * @return The namespace.
-     */
-    java.lang.String getNamespace();
-    /**
-     * <pre>
-     * Namespace that owns the matching Connector and dispatch target.
-     * </pre>
-     *
-     * <code>string namespace = 2;</code>
-     * @return The bytes for namespace.
-     */
-    com.google.protobuf.ByteString
-        getNamespaceBytes();
-
-    /**
-     * <pre>
-     * Name of the Connector resource that produced this compiled route.
-     * </pre>
-     *
-     * <code>string connector_name = 3;</code>
-     * @return The connectorName.
-     */
-    java.lang.String getConnectorName();
-    /**
-     * <pre>
-     * Name of the Connector resource that produced this compiled route.
-     * </pre>
-     *
-     * <code>string connector_name = 3;</code>
-     * @return The bytes for connectorName.
-     */
-    com.google.protobuf.ByteString
-        getConnectorNameBytes();
-
-    /**
-     * <pre>
-     * ConnectorClass name used to compile this route.
-     * </pre>
-     *
-     * <code>string class_name = 4;</code>
-     * @return The className.
-     */
-    java.lang.String getClassName();
-    /**
-     * <pre>
-     * ConnectorClass name used to compile this route.
-     * </pre>
-     *
-     * <code>string class_name = 4;</code>
-     * @return The bytes for className.
-     */
-    com.google.protobuf.ByteString
-        getClassNameBytes();
-
-    /**
-     * <pre>
-     * Connector resource generation captured when this route entry was compiled.
-     * </pre>
-     *
-     * <code>uint64 generation = 5;</code>
-     * @return The generation.
-     */
-    long getGeneration();
-
-    /**
-     * <pre>
-     * Snapshot of the Connector target stored in the route index so ingest can
-     * dispatch without re-reading the full Connector resource.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorTarget target = 6;</code>
-     * @return Whether the target field is set.
-     */
-    boolean hasTarget();
-    /**
-     * <pre>
-     * Snapshot of the Connector target stored in the route index so ingest can
-     * dispatch without re-reading the full Connector resource.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorTarget target = 6;</code>
-     * @return The target.
-     */
-    talon.resources.Connectors.ConnectorTarget getTarget();
-    /**
-     * <pre>
-     * Snapshot of the Connector target stored in the route index so ingest can
-     * dispatch without re-reading the full Connector resource.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorTarget target = 6;</code>
-     */
-    talon.resources.Connectors.ConnectorTargetOrBuilder getTargetOrBuilder();
-
-    /**
-     * <pre>
-     * Namespace of the ConnectorClass used to compile this route.
-     * </pre>
-     *
-     * <code>string class_namespace = 7;</code>
-     * @return The classNamespace.
-     */
-    java.lang.String getClassNamespace();
-    /**
-     * <pre>
-     * Namespace of the ConnectorClass used to compile this route.
-     * </pre>
-     *
-     * <code>string class_namespace = 7;</code>
-     * @return The bytes for classNamespace.
-     */
-    com.google.protobuf.ByteString
-        getClassNamespaceBytes();
-  }
-  /**
-   * <pre>
-   * Stored routing entry for one compiled Connector match key. The
-   * ConnectorController writes this message under the owning
-   * ConnectorRegistration/current child key `ConnectorMatch/&lt;compiled_match_key&gt;`,
-   * where the compiled key includes the match-index name and encoded provider
-   * match fields. Inbound connector callbacks compute candidate match keys from
-   * the event matchFields and read these entries directly; dispatch is therefore
-   * indexed by provider account/conversation fields rather than by scanning all
-   * Connector resources.
-   * </pre>
-   *
-   * Protobuf type {@code talon.resources.ConnectorMatchEntry}
-   */
-  public static final class ConnectorMatchEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.resources.ConnectorMatchEntry)
-      ConnectorMatchEntryOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "ConnectorMatchEntry");
-    }
-    // Use ConnectorMatchEntry.newBuilder() to construct.
-    private ConnectorMatchEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private ConnectorMatchEntry() {
-      connectorUid_ = "";
-      namespace_ = "";
-      connectorName_ = "";
-      className_ = "";
-      classNamespace_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorMatchEntry_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorMatchEntry_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.resources.Connectors.internal_static_talon_resources_ConnectorMatchEntry_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.resources.Connectors.ConnectorMatchEntry.class, talon.resources.Connectors.ConnectorMatchEntry.Builder.class);
-    }
-
-    private int bitField0_;
-    public static final int CONNECTOR_UID_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object connectorUid_ = "";
-    /**
-     * <pre>
-     * UID of the Connector resource that produced this compiled route.
-     * </pre>
-     *
-     * <code>string connector_uid = 1;</code>
-     * @return The connectorUid.
-     */
-    @java.lang.Override
-    public java.lang.String getConnectorUid() {
-      java.lang.Object ref = connectorUid_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        connectorUid_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * UID of the Connector resource that produced this compiled route.
-     * </pre>
-     *
-     * <code>string connector_uid = 1;</code>
-     * @return The bytes for connectorUid.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getConnectorUidBytes() {
-      java.lang.Object ref = connectorUid_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        connectorUid_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int NAMESPACE_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object namespace_ = "";
-    /**
-     * <pre>
-     * Namespace that owns the matching Connector and dispatch target.
-     * </pre>
-     *
-     * <code>string namespace = 2;</code>
-     * @return The namespace.
-     */
-    @java.lang.Override
-    public java.lang.String getNamespace() {
-      java.lang.Object ref = namespace_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        namespace_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Namespace that owns the matching Connector and dispatch target.
-     * </pre>
-     *
-     * <code>string namespace = 2;</code>
-     * @return The bytes for namespace.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNamespaceBytes() {
-      java.lang.Object ref = namespace_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        namespace_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int CONNECTOR_NAME_FIELD_NUMBER = 3;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object connectorName_ = "";
-    /**
-     * <pre>
-     * Name of the Connector resource that produced this compiled route.
-     * </pre>
-     *
-     * <code>string connector_name = 3;</code>
-     * @return The connectorName.
-     */
-    @java.lang.Override
-    public java.lang.String getConnectorName() {
-      java.lang.Object ref = connectorName_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        connectorName_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Name of the Connector resource that produced this compiled route.
-     * </pre>
-     *
-     * <code>string connector_name = 3;</code>
-     * @return The bytes for connectorName.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getConnectorNameBytes() {
-      java.lang.Object ref = connectorName_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        connectorName_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int CLASS_NAME_FIELD_NUMBER = 4;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object className_ = "";
-    /**
-     * <pre>
-     * ConnectorClass name used to compile this route.
-     * </pre>
-     *
-     * <code>string class_name = 4;</code>
-     * @return The className.
-     */
-    @java.lang.Override
-    public java.lang.String getClassName() {
-      java.lang.Object ref = className_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        className_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * ConnectorClass name used to compile this route.
-     * </pre>
-     *
-     * <code>string class_name = 4;</code>
-     * @return The bytes for className.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getClassNameBytes() {
-      java.lang.Object ref = className_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        className_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int GENERATION_FIELD_NUMBER = 5;
-    private long generation_ = 0L;
-    /**
-     * <pre>
-     * Connector resource generation captured when this route entry was compiled.
-     * </pre>
-     *
-     * <code>uint64 generation = 5;</code>
-     * @return The generation.
-     */
-    @java.lang.Override
-    public long getGeneration() {
-      return generation_;
-    }
-
-    public static final int TARGET_FIELD_NUMBER = 6;
-    private talon.resources.Connectors.ConnectorTarget target_;
-    /**
-     * <pre>
-     * Snapshot of the Connector target stored in the route index so ingest can
-     * dispatch without re-reading the full Connector resource.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorTarget target = 6;</code>
-     * @return Whether the target field is set.
-     */
-    @java.lang.Override
-    public boolean hasTarget() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <pre>
-     * Snapshot of the Connector target stored in the route index so ingest can
-     * dispatch without re-reading the full Connector resource.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorTarget target = 6;</code>
-     * @return The target.
-     */
-    @java.lang.Override
-    public talon.resources.Connectors.ConnectorTarget getTarget() {
-      return target_ == null ? talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
-    }
-    /**
-     * <pre>
-     * Snapshot of the Connector target stored in the route index so ingest can
-     * dispatch without re-reading the full Connector resource.
-     * </pre>
-     *
-     * <code>.talon.resources.ConnectorTarget target = 6;</code>
-     */
-    @java.lang.Override
-    public talon.resources.Connectors.ConnectorTargetOrBuilder getTargetOrBuilder() {
-      return target_ == null ? talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
-    }
-
-    public static final int CLASS_NAMESPACE_FIELD_NUMBER = 7;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object classNamespace_ = "";
-    /**
-     * <pre>
-     * Namespace of the ConnectorClass used to compile this route.
-     * </pre>
-     *
-     * <code>string class_namespace = 7;</code>
-     * @return The classNamespace.
-     */
-    @java.lang.Override
-    public java.lang.String getClassNamespace() {
-      java.lang.Object ref = classNamespace_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        classNamespace_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Namespace of the ConnectorClass used to compile this route.
-     * </pre>
-     *
-     * <code>string class_namespace = 7;</code>
-     * @return The bytes for classNamespace.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getClassNamespaceBytes() {
-      java.lang.Object ref = classNamespace_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        classNamespace_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(connectorUid_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, connectorUid_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, namespace_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(connectorName_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, connectorName_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(className_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 4, className_);
-      }
-      if (generation_ != 0L) {
-        output.writeUInt64(5, generation_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(6, getTarget());
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(classNamespace_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 7, classNamespace_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(connectorUid_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, connectorUid_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, namespace_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(connectorName_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, connectorName_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(className_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, className_);
-      }
-      if (generation_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(5, generation_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, getTarget());
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(classNamespace_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, classNamespace_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.resources.Connectors.ConnectorMatchEntry)) {
-        return super.equals(obj);
-      }
-      talon.resources.Connectors.ConnectorMatchEntry other = (talon.resources.Connectors.ConnectorMatchEntry) obj;
-
-      if (!getConnectorUid()
-          .equals(other.getConnectorUid())) return false;
-      if (!getNamespace()
-          .equals(other.getNamespace())) return false;
-      if (!getConnectorName()
-          .equals(other.getConnectorName())) return false;
-      if (!getClassName()
-          .equals(other.getClassName())) return false;
-      if (getGeneration()
-          != other.getGeneration()) return false;
-      if (hasTarget() != other.hasTarget()) return false;
-      if (hasTarget()) {
-        if (!getTarget()
-            .equals(other.getTarget())) return false;
-      }
-      if (!getClassNamespace()
-          .equals(other.getClassNamespace())) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + CONNECTOR_UID_FIELD_NUMBER;
-      hash = (53 * hash) + getConnectorUid().hashCode();
-      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
-      hash = (53 * hash) + getNamespace().hashCode();
-      hash = (37 * hash) + CONNECTOR_NAME_FIELD_NUMBER;
-      hash = (53 * hash) + getConnectorName().hashCode();
-      hash = (37 * hash) + CLASS_NAME_FIELD_NUMBER;
-      hash = (53 * hash) + getClassName().hashCode();
-      hash = (37 * hash) + GENERATION_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getGeneration());
-      if (hasTarget()) {
-        hash = (37 * hash) + TARGET_FIELD_NUMBER;
-        hash = (53 * hash) + getTarget().hashCode();
-      }
-      hash = (37 * hash) + CLASS_NAMESPACE_FIELD_NUMBER;
-      hash = (53 * hash) + getClassNamespace().hashCode();
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.resources.Connectors.ConnectorMatchEntry parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorMatchEntry parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorMatchEntry parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorMatchEntry parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorMatchEntry parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Connectors.ConnectorMatchEntry parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorMatchEntry parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Connectors.ConnectorMatchEntry parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.resources.Connectors.ConnectorMatchEntry parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.resources.Connectors.ConnectorMatchEntry parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.resources.Connectors.ConnectorMatchEntry parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Connectors.ConnectorMatchEntry parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.resources.Connectors.ConnectorMatchEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * <pre>
-     * Stored routing entry for one compiled Connector match key. The
-     * ConnectorController writes this message under the owning
-     * ConnectorRegistration/current child key `ConnectorMatch/&lt;compiled_match_key&gt;`,
-     * where the compiled key includes the match-index name and encoded provider
-     * match fields. Inbound connector callbacks compute candidate match keys from
-     * the event matchFields and read these entries directly; dispatch is therefore
-     * indexed by provider account/conversation fields rather than by scanning all
-     * Connector resources.
-     * </pre>
-     *
-     * Protobuf type {@code talon.resources.ConnectorMatchEntry}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.resources.ConnectorMatchEntry)
-        talon.resources.Connectors.ConnectorMatchEntryOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorMatchEntry_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorMatchEntry_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.resources.Connectors.ConnectorMatchEntry.class, talon.resources.Connectors.ConnectorMatchEntry.Builder.class);
-      }
-
-      // Construct using talon.resources.Connectors.ConnectorMatchEntry.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage
-                .alwaysUseFieldBuilders) {
-          internalGetTargetFieldBuilder();
-        }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        connectorUid_ = "";
-        namespace_ = "";
-        connectorName_ = "";
-        className_ = "";
-        generation_ = 0L;
-        target_ = null;
-        if (targetBuilder_ != null) {
-          targetBuilder_.dispose();
-          targetBuilder_ = null;
-        }
-        classNamespace_ = "";
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.resources.Connectors.internal_static_talon_resources_ConnectorMatchEntry_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorMatchEntry getDefaultInstanceForType() {
-        return talon.resources.Connectors.ConnectorMatchEntry.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorMatchEntry build() {
-        talon.resources.Connectors.ConnectorMatchEntry result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.resources.Connectors.ConnectorMatchEntry buildPartial() {
-        talon.resources.Connectors.ConnectorMatchEntry result = new talon.resources.Connectors.ConnectorMatchEntry(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.resources.Connectors.ConnectorMatchEntry result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.connectorUid_ = connectorUid_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.namespace_ = namespace_;
-        }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.connectorName_ = connectorName_;
-        }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.className_ = className_;
-        }
-        if (((from_bitField0_ & 0x00000010) != 0)) {
-          result.generation_ = generation_;
-        }
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000020) != 0)) {
-          result.target_ = targetBuilder_ == null
-              ? target_
-              : targetBuilder_.build();
-          to_bitField0_ |= 0x00000001;
-        }
-        if (((from_bitField0_ & 0x00000040) != 0)) {
-          result.classNamespace_ = classNamespace_;
-        }
-        result.bitField0_ |= to_bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.resources.Connectors.ConnectorMatchEntry) {
-          return mergeFrom((talon.resources.Connectors.ConnectorMatchEntry)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.resources.Connectors.ConnectorMatchEntry other) {
-        if (other == talon.resources.Connectors.ConnectorMatchEntry.getDefaultInstance()) return this;
-        if (!other.getConnectorUid().isEmpty()) {
-          connectorUid_ = other.connectorUid_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getNamespace().isEmpty()) {
-          namespace_ = other.namespace_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        if (!other.getConnectorName().isEmpty()) {
-          connectorName_ = other.connectorName_;
-          bitField0_ |= 0x00000004;
-          onChanged();
-        }
-        if (!other.getClassName().isEmpty()) {
-          className_ = other.className_;
-          bitField0_ |= 0x00000008;
-          onChanged();
-        }
-        if (other.getGeneration() != 0L) {
-          setGeneration(other.getGeneration());
-        }
-        if (other.hasTarget()) {
-          mergeTarget(other.getTarget());
-        }
-        if (!other.getClassNamespace().isEmpty()) {
-          classNamespace_ = other.classNamespace_;
-          bitField0_ |= 0x00000040;
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                connectorUid_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                namespace_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              case 26: {
-                connectorName_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
-              case 34: {
-                className_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 34
-              case 40: {
-                generation_ = input.readUInt64();
-                bitField0_ |= 0x00000010;
-                break;
-              } // case 40
-              case 50: {
-                input.readMessage(
-                    internalGetTargetFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000020;
-                break;
-              } // case 50
-              case 58: {
-                classNamespace_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000040;
-                break;
-              } // case 58
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object connectorUid_ = "";
-      /**
-       * <pre>
-       * UID of the Connector resource that produced this compiled route.
-       * </pre>
-       *
-       * <code>string connector_uid = 1;</code>
-       * @return The connectorUid.
-       */
-      public java.lang.String getConnectorUid() {
-        java.lang.Object ref = connectorUid_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          connectorUid_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * UID of the Connector resource that produced this compiled route.
-       * </pre>
-       *
-       * <code>string connector_uid = 1;</code>
-       * @return The bytes for connectorUid.
-       */
-      public com.google.protobuf.ByteString
-          getConnectorUidBytes() {
-        java.lang.Object ref = connectorUid_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          connectorUid_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * UID of the Connector resource that produced this compiled route.
-       * </pre>
-       *
-       * <code>string connector_uid = 1;</code>
-       * @param value The connectorUid to set.
-       * @return This builder for chaining.
-       */
-      public Builder setConnectorUid(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        connectorUid_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * UID of the Connector resource that produced this compiled route.
-       * </pre>
-       *
-       * <code>string connector_uid = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearConnectorUid() {
-        connectorUid_ = getDefaultInstance().getConnectorUid();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * UID of the Connector resource that produced this compiled route.
-       * </pre>
-       *
-       * <code>string connector_uid = 1;</code>
-       * @param value The bytes for connectorUid to set.
-       * @return This builder for chaining.
-       */
-      public Builder setConnectorUidBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        connectorUid_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object namespace_ = "";
-      /**
-       * <pre>
-       * Namespace that owns the matching Connector and dispatch target.
-       * </pre>
-       *
-       * <code>string namespace = 2;</code>
-       * @return The namespace.
-       */
-      public java.lang.String getNamespace() {
-        java.lang.Object ref = namespace_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          namespace_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Namespace that owns the matching Connector and dispatch target.
-       * </pre>
-       *
-       * <code>string namespace = 2;</code>
-       * @return The bytes for namespace.
-       */
-      public com.google.protobuf.ByteString
-          getNamespaceBytes() {
-        java.lang.Object ref = namespace_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          namespace_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Namespace that owns the matching Connector and dispatch target.
-       * </pre>
-       *
-       * <code>string namespace = 2;</code>
-       * @param value The namespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNamespace(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        namespace_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Namespace that owns the matching Connector and dispatch target.
-       * </pre>
-       *
-       * <code>string namespace = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearNamespace() {
-        namespace_ = getDefaultInstance().getNamespace();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Namespace that owns the matching Connector and dispatch target.
-       * </pre>
-       *
-       * <code>string namespace = 2;</code>
-       * @param value The bytes for namespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNamespaceBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        namespace_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object connectorName_ = "";
-      /**
-       * <pre>
-       * Name of the Connector resource that produced this compiled route.
-       * </pre>
-       *
-       * <code>string connector_name = 3;</code>
-       * @return The connectorName.
-       */
-      public java.lang.String getConnectorName() {
-        java.lang.Object ref = connectorName_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          connectorName_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Name of the Connector resource that produced this compiled route.
-       * </pre>
-       *
-       * <code>string connector_name = 3;</code>
-       * @return The bytes for connectorName.
-       */
-      public com.google.protobuf.ByteString
-          getConnectorNameBytes() {
-        java.lang.Object ref = connectorName_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          connectorName_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Name of the Connector resource that produced this compiled route.
-       * </pre>
-       *
-       * <code>string connector_name = 3;</code>
-       * @param value The connectorName to set.
-       * @return This builder for chaining.
-       */
-      public Builder setConnectorName(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        connectorName_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Name of the Connector resource that produced this compiled route.
-       * </pre>
-       *
-       * <code>string connector_name = 3;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearConnectorName() {
-        connectorName_ = getDefaultInstance().getConnectorName();
-        bitField0_ = (bitField0_ & ~0x00000004);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Name of the Connector resource that produced this compiled route.
-       * </pre>
-       *
-       * <code>string connector_name = 3;</code>
-       * @param value The bytes for connectorName to set.
-       * @return This builder for chaining.
-       */
-      public Builder setConnectorNameBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        connectorName_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object className_ = "";
-      /**
-       * <pre>
-       * ConnectorClass name used to compile this route.
-       * </pre>
-       *
-       * <code>string class_name = 4;</code>
-       * @return The className.
-       */
-      public java.lang.String getClassName() {
-        java.lang.Object ref = className_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          className_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * ConnectorClass name used to compile this route.
-       * </pre>
-       *
-       * <code>string class_name = 4;</code>
-       * @return The bytes for className.
-       */
-      public com.google.protobuf.ByteString
-          getClassNameBytes() {
-        java.lang.Object ref = className_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          className_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * ConnectorClass name used to compile this route.
-       * </pre>
-       *
-       * <code>string class_name = 4;</code>
-       * @param value The className to set.
-       * @return This builder for chaining.
-       */
-      public Builder setClassName(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        className_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * ConnectorClass name used to compile this route.
-       * </pre>
-       *
-       * <code>string class_name = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearClassName() {
-        className_ = getDefaultInstance().getClassName();
-        bitField0_ = (bitField0_ & ~0x00000008);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * ConnectorClass name used to compile this route.
-       * </pre>
-       *
-       * <code>string class_name = 4;</code>
-       * @param value The bytes for className to set.
-       * @return This builder for chaining.
-       */
-      public Builder setClassNameBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        className_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-
-      private long generation_ ;
-      /**
-       * <pre>
-       * Connector resource generation captured when this route entry was compiled.
-       * </pre>
-       *
-       * <code>uint64 generation = 5;</code>
-       * @return The generation.
-       */
-      @java.lang.Override
-      public long getGeneration() {
-        return generation_;
-      }
-      /**
-       * <pre>
-       * Connector resource generation captured when this route entry was compiled.
-       * </pre>
-       *
-       * <code>uint64 generation = 5;</code>
-       * @param value The generation to set.
-       * @return This builder for chaining.
-       */
-      public Builder setGeneration(long value) {
-
-        generation_ = value;
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Connector resource generation captured when this route entry was compiled.
-       * </pre>
-       *
-       * <code>uint64 generation = 5;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearGeneration() {
-        bitField0_ = (bitField0_ & ~0x00000010);
-        generation_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private talon.resources.Connectors.ConnectorTarget target_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Connectors.ConnectorTarget, talon.resources.Connectors.ConnectorTarget.Builder, talon.resources.Connectors.ConnectorTargetOrBuilder> targetBuilder_;
-      /**
-       * <pre>
-       * Snapshot of the Connector target stored in the route index so ingest can
-       * dispatch without re-reading the full Connector resource.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
-       * @return Whether the target field is set.
-       */
-      public boolean hasTarget() {
-        return ((bitField0_ & 0x00000020) != 0);
-      }
-      /**
-       * <pre>
-       * Snapshot of the Connector target stored in the route index so ingest can
-       * dispatch without re-reading the full Connector resource.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
-       * @return The target.
-       */
-      public talon.resources.Connectors.ConnectorTarget getTarget() {
-        if (targetBuilder_ == null) {
-          return target_ == null ? talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
-        } else {
-          return targetBuilder_.getMessage();
-        }
-      }
-      /**
-       * <pre>
-       * Snapshot of the Connector target stored in the route index so ingest can
-       * dispatch without re-reading the full Connector resource.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
-       */
-      public Builder setTarget(talon.resources.Connectors.ConnectorTarget value) {
-        if (targetBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          target_ = value;
-        } else {
-          targetBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Snapshot of the Connector target stored in the route index so ingest can
-       * dispatch without re-reading the full Connector resource.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
-       */
-      public Builder setTarget(
-          talon.resources.Connectors.ConnectorTarget.Builder builderForValue) {
-        if (targetBuilder_ == null) {
-          target_ = builderForValue.build();
-        } else {
-          targetBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Snapshot of the Connector target stored in the route index so ingest can
-       * dispatch without re-reading the full Connector resource.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
-       */
-      public Builder mergeTarget(talon.resources.Connectors.ConnectorTarget value) {
-        if (targetBuilder_ == null) {
-          if (((bitField0_ & 0x00000020) != 0) &&
-            target_ != null &&
-            target_ != talon.resources.Connectors.ConnectorTarget.getDefaultInstance()) {
-            getTargetBuilder().mergeFrom(value);
-          } else {
-            target_ = value;
-          }
-        } else {
-          targetBuilder_.mergeFrom(value);
-        }
-        if (target_ != null) {
-          bitField0_ |= 0x00000020;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Snapshot of the Connector target stored in the route index so ingest can
-       * dispatch without re-reading the full Connector resource.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
-       */
-      public Builder clearTarget() {
-        bitField0_ = (bitField0_ & ~0x00000020);
-        target_ = null;
-        if (targetBuilder_ != null) {
-          targetBuilder_.dispose();
-          targetBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Snapshot of the Connector target stored in the route index so ingest can
-       * dispatch without re-reading the full Connector resource.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
-       */
-      public talon.resources.Connectors.ConnectorTarget.Builder getTargetBuilder() {
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return internalGetTargetFieldBuilder().getBuilder();
-      }
-      /**
-       * <pre>
-       * Snapshot of the Connector target stored in the route index so ingest can
-       * dispatch without re-reading the full Connector resource.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
-       */
-      public talon.resources.Connectors.ConnectorTargetOrBuilder getTargetOrBuilder() {
-        if (targetBuilder_ != null) {
-          return targetBuilder_.getMessageOrBuilder();
-        } else {
-          return target_ == null ?
-              talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
-        }
-      }
-      /**
-       * <pre>
-       * Snapshot of the Connector target stored in the route index so ingest can
-       * dispatch without re-reading the full Connector resource.
-       * </pre>
-       *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Connectors.ConnectorTarget, talon.resources.Connectors.ConnectorTarget.Builder, talon.resources.Connectors.ConnectorTargetOrBuilder>
-          internalGetTargetFieldBuilder() {
-        if (targetBuilder_ == null) {
-          targetBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Connectors.ConnectorTarget, talon.resources.Connectors.ConnectorTarget.Builder, talon.resources.Connectors.ConnectorTargetOrBuilder>(
-                  getTarget(),
-                  getParentForChildren(),
-                  isClean());
-          target_ = null;
-        }
-        return targetBuilder_;
-      }
-
-      private java.lang.Object classNamespace_ = "";
-      /**
-       * <pre>
-       * Namespace of the ConnectorClass used to compile this route.
-       * </pre>
-       *
-       * <code>string class_namespace = 7;</code>
-       * @return The classNamespace.
-       */
-      public java.lang.String getClassNamespace() {
-        java.lang.Object ref = classNamespace_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          classNamespace_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Namespace of the ConnectorClass used to compile this route.
-       * </pre>
-       *
-       * <code>string class_namespace = 7;</code>
-       * @return The bytes for classNamespace.
-       */
-      public com.google.protobuf.ByteString
-          getClassNamespaceBytes() {
-        java.lang.Object ref = classNamespace_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          classNamespace_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Namespace of the ConnectorClass used to compile this route.
-       * </pre>
-       *
-       * <code>string class_namespace = 7;</code>
-       * @param value The classNamespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setClassNamespace(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        classNamespace_ = value;
-        bitField0_ |= 0x00000040;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Namespace of the ConnectorClass used to compile this route.
-       * </pre>
-       *
-       * <code>string class_namespace = 7;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearClassNamespace() {
-        classNamespace_ = getDefaultInstance().getClassNamespace();
-        bitField0_ = (bitField0_ & ~0x00000040);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Namespace of the ConnectorClass used to compile this route.
-       * </pre>
-       *
-       * <code>string class_namespace = 7;</code>
-       * @param value The bytes for classNamespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setClassNamespaceBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        classNamespace_ = value;
-        bitField0_ |= 0x00000040;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.resources.ConnectorMatchEntry)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.resources.ConnectorMatchEntry)
-    private static final talon.resources.Connectors.ConnectorMatchEntry DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.resources.Connectors.ConnectorMatchEntry();
-    }
-
-    public static talon.resources.Connectors.ConnectorMatchEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<ConnectorMatchEntry>
-        PARSER = new com.google.protobuf.AbstractParser<ConnectorMatchEntry>() {
-      @java.lang.Override
-      public ConnectorMatchEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<ConnectorMatchEntry> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ConnectorMatchEntry> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.resources.Connectors.ConnectorMatchEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_ConnectorClassRuntimeSpec_descriptor;
   private static final
@@ -16573,21 +10456,6 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_ConnectorClassStatus_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_resources_ConnectorSessionTarget_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_resources_ConnectorSessionTarget_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_resources_ConnectorChannelTarget_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_resources_ConnectorChannelTarget_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_resources_ConnectorTarget_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_resources_ConnectorTarget_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_ConnectorSpec_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -16612,16 +10480,6 @@ java.lang.String defaultValue) {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_Connector_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_resources_ConnectorRegistrationEntry_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_resources_ConnectorRegistrationEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_resources_ConnectorMatchEntry_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_resources_ConnectorMatchEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -16633,63 +10491,47 @@ java.lang.String defaultValue) {
     java.lang.String[] descriptorData = {
       "\n proto/resources/connectors.proto\022\017talo" +
       "n.resources\032\022proto/config.proto\032\034proto/r" +
-      "esources/common.proto\";\n\031ConnectorClassR" +
-      "untimeSpec\022\014\n\004kind\030\001 \001(\t\022\020\n\010endpoint\030\002 \001" +
-      "(\t\"M\n\026ConnectorClassAuthSpec\022\014\n\004kind\030\001 \001" +
-      "(\t\022%\n\007api_key\030\002 \001(\0132\024.talon.config.Secre" +
-      "t\"3\n\023ConnectorMatchIndex\022\014\n\004name\030\001 \001(\t\022\016" +
-      "\n\006fields\030\002 \003(\t\"\327\001\n\022ConnectorClassSpec\022\020\n" +
-      "\010platform\030\001 \001(\t\022;\n\007runtime\030\002 \001(\0132*.talon" +
-      ".resources.ConnectorClassRuntimeSpec\0225\n\004" +
-      "auth\030\003 \001(\0132\'.talon.resources.ConnectorCl" +
-      "assAuthSpec\022;\n\rmatch_indexes\030\004 \003(\0132$.tal" +
-      "on.resources.ConnectorMatchIndex\"\223\001\n\024Con" +
-      "nectorClassStatus\022\033\n\023observed_generation" +
-      "\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(" +
-      "\0132\".talon.resources.ResourceCondition\022\027\n" +
-      "\017registration_id\030\004 \001(\t\";\n\026ConnectorSessi" +
-      "onTarget\022\r\n\005agent\030\001 \001(\t\022\022\n\ncontinuity\030\002 " +
-      "\001(\t\"b\n\026ConnectorChannelTarget\022\017\n\007channel" +
-      "\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\022\n\ncontinuity\030\003 \001(" +
-      "\t\022\024\n\014reply_policy\030\004 \001(\t\"\230\001\n\017ConnectorTar" +
-      "get\022:\n\007session\030\001 \001(\0132\'.talon.resources.C" +
-      "onnectorSessionTargetH\000\022:\n\007channel\030\002 \001(\013" +
-      "2\'.talon.resources.ConnectorChannelTarge" +
-      "tH\000B\r\n\013destination\"\376\001\n\rConnectorSpec\022/\n\t" +
-      "class_ref\030\001 \001(\0132\034.talon.resources.Resour" +
-      "ceRef\022\017\n\007enabled\030\002 \001(\010\022E\n\014match_fields\030\003" +
-      " \003(\0132/.talon.resources.ConnectorSpec.Mat" +
-      "chFieldsEntry\0220\n\006target\030\004 \001(\0132 .talon.re" +
-      "sources.ConnectorTarget\0322\n\020MatchFieldsEn" +
-      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\222\001\n\017" +
-      "ConnectorStatus\022\033\n\023observed_generation\030\001" +
-      " \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132" +
-      "\".talon.resources.ResourceCondition\022\033\n\023c" +
-      "ompiled_match_keys\030\004 \003(\t\"\253\001\n\016ConnectorCl" +
-      "ass\022/\n\010metadata\030\001 \001(\0132\035.talon.resources." +
-      "ResourceMeta\0221\n\004spec\030\002 \001(\0132#.talon.resou" +
-      "rces.ConnectorClassSpec\0225\n\006status\030\003 \001(\0132" +
-      "%.talon.resources.ConnectorClassStatus\"\234" +
-      "\001\n\tConnector\022/\n\010metadata\030\001 \001(\0132\035.talon.r" +
-      "esources.ResourceMeta\022,\n\004spec\030\002 \001(\0132\036.ta" +
-      "lon.resources.ConnectorSpec\0220\n\006status\030\003 " +
-      "\001(\0132 .talon.resources.ConnectorStatus\"\257\001" +
-      "\n\032ConnectorRegistrationEntry\022\027\n\017registra" +
-      "tion_id\030\001 \001(\t\022\027\n\017class_namespace\030\002 \001(\t\022\022" +
-      "\n\nclass_name\030\003 \001(\t\022\022\n\ngeneration\030\004 \001(\004\0227" +
-      "\n\nclass_spec\030\005 \001(\0132#.talon.resources.Con" +
-      "nectorClassSpec\"\312\001\n\023ConnectorMatchEntry\022" +
-      "\025\n\rconnector_uid\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(" +
-      "\t\022\026\n\016connector_name\030\003 \001(\t\022\022\n\nclass_name\030" +
-      "\004 \001(\t\022\022\n\ngeneration\030\005 \001(\004\0220\n\006target\030\006 \001(" +
-      "\0132 .talon.resources.ConnectorTarget\022\027\n\017c" +
-      "lass_namespace\030\007 \001(\tb\006proto3"
+      "esources/common.proto\032\035proto/resources/r" +
+      "outing.proto\";\n\031ConnectorClassRuntimeSpe" +
+      "c\022\014\n\004kind\030\001 \001(\t\022\020\n\010endpoint\030\002 \001(\t\"M\n\026Con" +
+      "nectorClassAuthSpec\022\014\n\004kind\030\001 \001(\t\022%\n\007api" +
+      "_key\030\002 \001(\0132\024.talon.config.Secret\"3\n\023Conn" +
+      "ectorMatchIndex\022\014\n\004name\030\001 \001(\t\022\016\n\006fields\030" +
+      "\002 \003(\t\"\327\001\n\022ConnectorClassSpec\022\020\n\010platform" +
+      "\030\001 \001(\t\022;\n\007runtime\030\002 \001(\0132*.talon.resource" +
+      "s.ConnectorClassRuntimeSpec\0225\n\004auth\030\003 \001(" +
+      "\0132\'.talon.resources.ConnectorClassAuthSp" +
+      "ec\022;\n\rmatch_indexes\030\004 \003(\0132$.talon.resour" +
+      "ces.ConnectorMatchIndex\"z\n\024ConnectorClas" +
+      "sStatus\022\033\n\023observed_generation\030\001 \001(\004\022\r\n\005" +
+      "phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\".talon." +
+      "resources.ResourceCondition\"\200\002\n\rConnecto" +
+      "rSpec\022/\n\tclass_ref\030\001 \001(\0132\034.talon.resourc" +
+      "es.ResourceRef\022\017\n\007enabled\030\002 \001(\010\022E\n\014match" +
+      "_fields\030\003 \003(\0132/.talon.resources.Connecto" +
+      "rSpec.MatchFieldsEntry\0222\n\010consumer\030\004 \001(\013" +
+      "2 .talon.resources.MessageConsumer\0322\n\020Ma" +
+      "tchFieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001" +
+      "(\t:\0028\001\"\221\001\n\017ConnectorStatus\022\033\n\023observed_g" +
+      "eneration\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\ncondit" +
+      "ions\030\003 \003(\0132\".talon.resources.ResourceCon" +
+      "dition\022\032\n\022compiled_route_ids\030\004 \003(\t\"\253\001\n\016C" +
+      "onnectorClass\022/\n\010metadata\030\001 \001(\0132\035.talon." +
+      "resources.ResourceMeta\0221\n\004spec\030\002 \001(\0132#.t" +
+      "alon.resources.ConnectorClassSpec\0225\n\006sta" +
+      "tus\030\003 \001(\0132%.talon.resources.ConnectorCla" +
+      "ssStatus\"\234\001\n\tConnector\022/\n\010metadata\030\001 \001(\013" +
+      "2\035.talon.resources.ResourceMeta\022,\n\004spec\030" +
+      "\002 \001(\0132\036.talon.resources.ConnectorSpec\0220\n" +
+      "\006status\030\003 \001(\0132 .talon.resources.Connecto" +
+      "rStatusb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           talon.config.Config.getDescriptor(),
           talon.resources.Common.getDescriptor(),
+          talon.resources.Routing.getDescriptor(),
         });
     internal_static_talon_resources_ConnectorClassRuntimeSpec_descriptor =
       getDescriptor().getMessageType(0);
@@ -16720,31 +10562,13 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_ConnectorClassStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectorClassStatus_descriptor,
-        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "RegistrationId", });
-    internal_static_talon_resources_ConnectorSessionTarget_descriptor =
-      getDescriptor().getMessageType(5);
-    internal_static_talon_resources_ConnectorSessionTarget_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_resources_ConnectorSessionTarget_descriptor,
-        new java.lang.String[] { "Agent", "Continuity", });
-    internal_static_talon_resources_ConnectorChannelTarget_descriptor =
-      getDescriptor().getMessageType(6);
-    internal_static_talon_resources_ConnectorChannelTarget_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_resources_ConnectorChannelTarget_descriptor,
-        new java.lang.String[] { "Channel", "Agent", "Continuity", "ReplyPolicy", });
-    internal_static_talon_resources_ConnectorTarget_descriptor =
-      getDescriptor().getMessageType(7);
-    internal_static_talon_resources_ConnectorTarget_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_resources_ConnectorTarget_descriptor,
-        new java.lang.String[] { "Session", "Channel", "Destination", });
+        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", });
     internal_static_talon_resources_ConnectorSpec_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(5);
     internal_static_talon_resources_ConnectorSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectorSpec_descriptor,
-        new java.lang.String[] { "ClassRef", "Enabled", "MatchFields", "Target", });
+        new java.lang.String[] { "ClassRef", "Enabled", "MatchFields", "Consumer", });
     internal_static_talon_resources_ConnectorSpec_MatchFieldsEntry_descriptor =
       internal_static_talon_resources_ConnectorSpec_descriptor.getNestedType(0);
     internal_static_talon_resources_ConnectorSpec_MatchFieldsEntry_fieldAccessorTable = new
@@ -16752,38 +10576,27 @@ java.lang.String defaultValue) {
         internal_static_talon_resources_ConnectorSpec_MatchFieldsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_resources_ConnectorStatus_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(6);
     internal_static_talon_resources_ConnectorStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectorStatus_descriptor,
-        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "CompiledMatchKeys", });
+        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "CompiledRouteIds", });
     internal_static_talon_resources_ConnectorClass_descriptor =
-      getDescriptor().getMessageType(10);
+      getDescriptor().getMessageType(7);
     internal_static_talon_resources_ConnectorClass_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectorClass_descriptor,
         new java.lang.String[] { "Metadata", "Spec", "Status", });
     internal_static_talon_resources_Connector_descriptor =
-      getDescriptor().getMessageType(11);
+      getDescriptor().getMessageType(8);
     internal_static_talon_resources_Connector_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_Connector_descriptor,
         new java.lang.String[] { "Metadata", "Spec", "Status", });
-    internal_static_talon_resources_ConnectorRegistrationEntry_descriptor =
-      getDescriptor().getMessageType(12);
-    internal_static_talon_resources_ConnectorRegistrationEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_resources_ConnectorRegistrationEntry_descriptor,
-        new java.lang.String[] { "RegistrationId", "ClassNamespace", "ClassName", "Generation", "ClassSpec", });
-    internal_static_talon_resources_ConnectorMatchEntry_descriptor =
-      getDescriptor().getMessageType(13);
-    internal_static_talon_resources_ConnectorMatchEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_resources_ConnectorMatchEntry_descriptor,
-        new java.lang.String[] { "ConnectorUid", "Namespace", "ConnectorName", "ClassName", "Generation", "Target", "ClassNamespace", });
     descriptor.resolveAllFeaturesImmutable();
     talon.config.Config.getDescriptor();
     talon.resources.Common.getDescriptor();
+    talon.resources.Routing.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

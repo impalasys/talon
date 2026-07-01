@@ -362,6 +362,101 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `reply_mode` | `string` | - |
 | `metadata` | `map<string, string>` | - |
 
+## `SessionMessageConsumer`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `agent` | `ResourceRef` | Agent that consumes matching messages through a Talon Session. |
+| `continuity` | `string` | Session continuity policy. "reuse" reuses the connector session pointer for the external conversation/thread; any other value creates a new Session for each message. |
+
+## `ChannelMessageConsumer`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `channel` | `ResourceRef` | Channel that receives matching messages before agent routing. |
+| `agent` | `ResourceRef` | Agent that consumes the persisted Channel message. |
+| `continuity` | `string` | Channel routing continuity policy. This is reserved for channel dispatch policies that create agent runtime context per message or thread. |
+| `reply_policy` | `string` | Reply behavior requested from the connector-aware channel router, such as replying in the provider thread instead of the root conversation. |
+
+## `MessageConsumer`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `session` | `SessionMessageConsumer` | oneof (consumer) |
+| `channel` | `ChannelMessageConsumer` | oneof (consumer) |
+
+## `ConnectorClassRuntimeSpec`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `kind` | `string` | Runtime implementation type, for example an HTTP connector service. |
+| `endpoint` | `string` | Base URL for the connector service that implements the Talon connector protocol for this class. |
+
+## `ConnectorClassAuthSpec`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `kind` | `string` | Authentication scheme Talon uses when calling the connector service. |
+| `api_key` | `talon.config.Secret` | API key or secret reference used to authenticate this Talon cluster to the connector service. |
+
+## `ConnectorMatchIndex`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | `string` | Connector-service-defined index name, stable within the ConnectorClass. |
+| `fields` | `string` | repeated; Match field names, in priority order, used to compile routing keys. |
+
+## `ConnectorClassSpec`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `platform` | `string` | External messaging platform implemented by this class, such as slack or imessage. |
+| `runtime` | `ConnectorClassRuntimeSpec` | How Talon reaches the connector service. |
+| `auth` | `ConnectorClassAuthSpec` | How Talon authenticates requests to the connector service. |
+| `match_indexes` | `ConnectorMatchIndex` | repeated; Provider-specific match indexes supported by this connector service. |
+
+## `ConnectorClassStatus`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `observed_generation` | `uint64` | Resource generation last reconciled by the ConnectorController. |
+| `phase` | `string` | Current registration phase for this class, such as pending, ready, or degraded. |
+| `conditions` | `ResourceCondition` | repeated; Detailed readiness and error conditions from registration with the connector service. |
+
+## `ConnectorSpec`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `class_ref` | `ResourceRef` | ConnectorClass that owns the platform adapter and match index definitions. If namespace is empty, Talon resolves the class in the Connector's namespace. In v1, a non-empty namespace must match the Connector namespace; cross-namespace class references require a future policy/RBAC gate. |
+| `enabled` | `bool` | Disabled Connectors are not indexed for incoming message routing. |
+| `match_fields` | `map<string, string>` | Provider-specific route fields, such as Slack team/channel IDs or an iMessage profile identifier. Talon treats these as opaque keys described by the ConnectorClass match indexes. |
+| `consumer` | `MessageConsumer` | Single Talon message consumer for messages that match this Connector. |
+
+## `ConnectorStatus`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `observed_generation` | `uint64` | Resource generation last reconciled by the ConnectorController. |
+| `phase` | `string` | Current route indexing phase for this Connector, such as ready or invalid. |
+| `conditions` | `ResourceCondition` | repeated; Detailed route-indexing readiness and validation conditions. |
+| `compiled_route_ids` | `string` | repeated; Materialized route IDs generated from match_fields and the owning ConnectorClass match indexes. |
+
+## `ConnectorClass`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `metadata` | `ResourceMeta` | Standard namespaced resource metadata. ConnectorClasses are regular namespace resources so each tenant or operator namespace can define its own trusted connector services. |
+| `spec` | `ConnectorClassSpec` | Desired connector service registration and platform capabilities. |
+| `status` | `ConnectorClassStatus` | Observed registration state for this connector service class. |
+
+## `Connector`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `metadata` | `ResourceMeta` | Standard namespaced resource metadata. Each Connector is owned by the namespace whose messages it routes into Talon. |
+| `spec` | `ConnectorSpec` | Desired provider match and Talon message consumer for one route. |
+| `status` | `ConnectorStatus` | Observed route-indexing state for this Connector. |
+
 ## `ScheduleTarget`
 
 | Field | Type | Notes |

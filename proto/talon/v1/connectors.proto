@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package talon.v1;
 
-import "proto/resources/connectors.proto";
+import "proto/resources/routing.proto";
 
 // ConnectorService is implemented by Talon's gateway for callbacks from an
 // external connector service. The connector service owns provider-specific
@@ -12,7 +12,7 @@ service ConnectorService {
   // IngestMessageEvent delivers one normalized provider message event to Talon.
   // Talon deduplicates under the ConnectorClass registration by event_id,
   // resolves a Connector by match_fields, and dispatches the message to the
-  // resolved Connector target.
+  // resolved message consumer.
   rpc IngestMessageEvent(ConnectorMessageEvent) returns (ConnectorMessageEventResponse);
 
   // ReportStatus lets the connector service report registration or provider
@@ -139,9 +139,9 @@ message ConnectorMessageEventResponse {
   // duplicate without a fresh route lookup.
   string connector_name = 5;
 
-  // Target snapshot used for dispatch. Returned for observability so connector
-  // services can log which Talon destination accepted the event.
-  talon.resources.ConnectorTarget target = 6;
+  // Consumer snapshot used for dispatch. Returned for observability so
+  // connector services can log which Talon destination accepted the event.
+  talon.resources.MessageConsumer consumer = 6;
 }
 
 message ConnectorDeliveryRequest {

@@ -6666,33 +6666,33 @@ java.lang.String defaultValue) {
 
     /**
      * <pre>
-     * Target snapshot used for dispatch. Returned for observability so connector
-     * services can log which Talon destination accepted the event.
+     * Consumer snapshot used for dispatch. Returned for observability so
+     * connector services can log which Talon destination accepted the event.
      * </pre>
      *
-     * <code>.talon.resources.ConnectorTarget target = 6;</code>
-     * @return Whether the target field is set.
+     * <code>.talon.resources.MessageConsumer consumer = 6;</code>
+     * @return Whether the consumer field is set.
      */
-    boolean hasTarget();
+    boolean hasConsumer();
     /**
      * <pre>
-     * Target snapshot used for dispatch. Returned for observability so connector
-     * services can log which Talon destination accepted the event.
+     * Consumer snapshot used for dispatch. Returned for observability so
+     * connector services can log which Talon destination accepted the event.
      * </pre>
      *
-     * <code>.talon.resources.ConnectorTarget target = 6;</code>
-     * @return The target.
+     * <code>.talon.resources.MessageConsumer consumer = 6;</code>
+     * @return The consumer.
      */
-    talon.resources.Connectors.ConnectorTarget getTarget();
+    talon.resources.Routing.MessageConsumer getConsumer();
     /**
      * <pre>
-     * Target snapshot used for dispatch. Returned for observability so connector
-     * services can log which Talon destination accepted the event.
+     * Consumer snapshot used for dispatch. Returned for observability so
+     * connector services can log which Talon destination accepted the event.
      * </pre>
      *
-     * <code>.talon.resources.ConnectorTarget target = 6;</code>
+     * <code>.talon.resources.MessageConsumer consumer = 6;</code>
      */
-    talon.resources.Connectors.ConnectorTargetOrBuilder getTargetOrBuilder();
+    talon.resources.Routing.MessageConsumerOrBuilder getConsumerOrBuilder();
   }
   /**
    * Protobuf type {@code talon.v1.ConnectorMessageEventResponse}
@@ -6917,45 +6917,45 @@ java.lang.String defaultValue) {
       }
     }
 
-    public static final int TARGET_FIELD_NUMBER = 6;
-    private talon.resources.Connectors.ConnectorTarget target_;
+    public static final int CONSUMER_FIELD_NUMBER = 6;
+    private talon.resources.Routing.MessageConsumer consumer_;
     /**
      * <pre>
-     * Target snapshot used for dispatch. Returned for observability so connector
-     * services can log which Talon destination accepted the event.
+     * Consumer snapshot used for dispatch. Returned for observability so
+     * connector services can log which Talon destination accepted the event.
      * </pre>
      *
-     * <code>.talon.resources.ConnectorTarget target = 6;</code>
-     * @return Whether the target field is set.
+     * <code>.talon.resources.MessageConsumer consumer = 6;</code>
+     * @return Whether the consumer field is set.
      */
     @java.lang.Override
-    public boolean hasTarget() {
+    public boolean hasConsumer() {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <pre>
-     * Target snapshot used for dispatch. Returned for observability so connector
-     * services can log which Talon destination accepted the event.
+     * Consumer snapshot used for dispatch. Returned for observability so
+     * connector services can log which Talon destination accepted the event.
      * </pre>
      *
-     * <code>.talon.resources.ConnectorTarget target = 6;</code>
-     * @return The target.
+     * <code>.talon.resources.MessageConsumer consumer = 6;</code>
+     * @return The consumer.
      */
     @java.lang.Override
-    public talon.resources.Connectors.ConnectorTarget getTarget() {
-      return target_ == null ? talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
+    public talon.resources.Routing.MessageConsumer getConsumer() {
+      return consumer_ == null ? talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
     }
     /**
      * <pre>
-     * Target snapshot used for dispatch. Returned for observability so connector
-     * services can log which Talon destination accepted the event.
+     * Consumer snapshot used for dispatch. Returned for observability so
+     * connector services can log which Talon destination accepted the event.
      * </pre>
      *
-     * <code>.talon.resources.ConnectorTarget target = 6;</code>
+     * <code>.talon.resources.MessageConsumer consumer = 6;</code>
      */
     @java.lang.Override
-    public talon.resources.Connectors.ConnectorTargetOrBuilder getTargetOrBuilder() {
-      return target_ == null ? talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
+    public talon.resources.Routing.MessageConsumerOrBuilder getConsumerOrBuilder() {
+      return consumer_ == null ? talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -6988,7 +6988,7 @@ java.lang.String defaultValue) {
         com.google.protobuf.GeneratedMessage.writeString(output, 5, connectorName_);
       }
       if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(6, getTarget());
+        output.writeMessage(6, getConsumer());
       }
       getUnknownFields().writeTo(output);
     }
@@ -7018,7 +7018,7 @@ java.lang.String defaultValue) {
       }
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, getTarget());
+          .computeMessageSize(6, getConsumer());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -7045,10 +7045,10 @@ java.lang.String defaultValue) {
           .equals(other.getNamespace())) return false;
       if (!getConnectorName()
           .equals(other.getConnectorName())) return false;
-      if (hasTarget() != other.hasTarget()) return false;
-      if (hasTarget()) {
-        if (!getTarget()
-            .equals(other.getTarget())) return false;
+      if (hasConsumer() != other.hasConsumer()) return false;
+      if (hasConsumer()) {
+        if (!getConsumer()
+            .equals(other.getConsumer())) return false;
       }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
@@ -7073,9 +7073,9 @@ java.lang.String defaultValue) {
       hash = (53 * hash) + getNamespace().hashCode();
       hash = (37 * hash) + CONNECTOR_NAME_FIELD_NUMBER;
       hash = (53 * hash) + getConnectorName().hashCode();
-      if (hasTarget()) {
-        hash = (37 * hash) + TARGET_FIELD_NUMBER;
-        hash = (53 * hash) + getTarget().hashCode();
+      if (hasConsumer()) {
+        hash = (37 * hash) + CONSUMER_FIELD_NUMBER;
+        hash = (53 * hash) + getConsumer().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -7207,7 +7207,7 @@ java.lang.String defaultValue) {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
-          internalGetTargetFieldBuilder();
+          internalGetConsumerFieldBuilder();
         }
       }
       @java.lang.Override
@@ -7219,10 +7219,10 @@ java.lang.String defaultValue) {
         disposition_ = "";
         namespace_ = "";
         connectorName_ = "";
-        target_ = null;
-        if (targetBuilder_ != null) {
-          targetBuilder_.dispose();
-          targetBuilder_ = null;
+        consumer_ = null;
+        if (consumerBuilder_ != null) {
+          consumerBuilder_.dispose();
+          consumerBuilder_ = null;
         }
         return this;
       }
@@ -7274,9 +7274,9 @@ java.lang.String defaultValue) {
         }
         int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000020) != 0)) {
-          result.target_ = targetBuilder_ == null
-              ? target_
-              : targetBuilder_.build();
+          result.consumer_ = consumerBuilder_ == null
+              ? consumer_
+              : consumerBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
         result.bitField0_ |= to_bitField0_;
@@ -7315,8 +7315,8 @@ java.lang.String defaultValue) {
           bitField0_ |= 0x00000010;
           onChanged();
         }
-        if (other.hasTarget()) {
-          mergeTarget(other.getTarget());
+        if (other.hasConsumer()) {
+          mergeConsumer(other.getConsumer());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -7371,7 +7371,7 @@ java.lang.String defaultValue) {
               } // case 42
               case 50: {
                 input.readMessage(
-                    internalGetTargetFieldBuilder().getBuilder(),
+                    internalGetConsumerFieldBuilder().getBuilder(),
                     extensionRegistry);
                 bitField0_ |= 0x00000020;
                 break;
@@ -7773,53 +7773,53 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.resources.Connectors.ConnectorTarget target_;
+      private talon.resources.Routing.MessageConsumer consumer_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Connectors.ConnectorTarget, talon.resources.Connectors.ConnectorTarget.Builder, talon.resources.Connectors.ConnectorTargetOrBuilder> targetBuilder_;
+          talon.resources.Routing.MessageConsumer, talon.resources.Routing.MessageConsumer.Builder, talon.resources.Routing.MessageConsumerOrBuilder> consumerBuilder_;
       /**
        * <pre>
-       * Target snapshot used for dispatch. Returned for observability so connector
-       * services can log which Talon destination accepted the event.
+       * Consumer snapshot used for dispatch. Returned for observability so
+       * connector services can log which Talon destination accepted the event.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
-       * @return Whether the target field is set.
+       * <code>.talon.resources.MessageConsumer consumer = 6;</code>
+       * @return Whether the consumer field is set.
        */
-      public boolean hasTarget() {
+      public boolean hasConsumer() {
         return ((bitField0_ & 0x00000020) != 0);
       }
       /**
        * <pre>
-       * Target snapshot used for dispatch. Returned for observability so connector
-       * services can log which Talon destination accepted the event.
+       * Consumer snapshot used for dispatch. Returned for observability so
+       * connector services can log which Talon destination accepted the event.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
-       * @return The target.
+       * <code>.talon.resources.MessageConsumer consumer = 6;</code>
+       * @return The consumer.
        */
-      public talon.resources.Connectors.ConnectorTarget getTarget() {
-        if (targetBuilder_ == null) {
-          return target_ == null ? talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
+      public talon.resources.Routing.MessageConsumer getConsumer() {
+        if (consumerBuilder_ == null) {
+          return consumer_ == null ? talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
         } else {
-          return targetBuilder_.getMessage();
+          return consumerBuilder_.getMessage();
         }
       }
       /**
        * <pre>
-       * Target snapshot used for dispatch. Returned for observability so connector
-       * services can log which Talon destination accepted the event.
+       * Consumer snapshot used for dispatch. Returned for observability so
+       * connector services can log which Talon destination accepted the event.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 6;</code>
        */
-      public Builder setTarget(talon.resources.Connectors.ConnectorTarget value) {
-        if (targetBuilder_ == null) {
+      public Builder setConsumer(talon.resources.Routing.MessageConsumer value) {
+        if (consumerBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          target_ = value;
+          consumer_ = value;
         } else {
-          targetBuilder_.setMessage(value);
+          consumerBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00000020;
         onChanged();
@@ -7827,18 +7827,18 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Target snapshot used for dispatch. Returned for observability so connector
-       * services can log which Talon destination accepted the event.
+       * Consumer snapshot used for dispatch. Returned for observability so
+       * connector services can log which Talon destination accepted the event.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 6;</code>
        */
-      public Builder setTarget(
-          talon.resources.Connectors.ConnectorTarget.Builder builderForValue) {
-        if (targetBuilder_ == null) {
-          target_ = builderForValue.build();
+      public Builder setConsumer(
+          talon.resources.Routing.MessageConsumer.Builder builderForValue) {
+        if (consumerBuilder_ == null) {
+          consumer_ = builderForValue.build();
         } else {
-          targetBuilder_.setMessage(builderForValue.build());
+          consumerBuilder_.setMessage(builderForValue.build());
         }
         bitField0_ |= 0x00000020;
         onChanged();
@@ -7846,25 +7846,25 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Target snapshot used for dispatch. Returned for observability so connector
-       * services can log which Talon destination accepted the event.
+       * Consumer snapshot used for dispatch. Returned for observability so
+       * connector services can log which Talon destination accepted the event.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 6;</code>
        */
-      public Builder mergeTarget(talon.resources.Connectors.ConnectorTarget value) {
-        if (targetBuilder_ == null) {
+      public Builder mergeConsumer(talon.resources.Routing.MessageConsumer value) {
+        if (consumerBuilder_ == null) {
           if (((bitField0_ & 0x00000020) != 0) &&
-            target_ != null &&
-            target_ != talon.resources.Connectors.ConnectorTarget.getDefaultInstance()) {
-            getTargetBuilder().mergeFrom(value);
+            consumer_ != null &&
+            consumer_ != talon.resources.Routing.MessageConsumer.getDefaultInstance()) {
+            getConsumerBuilder().mergeFrom(value);
           } else {
-            target_ = value;
+            consumer_ = value;
           }
         } else {
-          targetBuilder_.mergeFrom(value);
+          consumerBuilder_.mergeFrom(value);
         }
-        if (target_ != null) {
+        if (consumer_ != null) {
           bitField0_ |= 0x00000020;
           onChanged();
         }
@@ -7872,71 +7872,71 @@ java.lang.String defaultValue) {
       }
       /**
        * <pre>
-       * Target snapshot used for dispatch. Returned for observability so connector
-       * services can log which Talon destination accepted the event.
+       * Consumer snapshot used for dispatch. Returned for observability so
+       * connector services can log which Talon destination accepted the event.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 6;</code>
        */
-      public Builder clearTarget() {
+      public Builder clearConsumer() {
         bitField0_ = (bitField0_ & ~0x00000020);
-        target_ = null;
-        if (targetBuilder_ != null) {
-          targetBuilder_.dispose();
-          targetBuilder_ = null;
+        consumer_ = null;
+        if (consumerBuilder_ != null) {
+          consumerBuilder_.dispose();
+          consumerBuilder_ = null;
         }
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * Target snapshot used for dispatch. Returned for observability so connector
-       * services can log which Talon destination accepted the event.
+       * Consumer snapshot used for dispatch. Returned for observability so
+       * connector services can log which Talon destination accepted the event.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 6;</code>
        */
-      public talon.resources.Connectors.ConnectorTarget.Builder getTargetBuilder() {
+      public talon.resources.Routing.MessageConsumer.Builder getConsumerBuilder() {
         bitField0_ |= 0x00000020;
         onChanged();
-        return internalGetTargetFieldBuilder().getBuilder();
+        return internalGetConsumerFieldBuilder().getBuilder();
       }
       /**
        * <pre>
-       * Target snapshot used for dispatch. Returned for observability so connector
-       * services can log which Talon destination accepted the event.
+       * Consumer snapshot used for dispatch. Returned for observability so
+       * connector services can log which Talon destination accepted the event.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 6;</code>
        */
-      public talon.resources.Connectors.ConnectorTargetOrBuilder getTargetOrBuilder() {
-        if (targetBuilder_ != null) {
-          return targetBuilder_.getMessageOrBuilder();
+      public talon.resources.Routing.MessageConsumerOrBuilder getConsumerOrBuilder() {
+        if (consumerBuilder_ != null) {
+          return consumerBuilder_.getMessageOrBuilder();
         } else {
-          return target_ == null ?
-              talon.resources.Connectors.ConnectorTarget.getDefaultInstance() : target_;
+          return consumer_ == null ?
+              talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
         }
       }
       /**
        * <pre>
-       * Target snapshot used for dispatch. Returned for observability so connector
-       * services can log which Talon destination accepted the event.
+       * Consumer snapshot used for dispatch. Returned for observability so
+       * connector services can log which Talon destination accepted the event.
        * </pre>
        *
-       * <code>.talon.resources.ConnectorTarget target = 6;</code>
+       * <code>.talon.resources.MessageConsumer consumer = 6;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Connectors.ConnectorTarget, talon.resources.Connectors.ConnectorTarget.Builder, talon.resources.Connectors.ConnectorTargetOrBuilder>
-          internalGetTargetFieldBuilder() {
-        if (targetBuilder_ == null) {
-          targetBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Connectors.ConnectorTarget, talon.resources.Connectors.ConnectorTarget.Builder, talon.resources.Connectors.ConnectorTargetOrBuilder>(
-                  getTarget(),
+          talon.resources.Routing.MessageConsumer, talon.resources.Routing.MessageConsumer.Builder, talon.resources.Routing.MessageConsumerOrBuilder>
+          internalGetConsumerFieldBuilder() {
+        if (consumerBuilder_ == null) {
+          consumerBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Routing.MessageConsumer, talon.resources.Routing.MessageConsumer.Builder, talon.resources.Routing.MessageConsumerOrBuilder>(
+                  getConsumer(),
                   getParentForChildren(),
                   isClean());
-          target_ = null;
+          consumer_ = null;
         }
-        return targetBuilder_;
+        return consumerBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.v1.ConnectorMessageEventResponse)
@@ -14209,69 +14209,69 @@ java.lang.String defaultValue) {
   static {
     java.lang.String[] descriptorData = {
       "\n\037proto/talon/v1/connectors.proto\022\010talon" +
-      ".v1\032 proto/resources/connectors.proto\"h\n" +
-      "\016ConnectorActor\022\030\n\020external_user_id\030\001 \001(" +
-      "\t\022\030\n\020external_address\030\002 \001(\t\022\024\n\014display_n" +
-      "ame\030\003 \001(\t\022\014\n\004kind\030\004 \001(\t\"\247\001\n\023ConnectorAtt" +
-      "achment\022\n\n\002id\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022\022\n\nmed" +
-      "ia_type\030\003 \001(\t\022\020\n\010filename\030\004 \001(\t\022\022\n\nsize_" +
-      "bytes\030\005 \001(\004\022\022\n\nobject_key\030\006 \001(\t\022\024\n\014exter" +
-      "nal_url\030\007 \001(\t\022\022\n\nexpires_at\030\010 \001(\003\"\354\004\n\025Co" +
-      "nnectorMessageEvent\022\020\n\010event_id\030\001 \001(\t\022\022\n" +
-      "\nevent_kind\030\002 \001(\t\022\027\n\017registration_id\030\003 \001" +
-      "(\t\022\027\n\017connector_class\030\004 \001(\t\022F\n\014match_fie" +
-      "lds\030\005 \003(\01320.talon.v1.ConnectorMessageEve" +
-      "nt.MatchFieldsEntry\022 \n\030external_conversa" +
-      "tion_id\030\006 \001(\t\022\037\n\022external_thread_id\030\007 \001(" +
-      "\tH\000\210\001\001\022\033\n\023external_message_id\030\010 \001(\t\022\031\n\021c" +
-      "onversation_type\030\t \001(\t\022(\n\006sender\030\n \001(\0132\030" +
-      ".talon.v1.ConnectorActor\022\014\n\004text\030\013 \001(\t\0222" +
-      "\n\013attachments\030\014 \003(\0132\035.talon.v1.Connector" +
-      "Attachment\022\025\n\revent_time_ms\030\r \001(\003\022;\n\006lab" +
-      "els\030\016 \003(\0132+.talon.v1.ConnectorMessageEve" +
-      "nt.LabelsEntry\0322\n\020MatchFieldsEntry\022\013\n\003ke" +
-      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntr" +
-      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\025\n\023_ex" +
-      "ternal_thread_id\"\266\001\n\035ConnectorMessageEve" +
-      "ntResponse\022\020\n\010accepted\030\001 \001(\010\022\021\n\tduplicat" +
-      "e\030\002 \001(\010\022\023\n\013disposition\030\003 \001(\t\022\021\n\tnamespac" +
-      "e\030\004 \001(\t\022\026\n\016connector_name\030\005 \001(\t\0220\n\006targe" +
-      "t\030\006 \001(\0132 .talon.resources.ConnectorTarge" +
-      "t\"\342\004\n\030ConnectorDeliveryRequest\022\023\n\013delive" +
-      "ry_id\030\001 \001(\t\022\027\n\017registration_id\030\002 \001(\t\022\027\n\017" +
-      "connector_class\030\003 \001(\t\022\021\n\tnamespace\030\004 \001(\t" +
-      "\022\026\n\016connector_name\030\005 \001(\t\022I\n\014match_fields" +
-      "\030\006 \003(\01323.talon.v1.ConnectorDeliveryReque" +
-      "st.MatchFieldsEntry\022 \n\030external_conversa" +
-      "tion_id\030\007 \001(\t\022\037\n\022external_thread_id\030\010 \001(" +
-      "\tH\000\210\001\001\022)\n\034reply_to_external_message_id\030\t" +
-      " \001(\tH\001\210\001\001\022\014\n\004text\030\n \001(\t\0222\n\013attachments\030\013" +
-      " \003(\0132\035.talon.v1.ConnectorAttachment\022>\n\006l" +
-      "abels\030\014 \003(\0132..talon.v1.ConnectorDelivery" +
-      "Request.LabelsEntry\0322\n\020MatchFieldsEntry\022" +
-      "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013Label" +
-      "sEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\025" +
-      "\n\023_external_thread_idB\037\n\035_reply_to_exter" +
-      "nal_message_id\"Q\n\031ConnectorDeliveryRespo" +
-      "nse\022\020\n\010accepted\030\001 \001(\010\022\023\n\013disposition\030\002 \001" +
-      "(\t\022\r\n\005error\030\003 \001(\t\"\312\001\n\024ConnectorStatusEve" +
-      "nt\022\027\n\017registration_id\030\001 \001(\t\022E\n\014match_fie" +
-      "lds\030\002 \003(\0132/.talon.v1.ConnectorStatusEven" +
-      "t.MatchFieldsEntry\022\016\n\006status\030\003 \001(\t\022\016\n\006re" +
-      "ason\030\004 \001(\t\0322\n\020MatchFieldsEntry\022\013\n\003key\030\001 " +
-      "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"=\n\024ConnectorAckRe" +
-      "sponse\022\020\n\010accepted\030\001 \001(\010\022\023\n\013disposition\030" +
-      "\002 \001(\t2\302\001\n\020ConnectorService\022^\n\022IngestMess" +
-      "ageEvent\022\037.talon.v1.ConnectorMessageEven" +
-      "t\032\'.talon.v1.ConnectorMessageEventRespon" +
-      "se\022N\n\014ReportStatus\022\036.talon.v1.ConnectorS" +
-      "tatusEvent\032\036.talon.v1.ConnectorAckRespon" +
-      "seb\006proto3"
+      ".v1\032\035proto/resources/routing.proto\"h\n\016Co" +
+      "nnectorActor\022\030\n\020external_user_id\030\001 \001(\t\022\030" +
+      "\n\020external_address\030\002 \001(\t\022\024\n\014display_name" +
+      "\030\003 \001(\t\022\014\n\004kind\030\004 \001(\t\"\247\001\n\023ConnectorAttach" +
+      "ment\022\n\n\002id\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022\022\n\nmedia_" +
+      "type\030\003 \001(\t\022\020\n\010filename\030\004 \001(\t\022\022\n\nsize_byt" +
+      "es\030\005 \001(\004\022\022\n\nobject_key\030\006 \001(\t\022\024\n\014external" +
+      "_url\030\007 \001(\t\022\022\n\nexpires_at\030\010 \001(\003\"\354\004\n\025Conne" +
+      "ctorMessageEvent\022\020\n\010event_id\030\001 \001(\t\022\022\n\nev" +
+      "ent_kind\030\002 \001(\t\022\027\n\017registration_id\030\003 \001(\t\022" +
+      "\027\n\017connector_class\030\004 \001(\t\022F\n\014match_fields" +
+      "\030\005 \003(\01320.talon.v1.ConnectorMessageEvent." +
+      "MatchFieldsEntry\022 \n\030external_conversatio" +
+      "n_id\030\006 \001(\t\022\037\n\022external_thread_id\030\007 \001(\tH\000" +
+      "\210\001\001\022\033\n\023external_message_id\030\010 \001(\t\022\031\n\021conv" +
+      "ersation_type\030\t \001(\t\022(\n\006sender\030\n \001(\0132\030.ta" +
+      "lon.v1.ConnectorActor\022\014\n\004text\030\013 \001(\t\0222\n\013a" +
+      "ttachments\030\014 \003(\0132\035.talon.v1.ConnectorAtt" +
+      "achment\022\025\n\revent_time_ms\030\r \001(\003\022;\n\006labels" +
+      "\030\016 \003(\0132+.talon.v1.ConnectorMessageEvent." +
+      "LabelsEntry\0322\n\020MatchFieldsEntry\022\013\n\003key\030\001" +
+      " \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013" +
+      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\025\n\023_exter" +
+      "nal_thread_id\"\270\001\n\035ConnectorMessageEventR" +
+      "esponse\022\020\n\010accepted\030\001 \001(\010\022\021\n\tduplicate\030\002" +
+      " \001(\010\022\023\n\013disposition\030\003 \001(\t\022\021\n\tnamespace\030\004" +
+      " \001(\t\022\026\n\016connector_name\030\005 \001(\t\0222\n\010consumer" +
+      "\030\006 \001(\0132 .talon.resources.MessageConsumer" +
+      "\"\342\004\n\030ConnectorDeliveryRequest\022\023\n\013deliver" +
+      "y_id\030\001 \001(\t\022\027\n\017registration_id\030\002 \001(\t\022\027\n\017c" +
+      "onnector_class\030\003 \001(\t\022\021\n\tnamespace\030\004 \001(\t\022" +
+      "\026\n\016connector_name\030\005 \001(\t\022I\n\014match_fields\030" +
+      "\006 \003(\01323.talon.v1.ConnectorDeliveryReques" +
+      "t.MatchFieldsEntry\022 \n\030external_conversat" +
+      "ion_id\030\007 \001(\t\022\037\n\022external_thread_id\030\010 \001(\t" +
+      "H\000\210\001\001\022)\n\034reply_to_external_message_id\030\t " +
+      "\001(\tH\001\210\001\001\022\014\n\004text\030\n \001(\t\0222\n\013attachments\030\013 " +
+      "\003(\0132\035.talon.v1.ConnectorAttachment\022>\n\006la" +
+      "bels\030\014 \003(\0132..talon.v1.ConnectorDeliveryR" +
+      "equest.LabelsEntry\0322\n\020MatchFieldsEntry\022\013" +
+      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013Labels" +
+      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\025\n" +
+      "\023_external_thread_idB\037\n\035_reply_to_extern" +
+      "al_message_id\"Q\n\031ConnectorDeliveryRespon" +
+      "se\022\020\n\010accepted\030\001 \001(\010\022\023\n\013disposition\030\002 \001(" +
+      "\t\022\r\n\005error\030\003 \001(\t\"\312\001\n\024ConnectorStatusEven" +
+      "t\022\027\n\017registration_id\030\001 \001(\t\022E\n\014match_fiel" +
+      "ds\030\002 \003(\0132/.talon.v1.ConnectorStatusEvent" +
+      ".MatchFieldsEntry\022\016\n\006status\030\003 \001(\t\022\016\n\006rea" +
+      "son\030\004 \001(\t\0322\n\020MatchFieldsEntry\022\013\n\003key\030\001 \001" +
+      "(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"=\n\024ConnectorAckRes" +
+      "ponse\022\020\n\010accepted\030\001 \001(\010\022\023\n\013disposition\030\002" +
+      " \001(\t2\302\001\n\020ConnectorService\022^\n\022IngestMessa" +
+      "geEvent\022\037.talon.v1.ConnectorMessageEvent" +
+      "\032\'.talon.v1.ConnectorMessageEventRespons" +
+      "e\022N\n\014ReportStatus\022\036.talon.v1.ConnectorSt" +
+      "atusEvent\032\036.talon.v1.ConnectorAckRespons" +
+      "eb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          talon.resources.Connectors.getDescriptor(),
+          talon.resources.Routing.getDescriptor(),
         });
     internal_static_talon_v1_ConnectorActor_descriptor =
       getDescriptor().getMessageType(0);
@@ -14308,7 +14308,7 @@ java.lang.String defaultValue) {
     internal_static_talon_v1_ConnectorMessageEventResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ConnectorMessageEventResponse_descriptor,
-        new java.lang.String[] { "Accepted", "Duplicate", "Disposition", "Namespace", "ConnectorName", "Target", });
+        new java.lang.String[] { "Accepted", "Duplicate", "Disposition", "Namespace", "ConnectorName", "Consumer", });
     internal_static_talon_v1_ConnectorDeliveryRequest_descriptor =
       getDescriptor().getMessageType(4);
     internal_static_talon_v1_ConnectorDeliveryRequest_fieldAccessorTable = new
@@ -14352,7 +14352,7 @@ java.lang.String defaultValue) {
         internal_static_talon_v1_ConnectorAckResponse_descriptor,
         new java.lang.String[] { "Accepted", "Disposition", });
     descriptor.resolveAllFeaturesImmutable();
-    talon.resources.Connectors.getDescriptor();
+    talon.resources.Routing.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

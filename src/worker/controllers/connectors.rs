@@ -9,7 +9,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::control::resources::ResourceStore;
 use crate::control::{keys, ControlPlane, KeyValueStore, ProtoKeyValueStoreExt};
-use crate::gateway::rpc::resources_proto;
+use crate::gateway::rpc::{data_proto, resources_proto};
 
 const CONNECTOR_INDEX_FIELD_SEP: &str = "\x1f";
 const CONNECTOR_CALLBACK_TOKEN_TTL_SECONDS: u64 = 365 * 24 * 60 * 60;
@@ -61,34 +61,11 @@ impl ConnectorController {
         let spec = connector_class_spec(class)?;
         let registration_id = keys::connector_registration_id(&meta.namespace, &meta.name);
         if let Ok(status) = connector_class_status(class) {
-            if status.observed_generation == meta.generation
-                && status.phase == "Ready"
-                && status.registration_id == registration_id
-            {
-                let key = keys::connector_registration(&meta.namespace, &meta.name);
-                if cp
-                    .kv
-                    .get_msg::<resources_proto::ConnectorRegistrationEntry>(&key)
-                    .await?
-                    .is_none()
-                {
-                    cp.kv
-                        .set_msg(
-                            &key,
-                            &resources_proto::ConnectorRegistrationEntry {
-                                registration_id: registration_id.clone(),
-                                class_namespace: meta.namespace.clone(),
-                                class_name: meta.name.clone(),
-                                generation: meta.generation,
-                                class_spec: Some(spec.clone()),
-                            },
-                        )
-                        .await?;
-                }
+            if status.observed_generation == meta.generation && status.phase == "Ready" {
                 return Ok(());
             }
         }
-        delete_registration_entries_for_class(cp.kv.as_ref(), &meta.namespace, &meta.name).await?;
+        delete_connector_class_entries(cp.kv.as_ref(), &meta.namespace, &meta.name).await?;
         register_connector_class(
             spec,
             &meta.namespace,
@@ -97,18 +74,6 @@ impl ConnectorController {
             config,
         )
         .await?;
-        cp.kv
-            .set_msg(
-                &keys::connector_registration(&meta.namespace, &meta.name),
-                &resources_proto::ConnectorRegistrationEntry {
-                    registration_id: registration_id.clone(),
-                    class_namespace: meta.namespace.clone(),
-                    class_name: meta.name.clone(),
-                    generation: meta.generation,
-                    class_spec: Some(spec.clone()),
-                },
-            )
-            .await?;
         let status = resources_proto::ConnectorClassStatus {
             observed_generation: meta.generation,
             phase: "Ready".to_string(),
@@ -119,7 +84,6 @@ impl ConnectorController {
                 "ConnectorClass registered with connector runtime",
                 meta.generation,
             )],
-            registration_id,
         };
         self.store
             .patch_status(
@@ -167,7 +131,7 @@ impl ConnectorController {
             .metadata
             .as_ref()
             .ok_or_else(|| anyhow!("ConnectorClass metadata is required"))?;
-        delete_registration_entries_for_class(cp.kv.as_ref(), &meta.namespace, &meta.name).await?;
+        delete_connector_class_entries(cp.kv.as_ref(), &meta.namespace, &meta.name).await?;
         let status = resources_proto::ConnectorClassStatus {
             observed_generation: meta.generation,
             phase: "Error".to_string(),
@@ -178,7 +142,6 @@ impl ConnectorController {
                 &message,
                 meta.generation,
             )],
-            registration_id: String::new(),
         };
         self.store
             .patch_status(
@@ -208,6 +171,7 @@ impl ConnectorController {
         let spec = connector_spec(connector)?;
 
         if !spec.enabled {
+            delete_connector_routes_from_spec(cp.kv.as_ref(), meta, spec).await?;
             self.patch_connector_status(
                 meta,
                 "Disabled",
@@ -249,22 +213,20 @@ impl ConnectorController {
             .ok_or_else(|| anyhow!("ConnectorClass metadata is required"))?;
         let class_spec = connector_class_spec(&class)?;
         let class_status = connector_class_status(&class)?;
-        let registration_id =
-            keys::connector_registration_id(&class_meta.namespace, &class_meta.name);
-        if class_status.phase != "Ready" || class_status.registration_id != registration_id {
+        if class_status.phase != "Ready" {
             bail!("ConnectorClass '{}' is not Ready", class_ref.name);
         }
 
         if let Ok(status) = connector_status(connector) {
             if status.observed_generation == meta.generation
                 && status.phase == "Ready"
-                && !status.compiled_match_keys.is_empty()
+                && !status.compiled_route_ids.is_empty()
             {
                 let mut intact = true;
-                for key_name in &status.compiled_match_keys {
+                for key_name in &status.compiled_route_ids {
                     match cp
                         .kv
-                        .get_msg::<resources_proto::ConnectorMatchEntry>(&keys::connector_match(
+                        .get_msg::<data_proto::Route>(&keys::connector_route(
                             &class_meta.namespace,
                             &class_meta.name,
                             key_name,
@@ -283,7 +245,7 @@ impl ConnectorController {
                 }
             }
         }
-        delete_match_entries_for_uid(
+        delete_route_entries_for_uid(
             cp.kv.as_ref(),
             &class_meta.namespace,
             &class_meta.name,
@@ -291,42 +253,42 @@ impl ConnectorController {
         )
         .await?;
 
-        validate_target(spec.target.as_ref())?;
+        validate_consumer(meta.namespace.as_str(), spec.consumer.as_ref())?;
         if spec.match_fields.is_empty() {
             bail!("Connector spec.matchFields must not be empty");
         }
 
-        let compiled = compile_match_keys(class_spec, &spec.match_fields)?;
+        let compiled = compile_route_ids(class_spec, &spec.match_fields)?;
         if compiled.is_empty() {
             bail!("Connector matchFields do not satisfy any ConnectorClass match index");
         }
 
         let mut written = Vec::new();
         for key_name in compiled {
-            let key = keys::connector_match(&class_meta.namespace, &class_meta.name, &key_name);
-            let entry = resources_proto::ConnectorMatchEntry {
+            let key = keys::connector_route(&class_meta.namespace, &class_meta.name, &key_name);
+            let route = data_proto::Route {
                 connector_uid: meta.uid.clone(),
-                namespace: meta.namespace.clone(),
-                connector_name: meta.name.clone(),
-                class_namespace: class_meta.namespace.clone(),
-                class_name: class_meta.name.clone(),
-                generation: meta.generation,
-                target: spec.target.clone(),
+                connector: Some(resources_proto::ResourceRef {
+                    namespace: meta.namespace.clone(),
+                    name: meta.name.clone(),
+                }),
+                consumer: spec.consumer.clone(),
             };
-            match cp
-                .kv
-                .get_msg::<resources_proto::ConnectorMatchEntry>(&key)
-                .await?
-            {
+            match cp.kv.get_msg::<data_proto::Route>(&key).await? {
                 Some(existing) if existing.connector_uid != meta.uid => {
+                    let connector_ref = existing.connector.as_ref();
                     bail!(
                         "Connector match conflicts with {}/{}",
-                        existing.namespace,
-                        existing.connector_name
+                        connector_ref
+                            .map(|reference| reference.namespace.as_str())
+                            .unwrap_or_default(),
+                        connector_ref
+                            .map(|reference| reference.name.as_str())
+                            .unwrap_or_default()
                     );
                 }
                 _ => {
-                    cp.kv.set_msg(&key, &entry).await?;
+                    cp.kv.set_msg(&key, &route).await?;
                     written.push(key_name);
                 }
             }
@@ -359,20 +321,7 @@ impl ConnectorController {
             .as_ref()
             .ok_or_else(|| anyhow!("Connector metadata is required"))?;
         if let Ok(spec) = connector_spec(connector) {
-            if let Some(class_ref) = spec.class_ref.as_ref() {
-                let class_namespace = if class_ref.namespace.trim().is_empty() {
-                    meta.namespace.as_str()
-                } else {
-                    class_ref.namespace.as_str()
-                };
-                delete_match_entries_for_uid(
-                    cp.kv.as_ref(),
-                    class_namespace,
-                    &class_ref.name,
-                    &meta.uid,
-                )
-                .await?;
-            }
+            delete_connector_routes_from_spec(cp.kv.as_ref(), meta, spec).await?;
         }
         self.patch_connector_status(
             meta,
@@ -394,7 +343,7 @@ impl ConnectorController {
         meta: &resources_proto::ResourceMeta,
         phase: &str,
         conditions: Vec<resources_proto::ResourceCondition>,
-        compiled_match_keys: Vec<String>,
+        compiled_route_ids: Vec<String>,
     ) -> Result<()> {
         self.store
             .patch_status(
@@ -408,7 +357,7 @@ impl ConnectorController {
                             observed_generation: meta.generation,
                             phase: phase.to_string(),
                             conditions,
-                            compiled_match_keys,
+                            compiled_route_ids,
                         },
                     )),
                 },
@@ -418,7 +367,7 @@ impl ConnectorController {
     }
 }
 
-pub async fn delete_match_entries_for_uid(
+pub async fn delete_route_entries_for_uid(
     kv: &dyn KeyValueStore,
     class_namespace: &str,
     class_name: &str,
@@ -428,27 +377,43 @@ pub async fn delete_match_entries_for_uid(
         return Ok(());
     }
     for (key, bytes) in kv
-        .list_entries(&keys::connector_match_prefix(class_namespace, class_name))
+        .list_entries(&keys::connector_route_prefix(class_namespace, class_name))
         .await?
     {
-        let Ok(entry) = resources_proto::ConnectorMatchEntry::decode(bytes.as_slice()) else {
+        let Ok(route) = data_proto::Route::decode(bytes.as_slice()) else {
             continue;
         };
-        if entry.connector_uid == connector_uid {
+        if route.connector_uid == connector_uid {
             kv.delete(&key).await?;
         }
     }
     Ok(())
 }
 
-pub async fn delete_registration_entries_for_class(
+async fn delete_connector_routes_from_spec(
+    kv: &dyn KeyValueStore,
+    meta: &resources_proto::ResourceMeta,
+    spec: &resources_proto::ConnectorSpec,
+) -> Result<()> {
+    let Some(class_ref) = spec.class_ref.as_ref() else {
+        return Ok(());
+    };
+    let class_namespace = if class_ref.namespace.trim().is_empty() {
+        meta.namespace.as_str()
+    } else {
+        class_ref.namespace.as_str()
+    };
+    delete_route_entries_for_uid(kv, class_namespace, &class_ref.name, &meta.uid).await
+}
+
+pub async fn delete_connector_class_entries(
     kv: &dyn KeyValueStore,
     class_namespace: &str,
     class_name: &str,
 ) -> Result<()> {
     delete_entries(
         kv,
-        &keys::connector_match_prefix(class_namespace, class_name),
+        &keys::connector_route_prefix(class_namespace, class_name),
     )
     .await?;
     delete_entries(
@@ -461,17 +426,6 @@ pub async fn delete_registration_entries_for_class(
         &keys::connector_session_prefix(class_namespace, class_name),
     )
     .await?;
-    for key in kv
-        .list_keys(&keys::connector_registration_prefix(
-            class_namespace,
-            class_name,
-        ))
-        .await?
-    {
-        kv.delete(&key).await?;
-    }
-    kv.delete(&keys::connector_registration(class_namespace, class_name))
-        .await?;
     Ok(())
 }
 
@@ -482,26 +436,23 @@ async fn delete_entries(kv: &dyn KeyValueStore, prefix: &keys::ResourceList) -> 
     Ok(())
 }
 
-pub async fn resolve_match(
+pub async fn resolve_route(
     kv: &dyn KeyValueStore,
     class_namespace: &str,
     class_name: &str,
     class_spec: &resources_proto::ConnectorClassSpec,
     fields: &HashMap<String, String>,
-) -> Result<Option<resources_proto::ConnectorMatchEntry>> {
-    for key_name in compile_match_keys(class_spec, fields)? {
-        let key = keys::connector_match(class_namespace, class_name, &key_name);
-        if let Some(entry) = kv
-            .get_msg::<resources_proto::ConnectorMatchEntry>(&key)
-            .await?
-        {
+) -> Result<Option<data_proto::Route>> {
+    for key_name in compile_route_ids(class_spec, fields)? {
+        let key = keys::connector_route(class_namespace, class_name, &key_name);
+        if let Some(entry) = kv.get_msg::<data_proto::Route>(&key).await? {
             return Ok(Some(entry));
         }
     }
     Ok(None)
 }
 
-pub fn compile_match_keys(
+pub fn compile_route_ids(
     class_spec: &resources_proto::ConnectorClassSpec,
     fields: &HashMap<String, String>,
 ) -> Result<Vec<String>> {
@@ -613,23 +564,46 @@ fn connector_references_class(
         .unwrap_or(false)
 }
 
-fn validate_target(target: Option<&resources_proto::ConnectorTarget>) -> Result<()> {
-    let target = target.ok_or_else(|| anyhow!("Connector spec.target is required"))?;
-    match target.destination.as_ref() {
-        Some(resources_proto::connector_target::Destination::Session(session)) => {
-            if session.agent.trim().is_empty() {
-                bail!("Connector session target requires agent");
-            }
+fn validate_consumer(
+    connector_namespace: &str,
+    consumer: Option<&resources_proto::MessageConsumer>,
+) -> Result<()> {
+    let consumer = consumer.ok_or_else(|| anyhow!("Connector spec.consumer is required"))?;
+    match consumer.consumer.as_ref() {
+        Some(resources_proto::message_consumer::Consumer::Session(session)) => {
+            let agent = session
+                .agent
+                .as_ref()
+                .ok_or_else(|| anyhow!("Connector session consumer requires agent"))?;
+            validate_local_ref(connector_namespace, "session consumer agent", agent)?;
         }
-        Some(resources_proto::connector_target::Destination::Channel(channel)) => {
-            if channel.channel.trim().is_empty() {
-                bail!("Connector channel target requires channel");
-            }
-            if channel.agent.trim().is_empty() {
-                bail!("Connector channel target requires agent");
-            }
+        Some(resources_proto::message_consumer::Consumer::Channel(channel)) => {
+            let channel_ref = channel
+                .channel
+                .as_ref()
+                .ok_or_else(|| anyhow!("Connector channel consumer requires channel"))?;
+            validate_local_ref(connector_namespace, "channel consumer channel", channel_ref)?;
+            let agent = channel
+                .agent
+                .as_ref()
+                .ok_or_else(|| anyhow!("Connector channel consumer requires agent"))?;
+            validate_local_ref(connector_namespace, "channel consumer agent", agent)?;
         }
-        None => bail!("Connector target destination is required"),
+        None => bail!("Connector consumer is required"),
+    }
+    Ok(())
+}
+
+fn validate_local_ref(
+    connector_namespace: &str,
+    field: &str,
+    reference: &resources_proto::ResourceRef,
+) -> Result<()> {
+    if reference.name.trim().is_empty() {
+        bail!("Connector {field} requires name");
+    }
+    if !reference.namespace.trim().is_empty() && reference.namespace != connector_namespace {
+        bail!("Connector {field} namespace must be empty or match Connector namespace");
     }
     Ok(())
 }
@@ -807,7 +781,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn compile_match_keys_uses_declared_index_order_and_complete_fields() {
+    fn compile_route_ids_uses_declared_index_order_and_complete_fields() {
         let class_spec = resources_proto::ConnectorClassSpec {
             platform: "slack".to_string(),
             runtime: None,
@@ -832,7 +806,7 @@ mod tests {
             ("channelId".to_string(), "C999".to_string()),
         ]);
 
-        let keys = compile_match_keys(&class_spec, &fields).unwrap();
+        let keys = compile_route_ids(&class_spec, &fields).unwrap();
 
         assert_eq!(
             keys,
@@ -844,7 +818,7 @@ mod tests {
     }
 
     #[test]
-    fn compile_match_keys_escapes_separator_characters() {
+    fn compile_route_ids_escapes_separator_characters() {
         let class_spec = resources_proto::ConnectorClassSpec {
             platform: "slack".to_string(),
             runtime: None,
@@ -862,7 +836,7 @@ mod tests {
             ),
         ]);
 
-        let keys = compile_match_keys(&class_spec, &fields).unwrap();
+        let keys = compile_route_ids(&class_spec, &fields).unwrap();
 
         assert_eq!(
             keys,

@@ -287,54 +287,28 @@ pub fn parse_connector_registration_id(registration_id: &str) -> Result<(String,
     Ok((namespace, class_name))
 }
 
-pub fn connector_registration(class_namespace: &str, class_name: &str) -> ResourceKey {
+pub fn connector_route(class_namespace: &str, class_name: &str, name: &str) -> ResourceKey {
     resource_key(
         class_namespace,
         &[("ConnectorClass", class_name)],
-        "ConnectorRegistration",
-        "current",
-    )
-}
-
-pub fn connector_registration_prefix(class_namespace: &str, class_name: &str) -> ResourceList {
-    direct_child_prefix(
-        class_namespace,
-        &[("ConnectorClass", class_name)],
-        Some("ConnectorRegistration"),
-    )
-}
-
-pub fn connector_match(class_namespace: &str, class_name: &str, name: &str) -> ResourceKey {
-    resource_key(
-        class_namespace,
-        &[
-            ("ConnectorClass", class_name),
-            ("ConnectorRegistration", "current"),
-        ],
-        "ConnectorMatch",
+        "Route",
         name,
     )
 }
 
-pub fn connector_match_prefix(class_namespace: &str, class_name: &str) -> ResourceList {
+pub fn connector_route_prefix(class_namespace: &str, class_name: &str) -> ResourceList {
     direct_child_prefix(
         class_namespace,
-        &[
-            ("ConnectorClass", class_name),
-            ("ConnectorRegistration", "current"),
-        ],
-        Some("ConnectorMatch"),
+        &[("ConnectorClass", class_name)],
+        Some("Route"),
     )
 }
 
 pub fn connector_event(class_namespace: &str, class_name: &str, event_id: &str) -> ResourceKey {
     resource_key(
         class_namespace,
-        &[
-            ("ConnectorClass", class_name),
-            ("ConnectorRegistration", "current"),
-        ],
-        "ConnectorEvent",
+        &[("ConnectorClass", class_name)],
+        "Event",
         event_id,
     )
 }
@@ -342,22 +316,16 @@ pub fn connector_event(class_namespace: &str, class_name: &str, event_id: &str) 
 pub fn connector_event_prefix(class_namespace: &str, class_name: &str) -> ResourceList {
     direct_child_prefix(
         class_namespace,
-        &[
-            ("ConnectorClass", class_name),
-            ("ConnectorRegistration", "current"),
-        ],
-        Some("ConnectorEvent"),
+        &[("ConnectorClass", class_name)],
+        Some("Event"),
     )
 }
 
 pub fn connector_session(class_namespace: &str, class_name: &str, name: &str) -> ResourceKey {
     resource_key(
         class_namespace,
-        &[
-            ("ConnectorClass", class_name),
-            ("ConnectorRegistration", "current"),
-        ],
-        "ConnectorSession",
+        &[("ConnectorClass", class_name)],
+        "Session",
         name,
     )
 }
@@ -365,11 +333,8 @@ pub fn connector_session(class_namespace: &str, class_name: &str, name: &str) ->
 pub fn connector_session_prefix(class_namespace: &str, class_name: &str) -> ResourceList {
     direct_child_prefix(
         class_namespace,
-        &[
-            ("ConnectorClass", class_name),
-            ("ConnectorRegistration", "current"),
-        ],
-        Some("ConnectorSession"),
+        &[("ConnectorClass", class_name)],
+        Some("Session"),
     )
 }
 
@@ -694,12 +659,8 @@ mod tests {
             "@Namespace/Impala:Talon/Channel/incident-123/@/ChannelSubscription/researcher"
         );
         assert_eq!(
-            connector_registration("Impala:Talon", "slack").canonical(),
-            "@Namespace/Impala:Talon/ConnectorClass/slack/@/ConnectorRegistration/current"
-        );
-        assert_eq!(
-            connector_match("Impala:Talon", "slack", "team\u{1f}teamId=T123").canonical(),
-            "@Namespace/Impala:Talon/ConnectorClass/slack/ConnectorRegistration/current/@/ConnectorMatch/team%1FteamId%3DT123"
+            connector_route("Impala:Talon", "slack", "team\u{1f}teamId=T123").canonical(),
+            "@Namespace/Impala:Talon/ConnectorClass/slack/@/Route/team%1FteamId%3DT123"
         );
     }
 

@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message SessionMessageConsumer {
+  // Agent that consumes matching messages through a Talon Session.
+  ResourceRef agent = 1;
+
+  // Session continuity policy. "reuse" reuses the connector session pointer
+  // for the external conversation/thread; any other value creates a new
+  // Session for each message.
+  string continuity = 2;
+}
+
+message ChannelMessageConsumer {
+  // Channel that receives matching messages before agent routing.
+  ResourceRef channel = 1;
+
+  // Agent that consumes the persisted Channel message.
+  ResourceRef agent = 2;
+
+  // Channel routing continuity policy. This is reserved for channel dispatch
+  // policies that create agent runtime context per message or thread.
+  string continuity = 3;
+
+  // Reply behavior requested from the connector-aware channel router, such as
+  // replying in the provider thread instead of the root conversation.
+  string reply_policy = 4;
+}
+
+message MessageConsumer {
+  oneof consumer {
+    // Deliver matching messages directly to a Talon Session.
+    SessionMessageConsumer session = 1;
+
+    // Persist matching messages into a Talon Channel, then route the message to
+    // the configured Agent.
+    ChannelMessageConsumer channel = 2;
+  }
+}

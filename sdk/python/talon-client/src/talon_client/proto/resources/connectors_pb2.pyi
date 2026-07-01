@@ -1,5 +1,6 @@
 from talon_client.proto import config_pb2 as _config_pb2
 from talon_client.proto.resources import common_pb2 as _common_pb2
+from talon_client.proto.resources import routing_pb2 as _routing_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -45,47 +46,17 @@ class ConnectorClassSpec(_message.Message):
     def __init__(self, platform: _Optional[str] = ..., runtime: _Optional[_Union[ConnectorClassRuntimeSpec, _Mapping]] = ..., auth: _Optional[_Union[ConnectorClassAuthSpec, _Mapping]] = ..., match_indexes: _Optional[_Iterable[_Union[ConnectorMatchIndex, _Mapping]]] = ...) -> None: ...
 
 class ConnectorClassStatus(_message.Message):
-    __slots__ = ("observed_generation", "phase", "conditions", "registration_id")
+    __slots__ = ("observed_generation", "phase", "conditions")
     OBSERVED_GENERATION_FIELD_NUMBER: _ClassVar[int]
     PHASE_FIELD_NUMBER: _ClassVar[int]
     CONDITIONS_FIELD_NUMBER: _ClassVar[int]
-    REGISTRATION_ID_FIELD_NUMBER: _ClassVar[int]
     observed_generation: int
     phase: str
     conditions: _containers.RepeatedCompositeFieldContainer[_common_pb2.ResourceCondition]
-    registration_id: str
-    def __init__(self, observed_generation: _Optional[int] = ..., phase: _Optional[str] = ..., conditions: _Optional[_Iterable[_Union[_common_pb2.ResourceCondition, _Mapping]]] = ..., registration_id: _Optional[str] = ...) -> None: ...
-
-class ConnectorSessionTarget(_message.Message):
-    __slots__ = ("agent", "continuity")
-    AGENT_FIELD_NUMBER: _ClassVar[int]
-    CONTINUITY_FIELD_NUMBER: _ClassVar[int]
-    agent: str
-    continuity: str
-    def __init__(self, agent: _Optional[str] = ..., continuity: _Optional[str] = ...) -> None: ...
-
-class ConnectorChannelTarget(_message.Message):
-    __slots__ = ("channel", "agent", "continuity", "reply_policy")
-    CHANNEL_FIELD_NUMBER: _ClassVar[int]
-    AGENT_FIELD_NUMBER: _ClassVar[int]
-    CONTINUITY_FIELD_NUMBER: _ClassVar[int]
-    REPLY_POLICY_FIELD_NUMBER: _ClassVar[int]
-    channel: str
-    agent: str
-    continuity: str
-    reply_policy: str
-    def __init__(self, channel: _Optional[str] = ..., agent: _Optional[str] = ..., continuity: _Optional[str] = ..., reply_policy: _Optional[str] = ...) -> None: ...
-
-class ConnectorTarget(_message.Message):
-    __slots__ = ("session", "channel")
-    SESSION_FIELD_NUMBER: _ClassVar[int]
-    CHANNEL_FIELD_NUMBER: _ClassVar[int]
-    session: ConnectorSessionTarget
-    channel: ConnectorChannelTarget
-    def __init__(self, session: _Optional[_Union[ConnectorSessionTarget, _Mapping]] = ..., channel: _Optional[_Union[ConnectorChannelTarget, _Mapping]] = ...) -> None: ...
+    def __init__(self, observed_generation: _Optional[int] = ..., phase: _Optional[str] = ..., conditions: _Optional[_Iterable[_Union[_common_pb2.ResourceCondition, _Mapping]]] = ...) -> None: ...
 
 class ConnectorSpec(_message.Message):
-    __slots__ = ("class_ref", "enabled", "match_fields", "target")
+    __slots__ = ("class_ref", "enabled", "match_fields", "consumer")
     class MatchFieldsEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -96,24 +67,24 @@ class ConnectorSpec(_message.Message):
     CLASS_REF_FIELD_NUMBER: _ClassVar[int]
     ENABLED_FIELD_NUMBER: _ClassVar[int]
     MATCH_FIELDS_FIELD_NUMBER: _ClassVar[int]
-    TARGET_FIELD_NUMBER: _ClassVar[int]
+    CONSUMER_FIELD_NUMBER: _ClassVar[int]
     class_ref: _common_pb2.ResourceRef
     enabled: bool
     match_fields: _containers.ScalarMap[str, str]
-    target: ConnectorTarget
-    def __init__(self, class_ref: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ..., enabled: bool = ..., match_fields: _Optional[_Mapping[str, str]] = ..., target: _Optional[_Union[ConnectorTarget, _Mapping]] = ...) -> None: ...
+    consumer: _routing_pb2.MessageConsumer
+    def __init__(self, class_ref: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ..., enabled: bool = ..., match_fields: _Optional[_Mapping[str, str]] = ..., consumer: _Optional[_Union[_routing_pb2.MessageConsumer, _Mapping]] = ...) -> None: ...
 
 class ConnectorStatus(_message.Message):
-    __slots__ = ("observed_generation", "phase", "conditions", "compiled_match_keys")
+    __slots__ = ("observed_generation", "phase", "conditions", "compiled_route_ids")
     OBSERVED_GENERATION_FIELD_NUMBER: _ClassVar[int]
     PHASE_FIELD_NUMBER: _ClassVar[int]
     CONDITIONS_FIELD_NUMBER: _ClassVar[int]
-    COMPILED_MATCH_KEYS_FIELD_NUMBER: _ClassVar[int]
+    COMPILED_ROUTE_IDS_FIELD_NUMBER: _ClassVar[int]
     observed_generation: int
     phase: str
     conditions: _containers.RepeatedCompositeFieldContainer[_common_pb2.ResourceCondition]
-    compiled_match_keys: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, observed_generation: _Optional[int] = ..., phase: _Optional[str] = ..., conditions: _Optional[_Iterable[_Union[_common_pb2.ResourceCondition, _Mapping]]] = ..., compiled_match_keys: _Optional[_Iterable[str]] = ...) -> None: ...
+    compiled_route_ids: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, observed_generation: _Optional[int] = ..., phase: _Optional[str] = ..., conditions: _Optional[_Iterable[_Union[_common_pb2.ResourceCondition, _Mapping]]] = ..., compiled_route_ids: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class ConnectorClass(_message.Message):
     __slots__ = ("metadata", "spec", "status")
@@ -134,35 +105,3 @@ class Connector(_message.Message):
     spec: ConnectorSpec
     status: ConnectorStatus
     def __init__(self, metadata: _Optional[_Union[_common_pb2.ResourceMeta, _Mapping]] = ..., spec: _Optional[_Union[ConnectorSpec, _Mapping]] = ..., status: _Optional[_Union[ConnectorStatus, _Mapping]] = ...) -> None: ...
-
-class ConnectorRegistrationEntry(_message.Message):
-    __slots__ = ("registration_id", "class_namespace", "class_name", "generation", "class_spec")
-    REGISTRATION_ID_FIELD_NUMBER: _ClassVar[int]
-    CLASS_NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    CLASS_NAME_FIELD_NUMBER: _ClassVar[int]
-    GENERATION_FIELD_NUMBER: _ClassVar[int]
-    CLASS_SPEC_FIELD_NUMBER: _ClassVar[int]
-    registration_id: str
-    class_namespace: str
-    class_name: str
-    generation: int
-    class_spec: ConnectorClassSpec
-    def __init__(self, registration_id: _Optional[str] = ..., class_namespace: _Optional[str] = ..., class_name: _Optional[str] = ..., generation: _Optional[int] = ..., class_spec: _Optional[_Union[ConnectorClassSpec, _Mapping]] = ...) -> None: ...
-
-class ConnectorMatchEntry(_message.Message):
-    __slots__ = ("connector_uid", "namespace", "connector_name", "class_name", "generation", "target", "class_namespace")
-    CONNECTOR_UID_FIELD_NUMBER: _ClassVar[int]
-    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    CONNECTOR_NAME_FIELD_NUMBER: _ClassVar[int]
-    CLASS_NAME_FIELD_NUMBER: _ClassVar[int]
-    GENERATION_FIELD_NUMBER: _ClassVar[int]
-    TARGET_FIELD_NUMBER: _ClassVar[int]
-    CLASS_NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    connector_uid: str
-    namespace: str
-    connector_name: str
-    class_name: str
-    generation: int
-    target: ConnectorTarget
-    class_namespace: str
-    def __init__(self, connector_uid: _Optional[str] = ..., namespace: _Optional[str] = ..., connector_name: _Optional[str] = ..., class_name: _Optional[str] = ..., generation: _Optional[int] = ..., target: _Optional[_Union[ConnectorTarget, _Mapping]] = ..., class_namespace: _Optional[str] = ...) -> None: ...

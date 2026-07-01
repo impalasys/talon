@@ -7,6 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 import { Secret } from "../config_pb.js";
 import { ResourceCondition, ResourceMeta, ResourceRef } from "./common_pb.js";
+import { MessageConsumer } from "./routing_pb.js";
 
 /**
  * @generated from message talon.resources.ConnectorClassRuntimeSpec
@@ -242,15 +243,6 @@ export class ConnectorClassStatus extends Message<ConnectorClassStatus> {
    */
   conditions: ResourceCondition[] = [];
 
-  /**
-   * Talon-owned registration identifier for this ConnectorClass, formatted as
-   * Namespace/<namespace>/ConnectorClass/<name>. Connector callbacks include
-   * this value so Talon can route within the correct ConnectorClass.
-   *
-   * @generated from field: string registration_id = 4;
-   */
-  registrationId = "";
-
   constructor(data?: PartialMessage<ConnectorClassStatus>) {
     super();
     proto3.util.initPartial(data, this);
@@ -262,7 +254,6 @@ export class ConnectorClassStatus extends Message<ConnectorClassStatus> {
     { no: 1, name: "observed_generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 2, name: "phase", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "conditions", kind: "message", T: ResourceCondition, repeated: true },
-    { no: 4, name: "registration_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorClassStatus {
@@ -279,175 +270,6 @@ export class ConnectorClassStatus extends Message<ConnectorClassStatus> {
 
   static equals(a: ConnectorClassStatus | PlainMessage<ConnectorClassStatus> | undefined, b: ConnectorClassStatus | PlainMessage<ConnectorClassStatus> | undefined): boolean {
     return proto3.util.equals(ConnectorClassStatus, a, b);
-  }
-}
-
-/**
- * @generated from message talon.resources.ConnectorSessionTarget
- */
-export class ConnectorSessionTarget extends Message<ConnectorSessionTarget> {
-  /**
-   * Talon Agent name that receives matching connector messages.
-   *
-   * @generated from field: string agent = 1;
-   */
-  agent = "";
-
-  /**
-   * Session continuity policy. "reuse" reuses the Connector's session pointer
-   * for the external conversation/thread; any other value creates a new
-   * Session for each message.
-   *
-   * @generated from field: string continuity = 2;
-   */
-  continuity = "";
-
-  constructor(data?: PartialMessage<ConnectorSessionTarget>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.resources.ConnectorSessionTarget";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "continuity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorSessionTarget {
-    return new ConnectorSessionTarget().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectorSessionTarget {
-    return new ConnectorSessionTarget().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectorSessionTarget {
-    return new ConnectorSessionTarget().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ConnectorSessionTarget | PlainMessage<ConnectorSessionTarget> | undefined, b: ConnectorSessionTarget | PlainMessage<ConnectorSessionTarget> | undefined): boolean {
-    return proto3.util.equals(ConnectorSessionTarget, a, b);
-  }
-}
-
-/**
- * @generated from message talon.resources.ConnectorChannelTarget
- */
-export class ConnectorChannelTarget extends Message<ConnectorChannelTarget> {
-  /**
-   * Talon Channel name that receives matching connector messages.
-   *
-   * @generated from field: string channel = 1;
-   */
-  channel = "";
-
-  /**
-   * Talon Agent name to route the channel message to after it is persisted.
-   *
-   * @generated from field: string agent = 2;
-   */
-  agent = "";
-
-  /**
-   * Channel routing continuity policy. This is reserved for channel dispatch
-   * policies that create agent runtime context per message or thread.
-   *
-   * @generated from field: string continuity = 3;
-   */
-  continuity = "";
-
-  /**
-   * Reply behavior requested from the connector-aware channel router, such as
-   * replying in the provider thread instead of the root conversation.
-   *
-   * @generated from field: string reply_policy = 4;
-   */
-  replyPolicy = "";
-
-  constructor(data?: PartialMessage<ConnectorChannelTarget>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.resources.ConnectorChannelTarget";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "continuity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "reply_policy", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorChannelTarget {
-    return new ConnectorChannelTarget().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectorChannelTarget {
-    return new ConnectorChannelTarget().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectorChannelTarget {
-    return new ConnectorChannelTarget().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ConnectorChannelTarget | PlainMessage<ConnectorChannelTarget> | undefined, b: ConnectorChannelTarget | PlainMessage<ConnectorChannelTarget> | undefined): boolean {
-    return proto3.util.equals(ConnectorChannelTarget, a, b);
-  }
-}
-
-/**
- * @generated from message talon.resources.ConnectorTarget
- */
-export class ConnectorTarget extends Message<ConnectorTarget> {
-  /**
-   * @generated from oneof talon.resources.ConnectorTarget.destination
-   */
-  destination: {
-    /**
-     * Deliver matching connector messages directly to a Talon Session.
-     *
-     * @generated from field: talon.resources.ConnectorSessionTarget session = 1;
-     */
-    value: ConnectorSessionTarget;
-    case: "session";
-  } | {
-    /**
-     * Persist matching connector messages into a Talon Channel, then route the
-     * message to the configured Agent.
-     *
-     * @generated from field: talon.resources.ConnectorChannelTarget channel = 2;
-     */
-    value: ConnectorChannelTarget;
-    case: "channel";
-  } | { case: undefined; value?: undefined } = { case: undefined };
-
-  constructor(data?: PartialMessage<ConnectorTarget>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.resources.ConnectorTarget";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "session", kind: "message", T: ConnectorSessionTarget, oneof: "destination" },
-    { no: 2, name: "channel", kind: "message", T: ConnectorChannelTarget, oneof: "destination" },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorTarget {
-    return new ConnectorTarget().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectorTarget {
-    return new ConnectorTarget().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectorTarget {
-    return new ConnectorTarget().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ConnectorTarget | PlainMessage<ConnectorTarget> | undefined, b: ConnectorTarget | PlainMessage<ConnectorTarget> | undefined): boolean {
-    return proto3.util.equals(ConnectorTarget, a, b);
   }
 }
 
@@ -482,11 +304,11 @@ export class ConnectorSpec extends Message<ConnectorSpec> {
   matchFields: { [key: string]: string } = {};
 
   /**
-   * Single Talon destination for messages that match this Connector.
+   * Single Talon message consumer for messages that match this Connector.
    *
-   * @generated from field: talon.resources.ConnectorTarget target = 4;
+   * @generated from field: talon.resources.MessageConsumer consumer = 4;
    */
-  target?: ConnectorTarget;
+  consumer?: MessageConsumer;
 
   constructor(data?: PartialMessage<ConnectorSpec>) {
     super();
@@ -499,7 +321,7 @@ export class ConnectorSpec extends Message<ConnectorSpec> {
     { no: 1, name: "class_ref", kind: "message", T: ResourceRef },
     { no: 2, name: "enabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "match_fields", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-    { no: 4, name: "target", kind: "message", T: ConnectorTarget },
+    { no: 4, name: "consumer", kind: "message", T: MessageConsumer },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorSpec {
@@ -545,12 +367,12 @@ export class ConnectorStatus extends Message<ConnectorStatus> {
   conditions: ResourceCondition[] = [];
 
   /**
-   * Materialized KV routing keys generated from match_fields and the owning
+   * Materialized route IDs generated from match_fields and the owning
    * ConnectorClass match indexes.
    *
-   * @generated from field: repeated string compiled_match_keys = 4;
+   * @generated from field: repeated string compiled_route_ids = 4;
    */
-  compiledMatchKeys: string[] = [];
+  compiledRouteIds: string[] = [];
 
   constructor(data?: PartialMessage<ConnectorStatus>) {
     super();
@@ -563,7 +385,7 @@ export class ConnectorStatus extends Message<ConnectorStatus> {
     { no: 1, name: "observed_generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 2, name: "phase", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "conditions", kind: "message", T: ResourceCondition, repeated: true },
-    { no: 4, name: "compiled_match_keys", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 4, name: "compiled_route_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorStatus {
@@ -653,7 +475,7 @@ export class Connector extends Message<Connector> {
   metadata?: ResourceMeta;
 
   /**
-   * Desired provider match and Talon destination for one route.
+   * Desired provider match and Talon message consumer for one route.
    *
    * @generated from field: talon.resources.ConnectorSpec spec = 2;
    */
@@ -693,185 +515,5 @@ export class Connector extends Message<Connector> {
 
   static equals(a: Connector | PlainMessage<Connector> | undefined, b: Connector | PlainMessage<Connector> | undefined): boolean {
     return proto3.util.equals(Connector, a, b);
-  }
-}
-
-/**
- * Stored registration cache for one ConnectorClass registration with an
- * external connector service. The ConnectorController writes this message as
- * `ConnectorRegistration/current` under the owning ConnectorClass after the
- * connector runtime accepts `/v1/clusters/register`, refreshes it when the
- * ConnectorClass generation changes, and deletes it when the ConnectorClass is
- * deleted. Gateway ingest uses this entry to authenticate the callback
- * registration id and recover the ConnectorClass match indexes without scanning
- * namespaced resources.
- *
- * @generated from message talon.resources.ConnectorRegistrationEntry
- */
-export class ConnectorRegistrationEntry extends Message<ConnectorRegistrationEntry> {
-  /**
-   * Talon-owned registration identifier, formatted as
-   * Namespace/<namespace>/ConnectorClass/<name>.
-   *
-   * @generated from field: string registration_id = 1;
-   */
-  registrationId = "";
-
-  /**
-   * Namespace that owns the ConnectorClass for this registration.
-   *
-   * @generated from field: string class_namespace = 2;
-   */
-  classNamespace = "";
-
-  /**
-   * ConnectorClass name for this registration.
-   *
-   * @generated from field: string class_name = 3;
-   */
-  className = "";
-
-  /**
-   * ConnectorClass generation captured when this registration index was
-   * written.
-   *
-   * @generated from field: uint64 generation = 4;
-   */
-  generation = protoInt64.zero;
-
-  /**
-   * Snapshot of the ConnectorClass spec used by inbound routing. This lets the
-   * hot ingest path resolve provider match keys with one registration lookup.
-   *
-   * @generated from field: talon.resources.ConnectorClassSpec class_spec = 5;
-   */
-  classSpec?: ConnectorClassSpec;
-
-  constructor(data?: PartialMessage<ConnectorRegistrationEntry>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.resources.ConnectorRegistrationEntry";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "registration_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "class_namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "class_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 5, name: "class_spec", kind: "message", T: ConnectorClassSpec },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorRegistrationEntry {
-    return new ConnectorRegistrationEntry().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectorRegistrationEntry {
-    return new ConnectorRegistrationEntry().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectorRegistrationEntry {
-    return new ConnectorRegistrationEntry().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ConnectorRegistrationEntry | PlainMessage<ConnectorRegistrationEntry> | undefined, b: ConnectorRegistrationEntry | PlainMessage<ConnectorRegistrationEntry> | undefined): boolean {
-    return proto3.util.equals(ConnectorRegistrationEntry, a, b);
-  }
-}
-
-/**
- * Stored routing entry for one compiled Connector match key. The
- * ConnectorController writes this message under the owning
- * ConnectorRegistration/current child key `ConnectorMatch/<compiled_match_key>`,
- * where the compiled key includes the match-index name and encoded provider
- * match fields. Inbound connector callbacks compute candidate match keys from
- * the event matchFields and read these entries directly; dispatch is therefore
- * indexed by provider account/conversation fields rather than by scanning all
- * Connector resources.
- *
- * @generated from message talon.resources.ConnectorMatchEntry
- */
-export class ConnectorMatchEntry extends Message<ConnectorMatchEntry> {
-  /**
-   * UID of the Connector resource that produced this compiled route.
-   *
-   * @generated from field: string connector_uid = 1;
-   */
-  connectorUid = "";
-
-  /**
-   * Namespace that owns the matching Connector and dispatch target.
-   *
-   * @generated from field: string namespace = 2;
-   */
-  namespace = "";
-
-  /**
-   * Name of the Connector resource that produced this compiled route.
-   *
-   * @generated from field: string connector_name = 3;
-   */
-  connectorName = "";
-
-  /**
-   * ConnectorClass name used to compile this route.
-   *
-   * @generated from field: string class_name = 4;
-   */
-  className = "";
-
-  /**
-   * Connector resource generation captured when this route entry was compiled.
-   *
-   * @generated from field: uint64 generation = 5;
-   */
-  generation = protoInt64.zero;
-
-  /**
-   * Snapshot of the Connector target stored in the route index so ingest can
-   * dispatch without re-reading the full Connector resource.
-   *
-   * @generated from field: talon.resources.ConnectorTarget target = 6;
-   */
-  target?: ConnectorTarget;
-
-  /**
-   * Namespace of the ConnectorClass used to compile this route.
-   *
-   * @generated from field: string class_namespace = 7;
-   */
-  classNamespace = "";
-
-  constructor(data?: PartialMessage<ConnectorMatchEntry>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.resources.ConnectorMatchEntry";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "connector_uid", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "connector_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "class_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 6, name: "target", kind: "message", T: ConnectorTarget },
-    { no: 7, name: "class_namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorMatchEntry {
-    return new ConnectorMatchEntry().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectorMatchEntry {
-    return new ConnectorMatchEntry().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectorMatchEntry {
-    return new ConnectorMatchEntry().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ConnectorMatchEntry | PlainMessage<ConnectorMatchEntry> | undefined, b: ConnectorMatchEntry | PlainMessage<ConnectorMatchEntry> | undefined): boolean {
-    return proto3.util.equals(ConnectorMatchEntry, a, b);
   }
 }

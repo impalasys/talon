@@ -24,9 +24,10 @@ _sym_db = _symbol_database.Default()
 
 from talon_client.proto import config_pb2 as proto_dot_config__pb2
 from talon_client.proto.resources import common_pb2 as proto_dot_resources_dot_common__pb2
+from talon_client.proto.resources import routing_pb2 as proto_dot_resources_dot_routing__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n proto/resources/connectors.proto\x12\x0ftalon.resources\x1a\x12proto/config.proto\x1a\x1cproto/resources/common.proto\";\n\x19\x43onnectorClassRuntimeSpec\x12\x0c\n\x04kind\x18\x01 \x01(\t\x12\x10\n\x08\x65ndpoint\x18\x02 \x01(\t\"M\n\x16\x43onnectorClassAuthSpec\x12\x0c\n\x04kind\x18\x01 \x01(\t\x12%\n\x07\x61pi_key\x18\x02 \x01(\x0b\x32\x14.talon.config.Secret\"3\n\x13\x43onnectorMatchIndex\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0e\n\x06\x66ields\x18\x02 \x03(\t\"\xd7\x01\n\x12\x43onnectorClassSpec\x12\x10\n\x08platform\x18\x01 \x01(\t\x12;\n\x07runtime\x18\x02 \x01(\x0b\x32*.talon.resources.ConnectorClassRuntimeSpec\x12\x35\n\x04\x61uth\x18\x03 \x01(\x0b\x32\'.talon.resources.ConnectorClassAuthSpec\x12;\n\rmatch_indexes\x18\x04 \x03(\x0b\x32$.talon.resources.ConnectorMatchIndex\"\x93\x01\n\x14\x43onnectorClassStatus\x12\x1b\n\x13observed_generation\x18\x01 \x01(\x04\x12\r\n\x05phase\x18\x02 \x01(\t\x12\x36\n\nconditions\x18\x03 \x03(\x0b\x32\".talon.resources.ResourceCondition\x12\x17\n\x0fregistration_id\x18\x04 \x01(\t\";\n\x16\x43onnectorSessionTarget\x12\r\n\x05\x61gent\x18\x01 \x01(\t\x12\x12\n\ncontinuity\x18\x02 \x01(\t\"b\n\x16\x43onnectorChannelTarget\x12\x0f\n\x07\x63hannel\x18\x01 \x01(\t\x12\r\n\x05\x61gent\x18\x02 \x01(\t\x12\x12\n\ncontinuity\x18\x03 \x01(\t\x12\x14\n\x0creply_policy\x18\x04 \x01(\t\"\x98\x01\n\x0f\x43onnectorTarget\x12:\n\x07session\x18\x01 \x01(\x0b\x32\'.talon.resources.ConnectorSessionTargetH\x00\x12:\n\x07\x63hannel\x18\x02 \x01(\x0b\x32\'.talon.resources.ConnectorChannelTargetH\x00\x42\r\n\x0b\x64\x65stination\"\xfe\x01\n\rConnectorSpec\x12/\n\tclass_ref\x18\x01 \x01(\x0b\x32\x1c.talon.resources.ResourceRef\x12\x0f\n\x07\x65nabled\x18\x02 \x01(\x08\x12\x45\n\x0cmatch_fields\x18\x03 \x03(\x0b\x32/.talon.resources.ConnectorSpec.MatchFieldsEntry\x12\x30\n\x06target\x18\x04 \x01(\x0b\x32 .talon.resources.ConnectorTarget\x1a\x32\n\x10MatchFieldsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x92\x01\n\x0f\x43onnectorStatus\x12\x1b\n\x13observed_generation\x18\x01 \x01(\x04\x12\r\n\x05phase\x18\x02 \x01(\t\x12\x36\n\nconditions\x18\x03 \x03(\x0b\x32\".talon.resources.ResourceCondition\x12\x1b\n\x13\x63ompiled_match_keys\x18\x04 \x03(\t\"\xab\x01\n\x0e\x43onnectorClass\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12\x31\n\x04spec\x18\x02 \x01(\x0b\x32#.talon.resources.ConnectorClassSpec\x12\x35\n\x06status\x18\x03 \x01(\x0b\x32%.talon.resources.ConnectorClassStatus\"\x9c\x01\n\tConnector\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12,\n\x04spec\x18\x02 \x01(\x0b\x32\x1e.talon.resources.ConnectorSpec\x12\x30\n\x06status\x18\x03 \x01(\x0b\x32 .talon.resources.ConnectorStatus\"\xaf\x01\n\x1a\x43onnectorRegistrationEntry\x12\x17\n\x0fregistration_id\x18\x01 \x01(\t\x12\x17\n\x0f\x63lass_namespace\x18\x02 \x01(\t\x12\x12\n\nclass_name\x18\x03 \x01(\t\x12\x12\n\ngeneration\x18\x04 \x01(\x04\x12\x37\n\nclass_spec\x18\x05 \x01(\x0b\x32#.talon.resources.ConnectorClassSpec\"\xca\x01\n\x13\x43onnectorMatchEntry\x12\x15\n\rconnector_uid\x18\x01 \x01(\t\x12\x11\n\tnamespace\x18\x02 \x01(\t\x12\x16\n\x0e\x63onnector_name\x18\x03 \x01(\t\x12\x12\n\nclass_name\x18\x04 \x01(\t\x12\x12\n\ngeneration\x18\x05 \x01(\x04\x12\x30\n\x06target\x18\x06 \x01(\x0b\x32 .talon.resources.ConnectorTarget\x12\x17\n\x0f\x63lass_namespace\x18\x07 \x01(\tb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n proto/resources/connectors.proto\x12\x0ftalon.resources\x1a\x12proto/config.proto\x1a\x1cproto/resources/common.proto\x1a\x1dproto/resources/routing.proto\";\n\x19\x43onnectorClassRuntimeSpec\x12\x0c\n\x04kind\x18\x01 \x01(\t\x12\x10\n\x08\x65ndpoint\x18\x02 \x01(\t\"M\n\x16\x43onnectorClassAuthSpec\x12\x0c\n\x04kind\x18\x01 \x01(\t\x12%\n\x07\x61pi_key\x18\x02 \x01(\x0b\x32\x14.talon.config.Secret\"3\n\x13\x43onnectorMatchIndex\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0e\n\x06\x66ields\x18\x02 \x03(\t\"\xd7\x01\n\x12\x43onnectorClassSpec\x12\x10\n\x08platform\x18\x01 \x01(\t\x12;\n\x07runtime\x18\x02 \x01(\x0b\x32*.talon.resources.ConnectorClassRuntimeSpec\x12\x35\n\x04\x61uth\x18\x03 \x01(\x0b\x32\'.talon.resources.ConnectorClassAuthSpec\x12;\n\rmatch_indexes\x18\x04 \x03(\x0b\x32$.talon.resources.ConnectorMatchIndex\"z\n\x14\x43onnectorClassStatus\x12\x1b\n\x13observed_generation\x18\x01 \x01(\x04\x12\r\n\x05phase\x18\x02 \x01(\t\x12\x36\n\nconditions\x18\x03 \x03(\x0b\x32\".talon.resources.ResourceCondition\"\x80\x02\n\rConnectorSpec\x12/\n\tclass_ref\x18\x01 \x01(\x0b\x32\x1c.talon.resources.ResourceRef\x12\x0f\n\x07\x65nabled\x18\x02 \x01(\x08\x12\x45\n\x0cmatch_fields\x18\x03 \x03(\x0b\x32/.talon.resources.ConnectorSpec.MatchFieldsEntry\x12\x32\n\x08\x63onsumer\x18\x04 \x01(\x0b\x32 .talon.resources.MessageConsumer\x1a\x32\n\x10MatchFieldsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x91\x01\n\x0f\x43onnectorStatus\x12\x1b\n\x13observed_generation\x18\x01 \x01(\x04\x12\r\n\x05phase\x18\x02 \x01(\t\x12\x36\n\nconditions\x18\x03 \x03(\x0b\x32\".talon.resources.ResourceCondition\x12\x1a\n\x12\x63ompiled_route_ids\x18\x04 \x03(\t\"\xab\x01\n\x0e\x43onnectorClass\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12\x31\n\x04spec\x18\x02 \x01(\x0b\x32#.talon.resources.ConnectorClassSpec\x12\x35\n\x06status\x18\x03 \x01(\x0b\x32%.talon.resources.ConnectorClassStatus\"\x9c\x01\n\tConnector\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12,\n\x04spec\x18\x02 \x01(\x0b\x32\x1e.talon.resources.ConnectorSpec\x12\x30\n\x06status\x18\x03 \x01(\x0b\x32 .talon.resources.ConnectorStatusb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -35,34 +36,24 @@ if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_CONNECTORSPEC_MATCHFIELDSENTRY']._loaded_options = None
   _globals['_CONNECTORSPEC_MATCHFIELDSENTRY']._serialized_options = b'8\001'
-  _globals['_CONNECTORCLASSRUNTIMESPEC']._serialized_start=103
-  _globals['_CONNECTORCLASSRUNTIMESPEC']._serialized_end=162
-  _globals['_CONNECTORCLASSAUTHSPEC']._serialized_start=164
-  _globals['_CONNECTORCLASSAUTHSPEC']._serialized_end=241
-  _globals['_CONNECTORMATCHINDEX']._serialized_start=243
-  _globals['_CONNECTORMATCHINDEX']._serialized_end=294
-  _globals['_CONNECTORCLASSSPEC']._serialized_start=297
-  _globals['_CONNECTORCLASSSPEC']._serialized_end=512
-  _globals['_CONNECTORCLASSSTATUS']._serialized_start=515
-  _globals['_CONNECTORCLASSSTATUS']._serialized_end=662
-  _globals['_CONNECTORSESSIONTARGET']._serialized_start=664
-  _globals['_CONNECTORSESSIONTARGET']._serialized_end=723
-  _globals['_CONNECTORCHANNELTARGET']._serialized_start=725
-  _globals['_CONNECTORCHANNELTARGET']._serialized_end=823
-  _globals['_CONNECTORTARGET']._serialized_start=826
-  _globals['_CONNECTORTARGET']._serialized_end=978
-  _globals['_CONNECTORSPEC']._serialized_start=981
-  _globals['_CONNECTORSPEC']._serialized_end=1235
-  _globals['_CONNECTORSPEC_MATCHFIELDSENTRY']._serialized_start=1185
-  _globals['_CONNECTORSPEC_MATCHFIELDSENTRY']._serialized_end=1235
-  _globals['_CONNECTORSTATUS']._serialized_start=1238
-  _globals['_CONNECTORSTATUS']._serialized_end=1384
-  _globals['_CONNECTORCLASS']._serialized_start=1387
-  _globals['_CONNECTORCLASS']._serialized_end=1558
-  _globals['_CONNECTOR']._serialized_start=1561
-  _globals['_CONNECTOR']._serialized_end=1717
-  _globals['_CONNECTORREGISTRATIONENTRY']._serialized_start=1720
-  _globals['_CONNECTORREGISTRATIONENTRY']._serialized_end=1895
-  _globals['_CONNECTORMATCHENTRY']._serialized_start=1898
-  _globals['_CONNECTORMATCHENTRY']._serialized_end=2100
+  _globals['_CONNECTORCLASSRUNTIMESPEC']._serialized_start=134
+  _globals['_CONNECTORCLASSRUNTIMESPEC']._serialized_end=193
+  _globals['_CONNECTORCLASSAUTHSPEC']._serialized_start=195
+  _globals['_CONNECTORCLASSAUTHSPEC']._serialized_end=272
+  _globals['_CONNECTORMATCHINDEX']._serialized_start=274
+  _globals['_CONNECTORMATCHINDEX']._serialized_end=325
+  _globals['_CONNECTORCLASSSPEC']._serialized_start=328
+  _globals['_CONNECTORCLASSSPEC']._serialized_end=543
+  _globals['_CONNECTORCLASSSTATUS']._serialized_start=545
+  _globals['_CONNECTORCLASSSTATUS']._serialized_end=667
+  _globals['_CONNECTORSPEC']._serialized_start=670
+  _globals['_CONNECTORSPEC']._serialized_end=926
+  _globals['_CONNECTORSPEC_MATCHFIELDSENTRY']._serialized_start=876
+  _globals['_CONNECTORSPEC_MATCHFIELDSENTRY']._serialized_end=926
+  _globals['_CONNECTORSTATUS']._serialized_start=929
+  _globals['_CONNECTORSTATUS']._serialized_end=1074
+  _globals['_CONNECTORCLASS']._serialized_start=1077
+  _globals['_CONNECTORCLASS']._serialized_end=1248
+  _globals['_CONNECTOR']._serialized_start=1251
+  _globals['_CONNECTOR']._serialized_end=1407
 # @@protoc_insertion_point(module_scope)

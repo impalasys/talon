@@ -110,7 +110,7 @@ Talon resources:
 
 Protocol handles visible to Talon:
 
-- `registrationId`, stored for the ConnectorClass registration
+- `registrationId`, derived from the canonical ConnectorClass key
 - provider match fields, stored on tenant Connectors
 - provider metadata, such as Slack workspace name, `team_id`, bot user ID, or
   iMessage profile ID
@@ -175,10 +175,10 @@ It answers:
 - Which signing material should protect callbacks?
 
 Talon computes `registrationId` as the canonical ConnectorClass key
-`Namespace/<namespace>/ConnectorClass/<name>`, stores it in
-`ConnectorClass.status`, and writes controller-managed registration and match
-indexes as children under that ConnectorClass. The connector service stores the
+`Namespace/<namespace>/ConnectorClass/<name>`. The connector service stores the
 callback URL, callback authentication metadata, and Talon's registration id.
+Talon materializes Connector routes as operational data under that
+ConnectorClass.
 
 ### ProviderAccount
 
@@ -226,7 +226,7 @@ It answers:
 
 - Which connector class handles this external platform?
 - Which provider messages belong to this namespace?
-- Which Talon target should receive matching messages?
+- Which Talon message consumer should receive matching messages?
 
 Example:
 
@@ -242,10 +242,12 @@ spec:
   matchFields:
     teamId: T123
     enterpriseId: E456
-  target:
+  consumer:
     channel:
-      channel: campaigns
-      agent: marketing-agent
+      channel:
+        name: campaigns
+      agent:
+        name: marketing-agent
       continuity: reuse
       replyPolicy: thread
 ```
@@ -259,7 +261,7 @@ The normal flow is:
 3. The setup backend determines the provider match fields, such as Slack
    workspace/team ID or iMessage profile ID.
 4. The setup backend creates or updates the Talon Connector with `classRef`,
-   `matchFields`, and `target`.
+   `matchFields`, and `consumer`.
 
 Provider-native IDs such as Slack `team_id` are not global authorization
 boundaries. They are match fields scoped by the namespaced ConnectorClass
@@ -275,7 +277,7 @@ number, Apple Messages handle, BlueBubbles chat GUID, or Photon/iMessage profile
 ID.
 
 Each v1 Connector is one route. It has one top-level `matchFields` map and one
-top-level `target`. To route different Slack channels, iMessage profiles, or
+top-level `consumer`. To route different Slack channels, iMessage profiles, or
 conversation classes differently, create multiple Connector resources with
 different `matchFields`.
 
@@ -444,8 +446,8 @@ For Slack, the setup backend typically handles this flow:
 3. The setup backend stores the Slack bot token and provider metadata.
 4. The setup backend authenticates the user against the operator's account
    system.
-5. The setup backend determines the target Talon namespace, Connector name,
-   provider match fields, and Talon target.
+5. The setup backend determines the Talon namespace, Connector name, provider
+   match fields, and Talon message consumer.
 6. The setup backend creates or updates the Talon Connector resource through
    Talon's normal authenticated resource API.
 
@@ -466,9 +468,10 @@ spec:
   enabled: true
   matchFields:
     teamId: T123
-  target:
+  consumer:
     session:
-      agent: marketing-agent
+      agent:
+        name: marketing-agent
       continuity: reuse
 ```
 
@@ -657,28 +660,29 @@ optional status callbacks, but they must not be required for correctness.
 Talon must not scan namespaces or routes for inbound events. In v1,
 `registrationId` is the canonical ConnectorClass key
 `Namespace/<namespace>/ConnectorClass/<name>`. The gateway parses that id, reads
-`ConnectorRegistration/current` under the owning ConnectorClass, validates the
-optional `connector_class` consistency field, and then resolves provider match
-fields using direct child `ConnectorMatch` lookups under that registration.
+the ConnectorClass resource directly, validates the optional `connector_class`
+consistency field, and then resolves provider match fields using direct child
+`Route` lookups under that ConnectorClass.
 
 Required indexes:
 
 ```text
-ConnectorClass/<name>/ConnectorRegistration/current -> registration state
-ConnectorClass/<name>/ConnectorRegistration/current/ConnectorMatch/<provider match key> -> connectorUid, namespace, connectorName, classNamespace, className, enabled
-ConnectorClass/<name>/ConnectorRegistration/current/ConnectorEvent/<eventId> -> idempotency record
+ConnectorClass/<name>/Route/<compiled route id> -> Route { connectorUid, connector, consumer }
+ConnectorClass/<name>/Event/<eventId> -> idempotency record
+ConnectorClass/<name>/Session/<pointer> -> session id for reuse continuity
 ```
 
 Inbound flow:
 
 1. Parse `registrationId` into the owning ConnectorClass key.
-2. Read `ConnectorRegistration/current` under that ConnectorClass.
+2. Read the ConnectorClass resource and require status `Ready`.
 3. Verify callback signature and timestamp.
-4. Resolve the event provider fields against Connector match indexes under the
-   registration's ConnectorClass.
+4. Compile candidate route ids from `ConnectorClass.spec.matchIndexes` and the
+   event's provider match fields.
 5. Reject if `connector_class` conflicts with the resolved ConnectorClass.
-6. Deduplicate `event_id` under that registration.
-7. Dispatch to `Connector.spec.target`.
+6. Read the first matching `Route` under that ConnectorClass.
+7. Deduplicate `event_id` under that ConnectorClass.
+8. Dispatch to `Route.consumer` without reading the Connector resource.
 
 Connector match precedence is provider-specific but must be deterministic. For
 Slack, preferred precedence is:
@@ -693,9 +697,9 @@ channel-specific Connector overrides selected channels. Talon should reject
 ambiguous Connectors at write time or use an explicit priority field; it should
 not randomly choose between equally specific matches.
 
-## Session And Channel Targets
+## Session And Channel Consumers
 
-The route target decides whether external messages enter a Session or Channel.
+The route consumer decides whether external messages enter a Session or Channel.
 
 Sessions are useful when:
 
@@ -712,22 +716,25 @@ Channels are useful when:
 - Multiple users participate and Talon should expose the interaction as a
   shared collaboration surface.
 
-Example target:
+Example Session consumer:
 
 ```yaml
-target:
+consumer:
   session:
-    agent: marketing-agent
+    agent:
+      name: marketing-agent
     continuity: reuse
 ```
 
-Example Channel target:
+Example Channel consumer:
 
 ```yaml
-target:
+consumer:
   channel:
-    channel: campaigns
-    agent: marketing-agent
+    channel:
+      name: campaigns
+    agent:
+      name: marketing-agent
     continuity: newPerMessage
 ```
 
@@ -742,7 +749,7 @@ Slack setup backend responsibilities:
 - Own Slack OAuth redirect handling and token exchange.
 - Store Slack bot tokens per workspace installation.
 - Authenticate the installer against the operator's account system.
-- Select the Talon namespace, Connector name, and target.
+- Select the Talon namespace, Connector name, and message consumer.
 - Determine Slack match fields such as `teamId`, `enterpriseId`, and optional
   channel IDs.
 - Create or update the Talon Connector through Talon's resource API.
@@ -888,8 +895,8 @@ Suggested routing defaults:
    - ingest Connector status changes
 
 6. Add inbound routing:
-   - index `(registrationId, provider match key) -> Connector`
-   - dispatch to Connector target
+   - index `(registrationId, provider match key) -> Route`
+   - dispatch to Route consumer
    - create/reuse Session or post into Channel
 
 7. Add outbound delivery:

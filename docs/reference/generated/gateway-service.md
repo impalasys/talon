@@ -10,7 +10,7 @@ The Talon gateway API is defined by the domain service files in `proto/talon/v1/
 - Package: `talon.v1`
 - Services: `NamespaceService`, `ResourceService`, `SessionService`, `ChannelService`, `WorkflowService`, `KnowledgeService`, `AuthService`, `ConnectorService`, `SearchService`
 - Transport modes: native gRPC and gRPC-Web on the gateway port
-- Total RPC methods: **40**
+- Total RPC methods: **44**
 
 ## NamespaceService
 
@@ -206,11 +206,31 @@ The Talon gateway API is defined by the domain service files in `proto/talon/v1/
 - Request: `MintAccessTokenRequest`
 - Response: `MintAccessTokenResponse`
 
+### `CreateApiKey`
+
+- Request: `CreateApiKeyRequest`
+- Response: `CreateApiKeyResponse`
+
+### `ListApiKeys`
+
+- Request: `ListApiKeysRequest`
+- Response: `ListApiKeysResponse`
+
+### `RevokeApiKey`
+
+- Request: `RevokeApiKeyRequest`
+- Response: `RevokeApiKeyResponse`
+
+### `ExchangeApiKey`
+
+- Request: `ExchangeApiKeyRequest`
+- Response: `ExchangeApiKeyResponse`
+
 ## ConnectorService
 
 ### `IngestMessageEvent`
 
-IngestMessageEvent delivers one normalized provider message event to Talon. Talon deduplicates under the ConnectorClass registration by event_id, resolves a Connector by match_fields, and dispatches the message to the resolved Connector target.
+IngestMessageEvent delivers one normalized provider message event to Talon. Talon deduplicates under the ConnectorClass registration by event_id, resolves a Connector by match_fields, and dispatches the message to the resolved message consumer.
 
 - Request: `ConnectorMessageEvent`
 - Response: `ConnectorMessageEventResponse`

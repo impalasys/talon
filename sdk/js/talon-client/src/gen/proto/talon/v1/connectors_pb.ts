@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { ConnectorTarget } from "../../resources/connectors_pb.js";
+import { MessageConsumer } from "../../resources/routing_pb.js";
 
 /**
  * @generated from message talon.v1.ConnectorActor
@@ -367,12 +367,12 @@ export class ConnectorMessageEventResponse extends Message<ConnectorMessageEvent
   connectorName = "";
 
   /**
-   * Target snapshot used for dispatch. Returned for observability so connector
-   * services can log which Talon destination accepted the event.
+   * Consumer snapshot used for dispatch. Returned for observability so
+   * connector services can log which Talon destination accepted the event.
    *
-   * @generated from field: talon.resources.ConnectorTarget target = 6;
+   * @generated from field: talon.resources.MessageConsumer consumer = 6;
    */
-  target?: ConnectorTarget;
+  consumer?: MessageConsumer;
 
   constructor(data?: PartialMessage<ConnectorMessageEventResponse>) {
     super();
@@ -387,7 +387,7 @@ export class ConnectorMessageEventResponse extends Message<ConnectorMessageEvent
     { no: 3, name: "disposition", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "connector_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "target", kind: "message", T: ConnectorTarget },
+    { no: 6, name: "consumer", kind: "message", T: MessageConsumer },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorMessageEventResponse {
