@@ -8,6 +8,7 @@ package v1
 
 import (
 	context "context"
+	external "github.com/impalasys/talon/sdk/go/talon-client/talon/external"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -36,10 +37,10 @@ type ConnectorServiceClient interface {
 	// Talon deduplicates under the ConnectorClass registration by event_id,
 	// resolves a Connector by match_fields, and dispatches the message to the
 	// resolved message consumer.
-	IngestMessageEvent(ctx context.Context, in *ConnectorMessageEvent, opts ...grpc.CallOption) (*ConnectorMessageEventResponse, error)
+	IngestMessageEvent(ctx context.Context, in *external.ConnectorMessageEvent, opts ...grpc.CallOption) (*external.ConnectorMessageEventResponse, error)
 	// ReportStatus lets the connector service report registration or provider
 	// connection health without sending a message event.
-	ReportStatus(ctx context.Context, in *ConnectorStatusEvent, opts ...grpc.CallOption) (*ConnectorAckResponse, error)
+	ReportStatus(ctx context.Context, in *external.ConnectorStatusEvent, opts ...grpc.CallOption) (*external.ConnectorAckResponse, error)
 }
 
 type connectorServiceClient struct {
@@ -50,9 +51,9 @@ func NewConnectorServiceClient(cc grpc.ClientConnInterface) ConnectorServiceClie
 	return &connectorServiceClient{cc}
 }
 
-func (c *connectorServiceClient) IngestMessageEvent(ctx context.Context, in *ConnectorMessageEvent, opts ...grpc.CallOption) (*ConnectorMessageEventResponse, error) {
+func (c *connectorServiceClient) IngestMessageEvent(ctx context.Context, in *external.ConnectorMessageEvent, opts ...grpc.CallOption) (*external.ConnectorMessageEventResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ConnectorMessageEventResponse)
+	out := new(external.ConnectorMessageEventResponse)
 	err := c.cc.Invoke(ctx, ConnectorService_IngestMessageEvent_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -60,9 +61,9 @@ func (c *connectorServiceClient) IngestMessageEvent(ctx context.Context, in *Con
 	return out, nil
 }
 
-func (c *connectorServiceClient) ReportStatus(ctx context.Context, in *ConnectorStatusEvent, opts ...grpc.CallOption) (*ConnectorAckResponse, error) {
+func (c *connectorServiceClient) ReportStatus(ctx context.Context, in *external.ConnectorStatusEvent, opts ...grpc.CallOption) (*external.ConnectorAckResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ConnectorAckResponse)
+	out := new(external.ConnectorAckResponse)
 	err := c.cc.Invoke(ctx, ConnectorService_ReportStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -83,10 +84,10 @@ type ConnectorServiceServer interface {
 	// Talon deduplicates under the ConnectorClass registration by event_id,
 	// resolves a Connector by match_fields, and dispatches the message to the
 	// resolved message consumer.
-	IngestMessageEvent(context.Context, *ConnectorMessageEvent) (*ConnectorMessageEventResponse, error)
+	IngestMessageEvent(context.Context, *external.ConnectorMessageEvent) (*external.ConnectorMessageEventResponse, error)
 	// ReportStatus lets the connector service report registration or provider
 	// connection health without sending a message event.
-	ReportStatus(context.Context, *ConnectorStatusEvent) (*ConnectorAckResponse, error)
+	ReportStatus(context.Context, *external.ConnectorStatusEvent) (*external.ConnectorAckResponse, error)
 	mustEmbedUnimplementedConnectorServiceServer()
 }
 
@@ -97,10 +98,10 @@ type ConnectorServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedConnectorServiceServer struct{}
 
-func (UnimplementedConnectorServiceServer) IngestMessageEvent(context.Context, *ConnectorMessageEvent) (*ConnectorMessageEventResponse, error) {
+func (UnimplementedConnectorServiceServer) IngestMessageEvent(context.Context, *external.ConnectorMessageEvent) (*external.ConnectorMessageEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IngestMessageEvent not implemented")
 }
-func (UnimplementedConnectorServiceServer) ReportStatus(context.Context, *ConnectorStatusEvent) (*ConnectorAckResponse, error) {
+func (UnimplementedConnectorServiceServer) ReportStatus(context.Context, *external.ConnectorStatusEvent) (*external.ConnectorAckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportStatus not implemented")
 }
 func (UnimplementedConnectorServiceServer) mustEmbedUnimplementedConnectorServiceServer() {}
@@ -125,7 +126,7 @@ func RegisterConnectorServiceServer(s grpc.ServiceRegistrar, srv ConnectorServic
 }
 
 func _ConnectorService_IngestMessageEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConnectorMessageEvent)
+	in := new(external.ConnectorMessageEvent)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -137,13 +138,13 @@ func _ConnectorService_IngestMessageEvent_Handler(srv interface{}, ctx context.C
 		FullMethod: ConnectorService_IngestMessageEvent_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ConnectorServiceServer).IngestMessageEvent(ctx, req.(*ConnectorMessageEvent))
+		return srv.(ConnectorServiceServer).IngestMessageEvent(ctx, req.(*external.ConnectorMessageEvent))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _ConnectorService_ReportStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConnectorStatusEvent)
+	in := new(external.ConnectorStatusEvent)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -155,7 +156,7 @@ func _ConnectorService_ReportStatus_Handler(srv interface{}, ctx context.Context
 		FullMethod: ConnectorService_ReportStatus_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ConnectorServiceServer).ReportStatus(ctx, req.(*ConnectorStatusEvent))
+		return srv.(ConnectorServiceServer).ReportStatus(ctx, req.(*external.ConnectorStatusEvent))
 	}
 	return interceptor(ctx, in, info, handler)
 }

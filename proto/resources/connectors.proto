@@ -3,8 +3,8 @@ syntax = "proto3";
 package talon.resources;
 
 import "proto/config.proto";
+import "proto/data/routing.proto";
 import "proto/resources/common.proto";
-import "proto/resources/routing.proto";
 
 message ConnectorClassRuntimeSpec {
   // Runtime implementation type, for example an HTTP connector service.
@@ -76,7 +76,7 @@ message ConnectorSpec {
   map<string, string> match_fields = 3;
 
   // Single Talon message consumer for messages that match this Connector.
-  MessageConsumer consumer = 4;
+  talon.data.MessageConsumer consumer = 4;
 }
 
 message ConnectorStatus {

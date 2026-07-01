@@ -28,12 +28,16 @@ PY_EXPORT_GROUPS = {
         "proto/data/api_keys.proto",
         "proto/data/connectors.proto",
         "proto/data/data.proto",
+        "proto/data/routing.proto",
         "proto/data/search.proto",
         "proto/data/session_submission.proto",
         "proto/data/session_journal_entry.proto",
     ],
     "events": [
         "proto/events.proto",
+    ],
+    "external": [
+        "proto/external/connectors.proto",
     ],
     "harness": [
         "proto/harness/llm.proto",
@@ -45,7 +49,6 @@ PY_EXPORT_GROUPS = {
         "proto/resources/knowledge.proto",
         "proto/resources/namespaces.proto",
         "proto/resources/channels.proto",
-        "proto/resources/routing.proto",
         "proto/resources/connectors.proto",
         "proto/resources/schedules.proto",
         "proto/resources/workflows.proto",

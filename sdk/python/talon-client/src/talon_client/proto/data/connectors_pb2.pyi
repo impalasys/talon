@@ -1,5 +1,5 @@
 from talon_client.proto.resources import common_pb2 as _common_pb2
-from talon_client.proto.resources import routing_pb2 as _routing_pb2
+from talon_client.proto.data import routing_pb2 as _routing_pb2
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from collections.abc import Mapping as _Mapping

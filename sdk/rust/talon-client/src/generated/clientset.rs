@@ -10,6 +10,7 @@ use crate::v1::{
     knowledge_service_client::KnowledgeServiceClient,
     search_service_client::SearchServiceClient,
     auth_service_client::AuthServiceClient,
+    connector_service_client::ConnectorServiceClient,
 };
 
 #[derive(Debug)]
@@ -22,6 +23,7 @@ pub struct TalonClientset<T> {
     pub knowledge: KnowledgeServiceClient<T>,
     pub searches: SearchServiceClient<T>,
     pub auth: AuthServiceClient<T>,
+    pub connectors: ConnectorServiceClient<T>,
 }
 
 impl<T> TalonClientset<T>
@@ -41,6 +43,7 @@ where
             knowledge: KnowledgeServiceClient::new(service.clone()),
             searches: SearchServiceClient::new(service.clone()),
             auth: AuthServiceClient::new(service.clone()),
+            connectors: ConnectorServiceClient::new(service.clone()),
         }
     }
 }
@@ -367,5 +370,19 @@ impl crate::TalonClient {
         exchange_api_key,
         crate::v1::ExchangeApiKeyRequest,
         crate::v1::ExchangeApiKeyResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        ingest_connector_message_event,
+        connectors,
+        ingest_message_event,
+        crate::external::ConnectorMessageEvent,
+        crate::external::ConnectorMessageEventResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        report_connector_status,
+        connectors,
+        report_status,
+        crate::external::ConnectorStatusEvent,
+        crate::external::ConnectorAckResponse,
     );
 }

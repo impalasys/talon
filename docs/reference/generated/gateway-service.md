@@ -232,15 +232,15 @@ The Talon gateway API is defined by the domain service files in `proto/talon/v1/
 
 IngestMessageEvent delivers one normalized provider message event to Talon. Talon deduplicates under the ConnectorClass registration by event_id, resolves a Connector by match_fields, and dispatches the message to the resolved message consumer.
 
-- Request: `ConnectorMessageEvent`
-- Response: `ConnectorMessageEventResponse`
+- Request: `talon.external.ConnectorMessageEvent`
+- Response: `talon.external.ConnectorMessageEventResponse`
 
 ### `ReportStatus`
 
 ReportStatus lets the connector service report registration or provider connection health without sending a message event.
 
-- Request: `ConnectorStatusEvent`
-- Response: `ConnectorAckResponse`
+- Request: `talon.external.ConnectorStatusEvent`
+- Response: `talon.external.ConnectorAckResponse`
 
 ## SearchService
 

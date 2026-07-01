@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from talon_client.proto.talon.v1 import connectors_pb2 as proto_dot_talon_dot_v1_dot_connectors__pb2
+from proto.external import connectors_pb2 as proto_dot_external_dot_connectors__pb2
 
 GRPC_GENERATED_VERSION = '1.76.0'
 GRPC_VERSION = grpc.__version__
@@ -40,13 +40,13 @@ class ConnectorServiceStub(object):
         """
         self.IngestMessageEvent = channel.unary_unary(
                 '/talon.v1.ConnectorService/IngestMessageEvent',
-                request_serializer=proto_dot_talon_dot_v1_dot_connectors__pb2.ConnectorMessageEvent.SerializeToString,
-                response_deserializer=proto_dot_talon_dot_v1_dot_connectors__pb2.ConnectorMessageEventResponse.FromString,
+                request_serializer=proto_dot_external_dot_connectors__pb2.ConnectorMessageEvent.SerializeToString,
+                response_deserializer=proto_dot_external_dot_connectors__pb2.ConnectorMessageEventResponse.FromString,
                 _registered_method=True)
         self.ReportStatus = channel.unary_unary(
                 '/talon.v1.ConnectorService/ReportStatus',
-                request_serializer=proto_dot_talon_dot_v1_dot_connectors__pb2.ConnectorStatusEvent.SerializeToString,
-                response_deserializer=proto_dot_talon_dot_v1_dot_connectors__pb2.ConnectorAckResponse.FromString,
+                request_serializer=proto_dot_external_dot_connectors__pb2.ConnectorStatusEvent.SerializeToString,
+                response_deserializer=proto_dot_external_dot_connectors__pb2.ConnectorAckResponse.FromString,
                 _registered_method=True)
 
 
@@ -80,13 +80,13 @@ def add_ConnectorServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'IngestMessageEvent': grpc.unary_unary_rpc_method_handler(
                     servicer.IngestMessageEvent,
-                    request_deserializer=proto_dot_talon_dot_v1_dot_connectors__pb2.ConnectorMessageEvent.FromString,
-                    response_serializer=proto_dot_talon_dot_v1_dot_connectors__pb2.ConnectorMessageEventResponse.SerializeToString,
+                    request_deserializer=proto_dot_external_dot_connectors__pb2.ConnectorMessageEvent.FromString,
+                    response_serializer=proto_dot_external_dot_connectors__pb2.ConnectorMessageEventResponse.SerializeToString,
             ),
             'ReportStatus': grpc.unary_unary_rpc_method_handler(
                     servicer.ReportStatus,
-                    request_deserializer=proto_dot_talon_dot_v1_dot_connectors__pb2.ConnectorStatusEvent.FromString,
-                    response_serializer=proto_dot_talon_dot_v1_dot_connectors__pb2.ConnectorAckResponse.SerializeToString,
+                    request_deserializer=proto_dot_external_dot_connectors__pb2.ConnectorStatusEvent.FromString,
+                    response_serializer=proto_dot_external_dot_connectors__pb2.ConnectorAckResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -118,8 +118,8 @@ class ConnectorService(object):
             request,
             target,
             '/talon.v1.ConnectorService/IngestMessageEvent',
-            proto_dot_talon_dot_v1_dot_connectors__pb2.ConnectorMessageEvent.SerializeToString,
-            proto_dot_talon_dot_v1_dot_connectors__pb2.ConnectorMessageEventResponse.FromString,
+            proto_dot_external_dot_connectors__pb2.ConnectorMessageEvent.SerializeToString,
+            proto_dot_external_dot_connectors__pb2.ConnectorMessageEventResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -145,8 +145,8 @@ class ConnectorService(object):
             request,
             target,
             '/talon.v1.ConnectorService/ReportStatus',
-            proto_dot_talon_dot_v1_dot_connectors__pb2.ConnectorStatusEvent.SerializeToString,
-            proto_dot_talon_dot_v1_dot_connectors__pb2.ConnectorAckResponse.FromString,
+            proto_dot_external_dot_connectors__pb2.ConnectorStatusEvent.SerializeToString,
+            proto_dot_external_dot_connectors__pb2.ConnectorAckResponse.FromString,
             options,
             channel_credentials,
             insecure,

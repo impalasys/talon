@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { ResourceRef } from "../resources/common_pb.js";
-import { MessageConsumer } from "../resources/routing_pb.js";
+import { MessageConsumer } from "./routing_pb.js";
 
 /**
  * @generated from message talon.data.Route
@@ -30,7 +30,7 @@ export class Route extends Message<Route> {
   /**
    * Snapshot of Connector.spec.consumer used by gateway dispatch.
    *
-   * @generated from field: talon.resources.MessageConsumer consumer = 3;
+   * @generated from field: talon.data.MessageConsumer consumer = 3;
    */
   consumer?: MessageConsumer;
 

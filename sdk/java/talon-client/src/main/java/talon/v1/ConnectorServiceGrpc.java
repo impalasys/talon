@@ -18,29 +18,29 @@ public final class ConnectorServiceGrpc {
   public static final java.lang.String SERVICE_NAME = "talon.v1.ConnectorService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Connectors.ConnectorMessageEvent,
-      talon.v1.Connectors.ConnectorMessageEventResponse> getIngestMessageEventMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.external.Connectors.ConnectorMessageEvent,
+      talon.external.Connectors.ConnectorMessageEventResponse> getIngestMessageEventMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "IngestMessageEvent",
-      requestType = talon.v1.Connectors.ConnectorMessageEvent.class,
-      responseType = talon.v1.Connectors.ConnectorMessageEventResponse.class,
+      requestType = talon.external.Connectors.ConnectorMessageEvent.class,
+      responseType = talon.external.Connectors.ConnectorMessageEventResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Connectors.ConnectorMessageEvent,
-      talon.v1.Connectors.ConnectorMessageEventResponse> getIngestMessageEventMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Connectors.ConnectorMessageEvent, talon.v1.Connectors.ConnectorMessageEventResponse> getIngestMessageEventMethod;
+  public static io.grpc.MethodDescriptor<talon.external.Connectors.ConnectorMessageEvent,
+      talon.external.Connectors.ConnectorMessageEventResponse> getIngestMessageEventMethod() {
+    io.grpc.MethodDescriptor<talon.external.Connectors.ConnectorMessageEvent, talon.external.Connectors.ConnectorMessageEventResponse> getIngestMessageEventMethod;
     if ((getIngestMessageEventMethod = ConnectorServiceGrpc.getIngestMessageEventMethod) == null) {
       synchronized (ConnectorServiceGrpc.class) {
         if ((getIngestMessageEventMethod = ConnectorServiceGrpc.getIngestMessageEventMethod) == null) {
           ConnectorServiceGrpc.getIngestMessageEventMethod = getIngestMessageEventMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Connectors.ConnectorMessageEvent, talon.v1.Connectors.ConnectorMessageEventResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.external.Connectors.ConnectorMessageEvent, talon.external.Connectors.ConnectorMessageEventResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "IngestMessageEvent"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Connectors.ConnectorMessageEvent.getDefaultInstance()))
+                  talon.external.Connectors.ConnectorMessageEvent.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Connectors.ConnectorMessageEventResponse.getDefaultInstance()))
+                  talon.external.Connectors.ConnectorMessageEventResponse.getDefaultInstance()))
               .setSchemaDescriptor(new ConnectorServiceMethodDescriptorSupplier("IngestMessageEvent"))
               .build();
         }
@@ -49,29 +49,29 @@ public final class ConnectorServiceGrpc {
     return getIngestMessageEventMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<talon.v1.Connectors.ConnectorStatusEvent,
-      talon.v1.Connectors.ConnectorAckResponse> getReportStatusMethod;
+  private static volatile io.grpc.MethodDescriptor<talon.external.Connectors.ConnectorStatusEvent,
+      talon.external.Connectors.ConnectorAckResponse> getReportStatusMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "ReportStatus",
-      requestType = talon.v1.Connectors.ConnectorStatusEvent.class,
-      responseType = talon.v1.Connectors.ConnectorAckResponse.class,
+      requestType = talon.external.Connectors.ConnectorStatusEvent.class,
+      responseType = talon.external.Connectors.ConnectorAckResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<talon.v1.Connectors.ConnectorStatusEvent,
-      talon.v1.Connectors.ConnectorAckResponse> getReportStatusMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Connectors.ConnectorStatusEvent, talon.v1.Connectors.ConnectorAckResponse> getReportStatusMethod;
+  public static io.grpc.MethodDescriptor<talon.external.Connectors.ConnectorStatusEvent,
+      talon.external.Connectors.ConnectorAckResponse> getReportStatusMethod() {
+    io.grpc.MethodDescriptor<talon.external.Connectors.ConnectorStatusEvent, talon.external.Connectors.ConnectorAckResponse> getReportStatusMethod;
     if ((getReportStatusMethod = ConnectorServiceGrpc.getReportStatusMethod) == null) {
       synchronized (ConnectorServiceGrpc.class) {
         if ((getReportStatusMethod = ConnectorServiceGrpc.getReportStatusMethod) == null) {
           ConnectorServiceGrpc.getReportStatusMethod = getReportStatusMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Connectors.ConnectorStatusEvent, talon.v1.Connectors.ConnectorAckResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.external.Connectors.ConnectorStatusEvent, talon.external.Connectors.ConnectorAckResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ReportStatus"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Connectors.ConnectorStatusEvent.getDefaultInstance()))
+                  talon.external.Connectors.ConnectorStatusEvent.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Connectors.ConnectorAckResponse.getDefaultInstance()))
+                  talon.external.Connectors.ConnectorAckResponse.getDefaultInstance()))
               .setSchemaDescriptor(new ConnectorServiceMethodDescriptorSupplier("ReportStatus"))
               .build();
         }
@@ -157,8 +157,8 @@ public final class ConnectorServiceGrpc {
      * resolved message consumer.
      * </pre>
      */
-    default void ingestMessageEvent(talon.v1.Connectors.ConnectorMessageEvent request,
-        io.grpc.stub.StreamObserver<talon.v1.Connectors.ConnectorMessageEventResponse> responseObserver) {
+    default void ingestMessageEvent(talon.external.Connectors.ConnectorMessageEvent request,
+        io.grpc.stub.StreamObserver<talon.external.Connectors.ConnectorMessageEventResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getIngestMessageEventMethod(), responseObserver);
     }
 
@@ -168,8 +168,8 @@ public final class ConnectorServiceGrpc {
      * connection health without sending a message event.
      * </pre>
      */
-    default void reportStatus(talon.v1.Connectors.ConnectorStatusEvent request,
-        io.grpc.stub.StreamObserver<talon.v1.Connectors.ConnectorAckResponse> responseObserver) {
+    default void reportStatus(talon.external.Connectors.ConnectorStatusEvent request,
+        io.grpc.stub.StreamObserver<talon.external.Connectors.ConnectorAckResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getReportStatusMethod(), responseObserver);
     }
   }
@@ -221,8 +221,8 @@ public final class ConnectorServiceGrpc {
      * resolved message consumer.
      * </pre>
      */
-    public void ingestMessageEvent(talon.v1.Connectors.ConnectorMessageEvent request,
-        io.grpc.stub.StreamObserver<talon.v1.Connectors.ConnectorMessageEventResponse> responseObserver) {
+    public void ingestMessageEvent(talon.external.Connectors.ConnectorMessageEvent request,
+        io.grpc.stub.StreamObserver<talon.external.Connectors.ConnectorMessageEventResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getIngestMessageEventMethod(), getCallOptions()), request, responseObserver);
     }
@@ -233,8 +233,8 @@ public final class ConnectorServiceGrpc {
      * connection health without sending a message event.
      * </pre>
      */
-    public void reportStatus(talon.v1.Connectors.ConnectorStatusEvent request,
-        io.grpc.stub.StreamObserver<talon.v1.Connectors.ConnectorAckResponse> responseObserver) {
+    public void reportStatus(talon.external.Connectors.ConnectorStatusEvent request,
+        io.grpc.stub.StreamObserver<talon.external.Connectors.ConnectorAckResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getReportStatusMethod(), getCallOptions()), request, responseObserver);
     }
@@ -270,7 +270,7 @@ public final class ConnectorServiceGrpc {
      * resolved message consumer.
      * </pre>
      */
-    public talon.v1.Connectors.ConnectorMessageEventResponse ingestMessageEvent(talon.v1.Connectors.ConnectorMessageEvent request) throws io.grpc.StatusException {
+    public talon.external.Connectors.ConnectorMessageEventResponse ingestMessageEvent(talon.external.Connectors.ConnectorMessageEvent request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getIngestMessageEventMethod(), getCallOptions(), request);
     }
@@ -281,7 +281,7 @@ public final class ConnectorServiceGrpc {
      * connection health without sending a message event.
      * </pre>
      */
-    public talon.v1.Connectors.ConnectorAckResponse reportStatus(talon.v1.Connectors.ConnectorStatusEvent request) throws io.grpc.StatusException {
+    public talon.external.Connectors.ConnectorAckResponse reportStatus(talon.external.Connectors.ConnectorStatusEvent request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getReportStatusMethod(), getCallOptions(), request);
     }
@@ -317,7 +317,7 @@ public final class ConnectorServiceGrpc {
      * resolved message consumer.
      * </pre>
      */
-    public talon.v1.Connectors.ConnectorMessageEventResponse ingestMessageEvent(talon.v1.Connectors.ConnectorMessageEvent request) {
+    public talon.external.Connectors.ConnectorMessageEventResponse ingestMessageEvent(talon.external.Connectors.ConnectorMessageEvent request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getIngestMessageEventMethod(), getCallOptions(), request);
     }
@@ -328,7 +328,7 @@ public final class ConnectorServiceGrpc {
      * connection health without sending a message event.
      * </pre>
      */
-    public talon.v1.Connectors.ConnectorAckResponse reportStatus(talon.v1.Connectors.ConnectorStatusEvent request) {
+    public talon.external.Connectors.ConnectorAckResponse reportStatus(talon.external.Connectors.ConnectorStatusEvent request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getReportStatusMethod(), getCallOptions(), request);
     }
@@ -364,8 +364,8 @@ public final class ConnectorServiceGrpc {
      * resolved message consumer.
      * </pre>
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Connectors.ConnectorMessageEventResponse> ingestMessageEvent(
-        talon.v1.Connectors.ConnectorMessageEvent request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.external.Connectors.ConnectorMessageEventResponse> ingestMessageEvent(
+        talon.external.Connectors.ConnectorMessageEvent request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getIngestMessageEventMethod(), getCallOptions()), request);
     }
@@ -376,8 +376,8 @@ public final class ConnectorServiceGrpc {
      * connection health without sending a message event.
      * </pre>
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Connectors.ConnectorAckResponse> reportStatus(
-        talon.v1.Connectors.ConnectorStatusEvent request) {
+    public com.google.common.util.concurrent.ListenableFuture<talon.external.Connectors.ConnectorAckResponse> reportStatus(
+        talon.external.Connectors.ConnectorStatusEvent request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getReportStatusMethod(), getCallOptions()), request);
     }
@@ -404,12 +404,12 @@ public final class ConnectorServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_INGEST_MESSAGE_EVENT:
-          serviceImpl.ingestMessageEvent((talon.v1.Connectors.ConnectorMessageEvent) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Connectors.ConnectorMessageEventResponse>) responseObserver);
+          serviceImpl.ingestMessageEvent((talon.external.Connectors.ConnectorMessageEvent) request,
+              (io.grpc.stub.StreamObserver<talon.external.Connectors.ConnectorMessageEventResponse>) responseObserver);
           break;
         case METHODID_REPORT_STATUS:
-          serviceImpl.reportStatus((talon.v1.Connectors.ConnectorStatusEvent) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Connectors.ConnectorAckResponse>) responseObserver);
+          serviceImpl.reportStatus((talon.external.Connectors.ConnectorStatusEvent) request,
+              (io.grpc.stub.StreamObserver<talon.external.Connectors.ConnectorAckResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -433,15 +433,15 @@ public final class ConnectorServiceGrpc {
           getIngestMessageEventMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Connectors.ConnectorMessageEvent,
-              talon.v1.Connectors.ConnectorMessageEventResponse>(
+              talon.external.Connectors.ConnectorMessageEvent,
+              talon.external.Connectors.ConnectorMessageEventResponse>(
                 service, METHODID_INGEST_MESSAGE_EVENT)))
         .addMethod(
           getReportStatusMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
-              talon.v1.Connectors.ConnectorStatusEvent,
-              talon.v1.Connectors.ConnectorAckResponse>(
+              talon.external.Connectors.ConnectorStatusEvent,
+              talon.external.Connectors.ConnectorAckResponse>(
                 service, METHODID_REPORT_STATUS)))
         .build();
   }

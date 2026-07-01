@@ -20,6 +20,9 @@ pub mod generated {
         pub mod events {
             include!("generated/talon.events.rs");
         }
+        pub mod external {
+            include!("generated/talon.external.rs");
+        }
         pub mod v1 {
             include!("generated/talon.v1.rs");
         }

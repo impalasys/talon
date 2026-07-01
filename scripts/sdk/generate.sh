@@ -24,7 +24,6 @@ PROTO_SRCS=(
   proto/resources/knowledge.proto
   proto/resources/namespaces.proto
   proto/resources/channels.proto
-  proto/resources/routing.proto
   proto/resources/connectors.proto
   proto/resources/schedules.proto
   proto/resources/workflows.proto
@@ -39,10 +38,12 @@ PROTO_SRCS=(
   proto/data/api_keys.proto
   proto/data/connectors.proto
   proto/data/data.proto
+  proto/data/routing.proto
   proto/data/search.proto
   proto/data/session_submission.proto
   proto/data/session_journal_entry.proto
   proto/events.proto
+  proto/external/connectors.proto
   "${V1_PROTO_SRCS[@]}"
 )
 
@@ -91,7 +92,6 @@ GO_OPTS=(
   "--go_opt=Mproto/resources/knowledge.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/namespaces.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/channels.proto=${GO_MODULE}/talon/resources"
-  "--go_opt=Mproto/resources/routing.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/connectors.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/schedules.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/workflows.proto=${GO_MODULE}/talon/resources"
@@ -106,10 +106,12 @@ GO_OPTS=(
   "--go_opt=Mproto/data/api_keys.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/connectors.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
+  "--go_opt=Mproto/data/routing.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/search.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/session_journal_entry.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
+  "--go_opt=Mproto/external/connectors.proto=${GO_MODULE}/talon/external"
   "--go_opt=Mproto/talon/v1/auth.proto=${GO_MODULE}/talon/v1"
   "--go_opt=Mproto/talon/v1/channels.proto=${GO_MODULE}/talon/v1"
   "--go_opt=Mproto/talon/v1/connectors.proto=${GO_MODULE}/talon/v1"
@@ -126,7 +128,6 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/resources/knowledge.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/namespaces.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/channels.proto=${GO_MODULE}/talon/resources"
-  "--go-grpc_opt=Mproto/resources/routing.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/connectors.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/schedules.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/workflows.proto=${GO_MODULE}/talon/resources"
@@ -141,10 +142,12 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/data/api_keys.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/connectors.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
+  "--go-grpc_opt=Mproto/data/routing.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/search.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/session_submission.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/data/session_journal_entry.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
+  "--go-grpc_opt=Mproto/external/connectors.proto=${GO_MODULE}/talon/external"
   "--go-grpc_opt=Mproto/talon/v1/auth.proto=${GO_MODULE}/talon/v1"
   "--go-grpc_opt=Mproto/talon/v1/channels.proto=${GO_MODULE}/talon/v1"
   "--go-grpc_opt=Mproto/talon/v1/connectors.proto=${GO_MODULE}/talon/v1"

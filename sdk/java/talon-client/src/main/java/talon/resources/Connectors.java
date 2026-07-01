@@ -5315,7 +5315,7 @@ java.lang.String defaultValue);
      * Single Talon message consumer for messages that match this Connector.
      * </pre>
      *
-     * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+     * <code>.talon.data.MessageConsumer consumer = 4;</code>
      * @return Whether the consumer field is set.
      */
     boolean hasConsumer();
@@ -5324,18 +5324,18 @@ java.lang.String defaultValue);
      * Single Talon message consumer for messages that match this Connector.
      * </pre>
      *
-     * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+     * <code>.talon.data.MessageConsumer consumer = 4;</code>
      * @return The consumer.
      */
-    talon.resources.Routing.MessageConsumer getConsumer();
+    talon.data.Routing.MessageConsumer getConsumer();
     /**
      * <pre>
      * Single Talon message consumer for messages that match this Connector.
      * </pre>
      *
-     * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+     * <code>.talon.data.MessageConsumer consumer = 4;</code>
      */
-    talon.resources.Routing.MessageConsumerOrBuilder getConsumerOrBuilder();
+    talon.data.Routing.MessageConsumerOrBuilder getConsumerOrBuilder();
   }
   /**
    * Protobuf type {@code talon.resources.ConnectorSpec}
@@ -5558,13 +5558,13 @@ java.lang.String defaultValue) {
     }
 
     public static final int CONSUMER_FIELD_NUMBER = 4;
-    private talon.resources.Routing.MessageConsumer consumer_;
+    private talon.data.Routing.MessageConsumer consumer_;
     /**
      * <pre>
      * Single Talon message consumer for messages that match this Connector.
      * </pre>
      *
-     * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+     * <code>.talon.data.MessageConsumer consumer = 4;</code>
      * @return Whether the consumer field is set.
      */
     @java.lang.Override
@@ -5576,23 +5576,23 @@ java.lang.String defaultValue) {
      * Single Talon message consumer for messages that match this Connector.
      * </pre>
      *
-     * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+     * <code>.talon.data.MessageConsumer consumer = 4;</code>
      * @return The consumer.
      */
     @java.lang.Override
-    public talon.resources.Routing.MessageConsumer getConsumer() {
-      return consumer_ == null ? talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
+    public talon.data.Routing.MessageConsumer getConsumer() {
+      return consumer_ == null ? talon.data.Routing.MessageConsumer.getDefaultInstance() : consumer_;
     }
     /**
      * <pre>
      * Single Talon message consumer for messages that match this Connector.
      * </pre>
      *
-     * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+     * <code>.talon.data.MessageConsumer consumer = 4;</code>
      */
     @java.lang.Override
-    public talon.resources.Routing.MessageConsumerOrBuilder getConsumerOrBuilder() {
-      return consumer_ == null ? talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
+    public talon.data.Routing.MessageConsumerOrBuilder getConsumerOrBuilder() {
+      return consumer_ == null ? talon.data.Routing.MessageConsumer.getDefaultInstance() : consumer_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -6430,15 +6430,15 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.resources.Routing.MessageConsumer consumer_;
+      private talon.data.Routing.MessageConsumer consumer_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Routing.MessageConsumer, talon.resources.Routing.MessageConsumer.Builder, talon.resources.Routing.MessageConsumerOrBuilder> consumerBuilder_;
+          talon.data.Routing.MessageConsumer, talon.data.Routing.MessageConsumer.Builder, talon.data.Routing.MessageConsumerOrBuilder> consumerBuilder_;
       /**
        * <pre>
        * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+       * <code>.talon.data.MessageConsumer consumer = 4;</code>
        * @return Whether the consumer field is set.
        */
       public boolean hasConsumer() {
@@ -6449,12 +6449,12 @@ java.lang.String defaultValue) {
        * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+       * <code>.talon.data.MessageConsumer consumer = 4;</code>
        * @return The consumer.
        */
-      public talon.resources.Routing.MessageConsumer getConsumer() {
+      public talon.data.Routing.MessageConsumer getConsumer() {
         if (consumerBuilder_ == null) {
-          return consumer_ == null ? talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
+          return consumer_ == null ? talon.data.Routing.MessageConsumer.getDefaultInstance() : consumer_;
         } else {
           return consumerBuilder_.getMessage();
         }
@@ -6464,9 +6464,9 @@ java.lang.String defaultValue) {
        * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+       * <code>.talon.data.MessageConsumer consumer = 4;</code>
        */
-      public Builder setConsumer(talon.resources.Routing.MessageConsumer value) {
+      public Builder setConsumer(talon.data.Routing.MessageConsumer value) {
         if (consumerBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -6484,10 +6484,10 @@ java.lang.String defaultValue) {
        * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+       * <code>.talon.data.MessageConsumer consumer = 4;</code>
        */
       public Builder setConsumer(
-          talon.resources.Routing.MessageConsumer.Builder builderForValue) {
+          talon.data.Routing.MessageConsumer.Builder builderForValue) {
         if (consumerBuilder_ == null) {
           consumer_ = builderForValue.build();
         } else {
@@ -6502,13 +6502,13 @@ java.lang.String defaultValue) {
        * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+       * <code>.talon.data.MessageConsumer consumer = 4;</code>
        */
-      public Builder mergeConsumer(talon.resources.Routing.MessageConsumer value) {
+      public Builder mergeConsumer(talon.data.Routing.MessageConsumer value) {
         if (consumerBuilder_ == null) {
           if (((bitField0_ & 0x00000008) != 0) &&
             consumer_ != null &&
-            consumer_ != talon.resources.Routing.MessageConsumer.getDefaultInstance()) {
+            consumer_ != talon.data.Routing.MessageConsumer.getDefaultInstance()) {
             getConsumerBuilder().mergeFrom(value);
           } else {
             consumer_ = value;
@@ -6527,7 +6527,7 @@ java.lang.String defaultValue) {
        * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+       * <code>.talon.data.MessageConsumer consumer = 4;</code>
        */
       public Builder clearConsumer() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -6544,9 +6544,9 @@ java.lang.String defaultValue) {
        * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+       * <code>.talon.data.MessageConsumer consumer = 4;</code>
        */
-      public talon.resources.Routing.MessageConsumer.Builder getConsumerBuilder() {
+      public talon.data.Routing.MessageConsumer.Builder getConsumerBuilder() {
         bitField0_ |= 0x00000008;
         onChanged();
         return internalGetConsumerFieldBuilder().getBuilder();
@@ -6556,14 +6556,14 @@ java.lang.String defaultValue) {
        * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+       * <code>.talon.data.MessageConsumer consumer = 4;</code>
        */
-      public talon.resources.Routing.MessageConsumerOrBuilder getConsumerOrBuilder() {
+      public talon.data.Routing.MessageConsumerOrBuilder getConsumerOrBuilder() {
         if (consumerBuilder_ != null) {
           return consumerBuilder_.getMessageOrBuilder();
         } else {
           return consumer_ == null ?
-              talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
+              talon.data.Routing.MessageConsumer.getDefaultInstance() : consumer_;
         }
       }
       /**
@@ -6571,14 +6571,14 @@ java.lang.String defaultValue) {
        * Single Talon message consumer for messages that match this Connector.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 4;</code>
+       * <code>.talon.data.MessageConsumer consumer = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Routing.MessageConsumer, talon.resources.Routing.MessageConsumer.Builder, talon.resources.Routing.MessageConsumerOrBuilder>
+          talon.data.Routing.MessageConsumer, talon.data.Routing.MessageConsumer.Builder, talon.data.Routing.MessageConsumerOrBuilder>
           internalGetConsumerFieldBuilder() {
         if (consumerBuilder_ == null) {
           consumerBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Routing.MessageConsumer, talon.resources.Routing.MessageConsumer.Builder, talon.resources.Routing.MessageConsumerOrBuilder>(
+              talon.data.Routing.MessageConsumer, talon.data.Routing.MessageConsumer.Builder, talon.data.Routing.MessageConsumerOrBuilder>(
                   getConsumer(),
                   getParentForChildren(),
                   isClean());
@@ -10490,48 +10490,48 @@ java.lang.String defaultValue) {
   static {
     java.lang.String[] descriptorData = {
       "\n proto/resources/connectors.proto\022\017talo" +
-      "n.resources\032\022proto/config.proto\032\034proto/r" +
-      "esources/common.proto\032\035proto/resources/r" +
-      "outing.proto\";\n\031ConnectorClassRuntimeSpe" +
-      "c\022\014\n\004kind\030\001 \001(\t\022\020\n\010endpoint\030\002 \001(\t\"M\n\026Con" +
-      "nectorClassAuthSpec\022\014\n\004kind\030\001 \001(\t\022%\n\007api" +
-      "_key\030\002 \001(\0132\024.talon.config.Secret\"3\n\023Conn" +
-      "ectorMatchIndex\022\014\n\004name\030\001 \001(\t\022\016\n\006fields\030" +
-      "\002 \003(\t\"\327\001\n\022ConnectorClassSpec\022\020\n\010platform" +
-      "\030\001 \001(\t\022;\n\007runtime\030\002 \001(\0132*.talon.resource" +
-      "s.ConnectorClassRuntimeSpec\0225\n\004auth\030\003 \001(" +
-      "\0132\'.talon.resources.ConnectorClassAuthSp" +
-      "ec\022;\n\rmatch_indexes\030\004 \003(\0132$.talon.resour" +
-      "ces.ConnectorMatchIndex\"z\n\024ConnectorClas" +
-      "sStatus\022\033\n\023observed_generation\030\001 \001(\004\022\r\n\005" +
-      "phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\".talon." +
-      "resources.ResourceCondition\"\200\002\n\rConnecto" +
-      "rSpec\022/\n\tclass_ref\030\001 \001(\0132\034.talon.resourc" +
-      "es.ResourceRef\022\017\n\007enabled\030\002 \001(\010\022E\n\014match" +
-      "_fields\030\003 \003(\0132/.talon.resources.Connecto" +
-      "rSpec.MatchFieldsEntry\0222\n\010consumer\030\004 \001(\013" +
-      "2 .talon.resources.MessageConsumer\0322\n\020Ma" +
-      "tchFieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001" +
-      "(\t:\0028\001\"\221\001\n\017ConnectorStatus\022\033\n\023observed_g" +
-      "eneration\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\ncondit" +
-      "ions\030\003 \003(\0132\".talon.resources.ResourceCon" +
-      "dition\022\032\n\022compiled_route_ids\030\004 \003(\t\"\253\001\n\016C" +
-      "onnectorClass\022/\n\010metadata\030\001 \001(\0132\035.talon." +
-      "resources.ResourceMeta\0221\n\004spec\030\002 \001(\0132#.t" +
-      "alon.resources.ConnectorClassSpec\0225\n\006sta" +
-      "tus\030\003 \001(\0132%.talon.resources.ConnectorCla" +
-      "ssStatus\"\234\001\n\tConnector\022/\n\010metadata\030\001 \001(\013" +
-      "2\035.talon.resources.ResourceMeta\022,\n\004spec\030" +
-      "\002 \001(\0132\036.talon.resources.ConnectorSpec\0220\n" +
-      "\006status\030\003 \001(\0132 .talon.resources.Connecto" +
-      "rStatusb\006proto3"
+      "n.resources\032\022proto/config.proto\032\030proto/d" +
+      "ata/routing.proto\032\034proto/resources/commo" +
+      "n.proto\";\n\031ConnectorClassRuntimeSpec\022\014\n\004" +
+      "kind\030\001 \001(\t\022\020\n\010endpoint\030\002 \001(\t\"M\n\026Connecto" +
+      "rClassAuthSpec\022\014\n\004kind\030\001 \001(\t\022%\n\007api_key\030" +
+      "\002 \001(\0132\024.talon.config.Secret\"3\n\023Connector" +
+      "MatchIndex\022\014\n\004name\030\001 \001(\t\022\016\n\006fields\030\002 \003(\t" +
+      "\"\327\001\n\022ConnectorClassSpec\022\020\n\010platform\030\001 \001(" +
+      "\t\022;\n\007runtime\030\002 \001(\0132*.talon.resources.Con" +
+      "nectorClassRuntimeSpec\0225\n\004auth\030\003 \001(\0132\'.t" +
+      "alon.resources.ConnectorClassAuthSpec\022;\n" +
+      "\rmatch_indexes\030\004 \003(\0132$.talon.resources.C" +
+      "onnectorMatchIndex\"z\n\024ConnectorClassStat" +
+      "us\022\033\n\023observed_generation\030\001 \001(\004\022\r\n\005phase" +
+      "\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\".talon.resou" +
+      "rces.ResourceCondition\"\373\001\n\rConnectorSpec" +
+      "\022/\n\tclass_ref\030\001 \001(\0132\034.talon.resources.Re" +
+      "sourceRef\022\017\n\007enabled\030\002 \001(\010\022E\n\014match_fiel" +
+      "ds\030\003 \003(\0132/.talon.resources.ConnectorSpec" +
+      ".MatchFieldsEntry\022-\n\010consumer\030\004 \001(\0132\033.ta" +
+      "lon.data.MessageConsumer\0322\n\020MatchFieldsE" +
+      "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\221\001\n" +
+      "\017ConnectorStatus\022\033\n\023observed_generation\030" +
+      "\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\013" +
+      "2\".talon.resources.ResourceCondition\022\032\n\022" +
+      "compiled_route_ids\030\004 \003(\t\"\253\001\n\016ConnectorCl" +
+      "ass\022/\n\010metadata\030\001 \001(\0132\035.talon.resources." +
+      "ResourceMeta\0221\n\004spec\030\002 \001(\0132#.talon.resou" +
+      "rces.ConnectorClassSpec\0225\n\006status\030\003 \001(\0132" +
+      "%.talon.resources.ConnectorClassStatus\"\234" +
+      "\001\n\tConnector\022/\n\010metadata\030\001 \001(\0132\035.talon.r" +
+      "esources.ResourceMeta\022,\n\004spec\030\002 \001(\0132\036.ta" +
+      "lon.resources.ConnectorSpec\0220\n\006status\030\003 " +
+      "\001(\0132 .talon.resources.ConnectorStatusb\006p" +
+      "roto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           talon.config.Config.getDescriptor(),
+          talon.data.Routing.getDescriptor(),
           talon.resources.Common.getDescriptor(),
-          talon.resources.Routing.getDescriptor(),
         });
     internal_static_talon_resources_ConnectorClassRuntimeSpec_descriptor =
       getDescriptor().getMessageType(0);
@@ -10595,8 +10595,8 @@ java.lang.String defaultValue) {
         new java.lang.String[] { "Metadata", "Spec", "Status", });
     descriptor.resolveAllFeaturesImmutable();
     talon.config.Config.getDescriptor();
+    talon.data.Routing.getDescriptor();
     talon.resources.Common.getDescriptor();
-    talon.resources.Routing.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

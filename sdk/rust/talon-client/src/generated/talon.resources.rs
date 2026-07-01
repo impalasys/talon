@@ -1047,52 +1047,6 @@ pub struct Worker {
     pub status: ::core::option::Option<WorkerStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SessionMessageConsumer {
-    /// Agent that consumes matching messages through a Talon Session.
-    #[prost(message, optional, tag = "1")]
-    pub agent: ::core::option::Option<ResourceRef>,
-    /// Session continuity policy. "reuse" reuses the connector session pointer
-    /// for the external conversation/thread; any other value creates a new
-    /// Session for each message.
-    #[prost(string, tag = "2")]
-    pub continuity: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ChannelMessageConsumer {
-    /// Channel that receives matching messages before agent routing.
-    #[prost(message, optional, tag = "1")]
-    pub channel: ::core::option::Option<ResourceRef>,
-    /// Agent that consumes the persisted Channel message.
-    #[prost(message, optional, tag = "2")]
-    pub agent: ::core::option::Option<ResourceRef>,
-    /// Channel routing continuity policy. This is reserved for channel dispatch
-    /// policies that create agent runtime context per message or thread.
-    #[prost(string, tag = "3")]
-    pub continuity: ::prost::alloc::string::String,
-    /// Reply behavior requested from the connector-aware channel router, such as
-    /// replying in the provider thread instead of the root conversation.
-    #[prost(string, tag = "4")]
-    pub reply_policy: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct MessageConsumer {
-    #[prost(oneof = "message_consumer::Consumer", tags = "1, 2")]
-    pub consumer: ::core::option::Option<message_consumer::Consumer>,
-}
-/// Nested message and enum types in `MessageConsumer`.
-pub mod message_consumer {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Consumer {
-        /// Deliver matching messages directly to a Talon Session.
-        #[prost(message, tag = "1")]
-        Session(super::SessionMessageConsumer),
-        /// Persist matching messages into a Talon Channel, then route the message to
-        /// the configured Agent.
-        #[prost(message, tag = "2")]
-        Channel(super::ChannelMessageConsumer),
-    }
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorClassRuntimeSpec {
     /// Runtime implementation type, for example an HTTP connector service.
     #[prost(string, tag = "1")]
@@ -1172,7 +1126,7 @@ pub struct ConnectorSpec {
     >,
     /// Single Talon message consumer for messages that match this Connector.
     #[prost(message, optional, tag = "4")]
-    pub consumer: ::core::option::Option<MessageConsumer>,
+    pub consumer: ::core::option::Option<super::data::MessageConsumer>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorStatus {

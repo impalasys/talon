@@ -51,10 +51,13 @@ fn main() {
         root.join("proto/resources/resource.proto"),
         root.join("proto/harness/llm.proto"),
         root.join("proto/data/api_keys.proto"),
+        root.join("proto/data/connectors.proto"),
         root.join("proto/data/data.proto"),
+        root.join("proto/data/routing.proto"),
         root.join("proto/data/session_submission.proto"),
         root.join("proto/data/session_journal_entry.proto"),
         root.join("proto/events.proto"),
+        root.join("proto/external/connectors.proto"),
     ];
     protos.extend(v1_protos.iter().cloned());
     std::fs::create_dir_all(&out_dir).expect("create generated dir");
@@ -102,6 +105,7 @@ fn talon_v1_protos(root: &std::path::Path) -> Vec<PathBuf> {
         "knowledge.proto",
         "search.proto",
         "auth.proto",
+        "connectors.proto",
     ]
     .into_iter()
     .map(|file| root.join("proto/talon/v1").join(file))
@@ -281,6 +285,8 @@ fn rust_type_path(proto_type: &str) -> String {
         format!("crate::data::{rest}")
     } else if let Some(rest) = proto_type.strip_prefix("talon.events.") {
         format!("crate::events::{rest}")
+    } else if let Some(rest) = proto_type.strip_prefix("talon.external.") {
+        format!("crate::external::{rest}")
     } else if let Some(rest) = proto_type.strip_prefix("talon.resources.") {
         format!("crate::resources::{rest}")
     } else {

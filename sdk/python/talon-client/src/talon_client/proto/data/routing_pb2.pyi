@@ -7,12 +7,14 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class SessionMessageConsumer(_message.Message):
-    __slots__ = ("agent", "continuity")
+    __slots__ = ("agent", "session_id", "continuity")
     AGENT_FIELD_NUMBER: _ClassVar[int]
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     CONTINUITY_FIELD_NUMBER: _ClassVar[int]
     agent: _common_pb2.ResourceRef
+    session_id: str
     continuity: str
-    def __init__(self, agent: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ..., continuity: _Optional[str] = ...) -> None: ...
+    def __init__(self, agent: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ..., session_id: _Optional[str] = ..., continuity: _Optional[str] = ...) -> None: ...
 
 class ChannelMessageConsumer(_message.Message):
     __slots__ = ("channel", "agent", "continuity", "reply_policy")

@@ -84,7 +84,7 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
      * Snapshot of Connector.spec.consumer used by gateway dispatch.
      * </pre>
      *
-     * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+     * <code>.talon.data.MessageConsumer consumer = 3;</code>
      * @return Whether the consumer field is set.
      */
     boolean hasConsumer();
@@ -93,18 +93,18 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
      * Snapshot of Connector.spec.consumer used by gateway dispatch.
      * </pre>
      *
-     * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+     * <code>.talon.data.MessageConsumer consumer = 3;</code>
      * @return The consumer.
      */
-    talon.resources.Routing.MessageConsumer getConsumer();
+    talon.data.Routing.MessageConsumer getConsumer();
     /**
      * <pre>
      * Snapshot of Connector.spec.consumer used by gateway dispatch.
      * </pre>
      *
-     * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+     * <code>.talon.data.MessageConsumer consumer = 3;</code>
      */
-    talon.resources.Routing.MessageConsumerOrBuilder getConsumerOrBuilder();
+    talon.data.Routing.MessageConsumerOrBuilder getConsumerOrBuilder();
   }
   /**
    * Protobuf type {@code talon.data.Route}
@@ -238,13 +238,13 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     }
 
     public static final int CONSUMER_FIELD_NUMBER = 3;
-    private talon.resources.Routing.MessageConsumer consumer_;
+    private talon.data.Routing.MessageConsumer consumer_;
     /**
      * <pre>
      * Snapshot of Connector.spec.consumer used by gateway dispatch.
      * </pre>
      *
-     * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+     * <code>.talon.data.MessageConsumer consumer = 3;</code>
      * @return Whether the consumer field is set.
      */
     @java.lang.Override
@@ -256,23 +256,23 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
      * Snapshot of Connector.spec.consumer used by gateway dispatch.
      * </pre>
      *
-     * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+     * <code>.talon.data.MessageConsumer consumer = 3;</code>
      * @return The consumer.
      */
     @java.lang.Override
-    public talon.resources.Routing.MessageConsumer getConsumer() {
-      return consumer_ == null ? talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
+    public talon.data.Routing.MessageConsumer getConsumer() {
+      return consumer_ == null ? talon.data.Routing.MessageConsumer.getDefaultInstance() : consumer_;
     }
     /**
      * <pre>
      * Snapshot of Connector.spec.consumer used by gateway dispatch.
      * </pre>
      *
-     * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+     * <code>.talon.data.MessageConsumer consumer = 3;</code>
      */
     @java.lang.Override
-    public talon.resources.Routing.MessageConsumerOrBuilder getConsumerOrBuilder() {
-      return consumer_ == null ? talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
+    public talon.data.Routing.MessageConsumerOrBuilder getConsumerOrBuilder() {
+      return consumer_ == null ? talon.data.Routing.MessageConsumer.getDefaultInstance() : consumer_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -906,15 +906,15 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return connectorBuilder_;
       }
 
-      private talon.resources.Routing.MessageConsumer consumer_;
+      private talon.data.Routing.MessageConsumer consumer_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Routing.MessageConsumer, talon.resources.Routing.MessageConsumer.Builder, talon.resources.Routing.MessageConsumerOrBuilder> consumerBuilder_;
+          talon.data.Routing.MessageConsumer, talon.data.Routing.MessageConsumer.Builder, talon.data.Routing.MessageConsumerOrBuilder> consumerBuilder_;
       /**
        * <pre>
        * Snapshot of Connector.spec.consumer used by gateway dispatch.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+       * <code>.talon.data.MessageConsumer consumer = 3;</code>
        * @return Whether the consumer field is set.
        */
       public boolean hasConsumer() {
@@ -925,12 +925,12 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Snapshot of Connector.spec.consumer used by gateway dispatch.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+       * <code>.talon.data.MessageConsumer consumer = 3;</code>
        * @return The consumer.
        */
-      public talon.resources.Routing.MessageConsumer getConsumer() {
+      public talon.data.Routing.MessageConsumer getConsumer() {
         if (consumerBuilder_ == null) {
-          return consumer_ == null ? talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
+          return consumer_ == null ? talon.data.Routing.MessageConsumer.getDefaultInstance() : consumer_;
         } else {
           return consumerBuilder_.getMessage();
         }
@@ -940,9 +940,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Snapshot of Connector.spec.consumer used by gateway dispatch.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+       * <code>.talon.data.MessageConsumer consumer = 3;</code>
        */
-      public Builder setConsumer(talon.resources.Routing.MessageConsumer value) {
+      public Builder setConsumer(talon.data.Routing.MessageConsumer value) {
         if (consumerBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -960,10 +960,10 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Snapshot of Connector.spec.consumer used by gateway dispatch.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+       * <code>.talon.data.MessageConsumer consumer = 3;</code>
        */
       public Builder setConsumer(
-          talon.resources.Routing.MessageConsumer.Builder builderForValue) {
+          talon.data.Routing.MessageConsumer.Builder builderForValue) {
         if (consumerBuilder_ == null) {
           consumer_ = builderForValue.build();
         } else {
@@ -978,13 +978,13 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Snapshot of Connector.spec.consumer used by gateway dispatch.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+       * <code>.talon.data.MessageConsumer consumer = 3;</code>
        */
-      public Builder mergeConsumer(talon.resources.Routing.MessageConsumer value) {
+      public Builder mergeConsumer(talon.data.Routing.MessageConsumer value) {
         if (consumerBuilder_ == null) {
           if (((bitField0_ & 0x00000004) != 0) &&
             consumer_ != null &&
-            consumer_ != talon.resources.Routing.MessageConsumer.getDefaultInstance()) {
+            consumer_ != talon.data.Routing.MessageConsumer.getDefaultInstance()) {
             getConsumerBuilder().mergeFrom(value);
           } else {
             consumer_ = value;
@@ -1003,7 +1003,7 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Snapshot of Connector.spec.consumer used by gateway dispatch.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+       * <code>.talon.data.MessageConsumer consumer = 3;</code>
        */
       public Builder clearConsumer() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -1020,9 +1020,9 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Snapshot of Connector.spec.consumer used by gateway dispatch.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+       * <code>.talon.data.MessageConsumer consumer = 3;</code>
        */
-      public talon.resources.Routing.MessageConsumer.Builder getConsumerBuilder() {
+      public talon.data.Routing.MessageConsumer.Builder getConsumerBuilder() {
         bitField0_ |= 0x00000004;
         onChanged();
         return internalGetConsumerFieldBuilder().getBuilder();
@@ -1032,14 +1032,14 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Snapshot of Connector.spec.consumer used by gateway dispatch.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+       * <code>.talon.data.MessageConsumer consumer = 3;</code>
        */
-      public talon.resources.Routing.MessageConsumerOrBuilder getConsumerOrBuilder() {
+      public talon.data.Routing.MessageConsumerOrBuilder getConsumerOrBuilder() {
         if (consumerBuilder_ != null) {
           return consumerBuilder_.getMessageOrBuilder();
         } else {
           return consumer_ == null ?
-              talon.resources.Routing.MessageConsumer.getDefaultInstance() : consumer_;
+              talon.data.Routing.MessageConsumer.getDefaultInstance() : consumer_;
         }
       }
       /**
@@ -1047,14 +1047,14 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
        * Snapshot of Connector.spec.consumer used by gateway dispatch.
        * </pre>
        *
-       * <code>.talon.resources.MessageConsumer consumer = 3;</code>
+       * <code>.talon.data.MessageConsumer consumer = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Routing.MessageConsumer, talon.resources.Routing.MessageConsumer.Builder, talon.resources.Routing.MessageConsumerOrBuilder>
+          talon.data.Routing.MessageConsumer, talon.data.Routing.MessageConsumer.Builder, talon.data.Routing.MessageConsumerOrBuilder>
           internalGetConsumerFieldBuilder() {
         if (consumerBuilder_ == null) {
           consumerBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Routing.MessageConsumer, talon.resources.Routing.MessageConsumer.Builder, talon.resources.Routing.MessageConsumerOrBuilder>(
+              talon.data.Routing.MessageConsumer, talon.data.Routing.MessageConsumer.Builder, talon.data.Routing.MessageConsumerOrBuilder>(
                   getConsumer(),
                   getParentForChildren(),
                   isClean());
@@ -1129,18 +1129,17 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
   static {
     java.lang.String[] descriptorData = {
       "\n\033proto/data/connectors.proto\022\ntalon.dat" +
-      "a\032\034proto/resources/common.proto\032\035proto/r" +
-      "esources/routing.proto\"\203\001\n\005Route\022\025\n\rconn" +
-      "ector_uid\030\001 \001(\t\022/\n\tconnector\030\002 \001(\0132\034.tal" +
-      "on.resources.ResourceRef\0222\n\010consumer\030\003 \001" +
-      "(\0132 .talon.resources.MessageConsumerb\006pr" +
-      "oto3"
+      "a\032\034proto/resources/common.proto\032\030proto/d" +
+      "ata/routing.proto\"~\n\005Route\022\025\n\rconnector_" +
+      "uid\030\001 \001(\t\022/\n\tconnector\030\002 \001(\0132\034.talon.res" +
+      "ources.ResourceRef\022-\n\010consumer\030\003 \001(\0132\033.t" +
+      "alon.data.MessageConsumerb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           talon.resources.Common.getDescriptor(),
-          talon.resources.Routing.getDescriptor(),
+          talon.data.Routing.getDescriptor(),
         });
     internal_static_talon_data_Route_descriptor =
       getDescriptor().getMessageType(0);
@@ -1150,7 +1149,7 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         new java.lang.String[] { "ConnectorUid", "Connector", "Consumer", });
     descriptor.resolveAllFeaturesImmutable();
     talon.resources.Common.getDescriptor();
-    talon.resources.Routing.getDescriptor();
+    talon.data.Routing.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

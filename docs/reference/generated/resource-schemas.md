@@ -362,29 +362,6 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `reply_mode` | `string` | - |
 | `metadata` | `map<string, string>` | - |
 
-## `SessionMessageConsumer`
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `agent` | `ResourceRef` | Agent that consumes matching messages through a Talon Session. |
-| `continuity` | `string` | Session continuity policy. "reuse" reuses the connector session pointer for the external conversation/thread; any other value creates a new Session for each message. |
-
-## `ChannelMessageConsumer`
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `channel` | `ResourceRef` | Channel that receives matching messages before agent routing. |
-| `agent` | `ResourceRef` | Agent that consumes the persisted Channel message. |
-| `continuity` | `string` | Channel routing continuity policy. This is reserved for channel dispatch policies that create agent runtime context per message or thread. |
-| `reply_policy` | `string` | Reply behavior requested from the connector-aware channel router, such as replying in the provider thread instead of the root conversation. |
-
-## `MessageConsumer`
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `session` | `SessionMessageConsumer` | oneof (consumer) |
-| `channel` | `ChannelMessageConsumer` | oneof (consumer) |
-
 ## `ConnectorClassRuntimeSpec`
 
 | Field | Type | Notes |
@@ -430,7 +407,7 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `class_ref` | `ResourceRef` | ConnectorClass that owns the platform adapter and match index definitions. If namespace is empty, Talon resolves the class in the Connector's namespace. In v1, a non-empty namespace must match the Connector namespace; cross-namespace class references require a future policy/RBAC gate. |
 | `enabled` | `bool` | Disabled Connectors are not indexed for incoming message routing. |
 | `match_fields` | `map<string, string>` | Provider-specific route fields, such as Slack team/channel IDs or an iMessage profile identifier. Talon treats these as opaque keys described by the ConnectorClass match indexes. |
-| `consumer` | `MessageConsumer` | Single Talon message consumer for messages that match this Connector. |
+| `consumer` | `talon.data.MessageConsumer` | Single Talon message consumer for messages that match this Connector. |
 
 ## `ConnectorStatus`
 
@@ -985,3 +962,27 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `worker` | `WorkerStatus` | oneof (kind) |
 | `usage_policy` | `UsagePolicyStatus` | oneof (kind) |
 | `raw` | `RawResourceStatus` | oneof (kind) |
+
+## `SessionMessageConsumer`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `agent` | `talon.resources.ResourceRef` | Agent that consumes matching messages through a Talon Session. |
+| `session_id` | `string` | Existing Talon Session id to deliver matching messages into. The session is resolved under agent.namespace/name, with an empty agent namespace resolved relative to the owning Connector namespace. |
+| `continuity` | `string` | Session continuity policy. "reuse" reuses the connector session pointer for the external conversation/thread; "pinned" requires session_id; any other value creates a new Session for each message. |
+
+## `ChannelMessageConsumer`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `channel` | `talon.resources.ResourceRef` | Channel that receives matching messages before agent routing. |
+| `agent` | `talon.resources.ResourceRef` | Agent that consumes the persisted Channel message. |
+| `continuity` | `string` | Channel routing continuity policy. This is reserved for channel dispatch policies that create agent runtime context per message or thread. |
+| `reply_policy` | `string` | Reply behavior requested from the connector-aware channel router, such as replying in the provider thread instead of the root conversation. |
+
+## `MessageConsumer`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `session` | `SessionMessageConsumer` | oneof (consumer) |
+| `channel` | `ChannelMessageConsumer` | oneof (consumer) |

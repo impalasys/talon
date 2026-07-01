@@ -1,25 +1,30 @@
 syntax = "proto3";
 
-package talon.resources;
+package talon.data;
 
 import "proto/resources/common.proto";
 
 message SessionMessageConsumer {
   // Agent that consumes matching messages through a Talon Session.
-  ResourceRef agent = 1;
+  talon.resources.ResourceRef agent = 1;
+
+  // Existing Talon Session id to deliver matching messages into. The session
+  // is resolved under agent.namespace/name, with an empty agent namespace
+  // resolved relative to the owning Connector namespace.
+  string session_id = 2;
 
   // Session continuity policy. "reuse" reuses the connector session pointer
-  // for the external conversation/thread; any other value creates a new
-  // Session for each message.
-  string continuity = 2;
+  // for the external conversation/thread; "pinned" requires session_id; any
+  // other value creates a new Session for each message.
+  string continuity = 3;
 }
 
 message ChannelMessageConsumer {
   // Channel that receives matching messages before agent routing.
-  ResourceRef channel = 1;
+  talon.resources.ResourceRef channel = 1;
 
   // Agent that consumes the persisted Channel message.
-  ResourceRef agent = 2;
+  talon.resources.ResourceRef agent = 2;
 
   // Channel routing continuity policy. This is reserved for channel dispatch
   // policies that create agent runtime context per message or thread.

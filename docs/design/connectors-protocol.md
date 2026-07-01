@@ -403,6 +403,8 @@ Request:
   "namespace": "customer-acme",
   "connectorClass": "slack",
   "callbackBaseUrl": "https://talon.example.com/v1/connectors",
+  "callbackAuthKind": "bearer",
+  "callbackAuthKey": "<talon-callback-token>",
   "protocolVersion": "v1"
 }
 ```
@@ -411,12 +413,7 @@ Response:
 
 ```json
 {
-  "registrationId": "Namespace/customer-acme/ConnectorClass/slack",
-  "callbackAuth": {
-    "kind": "hmac-sha256",
-    "keyId": "key_1"
-  },
-  "status": "active"
+  "registrationId": "Namespace/customer-acme/ConnectorClass/slack"
 }
 ```
 
@@ -429,9 +426,9 @@ Field ownership:
 | `namespace` | Talon | Identifies the ConnectorClass namespace for this registration so the connector service does not infer Talon tenant/class from the API key. |
 | `connectorClass` | Talon | Identifies the ConnectorClass name for this registration and gives callbacks a stable consistency check. |
 | `callbackBaseUrl` | Talon | Tells the connector service where to send message and status callbacks. |
+| `callbackAuthKind` | Talon | Tells the connector service how to authenticate callbacks to Talon. |
+| `callbackAuthKey` | Talon | Callback authentication secret minted by Talon for this ConnectorClass registration. |
 | `protocolVersion` | Talon | Confirms the requested protocol contract. |
-| `callbackAuth` | Connector service | Describes how connector-to-Talon callbacks will be authenticated. |
-| `status` | Connector service | Lets Talon surface registration readiness. |
 
 ## Operator Setup Backend
 
@@ -481,6 +478,11 @@ cluster-level. Namespace routing happens in Talon by evaluating
 `Connector.spec.matchFields`.
 
 ## Talon Callback Protocol
+
+The canonical connector runtime contract lives in
+`proto/external/connectors.proto` (`talon.external`). Talon's
+`proto/talon/v1/connectors.proto` only defines the callback gRPC service and
+imports those external request/response messages.
 
 The connector runtime calls Talon under the registered `callbackBaseUrl`.
 
@@ -536,9 +538,26 @@ POST /v1/connectors/message-events
 Canonical event shape:
 
 ```proto
+// Authoritative schema: proto/external/connectors.proto
+enum ConnectorMessageEventKind {
+  CONNECTOR_MESSAGE_EVENT_KIND_UNSPECIFIED = 0;
+  CONNECTOR_MESSAGE_EVENT_KIND_CREATED = 1;
+  CONNECTOR_MESSAGE_EVENT_KIND_UPDATED = 2;
+  CONNECTOR_MESSAGE_EVENT_KIND_DELETED = 3;
+}
+
+enum ConnectorMessageEventStatus {
+  CONNECTOR_MESSAGE_EVENT_STATUS_UNSPECIFIED = 0;
+  CONNECTOR_MESSAGE_EVENT_STATUS_ACCEPTED = 1;
+  CONNECTOR_MESSAGE_EVENT_STATUS_DUPLICATE = 2;
+  CONNECTOR_MESSAGE_EVENT_STATUS_UNMATCHED = 3;
+  CONNECTOR_MESSAGE_EVENT_STATUS_IGNORED = 4;
+  CONNECTOR_MESSAGE_EVENT_STATUS_REJECTED = 5;
+}
+
 message ConnectorMessageEvent {
   string event_id = 1;
-  string event_kind = 2;
+  ConnectorMessageEventKind event_kind = 2;
   string registration_id = 3;
   string connector_class = 4;
   map<string, string> match_fields = 5;
@@ -546,11 +565,19 @@ message ConnectorMessageEvent {
   optional string external_thread_id = 7;
   string external_message_id = 8;
   string conversation_type = 9;
-  ConnectorActor sender = 10;
+  talon.data.Principal sender = 10;
   string text = 11;
-  repeated ConnectorAttachment attachments = 12;
+  repeated talon.data.ObjectRef attachments = 12;
   int64 event_time_ms = 13;
   map<string, string> labels = 14;
+}
+
+message ConnectorMessageEventResponse {
+  ConnectorMessageEventStatus status = 1;
+  string reason = 2;
+  string namespace = 4;
+  string connector_name = 5;
+  talon.data.MessageConsumer consumer = 6;
 }
 ```
 
@@ -559,7 +586,7 @@ Field ownership:
 | Field | Provided by | Why it exists |
 | --- | --- | --- |
 | `event_id` | Connector service/provider | Idempotency key. Talon deduplicates by `registrationId + eventId`. |
-| `event_kind` | Connector service | Distinguishes message create/edit/delete/reaction/delivery events. V1 may only process `message_created`. |
+| `event_kind` | Connector service | Normalized message lifecycle event. V1 primarily processes `CREATED`. |
 | `registration_id` | Connector service | Identifies which Talon registration the callback targets. |
 | `connector_class` | Connector service | Defensive consistency check against the ConnectorClass registration. |
 | `match_fields` | Provider, normalized by connector service | Provider-specific route fields such as Slack `teamId` or iMessage profile ID. Talon uses these fields to match Connector resources. |
@@ -567,9 +594,9 @@ Field ownership:
 | `external_thread_id` | Provider, normalized by connector service | Thread key where the provider supports threads. Optional for iMessage. |
 | `external_message_id` | Provider, normalized by connector service | Provider message ID used for reply, edit, delete, and delivery correlation. |
 | `conversation_type` | Connector service | Normalized route type: `dm`, `group`, `channel`, or `channel_thread`. |
-| `sender` | Connector service/provider | Lets Talon identify the human/bot/system sender without provider-specific parsing. |
+| `sender` | Connector service/provider | Reusable `Principal` identifying the human/bot/system sender without provider-specific parsing. |
 | `text` | Connector service/provider | Normalized text content delivered to the agent. |
-| `attachments` | Connector service/provider/Talon object store | Describes files and media without requiring Talon to understand every provider API. |
+| `attachments` | Connector service/provider/Talon object store | Durable Talon `ObjectRef`s. The connector service uploads provider attachments into Talon before ingestion. |
 | `event_time_ms` | Provider or connector service | Stable ordering and audit timestamp. |
 | `labels` | Connector service | Escape hatch for provider-specific routing hints without schema churn. |
 
@@ -600,6 +627,7 @@ state.
 Payload:
 
 ```proto
+// Authoritative schema: proto/external/connectors.proto
 message ConnectorDeliveryRequest {
   string delivery_id = 1;
   string registration_id = 2;
@@ -611,7 +639,7 @@ message ConnectorDeliveryRequest {
   optional string external_thread_id = 8;
   optional string reply_to_external_message_id = 9;
   string text = 10;
-  repeated ConnectorAttachment attachments = 11;
+  repeated talon.data.ObjectRef attachments = 11;
   map<string, string> labels = 12;
 }
 
@@ -726,6 +754,16 @@ consumer:
     continuity: reuse
 ```
 
+Example pinned Session consumer:
+
+```yaml
+consumer:
+  session:
+    agent:
+      name: marketing-agent
+    sessionId: 018f2f34-7c4c-7d22-9c0a-8a6633f6d3f7
+```
+
 Example Channel consumer:
 
 ```yaml
@@ -738,8 +776,10 @@ consumer:
     continuity: newPerMessage
 ```
 
-`continuity` should be explicit. It controls whether Talon reuses an existing
-runtime context or creates a new one for each message/thread.
+`continuity` should be explicit unless `sessionId` is set. `reuse` uses the
+connector-managed session pointer for the provider conversation/thread.
+`sessionId` pins the route to an existing Talon Session under the configured
+agent. Otherwise Talon creates a new Session for each message.
 
 ## Slack Connector
 
@@ -875,7 +915,7 @@ Suggested routing defaults:
    - `ConnectorClass`
    - `Connector`
 
-2. Add connector protocol messages:
+2. Add connector protocol messages in `proto/external/connectors.proto`:
    - `ConnectorMessageEvent`
    - `ConnectorDeliveryRequest`
    - `ConnectorDeliveryResponse`

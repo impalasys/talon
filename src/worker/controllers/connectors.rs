@@ -4,40 +4,14 @@
 use anyhow::{anyhow, bail, Context, Result};
 use jsonwebtoken::{EncodingKey, Header};
 use prost::Message;
-use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
 use crate::control::resources::ResourceStore;
 use crate::control::{keys, ControlPlane, KeyValueStore, ProtoKeyValueStoreExt};
-use crate::gateway::rpc::{data_proto, resources_proto};
+use crate::gateway::rpc::{data_proto, external_proto, resources_proto};
 
 const CONNECTOR_INDEX_FIELD_SEP: &str = "\x1f";
 const CONNECTOR_CALLBACK_TOKEN_TTL_SECONDS: u64 = 365 * 24 * 60 * 60;
-
-#[derive(Debug, Serialize)]
-struct RegisterClusterRequest {
-    #[serde(rename = "clusterId")]
-    cluster_id: String,
-    #[serde(rename = "registrationId")]
-    registration_id: String,
-    namespace: String,
-    #[serde(rename = "connectorClass")]
-    connector_class: String,
-    #[serde(rename = "callbackBaseUrl")]
-    callback_base_url: String,
-    #[serde(rename = "callbackAuthKind")]
-    callback_auth_kind: String,
-    #[serde(rename = "callbackAuthKey")]
-    callback_auth_key: String,
-    #[serde(rename = "protocolVersion")]
-    protocol_version: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct RegisterClusterResponse {
-    #[serde(rename = "registrationId")]
-    registration_id: Option<String>,
-}
 
 pub struct ConnectorController {
     store: ResourceStore,
@@ -566,18 +540,27 @@ fn connector_references_class(
 
 fn validate_consumer(
     connector_namespace: &str,
-    consumer: Option<&resources_proto::MessageConsumer>,
+    consumer: Option<&data_proto::MessageConsumer>,
 ) -> Result<()> {
     let consumer = consumer.ok_or_else(|| anyhow!("Connector spec.consumer is required"))?;
     match consumer.consumer.as_ref() {
-        Some(resources_proto::message_consumer::Consumer::Session(session)) => {
+        Some(data_proto::message_consumer::Consumer::Session(session)) => {
             let agent = session
                 .agent
                 .as_ref()
                 .ok_or_else(|| anyhow!("Connector session consumer requires agent"))?;
             validate_local_ref(connector_namespace, "session consumer agent", agent)?;
+            if !session.session_id.trim().is_empty() {
+                if !session.continuity.trim().is_empty()
+                    && !session.continuity.eq_ignore_ascii_case("pinned")
+                {
+                    bail!("Connector session consumer sessionId requires pinned continuity");
+                }
+            } else if session.continuity.eq_ignore_ascii_case("pinned") {
+                bail!("Connector session consumer pinned continuity requires sessionId");
+            }
         }
-        Some(resources_proto::message_consumer::Consumer::Channel(channel)) => {
+        Some(data_proto::message_consumer::Consumer::Channel(channel)) => {
             let channel_ref = channel
                 .channel
                 .as_ref()
@@ -666,7 +649,7 @@ async fn register_connector_class(
     let response = reqwest::Client::new()
         .post(url)
         .bearer_auth(api_key)
-        .json(&RegisterClusterRequest {
+        .json(&external_proto::RegisterClusterRequest {
             cluster_id,
             registration_id: registration_id.to_string(),
             namespace: class_namespace.to_string(),
@@ -686,7 +669,7 @@ async fn register_connector_class(
         );
     }
     let body = response
-        .json::<RegisterClusterResponse>()
+        .json::<external_proto::RegisterClusterResponse>()
         .await
         .context("failed to decode connector runtime registration response")?;
     if let Some(returned_registration_id) = body

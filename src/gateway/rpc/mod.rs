@@ -27,6 +27,9 @@ pub mod generated {
     pub mod harness {
         tonic::include_proto!("talon.harness");
     }
+    pub mod external {
+        tonic::include_proto!("talon.external");
+    }
     pub mod events {
         pub use crate::control::events::*;
     }
@@ -52,6 +55,9 @@ pub mod generated {
     pub mod harness {
         pub use talon_harness_proto::talon::harness::*;
     }
+    pub mod external {
+        pub use talon_external_proto::talon::external::*;
+    }
     pub mod resources {
         pub use talon_resources_proto::talon::resources::*;
     }
@@ -73,6 +79,10 @@ pub mod data_proto {
 
 pub mod harness_proto {
     pub use super::generated::harness::*;
+}
+
+pub mod external_proto {
+    pub use super::generated::external::*;
 }
 
 pub mod resources_proto {
@@ -239,16 +249,19 @@ impl proto::resource_service_server::ResourceService for GrpcGatewayHandler {
 impl proto::connector_service_server::ConnectorService for GrpcGatewayHandler {
     async fn ingest_message_event(
         &self,
-        req: tonic::Request<proto::ConnectorMessageEvent>,
-    ) -> std::result::Result<tonic::Response<proto::ConnectorMessageEventResponse>, tonic::Status>
-    {
+        req: tonic::Request<external_proto::ConnectorMessageEvent>,
+    ) -> std::result::Result<
+        tonic::Response<external_proto::ConnectorMessageEventResponse>,
+        tonic::Status,
+    > {
         self.handle_ingest_connector_message_event(req).await
     }
 
     async fn report_status(
         &self,
-        req: tonic::Request<proto::ConnectorStatusEvent>,
-    ) -> std::result::Result<tonic::Response<proto::ConnectorAckResponse>, tonic::Status> {
+        req: tonic::Request<external_proto::ConnectorStatusEvent>,
+    ) -> std::result::Result<tonic::Response<external_proto::ConnectorAckResponse>, tonic::Status>
+    {
         self.handle_report_connector_status(req).await
     }
 }

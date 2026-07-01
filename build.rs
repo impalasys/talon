@@ -17,7 +17,6 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.AgentStatus",
         ".talon.resources.Channel",
         ".talon.resources.ChannelContextPolicy",
-        ".talon.resources.ChannelMessageConsumer",
         ".talon.resources.ChannelSpec",
         ".talon.resources.ChannelStatus",
         ".talon.resources.ChannelSubscription",
@@ -89,7 +88,6 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.ScheduleSpec",
         ".talon.resources.ScheduleStatus",
         ".talon.resources.ScheduleTarget",
-        ".talon.resources.SessionMessageConsumer",
         ".talon.resources.SessionSpec",
         ".talon.resources.Session",
         ".talon.resources.SessionStatus",
@@ -117,13 +115,16 @@ fn main() -> std::io::Result<()> {
         ".talon.data.ChannelMessage",
         ".talon.data.ApiKeyGrant",
         ".talon.data.ApiKeyRecord",
+        ".talon.data.ChannelMessageConsumer",
         ".talon.data.Document",
         ".talon.data.DocumentRef",
         ".talon.data.DocumentSource",
         ".talon.data.Knowledge",
         ".talon.data.KnowledgeSearchResult",
         ".talon.data.ObjectRef",
+        ".talon.data.Principal",
         ".talon.data.Route",
+        ".talon.data.SessionMessageConsumer",
         ".talon.data.Session",
         ".talon.data.SessionMessage",
         ".talon.data.SessionMessagePart",
@@ -145,13 +146,22 @@ fn main() -> std::io::Result<()> {
         ".talon.data.WorkflowRunEvent",
         ".talon.data.WorkflowStepRun",
         ".talon.events.WorkflowDispatchEvent",
+        ".talon.external.ConnectorActivityRequest",
+        ".talon.external.ConnectorAckResponse",
+        ".talon.external.ConnectorDeliveryRequest",
+        ".talon.external.ConnectorDeliveryResponse",
+        ".talon.external.ConnectorMessageEvent",
+        ".talon.external.ConnectorMessageEventResponse",
+        ".talon.external.ConnectorStatusEvent",
+        ".talon.external.RegisterClusterRequest",
+        ".talon.external.RegisterClusterResponse",
     ];
     let serde_derive_only_types = [
         ".talon.config.Secret",
         ".talon.config.Secret.Source",
         ".talon.config.SecretRef",
-        ".talon.resources.MessageConsumer",
-        ".talon.resources.MessageConsumer.Consumer",
+        ".talon.data.MessageConsumer",
+        ".talon.data.MessageConsumer.Consumer",
         ".talon.resources.ConnectionRef",
         ".talon.resources.ResourceSpec",
         ".talon.resources.ResourceStatus",
@@ -175,6 +185,27 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.AgentSpec.capabilities",
         "#[serde(with = \"crate::control::manifest::capabilities_policy_serde\", default)]",
     );
+    builder = builder
+        .field_attribute(
+            ".talon.external.RegisterClusterResponse.registration_id",
+            "#[serde(skip_serializing_if = \"Option::is_none\")]",
+        )
+        .field_attribute(
+            ".talon.external.ConnectorMessageEvent.external_thread_id",
+            "#[serde(skip_serializing_if = \"Option::is_none\")]",
+        )
+        .field_attribute(
+            ".talon.external.ConnectorDeliveryRequest.external_thread_id",
+            "#[serde(skip_serializing_if = \"Option::is_none\")]",
+        )
+        .field_attribute(
+            ".talon.external.ConnectorDeliveryRequest.reply_to_external_message_id",
+            "#[serde(skip_serializing_if = \"Option::is_none\")]",
+        )
+        .field_attribute(
+            ".talon.external.ConnectorActivityRequest.external_thread_id",
+            "#[serde(skip_serializing_if = \"Option::is_none\")]",
+        );
     builder.compile_protos(
         &[
             "proto/config.proto",
@@ -184,7 +215,6 @@ fn main() -> std::io::Result<()> {
             "proto/resources/knowledge.proto",
             "proto/resources/namespaces.proto",
             "proto/resources/channels.proto",
-            "proto/resources/routing.proto",
             "proto/resources/connectors.proto",
             "proto/resources/schedules.proto",
             "proto/resources/workflows.proto",
@@ -199,10 +229,12 @@ fn main() -> std::io::Result<()> {
             "proto/data/api_keys.proto",
             "proto/data/connectors.proto",
             "proto/data/data.proto",
+            "proto/data/routing.proto",
             "proto/data/search.proto",
             "proto/data/session_submission.proto",
             "proto/data/session_journal_entry.proto",
             "proto/events.proto",
+            "proto/external/connectors.proto",
             "proto/talon/v1/auth.proto",
             "proto/talon/v1/channels.proto",
             "proto/talon/v1/connectors.proto",

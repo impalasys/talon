@@ -70,6 +70,27 @@ class ObjectRef(_message.Message):
     metadata: _containers.ScalarMap[str, str]
     def __init__(self, key: _Optional[str] = ..., media_type: _Optional[str] = ..., size_bytes: _Optional[int] = ..., sha256: _Optional[str] = ..., filename: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
+class Principal(_message.Message):
+    __slots__ = ("external_id", "address", "display_name", "kind", "metadata")
+    class MetadataEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    EXTERNAL_ID_FIELD_NUMBER: _ClassVar[int]
+    ADDRESS_FIELD_NUMBER: _ClassVar[int]
+    DISPLAY_NAME_FIELD_NUMBER: _ClassVar[int]
+    KIND_FIELD_NUMBER: _ClassVar[int]
+    METADATA_FIELD_NUMBER: _ClassVar[int]
+    external_id: str
+    address: str
+    display_name: str
+    kind: str
+    metadata: _containers.ScalarMap[str, str]
+    def __init__(self, external_id: _Optional[str] = ..., address: _Optional[str] = ..., display_name: _Optional[str] = ..., kind: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
+
 class SessionMessagePart(_message.Message):
     __slots__ = ("id", "part_type", "content", "name", "payload_json", "created_at", "object")
     ID_FIELD_NUMBER: _ClassVar[int]

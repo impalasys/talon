@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
+use super::{data_proto, external_proto, proto, resources_proto, GrpcGatewayHandler};
 use crate::control::resource_model::{
     ChannelResourceExt, ChannelSubscriptionResourceExt, TypedResource,
 };
@@ -12,7 +12,6 @@ use crate::control::{MessagePublisher, ProtoKeyValueStoreExt};
 use anyhow::Context;
 use futures::StreamExt;
 use prost::Message;
-use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
@@ -37,40 +36,6 @@ const LABEL_EXTERNAL_CONVERSATION: &str = "talon.impalasys.com/external-conversa
 const CONNECTOR_HTTP_TIMEOUT: Duration = Duration::from_secs(15);
 const LABEL_EXTERNAL_MESSAGE: &str = "talon.impalasys.com/external-message";
 const LABEL_EXTERNAL_THREAD: &str = "talon.impalasys.com/external-thread";
-
-#[derive(Debug, Serialize)]
-struct ConnectorDeliveryRequest {
-    #[serde(rename = "deliveryId")]
-    delivery_id: String,
-    #[serde(rename = "registrationId")]
-    registration_id: String,
-    #[serde(rename = "connectorClass")]
-    connector_class: String,
-    namespace: String,
-    #[serde(rename = "connectorName")]
-    connector_name: String,
-    #[serde(rename = "matchFields")]
-    match_fields: HashMap<String, String>,
-    #[serde(rename = "externalConversationId")]
-    external_conversation_id: String,
-    #[serde(rename = "externalThreadId", skip_serializing_if = "Option::is_none")]
-    external_thread_id: Option<String>,
-    #[serde(
-        rename = "replyToExternalMessageId",
-        skip_serializing_if = "Option::is_none"
-    )]
-    reply_to_external_message_id: Option<String>,
-    text: String,
-    attachments: Vec<serde_json::Value>,
-    labels: HashMap<String, String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ConnectorDeliveryResponse {
-    accepted: bool,
-    disposition: String,
-    error: String,
-}
 
 fn validate_resource_name(kind: &str, name: &str) -> Result<(), tonic::Status> {
     if name.trim().is_empty() {
@@ -406,7 +371,7 @@ async fn deliver_connector_channel_message(
     let response = connector_http_client()?
         .post(url)
         .bearer_auth(api_key)
-        .json(&ConnectorDeliveryRequest {
+        .json(&external_proto::ConnectorDeliveryRequest {
             delivery_id: message.id.clone(),
             registration_id: registration_id.to_string(),
             connector_class: connector_class.to_string(),
@@ -425,7 +390,7 @@ async fn deliver_connector_channel_message(
         .context("failed to submit connector delivery")?;
     let status = response.status();
     let body = response
-        .json::<ConnectorDeliveryResponse>()
+        .json::<external_proto::ConnectorDeliveryResponse>()
         .await
         .context("failed to decode connector delivery response")?;
     if !status.is_success() || !body.accepted {

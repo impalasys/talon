@@ -30,7 +30,7 @@ type Route struct {
 	// Namespace/name of the Connector resource that produced this route.
 	Connector *resources.ResourceRef `protobuf:"bytes,2,opt,name=connector,proto3" json:"connector,omitempty"`
 	// Snapshot of Connector.spec.consumer used by gateway dispatch.
-	Consumer      *resources.MessageConsumer `protobuf:"bytes,3,opt,name=consumer,proto3" json:"consumer,omitempty"`
+	Consumer      *MessageConsumer `protobuf:"bytes,3,opt,name=consumer,proto3" json:"consumer,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -79,7 +79,7 @@ func (x *Route) GetConnector() *resources.ResourceRef {
 	return nil
 }
 
-func (x *Route) GetConsumer() *resources.MessageConsumer {
+func (x *Route) GetConsumer() *MessageConsumer {
 	if x != nil {
 		return x.Consumer
 	}
@@ -91,11 +91,11 @@ var File_proto_data_connectors_proto protoreflect.FileDescriptor
 const file_proto_data_connectors_proto_rawDesc = "" +
 	"\n" +
 	"\x1bproto/data/connectors.proto\x12\n" +
-	"talon.data\x1a\x1cproto/resources/common.proto\x1a\x1dproto/resources/routing.proto\"\xa6\x01\n" +
+	"talon.data\x1a\x1cproto/resources/common.proto\x1a\x18proto/data/routing.proto\"\xa1\x01\n" +
 	"\x05Route\x12#\n" +
 	"\rconnector_uid\x18\x01 \x01(\tR\fconnectorUid\x12:\n" +
-	"\tconnector\x18\x02 \x01(\v2\x1c.talon.resources.ResourceRefR\tconnector\x12<\n" +
-	"\bconsumer\x18\x03 \x01(\v2 .talon.resources.MessageConsumerR\bconsumerb\x06proto3"
+	"\tconnector\x18\x02 \x01(\v2\x1c.talon.resources.ResourceRefR\tconnector\x127\n" +
+	"\bconsumer\x18\x03 \x01(\v2\x1b.talon.data.MessageConsumerR\bconsumerb\x06proto3"
 
 var (
 	file_proto_data_connectors_proto_rawDescOnce sync.Once
@@ -111,13 +111,13 @@ func file_proto_data_connectors_proto_rawDescGZIP() []byte {
 
 var file_proto_data_connectors_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_proto_data_connectors_proto_goTypes = []any{
-	(*Route)(nil),                     // 0: talon.data.Route
-	(*resources.ResourceRef)(nil),     // 1: talon.resources.ResourceRef
-	(*resources.MessageConsumer)(nil), // 2: talon.resources.MessageConsumer
+	(*Route)(nil),                 // 0: talon.data.Route
+	(*resources.ResourceRef)(nil), // 1: talon.resources.ResourceRef
+	(*MessageConsumer)(nil),       // 2: talon.data.MessageConsumer
 }
 var file_proto_data_connectors_proto_depIdxs = []int32{
 	1, // 0: talon.data.Route.connector:type_name -> talon.resources.ResourceRef
-	2, // 1: talon.data.Route.consumer:type_name -> talon.resources.MessageConsumer
+	2, // 1: talon.data.Route.consumer:type_name -> talon.data.MessageConsumer
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
@@ -130,6 +130,7 @@ func file_proto_data_connectors_proto_init() {
 	if File_proto_data_connectors_proto != nil {
 		return
 	}
+	file_proto_data_routing_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

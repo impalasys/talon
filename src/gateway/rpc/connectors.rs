@@ -1,14 +1,13 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
+use super::{data_proto, external_proto, resources_proto, GrpcGatewayHandler};
 use crate::control::resource_model::ChannelResourceExt;
 use crate::control::resources::ResourceStore;
 use crate::control::scheduling;
 use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
 use crate::worker::controllers::connectors;
 use anyhow::Context;
-use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::time::Duration;
@@ -33,69 +32,11 @@ struct ConnectorClassRegistration {
     spec: resources_proto::ConnectorClassSpec,
 }
 
-#[derive(Debug, Serialize)]
-struct ConnectorDeliveryRequest {
-    #[serde(rename = "deliveryId")]
-    delivery_id: String,
-    #[serde(rename = "registrationId")]
-    registration_id: String,
-    #[serde(rename = "connectorClass")]
-    connector_class: String,
-    namespace: String,
-    #[serde(rename = "connectorName")]
-    connector_name: String,
-    #[serde(rename = "matchFields")]
-    match_fields: HashMap<String, String>,
-    #[serde(rename = "externalConversationId")]
-    external_conversation_id: String,
-    #[serde(rename = "externalThreadId", skip_serializing_if = "Option::is_none")]
-    external_thread_id: Option<String>,
-    #[serde(
-        rename = "replyToExternalMessageId",
-        skip_serializing_if = "Option::is_none"
-    )]
-    reply_to_external_message_id: Option<String>,
-    text: String,
-    attachments: Vec<serde_json::Value>,
-    labels: HashMap<String, String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ConnectorDeliveryResponse {
-    accepted: bool,
-    disposition: String,
-    error: String,
-}
-
-#[derive(Debug, Serialize)]
-struct ConnectorActivityRequest {
-    #[serde(rename = "activityId")]
-    activity_id: String,
-    #[serde(rename = "registrationId")]
-    registration_id: String,
-    #[serde(rename = "connectorClass")]
-    connector_class: String,
-    namespace: String,
-    #[serde(rename = "connectorName")]
-    connector_name: String,
-    #[serde(rename = "matchFields")]
-    match_fields: HashMap<String, String>,
-    #[serde(rename = "externalConversationId")]
-    external_conversation_id: String,
-    #[serde(rename = "externalThreadId", skip_serializing_if = "Option::is_none")]
-    external_thread_id: Option<String>,
-    kind: String,
-    phase: String,
-    #[serde(rename = "statusText")]
-    status_text: String,
-    labels: HashMap<String, String>,
-}
-
 impl GrpcGatewayHandler {
     pub async fn handle_ingest_connector_message_event(
         &self,
-        req: tonic::Request<proto::ConnectorMessageEvent>,
-    ) -> Result<tonic::Response<proto::ConnectorMessageEventResponse>, tonic::Status> {
+        req: tonic::Request<external_proto::ConnectorMessageEvent>,
+    ) -> Result<tonic::Response<external_proto::ConnectorMessageEventResponse>, tonic::Status> {
         let event = req.into_inner();
         if event.registration_id.trim().is_empty() {
             return Err(tonic::Status::invalid_argument(
@@ -105,9 +46,9 @@ impl GrpcGatewayHandler {
         if event.event_id.trim().is_empty() {
             return Err(tonic::Status::invalid_argument("event_id is required"));
         }
-        if !event.event_kind.trim().is_empty() && event.event_kind != "message_created" {
+        if event.event_kind != external_proto::ConnectorMessageEventKind::Created as i32 {
             return Err(tonic::Status::invalid_argument(format!(
-                "unsupported connector event_kind '{}'",
+                "unsupported connector event_kind {}",
                 event.event_kind
             )));
         }
@@ -124,14 +65,15 @@ impl GrpcGatewayHandler {
             .await
             .map_err(internal_error)?
         {
-            return Ok(tonic::Response::new(proto::ConnectorMessageEventResponse {
-                accepted: true,
-                duplicate: true,
-                disposition: "duplicate".to_string(),
-                namespace: String::new(),
-                connector_name: String::new(),
-                consumer: None,
-            }));
+            return Ok(tonic::Response::new(
+                external_proto::ConnectorMessageEventResponse {
+                    status: external_proto::ConnectorMessageEventStatus::Duplicate as i32,
+                    reason: String::new(),
+                    namespace: String::new(),
+                    connector_name: String::new(),
+                    consumer: None,
+                },
+            ));
         }
 
         let Some(route) = connectors::resolve_route(
@@ -155,14 +97,15 @@ impl GrpcGatewayHandler {
                 .set(&event_key, b"unmatched")
                 .await
                 .map_err(internal_error)?;
-            return Ok(tonic::Response::new(proto::ConnectorMessageEventResponse {
-                accepted: false,
-                duplicate: false,
-                disposition: "unmatched".to_string(),
-                namespace: String::new(),
-                connector_name: String::new(),
-                consumer: None,
-            }));
+            return Ok(tonic::Response::new(
+                external_proto::ConnectorMessageEventResponse {
+                    status: external_proto::ConnectorMessageEventStatus::Unmatched as i32,
+                    reason: "unmatched".to_string(),
+                    namespace: String::new(),
+                    connector_name: String::new(),
+                    consumer: None,
+                },
+            ));
         };
 
         let consumer = route
@@ -191,20 +134,21 @@ impl GrpcGatewayHandler {
             .map_err(internal_error)?;
 
         let connector = route_connector_ref(&route)?;
-        Ok(tonic::Response::new(proto::ConnectorMessageEventResponse {
-            accepted: true,
-            duplicate: false,
-            disposition: "dispatched".to_string(),
-            namespace: connector.namespace.clone(),
-            connector_name: connector.name.clone(),
-            consumer: Some(consumer),
-        }))
+        Ok(tonic::Response::new(
+            external_proto::ConnectorMessageEventResponse {
+                status: external_proto::ConnectorMessageEventStatus::Accepted as i32,
+                reason: String::new(),
+                namespace: connector.namespace.clone(),
+                connector_name: connector.name.clone(),
+                consumer: Some(consumer),
+            },
+        ))
     }
 
     pub async fn handle_report_connector_status(
         &self,
-        req: tonic::Request<proto::ConnectorStatusEvent>,
-    ) -> Result<tonic::Response<proto::ConnectorAckResponse>, tonic::Status> {
+        req: tonic::Request<external_proto::ConnectorStatusEvent>,
+    ) -> Result<tonic::Response<external_proto::ConnectorAckResponse>, tonic::Status> {
         let status = req.into_inner();
         if status.registration_id.trim().is_empty() {
             return Err(tonic::Status::invalid_argument(
@@ -217,7 +161,7 @@ impl GrpcGatewayHandler {
             reason = %status.reason,
             "connector status event received"
         );
-        Ok(tonic::Response::new(proto::ConnectorAckResponse {
+        Ok(tonic::Response::new(external_proto::ConnectorAckResponse {
             accepted: true,
             disposition: "accepted".to_string(),
         }))
@@ -313,7 +257,7 @@ pub async fn deliver_connector_session_message(
     let response = connector_http_client()?
         .post(url)
         .bearer_auth(api_key)
-        .json(&ConnectorDeliveryRequest {
+        .json(&external_proto::ConnectorDeliveryRequest {
             delivery_id: message.id.clone(),
             registration_id: registration_id.to_string(),
             connector_class: connector_class.to_string(),
@@ -336,7 +280,7 @@ pub async fn deliver_connector_session_message(
         .context("failed to submit connector delivery")?;
     let status = response.status();
     let body = response
-        .json::<ConnectorDeliveryResponse>()
+        .json::<external_proto::ConnectorDeliveryResponse>()
         .await
         .context("failed to decode connector delivery response")?;
     if !status.is_success() || !body.accepted {
@@ -380,7 +324,7 @@ pub async fn send_connector_session_activity(
     let response = connector_http_client()?
         .post(format!("{}/v1/activities", runtime_endpoint))
         .bearer_auth(api_key)
-        .json(&ConnectorActivityRequest {
+        .json(&external_proto::ConnectorActivityRequest {
             activity_id: activity_id.to_string(),
             registration_id: registration_id.to_string(),
             connector_class: connector_class.to_string(),
@@ -403,7 +347,7 @@ pub async fn send_connector_session_activity(
         .context("failed to submit connector activity")?;
     let status = response.status();
     let body = response
-        .json::<ConnectorDeliveryResponse>()
+        .json::<external_proto::ConnectorDeliveryResponse>()
         .await
         .context("failed to decode connector activity response")?;
     if !status.is_success() || !body.accepted {
@@ -552,14 +496,14 @@ fn consumer_ref_name<'a>(
 async fn dispatch_connector_message(
     cp: &ControlPlane,
     route: &data_proto::Route,
-    consumer: &resources_proto::MessageConsumer,
-    event: &proto::ConnectorMessageEvent,
+    consumer: &data_proto::MessageConsumer,
+    event: &external_proto::ConnectorMessageEvent,
 ) -> Result<(), tonic::Status> {
     match consumer.consumer.as_ref() {
-        Some(resources_proto::message_consumer::Consumer::Session(session)) => {
+        Some(data_proto::message_consumer::Consumer::Session(session)) => {
             dispatch_to_session(cp, route, session, event).await
         }
-        Some(resources_proto::message_consumer::Consumer::Channel(channel)) => {
+        Some(data_proto::message_consumer::Consumer::Channel(channel)) => {
             dispatch_to_channel(cp, route, channel, event).await
         }
         None => Err(tonic::Status::failed_precondition(
@@ -571,8 +515,8 @@ async fn dispatch_connector_message(
 async fn dispatch_to_session(
     cp: &ControlPlane,
     route: &data_proto::Route,
-    consumer: &resources_proto::SessionMessageConsumer,
-    event: &proto::ConnectorMessageEvent,
+    consumer: &data_proto::SessionMessageConsumer,
+    event: &external_proto::ConnectorMessageEvent,
 ) -> Result<(), tonic::Status> {
     let connector = route_connector_ref(route)?;
     let agent = consumer
@@ -611,8 +555,8 @@ async fn dispatch_to_session(
 async fn dispatch_to_channel(
     cp: &ControlPlane,
     route: &data_proto::Route,
-    consumer: &resources_proto::ChannelMessageConsumer,
-    event: &proto::ConnectorMessageEvent,
+    consumer: &data_proto::ChannelMessageConsumer,
+    event: &external_proto::ConnectorMessageEvent,
 ) -> Result<(), tonic::Status> {
     let connector = route_connector_ref(route)?;
     let channel_ref = consumer
@@ -677,13 +621,28 @@ async fn dispatch_to_channel(
 async fn connector_session_id(
     cp: &ControlPlane,
     route: &data_proto::Route,
-    consumer: &resources_proto::SessionMessageConsumer,
+    consumer: &data_proto::SessionMessageConsumer,
     agent_namespace: &str,
     agent_name: &str,
-    event: &proto::ConnectorMessageEvent,
+    event: &external_proto::ConnectorMessageEvent,
     labels: HashMap<String, String>,
 ) -> Result<String, tonic::Status> {
-    if consumer.continuity.eq_ignore_ascii_case("reuse") {
+    if !consumer.session_id.trim().is_empty() {
+        if !consumer.continuity.trim().is_empty()
+            && !consumer.continuity.eq_ignore_ascii_case("pinned")
+        {
+            return Err(tonic::Status::failed_precondition(
+                "Session consumer session_id requires pinned continuity",
+            ));
+        }
+        ensure_connector_session_exists(cp, agent_namespace, agent_name, &consumer.session_id)
+            .await?;
+        Ok(consumer.session_id.clone())
+    } else if consumer.continuity.eq_ignore_ascii_case("pinned") {
+        Err(tonic::Status::failed_precondition(
+            "Session consumer pinned continuity requires session_id",
+        ))
+    } else if consumer.continuity.eq_ignore_ascii_case("reuse") {
         let (class_namespace, class_name) =
             keys::parse_connector_registration_id(&event.registration_id)
                 .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
@@ -732,11 +691,31 @@ async fn connector_session_id(
     }
 }
 
+async fn ensure_connector_session_exists(
+    cp: &ControlPlane,
+    agent_namespace: &str,
+    agent_name: &str,
+    session_id: &str,
+) -> Result<(), tonic::Status> {
+    if cp
+        .kv
+        .get(&keys::session(agent_namespace, agent_name, session_id))
+        .await
+        .map_err(internal_error)?
+        .is_none()
+    {
+        return Err(tonic::Status::not_found(
+            "Connector pinned Session consumer session not found",
+        ));
+    }
+    Ok(())
+}
+
 fn connector_session_pointer_name(
     route: &data_proto::Route,
     agent_namespace: &str,
     agent_name: &str,
-    event: &proto::ConnectorMessageEvent,
+    event: &external_proto::ConnectorMessageEvent,
 ) -> Result<String, tonic::Status> {
     let connector = route_connector_ref(route)?;
     let mut source = format!(
@@ -820,7 +799,7 @@ async fn wait_for_connector_session(
 }
 
 fn connector_session_message(
-    event: &proto::ConnectorMessageEvent,
+    event: &external_proto::ConnectorMessageEvent,
     labels: HashMap<String, String>,
 ) -> Result<data_proto::SessionMessage, tonic::Status> {
     let mut parts = Vec::new();
@@ -837,18 +816,8 @@ fn connector_session_message(
         });
     }
     for attachment in &event.attachments {
-        if attachment.object_key.trim().is_empty() {
+        if attachment.key.trim().is_empty() {
             continue;
-        }
-        let mut metadata = HashMap::new();
-        if !attachment.id.is_empty() {
-            metadata.insert("connectorAttachmentId".to_string(), attachment.id.clone());
-        }
-        if !attachment.external_url.is_empty() {
-            metadata.insert("externalUrl".to_string(), attachment.external_url.clone());
-        }
-        if attachment.expires_at != 0 {
-            metadata.insert("expiresAt".to_string(), attachment.expires_at.to_string());
         }
         parts.push(data_proto::SessionMessagePart {
             id: format!("{:06}", parts.len()),
@@ -857,14 +826,7 @@ fn connector_session_message(
             name: attachment.filename.clone(),
             payload_json: String::new(),
             created_at: now,
-            object: Some(data_proto::ObjectRef {
-                key: attachment.object_key.clone(),
-                media_type: attachment.media_type.clone(),
-                size_bytes: attachment.size_bytes,
-                sha256: String::new(),
-                filename: attachment.filename.clone(),
-                metadata,
-            }),
+            object: Some(attachment.clone()),
         });
     }
     if parts.is_empty() {
@@ -882,15 +844,14 @@ fn connector_session_message(
 }
 
 fn connector_attachment_part_type(
-    attachment: &proto::ConnectorAttachment,
+    attachment: &data_proto::ObjectRef,
 ) -> data_proto::SessionMessagePartType {
     let media_type = attachment.media_type.to_ascii_lowercase();
-    let kind = attachment.kind.to_ascii_lowercase();
-    if media_type.starts_with("image/") || kind == "image" {
+    if media_type.starts_with("image/") {
         data_proto::SessionMessagePartType::Image
-    } else if media_type.starts_with("audio/") || kind == "audio" {
+    } else if media_type.starts_with("audio/") {
         data_proto::SessionMessagePartType::Audio
-    } else if media_type.starts_with("video/") || kind == "video" {
+    } else if media_type.starts_with("video/") {
         data_proto::SessionMessagePartType::Video
     } else {
         data_proto::SessionMessagePartType::File
@@ -899,7 +860,7 @@ fn connector_attachment_part_type(
 
 fn connector_labels(
     route: &data_proto::Route,
-    event: &proto::ConnectorMessageEvent,
+    event: &external_proto::ConnectorMessageEvent,
 ) -> Result<HashMap<String, String>, tonic::Status> {
     let connector = route_connector_ref(route)?;
     let (_, class_name) = keys::parse_connector_registration_id(&event.registration_id)
@@ -952,7 +913,7 @@ fn insert_label(labels: &mut HashMap<String, String>, key: &str, value: &str) {
     }
 }
 
-fn connector_message_id(event: &proto::ConnectorMessageEvent) -> String {
+fn connector_message_id(event: &external_proto::ConnectorMessageEvent) -> String {
     let source = if !event.event_id.trim().is_empty() {
         format!("{}\x1f{}", event.registration_id, event.event_id)
     } else if !event.external_message_id.trim().is_empty() {
@@ -963,7 +924,7 @@ fn connector_message_id(event: &proto::ConnectorMessageEvent) -> String {
     format!("connector-{}", hex_sha256(source.as_bytes()))
 }
 
-fn connector_author_kind(event: &proto::ConnectorMessageEvent) -> String {
+fn connector_author_kind(event: &external_proto::ConnectorMessageEvent) -> String {
     event
         .sender
         .as_ref()
@@ -973,15 +934,15 @@ fn connector_author_kind(event: &proto::ConnectorMessageEvent) -> String {
         .to_string()
 }
 
-fn connector_author(event: &proto::ConnectorMessageEvent) -> String {
+fn connector_author(event: &external_proto::ConnectorMessageEvent) -> String {
     event
         .sender
         .as_ref()
         .and_then(|sender| {
             [
                 sender.display_name.as_str(),
-                sender.external_user_id.as_str(),
-                sender.external_address.as_str(),
+                sender.external_id.as_str(),
+                sender.address.as_str(),
             ]
             .into_iter()
             .find(|value| !value.trim().is_empty())
@@ -990,14 +951,14 @@ fn connector_author(event: &proto::ConnectorMessageEvent) -> String {
         .to_string()
 }
 
-fn connector_external_sender(event: &proto::ConnectorMessageEvent) -> String {
+fn connector_external_sender(event: &external_proto::ConnectorMessageEvent) -> String {
     event
         .sender
         .as_ref()
         .and_then(|sender| {
             [
-                sender.external_user_id.as_str(),
-                sender.external_address.as_str(),
+                sender.external_id.as_str(),
+                sender.address.as_str(),
                 sender.display_name.as_str(),
             ]
             .into_iter()
@@ -1007,7 +968,7 @@ fn connector_external_sender(event: &proto::ConnectorMessageEvent) -> String {
         .to_string()
 }
 
-fn connector_text_projection(event: &proto::ConnectorMessageEvent) -> String {
+fn connector_text_projection(event: &external_proto::ConnectorMessageEvent) -> String {
     if !event.text.trim().is_empty() {
         return event.text.trim().to_string();
     }
@@ -1016,7 +977,7 @@ fn connector_text_projection(event: &proto::ConnectorMessageEvent) -> String {
         .iter()
         .map(|attachment| {
             if attachment.filename.trim().is_empty() {
-                attachment.kind.as_str()
+                attachment.media_type.as_str()
             } else {
                 attachment.filename.as_str()
             }
@@ -1030,21 +991,20 @@ fn connector_text_projection(event: &proto::ConnectorMessageEvent) -> String {
     }
 }
 
-fn connector_channel_content(event: &proto::ConnectorMessageEvent) -> String {
+fn connector_channel_content(event: &external_proto::ConnectorMessageEvent) -> String {
     let mut content = connector_text_projection(event);
     let attachment_lines = event
         .attachments
         .iter()
-        .filter(|attachment| !attachment.object_key.trim().is_empty())
+        .filter(|attachment| !attachment.key.trim().is_empty())
         .enumerate()
         .map(|(index, attachment)| {
             format!(
-                "[Attachment {}: filename=\"{}\" kind=\"{}\" media_type=\"{}\" object_key=\"{}\"]",
+                "[Attachment {}: filename=\"{}\" media_type=\"{}\" key=\"{}\"]",
                 index + 1,
                 attachment.filename,
-                attachment.kind,
                 attachment.media_type,
-                attachment.object_key
+                attachment.key
             )
         })
         .collect::<Vec<_>>();
@@ -1057,7 +1017,7 @@ fn connector_channel_content(event: &proto::ConnectorMessageEvent) -> String {
     content
 }
 
-fn event_time_micros(event: &proto::ConnectorMessageEvent) -> i64 {
+fn event_time_micros(event: &external_proto::ConnectorMessageEvent) -> i64 {
     if event.event_time_ms > 0 {
         event.event_time_ms.saturating_mul(1_000)
     } else {

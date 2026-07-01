@@ -8,6 +8,7 @@ package resources
 
 import (
 	config "github.com/impalasys/talon/sdk/go/talon-client/talon/config"
+	data "github.com/impalasys/talon/sdk/go/talon-client/talon/data"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -338,7 +339,7 @@ type ConnectorSpec struct {
 	// the ConnectorClass match indexes.
 	MatchFields map[string]string `protobuf:"bytes,3,rep,name=match_fields,json=matchFields,proto3" json:"match_fields,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Single Talon message consumer for messages that match this Connector.
-	Consumer      *MessageConsumer `protobuf:"bytes,4,opt,name=consumer,proto3" json:"consumer,omitempty"`
+	Consumer      *data.MessageConsumer `protobuf:"bytes,4,opt,name=consumer,proto3" json:"consumer,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -394,7 +395,7 @@ func (x *ConnectorSpec) GetMatchFields() map[string]string {
 	return nil
 }
 
-func (x *ConnectorSpec) GetConsumer() *MessageConsumer {
+func (x *ConnectorSpec) GetConsumer() *data.MessageConsumer {
 	if x != nil {
 		return x.Consumer
 	}
@@ -607,7 +608,7 @@ var File_proto_resources_connectors_proto protoreflect.FileDescriptor
 
 const file_proto_resources_connectors_proto_rawDesc = "" +
 	"\n" +
-	" proto/resources/connectors.proto\x12\x0ftalon.resources\x1a\x12proto/config.proto\x1a\x1cproto/resources/common.proto\x1a\x1dproto/resources/routing.proto\"K\n" +
+	" proto/resources/connectors.proto\x12\x0ftalon.resources\x1a\x12proto/config.proto\x1a\x18proto/data/routing.proto\x1a\x1cproto/resources/common.proto\"K\n" +
 	"\x19ConnectorClassRuntimeSpec\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x1a\n" +
 	"\bendpoint\x18\x02 \x01(\tR\bendpoint\"[\n" +
@@ -627,12 +628,12 @@ const file_proto_resources_connectors_proto_rawDesc = "" +
 	"\x05phase\x18\x02 \x01(\tR\x05phase\x12B\n" +
 	"\n" +
 	"conditions\x18\x03 \x03(\v2\".talon.resources.ResourceConditionR\n" +
-	"conditions\"\xb6\x02\n" +
+	"conditions\"\xb1\x02\n" +
 	"\rConnectorSpec\x129\n" +
 	"\tclass_ref\x18\x01 \x01(\v2\x1c.talon.resources.ResourceRefR\bclassRef\x12\x18\n" +
 	"\aenabled\x18\x02 \x01(\bR\aenabled\x12R\n" +
-	"\fmatch_fields\x18\x03 \x03(\v2/.talon.resources.ConnectorSpec.MatchFieldsEntryR\vmatchFields\x12<\n" +
-	"\bconsumer\x18\x04 \x01(\v2 .talon.resources.MessageConsumerR\bconsumer\x1a>\n" +
+	"\fmatch_fields\x18\x03 \x03(\v2/.talon.resources.ConnectorSpec.MatchFieldsEntryR\vmatchFields\x127\n" +
+	"\bconsumer\x18\x04 \x01(\v2\x1b.talon.data.MessageConsumerR\bconsumer\x1a>\n" +
 	"\x10MatchFieldsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xca\x01\n" +
@@ -679,7 +680,7 @@ var file_proto_resources_connectors_proto_goTypes = []any{
 	(*config.Secret)(nil),             // 10: talon.config.Secret
 	(*ResourceCondition)(nil),         // 11: talon.resources.ResourceCondition
 	(*ResourceRef)(nil),               // 12: talon.resources.ResourceRef
-	(*MessageConsumer)(nil),           // 13: talon.resources.MessageConsumer
+	(*data.MessageConsumer)(nil),      // 13: talon.data.MessageConsumer
 	(*ResourceMeta)(nil),              // 14: talon.resources.ResourceMeta
 }
 var file_proto_resources_connectors_proto_depIdxs = []int32{
@@ -690,7 +691,7 @@ var file_proto_resources_connectors_proto_depIdxs = []int32{
 	11, // 4: talon.resources.ConnectorClassStatus.conditions:type_name -> talon.resources.ResourceCondition
 	12, // 5: talon.resources.ConnectorSpec.class_ref:type_name -> talon.resources.ResourceRef
 	9,  // 6: talon.resources.ConnectorSpec.match_fields:type_name -> talon.resources.ConnectorSpec.MatchFieldsEntry
-	13, // 7: talon.resources.ConnectorSpec.consumer:type_name -> talon.resources.MessageConsumer
+	13, // 7: talon.resources.ConnectorSpec.consumer:type_name -> talon.data.MessageConsumer
 	11, // 8: talon.resources.ConnectorStatus.conditions:type_name -> talon.resources.ResourceCondition
 	14, // 9: talon.resources.ConnectorClass.metadata:type_name -> talon.resources.ResourceMeta
 	3,  // 10: talon.resources.ConnectorClass.spec:type_name -> talon.resources.ConnectorClassSpec
@@ -711,7 +712,6 @@ func file_proto_resources_connectors_proto_init() {
 		return
 	}
 	file_proto_resources_common_proto_init()
-	file_proto_resources_routing_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

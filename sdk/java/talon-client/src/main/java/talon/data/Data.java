@@ -1722,6 +1722,1520 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface PrincipalOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.data.Principal)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Stable provider-native principal identifier when available, such as a
+     * Slack user ID or iMessage handle GUID.
+     * </pre>
+     *
+     * <code>string external_id = 1;</code>
+     * @return The externalId.
+     */
+    java.lang.String getExternalId();
+    /**
+     * <pre>
+     * Stable provider-native principal identifier when available, such as a
+     * Slack user ID or iMessage handle GUID.
+     * </pre>
+     *
+     * <code>string external_id = 1;</code>
+     * @return The bytes for externalId.
+     */
+    com.google.protobuf.ByteString
+        getExternalIdBytes();
+
+    /**
+     * <pre>
+     * Human-addressable identity when available, such as email, phone number, or
+     * iMessage handle.
+     * </pre>
+     *
+     * <code>string address = 2;</code>
+     * @return The address.
+     */
+    java.lang.String getAddress();
+    /**
+     * <pre>
+     * Human-addressable identity when available, such as email, phone number, or
+     * iMessage handle.
+     * </pre>
+     *
+     * <code>string address = 2;</code>
+     * @return The bytes for address.
+     */
+    com.google.protobuf.ByteString
+        getAddressBytes();
+
+    /**
+     * <pre>
+     * Display name captured from the provider at event time.
+     * </pre>
+     *
+     * <code>string display_name = 3;</code>
+     * @return The displayName.
+     */
+    java.lang.String getDisplayName();
+    /**
+     * <pre>
+     * Display name captured from the provider at event time.
+     * </pre>
+     *
+     * <code>string display_name = 3;</code>
+     * @return The bytes for displayName.
+     */
+    com.google.protobuf.ByteString
+        getDisplayNameBytes();
+
+    /**
+     * <pre>
+     * Normalized principal kind, such as user, bot, app, or system.
+     * </pre>
+     *
+     * <code>string kind = 4;</code>
+     * @return The kind.
+     */
+    java.lang.String getKind();
+    /**
+     * <pre>
+     * Normalized principal kind, such as user, bot, app, or system.
+     * </pre>
+     *
+     * <code>string kind = 4;</code>
+     * @return The bytes for kind.
+     */
+    com.google.protobuf.ByteString
+        getKindBytes();
+
+    /**
+     * <pre>
+     * Provider-specific identity metadata that does not justify a first-class
+     * protocol field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    int getMetadataCount();
+    /**
+     * <pre>
+     * Provider-specific identity metadata that does not justify a first-class
+     * protocol field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    boolean containsMetadata(
+        java.lang.String key);
+    /**
+     * Use {@link #getMetadataMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getMetadata();
+    /**
+     * <pre>
+     * Provider-specific identity metadata that does not justify a first-class
+     * protocol field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getMetadataMap();
+    /**
+     * <pre>
+     * Provider-specific identity metadata that does not justify a first-class
+     * protocol field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    /* nullable */
+java.lang.String getMetadataOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue);
+    /**
+     * <pre>
+     * Provider-specific identity metadata that does not justify a first-class
+     * protocol field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    java.lang.String getMetadataOrThrow(
+        java.lang.String key);
+  }
+  /**
+   * Protobuf type {@code talon.data.Principal}
+   */
+  public static final class Principal extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.data.Principal)
+      PrincipalOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "Principal");
+    }
+    // Use Principal.newBuilder() to construct.
+    private Principal(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private Principal() {
+      externalId_ = "";
+      address_ = "";
+      displayName_ = "";
+      kind_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.data.Data.internal_static_talon_data_Principal_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.data.Data.internal_static_talon_data_Principal_descriptor;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
+    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+        int number) {
+      switch (number) {
+        case 5:
+          return internalGetMetadata();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.data.Data.internal_static_talon_data_Principal_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.data.Data.Principal.class, talon.data.Data.Principal.Builder.class);
+    }
+
+    public static final int EXTERNAL_ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object externalId_ = "";
+    /**
+     * <pre>
+     * Stable provider-native principal identifier when available, such as a
+     * Slack user ID or iMessage handle GUID.
+     * </pre>
+     *
+     * <code>string external_id = 1;</code>
+     * @return The externalId.
+     */
+    @java.lang.Override
+    public java.lang.String getExternalId() {
+      java.lang.Object ref = externalId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        externalId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Stable provider-native principal identifier when available, such as a
+     * Slack user ID or iMessage handle GUID.
+     * </pre>
+     *
+     * <code>string external_id = 1;</code>
+     * @return The bytes for externalId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getExternalIdBytes() {
+      java.lang.Object ref = externalId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        externalId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int ADDRESS_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object address_ = "";
+    /**
+     * <pre>
+     * Human-addressable identity when available, such as email, phone number, or
+     * iMessage handle.
+     * </pre>
+     *
+     * <code>string address = 2;</code>
+     * @return The address.
+     */
+    @java.lang.Override
+    public java.lang.String getAddress() {
+      java.lang.Object ref = address_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        address_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Human-addressable identity when available, such as email, phone number, or
+     * iMessage handle.
+     * </pre>
+     *
+     * <code>string address = 2;</code>
+     * @return The bytes for address.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAddressBytes() {
+      java.lang.Object ref = address_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        address_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int DISPLAY_NAME_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object displayName_ = "";
+    /**
+     * <pre>
+     * Display name captured from the provider at event time.
+     * </pre>
+     *
+     * <code>string display_name = 3;</code>
+     * @return The displayName.
+     */
+    @java.lang.Override
+    public java.lang.String getDisplayName() {
+      java.lang.Object ref = displayName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        displayName_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Display name captured from the provider at event time.
+     * </pre>
+     *
+     * <code>string display_name = 3;</code>
+     * @return The bytes for displayName.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getDisplayNameBytes() {
+      java.lang.Object ref = displayName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        displayName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int KIND_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object kind_ = "";
+    /**
+     * <pre>
+     * Normalized principal kind, such as user, bot, app, or system.
+     * </pre>
+     *
+     * <code>string kind = 4;</code>
+     * @return The kind.
+     */
+    @java.lang.Override
+    public java.lang.String getKind() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        kind_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Normalized principal kind, such as user, bot, app, or system.
+     * </pre>
+     *
+     * <code>string kind = 4;</code>
+     * @return The bytes for kind.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getKindBytes() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        kind_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int METADATA_FIELD_NUMBER = 5;
+    private static final class MetadataDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  talon.data.Data.internal_static_talon_data_Principal_MetadataEntry_descriptor,
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    @SuppressWarnings("serial")
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> metadata_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetMetadata() {
+      if (metadata_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            MetadataDefaultEntryHolder.defaultEntry);
+      }
+      return metadata_;
+    }
+    public int getMetadataCount() {
+      return internalGetMetadata().getMap().size();
+    }
+    /**
+     * <pre>
+     * Provider-specific identity metadata that does not justify a first-class
+     * protocol field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    @java.lang.Override
+    public boolean containsMetadata(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetMetadata().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getMetadataMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getMetadata() {
+      return getMetadataMap();
+    }
+    /**
+     * <pre>
+     * Provider-specific identity metadata that does not justify a first-class
+     * protocol field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
+      return internalGetMetadata().getMap();
+    }
+    /**
+     * <pre>
+     * Provider-specific identity metadata that does not justify a first-class
+     * protocol field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+java.lang.String getMetadataOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetMetadata().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <pre>
+     * Provider-specific identity metadata that does not justify a first-class
+     * protocol field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    @java.lang.Override
+    public java.lang.String getMetadataOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetMetadata().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(externalId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, externalId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(address_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, address_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(displayName_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, displayName_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, kind_);
+      }
+      com.google.protobuf.GeneratedMessage
+        .serializeStringMapTo(
+          output,
+          internalGetMetadata(),
+          MetadataDefaultEntryHolder.defaultEntry,
+          5);
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(externalId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, externalId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(address_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, address_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(displayName_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, displayName_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, kind_);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetMetadata().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        metadata__ = MetadataDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .buildPartial();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(5, metadata__);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.data.Data.Principal)) {
+        return super.equals(obj);
+      }
+      talon.data.Data.Principal other = (talon.data.Data.Principal) obj;
+
+      if (!getExternalId()
+          .equals(other.getExternalId())) return false;
+      if (!getAddress()
+          .equals(other.getAddress())) return false;
+      if (!getDisplayName()
+          .equals(other.getDisplayName())) return false;
+      if (!getKind()
+          .equals(other.getKind())) return false;
+      if (!internalGetMetadata().equals(
+          other.internalGetMetadata())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + EXTERNAL_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getExternalId().hashCode();
+      hash = (37 * hash) + ADDRESS_FIELD_NUMBER;
+      hash = (53 * hash) + getAddress().hashCode();
+      hash = (37 * hash) + DISPLAY_NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getDisplayName().hashCode();
+      hash = (37 * hash) + KIND_FIELD_NUMBER;
+      hash = (53 * hash) + getKind().hashCode();
+      if (!internalGetMetadata().getMap().isEmpty()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetMetadata().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.data.Data.Principal parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.Principal parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.Principal parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.Principal parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.Principal parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.Principal parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.Principal parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.Principal parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.data.Data.Principal parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.data.Data.Principal parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.data.Data.Principal parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.Principal parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.data.Data.Principal prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.data.Principal}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.data.Principal)
+        talon.data.Data.PrincipalOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.data.Data.internal_static_talon_data_Principal_descriptor;
+      }
+
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 5:
+            return internalGetMetadata();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 5:
+            return internalGetMutableMetadata();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.data.Data.internal_static_talon_data_Principal_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.data.Data.Principal.class, talon.data.Data.Principal.Builder.class);
+      }
+
+      // Construct using talon.data.Data.Principal.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        externalId_ = "";
+        address_ = "";
+        displayName_ = "";
+        kind_ = "";
+        internalGetMutableMetadata().clear();
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.data.Data.internal_static_talon_data_Principal_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.Principal getDefaultInstanceForType() {
+        return talon.data.Data.Principal.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.data.Data.Principal build() {
+        talon.data.Data.Principal result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.Principal buildPartial() {
+        talon.data.Data.Principal result = new talon.data.Data.Principal(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.data.Data.Principal result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.externalId_ = externalId_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.address_ = address_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.displayName_ = displayName_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.kind_ = kind_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.metadata_ = internalGetMetadata();
+          result.metadata_.makeImmutable();
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.data.Data.Principal) {
+          return mergeFrom((talon.data.Data.Principal)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.data.Data.Principal other) {
+        if (other == talon.data.Data.Principal.getDefaultInstance()) return this;
+        if (!other.getExternalId().isEmpty()) {
+          externalId_ = other.externalId_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getAddress().isEmpty()) {
+          address_ = other.address_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getDisplayName().isEmpty()) {
+          displayName_ = other.displayName_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getKind().isEmpty()) {
+          kind_ = other.kind_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        internalGetMutableMetadata().mergeFrom(
+            other.internalGetMetadata());
+        bitField0_ |= 0x00000010;
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                externalId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                address_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                displayName_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                kind_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                metadata__ = input.readMessage(
+                    MetadataDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                internalGetMutableMetadata().getMutableMap().put(
+                    metadata__.getKey(), metadata__.getValue());
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object externalId_ = "";
+      /**
+       * <pre>
+       * Stable provider-native principal identifier when available, such as a
+       * Slack user ID or iMessage handle GUID.
+       * </pre>
+       *
+       * <code>string external_id = 1;</code>
+       * @return The externalId.
+       */
+      public java.lang.String getExternalId() {
+        java.lang.Object ref = externalId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          externalId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Stable provider-native principal identifier when available, such as a
+       * Slack user ID or iMessage handle GUID.
+       * </pre>
+       *
+       * <code>string external_id = 1;</code>
+       * @return The bytes for externalId.
+       */
+      public com.google.protobuf.ByteString
+          getExternalIdBytes() {
+        java.lang.Object ref = externalId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          externalId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Stable provider-native principal identifier when available, such as a
+       * Slack user ID or iMessage handle GUID.
+       * </pre>
+       *
+       * <code>string external_id = 1;</code>
+       * @param value The externalId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExternalId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        externalId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Stable provider-native principal identifier when available, such as a
+       * Slack user ID or iMessage handle GUID.
+       * </pre>
+       *
+       * <code>string external_id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearExternalId() {
+        externalId_ = getDefaultInstance().getExternalId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Stable provider-native principal identifier when available, such as a
+       * Slack user ID or iMessage handle GUID.
+       * </pre>
+       *
+       * <code>string external_id = 1;</code>
+       * @param value The bytes for externalId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExternalIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        externalId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object address_ = "";
+      /**
+       * <pre>
+       * Human-addressable identity when available, such as email, phone number, or
+       * iMessage handle.
+       * </pre>
+       *
+       * <code>string address = 2;</code>
+       * @return The address.
+       */
+      public java.lang.String getAddress() {
+        java.lang.Object ref = address_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          address_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Human-addressable identity when available, such as email, phone number, or
+       * iMessage handle.
+       * </pre>
+       *
+       * <code>string address = 2;</code>
+       * @return The bytes for address.
+       */
+      public com.google.protobuf.ByteString
+          getAddressBytes() {
+        java.lang.Object ref = address_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          address_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Human-addressable identity when available, such as email, phone number, or
+       * iMessage handle.
+       * </pre>
+       *
+       * <code>string address = 2;</code>
+       * @param value The address to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAddress(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        address_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Human-addressable identity when available, such as email, phone number, or
+       * iMessage handle.
+       * </pre>
+       *
+       * <code>string address = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAddress() {
+        address_ = getDefaultInstance().getAddress();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Human-addressable identity when available, such as email, phone number, or
+       * iMessage handle.
+       * </pre>
+       *
+       * <code>string address = 2;</code>
+       * @param value The bytes for address to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAddressBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        address_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object displayName_ = "";
+      /**
+       * <pre>
+       * Display name captured from the provider at event time.
+       * </pre>
+       *
+       * <code>string display_name = 3;</code>
+       * @return The displayName.
+       */
+      public java.lang.String getDisplayName() {
+        java.lang.Object ref = displayName_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          displayName_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Display name captured from the provider at event time.
+       * </pre>
+       *
+       * <code>string display_name = 3;</code>
+       * @return The bytes for displayName.
+       */
+      public com.google.protobuf.ByteString
+          getDisplayNameBytes() {
+        java.lang.Object ref = displayName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          displayName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Display name captured from the provider at event time.
+       * </pre>
+       *
+       * <code>string display_name = 3;</code>
+       * @param value The displayName to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDisplayName(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        displayName_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Display name captured from the provider at event time.
+       * </pre>
+       *
+       * <code>string display_name = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDisplayName() {
+        displayName_ = getDefaultInstance().getDisplayName();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Display name captured from the provider at event time.
+       * </pre>
+       *
+       * <code>string display_name = 3;</code>
+       * @param value The bytes for displayName to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDisplayNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        displayName_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object kind_ = "";
+      /**
+       * <pre>
+       * Normalized principal kind, such as user, bot, app, or system.
+       * </pre>
+       *
+       * <code>string kind = 4;</code>
+       * @return The kind.
+       */
+      public java.lang.String getKind() {
+        java.lang.Object ref = kind_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          kind_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Normalized principal kind, such as user, bot, app, or system.
+       * </pre>
+       *
+       * <code>string kind = 4;</code>
+       * @return The bytes for kind.
+       */
+      public com.google.protobuf.ByteString
+          getKindBytes() {
+        java.lang.Object ref = kind_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          kind_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Normalized principal kind, such as user, bot, app, or system.
+       * </pre>
+       *
+       * <code>string kind = 4;</code>
+       * @param value The kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKind(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        kind_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Normalized principal kind, such as user, bot, app, or system.
+       * </pre>
+       *
+       * <code>string kind = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearKind() {
+        kind_ = getDefaultInstance().getKind();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Normalized principal kind, such as user, bot, app, or system.
+       * </pre>
+       *
+       * <code>string kind = 4;</code>
+       * @param value The bytes for kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKindBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        kind_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> metadata_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMetadata() {
+        if (metadata_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              MetadataDefaultEntryHolder.defaultEntry);
+        }
+        return metadata_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMutableMetadata() {
+        if (metadata_ == null) {
+          metadata_ = com.google.protobuf.MapField.newMapField(
+              MetadataDefaultEntryHolder.defaultEntry);
+        }
+        if (!metadata_.isMutable()) {
+          metadata_ = metadata_.copy();
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return metadata_;
+      }
+      public int getMetadataCount() {
+        return internalGetMetadata().getMap().size();
+      }
+      /**
+       * <pre>
+       * Provider-specific identity metadata that does not justify a first-class
+       * protocol field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      @java.lang.Override
+      public boolean containsMetadata(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        return internalGetMetadata().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getMetadataMap()} instead.
+       */
+      @java.lang.Override
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getMetadata() {
+        return getMetadataMap();
+      }
+      /**
+       * <pre>
+       * Provider-specific identity metadata that does not justify a first-class
+       * protocol field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      @java.lang.Override
+      public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
+        return internalGetMetadata().getMap();
+      }
+      /**
+       * <pre>
+       * Provider-specific identity metadata that does not justify a first-class
+       * protocol field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      @java.lang.Override
+      public /* nullable */
+java.lang.String getMetadataOrDefault(
+          java.lang.String key,
+          /* nullable */
+java.lang.String defaultValue) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetMetadata().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <pre>
+       * Provider-specific identity metadata that does not justify a first-class
+       * protocol field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      @java.lang.Override
+      public java.lang.String getMetadataOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetMetadata().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+      public Builder clearMetadata() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        internalGetMutableMetadata().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <pre>
+       * Provider-specific identity metadata that does not justify a first-class
+       * protocol field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      public Builder removeMetadata(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        internalGetMutableMetadata().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+          getMutableMetadata() {
+        bitField0_ |= 0x00000010;
+        return internalGetMutableMetadata().getMutableMap();
+      }
+      /**
+       * <pre>
+       * Provider-specific identity metadata that does not justify a first-class
+       * protocol field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      public Builder putMetadata(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        if (value == null) { throw new NullPointerException("map value"); }
+        internalGetMutableMetadata().getMutableMap()
+            .put(key, value);
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      /**
+       * <pre>
+       * Provider-specific identity metadata that does not justify a first-class
+       * protocol field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      public Builder putAllMetadata(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableMetadata().getMutableMap()
+            .putAll(values);
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.data.Principal)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.data.Principal)
+    private static final talon.data.Data.Principal DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.data.Data.Principal();
+    }
+
+    public static talon.data.Data.Principal getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Principal>
+        PARSER = new com.google.protobuf.AbstractParser<Principal>() {
+      @java.lang.Override
+      public Principal parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<Principal> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Principal> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.data.Data.Principal getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface SessionMessagePartOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.data.SessionMessagePart)
       com.google.protobuf.MessageOrBuilder {
@@ -17285,6 +18799,16 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_data_ObjectRef_MetadataEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_Principal_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_Principal_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_Principal_MetadataEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_Principal_MetadataEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_data_SessionMessagePart_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -17369,81 +18893,85 @@ java.lang.String defaultValue) {
       "\n\010filename\030\005 \001(\t\0225\n\010metadata\030\006 \003(\0132#.tal" +
       "on.data.ObjectRef.MetadataEntry\032/\n\rMetad" +
       "ataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001" +
-      "\"\307\001\n\022SessionMessagePart\022\n\n\002id\030\001 \001(\t\0225\n\tp" +
-      "art_type\030\002 \001(\0162\".talon.data.SessionMessa" +
-      "gePartType\022\017\n\007content\030\003 \001(\t\022\014\n\004name\030\004 \001(" +
-      "\t\022\024\n\014payload_json\030\005 \001(\t\022\022\n\ncreated_at\030\006 " +
-      "\001(\003\022%\n\006object\030\007 \001(\0132\025.talon.data.ObjectR" +
-      "ef\"\363\001\n\016SessionMessage\022\n\n\002id\030\001 \001(\t\022%\n\004rol" +
-      "e\030\002 \001(\0162\027.talon.data.MessageRole\022\022\n\ncrea" +
-      "ted_at\030\004 \001(\003\0226\n\006labels\030\005 \003(\0132&.talon.dat" +
-      "a.SessionMessage.LabelsEntry\022-\n\005parts\030\006 " +
-      "\003(\0132\036.talon.data.SessionMessagePart\032-\n\013L" +
-      "abelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\002" +
-      "8\001J\004\010\003\020\004\"\257\002\n\007Session\022\n\n\002id\030\001 \001(\t\022\r\n\005agen" +
-      "t\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\nc" +
-      "reated_at\030\005 \001(\003\022\023\n\013last_active\030\006 \001(\003\0223\n\010" +
-      "metadata\030\007 \003(\0132!.talon.data.Session.Meta" +
-      "dataEntry\022/\n\006labels\030\010 \003(\0132\037.talon.data.S" +
-      "ession.LabelsEntry\032/\n\rMetadataEntry\022\013\n\003k" +
-      "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEnt" +
-      "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\233\002\n\016C" +
-      "hannelMessage\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n" +
-      "\007channel\030\003 \001(\t\022\023\n\013author_kind\030\004 \001(\t\022\016\n\006a" +
-      "uthor\030\005 \001(\t\022\017\n\007content\030\006 \001(\t\022\022\n\ncreated_" +
-      "at\030\007 \001(\003\022\024\n\014source_agent\030\010 \001(\t\022\031\n\021source" +
-      "_session_id\030\t \001(\t\0226\n\006labels\030\n \003(\0132&.talo" +
-      "n.data.ChannelMessage.LabelsEntry\032-\n\013Lab" +
-      "elsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001" +
-      "\"_\n\tKnowledge\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002" +
-      " \001(\t\022\022\n\nupdated_at\030\003 \001(\003\022\021\n\tnamespace\030\004 " +
-      "\001(\t\022\014\n\004name\030\005 \001(\t\"k\n\025KnowledgeSearchResu" +
-      "lt\022\014\n\004path\030\001 \001(\t\022\017\n\007snippet\030\002 \001(\t\022\r\n\005sco" +
-      "re\030\003 \001(\002\022\021\n\ttimestamp\030\004 \001(\003\022\021\n\tnamespace" +
-      "\030\005 \001(\t\"\313\003\n\013WorkflowRun\022\n\n\002id\030\001 \001(\t\022\020\n\010wo" +
-      "rkflow\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t" +
-      "\022\022\n\ninput_json\030\005 \001(\t\022\022\n\nstate_json\030\006 \001(\t" +
-      "\022\023\n\013output_json\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(" +
-      "\003\022\022\n\nupdated_at\030\t \001(\003\0223\n\006labels\030\n \003(\0132#." +
-      "talon.data.WorkflowRun.LabelsEntry\022\035\n\020cl" +
-      "aim_expires_at\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014 \001(\t" +
-      "\022\021\n\tspec_json\030\r \001(\t\022\031\n\021workflow_revision" +
-      "\030\016 \001(\004\022\023\n\013claim_owner\030\017 \001(\t\022\025\n\rclaim_att" +
-      "empt\030\020 \001(\r\022\034\n\024last_dispatch_reason\030\021 \001(\t" +
-      "\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 " +
-      "\001(\t:\0028\001B\023\n\021_claim_expires_at\"\263\003\n\017Workflo" +
-      "wStepRun\022\n\n\002id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017\n" +
-      "\007attempt\030\003 \001(\r\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_" +
-      "json\030\005 \001(\t\022\023\n\013output_json\030\006 \001(\t\022\r\n\005error" +
-      "\030\007 \001(\t\022\030\n\020child_session_id\030\010 \001(\t\022\035\n\025chil" +
-      "d_workflow_run_id\030\t \001(\t\022\023\n\013resume_json\030\n" +
-      " \001(\t\022\024\n\014suspend_json\030\013 \001(\t\022\022\n\ncreated_at" +
-      "\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022\032\n\rnext_retry" +
-      "_at\030\016 \001(\003H\000\210\001\001\022\027\n\ntimeout_at\030\017 \001(\003H\001\210\001\001\022" +
-      "\032\n\022wait_wakeup_handle\030\020 \001(\t\022\032\n\rwait_unti" +
-      "l_at\030\021 \001(\003H\002\210\001\001B\020\n\016_next_retry_atB\r\n\013_ti" +
-      "meout_atB\020\n\016_wait_until_at\"\245\001\n\020WorkflowR" +
-      "unEvent\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010workf" +
-      "low\030\003 \001(\t\022\016\n\006run_id\030\004 \001(\t\022\014\n\004type\030\005 \001(\t\022" +
-      "\017\n\007step_id\030\006 \001(\t\022\017\n\007message\030\007 \001(\t\022\024\n\014pay" +
-      "load_json\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013Me" +
-      "ssageRole\022\024\n\020ROLE_UNSPECIFIED\020\000\022\r\n\tROLE_" +
-      "USER\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022\017\n\013ROLE_SYSTE" +
-      "M\020\003*\244\004\n\026SessionMessagePartType\022)\n%SESSIO" +
-      "N_MESSAGE_PART_TYPE_UNSPECIFIED\020\000\022\"\n\036SES" +
-      "SION_MESSAGE_PART_TYPE_TEXT\020\001\022\'\n#SESSION" +
-      "_MESSAGE_PART_TYPE_REASONING\020\002\022\'\n#SESSIO" +
-      "N_MESSAGE_PART_TYPE_TOOL_CALL\020\003\022)\n%SESSI" +
-      "ON_MESSAGE_PART_TYPE_TOOL_RESULT\020\004\022#\n\037SE" +
-      "SSION_MESSAGE_PART_TYPE_USAGE\020\005\022#\n\037SESSI" +
-      "ON_MESSAGE_PART_TYPE_ERROR\020\006\022#\n\037SESSION_" +
-      "MESSAGE_PART_TYPE_IMAGE\020\007\022#\n\037SESSION_MES" +
-      "SAGE_PART_TYPE_AUDIO\020\010\022#\n\037SESSION_MESSAG" +
-      "E_PART_TYPE_VIDEO\020\t\022\"\n\036SESSION_MESSAGE_P" +
-      "ART_TYPE_FILE\020\n\0220\n,SESSION_MESSAGE_PART_" +
-      "TYPE_REQUEST_PERMISSION\020\013\022/\n+SESSION_MES" +
-      "SAGE_PART_TYPE_PERMISSION_RESULT\020\014b\006prot" +
-      "o3"
+      "\"\275\001\n\tPrincipal\022\023\n\013external_id\030\001 \001(\t\022\017\n\007a" +
+      "ddress\030\002 \001(\t\022\024\n\014display_name\030\003 \001(\t\022\014\n\004ki" +
+      "nd\030\004 \001(\t\0225\n\010metadata\030\005 \003(\0132#.talon.data." +
+      "Principal.MetadataEntry\032/\n\rMetadataEntry" +
+      "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\307\001\n\022Ses" +
+      "sionMessagePart\022\n\n\002id\030\001 \001(\t\0225\n\tpart_type" +
+      "\030\002 \001(\0162\".talon.data.SessionMessagePartTy" +
+      "pe\022\017\n\007content\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024\n\014pay" +
+      "load_json\030\005 \001(\t\022\022\n\ncreated_at\030\006 \001(\003\022%\n\006o" +
+      "bject\030\007 \001(\0132\025.talon.data.ObjectRef\"\363\001\n\016S" +
+      "essionMessage\022\n\n\002id\030\001 \001(\t\022%\n\004role\030\002 \001(\0162" +
+      "\027.talon.data.MessageRole\022\022\n\ncreated_at\030\004" +
+      " \001(\003\0226\n\006labels\030\005 \003(\0132&.talon.data.Sessio" +
+      "nMessage.LabelsEntry\022-\n\005parts\030\006 \003(\0132\036.ta" +
+      "lon.data.SessionMessagePart\032-\n\013LabelsEnt" +
+      "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004" +
+      "\"\257\002\n\007Session\022\n\n\002id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022" +
+      "\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ncreated_a" +
+      "t\030\005 \001(\003\022\023\n\013last_active\030\006 \001(\003\0223\n\010metadata" +
+      "\030\007 \003(\0132!.talon.data.Session.MetadataEntr" +
+      "y\022/\n\006labels\030\010 \003(\0132\037.talon.data.Session.L" +
+      "abelsEntry\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t" +
+      "\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003ke" +
+      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\233\002\n\016ChannelMe" +
+      "ssage\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n\007channel" +
+      "\030\003 \001(\t\022\023\n\013author_kind\030\004 \001(\t\022\016\n\006author\030\005 " +
+      "\001(\t\022\017\n\007content\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003" +
+      "\022\024\n\014source_agent\030\010 \001(\t\022\031\n\021source_session" +
+      "_id\030\t \001(\t\0226\n\006labels\030\n \003(\0132&.talon.data.C" +
+      "hannelMessage.LabelsEntry\032-\n\013LabelsEntry" +
+      "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"_\n\tKnow" +
+      "ledge\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002 \001(\t\022\022\n\n" +
+      "updated_at\030\003 \001(\003\022\021\n\tnamespace\030\004 \001(\t\022\014\n\004n" +
+      "ame\030\005 \001(\t\"k\n\025KnowledgeSearchResult\022\014\n\004pa" +
+      "th\030\001 \001(\t\022\017\n\007snippet\030\002 \001(\t\022\r\n\005score\030\003 \001(\002" +
+      "\022\021\n\ttimestamp\030\004 \001(\003\022\021\n\tnamespace\030\005 \001(\t\"\313" +
+      "\003\n\013WorkflowRun\022\n\n\002id\030\001 \001(\t\022\020\n\010workflow\030\002" +
+      " \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ninpu" +
+      "t_json\030\005 \001(\t\022\022\n\nstate_json\030\006 \001(\t\022\023\n\013outp" +
+      "ut_json\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(\003\022\022\n\nupd" +
+      "ated_at\030\t \001(\003\0223\n\006labels\030\n \003(\0132#.talon.da" +
+      "ta.WorkflowRun.LabelsEntry\022\035\n\020claim_expi" +
+      "res_at\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014 \001(\t\022\021\n\tspec" +
+      "_json\030\r \001(\t\022\031\n\021workflow_revision\030\016 \001(\004\022\023" +
+      "\n\013claim_owner\030\017 \001(\t\022\025\n\rclaim_attempt\030\020 \001" +
+      "(\r\022\034\n\024last_dispatch_reason\030\021 \001(\t\032-\n\013Labe" +
+      "lsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B" +
+      "\023\n\021_claim_expires_at\"\263\003\n\017WorkflowStepRun" +
+      "\022\n\n\002id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017\n\007attempt" +
+      "\030\003 \001(\r\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001" +
+      "(\t\022\023\n\013output_json\030\006 \001(\t\022\r\n\005error\030\007 \001(\t\022\030" +
+      "\n\020child_session_id\030\010 \001(\t\022\035\n\025child_workfl" +
+      "ow_run_id\030\t \001(\t\022\023\n\013resume_json\030\n \001(\t\022\024\n\014" +
+      "suspend_json\030\013 \001(\t\022\022\n\ncreated_at\030\014 \001(\003\022\022" +
+      "\n\nupdated_at\030\r \001(\003\022\032\n\rnext_retry_at\030\016 \001(" +
+      "\003H\000\210\001\001\022\027\n\ntimeout_at\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_" +
+      "wakeup_handle\030\020 \001(\t\022\032\n\rwait_until_at\030\021 \001" +
+      "(\003H\002\210\001\001B\020\n\016_next_retry_atB\r\n\013_timeout_at" +
+      "B\020\n\016_wait_until_at\"\245\001\n\020WorkflowRunEvent\022" +
+      "\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010workflow\030\003 \001(" +
+      "\t\022\016\n\006run_id\030\004 \001(\t\022\014\n\004type\030\005 \001(\t\022\017\n\007step_" +
+      "id\030\006 \001(\t\022\017\n\007message\030\007 \001(\t\022\024\n\014payload_jso" +
+      "n\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013MessageRol" +
+      "e\022\024\n\020ROLE_UNSPECIFIED\020\000\022\r\n\tROLE_USER\020\001\022\022" +
+      "\n\016ROLE_ASSISTANT\020\002\022\017\n\013ROLE_SYSTEM\020\003*\244\004\n\026" +
+      "SessionMessagePartType\022)\n%SESSION_MESSAG" +
+      "E_PART_TYPE_UNSPECIFIED\020\000\022\"\n\036SESSION_MES" +
+      "SAGE_PART_TYPE_TEXT\020\001\022\'\n#SESSION_MESSAGE" +
+      "_PART_TYPE_REASONING\020\002\022\'\n#SESSION_MESSAG" +
+      "E_PART_TYPE_TOOL_CALL\020\003\022)\n%SESSION_MESSA" +
+      "GE_PART_TYPE_TOOL_RESULT\020\004\022#\n\037SESSION_ME" +
+      "SSAGE_PART_TYPE_USAGE\020\005\022#\n\037SESSION_MESSA" +
+      "GE_PART_TYPE_ERROR\020\006\022#\n\037SESSION_MESSAGE_" +
+      "PART_TYPE_IMAGE\020\007\022#\n\037SESSION_MESSAGE_PAR" +
+      "T_TYPE_AUDIO\020\010\022#\n\037SESSION_MESSAGE_PART_T" +
+      "YPE_VIDEO\020\t\022\"\n\036SESSION_MESSAGE_PART_TYPE" +
+      "_FILE\020\n\0220\n,SESSION_MESSAGE_PART_TYPE_REQ" +
+      "UEST_PERMISSION\020\013\022/\n+SESSION_MESSAGE_PAR" +
+      "T_TYPE_PERMISSION_RESULT\020\014b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -17461,14 +18989,26 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ObjectRef_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_talon_data_SessionMessagePart_descriptor =
+    internal_static_talon_data_Principal_descriptor =
       getDescriptor().getMessageType(1);
+    internal_static_talon_data_Principal_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_Principal_descriptor,
+        new java.lang.String[] { "ExternalId", "Address", "DisplayName", "Kind", "Metadata", });
+    internal_static_talon_data_Principal_MetadataEntry_descriptor =
+      internal_static_talon_data_Principal_descriptor.getNestedType(0);
+    internal_static_talon_data_Principal_MetadataEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_Principal_MetadataEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_talon_data_SessionMessagePart_descriptor =
+      getDescriptor().getMessageType(2);
     internal_static_talon_data_SessionMessagePart_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessagePart_descriptor,
         new java.lang.String[] { "Id", "PartType", "Content", "Name", "PayloadJson", "CreatedAt", "Object", });
     internal_static_talon_data_SessionMessage_descriptor =
-      getDescriptor().getMessageType(2);
+      getDescriptor().getMessageType(3);
     internal_static_talon_data_SessionMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessage_descriptor,
@@ -17480,7 +19020,7 @@ java.lang.String defaultValue) {
         internal_static_talon_data_SessionMessage_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_Session_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(4);
     internal_static_talon_data_Session_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Session_descriptor,
@@ -17498,7 +19038,7 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Session_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_ChannelMessage_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(5);
     internal_static_talon_data_ChannelMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ChannelMessage_descriptor,
@@ -17510,19 +19050,19 @@ java.lang.String defaultValue) {
         internal_static_talon_data_ChannelMessage_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_Knowledge_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(6);
     internal_static_talon_data_Knowledge_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Knowledge_descriptor,
         new java.lang.String[] { "Path", "Content", "UpdatedAt", "Namespace", "Name", });
     internal_static_talon_data_KnowledgeSearchResult_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(7);
     internal_static_talon_data_KnowledgeSearchResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_KnowledgeSearchResult_descriptor,
         new java.lang.String[] { "Path", "Snippet", "Score", "Timestamp", "Namespace", });
     internal_static_talon_data_WorkflowRun_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(8);
     internal_static_talon_data_WorkflowRun_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowRun_descriptor,
@@ -17534,13 +19074,13 @@ java.lang.String defaultValue) {
         internal_static_talon_data_WorkflowRun_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_WorkflowStepRun_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(9);
     internal_static_talon_data_WorkflowStepRun_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowStepRun_descriptor,
         new java.lang.String[] { "Id", "StepId", "Attempt", "Status", "InputJson", "OutputJson", "Error", "ChildSessionId", "ChildWorkflowRunId", "ResumeJson", "SuspendJson", "CreatedAt", "UpdatedAt", "NextRetryAt", "TimeoutAt", "WaitWakeupHandle", "WaitUntilAt", });
     internal_static_talon_data_WorkflowRunEvent_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(10);
     internal_static_talon_data_WorkflowRunEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowRunEvent_descriptor,

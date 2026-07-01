@@ -3,7 +3,7 @@ syntax = "proto3";
 package talon.data;
 
 import "proto/resources/common.proto";
-import "proto/resources/routing.proto";
+import "proto/data/routing.proto";
 
 message Route {
   // UID of the Connector resource that owns this materialized route. The
@@ -14,5 +14,5 @@ message Route {
   talon.resources.ResourceRef connector = 2;
 
   // Snapshot of Connector.spec.consumer used by gateway dispatch.
-  talon.resources.MessageConsumer consumer = 3;
+  MessageConsumer consumer = 3;
 }

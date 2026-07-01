@@ -23,16 +23,16 @@ _sym_db = _symbol_database.Default()
 
 
 from talon_client.proto.resources import common_pb2 as proto_dot_resources_dot_common__pb2
-from talon_client.proto.resources import routing_pb2 as proto_dot_resources_dot_routing__pb2
+from talon_client.proto.data import routing_pb2 as proto_dot_data_dot_routing__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1bproto/data/connectors.proto\x12\ntalon.data\x1a\x1cproto/resources/common.proto\x1a\x1dproto/resources/routing.proto\"\x83\x01\n\x05Route\x12\x15\n\rconnector_uid\x18\x01 \x01(\t\x12/\n\tconnector\x18\x02 \x01(\x0b\x32\x1c.talon.resources.ResourceRef\x12\x32\n\x08\x63onsumer\x18\x03 \x01(\x0b\x32 .talon.resources.MessageConsumerb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1bproto/data/connectors.proto\x12\ntalon.data\x1a\x1cproto/resources/common.proto\x1a\x18proto/data/routing.proto\"~\n\x05Route\x12\x15\n\rconnector_uid\x18\x01 \x01(\t\x12/\n\tconnector\x18\x02 \x01(\x0b\x32\x1c.talon.resources.ResourceRef\x12-\n\x08\x63onsumer\x18\x03 \x01(\x0b\x32\x1b.talon.data.MessageConsumerb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.data.connectors_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_ROUTE']._serialized_start=105
-  _globals['_ROUTE']._serialized_end=236
+  _globals['_ROUTE']._serialized_start=99
+  _globals['_ROUTE']._serialized_end=225
 # @@protoc_insertion_point(module_scope)

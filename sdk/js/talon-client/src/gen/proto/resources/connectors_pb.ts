@@ -7,7 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 import { Secret } from "../config_pb.js";
 import { ResourceCondition, ResourceMeta, ResourceRef } from "./common_pb.js";
-import { MessageConsumer } from "./routing_pb.js";
+import { MessageConsumer } from "../data/routing_pb.js";
 
 /**
  * @generated from message talon.resources.ConnectorClassRuntimeSpec
@@ -306,7 +306,7 @@ export class ConnectorSpec extends Message<ConnectorSpec> {
   /**
    * Single Talon message consumer for messages that match this Connector.
    *
-   * @generated from field: talon.resources.MessageConsumer consumer = 4;
+   * @generated from field: talon.data.MessageConsumer consumer = 4;
    */
   consumer?: MessageConsumer;
 

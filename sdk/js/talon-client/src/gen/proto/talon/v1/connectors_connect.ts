@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ConnectorAckResponse, ConnectorMessageEvent, ConnectorMessageEventResponse, ConnectorStatusEvent } from "./connectors_pb.js";
+import { ConnectorAckResponse, ConnectorMessageEvent, ConnectorMessageEventResponse, ConnectorStatusEvent } from "../../external/connectors_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
