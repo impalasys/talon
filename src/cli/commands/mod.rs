@@ -70,7 +70,10 @@ impl Cli {
             return gateway.clone();
         }
         if let Ok(env_gateway) = std::env::var("TALON_GATEWAY") {
-            return env_gateway;
+            let env_gateway = env_gateway.trim();
+            if !env_gateway.is_empty() {
+                return env_gateway.to_string();
+            }
         }
         if self.grpc_web_enabled() {
             DEFAULT_GRPC_WEB_GATEWAY.to_string()
@@ -199,6 +202,18 @@ mod tests {
         let cli = parse_cli(&["--grpc-web", "auth", "whoami"]);
 
         assert_eq!(cli.gateway_url(), "http://env-gateway:50051");
+        clear_gateway_env();
+    }
+
+    #[test]
+    fn blank_talon_gateway_env_falls_back_to_default_gateway() {
+        let _guard = crate::test_support::env_lock();
+        clear_gateway_env();
+        std::env::set_var("TALON_GATEWAY", " ");
+
+        let cli = parse_cli(&["auth", "whoami"]);
+
+        assert_eq!(cli.gateway_url(), DEFAULT_GRPC_GATEWAY);
         clear_gateway_env();
     }
 }
