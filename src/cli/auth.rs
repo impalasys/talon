@@ -45,6 +45,10 @@ pub(crate) struct StoredGatewayAuth {
     pub subject: String,
     pub email: Option<String>,
     pub trust: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auth_source: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub credential_hash: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -101,6 +105,13 @@ pub(crate) fn resolve_gateway_jwt_secret(cli: &Cli) -> Option<String> {
 
 pub(crate) fn mint_gateway_jwt(secret: &str) -> Result<String> {
     mint_root_jwt(secret, "talon-cli", 3600, &[])
+}
+
+impl StoredGatewayAuth {
+    fn matches_api_key(&self, api_key: &str) -> bool {
+        self.auth_source.as_deref() == Some("api_key")
+            && self.credential_hash.as_deref() == Some(api_key_cache_hash(api_key).as_str())
+    }
 }
 
 pub(crate) fn gateway_http_base(cli: &Cli) -> String {
@@ -226,6 +237,8 @@ pub(crate) async fn exchange_oidc_id_token(
         subject: exchanged.subject,
         email: exchanged.email,
         trust: exchanged.trust,
+        auth_source: Some("oidc".to_string()),
+        credential_hash: None,
     })
 }
 
@@ -264,6 +277,8 @@ pub(crate) async fn exchange_api_key(cli: &Cli, api_key: &str) -> Result<StoredG
             .unwrap_or_else(|| "api_key".to_string()),
         email: None,
         trust: "api-key".to_string(),
+        auth_source: Some("api_key".to_string()),
+        credential_hash: Some(api_key_cache_hash(api_key)),
     })
 }
 
@@ -718,8 +733,25 @@ fn validate_origins(origins: &[String]) -> Result<Vec<String>> {
 }
 
 async fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
-    if let Some(api_key) = resolve_gateway_api_key(cli) {
-        if let Some(auth) = load_stored_gateway_auth(cli)? {
+    if let Some(token) = cli
+        .token
+        .as_ref()
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+    {
+        Ok(Some(format!("Bearer {}", token)))
+    } else if let Some(secret) = cli
+        .jwt_secret
+        .as_ref()
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+    {
+        let token = mint_gateway_jwt(secret)?;
+        Ok(Some(format!("Bearer {}", token)))
+    } else if let Some(api_key) = resolve_gateway_api_key(cli) {
+        if let Some(auth) =
+            load_stored_gateway_auth(cli)?.filter(|auth| auth.matches_api_key(&api_key))
+        {
             return Ok(Some(format!("Bearer {}", auth.access_token)));
         }
         let auth = exchange_api_key(cli, &api_key).await?;
@@ -736,6 +768,10 @@ async fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
     } else {
         Ok(None)
     }
+}
+
+fn api_key_cache_hash(api_key: &str) -> String {
+    general_purpose::URL_SAFE_NO_PAD.encode(Sha256::digest(api_key.trim().as_bytes()))
 }
 
 fn grpc_web_enabled(cli: &Cli) -> bool {
@@ -762,8 +798,9 @@ pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
 #[cfg(test)]
 mod tests {
     use super::{
-        google_token_request_form, mint_namespace_jwt, parse_ttl_seconds,
-        resolve_token_ttl_seconds, DEFAULT_GOOGLE_CLI_CLIENT_SECRET, DEFAULT_TOKEN_TTL,
+        api_key_cache_hash, google_token_request_form, mint_namespace_jwt, parse_ttl_seconds,
+        resolve_token_ttl_seconds, StoredGatewayAuth, DEFAULT_GOOGLE_CLI_CLIENT_SECRET,
+        DEFAULT_TOKEN_TTL,
     };
     use crate::gateway::auth::verify_jwt;
 
@@ -835,5 +872,27 @@ mod tests {
         assert_eq!(claims.agent, None);
         assert_eq!(claims.session, None);
         assert_eq!(claims.channel, None);
+    }
+
+    #[test]
+    fn stored_api_key_auth_matches_only_same_api_key() {
+        let auth = StoredGatewayAuth {
+            gateway: "http://localhost:50051".to_string(),
+            access_token: "token".to_string(),
+            token_type: "Bearer".to_string(),
+            expires_at: 1,
+            subject: "api_key:test".to_string(),
+            email: None,
+            trust: "api-key".to_string(),
+            auth_source: Some("api_key".to_string()),
+            credential_hash: Some(api_key_cache_hash("talon_sk_v1_id_secret")),
+        };
+
+        assert!(auth.matches_api_key("talon_sk_v1_id_secret"));
+        assert!(!auth.matches_api_key("talon_sk_v1_id_other"));
+
+        let mut oidc_auth = auth;
+        oidc_auth.auth_source = Some("oidc".to_string());
+        assert!(!oidc_auth.matches_api_key("talon_sk_v1_id_secret"));
     }
 }

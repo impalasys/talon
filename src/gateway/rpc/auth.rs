@@ -1,16 +1,16 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{GrpcGatewayHandler, data_proto, proto};
+use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::control::config::proto as config_proto;
 use crate::control::{keys, ns};
-use crate::gateway::Gateway;
 use crate::gateway::auth::{
     self as gateway_auth, AuthConfig, AuthMode, AuthzOperation, Claims, TalonGrantClaim,
 };
-use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
+use crate::gateway::Gateway;
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
 use jsonwebtoken::{
-    Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, decode_header, jwk::JwkSet,
+    decode, decode_header, jwk::JwkSet, Algorithm, DecodingKey, EncodingKey, Header, Validation,
 };
 use prost::Message;
 use rand::RngCore;
@@ -235,9 +235,17 @@ impl GrpcGatewayHandler {
             .await
             .map_err(|err| tonic::Status::internal(format!("failed to list API keys: {err}")))?;
         let mut api_keys = Vec::with_capacity(entries.len());
-        for (_, bytes) in entries {
-            let record = decode_api_key_record(&bytes)?;
-            api_keys.push(api_key_info(&record));
+        for (key, bytes) in entries {
+            match decode_api_key_record(&bytes) {
+                Ok(record) => api_keys.push(api_key_info(&record)),
+                Err(err) => {
+                    tracing::warn!(
+                        api_key_id = %key.name,
+                        error = %err,
+                        "Skipping invalid API key record while listing API keys"
+                    );
+                }
+            }
         }
         api_keys.sort_by(|left, right| right.created_at.cmp(&left.created_at));
         Ok(tonic::Response::new(proto::ListApiKeysResponse {
@@ -254,21 +262,17 @@ impl GrpcGatewayHandler {
         if id.is_empty() {
             return Err(tonic::Status::invalid_argument("id is required"));
         }
-        let key = api_key_key(&id);
-        let Some(bytes) = self
-            .gateway
-            .kv
-            .get(&key)
-            .await
-            .map_err(|err| tonic::Status::internal(format!("failed to read API key: {err}")))?
+        let now = unix_seconds()?;
+        let Some((record, ())) = update_api_key_record(self.gateway.as_ref(), &id, |mut record| {
+            if record.revoked_at.is_none() {
+                record.revoked_at = Some(now);
+            }
+            Ok((record, ()))
+        })
+        .await?
         else {
             return Err(tonic::Status::not_found("API key not found"));
         };
-        let mut record = decode_api_key_record(&bytes)?;
-        if record.revoked_at.is_none() {
-            record.revoked_at = Some(unix_seconds()?);
-            write_api_key(self.gateway.as_ref(), &record).await?;
-        }
         Ok(tonic::Response::new(proto::RevokeApiKeyResponse {
             api_key: Some(api_key_info(&record)),
         }))
@@ -280,35 +284,19 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::ExchangeApiKeyResponse>, tonic::Status> {
         let request = req.into_inner();
         let parsed = parse_api_key(request.api_key.trim())?;
-        let key = api_key_key(parsed.id);
-        let Some(bytes) = self
-            .gateway
-            .kv
-            .get(&key)
-            .await
-            .map_err(|err| tonic::Status::internal(format!("failed to read API key: {err}")))?
+        let now = unix_seconds()?;
+        let requested_grant = request.grant;
+        let Some((record, effective_grant)) =
+            update_api_key_record(self.gateway.as_ref(), parsed.id, |mut record| {
+                validate_api_key_exchange_record(&record, parsed.secret, now)?;
+                let effective_grant = effective_api_key_grant(&record, requested_grant.clone())?;
+                record.last_used_at = now;
+                Ok((record, effective_grant))
+            })
+            .await?
         else {
             return Err(tonic::Status::unauthenticated("Invalid API key"));
         };
-        let mut record = decode_api_key_record(&bytes)?;
-        if !constant_time_eq(
-            hash_api_key_secret(parsed.secret).as_bytes(),
-            record.secret_hash.as_bytes(),
-        ) {
-            return Err(tonic::Status::unauthenticated("Invalid API key"));
-        }
-        let now = unix_seconds()?;
-        if record.revoked_at.is_some() {
-            return Err(tonic::Status::unauthenticated("API key is revoked"));
-        }
-        if record
-            .expires_at
-            .is_some_and(|expires_at| expires_at <= now)
-        {
-            return Err(tonic::Status::unauthenticated("API key is expired"));
-        }
-
-        let effective_grant = effective_api_key_grant(&record, request.grant)?;
         let (expires_in, expires_at) = api_key_access_token_expiration(request.expires_in)?;
         let secret = gateway_jwt_secret(self.gateway.as_ref())?;
         let claims = Claims {
@@ -330,10 +318,6 @@ impl GrpcGatewayHandler {
         .map_err(|err| {
             tonic::Status::internal(format!("failed to mint Talon access token: {err}"))
         })?;
-
-        record.last_used_at = now;
-        write_api_key(self.gateway.as_ref(), &record).await?;
-
         Ok(tonic::Response::new(proto::ExchangeApiKeyResponse {
             access_token,
             token_type: "Bearer".to_string(),
@@ -615,6 +599,38 @@ async fn write_api_key(gateway: &Gateway, record: &StoredApiKey) -> Result<(), t
         .map_err(|err| tonic::Status::internal(format!("failed to write API key: {err}")))
 }
 
+async fn update_api_key_record<R>(
+    gateway: &Gateway,
+    id: &str,
+    mut update: impl FnMut(StoredApiKey) -> Result<(StoredApiKey, R), tonic::Status>,
+) -> Result<Option<(StoredApiKey, R)>, tonic::Status> {
+    let key = api_key_key(id);
+    loop {
+        let Some(current_bytes) = gateway
+            .kv
+            .get(&key)
+            .await
+            .map_err(|err| tonic::Status::internal(format!("failed to read API key: {err}")))?
+        else {
+            return Ok(None);
+        };
+        let current = decode_api_key_record(&current_bytes)?;
+        let (updated, output) = update(current)?;
+        let updated_bytes = updated.encode_to_vec();
+        if updated_bytes == current_bytes {
+            return Ok(Some((updated, output)));
+        }
+        let swapped = gateway
+            .kv
+            .compare_and_swap(&key, Some(current_bytes.as_slice()), &updated_bytes)
+            .await
+            .map_err(|err| tonic::Status::internal(format!("failed to update API key: {err}")))?;
+        if swapped {
+            return Ok(Some((updated, output)));
+        }
+    }
+}
+
 fn decode_api_key_record(bytes: &[u8]) -> Result<StoredApiKey, tonic::Status> {
     StoredApiKey::decode(bytes)
         .map_err(|err| tonic::Status::internal(format!("failed to decode API key: {err}")))
@@ -766,6 +782,29 @@ fn optional_selector_allows(allowed: Option<&str>, requested: Option<&str>) -> b
         return true;
     };
     matches!(requested, Some(requested) if requested == allowed)
+}
+
+fn validate_api_key_exchange_record(
+    record: &StoredApiKey,
+    secret: &str,
+    now: u64,
+) -> Result<(), tonic::Status> {
+    if !constant_time_eq(
+        hash_api_key_secret(secret).as_bytes(),
+        record.secret_hash.as_bytes(),
+    ) {
+        return Err(tonic::Status::unauthenticated("Invalid API key"));
+    }
+    if record.revoked_at.is_some() {
+        return Err(tonic::Status::unauthenticated("API key is revoked"));
+    }
+    if record
+        .expires_at
+        .is_some_and(|expires_at| expires_at <= now)
+    {
+        return Err(tonic::Status::unauthenticated("API key is expired"));
+    }
+    Ok(())
 }
 
 fn api_key_access_token_expiration(requested_expires_in: u64) -> Result<(u64, u64), tonic::Status> {
@@ -1044,15 +1083,18 @@ fn mint_talon_access_token(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::ControlPlane;
+    use crate::control::{ControlPlane, KeyValueStore};
     use crate::gateway::auth::{check_auth, verify_jwt};
     use crate::test_support::{EmptyPubSub, MockKvStore};
-    use jsonwebtoken::{EncodingKey, Header, encode};
+    use jsonwebtoken::{encode, EncodingKey, Header};
     use std::sync::Arc;
 
     fn handler(secret: &str) -> GrpcGatewayHandler {
-        let control_plane =
-            ControlPlane::builder(Arc::new(MockKvStore::default()), Arc::new(EmptyPubSub)).build();
+        handler_with_kv(secret, Arc::new(MockKvStore::default()))
+    }
+
+    fn handler_with_kv(secret: &str, kv: Arc<MockKvStore>) -> GrpcGatewayHandler {
+        let control_plane = ControlPlane::builder(kv, Arc::new(EmptyPubSub)).build();
         GrpcGatewayHandler {
             gateway: Arc::new(Gateway::from_control_plane(
                 Some(AuthConfig::jwt(secret.to_string())),
@@ -1160,26 +1202,22 @@ mod tests {
             "authorization",
             format!("Bearer {}", response.access_token).parse().unwrap(),
         );
-        assert!(
-            check_auth(
-                &metadata,
-                &config,
-                "Tenant:acme:child",
-                Some("assistant"),
-                None
-            )
-            .is_ok()
-        );
-        assert!(
-            check_auth(
-                &metadata,
-                &config,
-                "Tenant:acme:other",
-                Some("assistant"),
-                None
-            )
-            .is_err()
-        );
+        assert!(check_auth(
+            &metadata,
+            &config,
+            "Tenant:acme:child",
+            Some("assistant"),
+            None
+        )
+        .is_ok());
+        assert!(check_auth(
+            &metadata,
+            &config,
+            "Tenant:acme:other",
+            Some("assistant"),
+            None
+        )
+        .is_err());
     }
 
     #[tokio::test]
@@ -1383,6 +1421,37 @@ mod tests {
             .await
             .expect_err("scoped JWT must not create API keys");
         assert_eq!(err.code(), tonic::Code::PermissionDenied);
+    }
+
+    #[tokio::test]
+    async fn api_key_list_skips_invalid_records() {
+        let secret = "api-key-secret";
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv(secret, kv.clone());
+        let root = token(secret, claims(None, None, None));
+
+        handler
+            .handle_create_api_key(auth_request(
+                &root,
+                proto::CreateApiKeyRequest {
+                    name: "valid".to_string(),
+                    grants: vec![proto_grant("read", Some("Tenant:acme"), None, None, None)],
+                    expires_at: None,
+                },
+            ))
+            .await
+            .unwrap();
+        kv.set(&api_key_key("corrupt"), b"not a protobuf record")
+            .await
+            .unwrap();
+
+        let response = handler
+            .handle_list_api_keys(auth_request(&root, proto::ListApiKeysRequest {}))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(response.api_keys.len(), 1);
+        assert_eq!(response.api_keys[0].name, "valid");
     }
 
     #[tokio::test]
