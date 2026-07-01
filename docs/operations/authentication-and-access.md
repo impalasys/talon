@@ -7,13 +7,13 @@ Talon gateway authentication is based on Talon-issued platform JWTs.
 
 ## Gateway Auth
 
-When `TALON_JWT_PRIVATE_KEY_PEM` is configured, the gateway accepts
-platform-signed JWT access tokens. Tokens are signed with that RSA private key,
-and the gateway publishes the corresponding public key through JWKS. JWT `iss`
-defaults to `https://talon.impala.systems`; set `TALON_JWT_ISSUER` to a
-non-empty HTTPS URL to override it. Production operators should
-master-authenticate through OIDC trust entries and exchange accepted identities
-for Talon access tokens.
+`TALON_JWT_PRIVATE_KEY_PEM` is required at startup. The gateway accepts
+platform-signed JWT access tokens, Talon signs issued tokens with that RSA
+private key, and the gateway publishes the corresponding public key through
+JWKS. JWT `iss` defaults to `https://talon.impala.systems`; set
+`TALON_JWT_ISSUER` to a non-empty HTTPS URL to override it. Production
+operators should master-authenticate through OIDC trust entries and exchange
+accepted identities for Talon access tokens.
 
 Local development can mint a short-lived root access token directly from a test
 private key:

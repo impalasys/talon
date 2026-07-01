@@ -19,8 +19,8 @@ sidebar_position: 2
 Authenticate to the gateway or, for local environments only, mint a
 platform-signed bootstrap token from a private PEM file. API key and OIDC
 exchanges return platform-signed Talon access tokens when
-`TALON_JWT_PRIVATE_KEY_PEM` is configured. JWT `iss` defaults to
-`https://talon.impala.systems` and can be overridden with
+the required `TALON_JWT_PRIVATE_KEY_PEM` platform signing key is present. JWT
+`iss` defaults to `https://talon.impala.systems` and can be overridden with
 `TALON_JWT_ISSUER`.
 
 - `auth login`: sign in through Google OIDC and store a Talon access token
