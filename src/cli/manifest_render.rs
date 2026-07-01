@@ -40,11 +40,14 @@ fn resolve_manifest_sources(file: &str, rendered: &str) -> Result<String> {
             continue;
         }
 
-        let raw: crate::control::manifest::RawManifest =
-            serde_yaml::from_value(manifest.clone()).context("Failed to parse manifest YAML")?;
-        if raw.kind == "Knowledge" {
-            resolve_knowledge_manifest_sources(file, &mut manifest)?;
-            changed = true;
+        if manifest.is_mapping() {
+            let raw: crate::control::manifest::RawManifest =
+                serde_yaml::from_value(manifest.clone())
+                    .context("Failed to parse manifest YAML")?;
+            if raw.kind == "Knowledge" {
+                resolve_knowledge_manifest_sources(file, &mut manifest)?;
+                changed = true;
+            }
         }
 
         documents.push(
@@ -53,7 +56,7 @@ fn resolve_manifest_sources(file: &str, rendered: &str) -> Result<String> {
     }
 
     if changed {
-        Ok(documents.join("---\n"))
+        Ok(documents.concat())
     } else {
         Ok(rendered.to_string())
     }
