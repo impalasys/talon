@@ -160,7 +160,13 @@ pub(crate) fn gateway_http_base(cli: &Cli) -> String {
             return trimmed.trim_end_matches('/').to_string();
         }
     }
-    cli.gateway.trim_end_matches('/').to_string()
+    let gateway = cli.gateway_url();
+    let trimmed = gateway.trim_end_matches('/');
+    if trimmed.starts_with("http://") || trimmed.starts_with("https://") {
+        trimmed.to_string()
+    } else {
+        format!("https://{trimmed}")
+    }
 }
 
 pub(crate) fn stored_auth_path() -> Result<PathBuf> {
@@ -822,16 +828,10 @@ fn api_key_cache_hash(api_key: &str, grant: Option<&str>) -> String {
     general_purpose::URL_SAFE_NO_PAD.encode(hasher.finalize())
 }
 
-fn grpc_web_enabled(cli: &Cli) -> bool {
-    cli.grpc_web
-        || std::env::var("TALON_GRPC_WEB")
-            .map(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
-            .unwrap_or(false)
-}
-
 pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
-    let mut options = GatewayClientOptions::new(cli.gateway.clone());
-    options.transport = if grpc_web_enabled(cli) {
+    let gateway = cli.gateway_url();
+    let mut options = GatewayClientOptions::new(gateway.clone());
+    options.transport = if cli.grpc_web_enabled() {
         GatewayTransport::GrpcWeb
     } else {
         GatewayTransport::Grpc
@@ -840,7 +840,7 @@ pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
     TalonClient::connect_with_options(options)
         .await
         .map_err(|err| anyhow::anyhow!("{err}"))
-        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))
+        .with_context(|| format!("Could not connect to gateway at {gateway}"))
 }
 
 #[cfg(test)]
