@@ -25,7 +25,7 @@ export const talonQueryKeys = {
   resources: (scope: TalonQueryScope, ns: string, kind: string) =>
     [...talonQueryKeys.all(scope), 'resources', ns, kind] as const,
   resource: (scope: TalonQueryScope, ns: string, kind: string, name: string) =>
-    [...talonQueryKeys.all(scope), 'resource', ns, kind, name] as const,
+    [...talonQueryKeys.resources(scope, ns, kind), 'detail', name] as const,
   sessions: (scope: TalonQueryScope, ns: string, agent: string) =>
     [...talonQueryKeys.all(scope), 'sessions', ns, agent] as const,
   knowledge: (scope: TalonQueryScope, ns: string, agent: string) =>

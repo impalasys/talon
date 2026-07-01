@@ -24,6 +24,7 @@ ENV NEXT_PUBLIC_GATEWAY_URL=$NEXT_PUBLIC_GATEWAY_URL
 
 COPY ui/app ./app
 COPY ui/components ./components
+COPY ui/hooks ./hooks
 COPY ui/lib ./lib
 COPY ui/proto ./proto
 COPY ui/utils ./utils

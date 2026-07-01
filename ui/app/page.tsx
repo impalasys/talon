@@ -298,6 +298,7 @@ function tokenExpiryError(token: string) {
   const payload = decodeJwtPayload(token);
   if (!payload?.exp) return null;
   const expiresAt = payload.exp * 1000;
+  if (!Number.isFinite(expiresAt)) return null;
   if (expiresAt > Date.now()) return null;
   return `Authorization token expired at ${new Date(expiresAt).toLocaleString()}.`;
 }

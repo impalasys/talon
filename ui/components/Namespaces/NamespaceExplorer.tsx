@@ -201,66 +201,66 @@ export function NamespaceExplorer({
   });
 
   const createAgentMutation = useMutation({
-    mutationFn: async () => {
-      const selectedTemplate = agentCreateTemplates.find((template) => templateOptionId(template) === agentForm.template);
+    mutationFn: async (variables: { ns: string; name: string; template: string }) => {
+      const selectedTemplate = agentCreateTemplates.find((template) => templateOptionId(template) === variables.template);
       const templateSpec = selectedTemplate ? resourceSpec(selectedTemplate, 'template') : null;
       if (templateSpec && templateSpec.kind !== 'Agent') {
-        throw new Error(`Template '${agentForm.template}' renders ${templateSpec.kind}, not Agent`);
+        throw new Error(`Template '${variables.template}' renders ${templateSpec.kind}, not Agent`);
       }
       const agentSpec = templateSpec ? parseJsonObject(templateSpec.specJson) : { systemPrompt: '' };
-      return createResource(agentModalOpen.ns, {
+      return createResource(variables.ns, {
         apiVersion: API_VERSION,
         kind: 'Agent',
-        metadata: resourceMetadata(agentForm.name.trim(), agentModalOpen.ns),
+        metadata: resourceMetadata(variables.name.trim(), variables.ns),
         spec: { kind: { case: 'agent', value: agentSpec } },
       });
     },
-    onSuccess: async () => {
-      await invalidateNamespace(agentModalOpen.ns, ['Agent']);
-      setExpanded((prev) => new Set(prev).add(agentModalOpen.ns));
+    onSuccess: async (_, variables) => {
+      await invalidateNamespace(variables.ns, ['Agent']);
+      setExpanded((prev) => new Set(prev).add(variables.ns));
       setAgentModalOpen({ isOpen: false, ns: '' });
       setAgentForm({ name: '', template: '' });
     },
   });
 
   const createChannelMutation = useMutation({
-    mutationFn: () =>
-      createResource(channelModalOpen.ns, {
+    mutationFn: (variables: { ns: string; name: string; title: string }) =>
+      createResource(variables.ns, {
         apiVersion: API_VERSION,
         kind: 'Channel',
-        metadata: resourceMetadata(channelForm.name.trim(), channelModalOpen.ns),
-        spec: { kind: { case: 'channel', value: { title: channelForm.title.trim(), metadata: {} } } },
+        metadata: resourceMetadata(variables.name.trim(), variables.ns),
+        spec: { kind: { case: 'channel', value: { title: variables.title.trim(), metadata: {} } } },
       }),
-    onSuccess: async () => {
-      await invalidateNamespace(channelModalOpen.ns, ['Channel']);
-      setExpanded((prev) => new Set(prev).add(channelModalOpen.ns));
+    onSuccess: async (_, variables) => {
+      await invalidateNamespace(variables.ns, ['Channel']);
+      setExpanded((prev) => new Set(prev).add(variables.ns));
       setChannelModalOpen({ isOpen: false, ns: '' });
       setChannelForm({ name: '', title: '' });
     },
   });
 
   const createSubscriptionMutation = useMutation({
-    mutationFn: () =>
-      createResource(subscriptionModalOpen.ns, {
+    mutationFn: (variables: { ns: string; channel: string; name: string; agent: string; enabled: boolean; trigger: string; replyMode: string }) =>
+      createResource(variables.ns, {
         apiVersion: API_VERSION,
         kind: 'ChannelSubscription',
-        metadata: resourceMetadata(subscriptionForm.name.trim(), subscriptionModalOpen.ns),
+        metadata: resourceMetadata(variables.name.trim(), variables.ns),
         spec: {
           kind: {
             case: 'channelSubscription',
             value: {
-              channel: subscriptionModalOpen.channel,
-              agent: subscriptionForm.agent.trim(),
-              enabled: subscriptionForm.enabled,
-              trigger: subscriptionForm.trigger,
-              replyMode: subscriptionForm.replyMode,
+              channel: variables.channel,
+              agent: variables.agent.trim(),
+              enabled: variables.enabled,
+              trigger: variables.trigger,
+              replyMode: variables.replyMode,
             },
           },
         },
       }),
-    onSuccess: async () => {
-      await invalidateNamespace(subscriptionModalOpen.ns, ['ChannelSubscription']);
-      setExpanded((prev) => new Set(prev).add(`${subscriptionModalOpen.ns}:channel:${subscriptionModalOpen.channel}`));
+    onSuccess: async (_, variables) => {
+      await invalidateNamespace(variables.ns, ['ChannelSubscription']);
+      setExpanded((prev) => new Set(prev).add(`${variables.ns}:channel:${variables.channel}`));
       setSubscriptionModalOpen({ isOpen: false, ns: '', channel: '' });
       setSubscriptionForm({ name: '', agent: '', trigger: 'mention', replyMode: 'tool', enabled: true });
     },
@@ -332,19 +332,35 @@ export function NamespaceExplorer({
   const submitAgent = (event: React.FormEvent) => {
     event.preventDefault();
     if (!agentForm.name.trim()) return;
-    createAgentMutation.mutate();
+    createAgentMutation.mutate({
+      ns: agentModalOpen.ns,
+      name: agentForm.name,
+      template: agentForm.template,
+    });
   };
 
   const submitChannel = (event: React.FormEvent) => {
     event.preventDefault();
     if (!channelForm.name.trim()) return;
-    createChannelMutation.mutate();
+    createChannelMutation.mutate({
+      ns: channelModalOpen.ns,
+      name: channelForm.name,
+      title: channelForm.title,
+    });
   };
 
   const submitSubscription = (event: React.FormEvent) => {
     event.preventDefault();
     if (!subscriptionForm.name.trim() || !subscriptionForm.agent.trim()) return;
-    createSubscriptionMutation.mutate();
+    createSubscriptionMutation.mutate({
+      ns: subscriptionModalOpen.ns,
+      channel: subscriptionModalOpen.channel,
+      name: subscriptionForm.name,
+      agent: subscriptionForm.agent,
+      enabled: subscriptionForm.enabled,
+      trigger: subscriptionForm.trigger,
+      replyMode: subscriptionForm.replyMode,
+    });
   };
 
   const mutationError =

@@ -17,4 +17,13 @@ describe('talonQueryKeys', () => {
     expect(firstTokenKey[1].auth).not.toEqual(secondTokenKey[1].auth);
     expect(JSON.stringify(firstTokenKey)).not.toContain('secret');
   });
+
+  it('nests resource detail keys under namespace resource list keys', () => {
+    const scope = { gatewayUrl: 'http://a', authToken: null };
+    expect(talonQueryKeys.resource(scope, 'demo', 'Agent', 'cmo')).toEqual([
+      ...talonQueryKeys.resources(scope, 'demo', 'Agent'),
+      'detail',
+      'cmo',
+    ]);
+  });
 });
