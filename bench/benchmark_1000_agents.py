@@ -596,15 +596,19 @@ async def provision(
     ns: str,
     agents: int,
     concurrency: int,
+    auth_metadata: tuple[tuple[str, str], ...],
 ) -> list[str]:
-    await namespaces.Create(CreateNamespaceRequest(name=ns, recursive=True))
+    await namespaces.Create(
+        CreateNamespaceRequest(name=ns, recursive=True), metadata=auth_metadata
+    )
     sem = asyncio.Semaphore(concurrency)
 
     async def create_agent(index: int) -> str:
         name = f"agent-{index:04d}"
         async with sem:
             await resources.Create(
-                CreateResourceRequest(ns=ns, manifest=agent_manifest(ns, name))
+                CreateResourceRequest(ns=ns, manifest=agent_manifest(ns, name)),
+                metadata=auth_metadata,
             )
             return name
 
@@ -612,7 +616,9 @@ async def provision(
 
     async def create_session(agent: str) -> str:
         async with sem:
-            response = await sessions.Create(CreateSessionRequest(ns=ns, agent=agent))
+            response = await sessions.Create(
+                CreateSessionRequest(ns=ns, agent=agent), metadata=auth_metadata
+            )
             return response.session_id
 
     return await asyncio.gather(*(create_session(agent) for agent in agent_names))
@@ -625,10 +631,11 @@ async def consume_stream(
     session_id: str,
     timings: RunTimings,
     stream_ready: asyncio.Event,
+    auth_metadata: tuple[tuple[str, str], ...],
 ) -> None:
     request = StreamSessionPartsRequest(ns=ns, agent=agent, session_id=session_id)
     try:
-        stream = stub.StreamParts(request)
+        stream = stub.StreamParts(request, metadata=auth_metadata)
         timings.stream_opened = time.perf_counter()
         stream_ready.set()
         async for event in stream:
@@ -669,6 +676,7 @@ async def consume_batch_stream(
     session_ids: list[str],
     timings: list[RunTimings],
     stream_ready: asyncio.Event,
+    auth_metadata: tuple[tuple[str, str], ...],
 ) -> None:
     session_names = [
         canonical_session_name(ns, agent, session_id)
@@ -682,7 +690,8 @@ async def consume_batch_stream(
     }
     try:
         stream = stub.StreamPartsBatch(
-            StreamSessionPartsBatchRequest(session_names=session_names)
+            StreamSessionPartsBatchRequest(session_names=session_names),
+            metadata=auth_metadata,
         )
         opened = time.perf_counter()
         for timing in timings:
@@ -736,6 +745,7 @@ async def send_message(
     agent: str,
     session_id: str,
     timings: RunTimings,
+    auth_metadata: tuple[tuple[str, str], ...],
 ) -> None:
     timings.send_started = time.perf_counter()
     try:
@@ -745,7 +755,8 @@ async def send_message(
                 agent=agent,
                 session_id=session_id,
                 message=f"benchmark message for {agent}",
-            )
+            ),
+            metadata=auth_metadata,
         )
         timings.send_finished = time.perf_counter()
     except Exception as exc:
@@ -766,6 +777,7 @@ async def run_workload(
     mock_metrics_url: str | None,
     stats_samples: list[dict[str, Any]],
     stream_mode: str,
+    auth_metadata: tuple[tuple[str, str], ...],
 ) -> dict[str, Any]:
     ns = f"bench-{agents}-{int(time.time())}"
     options = [
@@ -793,6 +805,7 @@ async def run_workload(
             ns,
             agents,
             provision_concurrency,
+            auth_metadata,
         )
         provision_finished = time.perf_counter()
         print(
@@ -818,6 +831,7 @@ async def run_workload(
                         session_ids[start:end],
                         timings[start:end],
                         ready,
+                        auth_metadata,
                     )
                 )
                 stream_tasks.append(task)
@@ -835,6 +849,7 @@ async def run_workload(
                         session_ids[index],
                         timings[index],
                         stream_ready[index],
+                        auth_metadata,
                     )
                 )
                 stream_tasks.append(task)
@@ -859,6 +874,7 @@ async def run_workload(
                         agent_names[index],
                         session_ids[index],
                         timings[index],
+                        auth_metadata,
                     )
 
             await asyncio.gather(*(send_with_sem(index) for index in range(agents)))
@@ -1067,6 +1083,34 @@ def compose_port(project_name: str, compose_path: Path, service: str, port: int)
     if host in {"0.0.0.0", "::"}:
         host = "127.0.0.1"
     return host, int(raw_port)
+
+
+def mint_benchmark_auth_metadata(
+    project_name: str, compose_path: Path
+) -> tuple[tuple[str, str], ...]:
+    script = """
+set -eu
+private_key_file=/tmp/talon-bench-jwt-private-key.pem
+printf '%s\n' "$TALON_JWT_PRIVATE_KEY_PEM" > "$private_key_file"
+talon-cli auth local-token \
+  --private-key-pem-file "$private_key_file" \
+  --subject talon-bench-client \
+  --ttl 1day
+""".strip()
+    result = compose_command(
+        project_name,
+        compose_path,
+        "exec",
+        "-T",
+        "talon",
+        "sh",
+        "-lc",
+        script,
+    )
+    token = result.stdout.strip().splitlines()[-1]
+    if not token:
+        raise RuntimeError("talon-cli did not print a benchmark auth token")
+    return (("authorization", f"Bearer {token}"),)
 
 
 def docker_inspect(container_name: str) -> dict[str, Any]:
@@ -1406,6 +1450,9 @@ async def run_profile(
             print(f"jaeger_ui={jaeger_url}", flush=True)
         await asyncio.to_thread(wait_for_port, mock_host, mock_port)
         await wait_for_channel(grpc_target, timeout_seconds=90)
+        auth_metadata = await asyncio.to_thread(
+            mint_benchmark_auth_metadata, project_name, compose_path
+        )
 
         stats_tasks.append(
             asyncio.create_task(
@@ -1441,6 +1488,7 @@ async def run_profile(
             mock_metrics_url=mock_metrics_url,
             stats_samples=stats_samples,
             stream_mode=args.stream_mode,
+            auth_metadata=auth_metadata,
         )
         try:
             mock_metrics = await asyncio.to_thread(fetch_json, mock_metrics_url)
