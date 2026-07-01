@@ -247,17 +247,26 @@ control_plane:
             test_grpc_port,
             worker_pull_mode=True,
         )
-        api_key = conftest.create_e2e_api_key(test_grpc_port, "pytest-durable-root")
-        os.environ[conftest.api_key_env_name(test_grpc_port)] = api_key
-        return cls(
-            temp_dir=temp_dir,
-            data_dir=data_dir,
-            env=env,
-            grpc_port=test_grpc_port,
-            api_key=api_key,
-            server_proc=server_proc,
-            worker_proc=worker_proc,
-        )
+        try:
+            api_key = conftest.create_e2e_api_key(test_grpc_port, "pytest-durable-root")
+            os.environ[conftest.api_key_env_name(test_grpc_port)] = api_key
+            return cls(
+                temp_dir=temp_dir,
+                data_dir=data_dir,
+                env=env,
+                grpc_port=test_grpc_port,
+                api_key=api_key,
+                server_proc=server_proc,
+                worker_proc=worker_proc,
+            )
+        except Exception:
+            worker_proc.terminate()
+            server_proc.terminate()
+            worker_proc.wait(timeout=10)
+            server_proc.wait(timeout=10)
+            os.environ.pop(conftest.api_key_env_name(test_grpc_port), None)
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            raise
 
     @property
     def worker_port(self) -> int:

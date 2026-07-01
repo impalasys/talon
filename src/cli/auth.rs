@@ -9,6 +9,7 @@ use sha2::{Digest, Sha256};
 use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::path::PathBuf;
+use talon_client::data::ApiKeyGrant;
 use talon_client::v1::{ExchangeApiKeyRequest, ExchangeOidcTokenRequest};
 use talon_client::{GatewayClientOptions, GatewayTransport, TalonClient};
 use url::Url;
@@ -96,6 +97,44 @@ pub(crate) fn resolve_gateway_api_key(cli: &Cli) -> Option<String> {
         .filter(|value| !value.is_empty())
 }
 
+pub(crate) fn parse_api_key_grant(value: &str) -> Result<ApiKeyGrant> {
+    let mut parts = value
+        .split(',')
+        .map(str::trim)
+        .filter(|part| !part.is_empty());
+    let kind = parts
+        .next()
+        .context("grant must start with read or readwrite")?
+        .to_ascii_lowercase();
+    if kind != "read" && kind != "readwrite" {
+        anyhow::bail!("grant kind must be read or readwrite");
+    }
+    let mut grant = ApiKeyGrant {
+        kind,
+        namespace: None,
+        agent: None,
+        session: None,
+        channel: None,
+    };
+    for part in parts {
+        let (key, value) = part
+            .split_once('=')
+            .with_context(|| format!("grant selector '{part}' must be key=value"))?;
+        let value = value.trim();
+        if value.is_empty() {
+            anyhow::bail!("grant selector '{key}' cannot be empty");
+        }
+        match key.trim() {
+            "namespace" | "ns" => grant.namespace = Some(value.to_string()),
+            "agent" => grant.agent = Some(value.to_string()),
+            "session" => grant.session = Some(value.to_string()),
+            "channel" => grant.channel = Some(value.to_string()),
+            other => anyhow::bail!("unsupported grant selector '{other}'"),
+        }
+    }
+    Ok(grant)
+}
+
 pub(crate) fn resolve_gateway_jwt_secret(cli: &Cli) -> Option<String> {
     cli.jwt_secret
         .clone()
@@ -108,9 +147,9 @@ pub(crate) fn mint_gateway_jwt(secret: &str) -> Result<String> {
 }
 
 impl StoredGatewayAuth {
-    fn matches_api_key(&self, api_key: &str) -> bool {
+    fn matches_api_key(&self, api_key: &str, grant: Option<&str>) -> bool {
         self.auth_source.as_deref() == Some("api_key")
-            && self.credential_hash.as_deref() == Some(api_key_cache_hash(api_key).as_str())
+            && self.credential_hash.as_deref() == Some(api_key_cache_hash(api_key, grant).as_str())
     }
 }
 
@@ -244,6 +283,11 @@ pub(crate) async fn exchange_oidc_id_token(
 
 pub(crate) async fn exchange_api_key(cli: &Cli, api_key: &str) -> Result<StoredGatewayAuth> {
     let base = gateway_http_base(cli);
+    let requested_grant = cli
+        .api_key_grant
+        .as_deref()
+        .map(parse_api_key_grant)
+        .transpose()?;
     let mut client = TalonClient::connect_with_options(GatewayClientOptions {
         endpoint: base.clone(),
         transport: GatewayTransport::Grpc,
@@ -258,7 +302,7 @@ pub(crate) async fn exchange_api_key(cli: &Cli, api_key: &str) -> Result<StoredG
     let exchanged = client
         .exchange_api_key(ExchangeApiKeyRequest {
             api_key: api_key.to_string(),
-            grant: None,
+            grant: requested_grant,
             expires_in: 0,
         })
         .await
@@ -278,7 +322,7 @@ pub(crate) async fn exchange_api_key(cli: &Cli, api_key: &str) -> Result<StoredG
         email: None,
         trust: "api-key".to_string(),
         auth_source: Some("api_key".to_string()),
-        credential_hash: Some(api_key_cache_hash(api_key)),
+        credential_hash: Some(api_key_cache_hash(api_key, cli.api_key_grant.as_deref())),
     })
 }
 
@@ -749,8 +793,8 @@ async fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
         let token = mint_gateway_jwt(secret)?;
         Ok(Some(format!("Bearer {}", token)))
     } else if let Some(api_key) = resolve_gateway_api_key(cli) {
-        if let Some(auth) =
-            load_stored_gateway_auth(cli)?.filter(|auth| auth.matches_api_key(&api_key))
+        if let Some(auth) = load_stored_gateway_auth(cli)?
+            .filter(|auth| auth.matches_api_key(&api_key, cli.api_key_grant.as_deref()))
         {
             return Ok(Some(format!("Bearer {}", auth.access_token)));
         }
@@ -770,8 +814,12 @@ async fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
     }
 }
 
-fn api_key_cache_hash(api_key: &str) -> String {
-    general_purpose::URL_SAFE_NO_PAD.encode(Sha256::digest(api_key.trim().as_bytes()))
+fn api_key_cache_hash(api_key: &str, grant: Option<&str>) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(api_key.trim().as_bytes());
+    hasher.update(b"\0");
+    hasher.update(grant.map(str::trim).unwrap_or("").as_bytes());
+    general_purpose::URL_SAFE_NO_PAD.encode(hasher.finalize())
 }
 
 fn grpc_web_enabled(cli: &Cli) -> bool {
@@ -885,14 +933,15 @@ mod tests {
             email: None,
             trust: "api-key".to_string(),
             auth_source: Some("api_key".to_string()),
-            credential_hash: Some(api_key_cache_hash("talon_sk_v1_id_secret")),
+            credential_hash: Some(api_key_cache_hash("talon_sk_v1_id_secret", None)),
         };
 
-        assert!(auth.matches_api_key("talon_sk_v1_id_secret"));
-        assert!(!auth.matches_api_key("talon_sk_v1_id_other"));
+        assert!(auth.matches_api_key("talon_sk_v1_id_secret", None));
+        assert!(!auth.matches_api_key("talon_sk_v1_id_secret", Some("read")));
+        assert!(!auth.matches_api_key("talon_sk_v1_id_other", None));
 
         let mut oidc_auth = auth;
         oidc_auth.auth_source = Some("oidc".to_string());
-        assert!(!oidc_auth.matches_api_key("talon_sk_v1_id_secret"));
+        assert!(!oidc_auth.matches_api_key("talon_sk_v1_id_secret", None));
     }
 }

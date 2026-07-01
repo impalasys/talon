@@ -188,12 +188,25 @@ fn apply_grant_scope(
     grants: Vec<auth::TalonGrantClaim>,
     query: &mut proto::SearchRequest,
 ) -> std::result::Result<(), tonic::Status> {
+    let namespaces = search::search_namespaces(query)
+        .into_iter()
+        .map(str::trim)
+        .filter(|namespace| !namespace.is_empty())
+        .map(str::to_string)
+        .collect::<Vec<_>>();
     let mut scoped_agent = None;
     let mut scoped_session = None;
     let mut scoped_channel = None;
 
     for grant in grants {
         if !matches!(grant.kind.as_str(), "read" | "readwrite") {
+            continue;
+        }
+        if !namespaces.iter().any(|namespace| {
+            grant.namespace.as_deref().map_or(true, |allowed| {
+                auth::namespace_scope_allows(allowed, namespace)
+            })
+        }) {
             continue;
         }
         let grant_agent = grant.agent.filter(|value| !value.is_empty());

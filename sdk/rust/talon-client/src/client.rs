@@ -215,7 +215,20 @@ fn unix_timestamp() -> u64 {
 }
 
 async fn connect_native(options: GatewayClientOptions) -> Result<NativeTalonClient, BoxError> {
-    let mut endpoint = tonic::transport::Endpoint::new(native_endpoint_url(&options.endpoint))?;
+    let endpoint_url = native_endpoint_url(&options.endpoint);
+    if options.authorization.is_some()
+        || options
+            .api_key
+            .as_deref()
+            .is_some_and(|value| !value.trim().is_empty())
+    {
+        if endpoint_url.starts_with("http://") {
+            return Err(
+                "authorization and api_key auth require an HTTPS native gRPC endpoint".into(),
+            );
+        }
+    }
+    let mut endpoint = tonic::transport::Endpoint::new(endpoint_url)?;
     if let Some(timeout) = options.connect_timeout {
         endpoint = endpoint.connect_timeout(timeout);
     }
@@ -251,7 +264,7 @@ fn native_endpoint_url(endpoint: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::native_endpoint_url;
+    use super::{native_endpoint_url, GatewayClientOptions, NativeTalonClient};
 
     #[test]
     fn native_endpoint_url_defaults_hosted_gateways_to_https() {
@@ -276,6 +289,16 @@ mod tests {
             "http://127.0.0.1:50051"
         );
         assert_eq!(native_endpoint_url("[::1]:50051"), "http://[::1]:50051");
+    }
+
+    #[tokio::test]
+    async fn native_api_key_auth_rejects_plaintext_endpoints() {
+        let mut options = GatewayClientOptions::new("http://127.0.0.1:50051");
+        options.api_key = Some("talon_sk_v1_id_secret".to_string());
+        let err = NativeTalonClient::connect_with_options(options)
+            .await
+            .expect_err("plaintext api_key auth should be rejected");
+        assert!(err.to_string().contains("require an HTTPS"));
     }
 }
 

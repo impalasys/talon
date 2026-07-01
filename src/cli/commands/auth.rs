@@ -8,10 +8,10 @@ use talon_client::v1::{CreateApiKeyRequest, ListApiKeysRequest, RevokeApiKeyRequ
 
 use super::{Cli, RunOutcome};
 use crate::cli::{
-    DEFAULT_TOKEN_TTL, clear_stored_gateway_auth, describe_stored_auth, exchange_oidc_id_token,
+    clear_stored_gateway_auth, describe_stored_auth, exchange_oidc_id_token,
     login_with_google_loopback, mint_agent_jwt, mint_channel_jwt, mint_namespace_jwt,
-    mint_root_jwt, mint_session_jwt, resolve_gateway_jwt_secret, resolve_token_ttl_seconds,
-    save_stored_gateway_auth,
+    mint_root_jwt, mint_session_jwt, parse_api_key_grant, resolve_gateway_jwt_secret,
+    resolve_token_ttl_seconds, save_stored_gateway_auth, DEFAULT_TOKEN_TTL,
 };
 
 #[derive(Args)]
@@ -291,7 +291,7 @@ async fn run_api_key_command(cli: &Cli, command: &ApiKeyCommands) -> Result<()> 
                     name: name.clone(),
                     grants: grants
                         .iter()
-                        .map(|grant| parse_grant(grant))
+                        .map(|grant| parse_api_key_grant(grant))
                         .collect::<Result<Vec<_>>>()?,
                     expires_at: *expires_at,
                 })
@@ -346,44 +346,6 @@ async fn run_api_key_command(cli: &Cli, command: &ApiKeyCommands) -> Result<()> 
         }
     }
     Ok(())
-}
-
-fn parse_grant(value: &str) -> Result<ApiKeyGrant> {
-    let mut parts = value
-        .split(',')
-        .map(str::trim)
-        .filter(|part| !part.is_empty());
-    let kind = parts
-        .next()
-        .context("grant must start with read or readwrite")?
-        .to_ascii_lowercase();
-    if kind != "read" && kind != "readwrite" {
-        anyhow::bail!("grant kind must be read or readwrite");
-    }
-    let mut grant = ApiKeyGrant {
-        kind,
-        namespace: None,
-        agent: None,
-        session: None,
-        channel: None,
-    };
-    for part in parts {
-        let (key, value) = part
-            .split_once('=')
-            .with_context(|| format!("grant selector '{part}' must be key=value"))?;
-        let value = value.trim();
-        if value.is_empty() {
-            anyhow::bail!("grant selector '{key}' cannot be empty");
-        }
-        match key.trim() {
-            "namespace" | "ns" => grant.namespace = Some(value.to_string()),
-            "agent" => grant.agent = Some(value.to_string()),
-            "session" => grant.session = Some(value.to_string()),
-            "channel" => grant.channel = Some(value.to_string()),
-            other => anyhow::bail!("unsupported grant selector '{other}'"),
-        }
-    }
-    Ok(grant)
 }
 
 fn format_grant(grant: &ApiKeyGrant) -> String {

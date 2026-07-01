@@ -90,6 +90,19 @@ def cleanup_temp_dir(temp_dir: Path):
 
 def create_api_key(grpc_port):
     cli = get_binary_path("talon_cli")
+    env = os.environ.copy()
+    for key in (
+        "TALON_API_KEY",
+        "TALON_AUTH_FILE",
+        "TALON_GATEWAY_TOKEN",
+        "GATEWAY_TOKEN",
+        "TALON_GATEWAY_PASSWORD",
+        "GATEWAY_PASSWORD",
+    ):
+        env.pop(key, None)
+    env["TALON_AUTH_FILE"] = str(
+        Path(tempfile.gettempdir()) / f"talon-e2e-bootstrap-auth-{grpc_port}.json"
+    )
     result = subprocess.run(
         [
             cli,
@@ -109,6 +122,7 @@ def create_api_key(grpc_port):
         capture_output=True,
         check=False,
         timeout=30,
+        env=env,
     )
     if result.returncode != 0:
         raise RuntimeError(
@@ -252,9 +266,17 @@ control_plane:
         cleanup_temp_dir(temp_dir)
         raise RuntimeError(f"Talon server failed to start on port {GATEWAY_GRPC_PORT}")
 
-    time.sleep(3)
-    api_key = create_api_key(GATEWAY_GRPC_PORT)
-    write_auth_handoff(GATEWAY_GRPC_PORT, api_key)
+    try:
+        time.sleep(3)
+        api_key = create_api_key(GATEWAY_GRPC_PORT)
+        write_auth_handoff(GATEWAY_GRPC_PORT, api_key)
+    except Exception:
+        server_proc.terminate()
+        postgres.stop()
+        pubsub.stop()
+        E2E_AUTH_FILE.unlink(missing_ok=True)
+        cleanup_temp_dir(temp_dir)
+        raise
 
     env_worker = env.copy()
     env_worker["PULL_MODE"] = "1"

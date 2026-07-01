@@ -64,7 +64,7 @@ services:
         if [ ! -s "$$API_KEY_FILE" ]; then
           umask 077
           talon-cli --gateway "$$GRPC_GATEWAY" --jwt-secret "$$GATEWAY_JWT_SECRET" auth api-key create --name docker-compose-root --grant readwrite \
-            | awk -F= '/^secret=/{print $$2}' > "$$API_KEY_FILE.tmp"
+            | awk '/^secret=/{sub(/^secret=/, ""); print}' > "$$API_KEY_FILE.tmp"
           test -s "$$API_KEY_FILE.tmp"
           mv "$$API_KEY_FILE.tmp" "$$API_KEY_FILE"
         fi

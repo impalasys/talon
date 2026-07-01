@@ -17,6 +17,7 @@ use commands::Cli;
 pub(super) use auth::{
     clear_stored_gateway_auth, connect_gateway, describe_stored_auth, exchange_oidc_id_token,
     login_with_google_loopback, mint_agent_jwt, mint_channel_jwt, mint_namespace_jwt,
-    mint_root_jwt, mint_session_jwt, resolve_gateway_jwt_secret, resolve_gateway_password,
-    resolve_token_ttl_seconds, save_stored_gateway_auth, DEFAULT_TOKEN_TTL,
+    mint_root_jwt, mint_session_jwt, parse_api_key_grant, resolve_gateway_jwt_secret,
+    resolve_gateway_password, resolve_token_ttl_seconds, save_stored_gateway_auth,
+    DEFAULT_TOKEN_TTL,
 };

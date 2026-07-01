@@ -370,23 +370,24 @@ control_plane:
         worker_pull_mode=True,
     )
 
-    api_key = create_e2e_api_key(test_grpc_port, "pytest-postgres-root")
-    auth_file = temp_dir / "talon-auth.json"
-    os.environ[api_key_env_name(test_grpc_port)] = api_key
-    os.environ[api_key_auth_file_env_name(test_grpc_port)] = str(auth_file)
+    try:
+        api_key = create_e2e_api_key(test_grpc_port, "pytest-postgres-root")
+        auth_file = temp_dir / "talon-auth.json"
+        os.environ[api_key_env_name(test_grpc_port)] = api_key
+        os.environ[api_key_auth_file_env_name(test_grpc_port)] = str(auth_file)
 
-    yield {"api_key": api_key, "auth_file": str(auth_file)}
-    
-    print("\nShutting down Talon servers and containers...")
-    server_proc.terminate()
-    worker_proc.terminate()
-    server_proc.wait()
-    worker_proc.wait()
-    os.environ.pop(api_key_env_name(test_grpc_port), None)
-    os.environ.pop(api_key_auth_file_env_name(test_grpc_port), None)
-    pubsub.stop()
-    postgres.stop()
-    shutil.rmtree(temp_dir, ignore_errors=True)
+        yield {"api_key": api_key, "auth_file": str(auth_file)}
+    finally:
+        print("\nShutting down Talon servers and containers...")
+        server_proc.terminate()
+        worker_proc.terminate()
+        server_proc.wait()
+        worker_proc.wait()
+        os.environ.pop(api_key_env_name(test_grpc_port), None)
+        os.environ.pop(api_key_auth_file_env_name(test_grpc_port), None)
+        pubsub.stop()
+        postgres.stop()
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 @pytest.fixture(scope="session", autouse=True)
 def mock_llm_server():
@@ -489,37 +490,39 @@ control_plane:
         test_grpc_port,
         worker_pull_mode=True,
     )
-    api_key = create_e2e_api_key(test_grpc_port, "pytest-sqlite-root")
-    auth_file = temp_dir / "talon-auth.json"
-    os.environ[api_key_env_name(test_grpc_port)] = api_key
-    os.environ[api_key_auth_file_env_name(test_grpc_port)] = str(auth_file)
+    state = {"restarted_workers": []}
+    try:
+        api_key = create_e2e_api_key(test_grpc_port, "pytest-sqlite-root")
+        auth_file = temp_dir / "talon-auth.json"
+        os.environ[api_key_env_name(test_grpc_port)] = api_key
+        os.environ[api_key_auth_file_env_name(test_grpc_port)] = str(auth_file)
 
-    state = {
-        "grpc_port": test_grpc_port,
-        "worker_port": worker_port,
-        "config_path": str(config_path),
-        "data_dir": str(data_dir),
-        "api_key": api_key,
-        "auth_file": str(auth_file),
-        "env": env,
-        "server_proc": server_proc,
-        "worker_proc": worker_proc,
-        "restarted_workers": [],
-    }
-    yield state
-
-    print("\nShutting down SQLite + local_socket Talon stack...")
-    for proc in state.get("restarted_workers", []):
-        proc.terminate()
-    server_proc.terminate()
-    worker_proc.terminate()
-    for proc in state.get("restarted_workers", []):
-        proc.wait()
-    server_proc.wait()
-    worker_proc.wait()
-    os.environ.pop(api_key_env_name(test_grpc_port), None)
-    os.environ.pop(api_key_auth_file_env_name(test_grpc_port), None)
-    shutil.rmtree(temp_dir, ignore_errors=True)
+        state = {
+            "grpc_port": test_grpc_port,
+            "worker_port": worker_port,
+            "config_path": str(config_path),
+            "data_dir": str(data_dir),
+            "api_key": api_key,
+            "auth_file": str(auth_file),
+            "env": env,
+            "server_proc": server_proc,
+            "worker_proc": worker_proc,
+            "restarted_workers": [],
+        }
+        yield state
+    finally:
+        print("\nShutting down SQLite + local_socket Talon stack...")
+        for proc in state.get("restarted_workers", []):
+            proc.terminate()
+        server_proc.terminate()
+        worker_proc.terminate()
+        for proc in state.get("restarted_workers", []):
+            proc.wait()
+        server_proc.wait()
+        worker_proc.wait()
+        os.environ.pop(api_key_env_name(test_grpc_port), None)
+        os.environ.pop(api_key_auth_file_env_name(test_grpc_port), None)
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 @pytest.fixture

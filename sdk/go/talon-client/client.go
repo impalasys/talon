@@ -203,27 +203,40 @@ func (authorizationCredentials) RequireTransportSecurity() bool {
 }
 
 type apiKeyCredentials struct {
-	apiKey     string
-	opts       GatewayClientOptions
-	mu         sync.Mutex
-	token      string
-	expires    time.Time
-	refresh    time.Duration
-	refreshing bool
-	cond       *sync.Cond
+	apiKey      string
+	opts        GatewayClientOptions
+	mu          sync.Mutex
+	token       string
+	expires     time.Time
+	refresh     time.Duration
+	refreshing  bool
+	refreshDone chan struct{}
+	exchange    func(context.Context, string) (*talonv1.ExchangeApiKeyResponse, error)
 }
 
 func newAPIKeyCredentials(opts GatewayClientOptions) *apiKeyCredentials {
 	exchangeOpts := opts
 	exchangeOpts.Authorization = ""
 	exchangeOpts.APIKey = ""
-	c := &apiKeyCredentials{
-		apiKey:  strings.TrimSpace(opts.APIKey),
-		opts:    exchangeOpts,
-		refresh: time.Minute,
+	return newAPIKeyCredentialsWithExchange(opts, func(ctx context.Context, apiKey string) (*talonv1.ExchangeApiKeyResponse, error) {
+		client, err := connectNative(ctx, exchangeOpts)
+		if err != nil {
+			return nil, err
+		}
+		defer client.Close()
+		return client.Auth().ExchangeApiKey(ctx, &talonv1.ExchangeApiKeyRequest{
+			ApiKey: apiKey,
+		})
+	})
+}
+
+func newAPIKeyCredentialsWithExchange(opts GatewayClientOptions, exchange func(context.Context, string) (*talonv1.ExchangeApiKeyResponse, error)) *apiKeyCredentials {
+	return &apiKeyCredentials{
+		apiKey:   strings.TrimSpace(opts.APIKey),
+		opts:     opts,
+		refresh:  time.Minute,
+		exchange: exchange,
 	}
-	c.cond = sync.NewCond(&c.mu)
-	return c
 }
 
 func (c *apiKeyCredentials) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
@@ -249,28 +262,26 @@ func (c *apiKeyCredentials) authorization(ctx context.Context) (string, error) {
 		}
 		if !c.refreshing {
 			c.refreshing = true
+			c.refreshDone = make(chan struct{})
 			break
 		}
-		c.cond.Wait()
+		done := c.refreshDone
+		c.mu.Unlock()
+		select {
+		case <-done:
+		case <-ctx.Done():
+			return "", ctx.Err()
+		}
+		c.mu.Lock()
 	}
+	done := c.refreshDone
 	c.mu.Unlock()
 
-	client, err := connectNative(ctx, c.opts)
+	resp, err := c.exchange(ctx, c.apiKey)
 	if err != nil {
 		c.mu.Lock()
 		c.refreshing = false
-		c.cond.Broadcast()
-		c.mu.Unlock()
-		return "", err
-	}
-	defer client.Close()
-	resp, err := client.Auth().ExchangeApiKey(ctx, &talonv1.ExchangeApiKeyRequest{
-		ApiKey: c.apiKey,
-	})
-	if err != nil {
-		c.mu.Lock()
-		c.refreshing = false
-		c.cond.Broadcast()
+		close(done)
 		c.mu.Unlock()
 		return "", err
 	}
@@ -279,7 +290,7 @@ func (c *apiKeyCredentials) authorization(ctx context.Context) (string, error) {
 	c.token = "Bearer " + resp.AccessToken
 	c.expires = time.Unix(int64(resp.ExpiresAt), 0)
 	c.refreshing = false
-	c.cond.Broadcast()
+	close(done)
 	token := c.token
 	c.mu.Unlock()
 	return token, nil

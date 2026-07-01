@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	talonv1 "github.com/impalasys/talon/sdk/go/talon-client/talon/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -48,17 +49,30 @@ func newGRPCWebConn(opts GatewayClientOptions) (*grpcWebConn, error) {
 	return &grpcWebConn{
 		endpoint:      endpoint,
 		authorization: opts.Authorization,
-		apiKey:        grpcWebAPIKeyCredentials(opts),
 		client:        client,
 		ownedClient:   ownedClient,
+		apiKey:        grpcWebAPIKeyCredentials(opts, client),
 	}, nil
 }
 
-func grpcWebAPIKeyCredentials(opts GatewayClientOptions) *apiKeyCredentials {
+func grpcWebAPIKeyCredentials(opts GatewayClientOptions, client *http.Client) *apiKeyCredentials {
 	if opts.Authorization != "" || strings.TrimSpace(opts.APIKey) == "" {
 		return nil
 	}
-	return newAPIKeyCredentials(opts)
+	exchangeOpts := opts
+	exchangeOpts.Authorization = ""
+	exchangeOpts.APIKey = ""
+	exchangeOpts.HTTPClient = client
+	return newAPIKeyCredentialsWithExchange(opts, func(ctx context.Context, apiKey string) (*talonv1.ExchangeApiKeyResponse, error) {
+		conn, err := newGRPCWebConn(exchangeOpts)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
+		return talonv1.NewAuthServiceClient(conn).ExchangeApiKey(ctx, &talonv1.ExchangeApiKeyRequest{
+			ApiKey: apiKey,
+		})
+	})
 }
 
 type grpcWebCallConfig struct {

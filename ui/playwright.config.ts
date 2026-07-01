@@ -3,7 +3,7 @@ import fs from 'fs';
 
 const API_PORT = process.env.API_PORT || '50051';
 const WEB_PORT = process.env.WEB_PORT || '3000';
-const E2E_READY_PORT = process.env.E2E_READY_PORT || process.env.READY_PORT || '8090';
+const E2E_READY_PORT = process.env.READY_PORT || process.env.E2E_READY_PORT || '8090';
 const SETUP_PYTHON_BIN = process.env.pythonLocation
   ? `${process.env.pythonLocation}/bin/python`
   : null;

@@ -45,6 +45,10 @@ pub(crate) struct Cli {
     #[arg(long)]
     pub(crate) api_key: Option<String>,
 
+    /// Grant to request when exchanging a multi-grant API key.
+    #[arg(long)]
+    pub(crate) api_key_grant: Option<String>,
+
     /// Shared JWT secret for minting a short-lived Talon admin token.
     #[arg(long)]
     pub(crate) jwt_secret: Option<String>,
