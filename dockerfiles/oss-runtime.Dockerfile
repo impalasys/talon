@@ -52,6 +52,25 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cp /usr/src/talon/target/release/talon-cli /usr/src/talon/dist/talon-cli && \
     cp /usr/src/talon/target/release/talon-node /usr/src/talon/dist/talon-node
 
+FROM debian:trixie-slim AS benchmark-runtime
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    libssl3 \
+    libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /usr/src/talon/dist/talon-node /usr/local/bin/talon-node
+RUN mkdir -p /data/talon && command -v talon-node >/dev/null
+
+ENV TALON_DATA_DIR=/data/talon
+ENV RUST_LOG=info
+
+WORKDIR /data/talon
+
+CMD ["talon-node"]
+
 FROM debian:trixie-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \

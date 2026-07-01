@@ -5,7 +5,7 @@ Docker Compose project, using SQLite by default and the local socket broker. It 
 distinct agents, opens one stream per session, sends one message to each agent,
 and waits for terminal stream events.
 The harness sets `TALON_WORKER_SESSION_CONCURRENCY=1000` by default so the lone
-worker process can run session turns concurrently. The mock LLM streams 50
+`talon-node` process can run session turns concurrently. The mock LLM streams 50
 tokens at 10 tokens per second by default.
 SQLite defaults to a 5-connection SQLx pool and a 5000 ms busy timeout; use
 `--sqlite-pool-size` and `--sqlite-busy-timeout-ms` to test pool contention vs.
@@ -74,8 +74,8 @@ psql postgres://talon:talon@127.0.0.1:<postgres-port>/talon
 ```
 
 Talon's Postgres SQLx pool defaults to `--postgres-max-connections 200`.
-The Postgres server cap defaults to `2 * pool + 50` because Talon runs separate
-gateway and worker pools in the benchmark container. Override it with
+The Postgres server cap defaults to `2 * pool + 50` to leave headroom for
+connection churn and auxiliary connections. Override it with
 `--postgres-server-max-connections`. Use `--postgres-cpus` and
 `--postgres-memory` if you want to cap the database container separately from
 Talon's 1 vCPU / memory limit.
@@ -86,10 +86,10 @@ Run the benchmark against the embedded RocksDB store:
 .venv-e2e/bin/python bench/benchmark_1000_agents.py --skip-build --database rocksdb --agents 250 --latencies 0 --memory 512m --otel --keep-compose-up --mock-cpus 4 --mock-memory 2g
 ```
 
-RocksDB is an embedded store with a single read/write process lock. The harness
-therefore uses `talon-node` for `--database rocksdb`, running gateway and worker
-in one process with one shared control-plane handle. SQLite and
-Postgres keep the normal separate `talon-server` and `talon-worker` processes.
+The harness uses `talon-node` for benchmark runs, running gateway and worker in
+one process with one shared control-plane handle. RocksDB needs that shape
+because it has a single read/write process lock; SQLite uses the same runtime
+shape so CI only has to build the benchmark binary needed by the test.
 
 For RocksDB tuning experiments, the harness can pass through:
 `--rocksdb-disable-wal`, `--rocksdb-compression`, `--rocksdb-write-buffer-size-mb`,
@@ -131,7 +131,15 @@ Talon's limits:
 .venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 250 --latencies 0 --memory 512m --otel --keep-compose-up --sqlite-pool-size 20 --mock-cpus 4 --mock-memory 2g --mock-request-backlog 8192
 ```
 
-The default benchmark image uses `bench/runtime.Dockerfile`, which avoids
-BuildKit-only syntax so it works on Docker installations without Buildx. To use
-the production runtime Dockerfile instead, pass
-`--dockerfile dockerfiles/oss-runtime.Dockerfile` on systems with BuildKit.
+The default benchmark image uses `bench/runtime.Dockerfile`, which builds only
+`talon-node` and avoids BuildKit-only syntax so it works on Docker installations
+without Buildx. CI builds the `benchmark-runtime` target from
+`dockerfiles/oss-runtime.Dockerfile`, reusing the regular runtime builder cache
+and then copying only `talon-node` into a small benchmark image.
+
+Container platform selection defaults to `--container-platform auto`. On macOS,
+that selects the native Linux container platform for the host CPU, such as
+`linux/arm64` on Apple silicon. Docker Desktop and Apple's `container` tooling
+run Linux containers on macOS, so local macOS runs should build the benchmark
+runtime inside the container with `bench/runtime.Dockerfile`. CI uses
+`--container-platform linux/amd64`.

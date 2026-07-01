@@ -1,6 +1,6 @@
 FROM rust:1.91.1-slim AS builder
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     clang \
     g++ \
     libclang-dev \
@@ -22,28 +22,23 @@ COPY talon.yaml ./talon.yaml
 
 RUN if [ -n "$CARGO_FEATURES" ]; then \
         cargo build --release --locked --features "$CARGO_FEATURES" \
-          --bin talon-server --bin talon-worker --bin talon-cli --bin talon-node; \
+          --bin talon-node; \
     else \
         cargo build --release --locked \
-          --bin talon-server --bin talon-worker --bin talon-cli --bin talon-node; \
+          --bin talon-node; \
     fi && \
     mkdir -p /usr/src/talon/dist && \
-    cp /usr/src/talon/target/release/talon-server /usr/src/talon/dist/talon-server && \
-    cp /usr/src/talon/target/release/talon-worker /usr/src/talon/dist/talon-worker && \
-    cp /usr/src/talon/target/release/talon-cli /usr/src/talon/dist/talon-cli && \
     cp /usr/src/talon/target/release/talon-node /usr/src/talon/dist/talon-node
 
 FROM debian:trixie-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     libssl3 \
+    libstdc++6 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/src/talon/dist/talon-server /usr/local/bin/talon-server
-COPY --from=builder /usr/src/talon/dist/talon-worker /usr/local/bin/talon-worker
-COPY --from=builder /usr/src/talon/dist/talon-cli /usr/local/bin/talon-cli
 COPY --from=builder /usr/src/talon/dist/talon-node /usr/local/bin/talon-node
 
 RUN mkdir -p /data/talon
@@ -53,4 +48,4 @@ ENV RUST_LOG=info
 
 WORKDIR /data/talon
 
-CMD ["talon-server"]
+CMD ["talon-node"]

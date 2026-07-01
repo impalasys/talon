@@ -14,6 +14,7 @@ import dataclasses
 import json
 import math
 import os
+import platform
 import random
 import re
 import socket
@@ -195,38 +196,47 @@ control_plane:
     )
 
 
-def talon_command(database: str) -> str:
-    if database == "rocksdb":
-        return """
+def talon_command(_database: str) -> str:
+    return """
 set -eu
 exec talon-node
 """.strip()
 
-    return """
-set -eu
-talon-server &
-server_pid=$!
-until talon-cli --gateway http://127.0.0.1:50051 get namespaces >/dev/null 2>&1; do
-  if ! kill -0 "$server_pid" 2>/dev/null; then
-    wait "$server_pid"
-  fi
-  sleep 0.2
-done
-PULL_MODE=1 talon-worker &
-worker_pid=$!
-trap 'kill "$server_pid" "$worker_pid" 2>/dev/null || true' TERM INT
-while kill -0 "$server_pid" 2>/dev/null && kill -0 "$worker_pid" 2>/dev/null; do
-  sleep 1
-done
-kill "$server_pid" "$worker_pid" 2>/dev/null || true
-wait "$server_pid" "$worker_pid"
-""".strip()
+
+def normalize_container_arch(machine: str) -> str | None:
+    arch = machine.lower()
+    if arch in {"aarch64", "arm64"}:
+        return "arm64"
+    if arch in {"amd64", "x86_64"}:
+        return "amd64"
+    return None
+
+
+def native_container_platform() -> str | None:
+    if sys.platform != "darwin":
+        return None
+    arch = normalize_container_arch(platform.machine())
+    return f"linux/{arch}" if arch else None
+
+
+def resolve_container_platform(value: str) -> str | None:
+    raw = value.strip()
+    if raw in {"", "auto"}:
+        return native_container_platform()
+    if raw in {"default", "docker"}:
+        return None
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)?", raw):
+        raise ValueError(
+            "--container-platform must be auto, default, or an OCI platform like linux/arm64"
+        )
+    return raw
 
 
 def build_runtime_image(
     tag: str,
     no_cache: bool,
     dockerfile: str,
+    container_platform: str | None,
     cargo_features: str | None = None,
 ) -> None:
     env = os.environ.copy()
@@ -240,6 +250,8 @@ def build_runtime_image(
         "-t",
         tag,
     ]
+    if container_platform:
+        cmd.extend(["--platform", container_platform])
     if cargo_features:
         cmd.extend(["--build-arg", f"CARGO_FEATURES={cargo_features}"])
     if no_cache:
@@ -274,6 +286,7 @@ def write_compose_file(
     path: Path,
     project_name: str,
     image: str,
+    container_platform: str | None,
     config_path: Path,
     data_dir: Path,
     memory: str,
@@ -319,11 +332,15 @@ def write_compose_file(
     config_volume = f"{config_path.resolve()}:/data/talon/talon.bench.yaml:ro"
     data_volume = f"{data_dir.resolve()}:/data/talon/bench:rw"
     command = talon_command(database).replace("$", "$$")
+    platform_line = (
+        f"    platform: {json_quote(container_platform)}\n" if container_platform else ""
+    )
     jaeger_service = ""
     if otel:
         jaeger_service = f"""
   jaeger:
     image: jaegertracing/all-in-one:latest
+{platform_line.rstrip()}
     container_name: {project_name}-jaeger
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
@@ -336,7 +353,7 @@ def write_compose_file(
     if otel:
         otel_env = """
       TALON_OTEL_ENABLED: "true"
-      OTEL_SERVICE_NAME: talon-worker
+      OTEL_SERVICE_NAME: talon-node
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
       OTEL_BSP_SCHEDULE_DELAY: "1000"
       TALON_OTEL_SAMPLE_RATIO: "1.0"
@@ -423,6 +440,7 @@ def write_compose_file(
         postgres_service = f"""
   postgres:
     image: postgres:16-alpine
+{platform_line.rstrip()}
     container_name: {project_name}-postgres
     environment:
       POSTGRES_USER: talon
@@ -464,6 +482,7 @@ services:
 {postgres_service}
   mock-llm:
     image: python:3.12-slim
+{platform_line.rstrip()}
     container_name: {project_name}-mock-llm
     command:
       - python
@@ -489,6 +508,7 @@ services:
 
   talon:
     image: {image}
+{platform_line.rstrip()}
     container_name: {project_name}-talon
     depends_on:
 {depends_on}
@@ -1174,7 +1194,7 @@ def summarize_jaeger_db_spans(
 ) -> dict[str, Any]:
     params = urlencode(
         {
-            "service": "talon-worker",
+            "service": "talon-node",
             "lookback": "1h",
             "limit": trace_limit,
         }
@@ -1270,25 +1290,22 @@ async def run_profile(
     data_dir = profile_dir / "data"
     compose_path = profile_dir / "compose.yaml"
     data_dir.mkdir(exist_ok=True)
-    cpu_profile_container_path = Path(
-        f"/data/talon/bench/talon-worker-cpu-{latency_ms}ms.svg"
-    )
-    cpu_profile_host_path = data_dir / f"talon-worker-cpu-{latency_ms}ms.svg"
+    cpu_profile_container_path = Path(f"/data/talon/bench/talon-node-cpu-{latency_ms}ms.svg")
+    cpu_profile_host_path = data_dir / f"talon-node-cpu-{latency_ms}ms.svg"
     heap_profile_container_dir = Path("/data/talon/bench")
     heap_profile_label = f"heap-{latency_ms}ms"
     heap_profile_host_paths = [
-        data_dir / f"talon-server-{heap_profile_label}.heap",
-        data_dir / f"talon-worker-{heap_profile_label}.heap",
+        data_dir / f"talon-node-{heap_profile_label}.heap",
     ]
     heap_profile_stats_host_paths = [
-        data_dir / f"talon-server-{heap_profile_label}.json",
-        data_dir / f"talon-worker-{heap_profile_label}.json",
+        data_dir / f"talon-node-{heap_profile_label}.json",
     ]
     write_talon_config(config_path, args.database)
     write_compose_file(
         path=compose_path,
         project_name=project_name,
         image=image,
+        container_platform=args.container_platform,
         config_path=config_path,
         data_dir=data_dir,
         memory=args.memory,
@@ -1766,6 +1783,15 @@ async def amain() -> None:
     parser.add_argument("--stats-interval-seconds", type=float, default=2.0)
     parser.add_argument("--image-tag", default="talon-bench-runtime:latest")
     parser.add_argument("--dockerfile", default="bench/runtime.Dockerfile")
+    parser.add_argument(
+        "--container-platform",
+        default="auto",
+        help=(
+            "Container platform for Docker build and Compose, such as linux/amd64 "
+            "or linux/arm64. Use auto to select the native Linux container platform "
+            "on macOS; use default to let Docker decide."
+        ),
+    )
     parser.add_argument("--project-name")
     parser.add_argument("--keep-compose-up", action="store_true")
     parser.add_argument("--otel", action="store_true")
@@ -1781,6 +1807,7 @@ async def amain() -> None:
     args = parser.parse_args()
     args.project_name = args.project_name or generate_project_name()
     validate_project_name(args.project_name)
+    args.container_platform = resolve_container_platform(args.container_platform)
 
     output_dir = Path(args.output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -1854,11 +1881,14 @@ async def amain() -> None:
             args.image_tag,
             args.no_cache,
             args.dockerfile,
+            args.container_platform,
             cargo_features or None,
         )
 
     results = []
     print(f"using docker compose project {args.project_name}", flush=True)
+    if args.container_platform:
+        print(f"using container platform {args.container_platform}", flush=True)
     for latency_ms in latencies:
         print(
             f"running profile latency_ms={latency_ms} agents={args.agents} "

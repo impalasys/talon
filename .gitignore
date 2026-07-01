@@ -3,6 +3,7 @@
 .pytest_cache/
 __pycache__/
 *.py[cod]
+bench/dist/
 bench/results*/
 node_modules/
 **/.wrangler/
