@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
 import { v1Search } from '@impalasys/talon-client';
 import { getGatewayClient } from '../../lib/grpc';
-import type { Selection } from '../Namespaces/NamespaceExplorer';
+import type { Selection } from '../../lib/selection';
 import {
   Dialog,
   DialogContent,
