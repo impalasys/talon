@@ -25,13 +25,16 @@ pub(crate) use workflow::WorkflowCommand;
 
 use clap::{Parser, Subcommand};
 
+pub(crate) const DEFAULT_GRPC_GATEWAY: &str = "grpc.talon.impala.systems";
+pub(crate) const DEFAULT_GRPC_WEB_GATEWAY: &str = "talon.impala.systems";
+
 #[derive(Parser)]
 #[command(name = "talon-cli")]
 #[command(about = "Administration CLI for the Talon system", long_about = None)]
 pub(crate) struct Cli {
-    /// gRPC gateway address (e.g. http://localhost:50051)
-    #[arg(long, default_value = "http://localhost:50051")]
-    pub(crate) gateway: String,
+    /// gRPC gateway address (defaults to grpc.talon.impala.systems, or talon.impala.systems with --grpc-web)
+    #[arg(long)]
+    pub(crate) gateway: Option<String>,
 
     /// Gateway password for Basic auth. Uses username "" and password value.
     #[arg(long)]
@@ -59,6 +62,29 @@ pub(crate) struct Cli {
 
     #[command(subcommand)]
     pub(crate) command: Commands,
+}
+
+impl Cli {
+    pub(crate) fn gateway_url(&self) -> String {
+        if let Some(gateway) = self.gateway.as_ref() {
+            return gateway.clone();
+        }
+        if let Ok(env_gateway) = std::env::var("TALON_GATEWAY") {
+            return env_gateway;
+        }
+        if self.grpc_web_enabled() {
+            DEFAULT_GRPC_WEB_GATEWAY.to_string()
+        } else {
+            DEFAULT_GRPC_GATEWAY.to_string()
+        }
+    }
+
+    pub(crate) fn grpc_web_enabled(&self) -> bool {
+        self.grpc_web
+            || std::env::var("TALON_GRPC_WEB")
+                .map(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
+                .unwrap_or(false)
+    }
 }
 
 #[derive(Subcommand)]
@@ -112,4 +138,67 @@ pub(super) async fn run_cli(cli: &Cli) -> Result<RunOutcome> {
     }
 
     Ok(RunOutcome { exit_code: None })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Cli, DEFAULT_GRPC_GATEWAY, DEFAULT_GRPC_WEB_GATEWAY};
+    use clap::Parser;
+
+    fn parse_cli(args: &[&str]) -> Cli {
+        Cli::parse_from(std::iter::once("talon-cli").chain(args.iter().copied()))
+    }
+
+    fn clear_gateway_env() {
+        std::env::remove_var("TALON_GATEWAY");
+        std::env::remove_var("TALON_GRPC_WEB");
+    }
+
+    #[test]
+    fn default_gateway_uses_native_grpc_host() {
+        let _guard = crate::test_support::env_lock();
+        clear_gateway_env();
+
+        let cli = parse_cli(&["auth", "whoami"]);
+
+        assert_eq!(cli.gateway_url(), DEFAULT_GRPC_GATEWAY);
+    }
+
+    #[test]
+    fn grpc_web_default_gateway_uses_web_host() {
+        let _guard = crate::test_support::env_lock();
+        clear_gateway_env();
+
+        let cli = parse_cli(&["--grpc-web", "auth", "whoami"]);
+
+        assert_eq!(cli.gateway_url(), DEFAULT_GRPC_WEB_GATEWAY);
+    }
+
+    #[test]
+    fn explicit_gateway_overrides_grpc_web_default() {
+        let _guard = crate::test_support::env_lock();
+        clear_gateway_env();
+
+        let cli = parse_cli(&[
+            "--grpc-web",
+            "--gateway",
+            "http://localhost:50051",
+            "auth",
+            "whoami",
+        ]);
+
+        assert_eq!(cli.gateway_url(), "http://localhost:50051");
+    }
+
+    #[test]
+    fn talon_gateway_env_overrides_default_gateway() {
+        let _guard = crate::test_support::env_lock();
+        clear_gateway_env();
+        std::env::set_var("TALON_GATEWAY", "http://env-gateway:50051");
+
+        let cli = parse_cli(&["--grpc-web", "auth", "whoami"]);
+
+        assert_eq!(cli.gateway_url(), "http://env-gateway:50051");
+        clear_gateway_env();
+    }
 }

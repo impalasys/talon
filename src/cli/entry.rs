@@ -6,9 +6,6 @@ pub async fn main() -> Result<()> {
     crate::control::security::install_rustls_crypto_provider();
     let mut cli = Cli::parse();
 
-    if let Ok(env_gateway) = std::env::var("TALON_GATEWAY") {
-        cli.gateway = env_gateway;
-    }
     if cli.password.is_none() {
         cli.password = resolve_gateway_password(&cli);
     }
