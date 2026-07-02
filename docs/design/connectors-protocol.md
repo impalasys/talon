@@ -123,9 +123,8 @@ giving Talon any authority over the provider account.
 
 `ConnectorClass` is a regular namespace resource that describes a trusted
 connector service endpoint. Operators can define connector classes in the
-namespace that owns the integration, and Connectors in that namespace can refer
-to the class by name. Talon v1 rejects cross-namespace `classRef.namespace`
-values until there is an explicit reference policy or RBAC check.
+namespace that owns the integration, and Connectors in that namespace or a
+descendant namespace can refer to the class by name.
 
 It answers:
 

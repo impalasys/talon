@@ -411,7 +411,7 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `class_ref` | `ResourceRef` | ConnectorClass that owns the platform adapter and match index definitions. If namespace is empty, Talon resolves the class in the Connector's namespace. In v1, a non-empty namespace must match the Connector namespace; cross-namespace class references require a future policy/RBAC gate. |
+| `class_ref` | `ResourceRef` | ConnectorClass that owns the platform adapter and match index definitions. If namespace is empty, Talon resolves the class in the Connector's namespace. If namespace is non-empty, it must match the Connector namespace or one of the Connector namespace's ancestors. |
 | `enabled` | `bool` | Disabled Connectors are not indexed for incoming message routing. |
 | `match_fields` | `map<string, string>` | Provider-specific route fields, such as Slack team/channel IDs or an iMessage profile identifier. Talon treats these as opaque keys described by the ConnectorClass match indexes. |
 | `consumer` | `talon.data.MessageConsumer` | Single Talon message consumer for messages that match this Connector. |

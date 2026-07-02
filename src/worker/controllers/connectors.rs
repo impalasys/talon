@@ -166,19 +166,10 @@ impl ConnectorController {
             .class_ref
             .as_ref()
             .ok_or_else(|| anyhow!("Connector spec.classRef is required"))?;
-        let class_namespace = if class_ref.namespace.trim().is_empty() {
-            meta.namespace.as_str()
-        } else {
-            if class_ref.namespace != meta.namespace {
-                bail!(
-                    "Connector spec.classRef.namespace must be empty or match Connector namespace"
-                );
-            }
-            class_ref.namespace.as_str()
-        };
+        let class_namespace = connector_class_namespace(&meta.namespace, class_ref)?;
         let class = self
             .store
-            .get(class_namespace, "ConnectorClass", &class_ref.name)
+            .get(&class_namespace, "ConnectorClass", &class_ref.name)
             .await?
             .ok_or_else(|| anyhow!("ConnectorClass '{}' not found", class_ref.name))?;
         let class_meta = class
@@ -528,14 +519,37 @@ fn connector_references_class(
         .ok()
         .and_then(|spec| spec.class_ref.as_ref())
         .map(|class_ref| {
-            let referenced_namespace = if class_ref.namespace.trim().is_empty() {
-                connector_namespace
-            } else {
-                class_ref.namespace.as_str()
+            let Ok(referenced_namespace) =
+                connector_class_namespace(connector_namespace, class_ref)
+            else {
+                return false;
             };
             class_ref.name == class_name && referenced_namespace == class_namespace
         })
         .unwrap_or(false)
+}
+
+fn connector_class_namespace(
+    connector_namespace: &str,
+    class_ref: &resources_proto::ResourceRef,
+) -> Result<String> {
+    let class_namespace = class_ref.namespace.trim();
+    if class_namespace.is_empty() {
+        return Ok(connector_namespace.to_string());
+    }
+    if namespace_is_self_or_ancestor(connector_namespace, class_namespace) {
+        return Ok(class_namespace.to_string());
+    }
+    bail!(
+        "Connector spec.classRef.namespace must be empty, match Connector namespace, or name an ancestor namespace"
+    )
+}
+
+fn namespace_is_self_or_ancestor(namespace: &str, candidate_ancestor: &str) -> bool {
+    namespace == candidate_ancestor
+        || namespace
+            .strip_prefix(candidate_ancestor)
+            .is_some_and(|suffix| suffix.starts_with(':'))
 }
 
 fn validate_consumer(
@@ -864,5 +878,92 @@ mod tests {
                     .to_string()
             ]
         );
+    }
+
+    #[test]
+    fn connector_class_namespace_defaults_to_connector_namespace() {
+        let class_ref = resources_proto::ResourceRef {
+            namespace: String::new(),
+            name: "slack".to_string(),
+        };
+
+        let namespace = connector_class_namespace("Tenant:conic:Customers:13", &class_ref).unwrap();
+
+        assert_eq!(namespace, "Tenant:conic:Customers:13");
+    }
+
+    #[test]
+    fn connector_class_namespace_accepts_self_or_ancestor_namespace() {
+        let self_ref = resources_proto::ResourceRef {
+            namespace: "Tenant:conic:Customers:13".to_string(),
+            name: "slack".to_string(),
+        };
+        let parent_ref = resources_proto::ResourceRef {
+            namespace: "Tenant:conic:Customers".to_string(),
+            name: "slack".to_string(),
+        };
+
+        assert_eq!(
+            connector_class_namespace("Tenant:conic:Customers:13", &self_ref).unwrap(),
+            "Tenant:conic:Customers:13"
+        );
+        assert_eq!(
+            connector_class_namespace("Tenant:conic:Customers:13", &parent_ref).unwrap(),
+            "Tenant:conic:Customers"
+        );
+    }
+
+    #[test]
+    fn connector_class_namespace_rejects_sibling_child_and_prefix_matches() {
+        for class_namespace in [
+            "Tenant:conic:Customers:12",
+            "Tenant:conic:Customers:13:Child",
+            "Tenant:conic:Customers2",
+        ] {
+            let class_ref = resources_proto::ResourceRef {
+                namespace: class_namespace.to_string(),
+                name: "slack".to_string(),
+            };
+            let err = connector_class_namespace("Tenant:conic:Customers:13", &class_ref)
+                .unwrap_err()
+                .to_string();
+
+            assert!(err.contains("ancestor namespace"), "{err}");
+        }
+    }
+
+    #[test]
+    fn connector_references_class_allows_parent_class_namespace() {
+        let connector = resources_proto::Resource {
+            metadata: Some(resources_proto::ResourceMeta {
+                namespace: "Tenant:conic:Customers:13".to_string(),
+                name: "slack".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::Connector(
+                    resources_proto::ConnectorSpec {
+                        class_ref: Some(resources_proto::ResourceRef {
+                            namespace: "Tenant:conic:Customers".to_string(),
+                            name: "slack".to_string(),
+                        }),
+                        enabled: true,
+                        ..Default::default()
+                    },
+                )),
+            }),
+            ..Default::default()
+        };
+
+        assert!(connector_references_class(
+            &connector,
+            "Tenant:conic:Customers",
+            "slack"
+        ));
+        assert!(!connector_references_class(
+            &connector,
+            "Tenant:conic:Customers:13",
+            "slack"
+        ));
     }
 }
