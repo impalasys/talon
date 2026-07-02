@@ -327,8 +327,8 @@ export class ConnectorSpec extends Message<ConnectorSpec> {
   /**
    * ConnectorClass that owns the platform adapter and match index definitions.
    * If namespace is empty, Talon resolves the class in the Connector's
-   * namespace. In v1, a non-empty namespace must match the Connector namespace;
-   * cross-namespace class references require a future policy/RBAC gate.
+   * namespace. If namespace is non-empty, it must match the Connector namespace
+   * or one of the Connector namespace's ancestors.
    *
    * @generated from field: talon.resources.ResourceRef class_ref = 1;
    */

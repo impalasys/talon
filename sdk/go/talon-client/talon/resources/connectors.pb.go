@@ -383,8 +383,8 @@ type ConnectorSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// ConnectorClass that owns the platform adapter and match index definitions.
 	// If namespace is empty, Talon resolves the class in the Connector's
-	// namespace. In v1, a non-empty namespace must match the Connector namespace;
-	// cross-namespace class references require a future policy/RBAC gate.
+	// namespace. If namespace is non-empty, it must match the Connector namespace
+	// or one of the Connector namespace's ancestors.
 	ClassRef *ResourceRef `protobuf:"bytes,1,opt,name=class_ref,json=classRef,proto3" json:"class_ref,omitempty"`
 	// Disabled Connectors are not indexed for incoming message routing.
 	Enabled bool `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
