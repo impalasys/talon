@@ -577,14 +577,11 @@ fn validate_consumer(
             validate_local_ref(connector_namespace, "channel consumer agent", agent)?;
         }
         (None, None, Some(workflow)) => {
-            let workflow_ref = workflow
-                .workflow
-                .as_ref()
-                .ok_or_else(|| anyhow!("Connector workflow consumer requires workflow"))?;
-            validate_local_ref(
+            validate_local_name_namespace(
                 connector_namespace,
                 "workflow consumer workflow",
-                workflow_ref,
+                &workflow.name,
+                &workflow.namespace,
             )?;
         }
         (Some(_), _, _) | (_, Some(_), Some(_)) => {
@@ -600,10 +597,24 @@ fn validate_local_ref(
     field: &str,
     reference: &data_proto::ResourceRef,
 ) -> Result<()> {
-    if reference.name.trim().is_empty() {
+    validate_local_name_namespace(
+        connector_namespace,
+        field,
+        &reference.name,
+        &reference.namespace,
+    )
+}
+
+fn validate_local_name_namespace(
+    connector_namespace: &str,
+    field: &str,
+    name: &str,
+    namespace: &str,
+) -> Result<()> {
+    if name.trim().is_empty() {
         bail!("Connector {field} requires name");
     }
-    if !reference.namespace.trim().is_empty() && reference.namespace != connector_namespace {
+    if !namespace.trim().is_empty() && namespace != connector_namespace {
         bail!("Connector {field} namespace must be empty or match Connector namespace");
     }
     Ok(())

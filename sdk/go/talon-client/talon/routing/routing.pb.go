@@ -219,11 +219,14 @@ func (x *ChannelMessageConsumer) GetReplyPolicy() string {
 
 type WorkflowMessageConsumer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Workflow that consumes matching messages.
-	Workflow *ResourceRef `protobuf:"bytes,1,opt,name=workflow,proto3" json:"workflow,omitempty"`
+	// Namespace containing the workflow. Empty means the reference is resolved
+	// relative to the owning Connector namespace.
+	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// Workflow name within namespace.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// Reply behavior requested from the workflow completion router, such as
 	// replying in the provider thread instead of the root conversation.
-	ReplyMode     string `protobuf:"bytes,2,opt,name=reply_mode,json=replyMode,proto3" json:"reply_mode,omitempty"`
+	ReplyMode     string `protobuf:"bytes,3,opt,name=reply_mode,json=replyMode,proto3" json:"reply_mode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -258,11 +261,18 @@ func (*WorkflowMessageConsumer) Descriptor() ([]byte, []int) {
 	return file_proto_data_routing_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *WorkflowMessageConsumer) GetWorkflow() *ResourceRef {
+func (x *WorkflowMessageConsumer) GetNamespace() string {
 	if x != nil {
-		return x.Workflow
+		return x.Namespace
 	}
-	return nil
+	return ""
+}
+
+func (x *WorkflowMessageConsumer) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
 }
 
 func (x *WorkflowMessageConsumer) GetReplyMode() string {
@@ -357,11 +367,12 @@ const file_proto_data_routing_proto_rawDesc = "" +
 	"\n" +
 	"continuity\x18\x03 \x01(\tR\n" +
 	"continuity\x12!\n" +
-	"\freply_policy\x18\x04 \x01(\tR\vreplyPolicy\"m\n" +
-	"\x17WorkflowMessageConsumer\x123\n" +
-	"\bworkflow\x18\x01 \x01(\v2\x17.talon.data.ResourceRefR\bworkflow\x12\x1d\n" +
+	"\freply_policy\x18\x04 \x01(\tR\vreplyPolicy\"j\n" +
+	"\x17WorkflowMessageConsumer\x12\x1c\n" +
+	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
 	"\n" +
-	"reply_mode\x18\x02 \x01(\tR\treplyMode\"\x82\x02\n" +
+	"reply_mode\x18\x03 \x01(\tR\treplyMode\"\x82\x02\n" +
 	"\x0fMessageConsumer\x12A\n" +
 	"\asession\x18\x01 \x01(\v2\".talon.data.SessionMessageConsumerH\x00R\asession\x88\x01\x01\x12A\n" +
 	"\achannel\x18\x02 \x01(\v2\".talon.data.ChannelMessageConsumerH\x01R\achannel\x88\x01\x01\x12D\n" +
@@ -396,15 +407,14 @@ var file_proto_data_routing_proto_depIdxs = []int32{
 	0, // 0: talon.data.SessionMessageConsumer.agent:type_name -> talon.data.ResourceRef
 	0, // 1: talon.data.ChannelMessageConsumer.channel:type_name -> talon.data.ResourceRef
 	0, // 2: talon.data.ChannelMessageConsumer.agent:type_name -> talon.data.ResourceRef
-	0, // 3: talon.data.WorkflowMessageConsumer.workflow:type_name -> talon.data.ResourceRef
-	1, // 4: talon.data.MessageConsumer.session:type_name -> talon.data.SessionMessageConsumer
-	2, // 5: talon.data.MessageConsumer.channel:type_name -> talon.data.ChannelMessageConsumer
-	3, // 6: talon.data.MessageConsumer.workflow:type_name -> talon.data.WorkflowMessageConsumer
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	1, // 3: talon.data.MessageConsumer.session:type_name -> talon.data.SessionMessageConsumer
+	2, // 4: talon.data.MessageConsumer.channel:type_name -> talon.data.ChannelMessageConsumer
+	3, // 5: talon.data.MessageConsumer.workflow:type_name -> talon.data.WorkflowMessageConsumer
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_proto_data_routing_proto_init() }

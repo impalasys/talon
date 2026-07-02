@@ -3096,30 +3096,45 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
 
     /**
      * <pre>
-     * Workflow that consumes matching messages.
+     * Namespace containing the workflow. Empty means the reference is resolved
+     * relative to the owning Connector namespace.
      * </pre>
      *
-     * <code>.talon.data.ResourceRef workflow = 1;</code>
-     * @return Whether the workflow field is set.
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
      */
-    boolean hasWorkflow();
+    java.lang.String getNamespace();
     /**
      * <pre>
-     * Workflow that consumes matching messages.
+     * Namespace containing the workflow. Empty means the reference is resolved
+     * relative to the owning Connector namespace.
      * </pre>
      *
-     * <code>.talon.data.ResourceRef workflow = 1;</code>
-     * @return The workflow.
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
      */
-    talon.data.Routing.ResourceRef getWorkflow();
+    com.google.protobuf.ByteString
+        getNamespaceBytes();
+
     /**
      * <pre>
-     * Workflow that consumes matching messages.
+     * Workflow name within namespace.
      * </pre>
      *
-     * <code>.talon.data.ResourceRef workflow = 1;</code>
+     * <code>string name = 2;</code>
+     * @return The name.
      */
-    talon.data.Routing.ResourceRefOrBuilder getWorkflowOrBuilder();
+    java.lang.String getName();
+    /**
+     * <pre>
+     * Workflow name within namespace.
+     * </pre>
+     *
+     * <code>string name = 2;</code>
+     * @return The bytes for name.
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
 
     /**
      * <pre>
@@ -3127,7 +3142,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
      * replying in the provider thread instead of the root conversation.
      * </pre>
      *
-     * <code>string reply_mode = 2;</code>
+     * <code>string reply_mode = 3;</code>
      * @return The replyMode.
      */
     java.lang.String getReplyMode();
@@ -3137,7 +3152,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
      * replying in the provider thread instead of the root conversation.
      * </pre>
      *
-     * <code>string reply_mode = 2;</code>
+     * <code>string reply_mode = 3;</code>
      * @return The bytes for replyMode.
      */
     com.google.protobuf.ByteString
@@ -3165,6 +3180,8 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       super(builder);
     }
     private WorkflowMessageConsumer() {
+      namespace_ = "";
+      name_ = "";
       replyMode_ = "";
     }
 
@@ -3186,46 +3203,103 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
               talon.data.Routing.WorkflowMessageConsumer.class, talon.data.Routing.WorkflowMessageConsumer.Builder.class);
     }
 
-    private int bitField0_;
-    public static final int WORKFLOW_FIELD_NUMBER = 1;
-    private talon.data.Routing.ResourceRef workflow_;
+    public static final int NAMESPACE_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object namespace_ = "";
     /**
      * <pre>
-     * Workflow that consumes matching messages.
+     * Namespace containing the workflow. Empty means the reference is resolved
+     * relative to the owning Connector namespace.
      * </pre>
      *
-     * <code>.talon.data.ResourceRef workflow = 1;</code>
-     * @return Whether the workflow field is set.
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
      */
     @java.lang.Override
-    public boolean hasWorkflow() {
-      return ((bitField0_ & 0x00000001) != 0);
+    public java.lang.String getNamespace() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        namespace_ = s;
+        return s;
+      }
     }
     /**
      * <pre>
-     * Workflow that consumes matching messages.
+     * Namespace containing the workflow. Empty means the reference is resolved
+     * relative to the owning Connector namespace.
      * </pre>
      *
-     * <code>.talon.data.ResourceRef workflow = 1;</code>
-     * @return The workflow.
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
      */
     @java.lang.Override
-    public talon.data.Routing.ResourceRef getWorkflow() {
-      return workflow_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : workflow_;
-    }
-    /**
-     * <pre>
-     * Workflow that consumes matching messages.
-     * </pre>
-     *
-     * <code>.talon.data.ResourceRef workflow = 1;</code>
-     */
-    @java.lang.Override
-    public talon.data.Routing.ResourceRefOrBuilder getWorkflowOrBuilder() {
-      return workflow_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : workflow_;
+    public com.google.protobuf.ByteString
+        getNamespaceBytes() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        namespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
-    public static final int REPLY_MODE_FIELD_NUMBER = 2;
+    public static final int NAME_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object name_ = "";
+    /**
+     * <pre>
+     * Workflow name within namespace.
+     * </pre>
+     *
+     * <code>string name = 2;</code>
+     * @return The name.
+     */
+    @java.lang.Override
+    public java.lang.String getName() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        name_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Workflow name within namespace.
+     * </pre>
+     *
+     * <code>string name = 2;</code>
+     * @return The bytes for name.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNameBytes() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        name_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int REPLY_MODE_FIELD_NUMBER = 3;
     @SuppressWarnings("serial")
     private volatile java.lang.Object replyMode_ = "";
     /**
@@ -3234,7 +3308,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
      * replying in the provider thread instead of the root conversation.
      * </pre>
      *
-     * <code>string reply_mode = 2;</code>
+     * <code>string reply_mode = 3;</code>
      * @return The replyMode.
      */
     @java.lang.Override
@@ -3256,7 +3330,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
      * replying in the provider thread instead of the root conversation.
      * </pre>
      *
-     * <code>string reply_mode = 2;</code>
+     * <code>string reply_mode = 3;</code>
      * @return The bytes for replyMode.
      */
     @java.lang.Override
@@ -3288,11 +3362,14 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(1, getWorkflow());
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, name_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(replyMode_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, replyMode_);
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, replyMode_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3303,12 +3380,14 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, getWorkflow());
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, name_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(replyMode_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, replyMode_);
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, replyMode_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -3325,11 +3404,10 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       talon.data.Routing.WorkflowMessageConsumer other = (talon.data.Routing.WorkflowMessageConsumer) obj;
 
-      if (hasWorkflow() != other.hasWorkflow()) return false;
-      if (hasWorkflow()) {
-        if (!getWorkflow()
-            .equals(other.getWorkflow())) return false;
-      }
+      if (!getNamespace()
+          .equals(other.getNamespace())) return false;
+      if (!getName()
+          .equals(other.getName())) return false;
       if (!getReplyMode()
           .equals(other.getReplyMode())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
@@ -3343,10 +3421,10 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasWorkflow()) {
-        hash = (37 * hash) + WORKFLOW_FIELD_NUMBER;
-        hash = (53 * hash) + getWorkflow().hashCode();
-      }
+      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getNamespace().hashCode();
+      hash = (37 * hash) + NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getName().hashCode();
       hash = (37 * hash) + REPLY_MODE_FIELD_NUMBER;
       hash = (53 * hash) + getReplyMode().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
@@ -3468,29 +3546,20 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
 
       // Construct using talon.data.Routing.WorkflowMessageConsumer.newBuilder()
       private Builder() {
-        maybeForceBuilderInitialization();
+
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage
-                .alwaysUseFieldBuilders) {
-          internalGetWorkflowFieldBuilder();
-        }
+
       }
       @java.lang.Override
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        workflow_ = null;
-        if (workflowBuilder_ != null) {
-          workflowBuilder_.dispose();
-          workflowBuilder_ = null;
-        }
+        namespace_ = "";
+        name_ = "";
         replyMode_ = "";
         return this;
       }
@@ -3525,17 +3594,15 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
 
       private void buildPartial0(talon.data.Routing.WorkflowMessageConsumer result) {
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.workflow_ = workflowBuilder_ == null
-              ? workflow_
-              : workflowBuilder_.build();
-          to_bitField0_ |= 0x00000001;
+          result.namespace_ = namespace_;
         }
         if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.name_ = name_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           result.replyMode_ = replyMode_;
         }
-        result.bitField0_ |= to_bitField0_;
       }
 
       @java.lang.Override
@@ -3550,12 +3617,19 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
 
       public Builder mergeFrom(talon.data.Routing.WorkflowMessageConsumer other) {
         if (other == talon.data.Routing.WorkflowMessageConsumer.getDefaultInstance()) return this;
-        if (other.hasWorkflow()) {
-          mergeWorkflow(other.getWorkflow());
+        if (!other.getNamespace().isEmpty()) {
+          namespace_ = other.namespace_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getName().isEmpty()) {
+          name_ = other.name_;
+          bitField0_ |= 0x00000002;
+          onChanged();
         }
         if (!other.getReplyMode().isEmpty()) {
           replyMode_ = other.replyMode_;
-          bitField0_ |= 0x00000002;
+          bitField0_ |= 0x00000004;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -3585,17 +3659,20 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
                 done = true;
                 break;
               case 10: {
-                input.readMessage(
-                    internalGetWorkflowFieldBuilder().getBuilder(),
-                    extensionRegistry);
+                namespace_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
               case 18: {
-                replyMode_ = input.readStringRequireUtf8();
+                name_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
+              case 26: {
+                replyMode_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3613,161 +3690,193 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
-      private talon.data.Routing.ResourceRef workflow_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder> workflowBuilder_;
+      private java.lang.Object namespace_ = "";
       /**
        * <pre>
-       * Workflow that consumes matching messages.
+       * Namespace containing the workflow. Empty means the reference is resolved
+       * relative to the owning Connector namespace.
        * </pre>
        *
-       * <code>.talon.data.ResourceRef workflow = 1;</code>
-       * @return Whether the workflow field is set.
+       * <code>string namespace = 1;</code>
+       * @return The namespace.
        */
-      public boolean hasWorkflow() {
-        return ((bitField0_ & 0x00000001) != 0);
-      }
-      /**
-       * <pre>
-       * Workflow that consumes matching messages.
-       * </pre>
-       *
-       * <code>.talon.data.ResourceRef workflow = 1;</code>
-       * @return The workflow.
-       */
-      public talon.data.Routing.ResourceRef getWorkflow() {
-        if (workflowBuilder_ == null) {
-          return workflow_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : workflow_;
+      public java.lang.String getNamespace() {
+        java.lang.Object ref = namespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          namespace_ = s;
+          return s;
         } else {
-          return workflowBuilder_.getMessage();
+          return (java.lang.String) ref;
         }
       }
       /**
        * <pre>
-       * Workflow that consumes matching messages.
+       * Namespace containing the workflow. Empty means the reference is resolved
+       * relative to the owning Connector namespace.
        * </pre>
        *
-       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       * <code>string namespace = 1;</code>
+       * @return The bytes for namespace.
        */
-      public Builder setWorkflow(talon.data.Routing.ResourceRef value) {
-        if (workflowBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          workflow_ = value;
+      public com.google.protobuf.ByteString
+          getNamespaceBytes() {
+        java.lang.Object ref = namespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          namespace_ = b;
+          return b;
         } else {
-          workflowBuilder_.setMessage(value);
+          return (com.google.protobuf.ByteString) ref;
         }
+      }
+      /**
+       * <pre>
+       * Namespace containing the workflow. Empty means the reference is resolved
+       * relative to the owning Connector namespace.
+       * </pre>
+       *
+       * <code>string namespace = 1;</code>
+       * @param value The namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        namespace_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * Workflow that consumes matching messages.
+       * Namespace containing the workflow. Empty means the reference is resolved
+       * relative to the owning Connector namespace.
        * </pre>
        *
-       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       * <code>string namespace = 1;</code>
+       * @return This builder for chaining.
        */
-      public Builder setWorkflow(
-          talon.data.Routing.ResourceRef.Builder builderForValue) {
-        if (workflowBuilder_ == null) {
-          workflow_ = builderForValue.build();
-        } else {
-          workflowBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Workflow that consumes matching messages.
-       * </pre>
-       *
-       * <code>.talon.data.ResourceRef workflow = 1;</code>
-       */
-      public Builder mergeWorkflow(talon.data.Routing.ResourceRef value) {
-        if (workflowBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) != 0) &&
-            workflow_ != null &&
-            workflow_ != talon.data.Routing.ResourceRef.getDefaultInstance()) {
-            getWorkflowBuilder().mergeFrom(value);
-          } else {
-            workflow_ = value;
-          }
-        } else {
-          workflowBuilder_.mergeFrom(value);
-        }
-        if (workflow_ != null) {
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Workflow that consumes matching messages.
-       * </pre>
-       *
-       * <code>.talon.data.ResourceRef workflow = 1;</code>
-       */
-      public Builder clearWorkflow() {
+      public Builder clearNamespace() {
+        namespace_ = getDefaultInstance().getNamespace();
         bitField0_ = (bitField0_ & ~0x00000001);
-        workflow_ = null;
-        if (workflowBuilder_ != null) {
-          workflowBuilder_.dispose();
-          workflowBuilder_ = null;
-        }
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * Workflow that consumes matching messages.
+       * Namespace containing the workflow. Empty means the reference is resolved
+       * relative to the owning Connector namespace.
        * </pre>
        *
-       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       * <code>string namespace = 1;</code>
+       * @param value The bytes for namespace to set.
+       * @return This builder for chaining.
        */
-      public talon.data.Routing.ResourceRef.Builder getWorkflowBuilder() {
+      public Builder setNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        namespace_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
-        return internalGetWorkflowFieldBuilder().getBuilder();
+        return this;
       }
+
+      private java.lang.Object name_ = "";
       /**
        * <pre>
-       * Workflow that consumes matching messages.
+       * Workflow name within namespace.
        * </pre>
        *
-       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       * <code>string name = 2;</code>
+       * @return The name.
        */
-      public talon.data.Routing.ResourceRefOrBuilder getWorkflowOrBuilder() {
-        if (workflowBuilder_ != null) {
-          return workflowBuilder_.getMessageOrBuilder();
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          name_ = s;
+          return s;
         } else {
-          return workflow_ == null ?
-              talon.data.Routing.ResourceRef.getDefaultInstance() : workflow_;
+          return (java.lang.String) ref;
         }
       }
       /**
        * <pre>
-       * Workflow that consumes matching messages.
+       * Workflow name within namespace.
        * </pre>
        *
-       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       * <code>string name = 2;</code>
+       * @return The bytes for name.
        */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder>
-          internalGetWorkflowFieldBuilder() {
-        if (workflowBuilder_ == null) {
-          workflowBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder>(
-                  getWorkflow(),
-                  getParentForChildren(),
-                  isClean());
-          workflow_ = null;
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
         }
-        return workflowBuilder_;
+      }
+      /**
+       * <pre>
+       * Workflow name within namespace.
+       * </pre>
+       *
+       * <code>string name = 2;</code>
+       * @param value The name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setName(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        name_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Workflow name within namespace.
+       * </pre>
+       *
+       * <code>string name = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearName() {
+        name_ = getDefaultInstance().getName();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Workflow name within namespace.
+       * </pre>
+       *
+       * <code>string name = 2;</code>
+       * @param value The bytes for name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        name_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
       }
 
       private java.lang.Object replyMode_ = "";
@@ -3777,7 +3886,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * replying in the provider thread instead of the root conversation.
        * </pre>
        *
-       * <code>string reply_mode = 2;</code>
+       * <code>string reply_mode = 3;</code>
        * @return The replyMode.
        */
       public java.lang.String getReplyMode() {
@@ -3798,7 +3907,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * replying in the provider thread instead of the root conversation.
        * </pre>
        *
-       * <code>string reply_mode = 2;</code>
+       * <code>string reply_mode = 3;</code>
        * @return The bytes for replyMode.
        */
       public com.google.protobuf.ByteString
@@ -3820,7 +3929,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * replying in the provider thread instead of the root conversation.
        * </pre>
        *
-       * <code>string reply_mode = 2;</code>
+       * <code>string reply_mode = 3;</code>
        * @param value The replyMode to set.
        * @return This builder for chaining.
        */
@@ -3828,7 +3937,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         replyMode_ = value;
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
@@ -3838,12 +3947,12 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * replying in the provider thread instead of the root conversation.
        * </pre>
        *
-       * <code>string reply_mode = 2;</code>
+       * <code>string reply_mode = 3;</code>
        * @return This builder for chaining.
        */
       public Builder clearReplyMode() {
         replyMode_ = getDefaultInstance().getReplyMode();
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000004);
         onChanged();
         return this;
       }
@@ -3853,7 +3962,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
        * replying in the provider thread instead of the root conversation.
        * </pre>
        *
-       * <code>string reply_mode = 2;</code>
+       * <code>string reply_mode = 3;</code>
        * @param value The bytes for replyMode to set.
        * @return This builder for chaining.
        */
@@ -3862,7 +3971,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         replyMode_ = value;
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
@@ -5115,15 +5224,15 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       "nnelMessageConsumer\022(\n\007channel\030\001 \001(\0132\027.t" +
       "alon.data.ResourceRef\022&\n\005agent\030\002 \001(\0132\027.t" +
       "alon.data.ResourceRef\022\022\n\ncontinuity\030\003 \001(" +
-      "\t\022\024\n\014reply_policy\030\004 \001(\t\"X\n\027WorkflowMessa" +
-      "geConsumer\022)\n\010workflow\030\001 \001(\0132\027.talon.dat" +
-      "a.ResourceRef\022\022\n\nreply_mode\030\002 \001(\t\"\346\001\n\017Me" +
-      "ssageConsumer\0228\n\007session\030\001 \001(\0132\".talon.d" +
-      "ata.SessionMessageConsumerH\000\210\001\001\0228\n\007chann" +
-      "el\030\002 \001(\0132\".talon.data.ChannelMessageCons" +
-      "umerH\001\210\001\001\022:\n\010workflow\030\003 \001(\0132#.talon.data" +
-      ".WorkflowMessageConsumerH\002\210\001\001B\n\n\010_sessio" +
-      "nB\n\n\010_channelB\013\n\t_workflowb\006proto3"
+      "\t\022\024\n\014reply_policy\030\004 \001(\t\"N\n\027WorkflowMessa" +
+      "geConsumer\022\021\n\tnamespace\030\001 \001(\t\022\014\n\004name\030\002 " +
+      "\001(\t\022\022\n\nreply_mode\030\003 \001(\t\"\346\001\n\017MessageConsu" +
+      "mer\0228\n\007session\030\001 \001(\0132\".talon.data.Sessio" +
+      "nMessageConsumerH\000\210\001\001\0228\n\007channel\030\002 \001(\0132\"" +
+      ".talon.data.ChannelMessageConsumerH\001\210\001\001\022" +
+      ":\n\010workflow\030\003 \001(\0132#.talon.data.WorkflowM" +
+      "essageConsumerH\002\210\001\001B\n\n\010_sessionB\n\n\010_chan" +
+      "nelB\013\n\t_workflowb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -5152,7 +5261,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     internal_static_talon_data_WorkflowMessageConsumer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowMessageConsumer_descriptor,
-        new java.lang.String[] { "Workflow", "ReplyMode", });
+        new java.lang.String[] { "Namespace", "Name", "ReplyMode", });
     internal_static_talon_data_MessageConsumer_descriptor =
       getDescriptor().getMessageType(4);
     internal_static_talon_data_MessageConsumer_fieldAccessorTable = new

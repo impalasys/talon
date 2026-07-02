@@ -47,12 +47,16 @@ pub struct ChannelMessageConsumer {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct WorkflowMessageConsumer {
-    /// Workflow that consumes matching messages.
-    #[prost(message, optional, tag = "1")]
-    pub workflow: ::core::option::Option<ResourceRef>,
+    /// Namespace containing the workflow. Empty means the reference is resolved
+    /// relative to the owning Connector namespace.
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    /// Workflow name within namespace.
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
     /// Reply behavior requested from the workflow completion router, such as
     /// replying in the provider thread instead of the root conversation.
-    #[prost(string, tag = "2")]
+    #[prost(string, tag = "3")]
     pub reply_mode: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]

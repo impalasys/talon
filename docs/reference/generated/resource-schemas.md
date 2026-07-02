@@ -361,7 +361,6 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `context_policy` | `ChannelContextPolicy` | - |
 | `reply_mode` | `string` | - |
 | `metadata` | `map<string, string>` | - |
-| `workflow` | `string` | - |
 
 ## `ConnectorClassRuntimeSpec`
 
@@ -999,7 +998,8 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `workflow` | `ResourceRef` | Workflow that consumes matching messages. |
+| `namespace` | `string` | Namespace containing the workflow. Empty means the reference is resolved relative to the owning Connector namespace. |
+| `name` | `string` | Workflow name within namespace. |
 | `reply_mode` | `string` | Reply behavior requested from the workflow completion router, such as replying in the provider thread instead of the root conversation. |
 
 ## `MessageConsumer`

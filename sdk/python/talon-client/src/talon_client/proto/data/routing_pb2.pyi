@@ -36,12 +36,14 @@ class ChannelMessageConsumer(_message.Message):
     def __init__(self, channel: _Optional[_Union[ResourceRef, _Mapping]] = ..., agent: _Optional[_Union[ResourceRef, _Mapping]] = ..., continuity: _Optional[str] = ..., reply_policy: _Optional[str] = ...) -> None: ...
 
 class WorkflowMessageConsumer(_message.Message):
-    __slots__ = ("workflow", "reply_mode")
-    WORKFLOW_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("namespace", "name", "reply_mode")
+    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
     REPLY_MODE_FIELD_NUMBER: _ClassVar[int]
-    workflow: ResourceRef
+    namespace: str
+    name: str
     reply_mode: str
-    def __init__(self, workflow: _Optional[_Union[ResourceRef, _Mapping]] = ..., reply_mode: _Optional[str] = ...) -> None: ...
+    def __init__(self, namespace: _Optional[str] = ..., name: _Optional[str] = ..., reply_mode: _Optional[str] = ...) -> None: ...
 
 class MessageConsumer(_message.Message):
     __slots__ = ("session", "channel", "workflow")

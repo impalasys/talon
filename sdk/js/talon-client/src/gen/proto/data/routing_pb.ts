@@ -183,17 +183,25 @@ export class ChannelMessageConsumer extends Message<ChannelMessageConsumer> {
  */
 export class WorkflowMessageConsumer extends Message<WorkflowMessageConsumer> {
   /**
-   * Workflow that consumes matching messages.
+   * Namespace containing the workflow. Empty means the reference is resolved
+   * relative to the owning Connector namespace.
    *
-   * @generated from field: talon.data.ResourceRef workflow = 1;
+   * @generated from field: string namespace = 1;
    */
-  workflow?: ResourceRef;
+  namespace = "";
+
+  /**
+   * Workflow name within namespace.
+   *
+   * @generated from field: string name = 2;
+   */
+  name = "";
 
   /**
    * Reply behavior requested from the workflow completion router, such as
    * replying in the provider thread instead of the root conversation.
    *
-   * @generated from field: string reply_mode = 2;
+   * @generated from field: string reply_mode = 3;
    */
   replyMode = "";
 
@@ -205,8 +213,9 @@ export class WorkflowMessageConsumer extends Message<WorkflowMessageConsumer> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.data.WorkflowMessageConsumer";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "workflow", kind: "message", T: ResourceRef },
-    { no: 2, name: "reply_mode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "reply_mode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowMessageConsumer {

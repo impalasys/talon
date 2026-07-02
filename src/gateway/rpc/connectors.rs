@@ -717,13 +717,17 @@ async fn dispatch_to_workflow(
     event: &external_proto::ConnectorMessageEvent,
 ) -> Result<(), tonic::Status> {
     let connector = route_connector_ref(route)?;
-    let workflow_ref = consumer
-        .workflow
-        .as_ref()
-        .ok_or_else(|| tonic::Status::failed_precondition("Workflow consumer requires workflow"))?;
-    let workflow_namespace = consumer_ref_namespace(workflow_ref, &connector.namespace);
-    let workflow_name =
-        consumer_ref_name(workflow_ref, "Workflow consumer requires workflow name")?;
+    let workflow_namespace = if consumer.namespace.trim().is_empty() {
+        connector.namespace.clone()
+    } else {
+        consumer.namespace.clone()
+    };
+    let workflow_name = consumer.name.trim();
+    if workflow_name.is_empty() {
+        return Err(tonic::Status::failed_precondition(
+            "Workflow consumer requires workflow name",
+        ));
+    }
     let workflow = cp
         .kv
         .get_msg::<resources_proto::Workflow>(&keys::workflow(&workflow_namespace, workflow_name))

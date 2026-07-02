@@ -265,8 +265,7 @@ spec:
     teamId: T123
   consumer:
     workflow:
-      workflow:
-        name: message-router
+      name: message-router
       replyMode: thread
 "#,
         )
@@ -281,7 +280,7 @@ spec:
         assert!(consumer.session.is_none());
         assert!(consumer.channel.is_none());
         let workflow = consumer.workflow.expect("workflow consumer");
-        assert_eq!(workflow.workflow.unwrap().name, "message-router");
+        assert_eq!(workflow.name, "message-router");
         assert_eq!(workflow.reply_mode, "thread");
     }
 

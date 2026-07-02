@@ -43,12 +43,16 @@ message ChannelMessageConsumer {
 }
 
 message WorkflowMessageConsumer {
-  // Workflow that consumes matching messages.
-  ResourceRef workflow = 1;
+  // Namespace containing the workflow. Empty means the reference is resolved
+  // relative to the owning Connector namespace.
+  string namespace = 1;
+
+  // Workflow name within namespace.
+  string name = 2;
 
   // Reply behavior requested from the workflow completion router, such as
   // replying in the provider thread instead of the root conversation.
-  string reply_mode = 2;
+  string reply_mode = 3;
 }
 
 message MessageConsumer {
