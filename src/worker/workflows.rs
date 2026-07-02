@@ -868,14 +868,14 @@ async fn dispatch_workflow_reply(cp: &ControlPlane, run: &data_proto::WorkflowRu
     let delivery_id = format!("workflow-reply-{}", run.id);
     let reply_mode = run
         .labels
-        .get(crate::gateway::rpc::channels::LABEL_CHANNEL_REPLY_MODE)
+        .get(crate::harness::connector::LABEL_CONNECTOR_REPLY_MODE)
         .map(|value| value.as_str())
         .unwrap_or_default();
     let result = if run
         .labels
-        .contains_key("talon.impalasys.com/connector-registration")
+        .contains_key(crate::harness::connector::LABEL_CONNECTOR_REGISTRATION)
     {
-        crate::gateway::rpc::connectors::deliver_connector_reply_from_labels(
+        crate::harness::connector::deliver_connector_reply_from_labels(
             cp,
             &run.labels,
             &run.ns,

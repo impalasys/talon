@@ -294,85 +294,6 @@ pub async fn deliver_connector_session_message(
     Ok(())
 }
 
-pub async fn deliver_connector_reply_from_labels(
-    cp: &ControlPlane,
-    labels: &HashMap<String, String>,
-    namespace: &str,
-    delivery_id: &str,
-    text: &str,
-    attachments: Vec<data_proto::ObjectRef>,
-    reply_mode: &str,
-) -> anyhow::Result<()> {
-    let registration_id = required_label(labels, LABEL_CONNECTOR_REGISTRATION)?;
-    let connector_name = required_label(labels, LABEL_CONNECTOR)?;
-    let connector_class = required_label(labels, LABEL_CONNECTOR_CLASS)?;
-    let external_conversation_id = required_label(labels, LABEL_EXTERNAL_CONVERSATION)?;
-    let (runtime_endpoint, api_key) =
-        connector_runtime_endpoint_and_api_key(cp, registration_id, connector_class).await?;
-
-    let mut match_fields = HashMap::new();
-    for (key, value) in labels {
-        if let Some(field) = key.strip_prefix(LABEL_CONNECTOR_MATCH_PREFIX) {
-            match_fields.insert(field.to_string(), value.clone());
-        }
-    }
-
-    let source_external_message_id = labels.get(LABEL_EXTERNAL_MESSAGE).cloned();
-    let external_thread_id = if reply_mode == "thread" {
-        labels
-            .get(LABEL_EXTERNAL_THREAD)
-            .cloned()
-            .or_else(|| source_external_message_id.clone())
-    } else {
-        labels.get(LABEL_EXTERNAL_THREAD).cloned()
-    };
-    let reply_to_external_message_id = if reply_mode == "thread" {
-        source_external_message_id
-    } else {
-        None
-    };
-
-    let mut delivery_labels = HashMap::new();
-    delivery_labels.insert("talon.replySource".to_string(), "workflow".to_string());
-    if let Some(source_event) = labels.get(LABEL_CONNECTOR_EVENT).cloned() {
-        delivery_labels.insert("talon.connectorEvent".to_string(), source_event);
-    }
-
-    let response = connector_http_client()?
-        .post(format!("{}/v1/deliveries", runtime_endpoint))
-        .bearer_auth(api_key)
-        .json(&external_proto::ConnectorDeliveryRequest {
-            delivery_id: delivery_id.to_string(),
-            registration_id: registration_id.to_string(),
-            connector_class: connector_class.to_string(),
-            namespace: namespace.to_string(),
-            connector_name: connector_name.to_string(),
-            match_fields,
-            external_conversation_id: external_conversation_id.to_string(),
-            external_thread_id,
-            reply_to_external_message_id,
-            text: text.trim().to_string(),
-            attachments,
-            labels: delivery_labels,
-        })
-        .send()
-        .await
-        .context("failed to submit connector workflow reply delivery")?;
-    let status = response.status();
-    let body = response
-        .json::<external_proto::ConnectorDeliveryResponse>()
-        .await
-        .context("failed to decode connector workflow reply response")?;
-    if !status.is_success() || !body.accepted {
-        anyhow::bail!(
-            "connector workflow reply rejected: HTTP {status} disposition={} error={}",
-            body.disposition,
-            body.error
-        );
-    }
-    Ok(())
-}
-
 pub async fn send_connector_session_activity(
     cp: &ControlPlane,
     session: &data_proto::Session,
@@ -742,7 +663,7 @@ async fn dispatch_to_workflow(
     );
     if !consumer.reply_mode.trim().is_empty() {
         labels.insert(
-            crate::gateway::rpc::channels::LABEL_CHANNEL_REPLY_MODE.to_string(),
+            crate::harness::connector::LABEL_CONNECTOR_REPLY_MODE.to_string(),
             consumer.reply_mode.trim().to_string(),
         );
     }

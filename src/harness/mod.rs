@@ -3,6 +3,7 @@
 
 pub mod acp;
 pub mod agents;
+pub mod connector;
 pub mod executor;
 pub mod knowledge;
 pub mod llm;
