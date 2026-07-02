@@ -36,6 +36,8 @@ jobs:
 
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
 
       - name: Cache Rust artifacts
         uses: Swatinem/rust-cache@v2
@@ -47,6 +49,9 @@ jobs:
 
       - name: Cargo metadata
         run: cargo metadata --locked
+
+      - name: Cargo fmt
+        run: cargo fmt --all --check
 
       - name: Cargo build
         run: cargo build --locked --bins
@@ -175,6 +180,8 @@ jobs:
 
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -229,7 +236,10 @@ jobs:
           (cd sdk/go/talon-server && go test ./...)
 
       - name: Test Rust SDKs
-        run: cargo test --manifest-path sdk/rust/Cargo.toml
+        run: |
+          cargo fmt --manifest-path sdk/rust/Cargo.toml --all --check
+          cargo fmt --manifest-path sdk/examples/rust/Cargo.toml --all --check
+          cargo test --manifest-path sdk/rust/Cargo.toml
 
       - name: Test Java SDKs
         working-directory: sdk/java
