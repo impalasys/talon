@@ -1,0 +1,17 @@
+# Generated API reference docs.
+docs/reference/generated/** linguist-generated=true
+
+# Generated SDK/protobuf bindings.
+sdk/go/talon-client/**/*_gen.go linguist-generated=true
+sdk/go/talon-client/**/*.pb.go linguist-generated=true
+sdk/java/talon-client/src/main/java/talon/** linguist-generated=true
+sdk/js/talon-client/src/gen/** linguist-generated=true
+sdk/python/talon-client/src/talon_client/proto/** linguist-generated=true
+sdk/python/talon-client/src/talon_client/config.py linguist-generated=true
+sdk/python/talon-client/src/talon_client/data.py linguist-generated=true
+sdk/python/talon-client/src/talon_client/events.py linguist-generated=true
+sdk/python/talon-client/src/talon_client/external.py linguist-generated=true
+sdk/python/talon-client/src/talon_client/harness.py linguist-generated=true
+sdk/python/talon-client/src/talon_client/resources.py linguist-generated=true
+sdk/python/talon-client/src/talon_client/v1.py linguist-generated=true
+sdk/rust/talon-client/src/generated/** linguist-generated=true

@@ -217,19 +217,86 @@ func (x *ChannelMessageConsumer) GetReplyPolicy() string {
 	return ""
 }
 
+type WorkflowMessageConsumer struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Namespace containing the workflow. Empty means the reference is resolved
+	// relative to the owning Connector namespace.
+	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// Workflow name within namespace.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Reply behavior requested from the workflow completion router, such as
+	// replying in the provider thread instead of the root conversation.
+	ReplyMode     string `protobuf:"bytes,3,opt,name=reply_mode,json=replyMode,proto3" json:"reply_mode,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorkflowMessageConsumer) Reset() {
+	*x = WorkflowMessageConsumer{}
+	mi := &file_proto_data_routing_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowMessageConsumer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowMessageConsumer) ProtoMessage() {}
+
+func (x *WorkflowMessageConsumer) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_data_routing_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowMessageConsumer.ProtoReflect.Descriptor instead.
+func (*WorkflowMessageConsumer) Descriptor() ([]byte, []int) {
+	return file_proto_data_routing_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *WorkflowMessageConsumer) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *WorkflowMessageConsumer) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *WorkflowMessageConsumer) GetReplyMode() string {
+	if x != nil {
+		return x.ReplyMode
+	}
+	return ""
+}
+
 type MessageConsumer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Session consumer payload. Mutually exclusive with channel.
+	// Session consumer payload. Mutually exclusive with channel and workflow.
 	Session *SessionMessageConsumer `protobuf:"bytes,1,opt,name=session,proto3,oneof" json:"session,omitempty"`
-	// Channel consumer payload. Mutually exclusive with session.
-	Channel       *ChannelMessageConsumer `protobuf:"bytes,2,opt,name=channel,proto3,oneof" json:"channel,omitempty"`
+	// Channel consumer payload. Mutually exclusive with session and workflow.
+	Channel *ChannelMessageConsumer `protobuf:"bytes,2,opt,name=channel,proto3,oneof" json:"channel,omitempty"`
+	// Workflow consumer payload. Mutually exclusive with session and channel.
+	Workflow      *WorkflowMessageConsumer `protobuf:"bytes,3,opt,name=workflow,proto3,oneof" json:"workflow,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MessageConsumer) Reset() {
 	*x = MessageConsumer{}
-	mi := &file_proto_data_routing_proto_msgTypes[3]
+	mi := &file_proto_data_routing_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -241,7 +308,7 @@ func (x *MessageConsumer) String() string {
 func (*MessageConsumer) ProtoMessage() {}
 
 func (x *MessageConsumer) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_routing_proto_msgTypes[3]
+	mi := &file_proto_data_routing_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -254,7 +321,7 @@ func (x *MessageConsumer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MessageConsumer.ProtoReflect.Descriptor instead.
 func (*MessageConsumer) Descriptor() ([]byte, []int) {
-	return file_proto_data_routing_proto_rawDescGZIP(), []int{3}
+	return file_proto_data_routing_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *MessageConsumer) GetSession() *SessionMessageConsumer {
@@ -267,6 +334,13 @@ func (x *MessageConsumer) GetSession() *SessionMessageConsumer {
 func (x *MessageConsumer) GetChannel() *ChannelMessageConsumer {
 	if x != nil {
 		return x.Channel
+	}
+	return nil
+}
+
+func (x *MessageConsumer) GetWorkflow() *WorkflowMessageConsumer {
+	if x != nil {
+		return x.Workflow
 	}
 	return nil
 }
@@ -293,14 +367,21 @@ const file_proto_data_routing_proto_rawDesc = "" +
 	"\n" +
 	"continuity\x18\x03 \x01(\tR\n" +
 	"continuity\x12!\n" +
-	"\freply_policy\x18\x04 \x01(\tR\vreplyPolicy\"\xaf\x01\n" +
+	"\freply_policy\x18\x04 \x01(\tR\vreplyPolicy\"j\n" +
+	"\x17WorkflowMessageConsumer\x12\x1c\n" +
+	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
+	"\n" +
+	"reply_mode\x18\x03 \x01(\tR\treplyMode\"\x82\x02\n" +
 	"\x0fMessageConsumer\x12A\n" +
 	"\asession\x18\x01 \x01(\v2\".talon.data.SessionMessageConsumerH\x00R\asession\x88\x01\x01\x12A\n" +
-	"\achannel\x18\x02 \x01(\v2\".talon.data.ChannelMessageConsumerH\x01R\achannel\x88\x01\x01B\n" +
+	"\achannel\x18\x02 \x01(\v2\".talon.data.ChannelMessageConsumerH\x01R\achannel\x88\x01\x01\x12D\n" +
+	"\bworkflow\x18\x03 \x01(\v2#.talon.data.WorkflowMessageConsumerH\x02R\bworkflow\x88\x01\x01B\n" +
 	"\n" +
 	"\b_sessionB\n" +
 	"\n" +
-	"\b_channelb\x06proto3"
+	"\b_channelB\v\n" +
+	"\t_workflowb\x06proto3"
 
 var (
 	file_proto_data_routing_proto_rawDescOnce sync.Once
@@ -314,12 +395,13 @@ func file_proto_data_routing_proto_rawDescGZIP() []byte {
 	return file_proto_data_routing_proto_rawDescData
 }
 
-var file_proto_data_routing_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_data_routing_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_data_routing_proto_goTypes = []any{
-	(*ResourceRef)(nil),            // 0: talon.data.ResourceRef
-	(*SessionMessageConsumer)(nil), // 1: talon.data.SessionMessageConsumer
-	(*ChannelMessageConsumer)(nil), // 2: talon.data.ChannelMessageConsumer
-	(*MessageConsumer)(nil),        // 3: talon.data.MessageConsumer
+	(*ResourceRef)(nil),             // 0: talon.data.ResourceRef
+	(*SessionMessageConsumer)(nil),  // 1: talon.data.SessionMessageConsumer
+	(*ChannelMessageConsumer)(nil),  // 2: talon.data.ChannelMessageConsumer
+	(*WorkflowMessageConsumer)(nil), // 3: talon.data.WorkflowMessageConsumer
+	(*MessageConsumer)(nil),         // 4: talon.data.MessageConsumer
 }
 var file_proto_data_routing_proto_depIdxs = []int32{
 	0, // 0: talon.data.SessionMessageConsumer.agent:type_name -> talon.data.ResourceRef
@@ -327,11 +409,12 @@ var file_proto_data_routing_proto_depIdxs = []int32{
 	0, // 2: talon.data.ChannelMessageConsumer.agent:type_name -> talon.data.ResourceRef
 	1, // 3: talon.data.MessageConsumer.session:type_name -> talon.data.SessionMessageConsumer
 	2, // 4: talon.data.MessageConsumer.channel:type_name -> talon.data.ChannelMessageConsumer
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	3, // 5: talon.data.MessageConsumer.workflow:type_name -> talon.data.WorkflowMessageConsumer
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_proto_data_routing_proto_init() }
@@ -339,14 +422,14 @@ func file_proto_data_routing_proto_init() {
 	if File_proto_data_routing_proto != nil {
 		return
 	}
-	file_proto_data_routing_proto_msgTypes[3].OneofWrappers = []any{}
+	file_proto_data_routing_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_data_routing_proto_rawDesc), len(file_proto_data_routing_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

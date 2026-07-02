@@ -35,10 +35,22 @@ class ChannelMessageConsumer(_message.Message):
     reply_policy: str
     def __init__(self, channel: _Optional[_Union[ResourceRef, _Mapping]] = ..., agent: _Optional[_Union[ResourceRef, _Mapping]] = ..., continuity: _Optional[str] = ..., reply_policy: _Optional[str] = ...) -> None: ...
 
+class WorkflowMessageConsumer(_message.Message):
+    __slots__ = ("namespace", "name", "reply_mode")
+    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    REPLY_MODE_FIELD_NUMBER: _ClassVar[int]
+    namespace: str
+    name: str
+    reply_mode: str
+    def __init__(self, namespace: _Optional[str] = ..., name: _Optional[str] = ..., reply_mode: _Optional[str] = ...) -> None: ...
+
 class MessageConsumer(_message.Message):
-    __slots__ = ("session", "channel")
+    __slots__ = ("session", "channel", "workflow")
     SESSION_FIELD_NUMBER: _ClassVar[int]
     CHANNEL_FIELD_NUMBER: _ClassVar[int]
+    WORKFLOW_FIELD_NUMBER: _ClassVar[int]
     session: SessionMessageConsumer
     channel: ChannelMessageConsumer
-    def __init__(self, session: _Optional[_Union[SessionMessageConsumer, _Mapping]] = ..., channel: _Optional[_Union[ChannelMessageConsumer, _Mapping]] = ...) -> None: ...
+    workflow: WorkflowMessageConsumer
+    def __init__(self, session: _Optional[_Union[SessionMessageConsumer, _Mapping]] = ..., channel: _Optional[_Union[ChannelMessageConsumer, _Mapping]] = ..., workflow: _Optional[_Union[WorkflowMessageConsumer, _Mapping]] = ...) -> None: ...

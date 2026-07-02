@@ -543,8 +543,12 @@ fn validate_consumer(
     consumer: Option<&data_proto::MessageConsumer>,
 ) -> Result<()> {
     let consumer = consumer.ok_or_else(|| anyhow!("Connector spec.consumer is required"))?;
-    match (consumer.session.as_ref(), consumer.channel.as_ref()) {
-        (Some(session), None) => {
+    match (
+        consumer.session.as_ref(),
+        consumer.channel.as_ref(),
+        consumer.workflow.as_ref(),
+    ) {
+        (Some(session), None, None) => {
             let agent = session
                 .agent
                 .as_ref()
@@ -560,7 +564,7 @@ fn validate_consumer(
                 bail!("Connector session consumer pinned continuity requires sessionId");
             }
         }
-        (None, Some(channel)) => {
+        (None, Some(channel), None) => {
             let channel_ref = channel
                 .channel
                 .as_ref()
@@ -572,8 +576,18 @@ fn validate_consumer(
                 .ok_or_else(|| anyhow!("Connector channel consumer requires agent"))?;
             validate_local_ref(connector_namespace, "channel consumer agent", agent)?;
         }
-        (Some(_), Some(_)) => bail!("Connector consumer must set only one of session or channel"),
-        (None, None) => bail!("Connector consumer must set session or channel"),
+        (None, None, Some(workflow)) => {
+            validate_local_name_namespace(
+                connector_namespace,
+                "workflow consumer workflow",
+                &workflow.name,
+                &workflow.namespace,
+            )?;
+        }
+        (Some(_), _, _) | (_, Some(_), Some(_)) => {
+            bail!("Connector consumer must set only one of session, channel, or workflow")
+        }
+        (None, None, None) => bail!("Connector consumer must set session, channel, or workflow"),
     }
     Ok(())
 }
@@ -583,10 +597,24 @@ fn validate_local_ref(
     field: &str,
     reference: &data_proto::ResourceRef,
 ) -> Result<()> {
-    if reference.name.trim().is_empty() {
+    validate_local_name_namespace(
+        connector_namespace,
+        field,
+        &reference.name,
+        &reference.namespace,
+    )
+}
+
+fn validate_local_name_namespace(
+    connector_namespace: &str,
+    field: &str,
+    name: &str,
+    namespace: &str,
+) -> Result<()> {
+    if name.trim().is_empty() {
         bail!("Connector {field} requires name");
     }
-    if !reference.namespace.trim().is_empty() && reference.namespace != connector_namespace {
+    if !namespace.trim().is_empty() && namespace != connector_namespace {
         bail!("Connector {field} namespace must be empty or match Connector namespace");
     }
     Ok(())

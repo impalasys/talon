@@ -42,10 +42,26 @@ message ChannelMessageConsumer {
   string reply_policy = 4;
 }
 
+message WorkflowMessageConsumer {
+  // Namespace containing the workflow. Empty means the reference is resolved
+  // relative to the owning Connector namespace.
+  string namespace = 1;
+
+  // Workflow name within namespace.
+  string name = 2;
+
+  // Reply behavior requested from the workflow completion router, such as
+  // replying in the provider thread instead of the root conversation.
+  string reply_mode = 3;
+}
+
 message MessageConsumer {
-  // Session consumer payload. Mutually exclusive with channel.
+  // Session consumer payload. Mutually exclusive with channel and workflow.
   optional SessionMessageConsumer session = 1;
 
-  // Channel consumer payload. Mutually exclusive with session.
+  // Channel consumer payload. Mutually exclusive with session and workflow.
   optional ChannelMessageConsumer channel = 2;
+
+  // Workflow consumer payload. Mutually exclusive with session and channel.
+  optional WorkflowMessageConsumer workflow = 3;
 }

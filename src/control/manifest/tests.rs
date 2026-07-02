@@ -249,6 +249,42 @@ spec:
     }
 
     #[test]
+    fn connector_manifest_maps_workflow_consumer_payload_shape() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Connector
+metadata:
+  name: slack-router
+  namespace: customers
+spec:
+  classRef:
+    name: slack
+  enabled: true
+  matchFields:
+    teamId: T123
+  consumer:
+    workflow:
+      name: message-router
+      replyMode: thread
+"#,
+        )
+        .expect("connector manifest parses");
+
+        let Some(resource_spec::Kind::Connector(spec)) =
+            manifest.spec.clone().and_then(|spec| spec.kind)
+        else {
+            panic!("expected Connector spec");
+        };
+        let consumer = spec.consumer.expect("consumer");
+        assert!(consumer.session.is_none());
+        assert!(consumer.channel.is_none());
+        let workflow = consumer.workflow.expect("workflow consumer");
+        assert_eq!(workflow.name, "message-router");
+        assert_eq!(workflow.reply_mode, "thread");
+    }
+
+    #[test]
     fn agent_manifest_maps_a2a_target_payload_shape() {
         let manifest = parse_resource_manifest(
             r#"
