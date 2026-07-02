@@ -26,7 +26,7 @@ from talon_client.proto.data import data_pb2 as proto_dot_data_dot_data__pb2
 from talon_client.proto import events_pb2 as proto_dot_events__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1dproto/talon/v1/channels.proto\x12\x08talon.v1\x1a\x15proto/data/data.proto\x1a\x12proto/events.proto\"\xfa\x01\n\x19PostChannelMessageRequest\x12\n\n\x02ns\x18\x01 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x02 \x01(\t\x12\x13\n\x0b\x61uthor_kind\x18\x03 \x01(\t\x12\x0e\n\x06\x61uthor\x18\x04 \x01(\t\x12\x0f\n\x07\x63ontent\x18\x05 \x01(\t\x12\x1a\n\x12subscription_names\x18\x06 \x03(\t\x12?\n\x06labels\x18\x07 \x03(\x0b\x32/.talon.v1.PostChannelMessageRequest.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x89\x01\n\x14RoutedChannelSession\x12\x14\n\x0csubscription\x18\x01 \x01(\t\x12\r\n\x05\x61gent\x18\x02 \x01(\t\x12\x12\n\nsession_id\x18\x03 \x01(\t\x12\r\n\x05\x65rror\x18\x04 \x01(\t\x12\x10\n\x08workflow\x18\x05 \x01(\t\x12\x17\n\x0fworkflow_run_id\x18\x06 \x01(\t\"\x82\x01\n\x1aPostChannelMessageResponse\x12+\n\x07message\x18\x01 \x01(\x0b\x32\x1a.talon.data.ChannelMessage\x12\x37\n\x0frouted_sessions\x18\x02 \x03(\x0b\x32\x1e.talon.v1.RoutedChannelSession\"K\n\x18GetChannelMessageRequest\x12\n\n\x02ns\x18\x01 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x02 \x01(\t\x12\x12\n\nmessage_id\x18\x03 \x01(\t\"E\n\x16\x43hannelMessageResponse\x12+\n\x07message\x18\x01 \x01(\x0b\x32\x1a.talon.data.ChannelMessage\"\x91\x01\n\x1aListChannelMessagesRequest\x12\n\n\x02ns\x18\x01 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x05\x12\x11\n\tpage_size\x18\x04 \x01(\x05\x12\x1e\n\x11\x62\x65\x66ore_message_id\x18\x05 \x01(\tH\x00\x88\x01\x01\x42\x14\n\x12_before_message_id\"\x9d\x01\n\x1bListChannelMessagesResponse\x12,\n\x08messages\x18\x01 \x03(\x0b\x32\x1a.talon.data.ChannelMessage\x12\x10\n\x08has_more\x18\x02 \x01(\x08\x12#\n\x16next_before_message_id\x18\x03 \x01(\tH\x00\x88\x01\x01\x42\x19\n\x17_next_before_message_id\"9\n\x1aStreamChannelEventsRequest\x12\n\n\x02ns\x18\x01 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x02 \x01(\t2\xef\x02\n\x0e\x43hannelService\x12X\n\x0bPostMessage\x12#.talon.v1.PostChannelMessageRequest\x1a$.talon.v1.PostChannelMessageResponse\x12R\n\nGetMessage\x12\".talon.v1.GetChannelMessageRequest\x1a .talon.v1.ChannelMessageResponse\x12[\n\x0cListMessages\x12$.talon.v1.ListChannelMessagesRequest\x1a%.talon.v1.ListChannelMessagesResponse\x12R\n\x0cStreamEvents\x12$.talon.v1.StreamChannelEventsRequest\x1a\x1a.talon.events.ChannelEvent0\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1dproto/talon/v1/channels.proto\x12\x08talon.v1\x1a\x15proto/data/data.proto\x1a\x12proto/events.proto\"\xfa\x01\n\x19PostChannelMessageRequest\x12\n\n\x02ns\x18\x01 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x02 \x01(\t\x12\x13\n\x0b\x61uthor_kind\x18\x03 \x01(\t\x12\x0e\n\x06\x61uthor\x18\x04 \x01(\t\x12\x0f\n\x07\x63ontent\x18\x05 \x01(\t\x12\x1a\n\x12subscription_names\x18\x06 \x03(\t\x12?\n\x06labels\x18\x07 \x03(\x0b\x32/.talon.v1.PostChannelMessageRequest.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"^\n\x14RoutedChannelSession\x12\x14\n\x0csubscription\x18\x01 \x01(\t\x12\r\n\x05\x61gent\x18\x02 \x01(\t\x12\x12\n\nsession_id\x18\x03 \x01(\t\x12\r\n\x05\x65rror\x18\x04 \x01(\t\"\x82\x01\n\x1aPostChannelMessageResponse\x12+\n\x07message\x18\x01 \x01(\x0b\x32\x1a.talon.data.ChannelMessage\x12\x37\n\x0frouted_sessions\x18\x02 \x03(\x0b\x32\x1e.talon.v1.RoutedChannelSession\"K\n\x18GetChannelMessageRequest\x12\n\n\x02ns\x18\x01 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x02 \x01(\t\x12\x12\n\nmessage_id\x18\x03 \x01(\t\"E\n\x16\x43hannelMessageResponse\x12+\n\x07message\x18\x01 \x01(\x0b\x32\x1a.talon.data.ChannelMessage\"\x91\x01\n\x1aListChannelMessagesRequest\x12\n\n\x02ns\x18\x01 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x05\x12\x11\n\tpage_size\x18\x04 \x01(\x05\x12\x1e\n\x11\x62\x65\x66ore_message_id\x18\x05 \x01(\tH\x00\x88\x01\x01\x42\x14\n\x12_before_message_id\"\x9d\x01\n\x1bListChannelMessagesResponse\x12,\n\x08messages\x18\x01 \x03(\x0b\x32\x1a.talon.data.ChannelMessage\x12\x10\n\x08has_more\x18\x02 \x01(\x08\x12#\n\x16next_before_message_id\x18\x03 \x01(\tH\x00\x88\x01\x01\x42\x19\n\x17_next_before_message_id\"9\n\x1aStreamChannelEventsRequest\x12\n\n\x02ns\x18\x01 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x02 \x01(\t2\xef\x02\n\x0e\x43hannelService\x12X\n\x0bPostMessage\x12#.talon.v1.PostChannelMessageRequest\x1a$.talon.v1.PostChannelMessageResponse\x12R\n\nGetMessage\x12\".talon.v1.GetChannelMessageRequest\x1a .talon.v1.ChannelMessageResponse\x12[\n\x0cListMessages\x12$.talon.v1.ListChannelMessagesRequest\x1a%.talon.v1.ListChannelMessagesResponse\x12R\n\x0cStreamEvents\x12$.talon.v1.StreamChannelEventsRequest\x1a\x1a.talon.events.ChannelEvent0\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -39,20 +39,20 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_POSTCHANNELMESSAGEREQUEST']._serialized_end=337
   _globals['_POSTCHANNELMESSAGEREQUEST_LABELSENTRY']._serialized_start=292
   _globals['_POSTCHANNELMESSAGEREQUEST_LABELSENTRY']._serialized_end=337
-  _globals['_ROUTEDCHANNELSESSION']._serialized_start=340
-  _globals['_ROUTEDCHANNELSESSION']._serialized_end=477
-  _globals['_POSTCHANNELMESSAGERESPONSE']._serialized_start=480
-  _globals['_POSTCHANNELMESSAGERESPONSE']._serialized_end=610
-  _globals['_GETCHANNELMESSAGEREQUEST']._serialized_start=612
-  _globals['_GETCHANNELMESSAGEREQUEST']._serialized_end=687
-  _globals['_CHANNELMESSAGERESPONSE']._serialized_start=689
-  _globals['_CHANNELMESSAGERESPONSE']._serialized_end=758
-  _globals['_LISTCHANNELMESSAGESREQUEST']._serialized_start=761
-  _globals['_LISTCHANNELMESSAGESREQUEST']._serialized_end=906
-  _globals['_LISTCHANNELMESSAGESRESPONSE']._serialized_start=909
-  _globals['_LISTCHANNELMESSAGESRESPONSE']._serialized_end=1066
-  _globals['_STREAMCHANNELEVENTSREQUEST']._serialized_start=1068
-  _globals['_STREAMCHANNELEVENTSREQUEST']._serialized_end=1125
-  _globals['_CHANNELSERVICE']._serialized_start=1128
-  _globals['_CHANNELSERVICE']._serialized_end=1495
+  _globals['_ROUTEDCHANNELSESSION']._serialized_start=339
+  _globals['_ROUTEDCHANNELSESSION']._serialized_end=433
+  _globals['_POSTCHANNELMESSAGERESPONSE']._serialized_start=436
+  _globals['_POSTCHANNELMESSAGERESPONSE']._serialized_end=566
+  _globals['_GETCHANNELMESSAGEREQUEST']._serialized_start=568
+  _globals['_GETCHANNELMESSAGEREQUEST']._serialized_end=643
+  _globals['_CHANNELMESSAGERESPONSE']._serialized_start=645
+  _globals['_CHANNELMESSAGERESPONSE']._serialized_end=714
+  _globals['_LISTCHANNELMESSAGESREQUEST']._serialized_start=717
+  _globals['_LISTCHANNELMESSAGESREQUEST']._serialized_end=862
+  _globals['_LISTCHANNELMESSAGESRESPONSE']._serialized_start=865
+  _globals['_LISTCHANNELMESSAGESRESPONSE']._serialized_end=1022
+  _globals['_STREAMCHANNELEVENTSREQUEST']._serialized_start=1024
+  _globals['_STREAMCHANNELEVENTSREQUEST']._serialized_end=1081
+  _globals['_CHANNELSERVICE']._serialized_start=1084
+  _globals['_CHANNELSERVICE']._serialized_end=1451
 # @@protoc_insertion_point(module_scope)

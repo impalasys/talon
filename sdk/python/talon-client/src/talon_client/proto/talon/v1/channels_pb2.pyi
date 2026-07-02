@@ -34,20 +34,16 @@ class PostChannelMessageRequest(_message.Message):
     def __init__(self, ns: _Optional[str] = ..., channel: _Optional[str] = ..., author_kind: _Optional[str] = ..., author: _Optional[str] = ..., content: _Optional[str] = ..., subscription_names: _Optional[_Iterable[str]] = ..., labels: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class RoutedChannelSession(_message.Message):
-    __slots__ = ("subscription", "agent", "session_id", "error", "workflow", "workflow_run_id")
+    __slots__ = ("subscription", "agent", "session_id", "error")
     SUBSCRIPTION_FIELD_NUMBER: _ClassVar[int]
     AGENT_FIELD_NUMBER: _ClassVar[int]
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
-    WORKFLOW_FIELD_NUMBER: _ClassVar[int]
-    WORKFLOW_RUN_ID_FIELD_NUMBER: _ClassVar[int]
     subscription: str
     agent: str
     session_id: str
     error: str
-    workflow: str
-    workflow_run_id: str
-    def __init__(self, subscription: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., error: _Optional[str] = ..., workflow: _Optional[str] = ..., workflow_run_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, subscription: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., error: _Optional[str] = ...) -> None: ...
 
 class PostChannelMessageResponse(_message.Message):
     __slots__ = ("message", "routed_sessions")

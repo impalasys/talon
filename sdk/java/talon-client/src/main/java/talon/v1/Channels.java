@@ -1710,30 +1710,6 @@ java.lang.String defaultValue) {
      */
     com.google.protobuf.ByteString
         getErrorBytes();
-
-    /**
-     * <code>string workflow = 5;</code>
-     * @return The workflow.
-     */
-    java.lang.String getWorkflow();
-    /**
-     * <code>string workflow = 5;</code>
-     * @return The bytes for workflow.
-     */
-    com.google.protobuf.ByteString
-        getWorkflowBytes();
-
-    /**
-     * <code>string workflow_run_id = 6;</code>
-     * @return The workflowRunId.
-     */
-    java.lang.String getWorkflowRunId();
-    /**
-     * <code>string workflow_run_id = 6;</code>
-     * @return The bytes for workflowRunId.
-     */
-    com.google.protobuf.ByteString
-        getWorkflowRunIdBytes();
   }
   /**
    * Protobuf type {@code talon.v1.RoutedChannelSession}
@@ -1761,8 +1737,6 @@ java.lang.String defaultValue) {
       agent_ = "";
       sessionId_ = "";
       error_ = "";
-      workflow_ = "";
-      workflowRunId_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -1939,84 +1913,6 @@ java.lang.String defaultValue) {
       }
     }
 
-    public static final int WORKFLOW_FIELD_NUMBER = 5;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object workflow_ = "";
-    /**
-     * <code>string workflow = 5;</code>
-     * @return The workflow.
-     */
-    @java.lang.Override
-    public java.lang.String getWorkflow() {
-      java.lang.Object ref = workflow_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        workflow_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string workflow = 5;</code>
-     * @return The bytes for workflow.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getWorkflowBytes() {
-      java.lang.Object ref = workflow_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        workflow_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int WORKFLOW_RUN_ID_FIELD_NUMBER = 6;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object workflowRunId_ = "";
-    /**
-     * <code>string workflow_run_id = 6;</code>
-     * @return The workflowRunId.
-     */
-    @java.lang.Override
-    public java.lang.String getWorkflowRunId() {
-      java.lang.Object ref = workflowRunId_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        workflowRunId_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string workflow_run_id = 6;</code>
-     * @return The bytes for workflowRunId.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getWorkflowRunIdBytes() {
-      java.lang.Object ref = workflowRunId_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        workflowRunId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -2043,12 +1939,6 @@ java.lang.String defaultValue) {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(error_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 4, error_);
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 5, workflow_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflowRunId_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 6, workflowRunId_);
-      }
       getUnknownFields().writeTo(output);
     }
 
@@ -2069,12 +1959,6 @@ java.lang.String defaultValue) {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(error_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(4, error_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, workflow_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflowRunId_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, workflowRunId_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -2099,10 +1983,6 @@ java.lang.String defaultValue) {
           .equals(other.getSessionId())) return false;
       if (!getError()
           .equals(other.getError())) return false;
-      if (!getWorkflow()
-          .equals(other.getWorkflow())) return false;
-      if (!getWorkflowRunId()
-          .equals(other.getWorkflowRunId())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -2122,10 +2002,6 @@ java.lang.String defaultValue) {
       hash = (53 * hash) + getSessionId().hashCode();
       hash = (37 * hash) + ERROR_FIELD_NUMBER;
       hash = (53 * hash) + getError().hashCode();
-      hash = (37 * hash) + WORKFLOW_FIELD_NUMBER;
-      hash = (53 * hash) + getWorkflow().hashCode();
-      hash = (37 * hash) + WORKFLOW_RUN_ID_FIELD_NUMBER;
-      hash = (53 * hash) + getWorkflowRunId().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -2261,8 +2137,6 @@ java.lang.String defaultValue) {
         agent_ = "";
         sessionId_ = "";
         error_ = "";
-        workflow_ = "";
-        workflowRunId_ = "";
         return this;
       }
 
@@ -2308,12 +2182,6 @@ java.lang.String defaultValue) {
         if (((from_bitField0_ & 0x00000008) != 0)) {
           result.error_ = error_;
         }
-        if (((from_bitField0_ & 0x00000010) != 0)) {
-          result.workflow_ = workflow_;
-        }
-        if (((from_bitField0_ & 0x00000020) != 0)) {
-          result.workflowRunId_ = workflowRunId_;
-        }
       }
 
       @java.lang.Override
@@ -2346,16 +2214,6 @@ java.lang.String defaultValue) {
         if (!other.getError().isEmpty()) {
           error_ = other.error_;
           bitField0_ |= 0x00000008;
-          onChanged();
-        }
-        if (!other.getWorkflow().isEmpty()) {
-          workflow_ = other.workflow_;
-          bitField0_ |= 0x00000010;
-          onChanged();
-        }
-        if (!other.getWorkflowRunId().isEmpty()) {
-          workflowRunId_ = other.workflowRunId_;
-          bitField0_ |= 0x00000020;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -2404,16 +2262,6 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000008;
                 break;
               } // case 34
-              case 42: {
-                workflow_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000010;
-                break;
-              } // case 42
-              case 50: {
-                workflowRunId_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000020;
-                break;
-              } // case 50
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -2715,150 +2563,6 @@ java.lang.String defaultValue) {
         checkByteStringIsUtf8(value);
         error_ = value;
         bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object workflow_ = "";
-      /**
-       * <code>string workflow = 5;</code>
-       * @return The workflow.
-       */
-      public java.lang.String getWorkflow() {
-        java.lang.Object ref = workflow_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          workflow_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string workflow = 5;</code>
-       * @return The bytes for workflow.
-       */
-      public com.google.protobuf.ByteString
-          getWorkflowBytes() {
-        java.lang.Object ref = workflow_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          workflow_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string workflow = 5;</code>
-       * @param value The workflow to set.
-       * @return This builder for chaining.
-       */
-      public Builder setWorkflow(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        workflow_ = value;
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string workflow = 5;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearWorkflow() {
-        workflow_ = getDefaultInstance().getWorkflow();
-        bitField0_ = (bitField0_ & ~0x00000010);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string workflow = 5;</code>
-       * @param value The bytes for workflow to set.
-       * @return This builder for chaining.
-       */
-      public Builder setWorkflowBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        workflow_ = value;
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object workflowRunId_ = "";
-      /**
-       * <code>string workflow_run_id = 6;</code>
-       * @return The workflowRunId.
-       */
-      public java.lang.String getWorkflowRunId() {
-        java.lang.Object ref = workflowRunId_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          workflowRunId_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string workflow_run_id = 6;</code>
-       * @return The bytes for workflowRunId.
-       */
-      public com.google.protobuf.ByteString
-          getWorkflowRunIdBytes() {
-        java.lang.Object ref = workflowRunId_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          workflowRunId_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string workflow_run_id = 6;</code>
-       * @param value The workflowRunId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setWorkflowRunId(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        workflowRunId_ = value;
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string workflow_run_id = 6;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearWorkflowRunId() {
-        workflowRunId_ = getDefaultInstance().getWorkflowRunId();
-        bitField0_ = (bitField0_ & ~0x00000020);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string workflow_run_id = 6;</code>
-       * @param value The bytes for workflowRunId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setWorkflowRunIdBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        workflowRunId_ = value;
-        bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
@@ -7968,36 +7672,35 @@ java.lang.String defaultValue) {
       "\022subscription_names\030\006 \003(\t\022?\n\006labels\030\007 \003(" +
       "\0132/.talon.v1.PostChannelMessageRequest.L" +
       "abelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r" +
-      "\n\005value\030\002 \001(\t:\0028\001\"\211\001\n\024RoutedChannelSessi" +
-      "on\022\024\n\014subscription\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022" +
-      "\022\n\nsession_id\030\003 \001(\t\022\r\n\005error\030\004 \001(\t\022\020\n\010wo" +
-      "rkflow\030\005 \001(\t\022\027\n\017workflow_run_id\030\006 \001(\t\"\202\001" +
-      "\n\032PostChannelMessageResponse\022+\n\007message\030" +
-      "\001 \001(\0132\032.talon.data.ChannelMessage\0227\n\017rou" +
-      "ted_sessions\030\002 \003(\0132\036.talon.v1.RoutedChan" +
-      "nelSession\"K\n\030GetChannelMessageRequest\022\n" +
-      "\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001(\t\022\022\n\nmessage_i" +
-      "d\030\003 \001(\t\"E\n\026ChannelMessageResponse\022+\n\007mes" +
-      "sage\030\001 \001(\0132\032.talon.data.ChannelMessage\"\221" +
-      "\001\n\032ListChannelMessagesRequest\022\n\n\002ns\030\001 \001(" +
-      "\t\022\017\n\007channel\030\002 \001(\t\022\r\n\005limit\030\003 \001(\005\022\021\n\tpag" +
-      "e_size\030\004 \001(\005\022\036\n\021before_message_id\030\005 \001(\tH" +
-      "\000\210\001\001B\024\n\022_before_message_id\"\235\001\n\033ListChann" +
-      "elMessagesResponse\022,\n\010messages\030\001 \003(\0132\032.t" +
-      "alon.data.ChannelMessage\022\020\n\010has_more\030\002 \001" +
-      "(\010\022#\n\026next_before_message_id\030\003 \001(\tH\000\210\001\001B" +
-      "\031\n\027_next_before_message_id\"9\n\032StreamChan" +
-      "nelEventsRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030" +
-      "\002 \001(\t2\357\002\n\016ChannelService\022X\n\013PostMessage\022" +
-      "#.talon.v1.PostChannelMessageRequest\032$.t" +
-      "alon.v1.PostChannelMessageResponse\022R\n\nGe" +
-      "tMessage\022\".talon.v1.GetChannelMessageReq" +
-      "uest\032 .talon.v1.ChannelMessageResponse\022[" +
-      "\n\014ListMessages\022$.talon.v1.ListChannelMes" +
-      "sagesRequest\032%.talon.v1.ListChannelMessa" +
-      "gesResponse\022R\n\014StreamEvents\022$.talon.v1.S" +
-      "treamChannelEventsRequest\032\032.talon.events" +
-      ".ChannelEvent0\001b\006proto3"
+      "\n\005value\030\002 \001(\t:\0028\001\"^\n\024RoutedChannelSessio" +
+      "n\022\024\n\014subscription\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\022" +
+      "\n\nsession_id\030\003 \001(\t\022\r\n\005error\030\004 \001(\t\"\202\001\n\032Po" +
+      "stChannelMessageResponse\022+\n\007message\030\001 \001(" +
+      "\0132\032.talon.data.ChannelMessage\0227\n\017routed_" +
+      "sessions\030\002 \003(\0132\036.talon.v1.RoutedChannelS" +
+      "ession\"K\n\030GetChannelMessageRequest\022\n\n\002ns" +
+      "\030\001 \001(\t\022\017\n\007channel\030\002 \001(\t\022\022\n\nmessage_id\030\003 " +
+      "\001(\t\"E\n\026ChannelMessageResponse\022+\n\007message" +
+      "\030\001 \001(\0132\032.talon.data.ChannelMessage\"\221\001\n\032L" +
+      "istChannelMessagesRequest\022\n\n\002ns\030\001 \001(\t\022\017\n" +
+      "\007channel\030\002 \001(\t\022\r\n\005limit\030\003 \001(\005\022\021\n\tpage_si" +
+      "ze\030\004 \001(\005\022\036\n\021before_message_id\030\005 \001(\tH\000\210\001\001" +
+      "B\024\n\022_before_message_id\"\235\001\n\033ListChannelMe" +
+      "ssagesResponse\022,\n\010messages\030\001 \003(\0132\032.talon" +
+      ".data.ChannelMessage\022\020\n\010has_more\030\002 \001(\010\022#" +
+      "\n\026next_before_message_id\030\003 \001(\tH\000\210\001\001B\031\n\027_" +
+      "next_before_message_id\"9\n\032StreamChannelE" +
+      "ventsRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001(" +
+      "\t2\357\002\n\016ChannelService\022X\n\013PostMessage\022#.ta" +
+      "lon.v1.PostChannelMessageRequest\032$.talon" +
+      ".v1.PostChannelMessageResponse\022R\n\nGetMes" +
+      "sage\022\".talon.v1.GetChannelMessageRequest" +
+      "\032 .talon.v1.ChannelMessageResponse\022[\n\014Li" +
+      "stMessages\022$.talon.v1.ListChannelMessage" +
+      "sRequest\032%.talon.v1.ListChannelMessagesR" +
+      "esponse\022R\n\014StreamEvents\022$.talon.v1.Strea" +
+      "mChannelEventsRequest\032\032.talon.events.Cha" +
+      "nnelEvent0\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -8022,7 +7725,7 @@ java.lang.String defaultValue) {
     internal_static_talon_v1_RoutedChannelSession_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_RoutedChannelSession_descriptor,
-        new java.lang.String[] { "Subscription", "Agent", "SessionId", "Error", "Workflow", "WorkflowRunId", });
+        new java.lang.String[] { "Subscription", "Agent", "SessionId", "Error", });
     internal_static_talon_v1_PostChannelMessageResponse_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_v1_PostChannelMessageResponse_fieldAccessorTable = new

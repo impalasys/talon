@@ -42,5 +42,4 @@ message ChannelSubscriptionSpec {
   ChannelContextPolicy context_policy = 5;
   string reply_mode = 6;
   map<string, string> metadata = 7;
-  string workflow = 8;
 }

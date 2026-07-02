@@ -120,43 +120,25 @@ pub fn parse_channel_subscription(yaml: &str) -> Result<resources_proto::Channel
         bail!("ChannelSubscription metadata.namespace is required");
     }
 
-    let spec = resources_proto::ChannelSubscriptionSpec {
-        channel: subscription.spec.channel,
-        agent: subscription.spec.agent,
-        workflow: subscription.spec.workflow,
-        enabled: subscription.spec.enabled,
-        trigger: subscription.spec.trigger,
-        context_policy: subscription.spec.context_policy.map(|policy| {
-            resources_proto::ChannelContextPolicy {
-                mode: policy.mode,
-                max_messages: policy.max_messages,
-            }
-        }),
-        reply_mode: subscription.spec.reply_mode,
-        metadata: subscription.spec.metadata,
-    };
-    validate_channel_subscription_spec(&spec)?;
-
     Ok(resource_model::channel_subscription(
         subscription.metadata.namespace,
         subscription.metadata.name,
-        spec,
+        resources_proto::ChannelSubscriptionSpec {
+            channel: subscription.spec.channel,
+            agent: subscription.spec.agent,
+            enabled: subscription.spec.enabled,
+            trigger: subscription.spec.trigger,
+            context_policy: subscription.spec.context_policy.map(|policy| {
+                resources_proto::ChannelContextPolicy {
+                    mode: policy.mode,
+                    max_messages: policy.max_messages,
+                }
+            }),
+            reply_mode: subscription.spec.reply_mode,
+            metadata: subscription.spec.metadata,
+        },
         subscription.metadata.labels,
     ))
-}
-
-fn validate_channel_subscription_spec(
-    spec: &resources_proto::ChannelSubscriptionSpec,
-) -> Result<()> {
-    if !spec.enabled {
-        return Ok(());
-    }
-    let has_agent = !spec.agent.trim().is_empty();
-    let has_workflow = !spec.workflow.trim().is_empty();
-    if has_agent == has_workflow {
-        bail!("enabled ChannelSubscription spec must set exactly one of agent or workflow");
-    }
-    Ok(())
 }
 
 pub fn parse_workflow(yaml: &str) -> Result<resources_proto::Workflow> {
@@ -313,15 +295,6 @@ pub fn resource_spec_status_from_json(
         "Connector" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Connector(serde_json::from_value(spec_value)?)),
         },
-        "ChannelSubscription" => {
-            let spec = serde_json::from_value::<resources_proto::ChannelSubscriptionSpec>(
-                spec_value,
-            )?;
-            validate_channel_subscription_spec(&spec)?;
-            resources_proto::ResourceSpec {
-                kind: Some(SpecKind::ChannelSubscription(spec)),
-            }
-        }
         "Skill" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Skill(skill_spec_from_value(spec_value)?)),
         },
@@ -391,11 +364,6 @@ pub fn resource_spec_status_from_json(
         "Connector" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Connector(serde_json::from_value(status_value)?)),
         },
-        "ChannelSubscription" => resources_proto::ResourceStatus {
-            kind: Some(StatusKind::ChannelSubscription(serde_json::from_value(
-                status_value,
-            )?)),
-        },
         "Worker" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Worker(worker_status_from_value(status_value)?)),
         },
@@ -459,7 +427,6 @@ fn resource_spec_status_to_yaml_values(
         Some(SpecKind::UsagePolicy(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::ConnectorClass(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::Connector(spec)) => serde_json::to_string(spec)?,
-        Some(SpecKind::ChannelSubscription(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::McpServer(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::Skill(spec)) => serde_json::to_string(&serde_json::json!({
             "description": spec.description,
@@ -592,7 +559,6 @@ fn resource_spec_status_to_yaml_values(
         Some(StatusKind::UsagePolicy(status)) => serde_json::to_string(status)?,
         Some(StatusKind::ConnectorClass(status)) => serde_json::to_string(status)?,
         Some(StatusKind::Connector(status)) => serde_json::to_string(status)?,
-        Some(StatusKind::ChannelSubscription(status)) => serde_json::to_string(status)?,
         Some(StatusKind::Raw(raw)) => raw.json.clone(),
         _ => "{}".to_string(),
     };

@@ -871,22 +871,7 @@ async fn dispatch_workflow_reply(cp: &ControlPlane, run: &data_proto::WorkflowRu
         .get(crate::gateway::rpc::channels::LABEL_CHANNEL_REPLY_MODE)
         .map(|value| value.as_str())
         .unwrap_or_default();
-
     let result = if run
-        .labels
-        .contains_key(crate::gateway::rpc::channels::LABEL_CHANNEL)
-    {
-        crate::gateway::rpc::channels::publish_workflow_reply_from_labels(
-            cp,
-            &run.labels,
-            &run.ns,
-            &run.workflow,
-            &run.id,
-            &reply.text,
-        )
-        .await
-        .map(|_| ())
-    } else if run
         .labels
         .contains_key("talon.impalasys.com/connector-registration")
     {
@@ -2465,97 +2450,6 @@ mod tests {
             .into_iter()
             .filter(|current| current == event_type)
             .count()
-    }
-
-    #[tokio::test]
-    async fn completed_channel_workflow_reply_publishes_channel_message() {
-        let kv = Arc::new(MockKvStore::new());
-        let pubsub = Arc::new(RecordingPubSub::default());
-        let handler = workflow_handler(kv.clone(), pubsub);
-        kv.set_msg(
-            &keys::channel("default", "ops"),
-            &resources_proto::Channel {
-                metadata: Some(resources_proto::ResourceMeta {
-                    name: "ops".to_string(),
-                    namespace: "default".to_string(),
-                    ..Default::default()
-                }),
-                spec: Some(resources_proto::ChannelSpec {
-                    title: "Ops".to_string(),
-                    metadata: HashMap::new(),
-                }),
-                status: Some(resources_proto::ChannelStatus {
-                    phase: "open".to_string(),
-                    ..Default::default()
-                }),
-            },
-        )
-        .await
-        .expect("channel should persist");
-        let workflow = workflow_fixture(
-            "default",
-            "reply",
-            resources_proto::WorkflowSpec {
-                steps: vec![resources_proto::WorkflowStep {
-                    id: "draft".to_string(),
-                    r#type: "transform".to_string(),
-                    input_json: r#"{"text":"ack from workflow"}"#.to_string(),
-                    ..Default::default()
-                }],
-                output_json: r#"{"reply":{"text":"${$.steps.draft.output.text}"}}"#.to_string(),
-                ..Default::default()
-            },
-        );
-        kv.set_msg(&keys::workflow("default", "reply"), &workflow)
-            .await
-            .expect("workflow should persist");
-
-        let run = create_run(
-            &handler.cp,
-            &workflow,
-            "{}".to_string(),
-            HashMap::from([
-                (
-                    crate::gateway::rpc::channels::LABEL_CHANNEL.to_string(),
-                    "ops".to_string(),
-                ),
-                (
-                    "talon.impalasys.com/channel-message".to_string(),
-                    "source-message".to_string(),
-                ),
-                (
-                    "talon.impalasys.com/channel-subscription".to_string(),
-                    "router".to_string(),
-                ),
-                (
-                    crate::gateway::rpc::channels::LABEL_CHANNEL_REPLY_MODE.to_string(),
-                    "auto".to_string(),
-                ),
-            ]),
-        )
-        .await
-        .expect("run should create");
-        handler
-            .handle_workflow_dispatch(workflow_dispatch(&run, "created"))
-            .await
-            .expect("workflow should complete");
-
-        let completed = stored_run(&kv, "default", "reply", &run.id).await;
-        assert_eq!(completed.status, STATUS_COMPLETED);
-        let messages = kv
-            .list_entries(&keys::channel_message_prefix("default", "ops"))
-            .await
-            .expect("channel messages should list");
-        assert_eq!(messages.len(), 1);
-        let message = data_proto::ChannelMessage::decode(messages[0].1.as_slice())
-            .expect("channel message should decode");
-        assert_eq!(message.author_kind, "workflow");
-        assert_eq!(message.author, "reply");
-        assert_eq!(message.content, "ack from workflow");
-        assert_eq!(
-            event_type_count(&kv, "default", "reply", &run.id, "reply_sent").await,
-            1
-        );
     }
 
     #[tokio::test]

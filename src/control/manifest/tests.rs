@@ -286,57 +286,6 @@ spec:
     }
 
     #[test]
-    fn channel_subscription_manifest_maps_workflow_target() {
-        let manifest = parse_resource_manifest(
-            r#"
-apiVersion: talon.impalasys.com/v1
-kind: ChannelSubscription
-metadata:
-  name: router
-  namespace: customers
-spec:
-  channel: incident-room
-  workflow: incident-router
-  enabled: true
-  trigger: mention
-  replyMode: auto
-"#,
-        )
-        .expect("channel subscription manifest parses");
-
-        let Some(resource_spec::Kind::ChannelSubscription(spec)) =
-            manifest.spec.clone().and_then(|spec| spec.kind)
-        else {
-            panic!("expected ChannelSubscription spec");
-        };
-        assert_eq!(spec.channel, "incident-room");
-        assert_eq!(spec.workflow, "incident-router");
-        assert_eq!(spec.agent, "");
-        assert_eq!(spec.reply_mode, "auto");
-    }
-
-    #[test]
-    fn enabled_channel_subscription_requires_one_target() {
-        let err = parse_resource_manifest(
-            r#"
-apiVersion: talon.impalasys.com/v1
-kind: ChannelSubscription
-metadata:
-  name: router
-  namespace: customers
-spec:
-  channel: incident-room
-  enabled: true
-  trigger: mention
-"#,
-        )
-        .expect_err("enabled subscription without target should fail");
-        assert!(err
-            .to_string()
-            .contains("must set exactly one of agent or workflow"));
-    }
-
-    #[test]
     fn agent_manifest_maps_a2a_target_payload_shape() {
         let manifest = parse_resource_manifest(
             r#"

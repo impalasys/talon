@@ -388,7 +388,6 @@ fn safe_spec_text(resource: &resources_proto::Resource) -> Vec<String> {
         Some(resources_proto::resource_spec::Kind::ChannelSubscription(spec)) => vec![
             spec.channel.clone(),
             spec.agent.clone(),
-            spec.workflow.clone(),
             spec.trigger.clone(),
             spec.reply_mode.clone(),
         ],
