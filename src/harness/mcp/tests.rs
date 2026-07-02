@@ -9,8 +9,8 @@ mod tests {
         authorization_bearer_token, authorization_header, call_tool_for_config,
         clear_broker_auth_cache_for_test, content_type_matches, format_tool_result,
         invalidate_all_broker_auth_cache, invalidate_broker_auth_cache, list_tools_for_config,
-        resolve_http_headers, validate_http_headers, AuthenticatedReqwestClient,
-        McpAuthBrokerConfig, McpClient, McpConnectionConfig,
+        resolve_http_headers, AuthenticatedReqwestClient, McpAuthBrokerConfig, McpClient,
+        McpConnectionConfig,
     };
     use crate::test_support::{EnvVarGuard, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
     use axum::{
@@ -36,6 +36,29 @@ mod tests {
     use std::time::Duration;
     use tokio::net::TcpListener;
     use tokio::sync::Barrier;
+
+    fn parsed_authorization_header(headers: &reqwest::header::HeaderMap) -> Option<&str> {
+        headers
+            .get(reqwest::header::AUTHORIZATION)
+            .and_then(|value| value.to_str().ok())
+    }
+
+    fn http_config_with_headers(headers: HashMap<String, String>) -> McpConnectionConfig {
+        McpConnectionConfig {
+            server_name: "github".to_string(),
+            server_ref: "github".to_string(),
+            transport: "http".to_string(),
+            target: "https://api.githubcopilot.com/mcp/".to_string(),
+            args: Vec::new(),
+            headers,
+            disabled: false,
+            namespace: None,
+            mcp_server_name: Some("github".to_string()),
+            agent_name: None,
+            jwt_issuer: None,
+            auth_broker: None,
+        }
+    }
 
     fn assert_broker_assertion(
         headers: &HeaderMap,
@@ -343,21 +366,50 @@ mod tests {
         assert!(result.is_err());
     }
 
-    #[test]
-    fn test_validate_http_headers_allows_authorization_only() {
-        let mut headers = HashMap::new();
-        headers.insert("Authorization".to_string(), "Bearer token".to_string());
+    #[tokio::test]
+    async fn test_resolve_http_headers_allows_static_headers() {
+        let config = http_config_with_headers(HashMap::from([
+            ("Authorization".to_string(), "Bearer token".to_string()),
+            ("x-consumer-api-key".to_string(), "secret".to_string()),
+            ("x-conic-workspace".to_string(), "demo".to_string()),
+        ]));
 
-        assert!(validate_http_headers(&headers).is_ok());
+        let headers = resolve_http_headers(&config).await.unwrap();
+        assert_eq!(parsed_authorization_header(&headers), Some("Bearer token"));
+        assert_eq!(
+            headers
+                .get("x-consumer-api-key")
+                .and_then(|value| value.to_str().ok()),
+            Some("secret")
+        );
+        assert_eq!(
+            headers
+                .get("x-conic-workspace")
+                .and_then(|value| value.to_str().ok()),
+            Some("demo")
+        );
     }
 
-    #[test]
-    fn test_validate_http_headers_rejects_non_authorization_headers() {
-        let mut headers = HashMap::new();
-        headers.insert("x-conic-workspace".to_string(), "demo".to_string());
+    #[tokio::test]
+    async fn test_resolve_http_headers_rejects_invalid_header_names() {
+        let config = http_config_with_headers(HashMap::from([(
+            "bad header".to_string(),
+            "demo".to_string(),
+        )]));
 
-        let err = validate_http_headers(&headers).unwrap_err().to_string();
-        assert!(err.contains("Unsupported HTTP header"));
+        let err = resolve_http_headers(&config).await.unwrap_err().to_string();
+        assert!(err.contains("Invalid HTTP header name"));
+    }
+
+    #[tokio::test]
+    async fn test_resolve_http_headers_rejects_invalid_header_values() {
+        let config = http_config_with_headers(HashMap::from([(
+            "x-consumer-api-key".to_string(),
+            "bad\r\nvalue".to_string(),
+        )]));
+
+        let err = resolve_http_headers(&config).await.unwrap_err().to_string();
+        assert!(err.contains("Invalid HTTP header value"));
     }
 
     #[test]
@@ -571,12 +623,12 @@ mod tests {
 
         let headers = resolve_http_headers(&config).await.unwrap();
         assert_eq!(
-            authorization_header(&headers).as_deref(),
+            parsed_authorization_header(&headers),
             Some("Bearer ghs_brokered_token")
         );
         let headers = resolve_http_headers(&config).await.unwrap();
         assert_eq!(
-            authorization_header(&headers).as_deref(),
+            parsed_authorization_header(&headers),
             Some("Bearer ghs_brokered_token")
         );
         assert_eq!(hits.load(Ordering::SeqCst), 1);
@@ -745,7 +797,7 @@ mod tests {
                 start_barrier.wait().await;
                 let headers = resolve_http_headers(&config).await.unwrap();
                 assert_eq!(
-                    authorization_header(&headers).as_deref(),
+                    parsed_authorization_header(&headers),
                     Some("Bearer ghs_brokered_token")
                 );
             }));
@@ -912,7 +964,7 @@ mod tests {
         };
         let headers = resolve_http_headers(&no_expiry_config).await.unwrap();
         assert_eq!(
-            authorization_header(&headers).as_deref(),
+            parsed_authorization_header(&headers),
             Some("Bearer ttl-token")
         );
     }
@@ -1094,6 +1146,116 @@ mod tests {
                 Some("evt-42".to_string()),
                 Some("override-token".to_string()),
                 custom_headers,
+            )
+            .await
+            .unwrap();
+        let _ = stream.next().await;
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn test_authenticated_reqwest_client_get_stream_does_not_override_custom_authorization() {
+        let app = Router::new().route(
+            "/mcp",
+            get(|headers: HeaderMap| async move {
+                assert_eq!(
+                    headers
+                        .get("authorization")
+                        .and_then(|value| value.to_str().ok()),
+                    Some("Bearer custom-token")
+                );
+                (
+                    [(axum::http::header::CONTENT_TYPE, "text/event-stream")],
+                    "data: {}\n\n",
+                )
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let client = AuthenticatedReqwestClient::new(
+            reqwest::Client::default(),
+            Some("default-token".to_string()),
+        );
+        let custom_headers = HashMap::from([(
+            axum::http::HeaderName::from_static("authorization"),
+            axum::http::HeaderValue::from_static("Bearer custom-token"),
+        )]);
+
+        let mut stream = client
+            .get_stream(
+                format!("http://{addr}/mcp").into(),
+                "session-1".into(),
+                None,
+                Some("override-token".to_string()),
+                custom_headers,
+            )
+            .await
+            .unwrap();
+        let _ = stream.next().await;
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn test_authenticated_reqwest_client_get_stream_uses_default_static_headers() {
+        let app = Router::new().route(
+            "/mcp",
+            get(|headers: HeaderMap| async move {
+                assert_eq!(
+                    headers
+                        .get("x-consumer-api-key")
+                        .and_then(|value| value.to_str().ok()),
+                    Some("consumer-secret")
+                );
+                assert_eq!(
+                    headers
+                        .get("x-conic-workspace")
+                        .and_then(|value| value.to_str().ok()),
+                    Some("demo")
+                );
+                (
+                    [(axum::http::header::CONTENT_TYPE, "text/event-stream")],
+                    "data: {}\n\n",
+                )
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let mut default_headers = reqwest::header::HeaderMap::new();
+        default_headers.insert(
+            "x-consumer-api-key",
+            reqwest::header::HeaderValue::from_static("consumer-secret"),
+        );
+        default_headers.insert(
+            "x-conic-workspace",
+            reqwest::header::HeaderValue::from_static("demo"),
+        );
+        let client = AuthenticatedReqwestClient::new(
+            reqwest::Client::builder()
+                .default_headers(default_headers)
+                .build()
+                .unwrap(),
+            None,
+        );
+
+        let mut stream = client
+            .get_stream(
+                format!("http://{addr}/mcp").into(),
+                "session-1".into(),
+                None,
+                None,
+                HashMap::new(),
             )
             .await
             .unwrap();
@@ -1448,11 +1610,11 @@ mod tests {
         };
 
         assert_eq!(
-            authorization_header(&resolve_http_headers(&base).await.unwrap()).as_deref(),
+            parsed_authorization_header(&resolve_http_headers(&base).await.unwrap()),
             Some("Bearer token-github")
         );
         assert_eq!(
-            authorization_header(&resolve_http_headers(&other_server).await.unwrap()).as_deref(),
+            parsed_authorization_header(&resolve_http_headers(&other_server).await.unwrap()),
             Some("Bearer token-jira")
         );
         assert_eq!(hits.load(Ordering::SeqCst), 2);
