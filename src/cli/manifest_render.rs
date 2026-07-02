@@ -31,14 +31,39 @@ pub(super) fn render_manifest_file(file: &str, vars: &[String]) -> Result<String
 }
 
 fn resolve_manifest_sources(file: &str, rendered: &str) -> Result<String> {
-    let raw = parse_raw_manifest(rendered)?;
-    if raw.kind != "Knowledge" {
-        return Ok(rendered.to_string());
+    let mut documents = Vec::new();
+    let mut changed = false;
+    for document in serde_yaml::Deserializer::from_str(rendered) {
+        let mut manifest: serde_yaml::Value = serde_yaml::Value::deserialize(document)
+            .context("Failed to parse rendered manifest")?;
+        if matches!(manifest, serde_yaml::Value::Null) {
+            continue;
+        }
+
+        if manifest.is_mapping() {
+            let raw: crate::control::manifest::RawManifest =
+                serde_yaml::from_value(manifest.clone())
+                    .context("Failed to parse manifest YAML")?;
+            if raw.kind == "Knowledge" {
+                resolve_knowledge_manifest_sources(file, &mut manifest)?;
+                changed = true;
+            }
+        }
+
+        documents.push(
+            serde_yaml::to_string(&manifest).context("Failed to serialize rendered manifest")?,
+        );
     }
 
-    let mut manifest: serde_yaml::Value =
-        serde_yaml::from_str(rendered).context("Failed to parse rendered Knowledge manifest")?;
-    let file_manifest: KnowledgeManifestFile = serde_yaml::from_str(rendered)
+    if changed {
+        Ok(documents.concat())
+    } else {
+        Ok(rendered.to_string())
+    }
+}
+
+fn resolve_knowledge_manifest_sources(file: &str, manifest: &mut serde_yaml::Value) -> Result<()> {
+    let file_manifest: KnowledgeManifestFile = serde_yaml::from_value(manifest.clone())
         .context("Failed to parse Knowledge manifest source directives")?;
 
     let content = match (
@@ -75,7 +100,7 @@ fn resolve_manifest_sources(file: &str, rendered: &str) -> Result<String> {
         );
     }
 
-    serde_yaml::to_string(&manifest).context("Failed to serialize resolved Knowledge manifest")
+    Ok(())
 }
 
 fn canonicalize_manifest_path(base_dir: &Path, raw_path: &str) -> PathBuf {

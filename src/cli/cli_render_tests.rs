@@ -57,4 +57,69 @@ metadata:
 
         assert!(rendered.trim().is_empty());
     }
+
+    #[test]
+    fn render_manifest_file_resolves_content_from_file_in_multi_document_yaml() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let knowledge_path = dir.path().join("guide.md");
+        std::fs::write(&knowledge_path, "hello from file").expect("write knowledge");
+        let manifest_path = dir.path().join("stack.yaml");
+        std::fs::write(
+            &manifest_path,
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: demo
+---
+apiVersion: talon.impalasys.com/v1
+kind: Knowledge
+metadata:
+  namespace: demo
+  name: guide
+spec:
+  path: guide.md
+  contentFromFile: guide.md
+"#,
+        )
+        .expect("write manifest");
+
+        let rendered =
+            render_manifest_file(manifest_path.to_str().unwrap(), &[]).expect("render manifest");
+
+        assert!(rendered.contains("content: hello from file"));
+        assert!(!rendered.contains("contentFromFile"));
+        assert!(!rendered.contains("---\n---"));
+    }
+
+    #[test]
+    fn resolve_manifest_sources_allows_non_mapping_documents() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let knowledge_path = dir.path().join("guide.md");
+        std::fs::write(&knowledge_path, "hello from file").expect("write knowledge");
+        let manifest_path = dir.path().join("stack.yaml");
+        std::fs::write(&manifest_path, "").expect("write manifest");
+
+        let rendered = resolve_manifest_sources(
+            manifest_path.to_str().unwrap(),
+            r#"
+- just
+- a
+- list
+---
+apiVersion: talon.impalasys.com/v1
+kind: Knowledge
+metadata:
+  namespace: demo
+  name: guide
+spec:
+  path: guide.md
+  contentFromFile: guide.md
+"#,
+        )
+        .expect("resolve sources");
+
+        assert!(rendered.contains("- just"));
+        assert!(rendered.contains("content: hello from file"));
+    }
 }
