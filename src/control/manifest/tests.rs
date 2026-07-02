@@ -249,6 +249,94 @@ spec:
     }
 
     #[test]
+    fn connector_manifest_maps_workflow_consumer_payload_shape() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Connector
+metadata:
+  name: slack-router
+  namespace: customers
+spec:
+  classRef:
+    name: slack
+  enabled: true
+  matchFields:
+    teamId: T123
+  consumer:
+    workflow:
+      workflow:
+        name: message-router
+      replyMode: thread
+"#,
+        )
+        .expect("connector manifest parses");
+
+        let Some(resource_spec::Kind::Connector(spec)) =
+            manifest.spec.clone().and_then(|spec| spec.kind)
+        else {
+            panic!("expected Connector spec");
+        };
+        let consumer = spec.consumer.expect("consumer");
+        assert!(consumer.session.is_none());
+        assert!(consumer.channel.is_none());
+        let workflow = consumer.workflow.expect("workflow consumer");
+        assert_eq!(workflow.workflow.unwrap().name, "message-router");
+        assert_eq!(workflow.reply_mode, "thread");
+    }
+
+    #[test]
+    fn channel_subscription_manifest_maps_workflow_target() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: ChannelSubscription
+metadata:
+  name: router
+  namespace: customers
+spec:
+  channel: incident-room
+  workflow: incident-router
+  enabled: true
+  trigger: mention
+  replyMode: auto
+"#,
+        )
+        .expect("channel subscription manifest parses");
+
+        let Some(resource_spec::Kind::ChannelSubscription(spec)) =
+            manifest.spec.clone().and_then(|spec| spec.kind)
+        else {
+            panic!("expected ChannelSubscription spec");
+        };
+        assert_eq!(spec.channel, "incident-room");
+        assert_eq!(spec.workflow, "incident-router");
+        assert_eq!(spec.agent, "");
+        assert_eq!(spec.reply_mode, "auto");
+    }
+
+    #[test]
+    fn enabled_channel_subscription_requires_one_target() {
+        let err = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: ChannelSubscription
+metadata:
+  name: router
+  namespace: customers
+spec:
+  channel: incident-room
+  enabled: true
+  trigger: mention
+"#,
+        )
+        .expect_err("enabled subscription without target should fail");
+        assert!(err
+            .to_string()
+            .contains("must set exactly one of agent or workflow"));
+    }
+
+    #[test]
     fn agent_manifest_maps_a2a_target_payload_shape() {
         let manifest = parse_resource_manifest(
             r#"

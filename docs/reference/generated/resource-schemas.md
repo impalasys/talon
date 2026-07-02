@@ -361,6 +361,7 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `context_policy` | `ChannelContextPolicy` | - |
 | `reply_mode` | `string` | - |
 | `metadata` | `map<string, string>` | - |
+| `workflow` | `string` | - |
 
 ## `ConnectorClassRuntimeSpec`
 
@@ -994,9 +995,17 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `continuity` | `string` | Channel routing continuity policy. This is reserved for channel dispatch policies that create agent runtime context per message or thread. |
 | `reply_policy` | `string` | Reply behavior requested from the connector-aware channel router, such as replying in the provider thread instead of the root conversation. |
 
+## `WorkflowMessageConsumer`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `workflow` | `ResourceRef` | Workflow that consumes matching messages. |
+| `reply_mode` | `string` | Reply behavior requested from the workflow completion router, such as replying in the provider thread instead of the root conversation. |
+
 ## `MessageConsumer`
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `session` | `SessionMessageConsumer` | optional; Session consumer payload. Mutually exclusive with channel. |
-| `channel` | `ChannelMessageConsumer` | optional; Channel consumer payload. Mutually exclusive with session. |
+| `session` | `SessionMessageConsumer` | optional; Session consumer payload. Mutually exclusive with channel and workflow. |
+| `channel` | `ChannelMessageConsumer` | optional; Channel consumer payload. Mutually exclusive with session and workflow. |
+| `workflow` | `WorkflowMessageConsumer` | optional; Workflow consumer payload. Mutually exclusive with session and channel. |

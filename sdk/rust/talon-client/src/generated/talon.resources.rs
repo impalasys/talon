@@ -463,6 +463,8 @@ pub struct ChannelSubscriptionSpec {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+    #[prost(string, tag = "8")]
+    pub workflow: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ScheduleTarget {

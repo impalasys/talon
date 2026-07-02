@@ -291,6 +291,11 @@ export class ChannelSubscriptionSpec extends Message<ChannelSubscriptionSpec> {
    */
   metadata: { [key: string]: string } = {};
 
+  /**
+   * @generated from field: string workflow = 8;
+   */
+  workflow = "";
+
   constructor(data?: PartialMessage<ChannelSubscriptionSpec>) {
     super();
     proto3.util.initPartial(data, this);
@@ -306,6 +311,7 @@ export class ChannelSubscriptionSpec extends Message<ChannelSubscriptionSpec> {
     { no: 5, name: "context_policy", kind: "message", T: ChannelContextPolicy },
     { no: 6, name: "reply_mode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 7, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 8, name: "workflow", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChannelSubscriptionSpec {

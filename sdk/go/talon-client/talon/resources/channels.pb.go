@@ -330,6 +330,7 @@ type ChannelSubscriptionSpec struct {
 	ContextPolicy *ChannelContextPolicy  `protobuf:"bytes,5,opt,name=context_policy,json=contextPolicy,proto3" json:"context_policy,omitempty"`
 	ReplyMode     string                 `protobuf:"bytes,6,opt,name=reply_mode,json=replyMode,proto3" json:"reply_mode,omitempty"`
 	Metadata      map[string]string      `protobuf:"bytes,7,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Workflow      string                 `protobuf:"bytes,8,opt,name=workflow,proto3" json:"workflow,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -413,6 +414,13 @@ func (x *ChannelSubscriptionSpec) GetMetadata() map[string]string {
 	return nil
 }
 
+func (x *ChannelSubscriptionSpec) GetWorkflow() string {
+	if x != nil {
+		return x.Workflow
+	}
+	return ""
+}
+
 var File_proto_resources_channels_proto protoreflect.FileDescriptor
 
 const file_proto_resources_channels_proto_rawDesc = "" +
@@ -444,7 +452,7 @@ const file_proto_resources_channels_proto_rawDesc = "" +
 	"\x13ChannelSubscription\x129\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12<\n" +
 	"\x04spec\x18\x02 \x01(\v2(.talon.resources.ChannelSubscriptionSpecR\x04spec\x12=\n" +
-	"\x06status\x18\x03 \x01(\v2%.talon.resources.CommonResourceStatusR\x06status\"\xfb\x02\n" +
+	"\x06status\x18\x03 \x01(\v2%.talon.resources.CommonResourceStatusR\x06status\"\x97\x03\n" +
 	"\x17ChannelSubscriptionSpec\x12\x18\n" +
 	"\achannel\x18\x01 \x01(\tR\achannel\x12\x14\n" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x18\n" +
@@ -453,7 +461,8 @@ const file_proto_resources_channels_proto_rawDesc = "" +
 	"\x0econtext_policy\x18\x05 \x01(\v2%.talon.resources.ChannelContextPolicyR\rcontextPolicy\x12\x1d\n" +
 	"\n" +
 	"reply_mode\x18\x06 \x01(\tR\treplyMode\x12R\n" +
-	"\bmetadata\x18\a \x03(\v26.talon.resources.ChannelSubscriptionSpec.MetadataEntryR\bmetadata\x1a;\n" +
+	"\bmetadata\x18\a \x03(\v26.talon.resources.ChannelSubscriptionSpec.MetadataEntryR\bmetadata\x12\x1a\n" +
+	"\bworkflow\x18\b \x01(\tR\bworkflow\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01b\x06proto3"

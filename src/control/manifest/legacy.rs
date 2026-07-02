@@ -137,6 +137,7 @@ pub fn render_channel_subscription_yaml(
         spec: ChannelSubscriptionSpecManifest {
             channel: spec.channel.clone(),
             agent: spec.agent.clone(),
+            workflow: spec.workflow.clone(),
             enabled: spec.enabled,
             trigger: spec.trigger.clone(),
             reply_mode: spec.reply_mode.clone(),

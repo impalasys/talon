@@ -42,10 +42,22 @@ message ChannelMessageConsumer {
   string reply_policy = 4;
 }
 
+message WorkflowMessageConsumer {
+  // Workflow that consumes matching messages.
+  ResourceRef workflow = 1;
+
+  // Reply behavior requested from the workflow completion router, such as
+  // replying in the provider thread instead of the root conversation.
+  string reply_mode = 2;
+}
+
 message MessageConsumer {
-  // Session consumer payload. Mutually exclusive with channel.
+  // Session consumer payload. Mutually exclusive with channel and workflow.
   optional SessionMessageConsumer session = 1;
 
-  // Channel consumer payload. Mutually exclusive with session.
+  // Channel consumer payload. Mutually exclusive with session and workflow.
   optional ChannelMessageConsumer channel = 2;
+
+  // Workflow consumer payload. Mutually exclusive with session and channel.
+  optional WorkflowMessageConsumer workflow = 3;
 }

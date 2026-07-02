@@ -8,6 +8,7 @@ use crate::control::scheduling;
 use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
 use crate::worker::controllers::connectors;
 use anyhow::Context;
+use serde_json::json;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::time::Duration;
@@ -293,6 +294,85 @@ pub async fn deliver_connector_session_message(
     Ok(())
 }
 
+pub async fn deliver_connector_reply_from_labels(
+    cp: &ControlPlane,
+    labels: &HashMap<String, String>,
+    namespace: &str,
+    delivery_id: &str,
+    text: &str,
+    attachments: Vec<data_proto::ObjectRef>,
+    reply_mode: &str,
+) -> anyhow::Result<()> {
+    let registration_id = required_label(labels, LABEL_CONNECTOR_REGISTRATION)?;
+    let connector_name = required_label(labels, LABEL_CONNECTOR)?;
+    let connector_class = required_label(labels, LABEL_CONNECTOR_CLASS)?;
+    let external_conversation_id = required_label(labels, LABEL_EXTERNAL_CONVERSATION)?;
+    let (runtime_endpoint, api_key) =
+        connector_runtime_endpoint_and_api_key(cp, registration_id, connector_class).await?;
+
+    let mut match_fields = HashMap::new();
+    for (key, value) in labels {
+        if let Some(field) = key.strip_prefix(LABEL_CONNECTOR_MATCH_PREFIX) {
+            match_fields.insert(field.to_string(), value.clone());
+        }
+    }
+
+    let source_external_message_id = labels.get(LABEL_EXTERNAL_MESSAGE).cloned();
+    let external_thread_id = if reply_mode == "thread" {
+        labels
+            .get(LABEL_EXTERNAL_THREAD)
+            .cloned()
+            .or_else(|| source_external_message_id.clone())
+    } else {
+        labels.get(LABEL_EXTERNAL_THREAD).cloned()
+    };
+    let reply_to_external_message_id = if reply_mode == "thread" {
+        source_external_message_id
+    } else {
+        None
+    };
+
+    let mut delivery_labels = HashMap::new();
+    delivery_labels.insert("talon.replySource".to_string(), "workflow".to_string());
+    if let Some(source_event) = labels.get(LABEL_CONNECTOR_EVENT).cloned() {
+        delivery_labels.insert("talon.connectorEvent".to_string(), source_event);
+    }
+
+    let response = connector_http_client()?
+        .post(format!("{}/v1/deliveries", runtime_endpoint))
+        .bearer_auth(api_key)
+        .json(&external_proto::ConnectorDeliveryRequest {
+            delivery_id: delivery_id.to_string(),
+            registration_id: registration_id.to_string(),
+            connector_class: connector_class.to_string(),
+            namespace: namespace.to_string(),
+            connector_name: connector_name.to_string(),
+            match_fields,
+            external_conversation_id: external_conversation_id.to_string(),
+            external_thread_id,
+            reply_to_external_message_id,
+            text: text.trim().to_string(),
+            attachments,
+            labels: delivery_labels,
+        })
+        .send()
+        .await
+        .context("failed to submit connector workflow reply delivery")?;
+    let status = response.status();
+    let body = response
+        .json::<external_proto::ConnectorDeliveryResponse>()
+        .await
+        .context("failed to decode connector workflow reply response")?;
+    if !status.is_success() || !body.accepted {
+        anyhow::bail!(
+            "connector workflow reply rejected: HTTP {status} disposition={} error={}",
+            body.disposition,
+            body.error
+        );
+    }
+    Ok(())
+}
+
 pub async fn send_connector_session_activity(
     cp: &ControlPlane,
     session: &data_proto::Session,
@@ -507,14 +587,19 @@ async fn dispatch_connector_message(
     consumer: &data_proto::MessageConsumer,
     event: &external_proto::ConnectorMessageEvent,
 ) -> Result<(), tonic::Status> {
-    match (consumer.session.as_ref(), consumer.channel.as_ref()) {
-        (Some(session), None) => dispatch_to_session(cp, route, session, event).await,
-        (None, Some(channel)) => dispatch_to_channel(cp, route, channel, event).await,
-        (Some(_), Some(_)) => Err(tonic::Status::failed_precondition(
-            "MessageConsumer must set only one of session or channel",
+    match (
+        consumer.session.as_ref(),
+        consumer.channel.as_ref(),
+        consumer.workflow.as_ref(),
+    ) {
+        (Some(session), None, None) => dispatch_to_session(cp, route, session, event).await,
+        (None, Some(channel), None) => dispatch_to_channel(cp, route, channel, event).await,
+        (None, None, Some(workflow)) => dispatch_to_workflow(cp, route, workflow, event).await,
+        (Some(_), _, _) | (_, Some(_), Some(_)) => Err(tonic::Status::failed_precondition(
+            "MessageConsumer must set only one of session, channel, or workflow",
         )),
-        (None, None) => Err(tonic::Status::failed_precondition(
-            "MessageConsumer must set session or channel",
+        (None, None, None) => Err(tonic::Status::failed_precondition(
+            "MessageConsumer must set session, channel, or workflow",
         )),
     }
 }
@@ -625,6 +710,46 @@ async fn dispatch_to_channel(
     Ok(())
 }
 
+async fn dispatch_to_workflow(
+    cp: &ControlPlane,
+    route: &data_proto::Route,
+    consumer: &data_proto::WorkflowMessageConsumer,
+    event: &external_proto::ConnectorMessageEvent,
+) -> Result<(), tonic::Status> {
+    let connector = route_connector_ref(route)?;
+    let workflow_ref = consumer
+        .workflow
+        .as_ref()
+        .ok_or_else(|| tonic::Status::failed_precondition("Workflow consumer requires workflow"))?;
+    let workflow_namespace = consumer_ref_namespace(workflow_ref, &connector.namespace);
+    let workflow_name =
+        consumer_ref_name(workflow_ref, "Workflow consumer requires workflow name")?;
+    let workflow = cp
+        .kv
+        .get_msg::<resources_proto::Workflow>(&keys::workflow(&workflow_namespace, workflow_name))
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| tonic::Status::not_found("Connector consumer workflow not found"))?;
+
+    let mut labels = connector_labels(route, event)?;
+    labels.insert(
+        LABEL_MESSAGE_SOURCE.to_string(),
+        "connector.workflow".to_string(),
+    );
+    if !consumer.reply_mode.trim().is_empty() {
+        labels.insert(
+            crate::gateway::rpc::channels::LABEL_CHANNEL_REPLY_MODE.to_string(),
+            consumer.reply_mode.trim().to_string(),
+        );
+    }
+
+    let input = connector_workflow_input(connector, event).map_err(internal_error)?;
+    crate::worker::workflows::create_run(cp, &workflow, input, labels)
+        .await
+        .map_err(map_dispatch_error)?;
+    Ok(())
+}
+
 async fn connector_session_id(
     cp: &ControlPlane,
     route: &data_proto::Route,
@@ -696,6 +821,37 @@ async fn connector_session_id(
             .await
             .map_err(map_dispatch_error)
     }
+}
+
+fn connector_workflow_input(
+    connector: &data_proto::ResourceRef,
+    event: &external_proto::ConnectorMessageEvent,
+) -> anyhow::Result<String> {
+    let value = json!({
+        "connector": {
+            "namespace": &connector.namespace,
+            "name": &connector.name,
+            "class": &event.connector_class,
+            "registrationId": &event.registration_id,
+            "matchFields": &event.match_fields,
+        },
+        "message": {
+            "text": &event.text,
+            "attachments": &event.attachments,
+            "sender": &event.sender,
+            "externalConversationId": &event.external_conversation_id,
+            "externalThreadId": &event.external_thread_id,
+            "externalMessageId": &event.external_message_id,
+            "conversationType": &event.conversation_type,
+            "eventTimeMs": event.event_time_ms,
+        },
+        "event": {
+            "id": &event.event_id,
+            "kind": event.event_kind,
+            "labels": &event.labels,
+        }
+    });
+    Ok(serde_json::to_string(&value)?)
 }
 
 async fn ensure_connector_session_exists(

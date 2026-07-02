@@ -12,6 +12,7 @@ use crate::control::{MessagePublisher, ProtoKeyValueStoreExt};
 use anyhow::Context;
 use futures::StreamExt;
 use prost::Message;
+use serde_json::json;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
@@ -295,6 +296,91 @@ pub async fn publish_channel_message_from_session(
     .await?;
     deliver_connector_channel_message(cp, &session, &message).await?;
     Ok(message)
+}
+
+pub async fn publish_workflow_reply_from_labels(
+    cp: &ControlPlane,
+    labels: &HashMap<String, String>,
+    namespace: &str,
+    workflow: &str,
+    run_id: &str,
+    text: &str,
+) -> anyhow::Result<Option<data_proto::ChannelMessage>> {
+    if text.trim().is_empty() {
+        return Ok(None);
+    }
+    let reply_mode = labels
+        .get(LABEL_CHANNEL_REPLY_MODE)
+        .map(|mode| mode.as_str())
+        .unwrap_or_default();
+    if reply_mode == "none" {
+        return Ok(None);
+    }
+    let channel = labels
+        .get(LABEL_CHANNEL)
+        .filter(|value| !value.is_empty())
+        .cloned()
+        .ok_or_else(|| anyhow::anyhow!("workflow run is not linked to a channel"))?;
+    let channel_obj = cp
+        .kv
+        .get_msg::<resources_proto::Channel>(&keys::channel(namespace, &channel))
+        .await?
+        .ok_or_else(|| anyhow::anyhow!("channel not found"))?;
+    if channel_obj.phase() == "closed" {
+        anyhow::bail!("channel is closed");
+    }
+
+    let mut message_labels = HashMap::new();
+    message_labels.insert(
+        LABEL_MESSAGE_SOURCE.to_string(),
+        "workflow.reply".to_string(),
+    );
+    if let Some(source_message) = labels.get(LABEL_CHANNEL_MESSAGE) {
+        message_labels.insert(LABEL_CHANNEL_MESSAGE.to_string(), source_message.clone());
+    }
+    if let Some(subscription) = labels.get(LABEL_CHANNEL_SUBSCRIPTION) {
+        message_labels.insert(LABEL_CHANNEL_SUBSCRIPTION.to_string(), subscription.clone());
+    }
+    message_labels.insert(
+        "talon.impalasys.com/workflow".to_string(),
+        workflow.to_string(),
+    );
+    message_labels.insert(
+        "talon.impalasys.com/workflow-run".to_string(),
+        run_id.to_string(),
+    );
+
+    let message = persist_channel_message(
+        cp,
+        data_proto::ChannelMessage {
+            id: String::new(),
+            ns: namespace.to_string(),
+            channel,
+            author_kind: "workflow".to_string(),
+            author: workflow.to_string(),
+            content: text.trim().to_string(),
+            created_at: 0,
+            source_agent: workflow.to_string(),
+            source_session_id: run_id.to_string(),
+            labels: message_labels,
+        },
+    )
+    .await?;
+
+    if labels.contains_key(LABEL_CONNECTOR_REGISTRATION) {
+        super::connectors::deliver_connector_reply_from_labels(
+            cp,
+            labels,
+            namespace,
+            &message.id,
+            &message.content,
+            Vec::new(),
+            reply_mode,
+        )
+        .await?;
+    }
+
+    Ok(Some(message))
 }
 
 async fn deliver_connector_channel_message(
@@ -707,17 +793,21 @@ async fn route_channel_message(
     for subscription in subscriptions {
         let result = route_to_subscription(cp, message, &subscription, &recent_messages).await;
         results.push(match result {
-            Ok(session_id) => proto::RoutedChannelSession {
+            Ok(target) => proto::RoutedChannelSession {
                 subscription: subscription.name().to_string(),
                 agent: subscription.agent().to_string(),
-                session_id,
+                session_id: target.session_id,
                 error: String::new(),
+                workflow: subscription.workflow().to_string(),
+                workflow_run_id: target.workflow_run_id,
             },
             Err(error) => proto::RoutedChannelSession {
                 subscription: subscription.name().to_string(),
                 agent: subscription.agent().to_string(),
                 session_id: String::new(),
                 error: error.to_string(),
+                workflow: subscription.workflow().to_string(),
+                workflow_run_id: String::new(),
             },
         });
     }
@@ -755,6 +845,17 @@ async fn matching_subscriptions(
         if !subscription.enabled() {
             continue;
         }
+        let has_agent = !subscription.agent().trim().is_empty();
+        let has_workflow = !subscription.workflow().trim().is_empty();
+        if has_agent == has_workflow {
+            tracing::warn!(
+                ns = %message.ns,
+                channel = %message.channel,
+                subscription = %subscription.name(),
+                "enabled channel subscription must set exactly one of agent or workflow; skipping"
+            );
+            continue;
+        }
         let trigger = match normalize_trigger(subscription.trigger()) {
             Ok(trigger) => trigger,
             Err(error) => {
@@ -768,7 +869,8 @@ async fn matching_subscriptions(
                 continue;
             }
         };
-        let is_self = message.author_kind == "agent" && message.author == subscription.agent();
+        let is_self =
+            has_agent && message.author_kind == "agent" && message.author == subscription.agent();
         let should_route = match trigger.as_str() {
             "manual" => manual.contains(subscription.name()),
             "all" => !is_self,
@@ -788,12 +890,17 @@ async fn matching_subscriptions(
     Ok(subscriptions)
 }
 
+struct RoutedChannelTarget {
+    session_id: String,
+    workflow_run_id: String,
+}
+
 async fn route_to_subscription(
     cp: &ControlPlane,
     message: &data_proto::ChannelMessage,
     subscription: &resources_proto::ChannelSubscription,
     recent_messages: &[data_proto::ChannelMessage],
-) -> anyhow::Result<String> {
+) -> anyhow::Result<RoutedChannelTarget> {
     let mut labels = HashMap::new();
     labels.insert(LABEL_CHANNEL.to_string(), message.channel.clone());
     labels.insert(LABEL_CHANNEL_MESSAGE.to_string(), message.id.clone());
@@ -809,6 +916,59 @@ async fn route_to_subscription(
         LABEL_CHANNEL_REPLY_MODE.to_string(),
         subscription.reply_mode().to_string(),
     );
+
+    if !subscription.workflow().trim().is_empty() {
+        labels.extend(message.labels.clone());
+        labels.insert(
+            LABEL_MESSAGE_SOURCE.to_string(),
+            "channel.workflow".to_string(),
+        );
+        let workflow = cp
+            .kv
+            .get_msg::<resources_proto::Workflow>(&keys::workflow(
+                &message.ns,
+                subscription.workflow(),
+            ))
+            .await?
+            .ok_or_else(|| anyhow::anyhow!("workflow '{}' not found", subscription.workflow()))?;
+        let input = channel_workflow_input(
+            message,
+            subscription,
+            recent_messages,
+            context_limit(subscription),
+        )?;
+        let run = crate::worker::workflows::create_run(cp, &workflow, input, labels).await?;
+        if let Err(error) = publish_channel_event(
+            cp.pubsub.as_ref(),
+            events::ChannelEvent {
+                ns: message.ns.clone(),
+                channel: message.channel.clone(),
+                kind: events::ChannelEventKind::SessionRouted as i32,
+                message: None,
+                session_id: run.id.clone(),
+                agent: subscription.workflow().to_string(),
+                subscription: subscription.name().to_string(),
+                error: String::new(),
+                timestamp: chrono::Utc::now().timestamp_micros(),
+            },
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %error,
+                ns = %message.ns,
+                channel = %message.channel,
+                workflow_run_id = %run.id,
+                workflow = %subscription.workflow(),
+                subscription = %subscription.name(),
+                "failed to publish channel event for routed workflow"
+            );
+        }
+        return Ok(RoutedChannelTarget {
+            session_id: String::new(),
+            workflow_run_id: run.id,
+        });
+    }
 
     let session_id = scheduling::create_session_with_labels(
         cp,
@@ -880,7 +1040,55 @@ async fn route_to_subscription(
             "failed to publish channel event for routed session"
         );
     }
-    Ok(session_id)
+    Ok(RoutedChannelTarget {
+        session_id,
+        workflow_run_id: String::new(),
+    })
+}
+
+fn channel_workflow_input(
+    message: &data_proto::ChannelMessage,
+    subscription: &resources_proto::ChannelSubscription,
+    recent_messages: &[data_proto::ChannelMessage],
+    context_limit: usize,
+) -> anyhow::Result<String> {
+    let context: Vec<_> = recent_messages
+        .iter()
+        .take(context_limit)
+        .map(|message| {
+            json!({
+                "id": &message.id,
+                "authorKind": &message.author_kind,
+                "author": &message.author,
+                "content": &message.content,
+                "createdAt": message.created_at,
+                "labels": &message.labels,
+            })
+        })
+        .collect();
+    let input = json!({
+        "channel": {
+            "namespace": &message.ns,
+            "name": &message.channel,
+            "messageId": &message.id,
+        },
+        "message": {
+            "id": &message.id,
+            "authorKind": &message.author_kind,
+            "author": &message.author,
+            "content": &message.content,
+            "createdAt": message.created_at,
+            "labels": &message.labels,
+        },
+        "subscription": {
+            "name": subscription.name(),
+            "trigger": subscription.trigger(),
+            "replyMode": subscription.reply_mode(),
+            "metadata": subscription.subscription_metadata(),
+        },
+        "context": context,
+    });
+    Ok(serde_json::to_string(&input)?)
 }
 
 pub(crate) async fn route_connector_channel_message(

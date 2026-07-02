@@ -121,6 +121,8 @@ type RoutedChannelSession struct {
 	Agent         string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
 	SessionId     string                 `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	Error         string                 `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
+	Workflow      string                 `protobuf:"bytes,5,opt,name=workflow,proto3" json:"workflow,omitempty"`
+	WorkflowRunId string                 `protobuf:"bytes,6,opt,name=workflow_run_id,json=workflowRunId,proto3" json:"workflow_run_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -179,6 +181,20 @@ func (x *RoutedChannelSession) GetSessionId() string {
 func (x *RoutedChannelSession) GetError() string {
 	if x != nil {
 		return x.Error
+	}
+	return ""
+}
+
+func (x *RoutedChannelSession) GetWorkflow() string {
+	if x != nil {
+		return x.Workflow
+	}
+	return ""
+}
+
+func (x *RoutedChannelSession) GetWorkflowRunId() string {
+	if x != nil {
+		return x.WorkflowRunId
 	}
 	return ""
 }
@@ -543,13 +559,15 @@ const file_proto_talon_v1_channels_proto_rawDesc = "" +
 	"\x06labels\x18\a \x03(\v2/.talon.v1.PostChannelMessageRequest.LabelsEntryR\x06labels\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x85\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc9\x01\n" +
 	"\x14RoutedChannelSession\x12\"\n" +
 	"\fsubscription\x18\x01 \x01(\tR\fsubscription\x12\x14\n" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x03 \x01(\tR\tsessionId\x12\x14\n" +
-	"\x05error\x18\x04 \x01(\tR\x05error\"\x9b\x01\n" +
+	"\x05error\x18\x04 \x01(\tR\x05error\x12\x1a\n" +
+	"\bworkflow\x18\x05 \x01(\tR\bworkflow\x12&\n" +
+	"\x0fworkflow_run_id\x18\x06 \x01(\tR\rworkflowRunId\"\x9b\x01\n" +
 	"\x1aPostChannelMessageResponse\x124\n" +
 	"\amessage\x18\x01 \x01(\v2\x1a.talon.data.ChannelMessageR\amessage\x12G\n" +
 	"\x0frouted_sessions\x18\x02 \x03(\v2\x1e.talon.v1.RoutedChannelSessionR\x0eroutedSessions\"c\n" +

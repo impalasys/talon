@@ -65,7 +65,7 @@ class ChannelSubscription(_message.Message):
     def __init__(self, metadata: _Optional[_Union[_common_pb2.ResourceMeta, _Mapping]] = ..., spec: _Optional[_Union[ChannelSubscriptionSpec, _Mapping]] = ..., status: _Optional[_Union[_common_pb2.CommonResourceStatus, _Mapping]] = ...) -> None: ...
 
 class ChannelSubscriptionSpec(_message.Message):
-    __slots__ = ("channel", "agent", "enabled", "trigger", "context_policy", "reply_mode", "metadata")
+    __slots__ = ("channel", "agent", "enabled", "trigger", "context_policy", "reply_mode", "metadata", "workflow")
     class MetadataEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -80,6 +80,7 @@ class ChannelSubscriptionSpec(_message.Message):
     CONTEXT_POLICY_FIELD_NUMBER: _ClassVar[int]
     REPLY_MODE_FIELD_NUMBER: _ClassVar[int]
     METADATA_FIELD_NUMBER: _ClassVar[int]
+    WORKFLOW_FIELD_NUMBER: _ClassVar[int]
     channel: str
     agent: str
     enabled: bool
@@ -87,4 +88,5 @@ class ChannelSubscriptionSpec(_message.Message):
     context_policy: ChannelContextPolicy
     reply_mode: str
     metadata: _containers.ScalarMap[str, str]
-    def __init__(self, channel: _Optional[str] = ..., agent: _Optional[str] = ..., enabled: bool = ..., trigger: _Optional[str] = ..., context_policy: _Optional[_Union[ChannelContextPolicy, _Mapping]] = ..., reply_mode: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    workflow: str
+    def __init__(self, channel: _Optional[str] = ..., agent: _Optional[str] = ..., enabled: bool = ..., trigger: _Optional[str] = ..., context_policy: _Optional[_Union[ChannelContextPolicy, _Mapping]] = ..., reply_mode: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ..., workflow: _Optional[str] = ...) -> None: ...

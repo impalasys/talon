@@ -1155,6 +1155,10 @@ pub struct RoutedChannelSession {
     pub session_id: ::prost::alloc::string::String,
     #[prost(string, tag = "4")]
     pub error: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub workflow: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub workflow_run_id: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PostChannelMessageResponse {

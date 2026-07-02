@@ -27,6 +27,8 @@ message RoutedChannelSession {
   string agent = 2;
   string session_id = 3;
   string error = 4;
+  string workflow = 5;
+  string workflow_run_id = 6;
 }
 
 message PostChannelMessageResponse {

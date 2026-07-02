@@ -3090,13 +3090,841 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
 
   }
 
+  public interface WorkflowMessageConsumerOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.data.WorkflowMessageConsumer)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Workflow that consumes matching messages.
+     * </pre>
+     *
+     * <code>.talon.data.ResourceRef workflow = 1;</code>
+     * @return Whether the workflow field is set.
+     */
+    boolean hasWorkflow();
+    /**
+     * <pre>
+     * Workflow that consumes matching messages.
+     * </pre>
+     *
+     * <code>.talon.data.ResourceRef workflow = 1;</code>
+     * @return The workflow.
+     */
+    talon.data.Routing.ResourceRef getWorkflow();
+    /**
+     * <pre>
+     * Workflow that consumes matching messages.
+     * </pre>
+     *
+     * <code>.talon.data.ResourceRef workflow = 1;</code>
+     */
+    talon.data.Routing.ResourceRefOrBuilder getWorkflowOrBuilder();
+
+    /**
+     * <pre>
+     * Reply behavior requested from the workflow completion router, such as
+     * replying in the provider thread instead of the root conversation.
+     * </pre>
+     *
+     * <code>string reply_mode = 2;</code>
+     * @return The replyMode.
+     */
+    java.lang.String getReplyMode();
+    /**
+     * <pre>
+     * Reply behavior requested from the workflow completion router, such as
+     * replying in the provider thread instead of the root conversation.
+     * </pre>
+     *
+     * <code>string reply_mode = 2;</code>
+     * @return The bytes for replyMode.
+     */
+    com.google.protobuf.ByteString
+        getReplyModeBytes();
+  }
+  /**
+   * Protobuf type {@code talon.data.WorkflowMessageConsumer}
+   */
+  public static final class WorkflowMessageConsumer extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.data.WorkflowMessageConsumer)
+      WorkflowMessageConsumerOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "WorkflowMessageConsumer");
+    }
+    // Use WorkflowMessageConsumer.newBuilder() to construct.
+    private WorkflowMessageConsumer(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private WorkflowMessageConsumer() {
+      replyMode_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.data.Routing.internal_static_talon_data_WorkflowMessageConsumer_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.data.Routing.internal_static_talon_data_WorkflowMessageConsumer_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.data.Routing.internal_static_talon_data_WorkflowMessageConsumer_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.data.Routing.WorkflowMessageConsumer.class, talon.data.Routing.WorkflowMessageConsumer.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int WORKFLOW_FIELD_NUMBER = 1;
+    private talon.data.Routing.ResourceRef workflow_;
+    /**
+     * <pre>
+     * Workflow that consumes matching messages.
+     * </pre>
+     *
+     * <code>.talon.data.ResourceRef workflow = 1;</code>
+     * @return Whether the workflow field is set.
+     */
+    @java.lang.Override
+    public boolean hasWorkflow() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <pre>
+     * Workflow that consumes matching messages.
+     * </pre>
+     *
+     * <code>.talon.data.ResourceRef workflow = 1;</code>
+     * @return The workflow.
+     */
+    @java.lang.Override
+    public talon.data.Routing.ResourceRef getWorkflow() {
+      return workflow_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : workflow_;
+    }
+    /**
+     * <pre>
+     * Workflow that consumes matching messages.
+     * </pre>
+     *
+     * <code>.talon.data.ResourceRef workflow = 1;</code>
+     */
+    @java.lang.Override
+    public talon.data.Routing.ResourceRefOrBuilder getWorkflowOrBuilder() {
+      return workflow_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : workflow_;
+    }
+
+    public static final int REPLY_MODE_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object replyMode_ = "";
+    /**
+     * <pre>
+     * Reply behavior requested from the workflow completion router, such as
+     * replying in the provider thread instead of the root conversation.
+     * </pre>
+     *
+     * <code>string reply_mode = 2;</code>
+     * @return The replyMode.
+     */
+    @java.lang.Override
+    public java.lang.String getReplyMode() {
+      java.lang.Object ref = replyMode_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        replyMode_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Reply behavior requested from the workflow completion router, such as
+     * replying in the provider thread instead of the root conversation.
+     * </pre>
+     *
+     * <code>string reply_mode = 2;</code>
+     * @return The bytes for replyMode.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getReplyModeBytes() {
+      java.lang.Object ref = replyMode_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        replyMode_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getWorkflow());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(replyMode_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, replyMode_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getWorkflow());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(replyMode_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, replyMode_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.data.Routing.WorkflowMessageConsumer)) {
+        return super.equals(obj);
+      }
+      talon.data.Routing.WorkflowMessageConsumer other = (talon.data.Routing.WorkflowMessageConsumer) obj;
+
+      if (hasWorkflow() != other.hasWorkflow()) return false;
+      if (hasWorkflow()) {
+        if (!getWorkflow()
+            .equals(other.getWorkflow())) return false;
+      }
+      if (!getReplyMode()
+          .equals(other.getReplyMode())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasWorkflow()) {
+        hash = (37 * hash) + WORKFLOW_FIELD_NUMBER;
+        hash = (53 * hash) + getWorkflow().hashCode();
+      }
+      hash = (37 * hash) + REPLY_MODE_FIELD_NUMBER;
+      hash = (53 * hash) + getReplyMode().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.data.Routing.WorkflowMessageConsumer parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Routing.WorkflowMessageConsumer parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Routing.WorkflowMessageConsumer parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Routing.WorkflowMessageConsumer parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Routing.WorkflowMessageConsumer parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Routing.WorkflowMessageConsumer parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Routing.WorkflowMessageConsumer parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Routing.WorkflowMessageConsumer parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.data.Routing.WorkflowMessageConsumer parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.data.Routing.WorkflowMessageConsumer parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.data.Routing.WorkflowMessageConsumer parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Routing.WorkflowMessageConsumer parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.data.Routing.WorkflowMessageConsumer prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.data.WorkflowMessageConsumer}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.data.WorkflowMessageConsumer)
+        talon.data.Routing.WorkflowMessageConsumerOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.data.Routing.internal_static_talon_data_WorkflowMessageConsumer_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.data.Routing.internal_static_talon_data_WorkflowMessageConsumer_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.data.Routing.WorkflowMessageConsumer.class, talon.data.Routing.WorkflowMessageConsumer.Builder.class);
+      }
+
+      // Construct using talon.data.Routing.WorkflowMessageConsumer.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetWorkflowFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        workflow_ = null;
+        if (workflowBuilder_ != null) {
+          workflowBuilder_.dispose();
+          workflowBuilder_ = null;
+        }
+        replyMode_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.data.Routing.internal_static_talon_data_WorkflowMessageConsumer_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.data.Routing.WorkflowMessageConsumer getDefaultInstanceForType() {
+        return talon.data.Routing.WorkflowMessageConsumer.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.data.Routing.WorkflowMessageConsumer build() {
+        talon.data.Routing.WorkflowMessageConsumer result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.data.Routing.WorkflowMessageConsumer buildPartial() {
+        talon.data.Routing.WorkflowMessageConsumer result = new talon.data.Routing.WorkflowMessageConsumer(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.data.Routing.WorkflowMessageConsumer result) {
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.workflow_ = workflowBuilder_ == null
+              ? workflow_
+              : workflowBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.replyMode_ = replyMode_;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.data.Routing.WorkflowMessageConsumer) {
+          return mergeFrom((talon.data.Routing.WorkflowMessageConsumer)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.data.Routing.WorkflowMessageConsumer other) {
+        if (other == talon.data.Routing.WorkflowMessageConsumer.getDefaultInstance()) return this;
+        if (other.hasWorkflow()) {
+          mergeWorkflow(other.getWorkflow());
+        }
+        if (!other.getReplyMode().isEmpty()) {
+          replyMode_ = other.replyMode_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetWorkflowFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                replyMode_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private talon.data.Routing.ResourceRef workflow_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder> workflowBuilder_;
+      /**
+       * <pre>
+       * Workflow that consumes matching messages.
+       * </pre>
+       *
+       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       * @return Whether the workflow field is set.
+       */
+      public boolean hasWorkflow() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <pre>
+       * Workflow that consumes matching messages.
+       * </pre>
+       *
+       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       * @return The workflow.
+       */
+      public talon.data.Routing.ResourceRef getWorkflow() {
+        if (workflowBuilder_ == null) {
+          return workflow_ == null ? talon.data.Routing.ResourceRef.getDefaultInstance() : workflow_;
+        } else {
+          return workflowBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Workflow that consumes matching messages.
+       * </pre>
+       *
+       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       */
+      public Builder setWorkflow(talon.data.Routing.ResourceRef value) {
+        if (workflowBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          workflow_ = value;
+        } else {
+          workflowBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Workflow that consumes matching messages.
+       * </pre>
+       *
+       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       */
+      public Builder setWorkflow(
+          talon.data.Routing.ResourceRef.Builder builderForValue) {
+        if (workflowBuilder_ == null) {
+          workflow_ = builderForValue.build();
+        } else {
+          workflowBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Workflow that consumes matching messages.
+       * </pre>
+       *
+       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       */
+      public Builder mergeWorkflow(talon.data.Routing.ResourceRef value) {
+        if (workflowBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            workflow_ != null &&
+            workflow_ != talon.data.Routing.ResourceRef.getDefaultInstance()) {
+            getWorkflowBuilder().mergeFrom(value);
+          } else {
+            workflow_ = value;
+          }
+        } else {
+          workflowBuilder_.mergeFrom(value);
+        }
+        if (workflow_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Workflow that consumes matching messages.
+       * </pre>
+       *
+       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       */
+      public Builder clearWorkflow() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        workflow_ = null;
+        if (workflowBuilder_ != null) {
+          workflowBuilder_.dispose();
+          workflowBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Workflow that consumes matching messages.
+       * </pre>
+       *
+       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       */
+      public talon.data.Routing.ResourceRef.Builder getWorkflowBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return internalGetWorkflowFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Workflow that consumes matching messages.
+       * </pre>
+       *
+       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       */
+      public talon.data.Routing.ResourceRefOrBuilder getWorkflowOrBuilder() {
+        if (workflowBuilder_ != null) {
+          return workflowBuilder_.getMessageOrBuilder();
+        } else {
+          return workflow_ == null ?
+              talon.data.Routing.ResourceRef.getDefaultInstance() : workflow_;
+        }
+      }
+      /**
+       * <pre>
+       * Workflow that consumes matching messages.
+       * </pre>
+       *
+       * <code>.talon.data.ResourceRef workflow = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder>
+          internalGetWorkflowFieldBuilder() {
+        if (workflowBuilder_ == null) {
+          workflowBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.data.Routing.ResourceRef, talon.data.Routing.ResourceRef.Builder, talon.data.Routing.ResourceRefOrBuilder>(
+                  getWorkflow(),
+                  getParentForChildren(),
+                  isClean());
+          workflow_ = null;
+        }
+        return workflowBuilder_;
+      }
+
+      private java.lang.Object replyMode_ = "";
+      /**
+       * <pre>
+       * Reply behavior requested from the workflow completion router, such as
+       * replying in the provider thread instead of the root conversation.
+       * </pre>
+       *
+       * <code>string reply_mode = 2;</code>
+       * @return The replyMode.
+       */
+      public java.lang.String getReplyMode() {
+        java.lang.Object ref = replyMode_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          replyMode_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Reply behavior requested from the workflow completion router, such as
+       * replying in the provider thread instead of the root conversation.
+       * </pre>
+       *
+       * <code>string reply_mode = 2;</code>
+       * @return The bytes for replyMode.
+       */
+      public com.google.protobuf.ByteString
+          getReplyModeBytes() {
+        java.lang.Object ref = replyMode_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          replyMode_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Reply behavior requested from the workflow completion router, such as
+       * replying in the provider thread instead of the root conversation.
+       * </pre>
+       *
+       * <code>string reply_mode = 2;</code>
+       * @param value The replyMode to set.
+       * @return This builder for chaining.
+       */
+      public Builder setReplyMode(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        replyMode_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Reply behavior requested from the workflow completion router, such as
+       * replying in the provider thread instead of the root conversation.
+       * </pre>
+       *
+       * <code>string reply_mode = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearReplyMode() {
+        replyMode_ = getDefaultInstance().getReplyMode();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Reply behavior requested from the workflow completion router, such as
+       * replying in the provider thread instead of the root conversation.
+       * </pre>
+       *
+       * <code>string reply_mode = 2;</code>
+       * @param value The bytes for replyMode to set.
+       * @return This builder for chaining.
+       */
+      public Builder setReplyModeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        replyMode_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.data.WorkflowMessageConsumer)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.data.WorkflowMessageConsumer)
+    private static final talon.data.Routing.WorkflowMessageConsumer DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.data.Routing.WorkflowMessageConsumer();
+    }
+
+    public static talon.data.Routing.WorkflowMessageConsumer getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<WorkflowMessageConsumer>
+        PARSER = new com.google.protobuf.AbstractParser<WorkflowMessageConsumer>() {
+      @java.lang.Override
+      public WorkflowMessageConsumer parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<WorkflowMessageConsumer> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<WorkflowMessageConsumer> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.data.Routing.WorkflowMessageConsumer getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface MessageConsumerOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.data.MessageConsumer)
       com.google.protobuf.MessageOrBuilder {
 
     /**
      * <pre>
-     * Session consumer payload. Mutually exclusive with channel.
+     * Session consumer payload. Mutually exclusive with channel and workflow.
      * </pre>
      *
      * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3105,7 +3933,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     boolean hasSession();
     /**
      * <pre>
-     * Session consumer payload. Mutually exclusive with channel.
+     * Session consumer payload. Mutually exclusive with channel and workflow.
      * </pre>
      *
      * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3114,7 +3942,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     talon.data.Routing.SessionMessageConsumer getSession();
     /**
      * <pre>
-     * Session consumer payload. Mutually exclusive with channel.
+     * Session consumer payload. Mutually exclusive with channel and workflow.
      * </pre>
      *
      * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3123,7 +3951,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
 
     /**
      * <pre>
-     * Channel consumer payload. Mutually exclusive with session.
+     * Channel consumer payload. Mutually exclusive with session and workflow.
      * </pre>
      *
      * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3132,7 +3960,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     boolean hasChannel();
     /**
      * <pre>
-     * Channel consumer payload. Mutually exclusive with session.
+     * Channel consumer payload. Mutually exclusive with session and workflow.
      * </pre>
      *
      * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3141,12 +3969,39 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     talon.data.Routing.ChannelMessageConsumer getChannel();
     /**
      * <pre>
-     * Channel consumer payload. Mutually exclusive with session.
+     * Channel consumer payload. Mutually exclusive with session and workflow.
      * </pre>
      *
      * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
      */
     talon.data.Routing.ChannelMessageConsumerOrBuilder getChannelOrBuilder();
+
+    /**
+     * <pre>
+     * Workflow consumer payload. Mutually exclusive with session and channel.
+     * </pre>
+     *
+     * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+     * @return Whether the workflow field is set.
+     */
+    boolean hasWorkflow();
+    /**
+     * <pre>
+     * Workflow consumer payload. Mutually exclusive with session and channel.
+     * </pre>
+     *
+     * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+     * @return The workflow.
+     */
+    talon.data.Routing.WorkflowMessageConsumer getWorkflow();
+    /**
+     * <pre>
+     * Workflow consumer payload. Mutually exclusive with session and channel.
+     * </pre>
+     *
+     * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+     */
+    talon.data.Routing.WorkflowMessageConsumerOrBuilder getWorkflowOrBuilder();
   }
   /**
    * Protobuf type {@code talon.data.MessageConsumer}
@@ -3195,7 +4050,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     private talon.data.Routing.SessionMessageConsumer session_;
     /**
      * <pre>
-     * Session consumer payload. Mutually exclusive with channel.
+     * Session consumer payload. Mutually exclusive with channel and workflow.
      * </pre>
      *
      * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3207,7 +4062,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     }
     /**
      * <pre>
-     * Session consumer payload. Mutually exclusive with channel.
+     * Session consumer payload. Mutually exclusive with channel and workflow.
      * </pre>
      *
      * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3219,7 +4074,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     }
     /**
      * <pre>
-     * Session consumer payload. Mutually exclusive with channel.
+     * Session consumer payload. Mutually exclusive with channel and workflow.
      * </pre>
      *
      * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3233,7 +4088,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     private talon.data.Routing.ChannelMessageConsumer channel_;
     /**
      * <pre>
-     * Channel consumer payload. Mutually exclusive with session.
+     * Channel consumer payload. Mutually exclusive with session and workflow.
      * </pre>
      *
      * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3245,7 +4100,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     }
     /**
      * <pre>
-     * Channel consumer payload. Mutually exclusive with session.
+     * Channel consumer payload. Mutually exclusive with session and workflow.
      * </pre>
      *
      * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3257,7 +4112,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     }
     /**
      * <pre>
-     * Channel consumer payload. Mutually exclusive with session.
+     * Channel consumer payload. Mutually exclusive with session and workflow.
      * </pre>
      *
      * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3265,6 +4120,44 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     @java.lang.Override
     public talon.data.Routing.ChannelMessageConsumerOrBuilder getChannelOrBuilder() {
       return channel_ == null ? talon.data.Routing.ChannelMessageConsumer.getDefaultInstance() : channel_;
+    }
+
+    public static final int WORKFLOW_FIELD_NUMBER = 3;
+    private talon.data.Routing.WorkflowMessageConsumer workflow_;
+    /**
+     * <pre>
+     * Workflow consumer payload. Mutually exclusive with session and channel.
+     * </pre>
+     *
+     * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+     * @return Whether the workflow field is set.
+     */
+    @java.lang.Override
+    public boolean hasWorkflow() {
+      return ((bitField0_ & 0x00000004) != 0);
+    }
+    /**
+     * <pre>
+     * Workflow consumer payload. Mutually exclusive with session and channel.
+     * </pre>
+     *
+     * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+     * @return The workflow.
+     */
+    @java.lang.Override
+    public talon.data.Routing.WorkflowMessageConsumer getWorkflow() {
+      return workflow_ == null ? talon.data.Routing.WorkflowMessageConsumer.getDefaultInstance() : workflow_;
+    }
+    /**
+     * <pre>
+     * Workflow consumer payload. Mutually exclusive with session and channel.
+     * </pre>
+     *
+     * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+     */
+    @java.lang.Override
+    public talon.data.Routing.WorkflowMessageConsumerOrBuilder getWorkflowOrBuilder() {
+      return workflow_ == null ? talon.data.Routing.WorkflowMessageConsumer.getDefaultInstance() : workflow_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -3287,6 +4180,9 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       if (((bitField0_ & 0x00000002) != 0)) {
         output.writeMessage(2, getChannel());
       }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        output.writeMessage(3, getWorkflow());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -3303,6 +4199,10 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(2, getChannel());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getWorkflow());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -3329,6 +4229,11 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
         if (!getChannel()
             .equals(other.getChannel())) return false;
       }
+      if (hasWorkflow() != other.hasWorkflow()) return false;
+      if (hasWorkflow()) {
+        if (!getWorkflow()
+            .equals(other.getWorkflow())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -3347,6 +4252,10 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       if (hasChannel()) {
         hash = (37 * hash) + CHANNEL_FIELD_NUMBER;
         hash = (53 * hash) + getChannel().hashCode();
+      }
+      if (hasWorkflow()) {
+        hash = (37 * hash) + WORKFLOW_FIELD_NUMBER;
+        hash = (53 * hash) + getWorkflow().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -3480,6 +4389,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
                 .alwaysUseFieldBuilders) {
           internalGetSessionFieldBuilder();
           internalGetChannelFieldBuilder();
+          internalGetWorkflowFieldBuilder();
         }
       }
       @java.lang.Override
@@ -3495,6 +4405,11 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
         if (channelBuilder_ != null) {
           channelBuilder_.dispose();
           channelBuilder_ = null;
+        }
+        workflow_ = null;
+        if (workflowBuilder_ != null) {
+          workflowBuilder_.dispose();
+          workflowBuilder_ = null;
         }
         return this;
       }
@@ -3542,6 +4457,12 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
               : channelBuilder_.build();
           to_bitField0_ |= 0x00000002;
         }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.workflow_ = workflowBuilder_ == null
+              ? workflow_
+              : workflowBuilder_.build();
+          to_bitField0_ |= 0x00000004;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -3562,6 +4483,9 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
         }
         if (other.hasChannel()) {
           mergeChannel(other.getChannel());
+        }
+        if (other.hasWorkflow()) {
+          mergeWorkflow(other.getWorkflow());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -3603,6 +4527,13 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetWorkflowFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3625,7 +4556,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
           talon.data.Routing.SessionMessageConsumer, talon.data.Routing.SessionMessageConsumer.Builder, talon.data.Routing.SessionMessageConsumerOrBuilder> sessionBuilder_;
       /**
        * <pre>
-       * Session consumer payload. Mutually exclusive with channel.
+       * Session consumer payload. Mutually exclusive with channel and workflow.
        * </pre>
        *
        * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3636,7 +4567,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Session consumer payload. Mutually exclusive with channel.
+       * Session consumer payload. Mutually exclusive with channel and workflow.
        * </pre>
        *
        * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3651,7 +4582,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Session consumer payload. Mutually exclusive with channel.
+       * Session consumer payload. Mutually exclusive with channel and workflow.
        * </pre>
        *
        * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3671,7 +4602,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Session consumer payload. Mutually exclusive with channel.
+       * Session consumer payload. Mutually exclusive with channel and workflow.
        * </pre>
        *
        * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3689,7 +4620,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Session consumer payload. Mutually exclusive with channel.
+       * Session consumer payload. Mutually exclusive with channel and workflow.
        * </pre>
        *
        * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3714,7 +4645,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Session consumer payload. Mutually exclusive with channel.
+       * Session consumer payload. Mutually exclusive with channel and workflow.
        * </pre>
        *
        * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3731,7 +4662,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Session consumer payload. Mutually exclusive with channel.
+       * Session consumer payload. Mutually exclusive with channel and workflow.
        * </pre>
        *
        * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3743,7 +4674,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Session consumer payload. Mutually exclusive with channel.
+       * Session consumer payload. Mutually exclusive with channel and workflow.
        * </pre>
        *
        * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3758,7 +4689,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Session consumer payload. Mutually exclusive with channel.
+       * Session consumer payload. Mutually exclusive with channel and workflow.
        * </pre>
        *
        * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
@@ -3782,7 +4713,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
           talon.data.Routing.ChannelMessageConsumer, talon.data.Routing.ChannelMessageConsumer.Builder, talon.data.Routing.ChannelMessageConsumerOrBuilder> channelBuilder_;
       /**
        * <pre>
-       * Channel consumer payload. Mutually exclusive with session.
+       * Channel consumer payload. Mutually exclusive with session and workflow.
        * </pre>
        *
        * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3793,7 +4724,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Channel consumer payload. Mutually exclusive with session.
+       * Channel consumer payload. Mutually exclusive with session and workflow.
        * </pre>
        *
        * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3808,7 +4739,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Channel consumer payload. Mutually exclusive with session.
+       * Channel consumer payload. Mutually exclusive with session and workflow.
        * </pre>
        *
        * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3828,7 +4759,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Channel consumer payload. Mutually exclusive with session.
+       * Channel consumer payload. Mutually exclusive with session and workflow.
        * </pre>
        *
        * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3846,7 +4777,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Channel consumer payload. Mutually exclusive with session.
+       * Channel consumer payload. Mutually exclusive with session and workflow.
        * </pre>
        *
        * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3871,7 +4802,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Channel consumer payload. Mutually exclusive with session.
+       * Channel consumer payload. Mutually exclusive with session and workflow.
        * </pre>
        *
        * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3888,7 +4819,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Channel consumer payload. Mutually exclusive with session.
+       * Channel consumer payload. Mutually exclusive with session and workflow.
        * </pre>
        *
        * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3900,7 +4831,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Channel consumer payload. Mutually exclusive with session.
+       * Channel consumer payload. Mutually exclusive with session and workflow.
        * </pre>
        *
        * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3915,7 +4846,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Channel consumer payload. Mutually exclusive with session.
+       * Channel consumer payload. Mutually exclusive with session and workflow.
        * </pre>
        *
        * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
@@ -3932,6 +4863,163 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
           channel_ = null;
         }
         return channelBuilder_;
+      }
+
+      private talon.data.Routing.WorkflowMessageConsumer workflow_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Routing.WorkflowMessageConsumer, talon.data.Routing.WorkflowMessageConsumer.Builder, talon.data.Routing.WorkflowMessageConsumerOrBuilder> workflowBuilder_;
+      /**
+       * <pre>
+       * Workflow consumer payload. Mutually exclusive with session and channel.
+       * </pre>
+       *
+       * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+       * @return Whether the workflow field is set.
+       */
+      public boolean hasWorkflow() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <pre>
+       * Workflow consumer payload. Mutually exclusive with session and channel.
+       * </pre>
+       *
+       * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+       * @return The workflow.
+       */
+      public talon.data.Routing.WorkflowMessageConsumer getWorkflow() {
+        if (workflowBuilder_ == null) {
+          return workflow_ == null ? talon.data.Routing.WorkflowMessageConsumer.getDefaultInstance() : workflow_;
+        } else {
+          return workflowBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Workflow consumer payload. Mutually exclusive with session and channel.
+       * </pre>
+       *
+       * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+       */
+      public Builder setWorkflow(talon.data.Routing.WorkflowMessageConsumer value) {
+        if (workflowBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          workflow_ = value;
+        } else {
+          workflowBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Workflow consumer payload. Mutually exclusive with session and channel.
+       * </pre>
+       *
+       * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+       */
+      public Builder setWorkflow(
+          talon.data.Routing.WorkflowMessageConsumer.Builder builderForValue) {
+        if (workflowBuilder_ == null) {
+          workflow_ = builderForValue.build();
+        } else {
+          workflowBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Workflow consumer payload. Mutually exclusive with session and channel.
+       * </pre>
+       *
+       * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+       */
+      public Builder mergeWorkflow(talon.data.Routing.WorkflowMessageConsumer value) {
+        if (workflowBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            workflow_ != null &&
+            workflow_ != talon.data.Routing.WorkflowMessageConsumer.getDefaultInstance()) {
+            getWorkflowBuilder().mergeFrom(value);
+          } else {
+            workflow_ = value;
+          }
+        } else {
+          workflowBuilder_.mergeFrom(value);
+        }
+        if (workflow_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Workflow consumer payload. Mutually exclusive with session and channel.
+       * </pre>
+       *
+       * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+       */
+      public Builder clearWorkflow() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        workflow_ = null;
+        if (workflowBuilder_ != null) {
+          workflowBuilder_.dispose();
+          workflowBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Workflow consumer payload. Mutually exclusive with session and channel.
+       * </pre>
+       *
+       * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+       */
+      public talon.data.Routing.WorkflowMessageConsumer.Builder getWorkflowBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetWorkflowFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Workflow consumer payload. Mutually exclusive with session and channel.
+       * </pre>
+       *
+       * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+       */
+      public talon.data.Routing.WorkflowMessageConsumerOrBuilder getWorkflowOrBuilder() {
+        if (workflowBuilder_ != null) {
+          return workflowBuilder_.getMessageOrBuilder();
+        } else {
+          return workflow_ == null ?
+              talon.data.Routing.WorkflowMessageConsumer.getDefaultInstance() : workflow_;
+        }
+      }
+      /**
+       * <pre>
+       * Workflow consumer payload. Mutually exclusive with session and channel.
+       * </pre>
+       *
+       * <code>optional .talon.data.WorkflowMessageConsumer workflow = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Routing.WorkflowMessageConsumer, talon.data.Routing.WorkflowMessageConsumer.Builder, talon.data.Routing.WorkflowMessageConsumerOrBuilder>
+          internalGetWorkflowFieldBuilder() {
+        if (workflowBuilder_ == null) {
+          workflowBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.data.Routing.WorkflowMessageConsumer, talon.data.Routing.WorkflowMessageConsumer.Builder, talon.data.Routing.WorkflowMessageConsumerOrBuilder>(
+                  getWorkflow(),
+                  getParentForChildren(),
+                  isClean());
+          workflow_ = null;
+        }
+        return workflowBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.data.MessageConsumer)
@@ -4001,6 +5089,11 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_data_ChannelMessageConsumer_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_WorkflowMessageConsumer_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_WorkflowMessageConsumer_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_data_MessageConsumer_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -4022,11 +5115,15 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       "nnelMessageConsumer\022(\n\007channel\030\001 \001(\0132\027.t" +
       "alon.data.ResourceRef\022&\n\005agent\030\002 \001(\0132\027.t" +
       "alon.data.ResourceRef\022\022\n\ncontinuity\030\003 \001(" +
-      "\t\022\024\n\014reply_policy\030\004 \001(\t\"\235\001\n\017MessageConsu" +
-      "mer\0228\n\007session\030\001 \001(\0132\".talon.data.Sessio" +
-      "nMessageConsumerH\000\210\001\001\0228\n\007channel\030\002 \001(\0132\"" +
-      ".talon.data.ChannelMessageConsumerH\001\210\001\001B" +
-      "\n\n\010_sessionB\n\n\010_channelb\006proto3"
+      "\t\022\024\n\014reply_policy\030\004 \001(\t\"X\n\027WorkflowMessa" +
+      "geConsumer\022)\n\010workflow\030\001 \001(\0132\027.talon.dat" +
+      "a.ResourceRef\022\022\n\nreply_mode\030\002 \001(\t\"\346\001\n\017Me" +
+      "ssageConsumer\0228\n\007session\030\001 \001(\0132\".talon.d" +
+      "ata.SessionMessageConsumerH\000\210\001\001\0228\n\007chann" +
+      "el\030\002 \001(\0132\".talon.data.ChannelMessageCons" +
+      "umerH\001\210\001\001\022:\n\010workflow\030\003 \001(\0132#.talon.data" +
+      ".WorkflowMessageConsumerH\002\210\001\001B\n\n\010_sessio" +
+      "nB\n\n\010_channelB\013\n\t_workflowb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -4050,12 +5147,18 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ChannelMessageConsumer_descriptor,
         new java.lang.String[] { "Channel", "Agent", "Continuity", "ReplyPolicy", });
-    internal_static_talon_data_MessageConsumer_descriptor =
+    internal_static_talon_data_WorkflowMessageConsumer_descriptor =
       getDescriptor().getMessageType(3);
+    internal_static_talon_data_WorkflowMessageConsumer_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_WorkflowMessageConsumer_descriptor,
+        new java.lang.String[] { "Workflow", "ReplyMode", });
+    internal_static_talon_data_MessageConsumer_descriptor =
+      getDescriptor().getMessageType(4);
     internal_static_talon_data_MessageConsumer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_MessageConsumer_descriptor,
-        new java.lang.String[] { "Session", "Channel", });
+        new java.lang.String[] { "Session", "Channel", "Workflow", });
     descriptor.resolveAllFeaturesImmutable();
   }
 

@@ -50,6 +50,14 @@ pub struct WorkflowWakeupPayload {
     pub reason: String,
 }
 
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+struct WorkflowReplyOutput {
+    text: String,
+    silent: bool,
+    attachments: Vec<data_proto::ObjectRef>,
+}
+
 #[derive(Debug)]
 pub struct WorkflowClaimInProgressError;
 
@@ -642,6 +650,10 @@ pub async fn advance_run(cp: &ControlPlane, mut run: data_proto::WorkflowRun) ->
         append_run_event(cp, &run, "", &event_type, &message, payload).await?;
     }
 
+    if run.status == STATUS_COMPLETED {
+        dispatch_workflow_reply(cp, &run).await?;
+    }
+
     if is_terminal(&run.status) {
         dispatch_parent_workflow_from_run_labels(cp, &run).await?;
     }
@@ -825,7 +837,7 @@ async fn start_child_workflow_step(
         .get_msg::<resources_proto::Workflow>(&keys::workflow(&run.ns, &workflow_name))
         .await?
         .ok_or_else(|| anyhow!("child workflow '{}' not found", workflow_name))?;
-    let mut labels = HashMap::new();
+    let mut labels = run.labels.clone();
     labels.insert(LABEL_PARENT_WORKFLOW.to_string(), run.workflow.clone());
     labels.insert(LABEL_PARENT_WORKFLOW_RUN.to_string(), run.id.clone());
     labels.insert(LABEL_PARENT_WORKFLOW_STEP.to_string(), step.id.clone());
@@ -840,6 +852,83 @@ async fn start_child_workflow_step(
     step_run.child_workflow_run_id = child_run.id;
     apply_waiting_step_metadata(step, &mut step_run)?;
     Ok(StepStartOutcome::Waiting(step_run))
+}
+
+async fn dispatch_workflow_reply(cp: &ControlPlane, run: &data_proto::WorkflowRun) -> Result<()> {
+    let output = parse_json_or(&run.output_json, Value::Object(Map::new()))?;
+    let Some(reply_value) = output.get("reply").cloned() else {
+        return Ok(());
+    };
+    let reply: WorkflowReplyOutput = serde_json::from_value(reply_value)
+        .map_err(|err| anyhow!("workflow reply output is invalid: {}", err))?;
+    if reply.silent || (reply.text.trim().is_empty() && reply.attachments.is_empty()) {
+        return Ok(());
+    }
+
+    let delivery_id = format!("workflow-reply-{}", run.id);
+    let reply_mode = run
+        .labels
+        .get(crate::gateway::rpc::channels::LABEL_CHANNEL_REPLY_MODE)
+        .map(|value| value.as_str())
+        .unwrap_or_default();
+
+    let result = if run
+        .labels
+        .contains_key(crate::gateway::rpc::channels::LABEL_CHANNEL)
+    {
+        crate::gateway::rpc::channels::publish_workflow_reply_from_labels(
+            cp,
+            &run.labels,
+            &run.ns,
+            &run.workflow,
+            &run.id,
+            &reply.text,
+        )
+        .await
+        .map(|_| ())
+    } else if run
+        .labels
+        .contains_key("talon.impalasys.com/connector-registration")
+    {
+        crate::gateway::rpc::connectors::deliver_connector_reply_from_labels(
+            cp,
+            &run.labels,
+            &run.ns,
+            &delivery_id,
+            &reply.text,
+            reply.attachments,
+            reply_mode,
+        )
+        .await
+    } else {
+        return Ok(());
+    };
+
+    match result {
+        Ok(()) => {
+            append_run_event(
+                cp,
+                run,
+                "",
+                "reply_sent",
+                "workflow reply dispatched",
+                json!({ "deliveryId": delivery_id }),
+            )
+            .await?;
+        }
+        Err(err) => {
+            append_run_event(
+                cp,
+                run,
+                "",
+                "reply_failed",
+                "workflow reply dispatch failed",
+                json!({ "error": err.to_string() }),
+            )
+            .await?;
+        }
+    }
+    Ok(())
 }
 
 async fn try_complete_agent_step(
@@ -2206,7 +2295,7 @@ mod tests {
         WorkerEventHandler,
     };
     use async_trait::async_trait;
-    use axum::{routing::post, Router};
+    use axum::{routing::post, Json, Router};
     use prost::Message;
     use serde_json::json;
     use std::sync::Arc;
@@ -2376,6 +2465,347 @@ mod tests {
             .into_iter()
             .filter(|current| current == event_type)
             .count()
+    }
+
+    #[tokio::test]
+    async fn completed_channel_workflow_reply_publishes_channel_message() {
+        let kv = Arc::new(MockKvStore::new());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = workflow_handler(kv.clone(), pubsub);
+        kv.set_msg(
+            &keys::channel("default", "ops"),
+            &resources_proto::Channel {
+                metadata: Some(resources_proto::ResourceMeta {
+                    name: "ops".to_string(),
+                    namespace: "default".to_string(),
+                    ..Default::default()
+                }),
+                spec: Some(resources_proto::ChannelSpec {
+                    title: "Ops".to_string(),
+                    metadata: HashMap::new(),
+                }),
+                status: Some(resources_proto::ChannelStatus {
+                    phase: "open".to_string(),
+                    ..Default::default()
+                }),
+            },
+        )
+        .await
+        .expect("channel should persist");
+        let workflow = workflow_fixture(
+            "default",
+            "reply",
+            resources_proto::WorkflowSpec {
+                steps: vec![resources_proto::WorkflowStep {
+                    id: "draft".to_string(),
+                    r#type: "transform".to_string(),
+                    input_json: r#"{"text":"ack from workflow"}"#.to_string(),
+                    ..Default::default()
+                }],
+                output_json: r#"{"reply":{"text":"${$.steps.draft.output.text}"}}"#.to_string(),
+                ..Default::default()
+            },
+        );
+        kv.set_msg(&keys::workflow("default", "reply"), &workflow)
+            .await
+            .expect("workflow should persist");
+
+        let run = create_run(
+            &handler.cp,
+            &workflow,
+            "{}".to_string(),
+            HashMap::from([
+                (
+                    crate::gateway::rpc::channels::LABEL_CHANNEL.to_string(),
+                    "ops".to_string(),
+                ),
+                (
+                    "talon.impalasys.com/channel-message".to_string(),
+                    "source-message".to_string(),
+                ),
+                (
+                    "talon.impalasys.com/channel-subscription".to_string(),
+                    "router".to_string(),
+                ),
+                (
+                    crate::gateway::rpc::channels::LABEL_CHANNEL_REPLY_MODE.to_string(),
+                    "auto".to_string(),
+                ),
+            ]),
+        )
+        .await
+        .expect("run should create");
+        handler
+            .handle_workflow_dispatch(workflow_dispatch(&run, "created"))
+            .await
+            .expect("workflow should complete");
+
+        let completed = stored_run(&kv, "default", "reply", &run.id).await;
+        assert_eq!(completed.status, STATUS_COMPLETED);
+        let messages = kv
+            .list_entries(&keys::channel_message_prefix("default", "ops"))
+            .await
+            .expect("channel messages should list");
+        assert_eq!(messages.len(), 1);
+        let message = data_proto::ChannelMessage::decode(messages[0].1.as_slice())
+            .expect("channel message should decode");
+        assert_eq!(message.author_kind, "workflow");
+        assert_eq!(message.author, "reply");
+        assert_eq!(message.content, "ack from workflow");
+        assert_eq!(
+            event_type_count(&kv, "default", "reply", &run.id, "reply_sent").await,
+            1
+        );
+    }
+
+    #[tokio::test]
+    async fn workflow_filter_agent_gates_lorem_generator_reply() {
+        let _guard = crate::test_support::async_env_mutex().lock().await;
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|Json(body): Json<Value>| async move {
+                let prompt = body
+                    .get("messages")
+                    .and_then(Value::as_array)
+                    .and_then(|messages| messages.last())
+                    .and_then(|message| message.get("content"))
+                    .and_then(Value::as_str)
+                    .unwrap_or_default();
+                let connector_text = prompt
+                    .lines()
+                    .find_map(|line| line.strip_prefix("Connector message text: "))
+                    .unwrap_or_default();
+                let content = if prompt.starts_with("Generate lorem ipsum for this request:") {
+                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit.".to_string()
+                } else if connector_text.contains("lorem ipsum") {
+                    serde_json::to_string(&json!({
+                        "execute": true,
+                        "decision": "execute",
+                        "silent": false,
+                        "reason": "lorem ipsum requested"
+                    }))
+                    .expect("filter response should encode")
+                } else {
+                    serde_json::to_string(&json!({
+                        "execute": false,
+                        "decision": "skip",
+                        "silent": true,
+                        "reason": "lorem ipsum not requested"
+                    }))
+                    .expect("filter response should encode")
+                };
+                let chunk = serde_json::json!({
+                    "choices": [{
+                        "delta": { "content": content },
+                        "index": 0
+                    }]
+                });
+                axum::response::Response::builder()
+                    .status(axum::http::StatusCode::OK)
+                    .header("content-type", "text/event-stream")
+                    .body(axum::body::Body::from(format!(
+                        "data: {}\n\ndata: [DONE]\n",
+                        chunk
+                    )))
+                    .expect("mock LLM response should build")
+            }),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("fake LLM should bind");
+        let addr = listener.local_addr().expect("fake LLM should have addr");
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app)
+                .await
+                .expect("fake LLM should serve");
+        });
+        unsafe {
+            std::env::set_var("NOVITA_BASE_URL", format!("http://{addr}"));
+        }
+
+        let kv = Arc::new(MockKvStore::new());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = workflow_handler(kv.clone(), pubsub.clone());
+        let workflow = crate::control::manifest::parse_workflow(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Workflow
+metadata:
+  name: lorem-router
+  namespace: smoke
+spec:
+  steps:
+    - id: filter
+      type: agent
+      agent: filter-agent
+      prompt: |
+        Decide whether this inbound connector message requested lorem ipsum.
+        Connector message text: ${$.input.message.text}
+      output:
+        format: json
+        schema:
+          type: object
+          required: [execute, decision, silent, reason]
+          properties:
+            execute:
+              type: boolean
+            decision:
+              type: string
+            silent:
+              type: boolean
+            reason:
+              type: string
+    - id: generate
+      type: agent
+      after: [filter]
+      when:
+        path: $.steps.filter.output.execute
+        equals: true
+      agent: lorem-generator
+      prompt: |
+        Generate lorem ipsum for this request:
+        ${$.input.message.text}
+  output:
+    decision: ${$.steps.filter.output.decision}
+    reason: ${$.steps.filter.output.reason}
+    reply:
+      silent: ${$.steps.filter.output.silent}
+      text: "Generated after lorem filter: ${$.steps.generate.output.text}"
+"#,
+        )
+        .expect("workflow YAML should parse");
+        kv.set_msg(&keys::workflow("smoke", "lorem-router"), &workflow)
+            .await
+            .expect("workflow should persist");
+        for agent in ["filter-agent", "lorem-generator"] {
+            kv.set_msg(
+                &keys::agent("smoke", agent),
+                &agent_fixture(
+                    "smoke",
+                    agent,
+                    manifests::AgentSpec {
+                        features: Vec::new(),
+                        model_policy: None,
+                        system_prompt: String::new(),
+                        mcp_server_refs: Vec::new(),
+                        capabilities: HashMap::new(),
+                        a2a: None,
+                        runtime: None,
+                    },
+                ),
+            )
+            .await
+            .expect("agent should persist");
+        }
+
+        let skipped_run = create_run(
+            &handler.cp,
+            &workflow,
+            r#"{"message":{"text":"please summarize this account"}}"#.to_string(),
+            HashMap::new(),
+        )
+        .await
+        .expect("skip run should create");
+        handler
+            .handle_workflow_dispatch(workflow_dispatch(&skipped_run, "created"))
+            .await
+            .expect("skip run should start filter");
+        let filter_dispatch = latest_session_dispatch(&pubsub, "filter-agent").await;
+        handler
+            .handle_session_message(SessionMessageEvent {
+                direction: MessageDirection::Inbound as i32,
+                ..filter_dispatch
+            })
+            .await
+            .expect("filter session should complete");
+        handler
+            .handle_workflow_dispatch(workflow_dispatch(&skipped_run, "child_session_completed"))
+            .await
+            .expect("skip run should complete");
+        let completed_skip = stored_run(&kv, "smoke", "lorem-router", &skipped_run.id).await;
+        assert_eq!(completed_skip.status, STATUS_COMPLETED);
+        assert_eq!(
+            stored_step(&kv, &completed_skip, "generate").await.status,
+            STATUS_SKIPPED
+        );
+        assert_eq!(
+            serde_json::from_str::<Value>(&completed_skip.output_json)
+                .expect("skip output should decode"),
+            json!({
+                "decision": "skip",
+                "reason": "lorem ipsum not requested",
+                "reply": {
+                    "silent": true,
+                    "text": "Generated after lorem filter: "
+                }
+            })
+        );
+
+        let lorem_run = create_run(
+            &handler.cp,
+            &workflow,
+            r#"{"message":{"text":"please generate lorem ipsum for the mock page"}}"#.to_string(),
+            HashMap::new(),
+        )
+        .await
+        .expect("lorem run should create");
+        handler
+            .handle_workflow_dispatch(workflow_dispatch(&lorem_run, "created"))
+            .await
+            .expect("lorem run should start filter");
+        let filter_dispatch = latest_session_dispatch(&pubsub, "filter-agent").await;
+        handler
+            .handle_session_message(SessionMessageEvent {
+                direction: MessageDirection::Inbound as i32,
+                ..filter_dispatch
+            })
+            .await
+            .expect("filter session should complete");
+        handler
+            .handle_workflow_dispatch(workflow_dispatch(&lorem_run, "child_session_completed"))
+            .await
+            .expect("lorem run should start generator");
+        let waiting = stored_run(&kv, "smoke", "lorem-router", &lorem_run.id).await;
+        assert_eq!(waiting.status, STATUS_WAITING_CHILDREN);
+        assert_eq!(
+            stored_step(&kv, &waiting, "generate").await.status,
+            STATUS_WAITING_CHILD_SESSION
+        );
+        let generator_dispatch = latest_session_dispatch(&pubsub, "lorem-generator").await;
+        handler
+            .handle_session_message(SessionMessageEvent {
+                direction: MessageDirection::Inbound as i32,
+                ..generator_dispatch
+            })
+            .await
+            .expect("generator session should complete");
+        handler
+            .handle_workflow_dispatch(workflow_dispatch(&lorem_run, "child_session_completed"))
+            .await
+            .expect("lorem run should complete");
+        let completed_lorem = stored_run(&kv, "smoke", "lorem-router", &lorem_run.id).await;
+        assert_eq!(completed_lorem.status, STATUS_COMPLETED);
+        assert_eq!(
+            stored_step(&kv, &completed_lorem, "generate").await.status,
+            STATUS_COMPLETED
+        );
+        assert_eq!(
+            serde_json::from_str::<Value>(&completed_lorem.output_json)
+                .expect("lorem output should decode"),
+            json!({
+                "decision": "execute",
+                "reason": "lorem ipsum requested",
+                "reply": {
+                    "silent": false,
+                    "text": "Generated after lorem filter: Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                }
+            })
+        );
+
+        unsafe {
+            std::env::remove_var("NOVITA_BASE_URL");
+        }
+        server.abort();
     }
 
     #[test]

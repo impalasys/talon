@@ -179,22 +179,77 @@ export class ChannelMessageConsumer extends Message<ChannelMessageConsumer> {
 }
 
 /**
+ * @generated from message talon.data.WorkflowMessageConsumer
+ */
+export class WorkflowMessageConsumer extends Message<WorkflowMessageConsumer> {
+  /**
+   * Workflow that consumes matching messages.
+   *
+   * @generated from field: talon.data.ResourceRef workflow = 1;
+   */
+  workflow?: ResourceRef;
+
+  /**
+   * Reply behavior requested from the workflow completion router, such as
+   * replying in the provider thread instead of the root conversation.
+   *
+   * @generated from field: string reply_mode = 2;
+   */
+  replyMode = "";
+
+  constructor(data?: PartialMessage<WorkflowMessageConsumer>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.WorkflowMessageConsumer";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "workflow", kind: "message", T: ResourceRef },
+    { no: 2, name: "reply_mode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowMessageConsumer {
+    return new WorkflowMessageConsumer().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowMessageConsumer {
+    return new WorkflowMessageConsumer().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowMessageConsumer {
+    return new WorkflowMessageConsumer().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkflowMessageConsumer | PlainMessage<WorkflowMessageConsumer> | undefined, b: WorkflowMessageConsumer | PlainMessage<WorkflowMessageConsumer> | undefined): boolean {
+    return proto3.util.equals(WorkflowMessageConsumer, a, b);
+  }
+}
+
+/**
  * @generated from message talon.data.MessageConsumer
  */
 export class MessageConsumer extends Message<MessageConsumer> {
   /**
-   * Session consumer payload. Mutually exclusive with channel.
+   * Session consumer payload. Mutually exclusive with channel and workflow.
    *
    * @generated from field: optional talon.data.SessionMessageConsumer session = 1;
    */
   session?: SessionMessageConsumer;
 
   /**
-   * Channel consumer payload. Mutually exclusive with session.
+   * Channel consumer payload. Mutually exclusive with session and workflow.
    *
    * @generated from field: optional talon.data.ChannelMessageConsumer channel = 2;
    */
   channel?: ChannelMessageConsumer;
+
+  /**
+   * Workflow consumer payload. Mutually exclusive with session and channel.
+   *
+   * @generated from field: optional talon.data.WorkflowMessageConsumer workflow = 3;
+   */
+  workflow?: WorkflowMessageConsumer;
 
   constructor(data?: PartialMessage<MessageConsumer>) {
     super();
@@ -206,6 +261,7 @@ export class MessageConsumer extends Message<MessageConsumer> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "session", kind: "message", T: SessionMessageConsumer, opt: true },
     { no: 2, name: "channel", kind: "message", T: ChannelMessageConsumer, opt: true },
+    { no: 3, name: "workflow", kind: "message", T: WorkflowMessageConsumer, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MessageConsumer {

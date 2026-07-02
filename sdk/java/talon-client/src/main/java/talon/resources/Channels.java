@@ -4614,6 +4614,18 @@ java.lang.String defaultValue);
      */
     java.lang.String getMetadataOrThrow(
         java.lang.String key);
+
+    /**
+     * <code>string workflow = 8;</code>
+     * @return The workflow.
+     */
+    java.lang.String getWorkflow();
+    /**
+     * <code>string workflow = 8;</code>
+     * @return The bytes for workflow.
+     */
+    com.google.protobuf.ByteString
+        getWorkflowBytes();
   }
   /**
    * Protobuf type {@code talon.resources.ChannelSubscriptionSpec}
@@ -4641,6 +4653,7 @@ java.lang.String defaultValue);
       agent_ = "";
       trigger_ = "";
       replyMode_ = "";
+      workflow_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -4946,6 +4959,45 @@ java.lang.String defaultValue) {
       return map.get(key);
     }
 
+    public static final int WORKFLOW_FIELD_NUMBER = 8;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object workflow_ = "";
+    /**
+     * <code>string workflow = 8;</code>
+     * @return The workflow.
+     */
+    @java.lang.Override
+    public java.lang.String getWorkflow() {
+      java.lang.Object ref = workflow_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        workflow_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string workflow = 8;</code>
+     * @return The bytes for workflow.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getWorkflowBytes() {
+      java.lang.Object ref = workflow_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        workflow_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -4984,6 +5036,9 @@ java.lang.String defaultValue) {
           internalGetMetadata(),
           MetadataDefaultEntryHolder.defaultEntry,
           7);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, workflow_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -5023,6 +5078,9 @@ java.lang.String defaultValue) {
         size += com.google.protobuf.CodedOutputStream
             .computeMessageSize(7, metadata__);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, workflow_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -5055,6 +5113,8 @@ java.lang.String defaultValue) {
           .equals(other.getReplyMode())) return false;
       if (!internalGetMetadata().equals(
           other.internalGetMetadata())) return false;
+      if (!getWorkflow()
+          .equals(other.getWorkflow())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -5085,6 +5145,8 @@ java.lang.String defaultValue) {
         hash = (37 * hash) + METADATA_FIELD_NUMBER;
         hash = (53 * hash) + internalGetMetadata().hashCode();
       }
+      hash = (37 * hash) + WORKFLOW_FIELD_NUMBER;
+      hash = (53 * hash) + getWorkflow().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -5255,6 +5317,7 @@ java.lang.String defaultValue) {
         }
         replyMode_ = "";
         internalGetMutableMetadata().clear();
+        workflow_ = "";
         return this;
       }
 
@@ -5314,6 +5377,9 @@ java.lang.String defaultValue) {
           result.metadata_ = internalGetMetadata();
           result.metadata_.makeImmutable();
         }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.workflow_ = workflow_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -5358,6 +5424,11 @@ java.lang.String defaultValue) {
         internalGetMutableMetadata().mergeFrom(
             other.internalGetMetadata());
         bitField0_ |= 0x00000040;
+        if (!other.getWorkflow().isEmpty()) {
+          workflow_ = other.workflow_;
+          bitField0_ |= 0x00000080;
+          onChanged();
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -5425,6 +5496,11 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000040;
                 break;
               } // case 58
+              case 66: {
+                workflow_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 66
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -6010,6 +6086,78 @@ java.lang.String defaultValue) {
         return this;
       }
 
+      private java.lang.Object workflow_ = "";
+      /**
+       * <code>string workflow = 8;</code>
+       * @return The workflow.
+       */
+      public java.lang.String getWorkflow() {
+        java.lang.Object ref = workflow_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          workflow_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string workflow = 8;</code>
+       * @return The bytes for workflow.
+       */
+      public com.google.protobuf.ByteString
+          getWorkflowBytes() {
+        java.lang.Object ref = workflow_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          workflow_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string workflow = 8;</code>
+       * @param value The workflow to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWorkflow(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        workflow_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string workflow = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearWorkflow() {
+        workflow_ = getDefaultInstance().getWorkflow();
+        bitField0_ = (bitField0_ & ~0x00000080);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string workflow = 8;</code>
+       * @param value The bytes for workflow to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWorkflowBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        workflow_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.resources.ChannelSubscriptionSpec)
     }
 
@@ -6129,15 +6277,15 @@ java.lang.String defaultValue) {
       "on.resources.ResourceMeta\0226\n\004spec\030\002 \001(\0132" +
       "(.talon.resources.ChannelSubscriptionSpe" +
       "c\0225\n\006status\030\003 \001(\0132%.talon.resources.Comm" +
-      "onResourceStatus\"\251\002\n\027ChannelSubscription" +
+      "onResourceStatus\"\273\002\n\027ChannelSubscription" +
       "Spec\022\017\n\007channel\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\017\n\007" +
       "enabled\030\003 \001(\010\022\017\n\007trigger\030\004 \001(\t\022=\n\016contex" +
       "t_policy\030\005 \001(\0132%.talon.resources.Channel" +
       "ContextPolicy\022\022\n\nreply_mode\030\006 \001(\t\022H\n\010met" +
       "adata\030\007 \003(\01326.talon.resources.ChannelSub" +
-      "scriptionSpec.MetadataEntry\032/\n\rMetadataE" +
-      "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001b\006pr" +
-      "oto3"
+      "scriptionSpec.MetadataEntry\022\020\n\010workflow\030" +
+      "\010 \001(\t\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005v" +
+      "alue\030\002 \001(\t:\0028\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -6185,7 +6333,7 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_ChannelSubscriptionSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ChannelSubscriptionSpec_descriptor,
-        new java.lang.String[] { "Channel", "Agent", "Enabled", "Trigger", "ContextPolicy", "ReplyMode", "Metadata", });
+        new java.lang.String[] { "Channel", "Agent", "Enabled", "Trigger", "ContextPolicy", "ReplyMode", "Metadata", "Workflow", });
     internal_static_talon_resources_ChannelSubscriptionSpec_MetadataEntry_descriptor =
       internal_static_talon_resources_ChannelSubscriptionSpec_descriptor.getNestedType(0);
     internal_static_talon_resources_ChannelSubscriptionSpec_MetadataEntry_fieldAccessorTable = new

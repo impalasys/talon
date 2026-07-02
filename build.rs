@@ -129,6 +129,7 @@ fn main() -> std::io::Result<()> {
         ".talon.data.ResourceRef",
         ".talon.data.Route",
         ".talon.data.SessionMessageConsumer",
+        ".talon.data.WorkflowMessageConsumer",
         ".talon.data.Session",
         ".talon.data.SessionMessage",
         ".talon.data.SessionMessagePart",

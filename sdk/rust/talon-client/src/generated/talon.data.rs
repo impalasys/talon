@@ -46,13 +46,26 @@ pub struct ChannelMessageConsumer {
     pub reply_policy: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkflowMessageConsumer {
+    /// Workflow that consumes matching messages.
+    #[prost(message, optional, tag = "1")]
+    pub workflow: ::core::option::Option<ResourceRef>,
+    /// Reply behavior requested from the workflow completion router, such as
+    /// replying in the provider thread instead of the root conversation.
+    #[prost(string, tag = "2")]
+    pub reply_mode: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MessageConsumer {
-    /// Session consumer payload. Mutually exclusive with channel.
+    /// Session consumer payload. Mutually exclusive with channel and workflow.
     #[prost(message, optional, tag = "1")]
     pub session: ::core::option::Option<SessionMessageConsumer>,
-    /// Channel consumer payload. Mutually exclusive with session.
+    /// Channel consumer payload. Mutually exclusive with session and workflow.
     #[prost(message, optional, tag = "2")]
     pub channel: ::core::option::Option<ChannelMessageConsumer>,
+    /// Workflow consumer payload. Mutually exclusive with session and channel.
+    #[prost(message, optional, tag = "3")]
+    pub workflow: ::core::option::Option<WorkflowMessageConsumer>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ApiKeyGrant {

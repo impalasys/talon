@@ -104,6 +104,16 @@ export class RoutedChannelSession extends Message<RoutedChannelSession> {
    */
   error = "";
 
+  /**
+   * @generated from field: string workflow = 5;
+   */
+  workflow = "";
+
+  /**
+   * @generated from field: string workflow_run_id = 6;
+   */
+  workflowRunId = "";
+
   constructor(data?: PartialMessage<RoutedChannelSession>) {
     super();
     proto3.util.initPartial(data, this);
@@ -116,6 +126,8 @@ export class RoutedChannelSession extends Message<RoutedChannelSession> {
     { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "error", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "workflow", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "workflow_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RoutedChannelSession {

@@ -57,6 +57,7 @@ struct ChannelSubscriptionManifest {
 struct ChannelSubscriptionSpecManifest {
     channel: String,
     agent: String,
+    workflow: String,
     enabled: bool,
     trigger: String,
     reply_mode: String,

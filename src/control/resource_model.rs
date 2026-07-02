@@ -288,6 +288,7 @@ impl ChannelResourceExt for resources_proto::Channel {
 pub trait ChannelSubscriptionResourceExt {
     fn channel(&self) -> &str;
     fn agent(&self) -> &str;
+    fn workflow(&self) -> &str;
     fn enabled(&self) -> bool;
     fn trigger(&self) -> &str;
     fn reply_mode(&self) -> &str;
@@ -308,6 +309,13 @@ impl ChannelSubscriptionResourceExt for resources_proto::ChannelSubscription {
         self.spec
             .as_ref()
             .map(|spec| spec.agent.as_str())
+            .unwrap_or_default()
+    }
+
+    fn workflow(&self) -> &str {
+        self.spec
+            .as_ref()
+            .map(|spec| spec.workflow.as_str())
             .unwrap_or_default()
     }
 
