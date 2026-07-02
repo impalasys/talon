@@ -11,7 +11,7 @@ use anyhow::Context;
 use serde_json::json;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
 const LABEL_CONNECTOR: &str = "talon.impalasys.com/connector";
@@ -38,7 +38,17 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<external_proto::ConnectorMessageEvent>,
     ) -> Result<tonic::Response<external_proto::ConnectorMessageEventResponse>, tonic::Status> {
+        let started = Instant::now();
         let event = req.into_inner();
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            external_conversation_id = %event.external_conversation_id,
+            external_thread_id = %event.external_thread_id.as_deref().unwrap_or_default(),
+            external_message_id = %event.external_message_id,
+            "connector message event received"
+        );
         if event.registration_id.trim().is_empty() {
             return Err(tonic::Status::invalid_argument(
                 "registration_id is required",
@@ -54,11 +64,37 @@ impl GrpcGatewayHandler {
             )));
         }
 
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector message event resolving ConnectorClass"
+        );
         let class = self
             .class_for_registration(&event.registration_id, &event.connector_class)
             .await?;
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            class_namespace = %class.namespace,
+            class_name = %class.name,
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector message event resolved ConnectorClass"
+        );
 
         let event_key = keys::connector_event(&class.namespace, &class.name, &event.event_id);
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            class_namespace = %class.namespace,
+            class_name = %class.name,
+            event_key = %event_key,
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector message event reserving"
+        );
         if !self
             .gateway
             .kv
@@ -66,6 +102,15 @@ impl GrpcGatewayHandler {
             .await
             .map_err(internal_error)?
         {
+            tracing::info!(
+                registration_id = %event.registration_id,
+                connector_class = %event.connector_class,
+                event_id = %event.event_id,
+                class_namespace = %class.namespace,
+                class_name = %class.name,
+                elapsed_ms = started.elapsed().as_millis(),
+                "connector message event duplicate ignored"
+            );
             return Ok(tonic::Response::new(
                 external_proto::ConnectorMessageEventResponse {
                     status: external_proto::ConnectorMessageEventStatus::Duplicate as i32,
@@ -76,7 +121,26 @@ impl GrpcGatewayHandler {
                 },
             ));
         }
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            class_namespace = %class.namespace,
+            class_name = %class.name,
+            event_key = %event_key,
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector message event reserved"
+        );
 
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            class_namespace = %class.namespace,
+            class_name = %class.name,
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector message event resolving route"
+        );
         let Some(route) = connectors::resolve_route(
             self.gateway.kv.as_ref(),
             &class.namespace,
@@ -91,6 +155,9 @@ impl GrpcGatewayHandler {
                 registration_id = %event.registration_id,
                 connector_class = %event.connector_class,
                 event_id = %event.event_id,
+                class_namespace = %class.namespace,
+                class_name = %class.name,
+                elapsed_ms = started.elapsed().as_millis(),
                 "connector message event did not match any Connector"
             );
             self.gateway
@@ -108,11 +175,38 @@ impl GrpcGatewayHandler {
                 },
             ));
         };
+        let connector_ref = route_connector_ref(&route)?;
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            class_namespace = %class.namespace,
+            class_name = %class.name,
+            connector_namespace = %connector_ref.namespace,
+            connector_name = %connector_ref.name,
+            route_uid = %route.connector_uid,
+            consumer_kind = %message_consumer_kind(&route.consumer),
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector message event matched route"
+        );
 
         let consumer = route
             .consumer
             .clone()
             .ok_or_else(|| tonic::Status::failed_precondition("Route consumer is missing"))?;
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            class_namespace = %class.namespace,
+            class_name = %class.name,
+            connector_namespace = %connector_ref.namespace,
+            connector_name = %connector_ref.name,
+            route_uid = %route.connector_uid,
+            consumer_kind = %message_consumer_kind(&Some(consumer.clone())),
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector message event dispatch starting"
+        );
         if let Err(err) =
             dispatch_connector_message(&self.gateway.control_plane(), &route, &consumer, &event)
                 .await
@@ -125,14 +219,51 @@ impl GrpcGatewayHandler {
                     "failed to release connector event reservation after dispatch error"
                 );
             }
+            tracing::warn!(
+                error = %err,
+                registration_id = %event.registration_id,
+                connector_class = %event.connector_class,
+                event_id = %event.event_id,
+                class_namespace = %class.namespace,
+                class_name = %class.name,
+                connector_namespace = %connector_ref.namespace,
+                connector_name = %connector_ref.name,
+                route_uid = %route.connector_uid,
+                elapsed_ms = started.elapsed().as_millis(),
+                "connector message event dispatch failed"
+            );
             return Err(err);
         }
 
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            class_namespace = %class.namespace,
+            class_name = %class.name,
+            connector_namespace = %connector_ref.namespace,
+            connector_name = %connector_ref.name,
+            route_uid = %route.connector_uid,
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector message event marking dispatched"
+        );
         self.gateway
             .kv
             .set(&event_key, b"dispatched")
             .await
             .map_err(internal_error)?;
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            class_namespace = %class.namespace,
+            class_name = %class.name,
+            connector_namespace = %connector_ref.namespace,
+            connector_name = %connector_ref.name,
+            route_uid = %route.connector_uid,
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector message event dispatched"
+        );
 
         let connector = route_connector_ref(&route)?;
         Ok(tonic::Response::new(
@@ -525,12 +656,30 @@ async fn dispatch_connector_message(
     }
 }
 
+fn message_consumer_kind(consumer: &Option<data_proto::MessageConsumer>) -> &'static str {
+    let Some(consumer) = consumer else {
+        return "missing";
+    };
+    match (
+        consumer.session.as_ref(),
+        consumer.channel.as_ref(),
+        consumer.workflow.as_ref(),
+    ) {
+        (Some(_), None, None) => "session",
+        (None, Some(_), None) => "channel",
+        (None, None, Some(_)) => "workflow",
+        (None, None, None) => "empty",
+        _ => "invalid",
+    }
+}
+
 async fn dispatch_to_session(
     cp: &ControlPlane,
     route: &data_proto::Route,
     consumer: &data_proto::SessionMessageConsumer,
     event: &external_proto::ConnectorMessageEvent,
 ) -> Result<(), tonic::Status> {
+    let started = Instant::now();
     let connector = route_connector_ref(route)?;
     let agent = consumer
         .agent
@@ -540,6 +689,20 @@ async fn dispatch_to_session(
     let agent_name = consumer_ref_name(agent, "Session consumer requires agent name")?;
     let mut labels = connector_labels(route, event)?;
     labels.insert(LABEL_MESSAGE_SOURCE.to_string(), "connector".to_string());
+    tracing::info!(
+        registration_id = %event.registration_id,
+        connector_class = %event.connector_class,
+        event_id = %event.event_id,
+        route_uid = %route.connector_uid,
+        connector_namespace = %connector.namespace,
+        connector_name = %connector.name,
+        agent_namespace = %agent_namespace,
+        agent_name = %agent_name,
+        configured_continuity = %consumer.continuity,
+        configured_session_id = %consumer.session_id,
+        elapsed_ms = started.elapsed().as_millis(),
+        "connector session dispatch selecting session"
+    );
     let session_id = connector_session_id(
         cp,
         route,
@@ -551,6 +714,19 @@ async fn dispatch_to_session(
     )
     .await?;
     let message = connector_session_message(event, labels)?;
+    let message_id = message.id.clone();
+    tracing::info!(
+        registration_id = %event.registration_id,
+        connector_class = %event.connector_class,
+        event_id = %event.event_id,
+        route_uid = %route.connector_uid,
+        agent_namespace = %agent_namespace,
+        agent_name = %agent_name,
+        session_id = %session_id,
+        message_id = %message_id,
+        elapsed_ms = started.elapsed().as_millis(),
+        "connector message dispatching to session"
+    );
     scheduling::send_session_message(
         cp.kv.as_ref(),
         cp.pubsub.as_ref(),
@@ -562,6 +738,18 @@ async fn dispatch_to_session(
     )
     .await
     .map_err(map_dispatch_error)?;
+    tracing::info!(
+        registration_id = %event.registration_id,
+        connector_class = %event.connector_class,
+        event_id = %event.event_id,
+        route_uid = %route.connector_uid,
+        agent_namespace = %agent_namespace,
+        agent_name = %agent_name,
+        session_id = %session_id,
+        message_id = %message_id,
+        elapsed_ms = started.elapsed().as_millis(),
+        "connector message queued for session dispatch"
+    );
     Ok(())
 }
 
@@ -684,6 +872,7 @@ async fn connector_session_id(
     event: &external_proto::ConnectorMessageEvent,
     labels: HashMap<String, String>,
 ) -> Result<String, tonic::Status> {
+    let started = Instant::now();
     if !consumer.session_id.trim().is_empty() {
         if !consumer.continuity.trim().is_empty()
             && !consumer.continuity.eq_ignore_ascii_case("pinned")
@@ -694,6 +883,19 @@ async fn connector_session_id(
         }
         ensure_connector_session_exists(cp, agent_namespace, agent_name, &consumer.session_id)
             .await?;
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            route_uid = %route.connector_uid,
+            agent_namespace = %agent_namespace,
+            agent_name = %agent_name,
+            session_mode = "pinned",
+            session_outcome = "existing",
+            session_id = %consumer.session_id,
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector session selected"
+        );
         Ok(consumer.session_id.clone())
     } else if consumer.continuity.eq_ignore_ascii_case("pinned") {
         Err(tonic::Status::failed_precondition(
@@ -711,6 +913,20 @@ async fn connector_session_id(
         if let Some(session_id) =
             existing_connector_session(cp, &key, agent_namespace, agent_name).await?
         {
+            tracing::info!(
+                registration_id = %event.registration_id,
+                connector_class = %event.connector_class,
+                event_id = %event.event_id,
+                route_uid = %route.connector_uid,
+                agent_namespace = %agent_namespace,
+                agent_name = %agent_name,
+                session_mode = "reuse",
+                session_outcome = "existing",
+                session_id = %session_id,
+                session_pointer_key = %key,
+                elapsed_ms = started.elapsed().as_millis(),
+                "connector session selected"
+            );
             return Ok(session_id);
         }
         let reservation = format!(
@@ -723,8 +939,56 @@ async fn connector_session_id(
             .await
             .map_err(internal_error)?
         {
-            return wait_for_connector_session(cp, &key, agent_namespace, agent_name).await;
+            tracing::info!(
+                registration_id = %event.registration_id,
+                connector_class = %event.connector_class,
+                event_id = %event.event_id,
+                route_uid = %route.connector_uid,
+                agent_namespace = %agent_namespace,
+                agent_name = %agent_name,
+                session_mode = "reuse",
+                session_outcome = "waiting_for_reservation",
+                session_pointer_key = %key,
+                elapsed_ms = started.elapsed().as_millis(),
+                "connector session reservation already exists"
+            );
+            return wait_for_connector_session(
+                cp,
+                &key,
+                agent_namespace,
+                agent_name,
+                &event.registration_id,
+                &event.connector_class,
+                &event.event_id,
+                &route.connector_uid,
+            )
+            .await;
         }
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            route_uid = %route.connector_uid,
+            agent_namespace = %agent_namespace,
+            agent_name = %agent_name,
+            session_mode = "reuse",
+            session_outcome = "reserved",
+            session_pointer_key = %key,
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector session reservation created"
+        );
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            route_uid = %route.connector_uid,
+            agent_namespace = %agent_namespace,
+            agent_name = %agent_name,
+            session_mode = "reuse",
+            session_pointer_key = %key,
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector session creating"
+        );
         let session_id =
             scheduling::create_session_with_labels(cp, agent_namespace, agent_name, labels)
                 .await
@@ -740,11 +1004,51 @@ async fn connector_session_id(
                 "connector session reservation was lost",
             ));
         }
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            route_uid = %route.connector_uid,
+            agent_namespace = %agent_namespace,
+            agent_name = %agent_name,
+            session_mode = "reuse",
+            session_outcome = "created",
+            session_id = %session_id,
+            session_pointer_key = %key,
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector session selected"
+        );
         Ok(session_id)
     } else {
-        scheduling::create_session_with_labels(cp, agent_namespace, agent_name, labels)
-            .await
-            .map_err(map_dispatch_error)
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            route_uid = %route.connector_uid,
+            agent_namespace = %agent_namespace,
+            agent_name = %agent_name,
+            session_mode = "new",
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector session creating"
+        );
+        let session_id =
+            scheduling::create_session_with_labels(cp, agent_namespace, agent_name, labels)
+                .await
+                .map_err(map_dispatch_error)?;
+        tracing::info!(
+            registration_id = %event.registration_id,
+            connector_class = %event.connector_class,
+            event_id = %event.event_id,
+            route_uid = %route.connector_uid,
+            agent_namespace = %agent_namespace,
+            agent_name = %agent_name,
+            session_mode = "new",
+            session_outcome = "created",
+            session_id = %session_id,
+            elapsed_ms = started.elapsed().as_millis(),
+            "connector session selected"
+        );
+        Ok(session_id)
     }
 }
 
@@ -872,15 +1176,44 @@ async fn wait_for_connector_session(
     key: &crate::control::keys::ResourceKey,
     agent_namespace: &str,
     agent_name: &str,
+    registration_id: &str,
+    connector_class: &str,
+    event_id: &str,
+    route_uid: &str,
 ) -> Result<String, tonic::Status> {
-    for _ in 0..40 {
+    let started = Instant::now();
+    for attempt in 0..40 {
         if let Some(session_id) =
             existing_connector_session(cp, key, agent_namespace, agent_name).await?
         {
+            tracing::info!(
+                registration_id = %registration_id,
+                connector_class = %connector_class,
+                event_id = %event_id,
+                route_uid = %route_uid,
+                agent_namespace = %agent_namespace,
+                agent_name = %agent_name,
+                session_id = %session_id,
+                session_pointer_key = %key,
+                wait_attempt = attempt,
+                elapsed_ms = started.elapsed().as_millis(),
+                "connector session reservation resolved"
+            );
             return Ok(session_id);
         }
         tokio::time::sleep(Duration::from_millis(50)).await;
     }
+    tracing::warn!(
+        registration_id = %registration_id,
+        connector_class = %connector_class,
+        event_id = %event_id,
+        route_uid = %route_uid,
+        agent_namespace = %agent_namespace,
+        agent_name = %agent_name,
+        session_pointer_key = %key,
+        elapsed_ms = started.elapsed().as_millis(),
+        "connector session reservation wait timed out"
+    );
     Err(tonic::Status::aborted(
         "timed out waiting for connector session reservation",
     ))

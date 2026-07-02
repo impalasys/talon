@@ -51,7 +51,10 @@ fn session_message_text(message: &data_proto::SessionMessage) -> String {
     message
         .parts
         .iter()
-        .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+        .filter(|part| {
+            part.part_type == data_proto::SessionMessagePartType::Text as i32
+                || part.part_type == data_proto::SessionMessagePartType::Error as i32
+        })
         .map(|part| part.content.trim())
         .filter(|content| !content.is_empty())
         .collect::<Vec<_>>()
@@ -816,6 +819,26 @@ impl WorkerEventHandler {
             }
         }
 
+        if completion_status != SessionCompletionStatus::Completed {
+            if let Err(err) = self
+                .maybe_deliver_connector_session_reply(
+                    ns,
+                    &event.agent,
+                    &event.session_id,
+                    &sink.reply_msg_id,
+                )
+                .await
+            {
+                tracing::warn!(
+                    error = %err,
+                    agent = %event.agent,
+                    session = %event.session_id,
+                    message_id = %sink.reply_msg_id,
+                    "failed to deliver failed connector session reply"
+                );
+            }
+        }
+
         if let Ok((status, summary)) = &outcome {
             tracing::info!(
                 agent = %event.agent,
@@ -1068,7 +1091,7 @@ mod tests {
         WorkerEventHandler,
     };
     use async_trait::async_trait;
-    use axum::{routing::post, Json, Router};
+    use axum::{extract::State, routing::post, Json, Router};
     use futures::stream;
     use prost::Message;
     use serde_json::json;
@@ -1149,6 +1172,53 @@ mod tests {
                                 phase: String::new(),
                                 conditions: Vec::new(),
                                 last_session_id: None,
+                            },
+                        )),
+                    }),
+                },
+            )
+            .await
+            .unwrap();
+    }
+
+    async fn put_connector_class_resource(kv: Arc<MockKvStore>, endpoint: String) {
+        let store = crate::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
+        store
+            .upsert(
+                "conic:test",
+                resources_proto::Resource {
+                    api_version: "talon.impalasys.com/v1".to_string(),
+                    kind: "ConnectorClass".to_string(),
+                    metadata: Some(resources_proto::ResourceMeta {
+                        name: "slack".to_string(),
+                        namespace: "conic:test".to_string(),
+                        ..Default::default()
+                    }),
+                    spec: Some(resources_proto::ResourceSpec {
+                        kind: Some(resources_proto::resource_spec::Kind::ConnectorClass(
+                            resources_proto::ConnectorClassSpec {
+                                platform: "slack".to_string(),
+                                runtime: Some(resources_proto::ConnectorClassRuntimeSpec {
+                                    kind: "externalService".to_string(),
+                                    endpoint,
+                                }),
+                                auth: Some(resources_proto::ConnectorClassAuthSpec {
+                                    kind: "apiKey".to_string(),
+                                    api_key: Some(resources_proto::ConnectorSecretRef {
+                                        plain: Some("connector-runtime-key".to_string()),
+                                        env: None,
+                                    }),
+                                }),
+                                match_indexes: Vec::new(),
+                            },
+                        )),
+                    }),
+                    status: Some(resources_proto::ResourceStatus {
+                        kind: Some(resources_proto::resource_status::Kind::ConnectorClass(
+                            resources_proto::ConnectorClassStatus {
+                                observed_generation: 1,
+                                phase: "Ready".to_string(),
+                                conditions: Vec::new(),
                             },
                         )),
                     }),
@@ -1672,6 +1742,184 @@ mod tests {
         assert!(error_part
             .content
             .contains("OpenAI provider config is missing api_key"));
+    }
+
+    #[tokio::test]
+    async fn handle_session_message_delivers_connector_error_reply() {
+        let kv = Arc::new(MockKvStore::default());
+        let deliveries: Arc<Mutex<Vec<Value>>> = Arc::new(Mutex::new(Vec::new()));
+        let app = Router::new()
+            .route(
+                "/v1/deliveries",
+                post(
+                    |State(deliveries): State<Arc<Mutex<Vec<Value>>>>,
+                     Json(payload): Json<Value>| async move {
+                        deliveries.lock().unwrap().push(payload);
+                        Json(json!({
+                            "accepted": true,
+                            "disposition": "accepted",
+                            "error": ""
+                        }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/activities",
+                post(|| async {
+                    Json(json!({
+                        "accepted": true,
+                        "disposition": "accepted",
+                        "error": ""
+                    }))
+                }),
+            )
+            .with_state(deliveries.clone());
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let endpoint = format!("http://{}", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let handler = handler_with_config(
+            kv.clone(),
+            Config {
+                providers: HashMap::from([(
+                    "openai".to_string(),
+                    ProviderConfig {
+                        config: Some(proto::llm_provider_config::Config::Openai(
+                            proto::OpenAiConfig {
+                                model: "gpt-test".to_string(),
+                                api_key: None,
+                                org_id: String::new(),
+                            },
+                        )),
+                    },
+                )]),
+                default_provider: "openai".to_string(),
+                ..Config::default()
+            },
+        );
+        put_agent_resource(
+            kv.clone(),
+            "conic:test",
+            "assistant",
+            manifests::AgentSpec {
+                features: Vec::new(),
+                model_policy: None,
+                system_prompt: "assist".to_string(),
+                mcp_server_refs: Vec::new(),
+                capabilities: HashMap::new(),
+                a2a: None,
+                runtime: None,
+            },
+        )
+        .await;
+        put_connector_class_resource(kv.clone(), endpoint).await;
+        kv.set_msg(
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "assistant".to_string(),
+                ns: "conic:test".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 0,
+                last_active: 123,
+                metadata: HashMap::new(),
+                labels: HashMap::from([
+                    (
+                        "talon.impalasys.com/message-source".to_string(),
+                        "connector".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/connector-registration".to_string(),
+                        "Namespace/conic%3Atest/ConnectorClass/slack".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/connector".to_string(),
+                        "slack-main".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/connector-class".to_string(),
+                        "slack".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/connector-event".to_string(),
+                        "Ev123".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/external-conversation".to_string(),
+                        "C123".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/external-thread".to_string(),
+                        "1710000000.000100".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/external-message".to_string(),
+                        "1710000000.000100".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/connector-match/teamId".to_string(),
+                        "T123".to_string(),
+                    ),
+                ]),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "user-1",
+            ),
+            &data_proto::SessionMessage {
+                id: "user-1".to_string(),
+                role: data_proto::MessageRole::RoleUser as i32,
+                created_at: 1,
+                labels: HashMap::new(),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: "000000".to_string(),
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
+                    content: "operator prompt".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 1,
+                    object: None,
+                }],
+            },
+        )
+        .await
+        .unwrap();
+
+        handler
+            .handle_session_message(SessionMessageEvent {
+                ns: "conic:test".to_string(),
+                agent: "assistant".to_string(),
+                session_id: "session-1".to_string(),
+                message_id: "user-1".to_string(),
+                submission_id: "user-1".to_string(),
+                direction: MessageDirection::Inbound as i32,
+                message: "operator prompt".to_string(),
+                timestamp: 123,
+            })
+            .await
+            .expect("runtime build errors should be persisted, delivered, and acked");
+
+        let deliveries = deliveries.lock().unwrap().clone();
+        assert_eq!(deliveries.len(), 1);
+        let delivery = &deliveries[0];
+        assert_eq!(delivery["deliveryId"], "user-1-assistant");
+        assert_eq!(delivery["connectorClass"], "slack");
+        assert_eq!(delivery["connectorName"], "slack-main");
+        assert_eq!(delivery["externalConversationId"], "C123");
+        assert!(delivery["text"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("OpenAI provider config is missing api_key"));
+
+        server.abort();
     }
 
     #[tokio::test]
