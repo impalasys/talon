@@ -796,33 +796,33 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
     /**
      * <pre>
-     * API key or secret reference used to authenticate this Talon cluster to the
-     * connector service.
+     * API key source used to authenticate this Talon cluster to the connector
+     * service.
      * </pre>
      *
-     * <code>.talon.config.Secret api_key = 2;</code>
+     * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
      * @return Whether the apiKey field is set.
      */
     boolean hasApiKey();
     /**
      * <pre>
-     * API key or secret reference used to authenticate this Talon cluster to the
-     * connector service.
+     * API key source used to authenticate this Talon cluster to the connector
+     * service.
      * </pre>
      *
-     * <code>.talon.config.Secret api_key = 2;</code>
+     * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
      * @return The apiKey.
      */
-    talon.config.Config.Secret getApiKey();
+    talon.resources.Connectors.ConnectorSecretRef getApiKey();
     /**
      * <pre>
-     * API key or secret reference used to authenticate this Talon cluster to the
-     * connector service.
+     * API key source used to authenticate this Talon cluster to the connector
+     * service.
      * </pre>
      *
-     * <code>.talon.config.Secret api_key = 2;</code>
+     * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
      */
-    talon.config.Config.SecretOrBuilder getApiKeyOrBuilder();
+    talon.resources.Connectors.ConnectorSecretRefOrBuilder getApiKeyOrBuilder();
   }
   /**
    * Protobuf type {@code talon.resources.ConnectorClassAuthSpec}
@@ -916,14 +916,14 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     }
 
     public static final int API_KEY_FIELD_NUMBER = 2;
-    private talon.config.Config.Secret apiKey_;
+    private talon.resources.Connectors.ConnectorSecretRef apiKey_;
     /**
      * <pre>
-     * API key or secret reference used to authenticate this Talon cluster to the
-     * connector service.
+     * API key source used to authenticate this Talon cluster to the connector
+     * service.
      * </pre>
      *
-     * <code>.talon.config.Secret api_key = 2;</code>
+     * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
      * @return Whether the apiKey field is set.
      */
     @java.lang.Override
@@ -932,28 +932,28 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
     }
     /**
      * <pre>
-     * API key or secret reference used to authenticate this Talon cluster to the
-     * connector service.
+     * API key source used to authenticate this Talon cluster to the connector
+     * service.
      * </pre>
      *
-     * <code>.talon.config.Secret api_key = 2;</code>
+     * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
      * @return The apiKey.
      */
     @java.lang.Override
-    public talon.config.Config.Secret getApiKey() {
-      return apiKey_ == null ? talon.config.Config.Secret.getDefaultInstance() : apiKey_;
+    public talon.resources.Connectors.ConnectorSecretRef getApiKey() {
+      return apiKey_ == null ? talon.resources.Connectors.ConnectorSecretRef.getDefaultInstance() : apiKey_;
     }
     /**
      * <pre>
-     * API key or secret reference used to authenticate this Talon cluster to the
-     * connector service.
+     * API key source used to authenticate this Talon cluster to the connector
+     * service.
      * </pre>
      *
-     * <code>.talon.config.Secret api_key = 2;</code>
+     * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
      */
     @java.lang.Override
-    public talon.config.Config.SecretOrBuilder getApiKeyOrBuilder() {
-      return apiKey_ == null ? talon.config.Config.Secret.getDefaultInstance() : apiKey_;
+    public talon.resources.Connectors.ConnectorSecretRefOrBuilder getApiKeyOrBuilder() {
+      return apiKey_ == null ? talon.resources.Connectors.ConnectorSecretRef.getDefaultInstance() : apiKey_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -1387,16 +1387,16 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      private talon.config.Config.Secret apiKey_;
+      private talon.resources.Connectors.ConnectorSecretRef apiKey_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder> apiKeyBuilder_;
+          talon.resources.Connectors.ConnectorSecretRef, talon.resources.Connectors.ConnectorSecretRef.Builder, talon.resources.Connectors.ConnectorSecretRefOrBuilder> apiKeyBuilder_;
       /**
        * <pre>
-       * API key or secret reference used to authenticate this Talon cluster to the
-       * connector service.
+       * API key source used to authenticate this Talon cluster to the connector
+       * service.
        * </pre>
        *
-       * <code>.talon.config.Secret api_key = 2;</code>
+       * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
        * @return Whether the apiKey field is set.
        */
       public boolean hasApiKey() {
@@ -1404,29 +1404,29 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * API key or secret reference used to authenticate this Talon cluster to the
-       * connector service.
+       * API key source used to authenticate this Talon cluster to the connector
+       * service.
        * </pre>
        *
-       * <code>.talon.config.Secret api_key = 2;</code>
+       * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
        * @return The apiKey.
        */
-      public talon.config.Config.Secret getApiKey() {
+      public talon.resources.Connectors.ConnectorSecretRef getApiKey() {
         if (apiKeyBuilder_ == null) {
-          return apiKey_ == null ? talon.config.Config.Secret.getDefaultInstance() : apiKey_;
+          return apiKey_ == null ? talon.resources.Connectors.ConnectorSecretRef.getDefaultInstance() : apiKey_;
         } else {
           return apiKeyBuilder_.getMessage();
         }
       }
       /**
        * <pre>
-       * API key or secret reference used to authenticate this Talon cluster to the
-       * connector service.
+       * API key source used to authenticate this Talon cluster to the connector
+       * service.
        * </pre>
        *
-       * <code>.talon.config.Secret api_key = 2;</code>
+       * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
        */
-      public Builder setApiKey(talon.config.Config.Secret value) {
+      public Builder setApiKey(talon.resources.Connectors.ConnectorSecretRef value) {
         if (apiKeyBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -1441,14 +1441,14 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * API key or secret reference used to authenticate this Talon cluster to the
-       * connector service.
+       * API key source used to authenticate this Talon cluster to the connector
+       * service.
        * </pre>
        *
-       * <code>.talon.config.Secret api_key = 2;</code>
+       * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
        */
       public Builder setApiKey(
-          talon.config.Config.Secret.Builder builderForValue) {
+          talon.resources.Connectors.ConnectorSecretRef.Builder builderForValue) {
         if (apiKeyBuilder_ == null) {
           apiKey_ = builderForValue.build();
         } else {
@@ -1460,17 +1460,17 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * API key or secret reference used to authenticate this Talon cluster to the
-       * connector service.
+       * API key source used to authenticate this Talon cluster to the connector
+       * service.
        * </pre>
        *
-       * <code>.talon.config.Secret api_key = 2;</code>
+       * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
        */
-      public Builder mergeApiKey(talon.config.Config.Secret value) {
+      public Builder mergeApiKey(talon.resources.Connectors.ConnectorSecretRef value) {
         if (apiKeyBuilder_ == null) {
           if (((bitField0_ & 0x00000002) != 0) &&
             apiKey_ != null &&
-            apiKey_ != talon.config.Config.Secret.getDefaultInstance()) {
+            apiKey_ != talon.resources.Connectors.ConnectorSecretRef.getDefaultInstance()) {
             getApiKeyBuilder().mergeFrom(value);
           } else {
             apiKey_ = value;
@@ -1486,11 +1486,11 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * API key or secret reference used to authenticate this Talon cluster to the
-       * connector service.
+       * API key source used to authenticate this Talon cluster to the connector
+       * service.
        * </pre>
        *
-       * <code>.talon.config.Secret api_key = 2;</code>
+       * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
        */
       public Builder clearApiKey() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -1504,47 +1504,47 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * API key or secret reference used to authenticate this Talon cluster to the
-       * connector service.
+       * API key source used to authenticate this Talon cluster to the connector
+       * service.
        * </pre>
        *
-       * <code>.talon.config.Secret api_key = 2;</code>
+       * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
        */
-      public talon.config.Config.Secret.Builder getApiKeyBuilder() {
+      public talon.resources.Connectors.ConnectorSecretRef.Builder getApiKeyBuilder() {
         bitField0_ |= 0x00000002;
         onChanged();
         return internalGetApiKeyFieldBuilder().getBuilder();
       }
       /**
        * <pre>
-       * API key or secret reference used to authenticate this Talon cluster to the
-       * connector service.
+       * API key source used to authenticate this Talon cluster to the connector
+       * service.
        * </pre>
        *
-       * <code>.talon.config.Secret api_key = 2;</code>
+       * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
        */
-      public talon.config.Config.SecretOrBuilder getApiKeyOrBuilder() {
+      public talon.resources.Connectors.ConnectorSecretRefOrBuilder getApiKeyOrBuilder() {
         if (apiKeyBuilder_ != null) {
           return apiKeyBuilder_.getMessageOrBuilder();
         } else {
           return apiKey_ == null ?
-              talon.config.Config.Secret.getDefaultInstance() : apiKey_;
+              talon.resources.Connectors.ConnectorSecretRef.getDefaultInstance() : apiKey_;
         }
       }
       /**
        * <pre>
-       * API key or secret reference used to authenticate this Talon cluster to the
-       * connector service.
+       * API key source used to authenticate this Talon cluster to the connector
+       * service.
        * </pre>
        *
-       * <code>.talon.config.Secret api_key = 2;</code>
+       * <code>.talon.resources.ConnectorSecretRef api_key = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder>
+          talon.resources.Connectors.ConnectorSecretRef, talon.resources.Connectors.ConnectorSecretRef.Builder, talon.resources.Connectors.ConnectorSecretRefOrBuilder>
           internalGetApiKeyFieldBuilder() {
         if (apiKeyBuilder_ == null) {
           apiKeyBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder>(
+              talon.resources.Connectors.ConnectorSecretRef, talon.resources.Connectors.ConnectorSecretRef.Builder, talon.resources.Connectors.ConnectorSecretRefOrBuilder>(
                   getApiKey(),
                   getParentForChildren(),
                   isClean());
@@ -1599,6 +1599,832 @@ public final class Connectors extends com.google.protobuf.GeneratedFile {
 
     @java.lang.Override
     public talon.resources.Connectors.ConnectorClassAuthSpec getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ConnectorSecretRefOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.resources.ConnectorSecretRef)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Inline secret value. Mutually exclusive with env.
+     * </pre>
+     *
+     * <code>optional string plain = 1;</code>
+     * @return Whether the plain field is set.
+     */
+    boolean hasPlain();
+    /**
+     * <pre>
+     * Inline secret value. Mutually exclusive with env.
+     * </pre>
+     *
+     * <code>optional string plain = 1;</code>
+     * @return The plain.
+     */
+    java.lang.String getPlain();
+    /**
+     * <pre>
+     * Inline secret value. Mutually exclusive with env.
+     * </pre>
+     *
+     * <code>optional string plain = 1;</code>
+     * @return The bytes for plain.
+     */
+    com.google.protobuf.ByteString
+        getPlainBytes();
+
+    /**
+     * <pre>
+     * Environment variable name that contains the secret value. Mutually
+     * exclusive with plain.
+     * </pre>
+     *
+     * <code>optional string env = 2;</code>
+     * @return Whether the env field is set.
+     */
+    boolean hasEnv();
+    /**
+     * <pre>
+     * Environment variable name that contains the secret value. Mutually
+     * exclusive with plain.
+     * </pre>
+     *
+     * <code>optional string env = 2;</code>
+     * @return The env.
+     */
+    java.lang.String getEnv();
+    /**
+     * <pre>
+     * Environment variable name that contains the secret value. Mutually
+     * exclusive with plain.
+     * </pre>
+     *
+     * <code>optional string env = 2;</code>
+     * @return The bytes for env.
+     */
+    com.google.protobuf.ByteString
+        getEnvBytes();
+  }
+  /**
+   * Protobuf type {@code talon.resources.ConnectorSecretRef}
+   */
+  public static final class ConnectorSecretRef extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.resources.ConnectorSecretRef)
+      ConnectorSecretRefOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ConnectorSecretRef");
+    }
+    // Use ConnectorSecretRef.newBuilder() to construct.
+    private ConnectorSecretRef(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ConnectorSecretRef() {
+      plain_ = "";
+      env_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.resources.Connectors.internal_static_talon_resources_ConnectorSecretRef_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.resources.Connectors.internal_static_talon_resources_ConnectorSecretRef_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.resources.Connectors.internal_static_talon_resources_ConnectorSecretRef_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.resources.Connectors.ConnectorSecretRef.class, talon.resources.Connectors.ConnectorSecretRef.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int PLAIN_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object plain_ = "";
+    /**
+     * <pre>
+     * Inline secret value. Mutually exclusive with env.
+     * </pre>
+     *
+     * <code>optional string plain = 1;</code>
+     * @return Whether the plain field is set.
+     */
+    @java.lang.Override
+    public boolean hasPlain() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <pre>
+     * Inline secret value. Mutually exclusive with env.
+     * </pre>
+     *
+     * <code>optional string plain = 1;</code>
+     * @return The plain.
+     */
+    @java.lang.Override
+    public java.lang.String getPlain() {
+      java.lang.Object ref = plain_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        plain_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Inline secret value. Mutually exclusive with env.
+     * </pre>
+     *
+     * <code>optional string plain = 1;</code>
+     * @return The bytes for plain.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPlainBytes() {
+      java.lang.Object ref = plain_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        plain_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int ENV_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object env_ = "";
+    /**
+     * <pre>
+     * Environment variable name that contains the secret value. Mutually
+     * exclusive with plain.
+     * </pre>
+     *
+     * <code>optional string env = 2;</code>
+     * @return Whether the env field is set.
+     */
+    @java.lang.Override
+    public boolean hasEnv() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <pre>
+     * Environment variable name that contains the secret value. Mutually
+     * exclusive with plain.
+     * </pre>
+     *
+     * <code>optional string env = 2;</code>
+     * @return The env.
+     */
+    @java.lang.Override
+    public java.lang.String getEnv() {
+      java.lang.Object ref = env_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        env_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Environment variable name that contains the secret value. Mutually
+     * exclusive with plain.
+     * </pre>
+     *
+     * <code>optional string env = 2;</code>
+     * @return The bytes for env.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getEnvBytes() {
+      java.lang.Object ref = env_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        env_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, plain_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, env_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, plain_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, env_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.resources.Connectors.ConnectorSecretRef)) {
+        return super.equals(obj);
+      }
+      talon.resources.Connectors.ConnectorSecretRef other = (talon.resources.Connectors.ConnectorSecretRef) obj;
+
+      if (hasPlain() != other.hasPlain()) return false;
+      if (hasPlain()) {
+        if (!getPlain()
+            .equals(other.getPlain())) return false;
+      }
+      if (hasEnv() != other.hasEnv()) return false;
+      if (hasEnv()) {
+        if (!getEnv()
+            .equals(other.getEnv())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasPlain()) {
+        hash = (37 * hash) + PLAIN_FIELD_NUMBER;
+        hash = (53 * hash) + getPlain().hashCode();
+      }
+      if (hasEnv()) {
+        hash = (37 * hash) + ENV_FIELD_NUMBER;
+        hash = (53 * hash) + getEnv().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.resources.Connectors.ConnectorSecretRef parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Connectors.ConnectorSecretRef parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Connectors.ConnectorSecretRef parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Connectors.ConnectorSecretRef parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Connectors.ConnectorSecretRef parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Connectors.ConnectorSecretRef parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Connectors.ConnectorSecretRef parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Connectors.ConnectorSecretRef parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.resources.Connectors.ConnectorSecretRef parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.resources.Connectors.ConnectorSecretRef parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.resources.Connectors.ConnectorSecretRef parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Connectors.ConnectorSecretRef parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.resources.Connectors.ConnectorSecretRef prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.resources.ConnectorSecretRef}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.resources.ConnectorSecretRef)
+        talon.resources.Connectors.ConnectorSecretRefOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.resources.Connectors.internal_static_talon_resources_ConnectorSecretRef_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.resources.Connectors.internal_static_talon_resources_ConnectorSecretRef_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.resources.Connectors.ConnectorSecretRef.class, talon.resources.Connectors.ConnectorSecretRef.Builder.class);
+      }
+
+      // Construct using talon.resources.Connectors.ConnectorSecretRef.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        plain_ = "";
+        env_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.resources.Connectors.internal_static_talon_resources_ConnectorSecretRef_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorSecretRef getDefaultInstanceForType() {
+        return talon.resources.Connectors.ConnectorSecretRef.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorSecretRef build() {
+        talon.resources.Connectors.ConnectorSecretRef result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.resources.Connectors.ConnectorSecretRef buildPartial() {
+        talon.resources.Connectors.ConnectorSecretRef result = new talon.resources.Connectors.ConnectorSecretRef(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.resources.Connectors.ConnectorSecretRef result) {
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.plain_ = plain_;
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.env_ = env_;
+          to_bitField0_ |= 0x00000002;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.resources.Connectors.ConnectorSecretRef) {
+          return mergeFrom((talon.resources.Connectors.ConnectorSecretRef)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.resources.Connectors.ConnectorSecretRef other) {
+        if (other == talon.resources.Connectors.ConnectorSecretRef.getDefaultInstance()) return this;
+        if (other.hasPlain()) {
+          plain_ = other.plain_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (other.hasEnv()) {
+          env_ = other.env_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                plain_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                env_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object plain_ = "";
+      /**
+       * <pre>
+       * Inline secret value. Mutually exclusive with env.
+       * </pre>
+       *
+       * <code>optional string plain = 1;</code>
+       * @return Whether the plain field is set.
+       */
+      public boolean hasPlain() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <pre>
+       * Inline secret value. Mutually exclusive with env.
+       * </pre>
+       *
+       * <code>optional string plain = 1;</code>
+       * @return The plain.
+       */
+      public java.lang.String getPlain() {
+        java.lang.Object ref = plain_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          plain_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Inline secret value. Mutually exclusive with env.
+       * </pre>
+       *
+       * <code>optional string plain = 1;</code>
+       * @return The bytes for plain.
+       */
+      public com.google.protobuf.ByteString
+          getPlainBytes() {
+        java.lang.Object ref = plain_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          plain_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Inline secret value. Mutually exclusive with env.
+       * </pre>
+       *
+       * <code>optional string plain = 1;</code>
+       * @param value The plain to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPlain(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        plain_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Inline secret value. Mutually exclusive with env.
+       * </pre>
+       *
+       * <code>optional string plain = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPlain() {
+        plain_ = getDefaultInstance().getPlain();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Inline secret value. Mutually exclusive with env.
+       * </pre>
+       *
+       * <code>optional string plain = 1;</code>
+       * @param value The bytes for plain to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPlainBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        plain_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object env_ = "";
+      /**
+       * <pre>
+       * Environment variable name that contains the secret value. Mutually
+       * exclusive with plain.
+       * </pre>
+       *
+       * <code>optional string env = 2;</code>
+       * @return Whether the env field is set.
+       */
+      public boolean hasEnv() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <pre>
+       * Environment variable name that contains the secret value. Mutually
+       * exclusive with plain.
+       * </pre>
+       *
+       * <code>optional string env = 2;</code>
+       * @return The env.
+       */
+      public java.lang.String getEnv() {
+        java.lang.Object ref = env_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          env_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Environment variable name that contains the secret value. Mutually
+       * exclusive with plain.
+       * </pre>
+       *
+       * <code>optional string env = 2;</code>
+       * @return The bytes for env.
+       */
+      public com.google.protobuf.ByteString
+          getEnvBytes() {
+        java.lang.Object ref = env_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          env_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Environment variable name that contains the secret value. Mutually
+       * exclusive with plain.
+       * </pre>
+       *
+       * <code>optional string env = 2;</code>
+       * @param value The env to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEnv(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        env_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Environment variable name that contains the secret value. Mutually
+       * exclusive with plain.
+       * </pre>
+       *
+       * <code>optional string env = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearEnv() {
+        env_ = getDefaultInstance().getEnv();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Environment variable name that contains the secret value. Mutually
+       * exclusive with plain.
+       * </pre>
+       *
+       * <code>optional string env = 2;</code>
+       * @param value The bytes for env to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEnvBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        env_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.resources.ConnectorSecretRef)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.resources.ConnectorSecretRef)
+    private static final talon.resources.Connectors.ConnectorSecretRef DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.resources.Connectors.ConnectorSecretRef();
+    }
+
+    public static talon.resources.Connectors.ConnectorSecretRef getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ConnectorSecretRef>
+        PARSER = new com.google.protobuf.AbstractParser<ConnectorSecretRef>() {
+      @java.lang.Override
+      public ConnectorSecretRef parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ConnectorSecretRef> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ConnectorSecretRef> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.resources.Connectors.ConnectorSecretRef getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -10441,6 +11267,11 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_ConnectorClassAuthSpec_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_resources_ConnectorSecretRef_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_resources_ConnectorSecretRef_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_ConnectorMatchIndex_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -10490,46 +11321,46 @@ java.lang.String defaultValue) {
   static {
     java.lang.String[] descriptorData = {
       "\n proto/resources/connectors.proto\022\017talo" +
-      "n.resources\032\022proto/config.proto\032\030proto/d" +
-      "ata/routing.proto\032\034proto/resources/commo" +
-      "n.proto\";\n\031ConnectorClassRuntimeSpec\022\014\n\004" +
-      "kind\030\001 \001(\t\022\020\n\010endpoint\030\002 \001(\t\"M\n\026Connecto" +
-      "rClassAuthSpec\022\014\n\004kind\030\001 \001(\t\022%\n\007api_key\030" +
-      "\002 \001(\0132\024.talon.config.Secret\"3\n\023Connector" +
-      "MatchIndex\022\014\n\004name\030\001 \001(\t\022\016\n\006fields\030\002 \003(\t" +
-      "\"\327\001\n\022ConnectorClassSpec\022\020\n\010platform\030\001 \001(" +
-      "\t\022;\n\007runtime\030\002 \001(\0132*.talon.resources.Con" +
-      "nectorClassRuntimeSpec\0225\n\004auth\030\003 \001(\0132\'.t" +
-      "alon.resources.ConnectorClassAuthSpec\022;\n" +
-      "\rmatch_indexes\030\004 \003(\0132$.talon.resources.C" +
-      "onnectorMatchIndex\"z\n\024ConnectorClassStat" +
-      "us\022\033\n\023observed_generation\030\001 \001(\004\022\r\n\005phase" +
-      "\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\".talon.resou" +
-      "rces.ResourceCondition\"\373\001\n\rConnectorSpec" +
-      "\022/\n\tclass_ref\030\001 \001(\0132\034.talon.resources.Re" +
-      "sourceRef\022\017\n\007enabled\030\002 \001(\010\022E\n\014match_fiel" +
-      "ds\030\003 \003(\0132/.talon.resources.ConnectorSpec" +
-      ".MatchFieldsEntry\022-\n\010consumer\030\004 \001(\0132\033.ta" +
-      "lon.data.MessageConsumer\0322\n\020MatchFieldsE" +
-      "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\221\001\n" +
-      "\017ConnectorStatus\022\033\n\023observed_generation\030" +
-      "\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\013" +
-      "2\".talon.resources.ResourceCondition\022\032\n\022" +
-      "compiled_route_ids\030\004 \003(\t\"\253\001\n\016ConnectorCl" +
-      "ass\022/\n\010metadata\030\001 \001(\0132\035.talon.resources." +
-      "ResourceMeta\0221\n\004spec\030\002 \001(\0132#.talon.resou" +
-      "rces.ConnectorClassSpec\0225\n\006status\030\003 \001(\0132" +
-      "%.talon.resources.ConnectorClassStatus\"\234" +
-      "\001\n\tConnector\022/\n\010metadata\030\001 \001(\0132\035.talon.r" +
-      "esources.ResourceMeta\022,\n\004spec\030\002 \001(\0132\036.ta" +
-      "lon.resources.ConnectorSpec\0220\n\006status\030\003 " +
-      "\001(\0132 .talon.resources.ConnectorStatusb\006p" +
-      "roto3"
+      "n.resources\032\030proto/data/routing.proto\032\034p" +
+      "roto/resources/common.proto\";\n\031Connector" +
+      "ClassRuntimeSpec\022\014\n\004kind\030\001 \001(\t\022\020\n\010endpoi" +
+      "nt\030\002 \001(\t\"\\\n\026ConnectorClassAuthSpec\022\014\n\004ki" +
+      "nd\030\001 \001(\t\0224\n\007api_key\030\002 \001(\0132#.talon.resour" +
+      "ces.ConnectorSecretRef\"L\n\022ConnectorSecre" +
+      "tRef\022\022\n\005plain\030\001 \001(\tH\000\210\001\001\022\020\n\003env\030\002 \001(\tH\001\210" +
+      "\001\001B\010\n\006_plainB\006\n\004_env\"3\n\023ConnectorMatchIn" +
+      "dex\022\014\n\004name\030\001 \001(\t\022\016\n\006fields\030\002 \003(\t\"\327\001\n\022Co" +
+      "nnectorClassSpec\022\020\n\010platform\030\001 \001(\t\022;\n\007ru" +
+      "ntime\030\002 \001(\0132*.talon.resources.ConnectorC" +
+      "lassRuntimeSpec\0225\n\004auth\030\003 \001(\0132\'.talon.re" +
+      "sources.ConnectorClassAuthSpec\022;\n\rmatch_" +
+      "indexes\030\004 \003(\0132$.talon.resources.Connecto" +
+      "rMatchIndex\"z\n\024ConnectorClassStatus\022\033\n\023o" +
+      "bserved_generation\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\022" +
+      "6\n\nconditions\030\003 \003(\0132\".talon.resources.Re" +
+      "sourceCondition\"\373\001\n\rConnectorSpec\022/\n\tcla" +
+      "ss_ref\030\001 \001(\0132\034.talon.resources.ResourceR" +
+      "ef\022\017\n\007enabled\030\002 \001(\010\022E\n\014match_fields\030\003 \003(" +
+      "\0132/.talon.resources.ConnectorSpec.MatchF" +
+      "ieldsEntry\022-\n\010consumer\030\004 \001(\0132\033.talon.dat" +
+      "a.MessageConsumer\0322\n\020MatchFieldsEntry\022\013\n" +
+      "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\221\001\n\017Connec" +
+      "torStatus\022\033\n\023observed_generation\030\001 \001(\004\022\r" +
+      "\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\".talo" +
+      "n.resources.ResourceCondition\022\032\n\022compile" +
+      "d_route_ids\030\004 \003(\t\"\253\001\n\016ConnectorClass\022/\n\010" +
+      "metadata\030\001 \001(\0132\035.talon.resources.Resourc" +
+      "eMeta\0221\n\004spec\030\002 \001(\0132#.talon.resources.Co" +
+      "nnectorClassSpec\0225\n\006status\030\003 \001(\0132%.talon" +
+      ".resources.ConnectorClassStatus\"\234\001\n\tConn" +
+      "ector\022/\n\010metadata\030\001 \001(\0132\035.talon.resource" +
+      "s.ResourceMeta\022,\n\004spec\030\002 \001(\0132\036.talon.res" +
+      "ources.ConnectorSpec\0220\n\006status\030\003 \001(\0132 .t" +
+      "alon.resources.ConnectorStatusb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          talon.config.Config.getDescriptor(),
           talon.data.Routing.getDescriptor(),
           talon.resources.Common.getDescriptor(),
         });
@@ -10545,26 +11376,32 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectorClassAuthSpec_descriptor,
         new java.lang.String[] { "Kind", "ApiKey", });
-    internal_static_talon_resources_ConnectorMatchIndex_descriptor =
+    internal_static_talon_resources_ConnectorSecretRef_descriptor =
       getDescriptor().getMessageType(2);
+    internal_static_talon_resources_ConnectorSecretRef_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_resources_ConnectorSecretRef_descriptor,
+        new java.lang.String[] { "Plain", "Env", });
+    internal_static_talon_resources_ConnectorMatchIndex_descriptor =
+      getDescriptor().getMessageType(3);
     internal_static_talon_resources_ConnectorMatchIndex_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectorMatchIndex_descriptor,
         new java.lang.String[] { "Name", "Fields", });
     internal_static_talon_resources_ConnectorClassSpec_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(4);
     internal_static_talon_resources_ConnectorClassSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectorClassSpec_descriptor,
         new java.lang.String[] { "Platform", "Runtime", "Auth", "MatchIndexes", });
     internal_static_talon_resources_ConnectorClassStatus_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(5);
     internal_static_talon_resources_ConnectorClassStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectorClassStatus_descriptor,
         new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", });
     internal_static_talon_resources_ConnectorSpec_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(6);
     internal_static_talon_resources_ConnectorSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectorSpec_descriptor,
@@ -10576,25 +11413,24 @@ java.lang.String defaultValue) {
         internal_static_talon_resources_ConnectorSpec_MatchFieldsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_resources_ConnectorStatus_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(7);
     internal_static_talon_resources_ConnectorStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectorStatus_descriptor,
         new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "CompiledRouteIds", });
     internal_static_talon_resources_ConnectorClass_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(8);
     internal_static_talon_resources_ConnectorClass_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectorClass_descriptor,
         new java.lang.String[] { "Metadata", "Spec", "Status", });
     internal_static_talon_resources_Connector_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(9);
     internal_static_talon_resources_Connector_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_Connector_descriptor,
         new java.lang.String[] { "Metadata", "Spec", "Status", });
     descriptor.resolveAllFeaturesImmutable();
-    talon.config.Config.getDescriptor();
     talon.data.Routing.getDescriptor();
     talon.resources.Common.getDescriptor();
   }

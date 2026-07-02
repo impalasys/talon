@@ -13340,36 +13340,58 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+     * <pre>
+     * Internal Talon agent target. Mutually exclusive with external.
+     * </pre>
+     *
+     * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
      * @return Whether the internal field is set.
      */
     boolean hasInternal();
     /**
-     * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+     * <pre>
+     * Internal Talon agent target. Mutually exclusive with external.
+     * </pre>
+     *
+     * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
      * @return The internal.
      */
     talon.resources.Agents.InternalConnectionRef getInternal();
     /**
-     * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+     * <pre>
+     * Internal Talon agent target. Mutually exclusive with external.
+     * </pre>
+     *
+     * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
      */
     talon.resources.Agents.InternalConnectionRefOrBuilder getInternalOrBuilder();
 
     /**
-     * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+     * <pre>
+     * External A2A agent-card target. Mutually exclusive with internal.
+     * </pre>
+     *
+     * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
      * @return Whether the external field is set.
      */
     boolean hasExternal();
     /**
-     * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+     * <pre>
+     * External A2A agent-card target. Mutually exclusive with internal.
+     * </pre>
+     *
+     * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
      * @return The external.
      */
     talon.resources.Agents.ExternalConnectionRef getExternal();
     /**
-     * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+     * <pre>
+     * External A2A agent-card target. Mutually exclusive with internal.
+     * </pre>
+     *
+     * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
      */
     talon.resources.Agents.ExternalConnectionRefOrBuilder getExternalOrBuilder();
-
-    talon.resources.Agents.ConnectionRef.TargetCase getTargetCase();
   }
   /**
    * Protobuf type {@code talon.resources.ConnectionRef}
@@ -13413,108 +13435,81 @@ java.lang.String defaultValue) {
               talon.resources.Agents.ConnectionRef.class, talon.resources.Agents.ConnectionRef.Builder.class);
     }
 
-    private int targetCase_ = 0;
-    @SuppressWarnings("serial")
-    private java.lang.Object target_;
-    public enum TargetCase
-        implements com.google.protobuf.Internal.EnumLite,
-            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
-      INTERNAL(1),
-      EXTERNAL(2),
-      TARGET_NOT_SET(0);
-      private final int value;
-      private TargetCase(int value) {
-        this.value = value;
-      }
-      /**
-       * @param value The number of the enum to look for.
-       * @return The enum associated with the given number.
-       * @deprecated Use {@link #forNumber(int)} instead.
-       */
-      @java.lang.Deprecated
-      public static TargetCase valueOf(int value) {
-        return forNumber(value);
-      }
-
-      public static TargetCase forNumber(int value) {
-        switch (value) {
-          case 1: return INTERNAL;
-          case 2: return EXTERNAL;
-          case 0: return TARGET_NOT_SET;
-          default: return null;
-        }
-      }
-      public int getNumber() {
-        return this.value;
-      }
-    };
-
-    public TargetCase
-    getTargetCase() {
-      return TargetCase.forNumber(
-          targetCase_);
-    }
-
+    private int bitField0_;
     public static final int INTERNAL_FIELD_NUMBER = 1;
+    private talon.resources.Agents.InternalConnectionRef internal_;
     /**
-     * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+     * <pre>
+     * Internal Talon agent target. Mutually exclusive with external.
+     * </pre>
+     *
+     * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
      * @return Whether the internal field is set.
      */
     @java.lang.Override
     public boolean hasInternal() {
-      return targetCase_ == 1;
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+     * <pre>
+     * Internal Talon agent target. Mutually exclusive with external.
+     * </pre>
+     *
+     * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
      * @return The internal.
      */
     @java.lang.Override
     public talon.resources.Agents.InternalConnectionRef getInternal() {
-      if (targetCase_ == 1) {
-         return (talon.resources.Agents.InternalConnectionRef) target_;
-      }
-      return talon.resources.Agents.InternalConnectionRef.getDefaultInstance();
+      return internal_ == null ? talon.resources.Agents.InternalConnectionRef.getDefaultInstance() : internal_;
     }
     /**
-     * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+     * <pre>
+     * Internal Talon agent target. Mutually exclusive with external.
+     * </pre>
+     *
+     * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
      */
     @java.lang.Override
     public talon.resources.Agents.InternalConnectionRefOrBuilder getInternalOrBuilder() {
-      if (targetCase_ == 1) {
-         return (talon.resources.Agents.InternalConnectionRef) target_;
-      }
-      return talon.resources.Agents.InternalConnectionRef.getDefaultInstance();
+      return internal_ == null ? talon.resources.Agents.InternalConnectionRef.getDefaultInstance() : internal_;
     }
 
     public static final int EXTERNAL_FIELD_NUMBER = 2;
+    private talon.resources.Agents.ExternalConnectionRef external_;
     /**
-     * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+     * <pre>
+     * External A2A agent-card target. Mutually exclusive with internal.
+     * </pre>
+     *
+     * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
      * @return Whether the external field is set.
      */
     @java.lang.Override
     public boolean hasExternal() {
-      return targetCase_ == 2;
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
-     * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+     * <pre>
+     * External A2A agent-card target. Mutually exclusive with internal.
+     * </pre>
+     *
+     * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
      * @return The external.
      */
     @java.lang.Override
     public talon.resources.Agents.ExternalConnectionRef getExternal() {
-      if (targetCase_ == 2) {
-         return (talon.resources.Agents.ExternalConnectionRef) target_;
-      }
-      return talon.resources.Agents.ExternalConnectionRef.getDefaultInstance();
+      return external_ == null ? talon.resources.Agents.ExternalConnectionRef.getDefaultInstance() : external_;
     }
     /**
-     * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+     * <pre>
+     * External A2A agent-card target. Mutually exclusive with internal.
+     * </pre>
+     *
+     * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
      */
     @java.lang.Override
     public talon.resources.Agents.ExternalConnectionRefOrBuilder getExternalOrBuilder() {
-      if (targetCase_ == 2) {
-         return (talon.resources.Agents.ExternalConnectionRef) target_;
-      }
-      return talon.resources.Agents.ExternalConnectionRef.getDefaultInstance();
+      return external_ == null ? talon.resources.Agents.ExternalConnectionRef.getDefaultInstance() : external_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -13531,11 +13526,11 @@ java.lang.String defaultValue) {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (targetCase_ == 1) {
-        output.writeMessage(1, (talon.resources.Agents.InternalConnectionRef) target_);
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getInternal());
       }
-      if (targetCase_ == 2) {
-        output.writeMessage(2, (talon.resources.Agents.ExternalConnectionRef) target_);
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(2, getExternal());
       }
       getUnknownFields().writeTo(output);
     }
@@ -13546,13 +13541,13 @@ java.lang.String defaultValue) {
       if (size != -1) return size;
 
       size = 0;
-      if (targetCase_ == 1) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, (talon.resources.Agents.InternalConnectionRef) target_);
+          .computeMessageSize(1, getInternal());
       }
-      if (targetCase_ == 2) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, (talon.resources.Agents.ExternalConnectionRef) target_);
+          .computeMessageSize(2, getExternal());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -13569,18 +13564,15 @@ java.lang.String defaultValue) {
       }
       talon.resources.Agents.ConnectionRef other = (talon.resources.Agents.ConnectionRef) obj;
 
-      if (!getTargetCase().equals(other.getTargetCase())) return false;
-      switch (targetCase_) {
-        case 1:
-          if (!getInternal()
-              .equals(other.getInternal())) return false;
-          break;
-        case 2:
-          if (!getExternal()
-              .equals(other.getExternal())) return false;
-          break;
-        case 0:
-        default:
+      if (hasInternal() != other.hasInternal()) return false;
+      if (hasInternal()) {
+        if (!getInternal()
+            .equals(other.getInternal())) return false;
+      }
+      if (hasExternal() != other.hasExternal()) return false;
+      if (hasExternal()) {
+        if (!getExternal()
+            .equals(other.getExternal())) return false;
       }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
@@ -13593,17 +13585,13 @@ java.lang.String defaultValue) {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      switch (targetCase_) {
-        case 1:
-          hash = (37 * hash) + INTERNAL_FIELD_NUMBER;
-          hash = (53 * hash) + getInternal().hashCode();
-          break;
-        case 2:
-          hash = (37 * hash) + EXTERNAL_FIELD_NUMBER;
-          hash = (53 * hash) + getExternal().hashCode();
-          break;
-        case 0:
-        default:
+      if (hasInternal()) {
+        hash = (37 * hash) + INTERNAL_FIELD_NUMBER;
+        hash = (53 * hash) + getInternal().hashCode();
+      }
+      if (hasExternal()) {
+        hash = (37 * hash) + EXTERNAL_FIELD_NUMBER;
+        hash = (53 * hash) + getExternal().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -13724,26 +13712,35 @@ java.lang.String defaultValue) {
 
       // Construct using talon.resources.Agents.ConnectionRef.newBuilder()
       private Builder() {
-
+        maybeForceBuilderInitialization();
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetInternalFieldBuilder();
+          internalGetExternalFieldBuilder();
+        }
       }
       @java.lang.Override
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
+        internal_ = null;
         if (internalBuilder_ != null) {
-          internalBuilder_.clear();
+          internalBuilder_.dispose();
+          internalBuilder_ = null;
         }
+        external_ = null;
         if (externalBuilder_ != null) {
-          externalBuilder_.clear();
+          externalBuilder_.dispose();
+          externalBuilder_ = null;
         }
-        targetCase_ = 0;
-        target_ = null;
         return this;
       }
 
@@ -13771,26 +13768,26 @@ java.lang.String defaultValue) {
       public talon.resources.Agents.ConnectionRef buildPartial() {
         talon.resources.Agents.ConnectionRef result = new talon.resources.Agents.ConnectionRef(this);
         if (bitField0_ != 0) { buildPartial0(result); }
-        buildPartialOneofs(result);
         onBuilt();
         return result;
       }
 
       private void buildPartial0(talon.resources.Agents.ConnectionRef result) {
         int from_bitField0_ = bitField0_;
-      }
-
-      private void buildPartialOneofs(talon.resources.Agents.ConnectionRef result) {
-        result.targetCase_ = targetCase_;
-        result.target_ = this.target_;
-        if (targetCase_ == 1 &&
-            internalBuilder_ != null) {
-          result.target_ = internalBuilder_.build();
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.internal_ = internalBuilder_ == null
+              ? internal_
+              : internalBuilder_.build();
+          to_bitField0_ |= 0x00000001;
         }
-        if (targetCase_ == 2 &&
-            externalBuilder_ != null) {
-          result.target_ = externalBuilder_.build();
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.external_ = externalBuilder_ == null
+              ? external_
+              : externalBuilder_.build();
+          to_bitField0_ |= 0x00000002;
         }
+        result.bitField0_ |= to_bitField0_;
       }
 
       @java.lang.Override
@@ -13805,18 +13802,11 @@ java.lang.String defaultValue) {
 
       public Builder mergeFrom(talon.resources.Agents.ConnectionRef other) {
         if (other == talon.resources.Agents.ConnectionRef.getDefaultInstance()) return this;
-        switch (other.getTargetCase()) {
-          case INTERNAL: {
-            mergeInternal(other.getInternal());
-            break;
-          }
-          case EXTERNAL: {
-            mergeExternal(other.getExternal());
-            break;
-          }
-          case TARGET_NOT_SET: {
-            break;
-          }
+        if (other.hasInternal()) {
+          mergeInternal(other.getInternal());
+        }
+        if (other.hasExternal()) {
+          mergeExternal(other.getExternal());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -13848,14 +13838,14 @@ java.lang.String defaultValue) {
                 input.readMessage(
                     internalGetInternalFieldBuilder().getBuilder(),
                     extensionRegistry);
-                targetCase_ = 1;
+                bitField0_ |= 0x00000001;
                 break;
               } // case 10
               case 18: {
                 input.readMessage(
                     internalGetExternalFieldBuilder().getBuilder(),
                     extensionRegistry);
-                targetCase_ = 2;
+                bitField0_ |= 0x00000002;
                 break;
               } // case 18
               default: {
@@ -13873,304 +13863,319 @@ java.lang.String defaultValue) {
         } // finally
         return this;
       }
-      private int targetCase_ = 0;
-      private java.lang.Object target_;
-      public TargetCase
-          getTargetCase() {
-        return TargetCase.forNumber(
-            targetCase_);
-      }
-
-      public Builder clearTarget() {
-        targetCase_ = 0;
-        target_ = null;
-        onChanged();
-        return this;
-      }
-
       private int bitField0_;
 
+      private talon.resources.Agents.InternalConnectionRef internal_;
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Agents.InternalConnectionRef, talon.resources.Agents.InternalConnectionRef.Builder, talon.resources.Agents.InternalConnectionRefOrBuilder> internalBuilder_;
       /**
-       * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+       * <pre>
+       * Internal Talon agent target. Mutually exclusive with external.
+       * </pre>
+       *
+       * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
        * @return Whether the internal field is set.
        */
-      @java.lang.Override
       public boolean hasInternal() {
-        return targetCase_ == 1;
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+       * <pre>
+       * Internal Talon agent target. Mutually exclusive with external.
+       * </pre>
+       *
+       * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
        * @return The internal.
        */
-      @java.lang.Override
       public talon.resources.Agents.InternalConnectionRef getInternal() {
         if (internalBuilder_ == null) {
-          if (targetCase_ == 1) {
-            return (talon.resources.Agents.InternalConnectionRef) target_;
-          }
-          return talon.resources.Agents.InternalConnectionRef.getDefaultInstance();
+          return internal_ == null ? talon.resources.Agents.InternalConnectionRef.getDefaultInstance() : internal_;
         } else {
-          if (targetCase_ == 1) {
-            return internalBuilder_.getMessage();
-          }
-          return talon.resources.Agents.InternalConnectionRef.getDefaultInstance();
+          return internalBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+       * <pre>
+       * Internal Talon agent target. Mutually exclusive with external.
+       * </pre>
+       *
+       * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
        */
       public Builder setInternal(talon.resources.Agents.InternalConnectionRef value) {
         if (internalBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          target_ = value;
-          onChanged();
+          internal_ = value;
         } else {
           internalBuilder_.setMessage(value);
         }
-        targetCase_ = 1;
+        bitField0_ |= 0x00000001;
+        onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+       * <pre>
+       * Internal Talon agent target. Mutually exclusive with external.
+       * </pre>
+       *
+       * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
        */
       public Builder setInternal(
           talon.resources.Agents.InternalConnectionRef.Builder builderForValue) {
         if (internalBuilder_ == null) {
-          target_ = builderForValue.build();
-          onChanged();
+          internal_ = builderForValue.build();
         } else {
           internalBuilder_.setMessage(builderForValue.build());
         }
-        targetCase_ = 1;
+        bitField0_ |= 0x00000001;
+        onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+       * <pre>
+       * Internal Talon agent target. Mutually exclusive with external.
+       * </pre>
+       *
+       * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
        */
       public Builder mergeInternal(talon.resources.Agents.InternalConnectionRef value) {
         if (internalBuilder_ == null) {
-          if (targetCase_ == 1 &&
-              target_ != talon.resources.Agents.InternalConnectionRef.getDefaultInstance()) {
-            target_ = talon.resources.Agents.InternalConnectionRef.newBuilder((talon.resources.Agents.InternalConnectionRef) target_)
-                .mergeFrom(value).buildPartial();
+          if (((bitField0_ & 0x00000001) != 0) &&
+            internal_ != null &&
+            internal_ != talon.resources.Agents.InternalConnectionRef.getDefaultInstance()) {
+            getInternalBuilder().mergeFrom(value);
           } else {
-            target_ = value;
+            internal_ = value;
           }
-          onChanged();
         } else {
-          if (targetCase_ == 1) {
-            internalBuilder_.mergeFrom(value);
-          } else {
-            internalBuilder_.setMessage(value);
-          }
+          internalBuilder_.mergeFrom(value);
         }
-        targetCase_ = 1;
+        if (internal_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
         return this;
       }
       /**
-       * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+       * <pre>
+       * Internal Talon agent target. Mutually exclusive with external.
+       * </pre>
+       *
+       * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
        */
       public Builder clearInternal() {
-        if (internalBuilder_ == null) {
-          if (targetCase_ == 1) {
-            targetCase_ = 0;
-            target_ = null;
-            onChanged();
-          }
-        } else {
-          if (targetCase_ == 1) {
-            targetCase_ = 0;
-            target_ = null;
-          }
-          internalBuilder_.clear();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        internal_ = null;
+        if (internalBuilder_ != null) {
+          internalBuilder_.dispose();
+          internalBuilder_ = null;
         }
+        onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+       * <pre>
+       * Internal Talon agent target. Mutually exclusive with external.
+       * </pre>
+       *
+       * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
        */
       public talon.resources.Agents.InternalConnectionRef.Builder getInternalBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
         return internalGetInternalFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+       * <pre>
+       * Internal Talon agent target. Mutually exclusive with external.
+       * </pre>
+       *
+       * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
        */
-      @java.lang.Override
       public talon.resources.Agents.InternalConnectionRefOrBuilder getInternalOrBuilder() {
-        if ((targetCase_ == 1) && (internalBuilder_ != null)) {
+        if (internalBuilder_ != null) {
           return internalBuilder_.getMessageOrBuilder();
         } else {
-          if (targetCase_ == 1) {
-            return (talon.resources.Agents.InternalConnectionRef) target_;
-          }
-          return talon.resources.Agents.InternalConnectionRef.getDefaultInstance();
+          return internal_ == null ?
+              talon.resources.Agents.InternalConnectionRef.getDefaultInstance() : internal_;
         }
       }
       /**
-       * <code>.talon.resources.InternalConnectionRef internal = 1;</code>
+       * <pre>
+       * Internal Talon agent target. Mutually exclusive with external.
+       * </pre>
+       *
+       * <code>optional .talon.resources.InternalConnectionRef internal = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Agents.InternalConnectionRef, talon.resources.Agents.InternalConnectionRef.Builder, talon.resources.Agents.InternalConnectionRefOrBuilder>
           internalGetInternalFieldBuilder() {
         if (internalBuilder_ == null) {
-          if (!(targetCase_ == 1)) {
-            target_ = talon.resources.Agents.InternalConnectionRef.getDefaultInstance();
-          }
           internalBuilder_ = new com.google.protobuf.SingleFieldBuilder<
               talon.resources.Agents.InternalConnectionRef, talon.resources.Agents.InternalConnectionRef.Builder, talon.resources.Agents.InternalConnectionRefOrBuilder>(
-                  (talon.resources.Agents.InternalConnectionRef) target_,
+                  getInternal(),
                   getParentForChildren(),
                   isClean());
-          target_ = null;
+          internal_ = null;
         }
-        targetCase_ = 1;
-        onChanged();
         return internalBuilder_;
       }
 
+      private talon.resources.Agents.ExternalConnectionRef external_;
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Agents.ExternalConnectionRef, talon.resources.Agents.ExternalConnectionRef.Builder, talon.resources.Agents.ExternalConnectionRefOrBuilder> externalBuilder_;
       /**
-       * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+       * <pre>
+       * External A2A agent-card target. Mutually exclusive with internal.
+       * </pre>
+       *
+       * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
        * @return Whether the external field is set.
        */
-      @java.lang.Override
       public boolean hasExternal() {
-        return targetCase_ == 2;
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
-       * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+       * <pre>
+       * External A2A agent-card target. Mutually exclusive with internal.
+       * </pre>
+       *
+       * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
        * @return The external.
        */
-      @java.lang.Override
       public talon.resources.Agents.ExternalConnectionRef getExternal() {
         if (externalBuilder_ == null) {
-          if (targetCase_ == 2) {
-            return (talon.resources.Agents.ExternalConnectionRef) target_;
-          }
-          return talon.resources.Agents.ExternalConnectionRef.getDefaultInstance();
+          return external_ == null ? talon.resources.Agents.ExternalConnectionRef.getDefaultInstance() : external_;
         } else {
-          if (targetCase_ == 2) {
-            return externalBuilder_.getMessage();
-          }
-          return talon.resources.Agents.ExternalConnectionRef.getDefaultInstance();
+          return externalBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+       * <pre>
+       * External A2A agent-card target. Mutually exclusive with internal.
+       * </pre>
+       *
+       * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
        */
       public Builder setExternal(talon.resources.Agents.ExternalConnectionRef value) {
         if (externalBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          target_ = value;
-          onChanged();
+          external_ = value;
         } else {
           externalBuilder_.setMessage(value);
         }
-        targetCase_ = 2;
+        bitField0_ |= 0x00000002;
+        onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+       * <pre>
+       * External A2A agent-card target. Mutually exclusive with internal.
+       * </pre>
+       *
+       * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
        */
       public Builder setExternal(
           talon.resources.Agents.ExternalConnectionRef.Builder builderForValue) {
         if (externalBuilder_ == null) {
-          target_ = builderForValue.build();
-          onChanged();
+          external_ = builderForValue.build();
         } else {
           externalBuilder_.setMessage(builderForValue.build());
         }
-        targetCase_ = 2;
+        bitField0_ |= 0x00000002;
+        onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+       * <pre>
+       * External A2A agent-card target. Mutually exclusive with internal.
+       * </pre>
+       *
+       * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
        */
       public Builder mergeExternal(talon.resources.Agents.ExternalConnectionRef value) {
         if (externalBuilder_ == null) {
-          if (targetCase_ == 2 &&
-              target_ != talon.resources.Agents.ExternalConnectionRef.getDefaultInstance()) {
-            target_ = talon.resources.Agents.ExternalConnectionRef.newBuilder((talon.resources.Agents.ExternalConnectionRef) target_)
-                .mergeFrom(value).buildPartial();
+          if (((bitField0_ & 0x00000002) != 0) &&
+            external_ != null &&
+            external_ != talon.resources.Agents.ExternalConnectionRef.getDefaultInstance()) {
+            getExternalBuilder().mergeFrom(value);
           } else {
-            target_ = value;
+            external_ = value;
           }
-          onChanged();
         } else {
-          if (targetCase_ == 2) {
-            externalBuilder_.mergeFrom(value);
-          } else {
-            externalBuilder_.setMessage(value);
-          }
+          externalBuilder_.mergeFrom(value);
         }
-        targetCase_ = 2;
+        if (external_ != null) {
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
         return this;
       }
       /**
-       * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+       * <pre>
+       * External A2A agent-card target. Mutually exclusive with internal.
+       * </pre>
+       *
+       * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
        */
       public Builder clearExternal() {
-        if (externalBuilder_ == null) {
-          if (targetCase_ == 2) {
-            targetCase_ = 0;
-            target_ = null;
-            onChanged();
-          }
-        } else {
-          if (targetCase_ == 2) {
-            targetCase_ = 0;
-            target_ = null;
-          }
-          externalBuilder_.clear();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        external_ = null;
+        if (externalBuilder_ != null) {
+          externalBuilder_.dispose();
+          externalBuilder_ = null;
         }
+        onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+       * <pre>
+       * External A2A agent-card target. Mutually exclusive with internal.
+       * </pre>
+       *
+       * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
        */
       public talon.resources.Agents.ExternalConnectionRef.Builder getExternalBuilder() {
+        bitField0_ |= 0x00000002;
+        onChanged();
         return internalGetExternalFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+       * <pre>
+       * External A2A agent-card target. Mutually exclusive with internal.
+       * </pre>
+       *
+       * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
        */
-      @java.lang.Override
       public talon.resources.Agents.ExternalConnectionRefOrBuilder getExternalOrBuilder() {
-        if ((targetCase_ == 2) && (externalBuilder_ != null)) {
+        if (externalBuilder_ != null) {
           return externalBuilder_.getMessageOrBuilder();
         } else {
-          if (targetCase_ == 2) {
-            return (talon.resources.Agents.ExternalConnectionRef) target_;
-          }
-          return talon.resources.Agents.ExternalConnectionRef.getDefaultInstance();
+          return external_ == null ?
+              talon.resources.Agents.ExternalConnectionRef.getDefaultInstance() : external_;
         }
       }
       /**
-       * <code>.talon.resources.ExternalConnectionRef external = 2;</code>
+       * <pre>
+       * External A2A agent-card target. Mutually exclusive with internal.
+       * </pre>
+       *
+       * <code>optional .talon.resources.ExternalConnectionRef external = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Agents.ExternalConnectionRef, talon.resources.Agents.ExternalConnectionRef.Builder, talon.resources.Agents.ExternalConnectionRefOrBuilder>
           internalGetExternalFieldBuilder() {
         if (externalBuilder_ == null) {
-          if (!(targetCase_ == 2)) {
-            target_ = talon.resources.Agents.ExternalConnectionRef.getDefaultInstance();
-          }
           externalBuilder_ = new com.google.protobuf.SingleFieldBuilder<
               talon.resources.Agents.ExternalConnectionRef, talon.resources.Agents.ExternalConnectionRef.Builder, talon.resources.Agents.ExternalConnectionRefOrBuilder>(
-                  (talon.resources.Agents.ExternalConnectionRef) target_,
+                  getExternal(),
                   getParentForChildren(),
                   isClean());
-          target_ = null;
+          external_ = null;
         }
-        targetCase_ = 2;
-        onChanged();
         return externalBuilder_;
       }
 
@@ -20312,27 +20317,27 @@ java.lang.String defaultValue) {
       "ctionRef\022\023\n\013input_modes\030\004 \003(\t\022\024\n\014output_" +
       "modes\030\005 \003(\t\022\027\n\017timeout_seconds\030\006 \001(\r\022\021\n\t" +
       "max_depth\030\007 \001(\r\022-\n\004auth\030\010 \001(\0132\037.talon.re" +
-      "sources.ConnectionAuth\"\221\001\n\rConnectionRef" +
-      "\022:\n\010internal\030\001 \001(\0132&.talon.resources.Int" +
-      "ernalConnectionRefH\000\022:\n\010external\030\002 \001(\0132&" +
-      ".talon.resources.ExternalConnectionRefH\000" +
-      "B\010\n\006target\"9\n\025InternalConnectionRef\022\021\n\tn" +
-      "amespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\"/\n\025Externa" +
-      "lConnectionRef\022\026\n\016agent_card_url\030\001 \001(\t\"2" +
-      "\n\016ConnectionAuth\022\014\n\004kind\030\001 \001(\t\022\022\n\nsecret" +
-      "_ref\030\002 \001(\t\"\351\001\n\tAgentCard\022\014\n\004name\030\001 \001(\t\022\023" +
-      "\n\013description\030\002 \001(\t\022\017\n\007version\030\003 \001(\t\022<\n\014" +
-      "capabilities\030\004 \001(\0132&.talon.resources.Age" +
-      "ntCardCapabilities\022\033\n\023default_input_mode" +
-      "s\030\005 \003(\t\022\034\n\024default_output_modes\030\006 \003(\t\022/\n" +
-      "\006skills\030\007 \003(\0132\037.talon.resources.AgentCar" +
-      "dSkill\"c\n\025AgentCardCapabilities\022\021\n\tstrea" +
-      "ming\030\001 \001(\010\022\032\n\022push_notifications\030\002 \001(\010\022\033" +
-      "\n\023extended_agent_card\030\003 \001(\010\"\212\001\n\016AgentCar" +
-      "dSkill\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\023\n\013desc" +
-      "ription\030\003 \001(\t\022\014\n\004tags\030\004 \003(\t\022\020\n\010examples\030" +
-      "\005 \003(\t\022\023\n\013input_modes\030\006 \003(\t\022\024\n\014output_mod" +
-      "es\030\007 \003(\tb\006proto3"
+      "sources.ConnectionAuth\"\247\001\n\rConnectionRef" +
+      "\022=\n\010internal\030\001 \001(\0132&.talon.resources.Int" +
+      "ernalConnectionRefH\000\210\001\001\022=\n\010external\030\002 \001(" +
+      "\0132&.talon.resources.ExternalConnectionRe" +
+      "fH\001\210\001\001B\013\n\t_internalB\013\n\t_external\"9\n\025Inte" +
+      "rnalConnectionRef\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005" +
+      "agent\030\002 \001(\t\"/\n\025ExternalConnectionRef\022\026\n\016" +
+      "agent_card_url\030\001 \001(\t\"2\n\016ConnectionAuth\022\014" +
+      "\n\004kind\030\001 \001(\t\022\022\n\nsecret_ref\030\002 \001(\t\"\351\001\n\tAge" +
+      "ntCard\022\014\n\004name\030\001 \001(\t\022\023\n\013description\030\002 \001(" +
+      "\t\022\017\n\007version\030\003 \001(\t\022<\n\014capabilities\030\004 \001(\013" +
+      "2&.talon.resources.AgentCardCapabilities" +
+      "\022\033\n\023default_input_modes\030\005 \003(\t\022\034\n\024default" +
+      "_output_modes\030\006 \003(\t\022/\n\006skills\030\007 \003(\0132\037.ta" +
+      "lon.resources.AgentCardSkill\"c\n\025AgentCar" +
+      "dCapabilities\022\021\n\tstreaming\030\001 \001(\010\022\032\n\022push" +
+      "_notifications\030\002 \001(\010\022\033\n\023extended_agent_c" +
+      "ard\030\003 \001(\010\"\212\001\n\016AgentCardSkill\022\n\n\002id\030\001 \001(\t" +
+      "\022\014\n\004name\030\002 \001(\t\022\023\n\013description\030\003 \001(\t\022\014\n\004t" +
+      "ags\030\004 \003(\t\022\020\n\010examples\030\005 \003(\t\022\023\n\013input_mod" +
+      "es\030\006 \003(\t\022\024\n\014output_modes\030\007 \003(\tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -20435,7 +20440,7 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_ConnectionRef_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ConnectionRef_descriptor,
-        new java.lang.String[] { "Internal", "External", "Target", });
+        new java.lang.String[] { "Internal", "External", });
     internal_static_talon_resources_InternalConnectionRef_descriptor =
       getDescriptor().getMessageType(13);
     internal_static_talon_resources_InternalConnectionRef_fieldAccessorTable = new

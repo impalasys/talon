@@ -135,6 +135,154 @@ spec:
     }
 
     #[test]
+    fn connector_class_manifest_maps_resource_secret_ref_shape() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: ConnectorClass
+metadata:
+  name: slack
+  namespace: customers
+spec:
+  platform: slack
+  runtime:
+    kind: externalService
+    endpoint: https://slack-connector.example.com
+  auth:
+    kind: apiKey
+    apiKey:
+      env: TALON_SLACK_CONNECTOR_API_KEY
+  matchIndexes:
+    - name: workspace
+      fields:
+        - teamId
+"#,
+        )
+        .expect("connector class manifest parses");
+
+        let Some(resource_spec::Kind::ConnectorClass(spec)) =
+            manifest.spec.clone().and_then(|spec| spec.kind)
+        else {
+            panic!("expected ConnectorClass spec");
+        };
+        let api_key = spec.auth.unwrap().api_key.unwrap();
+        assert_eq!(api_key.env.as_deref(), Some("TALON_SLACK_CONNECTOR_API_KEY"));
+        assert_eq!(api_key.plain, None);
+
+        let rendered = render_resource_yaml(&resources_proto::Resource {
+            api_version: manifest.api_version,
+            kind: manifest.kind,
+            metadata: manifest.metadata,
+            spec: manifest.spec,
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resource_status::Kind::ConnectorClass(Default::default())),
+            }),
+        })
+        .expect("render connector class");
+        let rendered_yaml: serde_yaml::Value =
+            serde_yaml::from_str(&rendered).expect("rendered YAML parses");
+        assert_eq!(
+            rendered_yaml["spec"]["auth"]["apiKey"]["env"].as_str(),
+            Some("TALON_SLACK_CONNECTOR_API_KEY")
+        );
+        assert!(rendered_yaml["spec"]["auth"]["apiKey"]
+            .get("source")
+            .is_none());
+    }
+
+    #[test]
+    fn connector_manifest_maps_message_consumer_payload_shape() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Connector
+metadata:
+  name: slack-main
+  namespace: customers
+spec:
+  classRef:
+    name: slack
+  enabled: true
+  matchFields:
+    teamId: T123
+  consumer:
+    channel:
+      channel:
+        name: campaigns
+      agent:
+        name: marketing-agent
+      continuity: reuse
+      replyPolicy: thread
+"#,
+        )
+        .expect("connector manifest parses");
+
+        let Some(resource_spec::Kind::Connector(spec)) =
+            manifest.spec.clone().and_then(|spec| spec.kind)
+        else {
+            panic!("expected Connector spec");
+        };
+        let consumer = spec.consumer.expect("consumer");
+        assert!(consumer.session.is_none());
+        let channel = consumer.channel.expect("channel consumer");
+        assert_eq!(channel.channel.unwrap().name, "campaigns");
+        assert_eq!(channel.agent.unwrap().name, "marketing-agent");
+        assert_eq!(channel.reply_policy, "thread");
+
+        let rendered = render_resource_yaml(&resources_proto::Resource {
+            api_version: manifest.api_version,
+            kind: manifest.kind,
+            metadata: manifest.metadata,
+            spec: manifest.spec,
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resource_status::Kind::Connector(Default::default())),
+            }),
+        })
+        .expect("render connector");
+        let rendered_yaml: serde_yaml::Value =
+            serde_yaml::from_str(&rendered).expect("rendered YAML parses");
+        assert!(rendered_yaml["spec"]["consumer"].get("kind").is_none());
+        assert_eq!(
+            rendered_yaml["spec"]["consumer"]["channel"]["replyPolicy"].as_str(),
+            Some("thread")
+        );
+    }
+
+    #[test]
+    fn agent_manifest_maps_a2a_target_payload_shape() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: planner
+  namespace: customers
+spec:
+  systemPrompt: hello
+  a2a:
+    connections:
+      - name: search
+        target:
+          external:
+            agentCardUrl: https://example.com/.well-known/agent-card.json
+"#,
+        )
+        .expect("agent manifest parses");
+
+        let Some(resource_spec::Kind::Agent(spec)) = manifest.spec.and_then(|spec| spec.kind)
+        else {
+            panic!("expected Agent spec");
+        };
+        let connection = &spec.a2a.unwrap().connections[0];
+        let target = connection.target.as_ref().expect("target");
+        assert!(target.internal.is_none());
+        assert_eq!(
+            target.external.as_ref().unwrap().agent_card_url,
+            "https://example.com/.well-known/agent-card.json"
+        );
+    }
+
+    #[test]
     fn sandbox_policy_manifest_accepts_and_renders_template_spec_shape() {
         let manifest = parse_resource_manifest(
             r#"

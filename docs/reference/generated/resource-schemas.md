@@ -175,8 +175,8 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `internal` | `InternalConnectionRef` | oneof (target) |
-| `external` | `ExternalConnectionRef` | oneof (target) |
+| `internal` | `InternalConnectionRef` | optional; Internal Talon agent target. Mutually exclusive with external. |
+| `external` | `ExternalConnectionRef` | optional; External A2A agent-card target. Mutually exclusive with internal. |
 
 ## `InternalConnectionRef`
 
@@ -374,7 +374,14 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | Field | Type | Notes |
 | --- | --- | --- |
 | `kind` | `string` | Authentication scheme Talon uses when calling the connector service. |
-| `api_key` | `talon.config.Secret` | API key or secret reference used to authenticate this Talon cluster to the connector service. |
+| `api_key` | `ConnectorSecretRef` | API key source used to authenticate this Talon cluster to the connector service. |
+
+## `ConnectorSecretRef`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `plain` | `string` | optional; Inline secret value. Mutually exclusive with env. |
+| `env` | `string` | optional; Environment variable name that contains the secret value. Mutually exclusive with plain. |
 
 ## `ConnectorMatchIndex`
 
@@ -991,5 +998,5 @@ This page summarizes the control-plane resource messages that drive Talon agents
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `session` | `SessionMessageConsumer` | oneof (consumer) |
-| `channel` | `ChannelMessageConsumer` | oneof (consumer) |
+| `session` | `SessionMessageConsumer` | optional; Session consumer payload. Mutually exclusive with channel. |
+| `channel` | `ChannelMessageConsumer` | optional; Channel consumer payload. Mutually exclusive with session. |

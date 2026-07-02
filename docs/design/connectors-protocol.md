@@ -149,9 +149,7 @@ spec:
   auth:
     kind: apiKey
     apiKey:
-      ref:
-        source: env
-        key: TALON_SLACK_CONNECTOR_API_KEY
+      env: TALON_SLACK_CONNECTOR_API_KEY
 ```
 
 `ConnectorClass.spec.auth.apiKey` identifies the Talon cluster or Talon operator
@@ -921,7 +919,7 @@ Suggested routing defaults:
    - `ConnectorDeliveryResponse`
    - `ConnectorStatusEvent`
 
-3. Wire resources into the resource oneof and generated schemas.
+3. Wire resources into the generated resource schemas and dispatch helpers.
 
 4. Add `ConnectorController`:
    - watch namespaced `ConnectorClass`

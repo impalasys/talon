@@ -92,10 +92,11 @@ message Connection {
 }
 
 message ConnectionRef {
-  oneof target {
-    InternalConnectionRef internal = 1;
-    ExternalConnectionRef external = 2;
-  }
+  // Internal Talon agent target. Mutually exclusive with external.
+  optional InternalConnectionRef internal = 1;
+
+  // External A2A agent-card target. Mutually exclusive with internal.
+  optional ExternalConnectionRef external = 2;
 }
 
 message InternalConnectionRef {

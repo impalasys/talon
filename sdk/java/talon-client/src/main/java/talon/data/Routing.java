@@ -3096,62 +3096,57 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
 
     /**
      * <pre>
-     * Deliver matching messages directly to a Talon Session.
+     * Session consumer payload. Mutually exclusive with channel.
      * </pre>
      *
-     * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+     * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
      * @return Whether the session field is set.
      */
     boolean hasSession();
     /**
      * <pre>
-     * Deliver matching messages directly to a Talon Session.
+     * Session consumer payload. Mutually exclusive with channel.
      * </pre>
      *
-     * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+     * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
      * @return The session.
      */
     talon.data.Routing.SessionMessageConsumer getSession();
     /**
      * <pre>
-     * Deliver matching messages directly to a Talon Session.
+     * Session consumer payload. Mutually exclusive with channel.
      * </pre>
      *
-     * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+     * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
      */
     talon.data.Routing.SessionMessageConsumerOrBuilder getSessionOrBuilder();
 
     /**
      * <pre>
-     * Persist matching messages into a Talon Channel, then route the message to
-     * the configured Agent.
+     * Channel consumer payload. Mutually exclusive with session.
      * </pre>
      *
-     * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+     * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
      * @return Whether the channel field is set.
      */
     boolean hasChannel();
     /**
      * <pre>
-     * Persist matching messages into a Talon Channel, then route the message to
-     * the configured Agent.
+     * Channel consumer payload. Mutually exclusive with session.
      * </pre>
      *
-     * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+     * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
      * @return The channel.
      */
     talon.data.Routing.ChannelMessageConsumer getChannel();
     /**
      * <pre>
-     * Persist matching messages into a Talon Channel, then route the message to
-     * the configured Agent.
+     * Channel consumer payload. Mutually exclusive with session.
      * </pre>
      *
-     * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+     * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
      */
     talon.data.Routing.ChannelMessageConsumerOrBuilder getChannelOrBuilder();
-
-    talon.data.Routing.MessageConsumer.ConsumerCase getConsumerCase();
   }
   /**
    * Protobuf type {@code talon.data.MessageConsumer}
@@ -3195,135 +3190,81 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
               talon.data.Routing.MessageConsumer.class, talon.data.Routing.MessageConsumer.Builder.class);
     }
 
-    private int consumerCase_ = 0;
-    @SuppressWarnings("serial")
-    private java.lang.Object consumer_;
-    public enum ConsumerCase
-        implements com.google.protobuf.Internal.EnumLite,
-            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
-      SESSION(1),
-      CHANNEL(2),
-      CONSUMER_NOT_SET(0);
-      private final int value;
-      private ConsumerCase(int value) {
-        this.value = value;
-      }
-      /**
-       * @param value The number of the enum to look for.
-       * @return The enum associated with the given number.
-       * @deprecated Use {@link #forNumber(int)} instead.
-       */
-      @java.lang.Deprecated
-      public static ConsumerCase valueOf(int value) {
-        return forNumber(value);
-      }
-
-      public static ConsumerCase forNumber(int value) {
-        switch (value) {
-          case 1: return SESSION;
-          case 2: return CHANNEL;
-          case 0: return CONSUMER_NOT_SET;
-          default: return null;
-        }
-      }
-      public int getNumber() {
-        return this.value;
-      }
-    };
-
-    public ConsumerCase
-    getConsumerCase() {
-      return ConsumerCase.forNumber(
-          consumerCase_);
-    }
-
+    private int bitField0_;
     public static final int SESSION_FIELD_NUMBER = 1;
+    private talon.data.Routing.SessionMessageConsumer session_;
     /**
      * <pre>
-     * Deliver matching messages directly to a Talon Session.
+     * Session consumer payload. Mutually exclusive with channel.
      * </pre>
      *
-     * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+     * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
      * @return Whether the session field is set.
      */
     @java.lang.Override
     public boolean hasSession() {
-      return consumerCase_ == 1;
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <pre>
-     * Deliver matching messages directly to a Talon Session.
+     * Session consumer payload. Mutually exclusive with channel.
      * </pre>
      *
-     * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+     * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
      * @return The session.
      */
     @java.lang.Override
     public talon.data.Routing.SessionMessageConsumer getSession() {
-      if (consumerCase_ == 1) {
-         return (talon.data.Routing.SessionMessageConsumer) consumer_;
-      }
-      return talon.data.Routing.SessionMessageConsumer.getDefaultInstance();
+      return session_ == null ? talon.data.Routing.SessionMessageConsumer.getDefaultInstance() : session_;
     }
     /**
      * <pre>
-     * Deliver matching messages directly to a Talon Session.
+     * Session consumer payload. Mutually exclusive with channel.
      * </pre>
      *
-     * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+     * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
      */
     @java.lang.Override
     public talon.data.Routing.SessionMessageConsumerOrBuilder getSessionOrBuilder() {
-      if (consumerCase_ == 1) {
-         return (talon.data.Routing.SessionMessageConsumer) consumer_;
-      }
-      return talon.data.Routing.SessionMessageConsumer.getDefaultInstance();
+      return session_ == null ? talon.data.Routing.SessionMessageConsumer.getDefaultInstance() : session_;
     }
 
     public static final int CHANNEL_FIELD_NUMBER = 2;
+    private talon.data.Routing.ChannelMessageConsumer channel_;
     /**
      * <pre>
-     * Persist matching messages into a Talon Channel, then route the message to
-     * the configured Agent.
+     * Channel consumer payload. Mutually exclusive with session.
      * </pre>
      *
-     * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+     * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
      * @return Whether the channel field is set.
      */
     @java.lang.Override
     public boolean hasChannel() {
-      return consumerCase_ == 2;
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <pre>
-     * Persist matching messages into a Talon Channel, then route the message to
-     * the configured Agent.
+     * Channel consumer payload. Mutually exclusive with session.
      * </pre>
      *
-     * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+     * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
      * @return The channel.
      */
     @java.lang.Override
     public talon.data.Routing.ChannelMessageConsumer getChannel() {
-      if (consumerCase_ == 2) {
-         return (talon.data.Routing.ChannelMessageConsumer) consumer_;
-      }
-      return talon.data.Routing.ChannelMessageConsumer.getDefaultInstance();
+      return channel_ == null ? talon.data.Routing.ChannelMessageConsumer.getDefaultInstance() : channel_;
     }
     /**
      * <pre>
-     * Persist matching messages into a Talon Channel, then route the message to
-     * the configured Agent.
+     * Channel consumer payload. Mutually exclusive with session.
      * </pre>
      *
-     * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+     * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
      */
     @java.lang.Override
     public talon.data.Routing.ChannelMessageConsumerOrBuilder getChannelOrBuilder() {
-      if (consumerCase_ == 2) {
-         return (talon.data.Routing.ChannelMessageConsumer) consumer_;
-      }
-      return talon.data.Routing.ChannelMessageConsumer.getDefaultInstance();
+      return channel_ == null ? talon.data.Routing.ChannelMessageConsumer.getDefaultInstance() : channel_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -3340,11 +3281,11 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (consumerCase_ == 1) {
-        output.writeMessage(1, (talon.data.Routing.SessionMessageConsumer) consumer_);
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getSession());
       }
-      if (consumerCase_ == 2) {
-        output.writeMessage(2, (talon.data.Routing.ChannelMessageConsumer) consumer_);
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(2, getChannel());
       }
       getUnknownFields().writeTo(output);
     }
@@ -3355,13 +3296,13 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       if (size != -1) return size;
 
       size = 0;
-      if (consumerCase_ == 1) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, (talon.data.Routing.SessionMessageConsumer) consumer_);
+          .computeMessageSize(1, getSession());
       }
-      if (consumerCase_ == 2) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, (talon.data.Routing.ChannelMessageConsumer) consumer_);
+          .computeMessageSize(2, getChannel());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -3378,18 +3319,15 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       talon.data.Routing.MessageConsumer other = (talon.data.Routing.MessageConsumer) obj;
 
-      if (!getConsumerCase().equals(other.getConsumerCase())) return false;
-      switch (consumerCase_) {
-        case 1:
-          if (!getSession()
-              .equals(other.getSession())) return false;
-          break;
-        case 2:
-          if (!getChannel()
-              .equals(other.getChannel())) return false;
-          break;
-        case 0:
-        default:
+      if (hasSession() != other.hasSession()) return false;
+      if (hasSession()) {
+        if (!getSession()
+            .equals(other.getSession())) return false;
+      }
+      if (hasChannel() != other.hasChannel()) return false;
+      if (hasChannel()) {
+        if (!getChannel()
+            .equals(other.getChannel())) return false;
       }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
@@ -3402,17 +3340,13 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      switch (consumerCase_) {
-        case 1:
-          hash = (37 * hash) + SESSION_FIELD_NUMBER;
-          hash = (53 * hash) + getSession().hashCode();
-          break;
-        case 2:
-          hash = (37 * hash) + CHANNEL_FIELD_NUMBER;
-          hash = (53 * hash) + getChannel().hashCode();
-          break;
-        case 0:
-        default:
+      if (hasSession()) {
+        hash = (37 * hash) + SESSION_FIELD_NUMBER;
+        hash = (53 * hash) + getSession().hashCode();
+      }
+      if (hasChannel()) {
+        hash = (37 * hash) + CHANNEL_FIELD_NUMBER;
+        hash = (53 * hash) + getChannel().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -3533,26 +3467,35 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
 
       // Construct using talon.data.Routing.MessageConsumer.newBuilder()
       private Builder() {
-
+        maybeForceBuilderInitialization();
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetSessionFieldBuilder();
+          internalGetChannelFieldBuilder();
+        }
       }
       @java.lang.Override
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
+        session_ = null;
         if (sessionBuilder_ != null) {
-          sessionBuilder_.clear();
+          sessionBuilder_.dispose();
+          sessionBuilder_ = null;
         }
+        channel_ = null;
         if (channelBuilder_ != null) {
-          channelBuilder_.clear();
+          channelBuilder_.dispose();
+          channelBuilder_ = null;
         }
-        consumerCase_ = 0;
-        consumer_ = null;
         return this;
       }
 
@@ -3580,26 +3523,26 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       public talon.data.Routing.MessageConsumer buildPartial() {
         talon.data.Routing.MessageConsumer result = new talon.data.Routing.MessageConsumer(this);
         if (bitField0_ != 0) { buildPartial0(result); }
-        buildPartialOneofs(result);
         onBuilt();
         return result;
       }
 
       private void buildPartial0(talon.data.Routing.MessageConsumer result) {
         int from_bitField0_ = bitField0_;
-      }
-
-      private void buildPartialOneofs(talon.data.Routing.MessageConsumer result) {
-        result.consumerCase_ = consumerCase_;
-        result.consumer_ = this.consumer_;
-        if (consumerCase_ == 1 &&
-            sessionBuilder_ != null) {
-          result.consumer_ = sessionBuilder_.build();
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.session_ = sessionBuilder_ == null
+              ? session_
+              : sessionBuilder_.build();
+          to_bitField0_ |= 0x00000001;
         }
-        if (consumerCase_ == 2 &&
-            channelBuilder_ != null) {
-          result.consumer_ = channelBuilder_.build();
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.channel_ = channelBuilder_ == null
+              ? channel_
+              : channelBuilder_.build();
+          to_bitField0_ |= 0x00000002;
         }
+        result.bitField0_ |= to_bitField0_;
       }
 
       @java.lang.Override
@@ -3614,18 +3557,11 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
 
       public Builder mergeFrom(talon.data.Routing.MessageConsumer other) {
         if (other == talon.data.Routing.MessageConsumer.getDefaultInstance()) return this;
-        switch (other.getConsumerCase()) {
-          case SESSION: {
-            mergeSession(other.getSession());
-            break;
-          }
-          case CHANNEL: {
-            mergeChannel(other.getChannel());
-            break;
-          }
-          case CONSUMER_NOT_SET: {
-            break;
-          }
+        if (other.hasSession()) {
+          mergeSession(other.getSession());
+        }
+        if (other.hasChannel()) {
+          mergeChannel(other.getChannel());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -3657,14 +3593,14 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
                 input.readMessage(
                     internalGetSessionFieldBuilder().getBuilder(),
                     extensionRegistry);
-                consumerCase_ = 1;
+                bitField0_ |= 0x00000001;
                 break;
               } // case 10
               case 18: {
                 input.readMessage(
                     internalGetChannelFieldBuilder().getBuilder(),
                     extensionRegistry);
-                consumerCase_ = 2;
+                bitField0_ |= 0x00000002;
                 break;
               } // case 18
               default: {
@@ -3682,385 +3618,319 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
         } // finally
         return this;
       }
-      private int consumerCase_ = 0;
-      private java.lang.Object consumer_;
-      public ConsumerCase
-          getConsumerCase() {
-        return ConsumerCase.forNumber(
-            consumerCase_);
-      }
-
-      public Builder clearConsumer() {
-        consumerCase_ = 0;
-        consumer_ = null;
-        onChanged();
-        return this;
-      }
-
       private int bitField0_;
 
+      private talon.data.Routing.SessionMessageConsumer session_;
       private com.google.protobuf.SingleFieldBuilder<
           talon.data.Routing.SessionMessageConsumer, talon.data.Routing.SessionMessageConsumer.Builder, talon.data.Routing.SessionMessageConsumerOrBuilder> sessionBuilder_;
       /**
        * <pre>
-       * Deliver matching messages directly to a Talon Session.
+       * Session consumer payload. Mutually exclusive with channel.
        * </pre>
        *
-       * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+       * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
        * @return Whether the session field is set.
        */
-      @java.lang.Override
       public boolean hasSession() {
-        return consumerCase_ == 1;
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <pre>
-       * Deliver matching messages directly to a Talon Session.
+       * Session consumer payload. Mutually exclusive with channel.
        * </pre>
        *
-       * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+       * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
        * @return The session.
        */
-      @java.lang.Override
       public talon.data.Routing.SessionMessageConsumer getSession() {
         if (sessionBuilder_ == null) {
-          if (consumerCase_ == 1) {
-            return (talon.data.Routing.SessionMessageConsumer) consumer_;
-          }
-          return talon.data.Routing.SessionMessageConsumer.getDefaultInstance();
+          return session_ == null ? talon.data.Routing.SessionMessageConsumer.getDefaultInstance() : session_;
         } else {
-          if (consumerCase_ == 1) {
-            return sessionBuilder_.getMessage();
-          }
-          return talon.data.Routing.SessionMessageConsumer.getDefaultInstance();
+          return sessionBuilder_.getMessage();
         }
       }
       /**
        * <pre>
-       * Deliver matching messages directly to a Talon Session.
+       * Session consumer payload. Mutually exclusive with channel.
        * </pre>
        *
-       * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+       * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
        */
       public Builder setSession(talon.data.Routing.SessionMessageConsumer value) {
         if (sessionBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          consumer_ = value;
-          onChanged();
+          session_ = value;
         } else {
           sessionBuilder_.setMessage(value);
         }
-        consumerCase_ = 1;
+        bitField0_ |= 0x00000001;
+        onChanged();
         return this;
       }
       /**
        * <pre>
-       * Deliver matching messages directly to a Talon Session.
+       * Session consumer payload. Mutually exclusive with channel.
        * </pre>
        *
-       * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+       * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
        */
       public Builder setSession(
           talon.data.Routing.SessionMessageConsumer.Builder builderForValue) {
         if (sessionBuilder_ == null) {
-          consumer_ = builderForValue.build();
-          onChanged();
+          session_ = builderForValue.build();
         } else {
           sessionBuilder_.setMessage(builderForValue.build());
         }
-        consumerCase_ = 1;
+        bitField0_ |= 0x00000001;
+        onChanged();
         return this;
       }
       /**
        * <pre>
-       * Deliver matching messages directly to a Talon Session.
+       * Session consumer payload. Mutually exclusive with channel.
        * </pre>
        *
-       * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+       * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
        */
       public Builder mergeSession(talon.data.Routing.SessionMessageConsumer value) {
         if (sessionBuilder_ == null) {
-          if (consumerCase_ == 1 &&
-              consumer_ != talon.data.Routing.SessionMessageConsumer.getDefaultInstance()) {
-            consumer_ = talon.data.Routing.SessionMessageConsumer.newBuilder((talon.data.Routing.SessionMessageConsumer) consumer_)
-                .mergeFrom(value).buildPartial();
+          if (((bitField0_ & 0x00000001) != 0) &&
+            session_ != null &&
+            session_ != talon.data.Routing.SessionMessageConsumer.getDefaultInstance()) {
+            getSessionBuilder().mergeFrom(value);
           } else {
-            consumer_ = value;
+            session_ = value;
           }
-          onChanged();
         } else {
-          if (consumerCase_ == 1) {
-            sessionBuilder_.mergeFrom(value);
-          } else {
-            sessionBuilder_.setMessage(value);
-          }
+          sessionBuilder_.mergeFrom(value);
         }
-        consumerCase_ = 1;
+        if (session_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
         return this;
       }
       /**
        * <pre>
-       * Deliver matching messages directly to a Talon Session.
+       * Session consumer payload. Mutually exclusive with channel.
        * </pre>
        *
-       * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+       * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
        */
       public Builder clearSession() {
-        if (sessionBuilder_ == null) {
-          if (consumerCase_ == 1) {
-            consumerCase_ = 0;
-            consumer_ = null;
-            onChanged();
-          }
-        } else {
-          if (consumerCase_ == 1) {
-            consumerCase_ = 0;
-            consumer_ = null;
-          }
-          sessionBuilder_.clear();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        session_ = null;
+        if (sessionBuilder_ != null) {
+          sessionBuilder_.dispose();
+          sessionBuilder_ = null;
         }
+        onChanged();
         return this;
       }
       /**
        * <pre>
-       * Deliver matching messages directly to a Talon Session.
+       * Session consumer payload. Mutually exclusive with channel.
        * </pre>
        *
-       * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+       * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
        */
       public talon.data.Routing.SessionMessageConsumer.Builder getSessionBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
         return internalGetSessionFieldBuilder().getBuilder();
       }
       /**
        * <pre>
-       * Deliver matching messages directly to a Talon Session.
+       * Session consumer payload. Mutually exclusive with channel.
        * </pre>
        *
-       * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+       * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
        */
-      @java.lang.Override
       public talon.data.Routing.SessionMessageConsumerOrBuilder getSessionOrBuilder() {
-        if ((consumerCase_ == 1) && (sessionBuilder_ != null)) {
+        if (sessionBuilder_ != null) {
           return sessionBuilder_.getMessageOrBuilder();
         } else {
-          if (consumerCase_ == 1) {
-            return (talon.data.Routing.SessionMessageConsumer) consumer_;
-          }
-          return talon.data.Routing.SessionMessageConsumer.getDefaultInstance();
+          return session_ == null ?
+              talon.data.Routing.SessionMessageConsumer.getDefaultInstance() : session_;
         }
       }
       /**
        * <pre>
-       * Deliver matching messages directly to a Talon Session.
+       * Session consumer payload. Mutually exclusive with channel.
        * </pre>
        *
-       * <code>.talon.data.SessionMessageConsumer session = 1;</code>
+       * <code>optional .talon.data.SessionMessageConsumer session = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.data.Routing.SessionMessageConsumer, talon.data.Routing.SessionMessageConsumer.Builder, talon.data.Routing.SessionMessageConsumerOrBuilder>
           internalGetSessionFieldBuilder() {
         if (sessionBuilder_ == null) {
-          if (!(consumerCase_ == 1)) {
-            consumer_ = talon.data.Routing.SessionMessageConsumer.getDefaultInstance();
-          }
           sessionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
               talon.data.Routing.SessionMessageConsumer, talon.data.Routing.SessionMessageConsumer.Builder, talon.data.Routing.SessionMessageConsumerOrBuilder>(
-                  (talon.data.Routing.SessionMessageConsumer) consumer_,
+                  getSession(),
                   getParentForChildren(),
                   isClean());
-          consumer_ = null;
+          session_ = null;
         }
-        consumerCase_ = 1;
-        onChanged();
         return sessionBuilder_;
       }
 
+      private talon.data.Routing.ChannelMessageConsumer channel_;
       private com.google.protobuf.SingleFieldBuilder<
           talon.data.Routing.ChannelMessageConsumer, talon.data.Routing.ChannelMessageConsumer.Builder, talon.data.Routing.ChannelMessageConsumerOrBuilder> channelBuilder_;
       /**
        * <pre>
-       * Persist matching messages into a Talon Channel, then route the message to
-       * the configured Agent.
+       * Channel consumer payload. Mutually exclusive with session.
        * </pre>
        *
-       * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+       * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
        * @return Whether the channel field is set.
        */
-      @java.lang.Override
       public boolean hasChannel() {
-        return consumerCase_ == 2;
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <pre>
-       * Persist matching messages into a Talon Channel, then route the message to
-       * the configured Agent.
+       * Channel consumer payload. Mutually exclusive with session.
        * </pre>
        *
-       * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+       * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
        * @return The channel.
        */
-      @java.lang.Override
       public talon.data.Routing.ChannelMessageConsumer getChannel() {
         if (channelBuilder_ == null) {
-          if (consumerCase_ == 2) {
-            return (talon.data.Routing.ChannelMessageConsumer) consumer_;
-          }
-          return talon.data.Routing.ChannelMessageConsumer.getDefaultInstance();
+          return channel_ == null ? talon.data.Routing.ChannelMessageConsumer.getDefaultInstance() : channel_;
         } else {
-          if (consumerCase_ == 2) {
-            return channelBuilder_.getMessage();
-          }
-          return talon.data.Routing.ChannelMessageConsumer.getDefaultInstance();
+          return channelBuilder_.getMessage();
         }
       }
       /**
        * <pre>
-       * Persist matching messages into a Talon Channel, then route the message to
-       * the configured Agent.
+       * Channel consumer payload. Mutually exclusive with session.
        * </pre>
        *
-       * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+       * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
        */
       public Builder setChannel(talon.data.Routing.ChannelMessageConsumer value) {
         if (channelBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          consumer_ = value;
-          onChanged();
+          channel_ = value;
         } else {
           channelBuilder_.setMessage(value);
         }
-        consumerCase_ = 2;
+        bitField0_ |= 0x00000002;
+        onChanged();
         return this;
       }
       /**
        * <pre>
-       * Persist matching messages into a Talon Channel, then route the message to
-       * the configured Agent.
+       * Channel consumer payload. Mutually exclusive with session.
        * </pre>
        *
-       * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+       * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
        */
       public Builder setChannel(
           talon.data.Routing.ChannelMessageConsumer.Builder builderForValue) {
         if (channelBuilder_ == null) {
-          consumer_ = builderForValue.build();
-          onChanged();
+          channel_ = builderForValue.build();
         } else {
           channelBuilder_.setMessage(builderForValue.build());
         }
-        consumerCase_ = 2;
+        bitField0_ |= 0x00000002;
+        onChanged();
         return this;
       }
       /**
        * <pre>
-       * Persist matching messages into a Talon Channel, then route the message to
-       * the configured Agent.
+       * Channel consumer payload. Mutually exclusive with session.
        * </pre>
        *
-       * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+       * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
        */
       public Builder mergeChannel(talon.data.Routing.ChannelMessageConsumer value) {
         if (channelBuilder_ == null) {
-          if (consumerCase_ == 2 &&
-              consumer_ != talon.data.Routing.ChannelMessageConsumer.getDefaultInstance()) {
-            consumer_ = talon.data.Routing.ChannelMessageConsumer.newBuilder((talon.data.Routing.ChannelMessageConsumer) consumer_)
-                .mergeFrom(value).buildPartial();
+          if (((bitField0_ & 0x00000002) != 0) &&
+            channel_ != null &&
+            channel_ != talon.data.Routing.ChannelMessageConsumer.getDefaultInstance()) {
+            getChannelBuilder().mergeFrom(value);
           } else {
-            consumer_ = value;
+            channel_ = value;
           }
-          onChanged();
         } else {
-          if (consumerCase_ == 2) {
-            channelBuilder_.mergeFrom(value);
-          } else {
-            channelBuilder_.setMessage(value);
-          }
+          channelBuilder_.mergeFrom(value);
         }
-        consumerCase_ = 2;
+        if (channel_ != null) {
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
         return this;
       }
       /**
        * <pre>
-       * Persist matching messages into a Talon Channel, then route the message to
-       * the configured Agent.
+       * Channel consumer payload. Mutually exclusive with session.
        * </pre>
        *
-       * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+       * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
        */
       public Builder clearChannel() {
-        if (channelBuilder_ == null) {
-          if (consumerCase_ == 2) {
-            consumerCase_ = 0;
-            consumer_ = null;
-            onChanged();
-          }
-        } else {
-          if (consumerCase_ == 2) {
-            consumerCase_ = 0;
-            consumer_ = null;
-          }
-          channelBuilder_.clear();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        channel_ = null;
+        if (channelBuilder_ != null) {
+          channelBuilder_.dispose();
+          channelBuilder_ = null;
         }
+        onChanged();
         return this;
       }
       /**
        * <pre>
-       * Persist matching messages into a Talon Channel, then route the message to
-       * the configured Agent.
+       * Channel consumer payload. Mutually exclusive with session.
        * </pre>
        *
-       * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+       * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
        */
       public talon.data.Routing.ChannelMessageConsumer.Builder getChannelBuilder() {
+        bitField0_ |= 0x00000002;
+        onChanged();
         return internalGetChannelFieldBuilder().getBuilder();
       }
       /**
        * <pre>
-       * Persist matching messages into a Talon Channel, then route the message to
-       * the configured Agent.
+       * Channel consumer payload. Mutually exclusive with session.
        * </pre>
        *
-       * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+       * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
        */
-      @java.lang.Override
       public talon.data.Routing.ChannelMessageConsumerOrBuilder getChannelOrBuilder() {
-        if ((consumerCase_ == 2) && (channelBuilder_ != null)) {
+        if (channelBuilder_ != null) {
           return channelBuilder_.getMessageOrBuilder();
         } else {
-          if (consumerCase_ == 2) {
-            return (talon.data.Routing.ChannelMessageConsumer) consumer_;
-          }
-          return talon.data.Routing.ChannelMessageConsumer.getDefaultInstance();
+          return channel_ == null ?
+              talon.data.Routing.ChannelMessageConsumer.getDefaultInstance() : channel_;
         }
       }
       /**
        * <pre>
-       * Persist matching messages into a Talon Channel, then route the message to
-       * the configured Agent.
+       * Channel consumer payload. Mutually exclusive with session.
        * </pre>
        *
-       * <code>.talon.data.ChannelMessageConsumer channel = 2;</code>
+       * <code>optional .talon.data.ChannelMessageConsumer channel = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.data.Routing.ChannelMessageConsumer, talon.data.Routing.ChannelMessageConsumer.Builder, talon.data.Routing.ChannelMessageConsumerOrBuilder>
           internalGetChannelFieldBuilder() {
         if (channelBuilder_ == null) {
-          if (!(consumerCase_ == 2)) {
-            consumer_ = talon.data.Routing.ChannelMessageConsumer.getDefaultInstance();
-          }
           channelBuilder_ = new com.google.protobuf.SingleFieldBuilder<
               talon.data.Routing.ChannelMessageConsumer, talon.data.Routing.ChannelMessageConsumer.Builder, talon.data.Routing.ChannelMessageConsumerOrBuilder>(
-                  (talon.data.Routing.ChannelMessageConsumer) consumer_,
+                  getChannel(),
                   getParentForChildren(),
                   isClean());
-          consumer_ = null;
+          channel_ = null;
         }
-        consumerCase_ = 2;
-        onChanged();
         return channelBuilder_;
       }
 
@@ -4152,11 +4022,11 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       "nnelMessageConsumer\022(\n\007channel\030\001 \001(\0132\027.t" +
       "alon.data.ResourceRef\022&\n\005agent\030\002 \001(\0132\027.t" +
       "alon.data.ResourceRef\022\022\n\ncontinuity\030\003 \001(" +
-      "\t\022\024\n\014reply_policy\030\004 \001(\t\"\213\001\n\017MessageConsu" +
-      "mer\0225\n\007session\030\001 \001(\0132\".talon.data.Sessio" +
-      "nMessageConsumerH\000\0225\n\007channel\030\002 \001(\0132\".ta" +
-      "lon.data.ChannelMessageConsumerH\000B\n\n\010con" +
-      "sumerb\006proto3"
+      "\t\022\024\n\014reply_policy\030\004 \001(\t\"\235\001\n\017MessageConsu" +
+      "mer\0228\n\007session\030\001 \001(\0132\".talon.data.Sessio" +
+      "nMessageConsumerH\000\210\001\001\0228\n\007channel\030\002 \001(\0132\"" +
+      ".talon.data.ChannelMessageConsumerH\001\210\001\001B" +
+      "\n\n\010_sessionB\n\n\010_channelb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -4185,7 +4055,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     internal_static_talon_data_MessageConsumer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_MessageConsumer_descriptor,
-        new java.lang.String[] { "Session", "Channel", "Consumer", });
+        new java.lang.String[] { "Session", "Channel", });
     descriptor.resolveAllFeaturesImmutable();
   }
 

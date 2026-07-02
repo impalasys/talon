@@ -19,6 +19,15 @@ permissions:
   packages: write
 
 jobs:
+  proto_lint:
+    name: Proto Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Reject oneof in resource-facing protos
+        run: python3 scripts/check_resource_proto_oneofs.py
+
   cargo:
     name: Cargo
     runs-on: ubuntu-latest

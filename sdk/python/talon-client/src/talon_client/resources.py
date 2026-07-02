@@ -6,7 +6,7 @@ from talon_client.proto.resources.mcp_pb2 import McpServer, McpServerSpec, McpAu
 from talon_client.proto.resources.knowledge_pb2 import Knowledge, KnowledgeSpec
 from talon_client.proto.resources.namespaces_pb2 import Namespace, NamespaceSpec, NamespaceStatus
 from talon_client.proto.resources.channels_pb2 import Channel, ChannelSpec, ChannelStatus, ChannelContextPolicy, ChannelSubscription, ChannelSubscriptionSpec
-from talon_client.proto.resources.connectors_pb2 import ConnectorClassRuntimeSpec, ConnectorClassAuthSpec, ConnectorMatchIndex, ConnectorClassSpec, ConnectorClassStatus, ConnectorSpec, ConnectorStatus, ConnectorClass, Connector
+from talon_client.proto.resources.connectors_pb2 import ConnectorClassRuntimeSpec, ConnectorClassAuthSpec, ConnectorSecretRef, ConnectorMatchIndex, ConnectorClassSpec, ConnectorClassStatus, ConnectorSpec, ConnectorStatus, ConnectorClass, Connector
 from talon_client.proto.resources.schedules_pb2 import ScheduleTarget, ScheduleSpec, ScheduleStatus, ScheduleEvent, Schedule
 from talon_client.proto.resources.workflows_pb2 import WorkflowStepOutputPolicy, WorkflowStepRetryPolicy, WorkflowStep, WorkflowSpec, Workflow, WorkflowStatus
 from talon_client.proto.resources.deployments_pb2 import TemplateSpec, Template, DeploymentPlacement, DeploymentSpec, Deployment, DeploymentReplicaSpec, DeploymentReplica, DeploymentStatus, DeploymentReplicaStatus
@@ -61,6 +61,7 @@ __all__ = [
     "ChannelSubscriptionSpec",
     "ConnectorClassRuntimeSpec",
     "ConnectorClassAuthSpec",
+    "ConnectorSecretRef",
     "ConnectorMatchIndex",
     "ConnectorClassSpec",
     "ConnectorClassStatus",

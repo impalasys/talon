@@ -7,7 +7,6 @@
 package resources
 
 import (
-	config "github.com/impalasys/talon/sdk/go/talon-client/talon/config"
 	routing "github.com/impalasys/talon/sdk/go/talon-client/talon/routing"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -82,9 +81,9 @@ type ConnectorClassAuthSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Authentication scheme Talon uses when calling the connector service.
 	Kind string `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
-	// API key or secret reference used to authenticate this Talon cluster to the
-	// connector service.
-	ApiKey        *config.Secret `protobuf:"bytes,2,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
+	// API key source used to authenticate this Talon cluster to the connector
+	// service.
+	ApiKey        *ConnectorSecretRef `protobuf:"bytes,2,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -126,11 +125,66 @@ func (x *ConnectorClassAuthSpec) GetKind() string {
 	return ""
 }
 
-func (x *ConnectorClassAuthSpec) GetApiKey() *config.Secret {
+func (x *ConnectorClassAuthSpec) GetApiKey() *ConnectorSecretRef {
 	if x != nil {
 		return x.ApiKey
 	}
 	return nil
+}
+
+type ConnectorSecretRef struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Inline secret value. Mutually exclusive with env.
+	Plain *string `protobuf:"bytes,1,opt,name=plain,proto3,oneof" json:"plain,omitempty"`
+	// Environment variable name that contains the secret value. Mutually
+	// exclusive with plain.
+	Env           *string `protobuf:"bytes,2,opt,name=env,proto3,oneof" json:"env,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConnectorSecretRef) Reset() {
+	*x = ConnectorSecretRef{}
+	mi := &file_proto_resources_connectors_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConnectorSecretRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConnectorSecretRef) ProtoMessage() {}
+
+func (x *ConnectorSecretRef) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_connectors_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConnectorSecretRef.ProtoReflect.Descriptor instead.
+func (*ConnectorSecretRef) Descriptor() ([]byte, []int) {
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ConnectorSecretRef) GetPlain() string {
+	if x != nil && x.Plain != nil {
+		return *x.Plain
+	}
+	return ""
+}
+
+func (x *ConnectorSecretRef) GetEnv() string {
+	if x != nil && x.Env != nil {
+		return *x.Env
+	}
+	return ""
 }
 
 type ConnectorMatchIndex struct {
@@ -145,7 +199,7 @@ type ConnectorMatchIndex struct {
 
 func (x *ConnectorMatchIndex) Reset() {
 	*x = ConnectorMatchIndex{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[2]
+	mi := &file_proto_resources_connectors_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -157,7 +211,7 @@ func (x *ConnectorMatchIndex) String() string {
 func (*ConnectorMatchIndex) ProtoMessage() {}
 
 func (x *ConnectorMatchIndex) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[2]
+	mi := &file_proto_resources_connectors_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -170,7 +224,7 @@ func (x *ConnectorMatchIndex) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectorMatchIndex.ProtoReflect.Descriptor instead.
 func (*ConnectorMatchIndex) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{2}
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ConnectorMatchIndex) GetName() string {
@@ -204,7 +258,7 @@ type ConnectorClassSpec struct {
 
 func (x *ConnectorClassSpec) Reset() {
 	*x = ConnectorClassSpec{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[3]
+	mi := &file_proto_resources_connectors_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -216,7 +270,7 @@ func (x *ConnectorClassSpec) String() string {
 func (*ConnectorClassSpec) ProtoMessage() {}
 
 func (x *ConnectorClassSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[3]
+	mi := &file_proto_resources_connectors_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -229,7 +283,7 @@ func (x *ConnectorClassSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectorClassSpec.ProtoReflect.Descriptor instead.
 func (*ConnectorClassSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{3}
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ConnectorClassSpec) GetPlatform() string {
@@ -276,7 +330,7 @@ type ConnectorClassStatus struct {
 
 func (x *ConnectorClassStatus) Reset() {
 	*x = ConnectorClassStatus{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[4]
+	mi := &file_proto_resources_connectors_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -288,7 +342,7 @@ func (x *ConnectorClassStatus) String() string {
 func (*ConnectorClassStatus) ProtoMessage() {}
 
 func (x *ConnectorClassStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[4]
+	mi := &file_proto_resources_connectors_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -301,7 +355,7 @@ func (x *ConnectorClassStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectorClassStatus.ProtoReflect.Descriptor instead.
 func (*ConnectorClassStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{4}
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ConnectorClassStatus) GetObservedGeneration() uint64 {
@@ -346,7 +400,7 @@ type ConnectorSpec struct {
 
 func (x *ConnectorSpec) Reset() {
 	*x = ConnectorSpec{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[5]
+	mi := &file_proto_resources_connectors_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -358,7 +412,7 @@ func (x *ConnectorSpec) String() string {
 func (*ConnectorSpec) ProtoMessage() {}
 
 func (x *ConnectorSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[5]
+	mi := &file_proto_resources_connectors_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -371,7 +425,7 @@ func (x *ConnectorSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectorSpec.ProtoReflect.Descriptor instead.
 func (*ConnectorSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{5}
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ConnectorSpec) GetClassRef() *ResourceRef {
@@ -419,7 +473,7 @@ type ConnectorStatus struct {
 
 func (x *ConnectorStatus) Reset() {
 	*x = ConnectorStatus{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[6]
+	mi := &file_proto_resources_connectors_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -431,7 +485,7 @@ func (x *ConnectorStatus) String() string {
 func (*ConnectorStatus) ProtoMessage() {}
 
 func (x *ConnectorStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[6]
+	mi := &file_proto_resources_connectors_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -444,7 +498,7 @@ func (x *ConnectorStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectorStatus.ProtoReflect.Descriptor instead.
 func (*ConnectorStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{6}
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ConnectorStatus) GetObservedGeneration() uint64 {
@@ -491,7 +545,7 @@ type ConnectorClass struct {
 
 func (x *ConnectorClass) Reset() {
 	*x = ConnectorClass{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[7]
+	mi := &file_proto_resources_connectors_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -503,7 +557,7 @@ func (x *ConnectorClass) String() string {
 func (*ConnectorClass) ProtoMessage() {}
 
 func (x *ConnectorClass) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[7]
+	mi := &file_proto_resources_connectors_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -516,7 +570,7 @@ func (x *ConnectorClass) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectorClass.ProtoReflect.Descriptor instead.
 func (*ConnectorClass) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{7}
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ConnectorClass) GetMetadata() *ResourceMeta {
@@ -555,7 +609,7 @@ type Connector struct {
 
 func (x *Connector) Reset() {
 	*x = Connector{}
-	mi := &file_proto_resources_connectors_proto_msgTypes[8]
+	mi := &file_proto_resources_connectors_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -567,7 +621,7 @@ func (x *Connector) String() string {
 func (*Connector) ProtoMessage() {}
 
 func (x *Connector) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_connectors_proto_msgTypes[8]
+	mi := &file_proto_resources_connectors_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -580,7 +634,7 @@ func (x *Connector) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Connector.ProtoReflect.Descriptor instead.
 func (*Connector) Descriptor() ([]byte, []int) {
-	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{8}
+	return file_proto_resources_connectors_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Connector) GetMetadata() *ResourceMeta {
@@ -608,13 +662,18 @@ var File_proto_resources_connectors_proto protoreflect.FileDescriptor
 
 const file_proto_resources_connectors_proto_rawDesc = "" +
 	"\n" +
-	" proto/resources/connectors.proto\x12\x0ftalon.resources\x1a\x12proto/config.proto\x1a\x18proto/data/routing.proto\x1a\x1cproto/resources/common.proto\"K\n" +
+	" proto/resources/connectors.proto\x12\x0ftalon.resources\x1a\x18proto/data/routing.proto\x1a\x1cproto/resources/common.proto\"K\n" +
 	"\x19ConnectorClassRuntimeSpec\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x1a\n" +
-	"\bendpoint\x18\x02 \x01(\tR\bendpoint\"[\n" +
+	"\bendpoint\x18\x02 \x01(\tR\bendpoint\"j\n" +
 	"\x16ConnectorClassAuthSpec\x12\x12\n" +
-	"\x04kind\x18\x01 \x01(\tR\x04kind\x12-\n" +
-	"\aapi_key\x18\x02 \x01(\v2\x14.talon.config.SecretR\x06apiKey\"A\n" +
+	"\x04kind\x18\x01 \x01(\tR\x04kind\x12<\n" +
+	"\aapi_key\x18\x02 \x01(\v2#.talon.resources.ConnectorSecretRefR\x06apiKey\"X\n" +
+	"\x12ConnectorSecretRef\x12\x19\n" +
+	"\x05plain\x18\x01 \x01(\tH\x00R\x05plain\x88\x01\x01\x12\x15\n" +
+	"\x03env\x18\x02 \x01(\tH\x01R\x03env\x88\x01\x01B\b\n" +
+	"\x06_plainB\x06\n" +
+	"\x04_env\"A\n" +
 	"\x13ConnectorMatchIndex\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
 	"\x06fields\x18\x02 \x03(\tR\x06fields\"\xfe\x01\n" +
@@ -665,40 +724,40 @@ func file_proto_resources_connectors_proto_rawDescGZIP() []byte {
 	return file_proto_resources_connectors_proto_rawDescData
 }
 
-var file_proto_resources_connectors_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_proto_resources_connectors_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_resources_connectors_proto_goTypes = []any{
 	(*ConnectorClassRuntimeSpec)(nil), // 0: talon.resources.ConnectorClassRuntimeSpec
 	(*ConnectorClassAuthSpec)(nil),    // 1: talon.resources.ConnectorClassAuthSpec
-	(*ConnectorMatchIndex)(nil),       // 2: talon.resources.ConnectorMatchIndex
-	(*ConnectorClassSpec)(nil),        // 3: talon.resources.ConnectorClassSpec
-	(*ConnectorClassStatus)(nil),      // 4: talon.resources.ConnectorClassStatus
-	(*ConnectorSpec)(nil),             // 5: talon.resources.ConnectorSpec
-	(*ConnectorStatus)(nil),           // 6: talon.resources.ConnectorStatus
-	(*ConnectorClass)(nil),            // 7: talon.resources.ConnectorClass
-	(*Connector)(nil),                 // 8: talon.resources.Connector
-	nil,                               // 9: talon.resources.ConnectorSpec.MatchFieldsEntry
-	(*config.Secret)(nil),             // 10: talon.config.Secret
+	(*ConnectorSecretRef)(nil),        // 2: talon.resources.ConnectorSecretRef
+	(*ConnectorMatchIndex)(nil),       // 3: talon.resources.ConnectorMatchIndex
+	(*ConnectorClassSpec)(nil),        // 4: talon.resources.ConnectorClassSpec
+	(*ConnectorClassStatus)(nil),      // 5: talon.resources.ConnectorClassStatus
+	(*ConnectorSpec)(nil),             // 6: talon.resources.ConnectorSpec
+	(*ConnectorStatus)(nil),           // 7: talon.resources.ConnectorStatus
+	(*ConnectorClass)(nil),            // 8: talon.resources.ConnectorClass
+	(*Connector)(nil),                 // 9: talon.resources.Connector
+	nil,                               // 10: talon.resources.ConnectorSpec.MatchFieldsEntry
 	(*ResourceCondition)(nil),         // 11: talon.resources.ResourceCondition
 	(*ResourceRef)(nil),               // 12: talon.resources.ResourceRef
 	(*routing.MessageConsumer)(nil),   // 13: talon.data.MessageConsumer
 	(*ResourceMeta)(nil),              // 14: talon.resources.ResourceMeta
 }
 var file_proto_resources_connectors_proto_depIdxs = []int32{
-	10, // 0: talon.resources.ConnectorClassAuthSpec.api_key:type_name -> talon.config.Secret
+	2,  // 0: talon.resources.ConnectorClassAuthSpec.api_key:type_name -> talon.resources.ConnectorSecretRef
 	0,  // 1: talon.resources.ConnectorClassSpec.runtime:type_name -> talon.resources.ConnectorClassRuntimeSpec
 	1,  // 2: talon.resources.ConnectorClassSpec.auth:type_name -> talon.resources.ConnectorClassAuthSpec
-	2,  // 3: talon.resources.ConnectorClassSpec.match_indexes:type_name -> talon.resources.ConnectorMatchIndex
+	3,  // 3: talon.resources.ConnectorClassSpec.match_indexes:type_name -> talon.resources.ConnectorMatchIndex
 	11, // 4: talon.resources.ConnectorClassStatus.conditions:type_name -> talon.resources.ResourceCondition
 	12, // 5: talon.resources.ConnectorSpec.class_ref:type_name -> talon.resources.ResourceRef
-	9,  // 6: talon.resources.ConnectorSpec.match_fields:type_name -> talon.resources.ConnectorSpec.MatchFieldsEntry
+	10, // 6: talon.resources.ConnectorSpec.match_fields:type_name -> talon.resources.ConnectorSpec.MatchFieldsEntry
 	13, // 7: talon.resources.ConnectorSpec.consumer:type_name -> talon.data.MessageConsumer
 	11, // 8: talon.resources.ConnectorStatus.conditions:type_name -> talon.resources.ResourceCondition
 	14, // 9: talon.resources.ConnectorClass.metadata:type_name -> talon.resources.ResourceMeta
-	3,  // 10: talon.resources.ConnectorClass.spec:type_name -> talon.resources.ConnectorClassSpec
-	4,  // 11: talon.resources.ConnectorClass.status:type_name -> talon.resources.ConnectorClassStatus
+	4,  // 10: talon.resources.ConnectorClass.spec:type_name -> talon.resources.ConnectorClassSpec
+	5,  // 11: talon.resources.ConnectorClass.status:type_name -> talon.resources.ConnectorClassStatus
 	14, // 12: talon.resources.Connector.metadata:type_name -> talon.resources.ResourceMeta
-	5,  // 13: talon.resources.Connector.spec:type_name -> talon.resources.ConnectorSpec
-	6,  // 14: talon.resources.Connector.status:type_name -> talon.resources.ConnectorStatus
+	6,  // 13: talon.resources.Connector.spec:type_name -> talon.resources.ConnectorSpec
+	7,  // 14: talon.resources.Connector.status:type_name -> talon.resources.ConnectorStatus
 	15, // [15:15] is the sub-list for method output_type
 	15, // [15:15] is the sub-list for method input_type
 	15, // [15:15] is the sub-list for extension type_name
@@ -712,13 +771,14 @@ func file_proto_resources_connectors_proto_init() {
 		return
 	}
 	file_proto_resources_common_proto_init()
+	file_proto_resources_connectors_proto_msgTypes[2].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_connectors_proto_rawDesc), len(file_proto_resources_connectors_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

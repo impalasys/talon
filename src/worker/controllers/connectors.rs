@@ -543,8 +543,8 @@ fn validate_consumer(
     consumer: Option<&data_proto::MessageConsumer>,
 ) -> Result<()> {
     let consumer = consumer.ok_or_else(|| anyhow!("Connector spec.consumer is required"))?;
-    match consumer.consumer.as_ref() {
-        Some(data_proto::message_consumer::Consumer::Session(session)) => {
+    match (consumer.session.as_ref(), consumer.channel.as_ref()) {
+        (Some(session), None) => {
             let agent = session
                 .agent
                 .as_ref()
@@ -560,7 +560,7 @@ fn validate_consumer(
                 bail!("Connector session consumer pinned continuity requires sessionId");
             }
         }
-        Some(data_proto::message_consumer::Consumer::Channel(channel)) => {
+        (None, Some(channel)) => {
             let channel_ref = channel
                 .channel
                 .as_ref()
@@ -572,7 +572,8 @@ fn validate_consumer(
                 .ok_or_else(|| anyhow!("Connector channel consumer requires agent"))?;
             validate_local_ref(connector_namespace, "channel consumer agent", agent)?;
         }
-        None => bail!("Connector consumer is required"),
+        (Some(_), Some(_)) => bail!("Connector consumer must set only one of session or channel"),
+        (None, None) => bail!("Connector consumer must set session or channel"),
     }
     Ok(())
 }
@@ -693,16 +694,25 @@ trait ConnectorSecretExt {
     fn resolve_connector_api_key(&self) -> Result<String>;
 }
 
-impl ConnectorSecretExt for crate::gateway::rpc::generated::config::Secret {
+impl ConnectorSecretExt for resources_proto::ConnectorSecretRef {
     fn resolve_connector_api_key(&self) -> Result<String> {
-        use crate::gateway::rpc::generated::config::secret;
-
-        match self.source.as_ref() {
-            Some(secret::Source::Plain(value)) => Ok(value.clone()),
-            Some(secret::Source::Ref(_)) => {
-                bail!("ConnectorClass auth.apiKey must be a plain value; secret refs are not allowed on namespace-scoped connector resources")
+        match (
+            self.plain
+                .as_deref()
+                .map(str::trim)
+                .filter(|value| !value.is_empty()),
+            self.env
+                .as_deref()
+                .map(str::trim)
+                .filter(|value| !value.is_empty()),
+        ) {
+            (Some(value), None) => Ok(value.to_string()),
+            (None, Some(env)) => std::env::var(env)
+                .with_context(|| format!("ConnectorClass auth.apiKey env '{env}' is not set")),
+            (Some(_), Some(_)) => {
+                bail!("ConnectorClass auth.apiKey must set only one of plain or env")
             }
-            None => bail!("secret source missing"),
+            (None, None) => bail!("ConnectorClass auth.apiKey must set plain or env"),
         }
     }
 }

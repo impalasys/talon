@@ -234,18 +234,12 @@ pub struct Connection {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectionRef {
-    #[prost(oneof = "connection_ref::Target", tags = "1, 2")]
-    pub target: ::core::option::Option<connection_ref::Target>,
-}
-/// Nested message and enum types in `ConnectionRef`.
-pub mod connection_ref {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Target {
-        #[prost(message, tag = "1")]
-        Internal(super::InternalConnectionRef),
-        #[prost(message, tag = "2")]
-        External(super::ExternalConnectionRef),
-    }
+    /// Internal Talon agent target. Mutually exclusive with external.
+    #[prost(message, optional, tag = "1")]
+    pub internal: ::core::option::Option<InternalConnectionRef>,
+    /// External A2A agent-card target. Mutually exclusive with internal.
+    #[prost(message, optional, tag = "2")]
+    pub external: ::core::option::Option<ExternalConnectionRef>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct InternalConnectionRef {
@@ -1061,10 +1055,20 @@ pub struct ConnectorClassAuthSpec {
     /// Authentication scheme Talon uses when calling the connector service.
     #[prost(string, tag = "1")]
     pub kind: ::prost::alloc::string::String,
-    /// API key or secret reference used to authenticate this Talon cluster to the
-    /// connector service.
+    /// API key source used to authenticate this Talon cluster to the connector
+    /// service.
     #[prost(message, optional, tag = "2")]
-    pub api_key: ::core::option::Option<super::config::Secret>,
+    pub api_key: ::core::option::Option<ConnectorSecretRef>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectorSecretRef {
+    /// Inline secret value. Mutually exclusive with env.
+    #[prost(string, optional, tag = "1")]
+    pub plain: ::core::option::Option<::prost::alloc::string::String>,
+    /// Environment variable name that contains the secret value. Mutually
+    /// exclusive with plain.
+    #[prost(string, optional, tag = "2")]
+    pub env: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConnectorMatchIndex {
