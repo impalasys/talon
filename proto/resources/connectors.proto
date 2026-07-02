@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package talon.resources;
 
-import "proto/config.proto";
 import "proto/data/routing.proto";
 import "proto/resources/common.proto";
 
@@ -19,9 +18,18 @@ message ConnectorClassAuthSpec {
   // Authentication scheme Talon uses when calling the connector service.
   string kind = 1;
 
-  // API key or secret reference used to authenticate this Talon cluster to the
-  // connector service.
-  talon.config.Secret api_key = 2;
+  // API key source used to authenticate this Talon cluster to the connector
+  // service.
+  ConnectorSecretRef api_key = 2;
+}
+
+message ConnectorSecretRef {
+  // Inline secret value. Mutually exclusive with env.
+  optional string plain = 1;
+
+  // Environment variable name that contains the secret value. Mutually
+  // exclusive with plain.
+  optional string env = 2;
 }
 
 message ConnectorMatchIndex {

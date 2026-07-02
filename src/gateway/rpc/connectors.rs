@@ -433,16 +433,27 @@ async fn connector_class_registration(
 }
 
 fn resolve_connector_secret(
-    secret: &crate::gateway::rpc::generated::config::Secret,
+    secret: &resources_proto::ConnectorSecretRef,
 ) -> anyhow::Result<String> {
-    use crate::gateway::rpc::generated::config::secret;
-
-    match secret.source.as_ref() {
-        Some(secret::Source::Plain(value)) => Ok(value.clone()),
-        Some(secret::Source::Ref(_)) => {
-            anyhow::bail!("ConnectorClass auth.apiKey must be a plain value; secret refs are not allowed on namespace-scoped connector resources")
+    match (
+        secret
+            .plain
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty()),
+        secret
+            .env
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty()),
+    ) {
+        (Some(value), None) => Ok(value.to_string()),
+        (None, Some(env)) => std::env::var(env)
+            .with_context(|| format!("ConnectorClass auth.apiKey env '{env}' is not set")),
+        (Some(_), Some(_)) => {
+            anyhow::bail!("ConnectorClass auth.apiKey must set only one of plain or env")
         }
-        None => anyhow::bail!("secret source missing"),
+        (None, None) => anyhow::bail!("ConnectorClass auth.apiKey must set plain or env"),
     }
 }
 
@@ -496,15 +507,14 @@ async fn dispatch_connector_message(
     consumer: &data_proto::MessageConsumer,
     event: &external_proto::ConnectorMessageEvent,
 ) -> Result<(), tonic::Status> {
-    match consumer.consumer.as_ref() {
-        Some(data_proto::message_consumer::Consumer::Session(session)) => {
-            dispatch_to_session(cp, route, session, event).await
-        }
-        Some(data_proto::message_consumer::Consumer::Channel(channel)) => {
-            dispatch_to_channel(cp, route, channel, event).await
-        }
-        None => Err(tonic::Status::failed_precondition(
-            "MessageConsumer is missing",
+    match (consumer.session.as_ref(), consumer.channel.as_ref()) {
+        (Some(session), None) => dispatch_to_session(cp, route, session, event).await,
+        (None, Some(channel)) => dispatch_to_channel(cp, route, channel, event).await,
+        (Some(_), Some(_)) => Err(tonic::Status::failed_precondition(
+            "MessageConsumer must set only one of session or channel",
+        )),
+        (None, None) => Err(tonic::Status::failed_precondition(
+            "MessageConsumer must set session or channel",
         )),
     }
 }

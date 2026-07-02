@@ -65,50 +65,51 @@ impl ConnectionManifest {
 
 impl ConnectionRefManifest {
     fn into_proto(self) -> Result<manifests::ConnectionRef> {
-        let target = match (self.internal, self.external) {
+        match (self.internal, self.external) {
             (Some(internal), None) => {
                 if internal.namespace.trim().is_empty() || internal.agent.trim().is_empty() {
                     bail!("A2A internal target requires namespace and agent");
                 }
-                Some(manifests::connection_ref::Target::Internal(
-                    manifests::InternalConnectionRef {
+                Ok(manifests::ConnectionRef {
+                    internal: Some(manifests::InternalConnectionRef {
                         namespace: internal.namespace,
                         agent: internal.agent,
-                    },
-                ))
+                    }),
+                    external: None,
+                })
             }
             (None, Some(external)) => {
                 if external.agent_card_url.trim().is_empty() {
                     bail!("A2A external target requires agentCardUrl");
                 }
-                Some(manifests::connection_ref::Target::External(
-                    manifests::ExternalConnectionRef {
+                Ok(manifests::ConnectionRef {
+                    internal: None,
+                    external: Some(manifests::ExternalConnectionRef {
                         agent_card_url: external.agent_card_url,
-                    },
-                ))
+                    }),
+                })
             }
             (Some(_), Some(_)) => bail!("A2A target must set only one of internal or external"),
             (None, None) => bail!("A2A target must set one of internal or external"),
-        };
-        Ok(manifests::ConnectionRef { target })
+        }
     }
 
     fn from_proto(target: &manifests::ConnectionRef) -> Self {
-        match target.target.as_ref() {
-            Some(manifests::connection_ref::Target::Internal(internal)) => Self {
+        match (target.internal.as_ref(), target.external.as_ref()) {
+            (Some(internal), None) => Self {
                 internal: Some(InternalConnectionRefManifest {
                     namespace: internal.namespace.clone(),
                     agent: internal.agent.clone(),
                 }),
                 external: None,
             },
-            Some(manifests::connection_ref::Target::External(external)) => Self {
+            (None, Some(external)) => Self {
                 internal: None,
                 external: Some(ExternalConnectionRefManifest {
                     agent_card_url: external.agent_card_url.clone(),
                 }),
             },
-            None => Self::default(),
+            _ => Self::default(),
         }
     }
 }

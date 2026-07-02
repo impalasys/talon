@@ -5,7 +5,6 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { Secret } from "../config_pb.js";
 import { ResourceCondition, ResourceMeta, ResourceRef } from "./common_pb.js";
 import { MessageConsumer } from "../data/routing_pb.js";
 
@@ -69,12 +68,12 @@ export class ConnectorClassAuthSpec extends Message<ConnectorClassAuthSpec> {
   kind = "";
 
   /**
-   * API key or secret reference used to authenticate this Talon cluster to the
-   * connector service.
+   * API key source used to authenticate this Talon cluster to the connector
+   * service.
    *
-   * @generated from field: talon.config.Secret api_key = 2;
+   * @generated from field: talon.resources.ConnectorSecretRef api_key = 2;
    */
-  apiKey?: Secret;
+  apiKey?: ConnectorSecretRef;
 
   constructor(data?: PartialMessage<ConnectorClassAuthSpec>) {
     super();
@@ -85,7 +84,7 @@ export class ConnectorClassAuthSpec extends Message<ConnectorClassAuthSpec> {
   static readonly typeName = "talon.resources.ConnectorClassAuthSpec";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "api_key", kind: "message", T: Secret },
+    { no: 2, name: "api_key", kind: "message", T: ConnectorSecretRef },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorClassAuthSpec {
@@ -102,6 +101,54 @@ export class ConnectorClassAuthSpec extends Message<ConnectorClassAuthSpec> {
 
   static equals(a: ConnectorClassAuthSpec | PlainMessage<ConnectorClassAuthSpec> | undefined, b: ConnectorClassAuthSpec | PlainMessage<ConnectorClassAuthSpec> | undefined): boolean {
     return proto3.util.equals(ConnectorClassAuthSpec, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.ConnectorSecretRef
+ */
+export class ConnectorSecretRef extends Message<ConnectorSecretRef> {
+  /**
+   * Inline secret value. Mutually exclusive with env.
+   *
+   * @generated from field: optional string plain = 1;
+   */
+  plain?: string;
+
+  /**
+   * Environment variable name that contains the secret value. Mutually
+   * exclusive with plain.
+   *
+   * @generated from field: optional string env = 2;
+   */
+  env?: string;
+
+  constructor(data?: PartialMessage<ConnectorSecretRef>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.ConnectorSecretRef";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "plain", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 2, name: "env", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectorSecretRef {
+    return new ConnectorSecretRef().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectorSecretRef {
+    return new ConnectorSecretRef().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectorSecretRef {
+    return new ConnectorSecretRef().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ConnectorSecretRef | PlainMessage<ConnectorSecretRef> | undefined, b: ConnectorSecretRef | PlainMessage<ConnectorSecretRef> | undefined): boolean {
+    return proto3.util.equals(ConnectorSecretRef, a, b);
   }
 }
 

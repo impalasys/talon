@@ -835,11 +835,10 @@ func (x *Connection) GetAuth() *ConnectionAuth {
 
 type ConnectionRef struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Target:
-	//
-	//	*ConnectionRef_Internal
-	//	*ConnectionRef_External
-	Target        isConnectionRef_Target `protobuf_oneof:"target"`
+	// Internal Talon agent target. Mutually exclusive with external.
+	Internal *InternalConnectionRef `protobuf:"bytes,1,opt,name=internal,proto3,oneof" json:"internal,omitempty"`
+	// External A2A agent-card target. Mutually exclusive with internal.
+	External      *ExternalConnectionRef `protobuf:"bytes,2,opt,name=external,proto3,oneof" json:"external,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -874,46 +873,19 @@ func (*ConnectionRef) Descriptor() ([]byte, []int) {
 	return file_proto_resources_agents_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *ConnectionRef) GetTarget() isConnectionRef_Target {
-	if x != nil {
-		return x.Target
-	}
-	return nil
-}
-
 func (x *ConnectionRef) GetInternal() *InternalConnectionRef {
 	if x != nil {
-		if x, ok := x.Target.(*ConnectionRef_Internal); ok {
-			return x.Internal
-		}
+		return x.Internal
 	}
 	return nil
 }
 
 func (x *ConnectionRef) GetExternal() *ExternalConnectionRef {
 	if x != nil {
-		if x, ok := x.Target.(*ConnectionRef_External); ok {
-			return x.External
-		}
+		return x.External
 	}
 	return nil
 }
-
-type isConnectionRef_Target interface {
-	isConnectionRef_Target()
-}
-
-type ConnectionRef_Internal struct {
-	Internal *InternalConnectionRef `protobuf:"bytes,1,opt,name=internal,proto3,oneof"`
-}
-
-type ConnectionRef_External struct {
-	External *ExternalConnectionRef `protobuf:"bytes,2,opt,name=external,proto3,oneof"`
-}
-
-func (*ConnectionRef_Internal) isConnectionRef_Target() {}
-
-func (*ConnectionRef_External) isConnectionRef_Target() {}
 
 type InternalConnectionRef struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1388,11 +1360,12 @@ const file_proto_resources_agents_proto_rawDesc = "" +
 	"\foutput_modes\x18\x05 \x03(\tR\voutputModes\x12'\n" +
 	"\x0ftimeout_seconds\x18\x06 \x01(\rR\x0etimeoutSeconds\x12\x1b\n" +
 	"\tmax_depth\x18\a \x01(\rR\bmaxDepth\x123\n" +
-	"\x04auth\x18\b \x01(\v2\x1f.talon.resources.ConnectionAuthR\x04auth\"\xa5\x01\n" +
-	"\rConnectionRef\x12D\n" +
-	"\binternal\x18\x01 \x01(\v2&.talon.resources.InternalConnectionRefH\x00R\binternal\x12D\n" +
-	"\bexternal\x18\x02 \x01(\v2&.talon.resources.ExternalConnectionRefH\x00R\bexternalB\b\n" +
-	"\x06target\"K\n" +
+	"\x04auth\x18\b \x01(\v2\x1f.talon.resources.ConnectionAuthR\x04auth\"\xbb\x01\n" +
+	"\rConnectionRef\x12G\n" +
+	"\binternal\x18\x01 \x01(\v2&.talon.resources.InternalConnectionRefH\x00R\binternal\x88\x01\x01\x12G\n" +
+	"\bexternal\x18\x02 \x01(\v2&.talon.resources.ExternalConnectionRefH\x01R\bexternal\x88\x01\x01B\v\n" +
+	"\t_internalB\v\n" +
+	"\t_external\"K\n" +
 	"\x15InternalConnectionRef\x12\x1c\n" +
 	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x14\n" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\"=\n" +
@@ -1504,10 +1477,7 @@ func file_proto_resources_agents_proto_init() {
 	file_proto_resources_common_proto_init()
 	file_proto_resources_agents_proto_msgTypes[2].OneofWrappers = []any{}
 	file_proto_resources_agents_proto_msgTypes[7].OneofWrappers = []any{}
-	file_proto_resources_agents_proto_msgTypes[12].OneofWrappers = []any{
-		(*ConnectionRef_Internal)(nil),
-		(*ConnectionRef_External)(nil),
-	}
+	file_proto_resources_agents_proto_msgTypes[12].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

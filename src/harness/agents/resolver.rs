@@ -122,10 +122,9 @@ fn validate_a2a(a2a: &manifests::A2a) -> Result<()> {
         let target = connection
             .target
             .as_ref()
-            .and_then(|target| target.target.as_ref())
             .ok_or_else(|| anyhow!("A2A connection '{}' must set a target", name))?;
-        match target {
-            manifests::connection_ref::Target::Internal(internal) => {
+        match (target.internal.as_ref(), target.external.as_ref()) {
+            (Some(internal), None) => {
                 if internal.namespace.trim().is_empty() || internal.agent.trim().is_empty() {
                     bail!(
                         "A2A connection '{}' internal target requires namespace and agent",
@@ -133,7 +132,7 @@ fn validate_a2a(a2a: &manifests::A2a) -> Result<()> {
                     );
                 }
             }
-            manifests::connection_ref::Target::External(external) => {
+            (None, Some(external)) => {
                 let url = external.agent_card_url.trim();
                 if url.is_empty() {
                     bail!(
@@ -154,6 +153,14 @@ fn validate_a2a(a2a: &manifests::A2a) -> Result<()> {
                     );
                 }
             }
+            (Some(_), Some(_)) => bail!(
+                "A2A connection '{}' target must set only one of internal or external",
+                name
+            ),
+            (None, None) => bail!(
+                "A2A connection '{}' target must set one of internal or external",
+                name
+            ),
         }
 
         if let Some(auth) = connection.auth.as_ref() {
@@ -410,11 +417,10 @@ mod tests {
             connections: vec![manifests::Connection {
                 name: "external".to_string(),
                 target: Some(manifests::ConnectionRef {
-                    target: Some(manifests::connection_ref::Target::External(
-                        manifests::ExternalConnectionRef {
-                            agent_card_url: "file:///tmp/agent-card.json".to_string(),
-                        },
-                    )),
+                    internal: None,
+                    external: Some(manifests::ExternalConnectionRef {
+                        agent_card_url: "file:///tmp/agent-card.json".to_string(),
+                    }),
                 }),
                 ..Default::default()
             }],

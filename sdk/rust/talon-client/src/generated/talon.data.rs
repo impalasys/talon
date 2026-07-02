@@ -47,21 +47,12 @@ pub struct ChannelMessageConsumer {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MessageConsumer {
-    #[prost(oneof = "message_consumer::Consumer", tags = "1, 2")]
-    pub consumer: ::core::option::Option<message_consumer::Consumer>,
-}
-/// Nested message and enum types in `MessageConsumer`.
-pub mod message_consumer {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Consumer {
-        /// Deliver matching messages directly to a Talon Session.
-        #[prost(message, tag = "1")]
-        Session(super::SessionMessageConsumer),
-        /// Persist matching messages into a Talon Channel, then route the message to
-        /// the configured Agent.
-        #[prost(message, tag = "2")]
-        Channel(super::ChannelMessageConsumer),
-    }
+    /// Session consumer payload. Mutually exclusive with channel.
+    #[prost(message, optional, tag = "1")]
+    pub session: ::core::option::Option<SessionMessageConsumer>,
+    /// Channel consumer payload. Mutually exclusive with session.
+    #[prost(message, optional, tag = "2")]
+    pub channel: ::core::option::Option<ChannelMessageConsumer>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ApiKeyGrant {

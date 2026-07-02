@@ -671,21 +671,18 @@ export class Connection extends Message<Connection> {
  */
 export class ConnectionRef extends Message<ConnectionRef> {
   /**
-   * @generated from oneof talon.resources.ConnectionRef.target
+   * Internal Talon agent target. Mutually exclusive with external.
+   *
+   * @generated from field: optional talon.resources.InternalConnectionRef internal = 1;
    */
-  target: {
-    /**
-     * @generated from field: talon.resources.InternalConnectionRef internal = 1;
-     */
-    value: InternalConnectionRef;
-    case: "internal";
-  } | {
-    /**
-     * @generated from field: talon.resources.ExternalConnectionRef external = 2;
-     */
-    value: ExternalConnectionRef;
-    case: "external";
-  } | { case: undefined; value?: undefined } = { case: undefined };
+  internal?: InternalConnectionRef;
+
+  /**
+   * External A2A agent-card target. Mutually exclusive with internal.
+   *
+   * @generated from field: optional talon.resources.ExternalConnectionRef external = 2;
+   */
+  external?: ExternalConnectionRef;
 
   constructor(data?: PartialMessage<ConnectionRef>) {
     super();
@@ -695,8 +692,8 @@ export class ConnectionRef extends Message<ConnectionRef> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.resources.ConnectionRef";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "internal", kind: "message", T: InternalConnectionRef, oneof: "target" },
-    { no: 2, name: "external", kind: "message", T: ExternalConnectionRef, oneof: "target" },
+    { no: 1, name: "internal", kind: "message", T: InternalConnectionRef, opt: true },
+    { no: 2, name: "external", kind: "message", T: ExternalConnectionRef, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionRef {

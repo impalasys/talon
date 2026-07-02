@@ -1,4 +1,3 @@
-from talon_client.proto import config_pb2 as _config_pb2
 from talon_client.proto.data import routing_pb2 as _routing_pb2
 from talon_client.proto.resources import common_pb2 as _common_pb2
 from google.protobuf.internal import containers as _containers
@@ -22,8 +21,16 @@ class ConnectorClassAuthSpec(_message.Message):
     KIND_FIELD_NUMBER: _ClassVar[int]
     API_KEY_FIELD_NUMBER: _ClassVar[int]
     kind: str
-    api_key: _config_pb2.Secret
-    def __init__(self, kind: _Optional[str] = ..., api_key: _Optional[_Union[_config_pb2.Secret, _Mapping]] = ...) -> None: ...
+    api_key: ConnectorSecretRef
+    def __init__(self, kind: _Optional[str] = ..., api_key: _Optional[_Union[ConnectorSecretRef, _Mapping]] = ...) -> None: ...
+
+class ConnectorSecretRef(_message.Message):
+    __slots__ = ("plain", "env")
+    PLAIN_FIELD_NUMBER: _ClassVar[int]
+    ENV_FIELD_NUMBER: _ClassVar[int]
+    plain: str
+    env: str
+    def __init__(self, plain: _Optional[str] = ..., env: _Optional[str] = ...) -> None: ...
 
 class ConnectorMatchIndex(_message.Message):
     __slots__ = ("name", "fields")

@@ -183,26 +183,18 @@ export class ChannelMessageConsumer extends Message<ChannelMessageConsumer> {
  */
 export class MessageConsumer extends Message<MessageConsumer> {
   /**
-   * @generated from oneof talon.data.MessageConsumer.consumer
+   * Session consumer payload. Mutually exclusive with channel.
+   *
+   * @generated from field: optional talon.data.SessionMessageConsumer session = 1;
    */
-  consumer: {
-    /**
-     * Deliver matching messages directly to a Talon Session.
-     *
-     * @generated from field: talon.data.SessionMessageConsumer session = 1;
-     */
-    value: SessionMessageConsumer;
-    case: "session";
-  } | {
-    /**
-     * Persist matching messages into a Talon Channel, then route the message to
-     * the configured Agent.
-     *
-     * @generated from field: talon.data.ChannelMessageConsumer channel = 2;
-     */
-    value: ChannelMessageConsumer;
-    case: "channel";
-  } | { case: undefined; value?: undefined } = { case: undefined };
+  session?: SessionMessageConsumer;
+
+  /**
+   * Channel consumer payload. Mutually exclusive with session.
+   *
+   * @generated from field: optional talon.data.ChannelMessageConsumer channel = 2;
+   */
+  channel?: ChannelMessageConsumer;
 
   constructor(data?: PartialMessage<MessageConsumer>) {
     super();
@@ -212,8 +204,8 @@ export class MessageConsumer extends Message<MessageConsumer> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.data.MessageConsumer";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "session", kind: "message", T: SessionMessageConsumer, oneof: "consumer" },
-    { no: 2, name: "channel", kind: "message", T: ChannelMessageConsumer, oneof: "consumer" },
+    { no: 1, name: "session", kind: "message", T: SessionMessageConsumer, opt: true },
+    { no: 2, name: "channel", kind: "message", T: ChannelMessageConsumer, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MessageConsumer {

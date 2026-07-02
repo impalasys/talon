@@ -219,11 +219,10 @@ func (x *ChannelMessageConsumer) GetReplyPolicy() string {
 
 type MessageConsumer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Consumer:
-	//
-	//	*MessageConsumer_Session
-	//	*MessageConsumer_Channel
-	Consumer      isMessageConsumer_Consumer `protobuf_oneof:"consumer"`
+	// Session consumer payload. Mutually exclusive with channel.
+	Session *SessionMessageConsumer `protobuf:"bytes,1,opt,name=session,proto3,oneof" json:"session,omitempty"`
+	// Channel consumer payload. Mutually exclusive with session.
+	Channel       *ChannelMessageConsumer `protobuf:"bytes,2,opt,name=channel,proto3,oneof" json:"channel,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -258,49 +257,19 @@ func (*MessageConsumer) Descriptor() ([]byte, []int) {
 	return file_proto_data_routing_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *MessageConsumer) GetConsumer() isMessageConsumer_Consumer {
-	if x != nil {
-		return x.Consumer
-	}
-	return nil
-}
-
 func (x *MessageConsumer) GetSession() *SessionMessageConsumer {
 	if x != nil {
-		if x, ok := x.Consumer.(*MessageConsumer_Session); ok {
-			return x.Session
-		}
+		return x.Session
 	}
 	return nil
 }
 
 func (x *MessageConsumer) GetChannel() *ChannelMessageConsumer {
 	if x != nil {
-		if x, ok := x.Consumer.(*MessageConsumer_Channel); ok {
-			return x.Channel
-		}
+		return x.Channel
 	}
 	return nil
 }
-
-type isMessageConsumer_Consumer interface {
-	isMessageConsumer_Consumer()
-}
-
-type MessageConsumer_Session struct {
-	// Deliver matching messages directly to a Talon Session.
-	Session *SessionMessageConsumer `protobuf:"bytes,1,opt,name=session,proto3,oneof"`
-}
-
-type MessageConsumer_Channel struct {
-	// Persist matching messages into a Talon Channel, then route the message to
-	// the configured Agent.
-	Channel *ChannelMessageConsumer `protobuf:"bytes,2,opt,name=channel,proto3,oneof"`
-}
-
-func (*MessageConsumer_Session) isMessageConsumer_Consumer() {}
-
-func (*MessageConsumer_Channel) isMessageConsumer_Consumer() {}
 
 var File_proto_data_routing_proto protoreflect.FileDescriptor
 
@@ -324,12 +293,14 @@ const file_proto_data_routing_proto_rawDesc = "" +
 	"\n" +
 	"continuity\x18\x03 \x01(\tR\n" +
 	"continuity\x12!\n" +
-	"\freply_policy\x18\x04 \x01(\tR\vreplyPolicy\"\x9d\x01\n" +
-	"\x0fMessageConsumer\x12>\n" +
-	"\asession\x18\x01 \x01(\v2\".talon.data.SessionMessageConsumerH\x00R\asession\x12>\n" +
-	"\achannel\x18\x02 \x01(\v2\".talon.data.ChannelMessageConsumerH\x00R\achannelB\n" +
+	"\freply_policy\x18\x04 \x01(\tR\vreplyPolicy\"\xaf\x01\n" +
+	"\x0fMessageConsumer\x12A\n" +
+	"\asession\x18\x01 \x01(\v2\".talon.data.SessionMessageConsumerH\x00R\asession\x88\x01\x01\x12A\n" +
+	"\achannel\x18\x02 \x01(\v2\".talon.data.ChannelMessageConsumerH\x01R\achannel\x88\x01\x01B\n" +
 	"\n" +
-	"\bconsumerb\x06proto3"
+	"\b_sessionB\n" +
+	"\n" +
+	"\b_channelb\x06proto3"
 
 var (
 	file_proto_data_routing_proto_rawDescOnce sync.Once
@@ -368,10 +339,7 @@ func file_proto_data_routing_proto_init() {
 	if File_proto_data_routing_proto != nil {
 		return
 	}
-	file_proto_data_routing_proto_msgTypes[3].OneofWrappers = []any{
-		(*MessageConsumer_Session)(nil),
-		(*MessageConsumer_Channel)(nil),
-	}
+	file_proto_data_routing_proto_msgTypes[3].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
