@@ -47,18 +47,41 @@ fn fanout_subscriber_grace() -> std::time::Duration {
     std::time::Duration::from_millis(millis)
 }
 
-fn session_message_text(message: &data_proto::SessionMessage) -> String {
-    message
+fn session_message_final_response(message: &data_proto::SessionMessage) -> String {
+    let final_parts_start = message
         .parts
         .iter()
-        .filter(|part| {
-            part.part_type == data_proto::SessionMessagePartType::Text as i32
-                || part.part_type == data_proto::SessionMessagePartType::Error as i32
-        })
-        .map(|part| part.content.trim())
+        .rposition(|part| is_final_response_boundary(part.part_type));
+    let final_parts = match final_parts_start {
+        Some(index) => &message.parts[index + 1..],
+        None => message.parts.as_slice(),
+    };
+
+    final_parts
+        .iter()
+        .filter_map(final_response_text)
         .filter(|content| !content.is_empty())
         .collect::<Vec<_>>()
         .join("\n")
+}
+
+fn final_response_text(part: &data_proto::SessionMessagePart) -> Option<&str> {
+    match data_proto::SessionMessagePartType::try_from(part.part_type) {
+        Ok(data_proto::SessionMessagePartType::Text)
+        | Ok(data_proto::SessionMessagePartType::Error) => Some(part.content.trim()),
+        _ => None,
+    }
+}
+
+fn is_final_response_boundary(part_type: i32) -> bool {
+    matches!(
+        data_proto::SessionMessagePartType::try_from(part_type),
+        Ok(data_proto::SessionMessagePartType::Reasoning)
+            | Ok(data_proto::SessionMessagePartType::ToolCall)
+            | Ok(data_proto::SessionMessagePartType::ToolResult)
+            | Ok(data_proto::SessionMessagePartType::RequestPermission)
+            | Ok(data_proto::SessionMessagePartType::PermissionResult)
+    )
 }
 
 async fn execute_with_panic_boundary<F>(
@@ -931,7 +954,7 @@ impl WorkerEventHandler {
             ))
             .await?
             .ok_or_else(|| anyhow!("assistant message not found"))?;
-        let text = session_message_text(&message);
+        let text = session_message_final_response(&message);
         if text.trim().is_empty() {
             tracing::info!(
                 namespace = %ns,
@@ -1076,7 +1099,9 @@ impl WorkerEventHandler {
 
 #[cfg(test)]
 mod tests {
-    use super::{execute_with_panic_boundary, SessionCompletionStatus};
+    use super::{
+        execute_with_panic_boundary, session_message_final_response, SessionCompletionStatus,
+    };
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent},
@@ -1132,6 +1157,92 @@ mod tests {
         async fn on_error(&self, err: &str) {
             self.errors.lock().unwrap().push(err.to_string());
         }
+    }
+
+    fn message_part(
+        part_type: data_proto::SessionMessagePartType,
+        content: &str,
+    ) -> data_proto::SessionMessagePart {
+        data_proto::SessionMessagePart {
+            id: String::new(),
+            part_type: part_type as i32,
+            content: content.to_string(),
+            name: String::new(),
+            payload_json: String::new(),
+            created_at: 0,
+            object: None,
+        }
+    }
+
+    fn assistant_message(parts: Vec<data_proto::SessionMessagePart>) -> data_proto::SessionMessage {
+        data_proto::SessionMessage {
+            id: "assistant-1".to_string(),
+            role: data_proto::MessageRole::RoleAssistant as i32,
+            created_at: 1,
+            labels: HashMap::new(),
+            parts,
+        }
+    }
+
+    #[test]
+    fn session_message_final_response_uses_only_terminal_non_thinking_text_after_tools() {
+        let message = assistant_message(vec![
+            message_part(data_proto::SessionMessagePartType::Text, "private setup"),
+            message_part(
+                data_proto::SessionMessagePartType::Reasoning,
+                "hidden thinking",
+            ),
+            message_part(data_proto::SessionMessagePartType::ToolCall, "Tool call"),
+            message_part(
+                data_proto::SessionMessagePartType::ToolResult,
+                "Tool result",
+            ),
+            message_part(
+                data_proto::SessionMessagePartType::Reasoning,
+                "more thinking",
+            ),
+            message_part(data_proto::SessionMessagePartType::Text, "final line 1"),
+            message_part(data_proto::SessionMessagePartType::Usage, ""),
+            message_part(data_proto::SessionMessagePartType::Text, " final line 2 "),
+        ]);
+
+        assert_eq!(
+            session_message_final_response(&message),
+            "final line 1\nfinal line 2"
+        );
+    }
+
+    #[test]
+    fn session_message_final_response_starts_after_last_reasoning_boundary() {
+        let message = assistant_message(vec![
+            message_part(
+                data_proto::SessionMessagePartType::Text,
+                "draft before thinking",
+            ),
+            message_part(
+                data_proto::SessionMessagePartType::Reasoning,
+                "private reconsideration",
+            ),
+            message_part(data_proto::SessionMessagePartType::Text, "final answer"),
+            message_part(data_proto::SessionMessagePartType::Image, "ignored media"),
+        ]);
+
+        assert_eq!(session_message_final_response(&message), "final answer");
+    }
+
+    #[test]
+    fn session_message_final_response_keeps_error_when_it_is_terminal_response() {
+        let message = assistant_message(vec![
+            message_part(data_proto::SessionMessagePartType::Text, "drafting"),
+            message_part(data_proto::SessionMessagePartType::ToolCall, "Tool call"),
+            message_part(
+                data_proto::SessionMessagePartType::ToolResult,
+                "Tool result",
+            ),
+            message_part(data_proto::SessionMessagePartType::Error, " Error: failed "),
+        ]);
+
+        assert_eq!(session_message_final_response(&message), "Error: failed");
     }
 
     async fn put_agent_resource(
