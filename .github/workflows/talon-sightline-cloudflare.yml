@@ -1,0 +1,102 @@
+name: Talon Sightline (Cloudflare)
+
+on:
+  pull_request:
+    paths:
+      - "ui/**"
+      - ".github/workflows/talon-sightline-cloudflare.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "ui/**"
+      - ".github/workflows/talon-sightline-cloudflare.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: talon-sightline-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CLOUDFLARE_PROJECT_NAME: talon-sightline
+
+jobs:
+  build:
+    name: Build Sightline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.17.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install UI dependencies
+        working-directory: ui
+        run: pnpm install --frozen-lockfile
+
+      - name: Test Sightline
+        working-directory: ui
+        run: pnpm test:unit
+
+      - name: Build Sightline static export
+        working-directory: ui
+        run: |
+          api_backup="$RUNNER_TEMP/sightline-api"
+          mv app/api "$api_backup"
+          restore_api() {
+            if [ -d "$api_backup" ]; then
+              mv "$api_backup" app/api
+            fi
+          }
+          trap restore_api EXIT
+          pnpm build
+        env:
+          NEXT_OUTPUT: export
+          NEXT_PUBLIC_TALON_STATIC_EXPORT: "1"
+          NEXT_PUBLIC_GATEWAY_URL: https://talon.impala.systems
+
+      - name: Upload static export
+        uses: actions/upload-artifact@v6
+        with:
+          name: sightline-static-export
+          path: ui/out
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy Sightline
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download static export
+        uses: actions/download-artifact@v7
+        with:
+          name: sightline-static-export
+          path: ui/out
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.17.1
+
+      - name: Deploy to Cloudflare Pages
+        run: |
+          pnpm dlx wrangler@4 pages deploy ui/out \
+            --project-name="${CLOUDFLARE_PROJECT_NAME}" \
+            --branch=main \
+            --commit-hash="${GITHUB_SHA}" \
+            --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
