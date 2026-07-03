@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{context_budget::tool_result_preview, runtime::LoopMessage};
+use super::runtime::LoopMessage;
 use crate::control::object_store::ObjectStore;
 use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{image_data_part, image_url_part, text_part, ChatContentPart, ToolCall};
@@ -272,11 +272,11 @@ fn tool_result_message_from_part(part: &data_proto::SessionMessagePart) -> Optio
         serde_json::from_str(&part.payload_json).unwrap_or(serde_json::Value::Null);
     let tool_call_id = payload.get("tool_call_id").and_then(|v| v.as_str())?;
     let output = payload
-        .get("output_preview")
+        .get("output")
         .and_then(|v| v.as_str())
-        .or_else(|| payload.get("output").and_then(|v| v.as_str()))
-        .map(tool_result_preview)
-        .unwrap_or_else(|| tool_result_preview(&part.content));
+        .or_else(|| payload.get("output_preview").and_then(|v| v.as_str()))
+        .map(str::to_string)
+        .unwrap_or_else(|| part.content.clone());
     let mut message = LoopMessage::text("tool", output);
     message.tool_call_id = Some(tool_call_id.to_string());
     Some(message)
@@ -368,13 +368,14 @@ mod tests {
     }
 
     #[test]
-    fn tool_result_message_prefers_output_preview_when_present() {
+    fn tool_result_message_prefers_raw_output_when_present() {
+        let raw_output = format!("{{\"payload\":\"{}\"}}", "x".repeat(10_000));
         let part = tool_result_part(
             "preview".to_string(),
             serde_json::json!({
                 "tool_call_id": "tool-1",
                 "output_preview": "small preview",
-                "output": format!("{{\"payload\":\"{}\"}}", "x".repeat(10_000)),
+                "output": raw_output,
             })
             .to_string(),
         );
@@ -382,11 +383,11 @@ mod tests {
         let message = tool_result_message_from_part(&part).unwrap();
 
         assert_eq!(message.tool_call_id.as_deref(), Some("tool-1"));
-        assert_eq!(message.text_content(), "small preview");
+        assert_eq!(message.text_content(), raw_output);
     }
 
     #[test]
-    fn tool_result_message_compacts_legacy_raw_output() {
+    fn tool_result_message_keeps_legacy_raw_output() {
         let raw_output = format!(
             "{{\"payload\":\"{}\",\"items\":[\"{}\",\"{}\"]}}",
             "x".repeat(20_000),
@@ -404,11 +405,7 @@ mod tests {
 
         let message = tool_result_message_from_part(&part).unwrap();
 
-        assert!(message.text_content().len() < 10_000);
-        assert!(
-            message.text_content().contains("chars omitted")
-                || message.text_content().contains("_truncated")
-        );
+        assert_eq!(message.text_content(), raw_output);
     }
 
     #[test]
