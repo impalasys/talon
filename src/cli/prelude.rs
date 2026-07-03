@@ -3,7 +3,6 @@
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use minijinja::{context, Environment, UndefinedBehavior};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;

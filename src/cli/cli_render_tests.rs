@@ -6,7 +6,7 @@ mod cli_render_tests {
     use super::*;
 
     #[test]
-    fn render_manifest_template_renders_template_outer_vars_and_preserves_raw_inner_vars() {
+    fn render_manifest_template_renders_vars_and_preserves_later_layer_vars() {
         let mut vars = HashMap::new();
         vars.insert("source_ns".to_string(), "customers".to_string());
         let rendered = render_manifest_template(
@@ -20,7 +20,8 @@ spec:
   kind: Agent
   spec:
     systemPrompt: |
-      You are the coding agent for {% raw %}{{ namespace.name }}{% endraw %}.
+      You are the coding agent for {{ namespace.name }}.
+      Current Talon time: {{ talon.now }}.
 "#,
             &vars,
         )
@@ -28,6 +29,7 @@ spec:
 
         assert!(rendered.contains("namespace: \"customers\""));
         assert!(rendered.contains("{{ namespace.name }}"));
+        assert!(rendered.contains("{{ talon.now }}"));
     }
 
     #[test]

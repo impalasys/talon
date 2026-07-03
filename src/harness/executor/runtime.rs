@@ -451,14 +451,22 @@ impl AgentExecutor {
         ))
     }
 
-    fn messages_for_llm(&self, context: &ExecutionContext) -> Vec<ChatMessage> {
+    fn messages_for_llm(&self, context: &ExecutionContext) -> Result<Vec<ChatMessage>> {
         let mut history = context.history.clone();
         let system_prompt = self.agent_spec.system_prompt.trim();
         if !system_prompt.is_empty() && !context.has_system_message() {
-            history.insert(0, LoopMessage::text("system", system_prompt));
+            history.insert(
+                0,
+                LoopMessage::text(
+                    "system",
+                    crate::control::manifest::templating::render_runtime_system_prompt_template(
+                        system_prompt,
+                    )?,
+                ),
+            );
         }
 
-        compact_history_for_llm(&history)
+        Ok(compact_history_for_llm(&history)
             .iter()
             .map(|m| ChatMessage {
                 role: m.role.clone(),
@@ -466,7 +474,7 @@ impl AgentExecutor {
                 tool_calls: m.tool_calls.clone().unwrap_or_default(),
                 tool_call_id: m.tool_call_id.clone(),
             })
-            .collect()
+            .collect())
     }
 
     /// Run the prepared execution context to completion, emitting events to
@@ -504,7 +512,7 @@ impl AgentExecutor {
             }
             turn_limit -= 1;
 
-            let messages = self.messages_for_llm(context);
+            let messages = self.messages_for_llm(context)?;
 
             let tools = {
                 let reg = self.registry.read().await;
@@ -1137,6 +1145,81 @@ mod tests {
         );
         assert_eq!(messages[1].role, "user");
         assert_eq!(messages[1].text_content(), "Hello");
+    }
+
+    #[tokio::test]
+    async fn executor_renders_agent_system_prompt_template_into_llm_request() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let mut spec = manifests::AgentSpec::default();
+        spec.system_prompt = "Now: {{ talon.now }}".to_string();
+        let executor = AgentExecutor::new(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            Arc::new(EmptyKnowledgeBook),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            ControlPlane::noop(),
+            spec,
+            HashMap::new(),
+        );
+
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage::text("user", "Hello"));
+
+        executor
+            .execute(&mut context, &CaptureSink::new(), None)
+            .await
+            .unwrap();
+
+        let seen = llm.seen_messages.lock().unwrap();
+        let messages = seen.last().unwrap();
+        let timestamp = messages[0]
+            .text_content()
+            .strip_prefix("Now: ")
+            .unwrap()
+            .to_string();
+        assert!(timestamp.ends_with('Z'));
+        chrono::DateTime::parse_from_rfc3339(&timestamp).unwrap();
+    }
+
+    #[tokio::test]
+    async fn executor_errors_on_unknown_system_prompt_template_variable() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let mut spec = manifests::AgentSpec::default();
+        spec.system_prompt = "{{ talon.nope }}".to_string();
+        let executor = AgentExecutor::new(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            Arc::new(EmptyKnowledgeBook),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            ControlPlane::noop(),
+            spec,
+            HashMap::new(),
+        );
+
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage::text("user", "Hello"));
+
+        let err = executor
+            .execute(&mut context, &CaptureSink::new(), None)
+            .await
+            .expect_err("unknown system prompt variables should fail");
+
+        assert!(err
+            .to_string()
+            .contains("Failed to render system prompt template"));
+        assert!(llm.seen_messages.lock().unwrap().is_empty());
     }
 
     #[tokio::test]

@@ -127,14 +127,5 @@ fn parse_vars(entries: &[String]) -> Result<HashMap<String, String>> {
 }
 
 fn render_manifest_template(template: &str, vars: &HashMap<String, String>) -> Result<String> {
-    let mut env = Environment::new();
-    env.set_undefined_behavior(UndefinedBehavior::Strict);
-    env.add_template("manifest", template)
-        .context("Failed to compile manifest template")?;
-    let rendered = env
-        .get_template("manifest")
-        .context("Missing manifest template")?
-        .render(context! { vars => vars })
-        .context("Failed to render manifest template")?;
-    Ok(rendered)
+    crate::control::manifest::templating::render_cli_manifest_template(template, vars)
 }

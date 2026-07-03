@@ -13,5 +13,6 @@ include!("mcp_impls.rs");
 include!("workflow_impls.rs");
 include!("yaml.rs");
 include!("agent_impls.rs");
+pub mod templating;
 #[cfg(test)]
 include!("tests.rs");
