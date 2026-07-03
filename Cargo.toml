@@ -55,7 +55,7 @@ tokio = { version = "1.0", features = ["full"] }
 tokio-tungstenite = "0.20"
 tracing = "0.1"
 tracing-opentelemetry = "0.32"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 tonic = { version = "0.12.3", features = ["tls-webpki-roots"] }
 tonic-web = "0.12.3"
 axum = { version = "0.7", features = ["ws"] }

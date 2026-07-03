@@ -111,7 +111,7 @@ impl Gateway {
     {
         use tonic::transport::Server;
         let addr: std::net::SocketAddr = addr.parse()?;
-        println!("Talon gateway listening on: {}", addr);
+        tracing::info!(%addr, "Talon gateway listening");
 
         let handler = crate::gateway::rpc::GrpcGatewayHandler {
             gateway: Arc::new(self.clone_internal()),

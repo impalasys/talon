@@ -391,20 +391,20 @@ pub async fn build_control_plane(
                 .as_ref()
                 .ok_or_else(|| anyhow::anyhow!("Database URL secret is missing"))?;
             let pg_url: String = url_secret.resolve().await?;
-            println!("Connecting to PostgresKvStore...");
+            tracing::info!("Connecting to PostgresKvStore");
             kv = Arc::new(kv::PostgresKvStore::new(&pg_url, "talon_kv_store").await?);
             scheduler_database_url = Some(pg_url);
         }
         "sqlite" => {
             let sqlite_url = sqlite_database_url(db_config).await?;
-            println!("Connecting to SqliteKvStore at {}...", sqlite_url);
+            tracing::info!(database_url = %sqlite_url, "Connecting to SqliteKvStore");
             kv = Arc::new(kv::SqliteKvStore::new(&sqlite_url, "talon_kv_store").await?);
             scheduler_database_url = Some(sqlite_url);
         }
         #[cfg(feature = "dynamodb")]
         "dynamodb" => {
             let table = dynamodb_table_name(db_config).await?;
-            println!("Connecting to DynamoDbKvStore table {}...", table);
+            tracing::info!(table = %table, "Connecting to DynamoDbKvStore");
             let store = kv::DynamoDbKvStore::from_env(table).await?;
             kv = Arc::new(store);
             scheduler_database_url = None;
@@ -418,10 +418,7 @@ pub async fn build_control_plane(
         #[cfg(feature = "rocksdb")]
         "rocksdb" => {
             let rocksdb_path = rocksdb_database_path(db_config).await?;
-            println!(
-                "Connecting to RocksDbKvStore at {}...",
-                rocksdb_path.display()
-            );
+            tracing::info!(path = %rocksdb_path.display(), "Connecting to RocksDbKvStore");
             kv = Arc::new(kv::RocksDbKvStore::new(&rocksdb_path)?);
             scheduler_database_url = None;
         }
@@ -444,7 +441,7 @@ pub async fn build_control_plane(
     let mb_config = message_broker_config(cp)?;
     let pubsub: SharedMessagePublisher = match mb_config.driver.as_str() {
         "gcp_pubsub" => {
-            println!("Initializing GcpPubSubPublisher...");
+            tracing::info!("Initializing GcpPubSubPublisher");
             Arc::new(pubsub::GcpPubSubPublisher::new().await?)
         }
         "local_socket" => {
@@ -455,15 +452,15 @@ pub async fn build_control_plane(
                     None
                 };
             let socket_path = pubsub::configured_local_socket_path(default_root.as_deref());
-            println!(
-                "Initializing LocalSocketMessagePublisher at {}...",
-                socket_path.display()
+            tracing::info!(
+                socket_path = %socket_path.display(),
+                "Initializing LocalSocketMessagePublisher"
             );
             Arc::new(pubsub::LocalSocketMessagePublisher::new(socket_path).await?)
         }
         #[cfg(feature = "sqs")]
         "sqs" => {
-            println!("Initializing SqsMessagePublisher...");
+            tracing::info!("Initializing SqsMessagePublisher");
             Arc::new(pubsub::SqsMessagePublisher::from_env().await?)
         }
         #[cfg(not(feature = "sqs"))]
@@ -626,12 +623,12 @@ async fn configured_document_store(
                 .as_ref()
                 .ok_or_else(|| anyhow::anyhow!("Document database URL secret is missing"))?;
             let pg_url: String = url_secret.resolve().await?;
-            println!("Connecting to PostgresDocumentStore...");
+            tracing::info!("Connecting to PostgresDocumentStore");
             Ok(Arc::new(search::PostgresDocumentStore::new(&pg_url).await?))
         }
         "sqlite" => {
             let sqlite_url = sqlite_database_url(db_config).await?;
-            println!("Connecting to SqliteDocumentStore at {}...", sqlite_url);
+            tracing::info!(database_url = %sqlite_url, "Connecting to SqliteDocumentStore");
             Ok(Arc::new(
                 search::SqliteDocumentStore::new(&sqlite_url).await?,
             ))

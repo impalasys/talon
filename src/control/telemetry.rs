@@ -10,6 +10,21 @@ use opentelemetry_sdk::{
 };
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
+const TALON_LOG_FORMAT_ENV: &str = "TALON_LOG_FORMAT";
+const TALON_LOG_ANSI_ENV: &str = "TALON_LOG_ANSI";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum LogFormat {
+    Compact,
+    Json,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct LogConfig {
+    format: LogFormat,
+    ansi: bool,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct TelemetryConfig {
     pub enabled: bool,
@@ -39,19 +54,38 @@ pub fn init_from_env(default_service_name: &str) -> Result<TelemetryGuard> {
 
 pub fn init(config: TelemetryConfig) -> Result<TelemetryGuard> {
     let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
-    let fmt_layer = tracing_subscriber::fmt::layer();
+    let log_config = LogConfig::from_env();
 
     let Some(endpoint) = config.enabled.then_some(config.endpoint).flatten() else {
-        tracing_subscriber::registry()
-            .with(env_filter)
-            .with(fmt_layer)
-            .try_init()
-            .ok();
+        match log_config.format {
+            LogFormat::Compact => {
+                tracing_subscriber::registry()
+                    .with(env_filter)
+                    .with(tracing_subscriber::fmt::layer().with_ansi(log_config.ansi))
+                    .try_init()
+                    .ok();
+            }
+            LogFormat::Json => {
+                tracing_subscriber::registry()
+                    .with(env_filter)
+                    .with(
+                        tracing_subscriber::fmt::layer()
+                            .json()
+                            .flatten_event(true)
+                            .with_current_span(true)
+                            .with_span_list(true)
+                            .with_ansi(false),
+                    )
+                    .try_init()
+                    .ok();
+            }
+        }
         return Ok(TelemetryGuard {
             tracer_provider: None,
         });
     };
 
+    let service_name = config.service_name.clone();
     let exporter = opentelemetry_otlp::SpanExporter::builder()
         .with_tonic()
         .with_endpoint(endpoint)
@@ -68,19 +102,69 @@ pub fn init(config: TelemetryConfig) -> Result<TelemetryGuard> {
         )
         .with_batch_exporter(exporter)
         .build();
-    let tracer = tracer_provider.tracer("talon-worker");
+    let tracer = tracer_provider.tracer(service_name);
     let otel_layer = tracing_opentelemetry::layer().with_tracer(tracer);
 
-    tracing_subscriber::registry()
-        .with(env_filter)
-        .with(fmt_layer)
-        .with(otel_layer)
-        .try_init()
-        .ok();
+    match log_config.format {
+        LogFormat::Compact => {
+            tracing_subscriber::registry()
+                .with(env_filter)
+                .with(otel_layer)
+                .with(tracing_subscriber::fmt::layer().with_ansi(log_config.ansi))
+                .try_init()
+                .ok();
+        }
+        LogFormat::Json => {
+            tracing_subscriber::registry()
+                .with(env_filter)
+                .with(otel_layer)
+                .with(
+                    tracing_subscriber::fmt::layer()
+                        .json()
+                        .flatten_event(true)
+                        .with_current_span(true)
+                        .with_span_list(true)
+                        .with_ansi(false),
+                )
+                .try_init()
+                .ok();
+        }
+    }
 
     Ok(TelemetryGuard {
         tracer_provider: Some(tracer_provider),
     })
+}
+
+impl LogConfig {
+    fn from_env() -> Self {
+        Self::from_getter(|name| std::env::var(name).ok())
+    }
+
+    fn from_getter<F>(mut get: F) -> Self
+    where
+        F: FnMut(&str) -> Option<String>,
+    {
+        let format = match get(TALON_LOG_FORMAT_ENV)
+            .unwrap_or_default()
+            .trim()
+            .to_ascii_lowercase()
+            .as_str()
+        {
+            "json" => LogFormat::Json,
+            _ => LogFormat::Compact,
+        };
+        let ansi = get(TALON_LOG_ANSI_ENV)
+            .map(|value| {
+                matches!(
+                    value.trim().to_ascii_lowercase().as_str(),
+                    "1" | "true" | "yes" | "on"
+                )
+            })
+            .unwrap_or(format != LogFormat::Json);
+
+        Self { format, ansi }
+    }
 }
 
 impl TelemetryConfig {
@@ -120,7 +204,7 @@ impl TelemetryConfig {
 
 #[cfg(test)]
 mod tests {
-    use super::TelemetryConfig;
+    use super::{LogConfig, LogFormat, TelemetryConfig};
 
     fn config_with(vars: &[(&str, &str)]) -> TelemetryConfig {
         TelemetryConfig::from_getter("talon-worker", |name| {
@@ -169,6 +253,45 @@ mod tests {
             ])
             .sample_ratio,
             1.0
+        );
+    }
+
+    #[test]
+    fn log_config_defaults_to_compact_with_ansi() {
+        assert_eq!(
+            LogConfig::from_getter(|_| None),
+            LogConfig {
+                format: LogFormat::Compact,
+                ansi: true,
+            }
+        );
+    }
+
+    #[test]
+    fn log_config_json_disables_ansi_by_default() {
+        assert_eq!(
+            LogConfig::from_getter(|name| {
+                (name == "TALON_LOG_FORMAT").then(|| "json".to_string())
+            }),
+            LogConfig {
+                format: LogFormat::Json,
+                ansi: false,
+            }
+        );
+    }
+
+    #[test]
+    fn log_config_respects_explicit_ansi_override() {
+        assert_eq!(
+            LogConfig::from_getter(|name| match name {
+                "TALON_LOG_FORMAT" => Some("compact".to_string()),
+                "TALON_LOG_ANSI" => Some("0".to_string()),
+                _ => None,
+            }),
+            LogConfig {
+                format: LogFormat::Compact,
+                ansi: false,
+            }
         );
     }
 }

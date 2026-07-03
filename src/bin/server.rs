@@ -123,7 +123,7 @@ where
 #[tokio::main]
 async fn main() -> Result<()> {
     talon::control::security::install_jwt_crypto_provider();
-    tracing_subscriber::fmt::init();
+    let _telemetry_guard = talon::control::telemetry::init_from_env("talon-server")?;
     talon::control::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
     tracing::info!("Starting Talon Gateway Server...");
     run_server_main_with(
