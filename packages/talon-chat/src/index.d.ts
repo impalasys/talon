@@ -17,6 +17,8 @@ export type ToolInvocationItem = {
 
 export type AssistantTimelineItem =
   | { type: "text"; text: string }
+  | { type: "reasoning"; text: string }
+  | { type: "usage"; usage: UsageSummary }
   | {
       type: "tool";
       toolCallId: string;
