@@ -176,8 +176,14 @@ pub fn serialize_output_messages_json(content: &str, tool_calls: &[ToolCall]) ->
 
 pub fn serialize_tool_definitions_json(tools: &[Tool]) -> String {
     serialize_json_array(tools.iter().map(|tool| {
-        let parameters = serde_json::from_str::<Value>(&tool.input_schema_json)
-            .unwrap_or_else(|_| Value::String(tool.input_schema_json.clone()));
+        let parameters =
+            serde_json::from_str::<Value>(&tool.input_schema_json).unwrap_or_else(|_| {
+                if tool.input_schema_json.trim().is_empty() {
+                    json!({})
+                } else {
+                    Value::String(tool.input_schema_json.clone())
+                }
+            });
         json!({
             "type": "function",
             "name": tool.name,
@@ -338,6 +344,25 @@ mod tests {
         let value: Value = serde_json::from_str(&json).unwrap();
         assert_eq!(value[0]["name"], "lookup");
         assert_eq!(value[0]["parameters"]["type"], "object");
+    }
+
+    #[test]
+    fn tool_definitions_use_empty_object_for_blank_schema() {
+        let json = serialize_tool_definitions_json(&[
+            Tool {
+                name: "blank".to_string(),
+                description: "Blank".to_string(),
+                input_schema_json: String::new(),
+            },
+            Tool {
+                name: "whitespace".to_string(),
+                description: "Whitespace".to_string(),
+                input_schema_json: "  \n\t".to_string(),
+            },
+        ]);
+        let value: Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(value[0]["parameters"], json!({}));
+        assert_eq!(value[1]["parameters"], json!({}));
     }
 
     #[test]
