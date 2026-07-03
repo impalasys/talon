@@ -484,7 +484,6 @@ impl AgentExecutor {
         loop {
             if turn_limit == 0 {
                 let msg = "Turn limit reached".to_string();
-                sink.on_error(&msg).await;
                 return Err(anyhow::anyhow!(msg));
             }
             turn_limit -= 1;

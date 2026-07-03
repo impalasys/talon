@@ -90,10 +90,7 @@ impl AgentRuntime {
         for (_, value) in msg_entries {
             if let Ok(msg) = data_proto::SessionMessage::decode(value.as_slice()) {
                 if msg.role == data_proto::MessageRole::RoleAssistant as i32
-                    && msg
-                        .labels
-                        .get(SESSION_LABEL_PROJECTION_STATE)
-                        .is_some_and(|state| state != SESSION_PROJECTION_STATE_COMMITTED)
+                    && !assistant_projection_is_replayable(&msg)
                 {
                     continue;
                 }
@@ -300,6 +297,18 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::harness::native_tools::CHANNEL_PUBLISH_TOOL,
         crate::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL,
     ]
+}
+
+fn assistant_projection_is_replayable(message: &data_proto::SessionMessage) -> bool {
+    match message
+        .labels
+        .get(SESSION_LABEL_PROJECTION_STATE)
+        .map(String::as_str)
+    {
+        None | Some(SESSION_PROJECTION_STATE_COMMITTED) => true,
+        Some(crate::harness::sessions::SESSION_PROJECTION_STATE_FAILED) => true,
+        Some(_) => false,
+    }
 }
 
 fn qualify_mcp_tool_name(
@@ -893,6 +902,107 @@ mod tests {
         );
         assert_eq!(runtime.context.history[2].role, "tool");
         assert_eq!(runtime.context.history[2].text_content(), "tool preview");
+    }
+
+    #[tokio::test]
+    async fn agent_runtime_build_replays_failed_terminal_assistant_projection() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        let config = runtime_config();
+        let registry = crate::worker::mcp_registry::McpRegistry::new();
+        let spec = manifests::AgentSpec {
+            features: Vec::new(),
+            model_policy: None,
+            system_prompt: "assist".to_string(),
+            mcp_server_refs: vec!["missing-server".to_string()],
+            capabilities: HashMap::new(),
+            a2a: None,
+            runtime: None,
+        };
+
+        put_agent_resource(kv.clone(), "conic", "writer", Some(spec)).await;
+        let mut failed_labels = HashMap::new();
+        failed_labels.insert(
+            crate::harness::sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
+            crate::harness::sessions::SESSION_PROJECTION_STATE_FAILED.to_string(),
+        );
+        kv.set_msg(
+            &crate::control::keys::session_message("conic", "writer", "session-1", "msg-1"),
+            &data_proto::SessionMessage {
+                id: "msg-1".to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 20,
+                labels: failed_labels,
+                parts: vec![
+                    data_proto::SessionMessagePart {
+                        id: "000001".to_string(),
+                        part_type: data_proto::SessionMessagePartType::Text as i32,
+                        content: "I found Gmail is connected. ".to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 20,
+                        object: None,
+                    },
+                    data_proto::SessionMessagePart {
+                        id: "000002".to_string(),
+                        part_type: data_proto::SessionMessagePartType::ToolCall as i32,
+                        content: "Tool call".to_string(),
+                        name: "search_tools".to_string(),
+                        payload_json: serde_json::json!({
+                            "tool_call_id": "call-1",
+                            "input": { "query": "gmail" }
+                        })
+                        .to_string(),
+                        created_at: 21,
+                        object: None,
+                    },
+                    data_proto::SessionMessagePart {
+                        id: "000003".to_string(),
+                        part_type: data_proto::SessionMessagePartType::ToolResult as i32,
+                        content: "gmail_search available".to_string(),
+                        name: "search_tools".to_string(),
+                        payload_json: serde_json::json!({
+                            "tool_call_id": "call-1",
+                            "output_preview": "gmail_search available"
+                        })
+                        .to_string(),
+                        created_at: 22,
+                        object: None,
+                    },
+                    data_proto::SessionMessagePart {
+                        id: "000004".to_string(),
+                        part_type: data_proto::SessionMessagePartType::Error as i32,
+                        content: "Turn limit reached".to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 23,
+                        object: None,
+                    },
+                ],
+            },
+        )
+        .await
+        .unwrap();
+
+        let runtime = AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
+            .await
+            .unwrap();
+
+        assert_eq!(runtime.context.history.len(), 2);
+        assert_eq!(runtime.context.history[0].role, "assistant");
+        assert_eq!(
+            runtime.context.history[0].text_content(),
+            "I found Gmail is connected. "
+        );
+        assert_eq!(
+            runtime.context.history[0].tool_calls.as_ref().unwrap()[0].name,
+            "search_tools"
+        );
+        assert_eq!(runtime.context.history[1].role, "tool");
+        assert_eq!(
+            runtime.context.history[1].text_content(),
+            "gmail_search available"
+        );
     }
 
     #[tokio::test]
