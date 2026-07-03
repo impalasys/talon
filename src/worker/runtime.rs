@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use anyhow::{anyhow, Result};
-use std::path::Path;
 use std::sync::Arc;
 
 use super::mcp_registry::McpRegistry;
@@ -12,17 +11,15 @@ use crate::control::ProtoKeyValueStoreExt;
 use crate::gateway::rpc::data_proto;
 use crate::gateway::rpc::resources_proto;
 use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKind};
-use crate::harness::executor::context_budget::tool_result_preview;
 use crate::harness::executor::{
-    AgentExecutor, ContextAssembler, ExecutionContext, LoopMessage, RegisteredMcpTool,
+    session_message_to_loop_messages, AgentExecutor, ContextAssembler, ExecutionContext,
+    RegisteredMcpTool,
 };
 use crate::harness::knowledge::KvKnowledgeBook;
-use crate::harness::llm::{image_data_part, image_url_part, text_part, ChatContentPart, ToolCall};
 use crate::harness::sessions::{
     SESSION_LABEL_PROJECTION_STATE, SESSION_PROJECTION_STATE_COMMITTED,
 };
 use crate::harness::skills::registry::ToolRegistry;
-use base64::{engine::general_purpose, Engine as _};
 use prost::Message;
 
 /// Fully-assembled, ready-to-run environment for one agent session.
@@ -93,68 +90,11 @@ impl AgentRuntime {
         for (_, value) in msg_entries {
             if let Ok(msg) = data_proto::SessionMessage::decode(value.as_slice()) {
                 if msg.role == data_proto::MessageRole::RoleAssistant as i32
-                    && msg
-                        .labels
-                        .get(SESSION_LABEL_PROJECTION_STATE)
-                        .is_some_and(|state| state != SESSION_PROJECTION_STATE_COMMITTED)
+                    && !assistant_projection_is_replayable(&msg)
                 {
                     continue;
                 }
-                let role = match data_proto::MessageRole::try_from(msg.role) {
-                    Ok(data_proto::MessageRole::RoleUser) => "user",
-                    Ok(data_proto::MessageRole::RoleAssistant) => "assistant",
-                    Ok(data_proto::MessageRole::RoleSystem) => "system",
-                    _ => "user",
-                };
-
-                let mut tool_calls = None;
-                let mut tool_results: Vec<LoopMessage> = Vec::new();
-
-                if msg.role == data_proto::MessageRole::RoleAssistant as i32 {
-                    let mut collected_tool_calls = Vec::new();
-                    for part in &msg.parts {
-                        if part.part_type == data_proto::SessionMessagePartType::ToolCall as i32 {
-                            let payload: serde_json::Value =
-                                serde_json::from_str(&part.payload_json)
-                                    .unwrap_or(serde_json::Value::Null);
-                            let tool_call_id = payload
-                                .get("tool_call_id")
-                                .and_then(|v| v.as_str())
-                                .unwrap_or_default()
-                                .to_string();
-                            let input = payload
-                                .get("input")
-                                .cloned()
-                                .unwrap_or(serde_json::Value::Null);
-                            collected_tool_calls.push(ToolCall {
-                                id: tool_call_id,
-                                name: part.name.clone(),
-                                arguments: serde_json::to_string(&input)
-                                    .unwrap_or_else(|_| "null".to_string()),
-                            });
-                        } else if part.part_type
-                            == data_proto::SessionMessagePartType::ToolResult as i32
-                        {
-                            if let Some(message) = tool_result_message_from_part(part) {
-                                tool_results.push(message);
-                            }
-                        }
-                    }
-
-                    if !collected_tool_calls.is_empty() {
-                        tool_calls = Some(collected_tool_calls);
-                    }
-                }
-
-                history.push(LoopMessage {
-                    role: role.to_string(),
-                    content_parts: message_content_parts(&msg, cp.objects.as_ref()).await?,
-                    tool_calls,
-                    tool_call_id: None,
-                });
-                if !tool_results.is_empty() {
-                    history.extend(tool_results);
-                }
+                history.extend(session_message_to_loop_messages(&msg, cp.objects.as_ref()).await?);
             }
         }
 
@@ -359,6 +299,18 @@ fn builtin_tool_names() -> &'static [&'static str] {
     ]
 }
 
+fn assistant_projection_is_replayable(message: &data_proto::SessionMessage) -> bool {
+    match message
+        .labels
+        .get(SESSION_LABEL_PROJECTION_STATE)
+        .map(String::as_str)
+    {
+        None | Some(SESSION_PROJECTION_STATE_COMMITTED) => true,
+        Some(crate::harness::sessions::SESSION_PROJECTION_STATE_FAILED) => true,
+        Some(_) => false,
+    }
+}
+
 fn qualify_mcp_tool_name(
     config: &crate::harness::mcp::McpConnectionConfig,
     tool_name: &str,
@@ -391,115 +343,15 @@ fn sanitize_tool_name_component(value: &str) -> String {
     sanitized.trim_matches('_').to_string()
 }
 
-fn inferred_image_media_type(key: &str) -> Option<&'static str> {
-    match Path::new(key)
-        .extension()
-        .and_then(|value| value.to_str())
-        .unwrap_or_default()
-        .to_ascii_lowercase()
-        .as_str()
-    {
-        "png" => Some("image/png"),
-        "jpg" | "jpeg" => Some("image/jpeg"),
-        "gif" => Some("image/gif"),
-        "webp" => Some("image/webp"),
-        _ => None,
-    }
-}
-
-async fn message_content_parts(
-    message: &data_proto::SessionMessage,
-    objects: &(dyn crate::control::object_store::ObjectStore + Send + Sync),
-) -> Result<Vec<ChatContentPart>> {
-    let mut content_parts = Vec::new();
-    for part in &message.parts {
-        if part.part_type == data_proto::SessionMessagePartType::Text as i32 {
-            if !part.content.is_empty() {
-                content_parts.push(text_part(part.content.clone()));
-            }
-            continue;
-        }
-
-        if part.part_type != data_proto::SessionMessagePartType::Image as i32 {
-            continue;
-        }
-
-        if !part.content.is_empty() {
-            content_parts.push(text_part(part.content.clone()));
-        }
-
-        let payload = serde_json::from_str::<serde_json::Value>(&part.payload_json)
-            .unwrap_or(serde_json::Value::Null);
-        let detail = payload
-            .get("detail")
-            .and_then(|value| value.as_str())
-            .map(ToString::to_string);
-        if let Some(url) = payload.get("url").and_then(|value| value.as_str()) {
-            content_parts.push(image_url_part(url.to_string(), detail));
-            continue;
-        }
-
-        let Some(object) = part.object.as_ref() else {
-            continue;
-        };
-        let stored = objects.get(&object.key).await?.ok_or_else(|| {
-            anyhow!(
-                "object '{}' referenced by message part is missing",
-                object.key
-            )
-        })?;
-        let mut media_type = if object.media_type.trim().is_empty() {
-            stored.metadata.media_type.trim().to_string()
-        } else {
-            object.media_type.trim().to_string()
-        };
-        if media_type.is_empty() {
-            media_type = inferred_image_media_type(&object.key)
-                .ok_or_else(|| anyhow!("missing media type for image object '{}'", object.key))?
-                .to_string();
-        }
-        if !media_type.to_ascii_lowercase().starts_with("image/") {
-            return Err(anyhow!(
-                "unsupported media type '{}' for image object '{}'",
-                media_type,
-                object.key
-            ));
-        }
-        content_parts.push(image_data_part(
-            media_type,
-            general_purpose::STANDARD.encode(stored.bytes),
-            detail,
-        ));
-    }
-    Ok(content_parts)
-}
-
-fn tool_result_message_from_part(part: &data_proto::SessionMessagePart) -> Option<LoopMessage> {
-    let payload: serde_json::Value =
-        serde_json::from_str(&part.payload_json).unwrap_or(serde_json::Value::Null);
-    let tool_call_id = payload.get("tool_call_id").and_then(|v| v.as_str())?;
-    let output = payload
-        .get("output_preview")
-        .and_then(|v| v.as_str())
-        .or_else(|| payload.get("output").and_then(|v| v.as_str()))
-        .map(tool_result_preview)
-        .unwrap_or_else(|| tool_result_preview(&part.content));
-    let mut message = LoopMessage::text("tool", output);
-    message.tool_call_id = Some(tool_call_id.to_string());
-    Some(message)
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
         builtin_tool_names, config_for_agent_namespace, has_capability_action,
-        message_content_parts, qualify_mcp_tool_name, tool_result_message_from_part,
-        visible_tools_for_agent, AgentRuntime,
+        qualify_mcp_tool_name, visible_tools_for_agent, AgentRuntime,
     };
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
         keys::{ResourceKey, ResourceList},
-        object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore},
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{data_proto, manifests, protobuf_value, resources_proto};
@@ -511,18 +363,6 @@ mod tests {
     use std::pin::Pin;
     use std::sync::Arc;
     use tokio::sync::Mutex;
-
-    fn tool_result_part(content: String, payload_json: String) -> data_proto::SessionMessagePart {
-        data_proto::SessionMessagePart {
-            id: "part-1".to_string(),
-            part_type: data_proto::SessionMessagePartType::ToolResult as i32,
-            content,
-            name: "tool".to_string(),
-            payload_json,
-            created_at: 0,
-            object: None,
-        }
-    }
 
     #[derive(Default)]
     struct MockKvStore {
@@ -733,50 +573,6 @@ mod tests {
         assert_eq!(scoped.mcp_server_name.as_deref(), Some("conic"));
     }
 
-    #[test]
-    fn tool_result_message_prefers_output_preview_when_present() {
-        let part = tool_result_part(
-            "preview".to_string(),
-            serde_json::json!({
-                "tool_call_id": "tool-1",
-                "output_preview": "small preview",
-                "output": format!("{{\"payload\":\"{}\"}}", "x".repeat(10_000)),
-            })
-            .to_string(),
-        );
-
-        let message = tool_result_message_from_part(&part).unwrap();
-
-        assert_eq!(message.tool_call_id.as_deref(), Some("tool-1"));
-        assert_eq!(message.text_content(), "small preview");
-    }
-
-    #[test]
-    fn tool_result_message_compacts_legacy_raw_output() {
-        let raw_output = format!(
-            "{{\"payload\":\"{}\",\"items\":[\"{}\",\"{}\"]}}",
-            "x".repeat(20_000),
-            "y".repeat(8_000),
-            "z".repeat(8_000)
-        );
-        let part = tool_result_part(
-            raw_output.clone(),
-            serde_json::json!({
-                "tool_call_id": "tool-1",
-                "output": raw_output,
-            })
-            .to_string(),
-        );
-
-        let message = tool_result_message_from_part(&part).unwrap();
-
-        assert!(message.text_content().len() < 10_000);
-        assert!(
-            message.text_content().contains("chars omitted")
-                || message.text_content().contains("_truncated")
-        );
-    }
-
     fn spec_with_capabilities(capabilities: &[(&str, &[&str])]) -> manifests::AgentSpec {
         manifests::AgentSpec {
             features: Vec::new(),
@@ -861,33 +657,6 @@ mod tests {
         assert!(has_capability_action(&spec, "schedules", "inspect"));
         assert!(!has_capability_action(&spec, "schedules", "delete"));
         assert!(!has_capability_action(&spec, "sessions", "inspect"));
-    }
-
-    #[test]
-    fn tool_result_message_requires_tool_call_id() {
-        let part = tool_result_part(
-            "preview".to_string(),
-            serde_json::json!({
-                "output_preview": "small preview",
-            })
-            .to_string(),
-        );
-
-        assert!(tool_result_message_from_part(&part).is_none());
-    }
-
-    #[test]
-    fn tool_result_message_falls_back_to_step_content_when_payload_has_no_output() {
-        let part = tool_result_part(
-            "fallback output".to_string(),
-            serde_json::json!({
-                "tool_call_id": "tool-1"
-            })
-            .to_string(),
-        );
-
-        let message = tool_result_message_from_part(&part).unwrap();
-        assert_eq!(message.text_content(), "fallback output");
     }
 
     #[test]
@@ -1136,6 +905,107 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn agent_runtime_build_replays_failed_terminal_assistant_projection() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        let config = runtime_config();
+        let registry = crate::worker::mcp_registry::McpRegistry::new();
+        let spec = manifests::AgentSpec {
+            features: Vec::new(),
+            model_policy: None,
+            system_prompt: "assist".to_string(),
+            mcp_server_refs: vec!["missing-server".to_string()],
+            capabilities: HashMap::new(),
+            a2a: None,
+            runtime: None,
+        };
+
+        put_agent_resource(kv.clone(), "conic", "writer", Some(spec)).await;
+        let mut failed_labels = HashMap::new();
+        failed_labels.insert(
+            crate::harness::sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
+            crate::harness::sessions::SESSION_PROJECTION_STATE_FAILED.to_string(),
+        );
+        kv.set_msg(
+            &crate::control::keys::session_message("conic", "writer", "session-1", "msg-1"),
+            &data_proto::SessionMessage {
+                id: "msg-1".to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 20,
+                labels: failed_labels,
+                parts: vec![
+                    data_proto::SessionMessagePart {
+                        id: "000001".to_string(),
+                        part_type: data_proto::SessionMessagePartType::Text as i32,
+                        content: "I found Gmail is connected. ".to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 20,
+                        object: None,
+                    },
+                    data_proto::SessionMessagePart {
+                        id: "000002".to_string(),
+                        part_type: data_proto::SessionMessagePartType::ToolCall as i32,
+                        content: "Tool call".to_string(),
+                        name: "search_tools".to_string(),
+                        payload_json: serde_json::json!({
+                            "tool_call_id": "call-1",
+                            "input": { "query": "gmail" }
+                        })
+                        .to_string(),
+                        created_at: 21,
+                        object: None,
+                    },
+                    data_proto::SessionMessagePart {
+                        id: "000003".to_string(),
+                        part_type: data_proto::SessionMessagePartType::ToolResult as i32,
+                        content: "gmail_search available".to_string(),
+                        name: "search_tools".to_string(),
+                        payload_json: serde_json::json!({
+                            "tool_call_id": "call-1",
+                            "output_preview": "gmail_search available"
+                        })
+                        .to_string(),
+                        created_at: 22,
+                        object: None,
+                    },
+                    data_proto::SessionMessagePart {
+                        id: "000004".to_string(),
+                        part_type: data_proto::SessionMessagePartType::Error as i32,
+                        content: "Turn limit reached".to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 23,
+                        object: None,
+                    },
+                ],
+            },
+        )
+        .await
+        .unwrap();
+
+        let runtime = AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
+            .await
+            .unwrap();
+
+        assert_eq!(runtime.context.history.len(), 2);
+        assert_eq!(runtime.context.history[0].role, "assistant");
+        assert_eq!(
+            runtime.context.history[0].text_content(),
+            "I found Gmail is connected. "
+        );
+        assert_eq!(
+            runtime.context.history[0].tool_calls.as_ref().unwrap()[0].name,
+            "search_tools"
+        );
+        assert_eq!(runtime.context.history[1].role, "tool");
+        assert_eq!(
+            runtime.context.history[1].text_content(),
+            "gmail_search available"
+        );
+    }
+
+    #[tokio::test]
     async fn agent_runtime_build_rehydrates_image_parts_from_object_store() {
         let kv = Arc::new(MockKvStore::default());
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
@@ -1211,115 +1081,5 @@ mod tests {
                 image_data_part("image/png", "cG5nLWJ5dGVz", None::<String>),
             ]
         );
-    }
-
-    #[tokio::test]
-    async fn message_content_parts_infers_missing_image_media_type_from_extension() {
-        let store = InMemoryObjectStore::default();
-        let object = store
-            .put(
-                "sessions/session-1/screenshot.jpeg",
-                b"jpeg-bytes",
-                ObjectMetadata::default(),
-            )
-            .await
-            .unwrap();
-        let message = data_proto::SessionMessage {
-            id: "msg-1".to_string(),
-            role: data_proto::MessageRole::RoleUser as i32,
-            created_at: 2,
-            labels: HashMap::new(),
-            parts: vec![data_proto::SessionMessagePart {
-                id: "000001".to_string(),
-                part_type: data_proto::SessionMessagePartType::Image as i32,
-                content: String::new(),
-                name: String::new(),
-                payload_json: String::new(),
-                created_at: 2,
-                object: Some(object),
-            }],
-        };
-
-        let parts = message_content_parts(&message, &store).await.unwrap();
-
-        assert_eq!(
-            parts,
-            vec![image_data_part(
-                "image/jpeg",
-                "anBlZy1ieXRlcw==",
-                None::<String>
-            )]
-        );
-    }
-
-    #[tokio::test]
-    async fn message_content_parts_rejects_non_image_object_media_type() {
-        let store = InMemoryObjectStore::default();
-        let object = store
-            .put(
-                "sessions/session-1/file.txt",
-                b"text",
-                ObjectMetadata {
-                    media_type: "text/plain".to_string(),
-                    ..ObjectMetadata::default()
-                },
-            )
-            .await
-            .unwrap();
-        let message = data_proto::SessionMessage {
-            id: "msg-1".to_string(),
-            role: data_proto::MessageRole::RoleUser as i32,
-            created_at: 2,
-            labels: HashMap::new(),
-            parts: vec![data_proto::SessionMessagePart {
-                id: "000001".to_string(),
-                part_type: data_proto::SessionMessagePartType::Image as i32,
-                content: String::new(),
-                name: String::new(),
-                payload_json: String::new(),
-                created_at: 2,
-                object: Some(object),
-            }],
-        };
-
-        let err = message_content_parts(&message, &store).await.unwrap_err();
-
-        assert!(err.to_string().contains(
-            "unsupported media type 'text/plain' for image object 'sessions/session-1/file.txt'"
-        ));
-    }
-
-    #[tokio::test]
-    async fn message_content_parts_rejects_unknown_image_media_type() {
-        let store = InMemoryObjectStore::default();
-        let object = store
-            .put(
-                "sessions/session-1/upload",
-                b"unknown-bytes",
-                ObjectMetadata::default(),
-            )
-            .await
-            .unwrap();
-        let message = data_proto::SessionMessage {
-            id: "msg-1".to_string(),
-            role: data_proto::MessageRole::RoleUser as i32,
-            created_at: 2,
-            labels: HashMap::new(),
-            parts: vec![data_proto::SessionMessagePart {
-                id: "000001".to_string(),
-                part_type: data_proto::SessionMessagePartType::Image as i32,
-                content: String::new(),
-                name: String::new(),
-                payload_json: String::new(),
-                created_at: 2,
-                object: Some(object),
-            }],
-        };
-
-        let err = message_content_parts(&message, &store).await.unwrap_err();
-
-        assert!(err
-            .to_string()
-            .contains("missing media type for image object 'sessions/session-1/upload'"));
     }
 }

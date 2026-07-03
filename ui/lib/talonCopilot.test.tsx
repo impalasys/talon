@@ -320,6 +320,93 @@ describe('TalonCopilot', () => {
     expect(await screen.findByText('Hello from history')).toBeInTheDocument();
   });
 
+  it('renders finalized work as typed timeline events instead of muting assistant text', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-work',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'assistant-work',
+              role: 'ROLE_ASSISTANT',
+              parts: [
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_REASONING',
+                  content: 'I should inspect the available tools first. ',
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: "I'll work on",
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_USAGE',
+                  payloadJson: JSON.stringify({
+                    reasoning_tokens: 141,
+                    output_tokens: 333,
+                    input_tokens: 726,
+                    total_tokens: 1059,
+                  }),
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: ' retrieving that email.',
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                  toolCallId: 'call-1',
+                  toolName: 'knowledge_search',
+                  payloadJson: JSON.stringify({
+                    tool_call_id: 'call-1',
+                    input: { query: 'inspection report' },
+                  }),
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                  toolCallId: 'call-1',
+                  toolName: 'knowledge_search',
+                  payloadJson: JSON.stringify({
+                    tool_call_id: 'call-1',
+                    output: { matches: 0 },
+                  }),
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: 'Final answer.',
+                },
+              ],
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+      getSession: jest.fn(),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-work"
+      />,
+    );
+
+    expect(await screen.findByText('Final answer.')).toBeInTheDocument();
+    expect(screen.queryByText("I'll work on")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
+
+    expect(await screen.findByText("I'll work on retrieving that email.")).toBeInTheDocument();
+    expect(screen.getByText('I should inspect the available tools first.')).toBeInTheDocument();
+    expect(screen.getByText(/Called/)).toHaveTextContent('knowledge_search');
+    expect(screen.getAllByText('141 reasoning • 333 output • 726 input • 1059 total')).toHaveLength(1);
+  });
+
   it('renders reloaded image object refs from session history', async () => {
     const gatewayClient = {
       createSession: jest.fn(),
@@ -929,6 +1016,73 @@ describe('TalonCopilot', () => {
     await waitFor(() => {
       expect(scrollTo).toHaveBeenCalled();
     });
+
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: originalScrollTo,
+    });
+  });
+
+  it('does not scroll the transcript down for new tokens after the user scrolls up', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+
+    const scrollTo = jest.fn();
+    const originalScrollTo = HTMLElement.prototype.scrollTo;
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: scrollTo,
+    });
+
+    const stream = makeControllableStreamResponse();
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ sessionId: 'sess-scroll-lock' }))
+      .mockResolvedValueOnce(stream.response)
+      .mockResolvedValueOnce(makeJsonResponse({
+        sessionId: 'sess-scroll-lock',
+        state: 'IDLE',
+        messages: [
+          {
+            id: 'assistant-scroll-lock',
+            role: 'ROLE_ASSISTANT',
+            content: 'New token.',
+            createdAt: String(Date.now() * 1000),
+          },
+        ],
+        steps: [],
+      }));
+
+    const { container } = render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+      />,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
+      target: { value: 'please stream' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send message/i }));
+
+    stream.release('f:{"messageId":"assistant-scroll-lock"}\n');
+    await waitFor(() => expect(scrollTo).toHaveBeenCalled());
+    scrollTo.mockClear();
+
+    const scrollContainer = container.querySelector('div[style*="overflow-y: auto"]') as HTMLDivElement;
+    Object.defineProperty(scrollContainer, 'scrollTop', { configurable: true, value: 100, writable: true });
+    Object.defineProperty(scrollContainer, 'scrollHeight', { configurable: true, value: 1000 });
+    Object.defineProperty(scrollContainer, 'clientHeight', { configurable: true, value: 200 });
+    fireEvent.scroll(scrollContainer);
+
+    stream.release('0:"New token."\n');
+    expect(await screen.findByText('New token.')).toBeInTheDocument();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    stream.release(null);
 
     Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
       configurable: true,

@@ -7,6 +7,8 @@ export type ToolInvocationItem = {
 
 export type AssistantTimelineItem =
   | { type: "text"; text: string }
+  | { type: "reasoning"; text: string }
+  | { type: "usage"; usage: UsageSummary }
   | {
       type: "tool";
       toolCallId: string;
@@ -183,6 +185,38 @@ function appendTextToTimeline(
   return nextTimeline;
 }
 
+function appendReasoningToTimeline(
+  timeline: AssistantTimelineItem[],
+  chunk: string,
+): AssistantTimelineItem[] {
+  if (!chunk) return timeline;
+  const nextTimeline = [...timeline];
+  const lastItem = nextTimeline.at(-1);
+  if (lastItem?.type === "reasoning") {
+    nextTimeline[nextTimeline.length - 1] = {
+      type: "reasoning",
+      text: `${lastItem.text}${chunk}`,
+    };
+  } else {
+    nextTimeline.push({ type: "reasoning", text: chunk });
+  }
+  return nextTimeline;
+}
+
+function appendUsageToTimeline(
+  timeline: AssistantTimelineItem[],
+  usage: UsageSummary,
+): AssistantTimelineItem[] {
+  const nextTimeline = [...timeline];
+  const existingIndex = nextTimeline.findIndex((item) => item.type === "usage");
+  const nextItem: AssistantTimelineItem = { type: "usage", usage };
+  if (existingIndex >= 0) {
+    nextTimeline[existingIndex] = nextItem;
+    return nextTimeline;
+  }
+  return [...nextTimeline, nextItem];
+}
+
 function upsertToolInTimeline(
   timeline: AssistantTimelineItem[],
   toolCallId: string,
@@ -272,7 +306,18 @@ function timelineFromParts(message: Partial<CopilotMessage>): AssistantTimelineI
       continue;
     }
 
+    if (isReasoningPart(part)) {
+      timeline = appendReasoningToTimeline(timeline, partContent(part));
+      continue;
+    }
+
     const payload = parsePartPayload(part);
+
+    if (partType(part) === 5 || partType(part) === "SESSION_MESSAGE_PART_TYPE_USAGE") {
+      timeline = appendUsageToTimeline(timeline, usageFromPayload(payload));
+      continue;
+    }
+
     const toolCallId = toolCallIdFromPart(part, payload);
     const toolName =
       typeof part.toolName === "string"
@@ -434,6 +479,17 @@ function buildAssistantTimelineFromSteps(steps: any[] | undefined): Map<string, 
       continue;
     }
 
+    if (typeof step?.content === "string" && step.content && isReasoningStep(step.stepType)) {
+      byMessage.set(messageId, appendReasoningToTimeline(timeline, step.content));
+      continue;
+    }
+
+    if (isUsageStep(step?.stepType)) {
+      const payload = parseJsonObject(step.payloadJson);
+      byMessage.set(messageId, appendUsageToTimeline(timeline, usageFromPayload(payload)));
+      continue;
+    }
+
     if (isActionStep(step?.stepType)) {
       const payload = parseJsonObject(step.payloadJson);
       const toolCallId = payloadString(payload, "tool_call_id", "toolCallId") ?? "";
@@ -580,6 +636,7 @@ export function appendAssistantReasoning(messages: CopilotMessage[], messageId: 
   nextMessages[assistantIndex] = {
     ...current,
     reasoningContent: `${getMessageReasoningContent(current)}${chunk}`,
+    timeline: appendReasoningToTimeline(getMessageAssistantTimeline(current), chunk),
   };
   return nextMessages;
 }
@@ -626,6 +683,7 @@ export function applyUsageToMessages(messages: CopilotMessage[], messageId: stri
   nextMessages[assistantIndex] = {
     ...current,
     usage,
+    timeline: appendUsageToTimeline(getMessageAssistantTimeline(current), usage),
   };
   return nextMessages;
 }

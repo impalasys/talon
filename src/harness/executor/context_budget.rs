@@ -3,9 +3,10 @@
 
 use super::runtime::LoopMessage;
 use crate::harness::llm::{chat_content_part, text_part, ChatContentPart};
-use serde_json::{json, Map, Value};
+use serde_json::Value;
 
 const INLINE_IMAGE_CONTEXT_WEIGHT: usize = 4_000;
+const TOOL_RESULT_STORAGE_PREVIEW_CHARS: usize = 12_000;
 
 #[derive(Debug, Clone)]
 enum HistorySegment {
@@ -22,10 +23,6 @@ pub struct ContextBudget {
     pub max_message_chars: usize,
     pub max_tool_result_chars: usize,
     pub max_tool_argument_chars: usize,
-    pub max_json_string_chars: usize,
-    pub max_json_object_entries: usize,
-    pub max_json_array_items: usize,
-    pub max_json_depth: usize,
 }
 
 impl Default for ContextBudget {
@@ -35,30 +32,18 @@ impl Default for ContextBudget {
             max_message_chars: env_usize("TALON_LLM_MESSAGE_MAX_CHARS", 12_000),
             max_tool_result_chars: env_usize("TALON_LLM_TOOL_RESULT_MAX_CHARS", 128_000),
             max_tool_argument_chars: env_usize("TALON_LLM_TOOL_ARGUMENT_MAX_CHARS", 4_000),
-            max_json_string_chars: env_usize("TALON_LLM_JSON_STRING_MAX_CHARS", 512),
-            max_json_object_entries: env_usize("TALON_LLM_JSON_OBJECT_MAX_ENTRIES", 24),
-            max_json_array_items: env_usize("TALON_LLM_JSON_ARRAY_MAX_ITEMS", 8),
-            max_json_depth: env_usize("TALON_LLM_JSON_MAX_DEPTH", 6),
         }
     }
 }
 
 pub fn tool_result_preview(result: &str) -> String {
-    tool_result_preview_with_budget(result, ContextBudget::default())
-}
-
-pub fn tool_result_preview_with_budget(result: &str, budget: ContextBudget) -> String {
-    let compacted = serde_json::from_str::<Value>(result)
-        .ok()
-        .map(|value| compact_json_value(&value, budget, 0))
-        .and_then(|value| serde_json::to_string_pretty(&value).ok())
-        .unwrap_or_else(|| truncate_middle(result, budget.max_tool_result_chars));
-
-    if compacted.len() <= budget.max_tool_result_chars {
-        compacted
-    } else {
-        truncate_middle(&compacted, budget.max_tool_result_chars)
-    }
+    truncate_middle(
+        result,
+        env_usize(
+            "TALON_SESSION_TOOL_RESULT_PREVIEW_CHARS",
+            TOOL_RESULT_STORAGE_PREVIEW_CHARS,
+        ),
+    )
 }
 
 pub fn compact_history_for_llm(history: &[LoopMessage]) -> Vec<LoopMessage> {
@@ -69,80 +54,87 @@ pub fn compact_history_for_llm_with_budget(
     history: &[LoopMessage],
     budget: ContextBudget,
 ) -> Vec<LoopMessage> {
-    let normalized = history
-        .iter()
-        .map(|message| normalize_loop_message(message, budget))
-        .collect::<Vec<_>>();
-    let segments = segment_history(&normalized, budget);
-    let flattened = flatten_segments(&segments);
+    let raw_total_chars = history.iter().map(serialized_message_weight).sum::<usize>();
 
-    let total_chars = flattened
-        .iter()
-        .map(serialized_message_weight)
-        .sum::<usize>();
-    debug_assert!(
-        tool_history_is_consistent(&flattened),
-        "normalized replay history must preserve valid tool-call structure"
-    );
-    if total_chars <= budget.total_chars {
-        return flattened;
+    // The common path should be lossless. Do not normalize tool output, tool
+    // args, or assistant text until the conversation actually exceeds budget.
+    if raw_total_chars <= budget.total_chars && tool_history_is_consistent(history) {
+        return history.to_vec();
     }
 
-    let system_messages = flattened
-        .iter()
-        .filter(|message| message.role == "system")
-        .cloned()
-        .collect::<Vec<_>>();
-    let system_weight = system_messages
-        .iter()
-        .map(serialized_message_weight)
-        .sum::<usize>();
-    let remaining_budget = budget.total_chars.saturating_sub(system_weight);
+    let mut segments = segment_history(history, budget);
+    debug_assert!(
+        tool_history_is_consistent(&flatten_segments(&segments)),
+        "segmented replay history must preserve valid tool-call structure"
+    );
 
-    let mut kept_tail: Vec<HistorySegment> = Vec::new();
-    let mut kept_weight = 0usize;
-    let mut omitted = 0usize;
-
-    for (index, segment) in segments.iter().enumerate().rev() {
-        if segment.is_system_only() {
+    // First compact older segments in place. Only after every older segment has
+    // been squeezed do we omit whole segments from the front of the transcript.
+    for index in 0..segments.len() {
+        if total_segment_weight(&segments) <= budget.total_chars {
+            break;
+        }
+        if segments[index].is_system_only() {
             continue;
         }
-        let weight = segment.weight();
-        if kept_weight + weight > remaining_budget && !kept_tail.is_empty() {
-            omitted += segments[..=index]
-                .iter()
-                .filter(|remaining| !remaining.is_system_only())
-                .map(HistorySegment::message_count)
-                .sum::<usize>();
-            break;
+        let compacted = segments[index].compact(budget);
+        if compacted.weight() < segments[index].weight() {
+            segments[index] = compacted;
         }
-        if kept_weight + weight > remaining_budget && kept_tail.is_empty() {
-            let fitted = segment.force_fit(budget);
-            kept_tail.push(fitted);
-            omitted += segments[..index]
-                .iter()
-                .filter(|remaining| !remaining.is_system_only())
-                .map(HistorySegment::message_count)
-                .sum::<usize>();
-            break;
-        }
-        kept_weight += weight;
-        kept_tail.push(segment.clone());
     }
 
-    kept_tail.reverse();
+    let mut system_messages = segments
+        .iter()
+        .filter_map(|segment| match segment {
+            HistorySegment::Message(message) if message.role == "system" => Some(message.clone()),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    let mut non_system_segments = segments
+        .into_iter()
+        .filter(|segment| !segment.is_system_only())
+        .collect::<Vec<_>>();
+    let mut omitted = 0usize;
+
+    loop {
+        let marker = omitted_marker(omitted);
+        let total_chars = system_messages
+            .iter()
+            .map(serialized_message_weight)
+            .sum::<usize>()
+            + marker.as_ref().map(serialized_message_weight).unwrap_or(0)
+            + total_segment_weight(&non_system_segments);
+        if total_chars <= budget.total_chars {
+            if let Some(marker) = marker {
+                system_messages.push(marker);
+            }
+            break;
+        }
+
+        if non_system_segments.len() <= 1 {
+            if let Some(segment) = non_system_segments.first_mut() {
+                let fitted = segment.force_fit(budget);
+                if fitted.weight() < segment.weight() {
+                    *segment = fitted;
+                    continue;
+                }
+            }
+            if let Some(marker) = marker {
+                system_messages.push(marker);
+            }
+            break;
+        }
+
+        let removed = non_system_segments.remove(0);
+        if matches!(removed, HistorySegment::ToolInteraction { .. }) {
+            non_system_segments.insert(0, removed.force_fit(budget));
+        } else {
+            omitted += removed.message_count();
+        }
+    }
 
     let mut compacted = system_messages;
-    if omitted > 0 {
-        compacted.push(LoopMessage::text(
-            "system",
-            format!(
-                "[{} earlier messages omitted to stay within Talon context budget.]",
-                omitted
-            ),
-        ));
-    }
-    compacted.extend(flatten_segments(&kept_tail));
+    compacted.extend(flatten_segments(&non_system_segments));
     debug_assert!(
         tool_history_is_consistent(&compacted),
         "compacted replay history must preserve valid tool-call structure"
@@ -150,17 +142,14 @@ pub fn compact_history_for_llm_with_budget(
     compacted
 }
 
-fn normalize_loop_message(message: &LoopMessage, budget: ContextBudget) -> LoopMessage {
+fn compact_loop_message(message: &LoopMessage, budget: ContextBudget) -> LoopMessage {
     let max_chars = if message.role == "tool" {
         budget.max_tool_result_chars
     } else {
         budget.max_message_chars
     };
     let content_parts = if message.role == "tool" {
-        text_parts(tool_result_preview_with_budget(
-            &message.text_content(),
-            budget,
-        ))
+        text_parts(compact_tool_result_for_llm(&message.text_content(), budget))
     } else if message.role == "system" {
         message.content_parts.clone()
     } else {
@@ -187,7 +176,7 @@ fn normalize_loop_message(message: &LoopMessage, budget: ContextBudget) -> LoopM
 }
 
 fn force_fit_message(message: &LoopMessage, budget: ContextBudget) -> LoopMessage {
-    let mut compacted = normalize_loop_message(message, budget);
+    let mut compacted = compact_loop_message(message, budget);
     let metadata_weight = message.role.len()
         + message
             .tool_calls
@@ -318,6 +307,23 @@ fn flatten_segments(segments: &[HistorySegment]) -> Vec<LoopMessage> {
         }
     }
     flattened
+}
+
+fn total_segment_weight(segments: &[HistorySegment]) -> usize {
+    segments.iter().map(HistorySegment::weight).sum()
+}
+
+fn omitted_marker(omitted: usize) -> Option<LoopMessage> {
+    if omitted == 0 {
+        return None;
+    }
+    Some(LoopMessage::text(
+        "system",
+        format!(
+            "[{} earlier messages omitted to stay within Talon context budget.]",
+            omitted
+        ),
+    ))
 }
 
 fn tool_segment_summary(
@@ -526,6 +532,24 @@ impl HistorySegment {
             )),
         }
     }
+
+    fn compact(&self, budget: ContextBudget) -> HistorySegment {
+        match self {
+            HistorySegment::Message(message) => {
+                HistorySegment::Message(compact_loop_message(message, budget))
+            }
+            HistorySegment::ToolInteraction {
+                assistant,
+                tool_results,
+            } => HistorySegment::ToolInteraction {
+                assistant: compact_loop_message(assistant, budget),
+                tool_results: tool_results
+                    .iter()
+                    .map(|message| compact_loop_message(message, budget))
+                    .collect(),
+            },
+        }
+    }
 }
 
 fn tool_history_is_consistent(history: &[LoopMessage]) -> bool {
@@ -552,56 +576,116 @@ fn tool_history_is_consistent(history: &[LoopMessage]) -> bool {
     pending_call_ids.is_empty()
 }
 
-fn compact_json_value(value: &Value, budget: ContextBudget, depth: usize) -> Value {
-    if depth >= budget.max_json_depth {
-        return summarize_deep_json_value(value);
+fn compact_tool_result_for_llm(result: &str, budget: ContextBudget) -> String {
+    if result.len() <= budget.max_tool_result_chars {
+        return result.to_string();
     }
 
-    match value {
-        Value::Object(object) => {
-            let mut compacted = Map::new();
-            for (index, (key, child)) in object.iter().enumerate() {
-                if index >= budget.max_json_object_entries {
-                    compacted.insert(
-                        "_truncated_keys".to_string(),
-                        json!(object.len() - budget.max_json_object_entries),
-                    );
-                    break;
-                }
-                compacted.insert(key.clone(), compact_json_value(child, budget, depth + 1));
-            }
-            Value::Object(compacted)
-        }
-        Value::Array(array) => {
-            let mut compacted = array
-                .iter()
-                .take(budget.max_json_array_items)
-                .map(|child| compact_json_value(child, budget, depth + 1))
-                .collect::<Vec<_>>();
-            if array.len() > budget.max_json_array_items {
-                compacted.push(json!({
-                    "_truncated_items": array.len() - budget.max_json_array_items
-                }));
-            }
-            Value::Array(compacted)
-        }
-        Value::String(text) => Value::String(truncate_middle(text, budget.max_json_string_chars)),
-        other => other.clone(),
+    let Ok(mut value) = serde_json::from_str::<Value>(result) else {
+        return truncate_middle(result, budget.max_tool_result_chars);
+    };
+    let Ok(rendered) = serde_json::to_string_pretty(&value) else {
+        return truncate_middle(result, budget.max_tool_result_chars);
+    };
+    if rendered.len() <= budget.max_tool_result_chars {
+        return rendered;
     }
+
+    // Keep JSON shape intact: trim only string leaves, largest first, and
+    // rerender after each trim because JSON escaping changes the final size.
+    for _ in 0..128 {
+        let rendered = serde_json::to_string_pretty(&value).unwrap_or_else(|_| result.to_string());
+        if rendered.len() <= budget.max_tool_result_chars {
+            return rendered;
+        }
+
+        let Some(largest) = largest_string_leaf_path(&value) else {
+            return truncate_middle(&rendered, budget.max_tool_result_chars);
+        };
+        let excess = rendered.len().saturating_sub(budget.max_tool_result_chars);
+        let Some(text) = string_leaf_mut(&mut value, &largest) else {
+            return truncate_middle(&rendered, budget.max_tool_result_chars);
+        };
+        let next_len = text
+            .chars()
+            .count()
+            .saturating_sub(excess.saturating_add(64));
+        let truncated = truncate_middle(text, next_len);
+        if truncated == *text {
+            return truncate_middle(&rendered, budget.max_tool_result_chars);
+        }
+        *text = truncated;
+    }
+
+    serde_json::to_string_pretty(&value)
+        .ok()
+        .map(|rendered| truncate_middle(&rendered, budget.max_tool_result_chars))
+        .unwrap_or_else(|| truncate_middle(result, budget.max_tool_result_chars))
 }
 
-fn summarize_deep_json_value(value: &Value) -> Value {
+#[derive(Clone)]
+enum JsonPathElement {
+    Key(String),
+    Index(usize),
+}
+
+fn largest_string_leaf_path(value: &Value) -> Option<Vec<JsonPathElement>> {
+    fn visit(
+        value: &Value,
+        path: &mut Vec<JsonPathElement>,
+        largest: &mut Option<(usize, Vec<JsonPathElement>)>,
+    ) {
+        match value {
+            Value::String(text) => {
+                let len = text.chars().count();
+                if largest
+                    .as_ref()
+                    .is_none_or(|(current_len, _)| len > *current_len)
+                {
+                    *largest = Some((len, path.clone()));
+                }
+            }
+            Value::Array(array) => {
+                for (index, child) in array.iter().enumerate() {
+                    path.push(JsonPathElement::Index(index));
+                    visit(child, path, largest);
+                    path.pop();
+                }
+            }
+            Value::Object(object) => {
+                for (key, child) in object {
+                    path.push(JsonPathElement::Key(key.clone()));
+                    visit(child, path, largest);
+                    path.pop();
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let mut largest = None;
+    visit(value, &mut Vec::new(), &mut largest);
+    largest.map(|(_, path)| path)
+}
+
+fn string_leaf_mut<'a>(
+    mut value: &'a mut Value,
+    path: &[JsonPathElement],
+) -> Option<&'a mut String> {
+    for element in path {
+        match element {
+            JsonPathElement::Key(key) => {
+                value = value.as_object_mut()?.get_mut(key)?;
+            }
+            JsonPathElement::Index(index) => {
+                value = value.as_array_mut()?.get_mut(*index)?;
+            }
+        }
+    }
+    value.as_str()?;
     match value {
-        Value::Object(object) => json!({
-            "_type": "object",
-            "_keys": object.len(),
-        }),
-        Value::Array(array) => json!({
-            "_type": "array",
-            "_items": array.len(),
-        }),
-        Value::String(text) => Value::String(truncate_middle(text, 128)),
-        other => other.clone(),
+        Value::String(text) => Some(text),
+        _ => None,
     }
 }
 
@@ -649,7 +733,7 @@ fn env_usize(key: &str, default: usize) -> usize {
 mod tests {
     use super::{
         compact_history_for_llm_with_budget, serialized_message_weight, tool_history_is_consistent,
-        tool_result_preview_with_budget, ContextBudget,
+        ContextBudget,
     };
     use crate::harness::executor::LoopMessage;
     use crate::harness::llm::{chat_content_part, image_data_part, text_part, ToolCall};
@@ -661,10 +745,6 @@ mod tests {
             max_message_chars: 200,
             max_tool_result_chars: 180,
             max_tool_argument_chars: 120,
-            max_json_string_chars: 40,
-            max_json_object_entries: 4,
-            max_json_array_items: 3,
-            max_json_depth: 3,
         }
     }
 
@@ -674,10 +754,6 @@ mod tests {
             max_message_chars: 8_000,
             max_tool_result_chars: 4_000,
             max_tool_argument_chars: 2_000,
-            max_json_string_chars: 256,
-            max_json_object_entries: 16,
-            max_json_array_items: 6,
-            max_json_depth: 5,
         }
     }
 
@@ -702,18 +778,75 @@ mod tests {
     }
 
     #[test]
-    fn tool_result_preview_compacts_large_json() {
-        let preview = tool_result_preview_with_budget(
-            r#"{"items":[{"path":"a","content":"0123456789012345678901234567890123456789XYZ"},{"path":"b","content":"more"},{"path":"c","content":"more"},{"path":"d","content":"more"}],"meta":{"page":1,"perPage":30,"owner":"pablonyx","repo":"proliferate","unused":"x"}}"#,
-            budget(),
+    fn compact_history_is_lossless_when_total_history_fits() {
+        let stdout = "inspection report text ".repeat(120);
+        let tool_output = format!(
+            r#"{{"data":{{"stdout":{},"status":"ok"}}}}"#,
+            serde_json::to_string(&stdout).unwrap()
         );
+        let mut assistant = message("assistant", "");
+        assistant.tool_calls = Some(vec![ToolCall {
+            id: "tool-1".to_string(),
+            name: "extract".to_string(),
+            arguments: "{}".to_string(),
+        }]);
+        let mut tool = message("tool", tool_output.clone());
+        tool.tool_call_id = Some("tool-1".to_string());
+        let history = vec![
+            message("system", "sys"),
+            assistant,
+            tool,
+            message("user", "continue"),
+        ];
+        let relaxed_budget = ContextBudget {
+            total_chars: 20_000,
+            max_tool_result_chars: 500,
+            ..budget()
+        };
 
-        assert!(preview.len() <= budget().max_tool_result_chars);
-        assert!(
-            preview.contains("_truncated_items")
-                || preview.contains("_truncated_keys")
-                || preview.contains("chars omitted")
+        let compacted = compact_history_for_llm_with_budget(&history, relaxed_budget);
+
+        assert_eq!(compacted, history);
+        assert!(compacted[2].text_content().contains(&stdout));
+    }
+
+    #[test]
+    fn over_budget_tool_json_trims_large_string_leaves_without_changing_shape() {
+        let tool_output = format!(
+            r#"{{"data":{{"stdout":{},"stderr":"small","status":"ok"}},"items":[{{"path":"report.txt","content":"tiny"}}]}}"#,
+            serde_json::to_string(&"A".repeat(2_000)).unwrap()
         );
+        let mut assistant = message("assistant", "");
+        assistant.tool_calls = Some(vec![ToolCall {
+            id: "tool-1".to_string(),
+            name: "extract".to_string(),
+            arguments: "{}".to_string(),
+        }]);
+        let mut tool = message("tool", tool_output);
+        tool.tool_call_id = Some("tool-1".to_string());
+        let compact_budget = ContextBudget {
+            total_chars: 900,
+            max_tool_result_chars: 360,
+            max_tool_argument_chars: 120,
+            ..budget()
+        };
+
+        let compacted = compact_history_for_llm_with_budget(&[assistant, tool], compact_budget);
+        let tool_message = compacted
+            .iter()
+            .find(|message| message.role == "tool")
+            .expect("tool result should remain when compacted interaction fits");
+        let parsed: serde_json::Value = serde_json::from_str(&tool_message.text_content())
+            .expect("compacted tool result should remain JSON");
+
+        assert!(tool_message.text_content().len() <= compact_budget.max_tool_result_chars);
+        assert_eq!(parsed["data"]["stderr"], "small");
+        assert_eq!(parsed["data"]["status"], "ok");
+        assert_eq!(parsed["items"][0]["path"], "report.txt");
+        assert!(parsed["data"]["stdout"]
+            .as_str()
+            .unwrap()
+            .contains("chars omitted"));
     }
 
     #[test]
@@ -840,7 +973,7 @@ mod tests {
     }
 
     #[test]
-    fn compact_history_degrades_oversized_tool_interaction_instead_of_splitting_it() {
+    fn compact_history_compacts_oversized_tool_interaction_without_splitting_it() {
         let history = vec![
             {
                 let mut message = message("assistant", "");
@@ -866,24 +999,20 @@ mod tests {
             max_message_chars: 120,
             max_tool_result_chars: 80,
             max_tool_argument_chars: 60,
-            max_json_string_chars: 32,
-            max_json_object_entries: 4,
-            max_json_array_items: 3,
-            max_json_depth: 3,
         };
 
         let compacted = compact_history_for_llm_with_budget(&history, tiny_budget);
 
         assert!(tool_history_is_consistent(&compacted));
-        assert!(!compacted.iter().any(|message| message.role == "tool"));
-        assert!(!compacted.iter().any(|message| message
+        assert!(compacted.iter().any(|message| message.role == "tool"));
+        assert!(compacted.iter().any(|message| message
             .tool_calls
             .as_ref()
-            .is_some_and(|calls| !calls.is_empty())));
-        assert!(compacted.iter().any(|message| {
-            message.text_content().contains("valid tool transcript")
-                || message.text_content().contains("earlier messages omitted")
-        }));
+            .is_some_and(|calls| calls.iter().any(|call| call.id == "tool-1"))));
+        assert!(compacted
+            .iter()
+            .filter(|message| message.role == "tool")
+            .all(|message| message.text_content().len() <= tiny_budget.max_tool_result_chars));
     }
 
     #[test]

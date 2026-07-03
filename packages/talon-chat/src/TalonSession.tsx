@@ -122,6 +122,7 @@ const DEFAULT_HISTORY_PAGE_SIZE = 50;
 const DEFAULT_HISTORY_MESSAGE_LIMIT = 100;
 const DEFAULT_HISTORY_STEP_LIMIT = 1000;
 const HISTORY_SCROLL_LOAD_THRESHOLD_PX = 120;
+const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 48;
 
 function border(color: string) {
   return `1px solid ${color}`;
@@ -334,6 +335,75 @@ function messageImageParts(
   });
 }
 
+function coalesceAssistantTimelineForDisplay(timeline: AssistantTimelineItem[]) {
+  const nextTimeline: AssistantTimelineItem[] = [];
+  let latestUsage: Extract<AssistantTimelineItem, { type: "usage" }> | null = null;
+
+  for (const item of timeline) {
+    if (item.type === "usage") {
+      latestUsage = item;
+      continue;
+    }
+
+    if (item.type === "text") {
+      const lastItem = nextTimeline.at(-1);
+      if (lastItem?.type === "text") {
+        nextTimeline[nextTimeline.length - 1] = {
+          type: "text",
+          text: `${lastItem.text}${item.text}`,
+        };
+      } else {
+        nextTimeline.push(item);
+      }
+      continue;
+    }
+
+    if (item.type === "reasoning") {
+      const lastItem = nextTimeline.at(-1);
+      if (lastItem?.type === "reasoning") {
+        nextTimeline[nextTimeline.length - 1] = {
+          type: "reasoning",
+          text: `${lastItem.text}${item.text}`,
+        };
+      } else {
+        nextTimeline.push(item);
+      }
+      continue;
+    }
+
+    nextTimeline.push(item);
+  }
+
+  if (latestUsage) {
+    nextTimeline.push(latestUsage);
+  }
+
+  return nextTimeline;
+}
+
+function splitFinalAssistantTimeline(timeline: AssistantTimelineItem[]) {
+  const displayTimeline = coalesceAssistantTimelineForDisplay(timeline);
+  let finalTextIndex = -1;
+  for (let index = displayTimeline.length - 1; index >= 0; index -= 1) {
+    const item = displayTimeline[index];
+    if (item?.type === "text" && item.text.trim().length > 0) {
+      finalTextIndex = index;
+      break;
+    }
+  }
+  if (finalTextIndex < 0) {
+    return { workTimeline: displayTimeline, finalTimeline: [] };
+  }
+  return {
+    workTimeline: displayTimeline.filter((_, index) => index !== finalTextIndex),
+    finalTimeline: [displayTimeline[finalTextIndex]],
+  };
+}
+
+function isNearScrollBottom(container: HTMLElement) {
+  return container.scrollHeight - container.scrollTop - container.clientHeight <= AUTO_SCROLL_BOTTOM_THRESHOLD_PX;
+}
+
 function historyMessageTimestamp(message: Pick<CopilotMessage, "createdAt">) {
   return normalizeEpochToMilliseconds(message.createdAt);
 }
@@ -509,6 +579,7 @@ export function TalonSession({
   const imageAttachmentsRef = useRef<PendingImageAttachment[]>([]);
   const submittedPreviewUrlsRef = useRef<string[]>([]);
   const skipNextAutoScrollRef = useRef(false);
+  const autoScrollPinnedRef = useRef(true);
   const prependScrollRestoreRef = useRef<{ previousScrollTop: number; previousScrollHeight: number } | null>(null);
   const isLoadingOlderHistoryRef = useRef(false);
 
@@ -552,6 +623,7 @@ export function TalonSession({
   }, [currentSession]);
 
   const scrollTranscriptToBottom = useCallback((behavior: ScrollBehavior) => {
+    autoScrollPinnedRef.current = true;
     const container = scrollContainerRef.current;
     if (container) {
       if (typeof container.scrollTo === "function") {
@@ -580,7 +652,9 @@ export function TalonSession({
       return;
     }
     const rafId = window.requestAnimationFrame(() => {
-      scrollTranscriptToBottom("auto");
+      if (autoScrollPinnedRef.current) {
+        scrollTranscriptToBottom("auto");
+      }
       updateTranscriptScrollThumb();
     });
     return () => window.cancelAnimationFrame(rafId);
@@ -646,17 +720,29 @@ export function TalonSession({
     return messages.map((message, messageIndex) => {
       const content = getMessageContent(message);
       const images = messageImageParts(message, objectUrlForRef);
-      const timeline = getMessageAssistantTimeline(message);
-      const textTimelineItems = timeline.filter((item): item is Extract<AssistantTimelineItem, { type: "text" }> => item.type === "text");
-      const toolTimelineItems = timeline.filter((item): item is Extract<AssistantTimelineItem, { type: "tool" }> => item.type === "tool");
+      const timeline = coalesceAssistantTimelineForDisplay(getMessageAssistantTimeline(message));
       const reasoningContent = getMessageReasoningContent(message);
       const usage = getMessageUsage(message);
       const usageSummary = formatUsageSummary(usage);
       const isUserMessage = message.role === "user";
       const isLatestMessage = messageIndex === messages.length - 1;
-      const isStreamingAssistantMessage = isLoading && isLatestMessage && message.role === "assistant" && !content;
-      const hasExpandedWorkDetails = Boolean(reasoningContent) || toolTimelineItems.length > 0 || Boolean(usageSummary);
-      const hasWorkDetails = message.role === "assistant" && (hasExpandedWorkDetails || isStreamingAssistantMessage);
+      const isLiveAssistantMessage = isLoading && isLatestMessage && message.role === "assistant";
+      const finalizedTimeline = isLiveAssistantMessage
+        ? { workTimeline: [], finalTimeline: timeline }
+        : splitFinalAssistantTimeline(timeline);
+      const visibleTimeline = isLiveAssistantMessage
+        ? timeline
+        : finalizedTimeline.finalTimeline;
+      const workTimeline = isLiveAssistantMessage
+        ? []
+        : finalizedTimeline.workTimeline;
+      const workHasReasoning = workTimeline.some((item) => item.type === "reasoning");
+      const workHasUsage = workTimeline.some((item) => item.type === "usage");
+      const hasExpandedWorkDetails =
+        workTimeline.length > 0 ||
+        (!workHasReasoning && Boolean(reasoningContent)) ||
+        (!workHasUsage && Boolean(usageSummary));
+      const hasWorkDetails = message.role === "assistant" && (hasExpandedWorkDetails || isLiveAssistantMessage);
       let previousUserMessage: CopilotMessage | undefined;
       if (message.role === "assistant") {
         for (let index = messageIndex - 1; index >= 0; index -= 1) {
@@ -666,7 +752,7 @@ export function TalonSession({
           }
         }
       }
-      const workLabel = isStreamingAssistantMessage
+      const workLabel = isLiveAssistantMessage
         ? formatWorkingDuration(loadingStartedAt, loadingNow)
         : formatWorkDuration(previousUserMessage?.createdAt, message.createdAt);
       const isWorkExpanded = expandedThinkingMessages[message.id] ?? false;
@@ -734,15 +820,34 @@ export function TalonSession({
                 <div style={{ borderTop: border("var(--talon-chat-divider, rgba(212,212,216,0.7))") }} />
 
                 {isWorkExpanded ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 12, color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
-                    {reasoningContent ? (
-                      <div style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: 13, lineHeight: 1.55 }}>
-                        {reasoningContent}
-                      </div>
-                    ) : null}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12 }}>
+                    {workTimeline.map((item, index) => {
+                      if (item.type === "text") {
+                        return (
+                          <div key={`${message.id}-work-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-assistant-fg, inherit)" }}>
+                            <MarkdownMessage>{item.text}</MarkdownMessage>
+                          </div>
+                        );
+                      }
 
-                    {toolTimelineItems.map((item, index) => {
-                      const toolKey = `${message.id}-${item.toolCallId || index}`;
+                      if (item.type === "reasoning") {
+                        return (
+                          <div key={`${message.id}-work-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
+                            {item.text}
+                          </div>
+                        );
+                      }
+
+                      if (item.type === "usage") {
+                        const itemUsageSummary = formatUsageSummary(item.usage);
+                        return itemUsageSummary ? (
+                          <div key={`${message.id}-work-${index}`} style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
+                            {itemUsageSummary}
+                          </div>
+                        ) : null;
+                      }
+
+                      const toolKey = `${message.id}-work-tool-${item.toolCallId || index}`;
                       const isToolExpanded = expandedToolItems[toolKey] ?? false;
                       return (
                         <div key={toolKey}>
@@ -759,7 +864,7 @@ export function TalonSession({
                               border: "none",
                               background: "transparent",
                               padding: "0.25rem 0",
-                              color: "inherit",
+                              color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))",
                               cursor: "pointer",
                               textAlign: "left",
                             }}
@@ -804,7 +909,13 @@ export function TalonSession({
                       );
                     })}
 
-                    {usageSummary ? (
+                    {!workHasReasoning && reasoningContent ? (
+                      <div style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
+                        {reasoningContent}
+                      </div>
+                    ) : null}
+
+                    {!workHasUsage && usageSummary ? (
                       <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
                         {usageSummary}
                       </div>
@@ -827,13 +938,95 @@ export function TalonSession({
                 fontFamily: message.role === "system" ? "ui-monospace, SFMono-Regular, monospace" : undefined,
               }}
             >
-              {message.role === "assistant" && textTimelineItems.length > 0 ? (
+              {message.role === "assistant" && visibleTimeline.length > 0 ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {textTimelineItems.map((item, index) => (
-                    <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
-                      <MarkdownMessage>{item.text}</MarkdownMessage>
-                    </div>
-                  ))}
+                  {visibleTimeline.map((item, index) => {
+                    if (item.type === "text") {
+                      return (
+                        <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
+                          <MarkdownMessage>{item.text}</MarkdownMessage>
+                        </div>
+                      );
+                    }
+
+                    if (item.type === "reasoning") {
+                      return (
+                        <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
+                          {item.text}
+                        </div>
+                      );
+                    }
+
+                    if (item.type === "usage") {
+                      const itemUsageSummary = formatUsageSummary(item.usage);
+                      return itemUsageSummary ? (
+                        <div key={`${message.id}-timeline-${index}`} style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
+                          {itemUsageSummary}
+                        </div>
+                      ) : null;
+                    }
+
+                    const toolKey = `${message.id}-timeline-tool-${item.toolCallId || index}`;
+                    const isToolExpanded = expandedToolItems[toolKey] ?? false;
+                    return (
+                      <div key={toolKey}>
+                        <button
+                          className="talon-session-tool-row"
+                          type="button"
+                          onClick={() => toggleToolItem(toolKey)}
+                          style={{
+                            width: "auto",
+                            maxWidth: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            border: "none",
+                            background: "transparent",
+                            padding: "0.25rem 0",
+                            color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))",
+                            cursor: "pointer",
+                            textAlign: "left",
+                          }}
+                        >
+                          <Wrench size="14" strokeWidth={1.9} style={{ flexShrink: 0, color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))" }} />
+                          <span style={{ minWidth: 0, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            Called <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{item.toolName}</span>
+                          </span>
+                          <ChevronRight
+                            className="talon-session-tool-chevron"
+                            size="14"
+                            style={{
+                              flexShrink: 0,
+                              transform: isToolExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                              color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))",
+                            }}
+                          />
+                        </button>
+                        {isToolExpanded ? (
+                          <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 12, paddingLeft: 22 }}>
+                            <div>
+                              <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
+                                Input
+                              </div>
+                              <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
+                                <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
+                              </pre>
+                            </div>
+                            {item.result !== undefined ? (
+                              <div>
+                                <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
+                                  Output
+                                </div>
+                                <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
+                                  <code>{typeof item.result === "string" ? item.result : JSON.stringify(item.result, null, 2)}</code>
+                                </pre>
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 message.role === "assistant" ? <MarkdownMessage>{content}</MarkdownMessage> : content
@@ -919,6 +1112,7 @@ export function TalonSession({
   const loadInitialSessionPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
       const res = normalizeHistoryPage(await getSessionMessagesPage(target));
+      autoScrollPinnedRef.current = true;
       setMessages(res.messages);
       setHasMoreHistory(res.hasMore);
       setNextBeforeMessageId(res.nextBeforeMessageId);
@@ -1099,6 +1293,7 @@ export function TalonSession({
     setLoadingStartedAt(null);
     setExpandedThinkingMessages({});
     setExpandedToolItems({});
+    autoScrollPinnedRef.current = true;
   }, []);
 
   const clearSession = useCallback(async () => {
@@ -1343,6 +1538,7 @@ export function TalonSession({
       setMessages((prev) => [...prev, userMessage]);
       setLoadingStartedAt(normalizeEpochToMilliseconds(userMessage.createdAt) ?? Date.now());
       setLoadingNow(Date.now());
+      autoScrollPinnedRef.current = true;
       setIsLoading(true);
 
       const sessions = gatewayClient?.sessions;
@@ -1419,6 +1615,9 @@ export function TalonSession({
     updateTranscriptScrollThumb();
     const container = scrollContainerRef.current;
     const session = currentSessionRef.current;
+    if (container && !prependScrollRestoreRef.current) {
+      autoScrollPinnedRef.current = isNearScrollBottom(container);
+    }
     if (!container || !session || isLoadingOlderHistoryRef.current || !hasMoreHistory || !nextBeforeMessageId) {
       return;
     }

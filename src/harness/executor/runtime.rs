@@ -3,7 +3,7 @@
 
 use crate::control::config::Config;
 use crate::control::ControlPlane;
-use crate::harness::executor::context_budget::{compact_history_for_llm, tool_result_preview};
+use crate::harness::executor::context_budget::compact_history_for_llm;
 use crate::harness::knowledge::KnowledgeBook;
 use crate::harness::llm::resolver::resolve_model_profile;
 use crate::harness::llm::{
@@ -484,7 +484,6 @@ impl AgentExecutor {
         loop {
             if turn_limit == 0 {
                 let msg = "Turn limit reached".to_string();
-                sink.on_error(&msg).await;
                 return Err(anyhow::anyhow!(msg));
             }
             turn_limit -= 1;
@@ -704,7 +703,7 @@ impl AgentExecutor {
 }
 
 pub fn tool_result_loop_message(tool_call_id: &str, result: &str) -> LoopMessage {
-    let mut tool_message = LoopMessage::text("tool", tool_result_preview(result));
+    let mut tool_message = LoopMessage::text("tool", result.to_string());
     tool_message.tool_call_id = Some(tool_call_id.to_string());
     tool_message
 }
@@ -721,7 +720,6 @@ mod tests {
         manifests,
         protobuf_value::{value::Kind as ProtoValueKind, ListValue, Value as ProtoValue},
     };
-    use crate::harness::executor::ContextBudget;
     use crate::harness::knowledge::{
         KnowledgeBook, KnowledgeEntry, KnowledgeListEntry, KnowledgeResult,
     };
@@ -990,22 +988,16 @@ mod tests {
                 && message.text_content()
                     == "I'm talking about the blogs link in the footer and the blogs pages"
         }));
-        let tool_message = messages
+        assert!(!messages.iter().any(|message| message.role == "tool"));
+        assert!(!messages
             .iter()
-            .find(|message| message.role == "tool")
-            .unwrap();
-        assert!(
-            tool_message.text_content().len() <= ContextBudget::default().max_tool_result_chars
-        );
-        assert!(
-            tool_message.text_content().contains("chars omitted")
-                || tool_message.text_content().contains("_truncated")
-        );
-        let assistant_tool_call = messages
-            .iter()
-            .find(|message| message.tool_calls.iter().any(|call| call.id == "tool-1"))
-            .unwrap();
-        assert_eq!(assistant_tool_call.role, "assistant");
+            .any(|message| message.tool_calls.iter().any(|call| call.id == "tool-1")));
+        assert!(messages.iter().any(|message| {
+            message.role == "assistant"
+                && message
+                    .text_content()
+                    .contains("Prior tool interaction omitted")
+        }));
         assert!(messages.iter().any(|message| {
             message.role == "system" && message.text_content().contains("earlier messages omitted")
         }));
