@@ -29,6 +29,8 @@ import {
   Package,
   ShieldCheck,
   Container,
+  ChevronDown,
+  KeyRound,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
@@ -40,7 +42,9 @@ import {
   getDefaultGatewayUrl,
   getGatewayClient,
   isBlockedMixedContentGatewayUrl,
+  isExpiredSignatureAuthError,
   normalizeGatewayUrl,
+  TALON_AUTH_EXPIRED_EVENT,
   updateGatewayClient,
 } from '../lib/grpc';
 import {
@@ -60,6 +64,8 @@ import { useResourceDocument } from '../hooks/useResourceDocument';
 
 const isStaticExport = process.env.NEXT_PUBLIC_TALON_STATIC_EXPORT === '1';
 const CONNECT_TIMEOUT_MS = 8000;
+const RUNTIME_AUTH_TOKEN_STORAGE_KEY = 'talon_auth_token';
+const MANUAL_JWT_STORAGE_KEY = 'talon_manual_jwt';
 declare global {
   interface Window {
     google?: {
@@ -305,35 +311,41 @@ function tokenExpiryError(token: string) {
 
 function AuthScreen({
   gatewayUrl,
-  authToken,
+  jwtToken,
+  apiKey,
   isConnecting,
   googleSsoEnabled,
   googleSsoError,
   connectionError,
   onGatewayUrlChange,
-  onAuthTokenChange,
+  onJwtTokenChange,
+  onApiKeyChange,
   onGoogleSignIn,
   onConnect,
 }: {
   gatewayUrl: string;
-  authToken: string;
+  jwtToken: string;
+  apiKey: string;
   isConnecting: boolean;
   googleSsoEnabled: boolean;
   googleSsoError: string | null;
   connectionError: string | null;
   onGatewayUrlChange: (value: string) => void;
-  onAuthTokenChange: (value: string) => void;
+  onJwtTokenChange: (value: string) => void;
+  onApiKeyChange: (value: string) => void;
   onGoogleSignIn: () => void;
-  onConnect: (values: { gatewayUrl: string; authToken: string }) => void;
+  onConnect: (values: { gatewayUrl: string; apiKey: string; jwtToken: string }) => void;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const submitConnection = () => {
     const form = formRef.current;
     if (!form) return;
     const formData = new FormData(form);
     onConnect({
       gatewayUrl: String(formData.get('gatewayUrl') || ''),
-      authToken: String(formData.get('authToken') || ''),
+      apiKey: String(formData.get('apiKey') || ''),
+      jwtToken: String(formData.get('jwtToken') || ''),
     });
   };
 
@@ -391,17 +403,44 @@ function AuthScreen({
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="auth-token-input" className="text-[12px] font-medium text-foreground">Authorization Token (Optional)</label>
+              <label htmlFor="api-key-input" className="text-[12px] font-medium text-foreground">API Key (Optional)</label>
               <input
-                id="auth-token-input"
-                name="authToken"
+                id="api-key-input"
+                name="apiKey"
                 type="password"
-                defaultValue={authToken}
-                onChange={(event) => onAuthTokenChange(event.target.value)}
+                value={apiKey}
+                onChange={(event) => onApiKeyChange(event.target.value)}
                 className="w-full rounded-lg border border-border/70 bg-background px-3 py-2.5 font-mono text-sm text-foreground transition-shadow focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-                placeholder="Enter bearer token"
+                placeholder="talon_sk_..."
                 disabled={isConnecting}
               />
+            </div>
+            <div className="rounded-lg border border-border/70 bg-muted/15">
+              <button
+                type="button"
+                onClick={() => setAdvancedOpen((open) => !open)}
+                className="flex w-full items-center justify-between px-3 py-2.5 text-[12px] font-medium text-foreground"
+                aria-expanded={advancedOpen}
+                aria-controls="advanced-auth-options"
+              >
+                Advanced options
+                <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", advancedOpen && "rotate-180")} />
+              </button>
+              {advancedOpen ? (
+                <div id="advanced-auth-options" className="space-y-2 border-t border-border/70 px-3 py-3">
+                  <label htmlFor="jwt-token-input" className="text-[12px] font-medium text-foreground">JWT Token (Optional)</label>
+                  <input
+                    id="jwt-token-input"
+                    name="jwtToken"
+                    type="password"
+                    value={jwtToken}
+                    onChange={(event) => onJwtTokenChange(event.target.value)}
+                    className="w-full rounded-lg border border-border/70 bg-background px-3 py-2.5 font-mono text-sm text-foreground transition-shadow focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder="Enter bearer token"
+                    disabled={isConnecting}
+                  />
+                </div>
+              ) : null}
             </div>
             {googleSsoEnabled ? (
               <div className="space-y-2">
@@ -424,7 +463,7 @@ function AuthScreen({
               disabled={isConnecting}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-2.5 text-[13px] font-medium text-background transition-all hover:opacity-90 disabled:opacity-50"
             >
-              <Settings2 className="h-4 w-4 stroke-[2]" />
+              {apiKey.trim() ? <KeyRound className="h-4 w-4 stroke-[2]" /> : <Settings2 className="h-4 w-4 stroke-[2]" />}
               {isConnecting ? 'Connecting...' : 'Initialize Connection'}
             </button>
           </motion.form>
@@ -873,6 +912,8 @@ function DebuggerPageContent() {
   const explicitConnectRef = useRef(false);
   const [gatewayUrl, setGatewayUrl] = useState('');
   const [authToken, setAuthToken] = useState('');
+  const [manualJwtToken, setManualJwtToken] = useState('');
+  const [apiKey, setApiKey] = useState('');
   const [googleSsoEnabled, setGoogleSsoEnabled] = useState(false);
   const [googleWebClientId, setGoogleWebClientId] = useState<string | null>(null);
   const [googleSsoError, setGoogleSsoError] = useState<string | null>(null);
@@ -929,9 +970,13 @@ function DebuggerPageContent() {
       }
     }
     localStorage.removeItem('talon_gateway_http_url');
-    const savedToken = localStorage.getItem('talon_auth_token');
+    const savedToken = localStorage.getItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
     if (savedToken) {
       setAuthToken(savedToken);
+    }
+    const savedManualJwt = localStorage.getItem(MANUAL_JWT_STORAGE_KEY);
+    if (savedManualJwt) {
+      setManualJwtToken(savedManualJwt);
     }
     setStorageHydrated(true);
   }, []);
@@ -946,7 +991,9 @@ function DebuggerPageContent() {
     const hasTalonHandoff = Boolean(talonAuthToken || talonGatewayUrl || talonGatewayHttpUrl);
     if (talonAuthToken) {
       setAuthToken(talonAuthToken);
-      localStorage.setItem('talon_auth_token', talonAuthToken);
+      setManualJwtToken(talonAuthToken);
+      localStorage.setItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY, talonAuthToken);
+      localStorage.setItem(MANUAL_JWT_STORAGE_KEY, talonAuthToken);
       currentParams.delete('talon_auth_token');
     }
     if (talonGatewayUrl) {
@@ -1044,6 +1091,22 @@ function DebuggerPageContent() {
     };
   }, [effectiveGatewayHttpUrl, storageHydrated]);
 
+  useEffect(() => {
+    const handleExpiredAuth = () => {
+      explicitConnectRef.current = false;
+      queryClient.removeQueries({ queryKey: ['talon'] });
+      localStorage.removeItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
+      setAuthToken('');
+      setApiKey('');
+      setIsConnected(false);
+      setAuthScreenOpen(true);
+      setConnectionError('Your authorization token expired. Sign in again to continue.');
+    };
+
+    window.addEventListener(TALON_AUTH_EXPIRED_EVENT, handleExpiredAuth);
+    return () => window.removeEventListener(TALON_AUTH_EXPIRED_EVENT, handleExpiredAuth);
+  }, [queryClient]);
+
   const handleGoogleSignIn = useCallback(async () => {
     if (!googleWebClientId) return;
     setGoogleSsoError(null);
@@ -1085,7 +1148,10 @@ function DebuggerPageContent() {
               clientType: 'sightline',
             });
             setAuthToken(payload.accessToken);
-            localStorage.setItem('talon_auth_token', payload.accessToken);
+            setManualJwtToken('');
+            setApiKey('');
+            localStorage.setItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY, payload.accessToken);
+            localStorage.removeItem(MANUAL_JWT_STORAGE_KEY);
             if (gatewayUrl.trim()) {
               if (isBlockedMixedContentGatewayUrl(gatewayUrl)) {
                 setConnectionError('Sightline is running over HTTPS, so the gateway URL must also use HTTPS or the same origin.');
@@ -1137,11 +1203,21 @@ function DebuggerPageContent() {
     }
   }, [authScreenOpen, storageHydrated, isConnected, selectedNamespace, pathname, router, searchParams]);
 
-  const handleConnect = async ({ gatewayUrl: submittedGatewayUrlValue, authToken: submittedAuthTokenValue }: { gatewayUrl: string; authToken: string }) => {
+  const handleConnect = async ({
+    gatewayUrl: submittedGatewayUrlValue,
+    apiKey: submittedApiKeyValue,
+    jwtToken: submittedJwtTokenValue,
+  }: {
+    gatewayUrl: string;
+    apiKey: string;
+    jwtToken: string;
+  }) => {
     const submittedGatewayUrl = (submittedGatewayUrlValue || gatewayUrl).trim();
-    const submittedAuthToken = (submittedAuthTokenValue || authToken).trim();
+    const submittedApiKey = submittedApiKeyValue.trim();
+    const submittedJwtToken = (submittedJwtTokenValue || manualJwtToken).trim();
     setGatewayUrl(submittedGatewayUrl);
-    setAuthToken(submittedAuthToken);
+    setApiKey(submittedApiKey);
+    setManualJwtToken(submittedJwtToken);
 
     if (submittedGatewayUrl) {
       if (isBlockedMixedContentGatewayUrl(submittedGatewayUrl)) {
@@ -1151,10 +1227,10 @@ function DebuggerPageContent() {
         return;
       }
       const normalizedGatewayUrl = normalizeGatewayUrl(submittedGatewayUrl);
-      const nextAuthToken = submittedAuthToken;
       const previousGatewayUrl = localStorage.getItem('talon_gateway_url');
-      const previousAuthToken = localStorage.getItem('talon_auth_token');
-      const expiredTokenMessage = nextAuthToken ? tokenExpiryError(nextAuthToken) : null;
+      const previousAuthToken = localStorage.getItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
+      const previousManualJwt = localStorage.getItem(MANUAL_JWT_STORAGE_KEY);
+      const expiredTokenMessage = !submittedApiKey && submittedJwtToken ? tokenExpiryError(submittedJwtToken) : null;
       if (expiredTokenMessage) {
         setConnectionError(expiredTokenMessage);
         setIsConnected(false);
@@ -1168,12 +1244,28 @@ function DebuggerPageContent() {
       try {
         localStorage.setItem('talon_gateway_url', normalizedGatewayUrl);
         localStorage.removeItem('talon_gateway_http_url');
-        if (nextAuthToken) {
-          localStorage.setItem('talon_auth_token', nextAuthToken);
-        } else {
-          localStorage.removeItem('talon_auth_token');
-        }
         updateGatewayClient(normalizedGatewayUrl);
+        let nextAuthToken = submittedJwtToken;
+        if (submittedApiKey) {
+          localStorage.removeItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
+        }
+        if (submittedApiKey) {
+          const exchanged = await getGatewayClient().auth.exchangeApiKey({
+            apiKey: submittedApiKey,
+          });
+          nextAuthToken = exchanged.accessToken;
+          setManualJwtToken('');
+          localStorage.removeItem(MANUAL_JWT_STORAGE_KEY);
+        } else if (submittedJwtToken) {
+          localStorage.setItem(MANUAL_JWT_STORAGE_KEY, submittedJwtToken);
+        } else {
+          localStorage.removeItem(MANUAL_JWT_STORAGE_KEY);
+        }
+        if (nextAuthToken) {
+          localStorage.setItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY, nextAuthToken);
+        } else {
+          localStorage.removeItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
+        }
         const probeTimeout = timeoutSignal(CONNECT_TIMEOUT_MS);
         try {
           await withConnectionTimeout(
@@ -1187,6 +1279,7 @@ function DebuggerPageContent() {
 
         setGatewayUrl(normalizedGatewayUrl);
         setAuthToken(nextAuthToken);
+        setApiKey('');
         setConnectionError(null);
         explicitConnectRef.current = true;
         const connectedQuery = buildSearchParams(true, selectedNamespace, searchParams).toString();
@@ -1204,11 +1297,22 @@ function DebuggerPageContent() {
           updateGatewayClient(getDefaultGatewayUrl());
         }
         if (previousAuthToken) {
-          localStorage.setItem('talon_auth_token', previousAuthToken);
+          localStorage.setItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY, previousAuthToken);
         } else {
-          localStorage.removeItem('talon_auth_token');
+          localStorage.removeItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
         }
-        setConnectionError(formatConnectionError(error));
+        if (previousManualJwt) {
+          localStorage.setItem(MANUAL_JWT_STORAGE_KEY, previousManualJwt);
+        } else {
+          localStorage.removeItem(MANUAL_JWT_STORAGE_KEY);
+        }
+        if (isExpiredSignatureAuthError(error)) {
+          setAuthToken('');
+          localStorage.removeItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
+          setConnectionError('Your authorization token expired. Sign in again to continue.');
+        } else {
+          setConnectionError(formatConnectionError(error));
+        }
         setIsConnected(false);
         setAuthScreenOpen(true);
       } finally {
@@ -1225,7 +1329,8 @@ function DebuggerPageContent() {
     return (
       <AuthScreen
         gatewayUrl={gatewayUrl}
-        authToken={authToken}
+        jwtToken={manualJwtToken}
+        apiKey={apiKey}
         isConnecting={isConnecting}
         googleSsoEnabled={googleSsoEnabled}
         googleSsoError={googleSsoError}
@@ -1234,7 +1339,8 @@ function DebuggerPageContent() {
           setGatewayUrl(value);
           setConnectionError(null);
         }}
-        onAuthTokenChange={setAuthToken}
+        onJwtTokenChange={setManualJwtToken}
+        onApiKeyChange={setApiKey}
         onGoogleSignIn={handleGoogleSignIn}
         onConnect={handleConnect}
       />

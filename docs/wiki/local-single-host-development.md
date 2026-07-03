@@ -103,6 +103,8 @@ From the repository root:
 ```bash
 env \
   TALON_CONFIG_PATH="$ROOT/config.yaml" \
+  TALON_JWT_PRIVATE_KEY_PEM="$(cat ./src/control/security/test_rsa_private_key.pem)" \
+  TALON_JWT_ISSUER=https://talon.localhost \
   GRPC_ADDR=127.0.0.1:50051 \
   RUST_LOG=info \
   ./target/debug/talon-server
@@ -116,7 +118,19 @@ Initializing LocalSocketMessagePublisher at $ROOT/data/talon-broker.sock...
 gRPC Gateway listening on: 127.0.0.1:50051
 ```
 
-## 5. Start the worker
+## 5. Bootstrap a local API key
+
+Once the gateway is listening, mint a short-lived root bootstrap JWT from the
+private PEM and use it immediately to create a local API key:
+
+```bash
+export TALON_API_KEY="$(./target/debug/talon-cli --gateway http://127.0.0.1:50051 --token "$(TALON_JWT_ISSUER=https://talon.localhost ./target/debug/talon-cli auth local-token --private-key-pem-file ./src/control/security/test_rsa_private_key.pem)" auth api-key create --name local-dev --grant readwrite | awk -F= '/^secret=/{print $2}')"
+```
+
+Use the exported `TALON_API_KEY` for later CLI calls instead of reusing the
+bootstrap JWT.
+
+## 6. Start the worker
 
 In a second terminal:
 
@@ -146,7 +160,7 @@ TALON_LOCAL_SCHEDULER_RUNNER=1
 
 Only add those when you want the scheduler tables and runner behavior.
 
-## 6. Verify listeners
+## 7. Verify listeners
 
 ```bash
 lsof -iTCP:50051 -iTCP:18081 -sTCP:LISTEN
@@ -157,7 +171,7 @@ You should see:
 - gateway gRPC and gRPC-Web on `50051`
 - worker on `18081`
 
-## 7. Connect the UI
+## 8. Connect the UI
 
 In Sightline, connect to:
 
@@ -165,13 +179,17 @@ In Sightline, connect to:
 http://127.0.0.1:50051
 ```
 
-## 8. Apply resources
+Use the API key from the bootstrap step when the auth modal asks for
+credentials.
+
+## 9. Apply resources
 
 Create the namespace:
 
 ```bash
 ./target/debug/talon-cli \
   --gateway http://127.0.0.1:50051 \
+  --api-key "$TALON_API_KEY" \
   apply --file "$ROOT/manifests/pretzel.namespace.yaml"
 ```
 
@@ -180,6 +198,7 @@ Create the agent:
 ```bash
 ./target/debug/talon-cli \
   --gateway http://127.0.0.1:50051 \
+  --api-key "$TALON_API_KEY" \
   apply --file "$ROOT/manifests/dj.agent.yaml"
 ```
 
@@ -188,6 +207,7 @@ Verify through the edge:
 ```bash
 ./target/debug/talon-cli \
   --gateway http://127.0.0.1:50051 \
+  --api-key "$TALON_API_KEY" \
   get agents --namespace pretzel
 ```
 
