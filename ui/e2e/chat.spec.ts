@@ -335,9 +335,6 @@ test.describe('Chat Streaming', () => {
     await expect(page.getByText('Let me check that.', { exact: false })).toBeVisible({ timeout: 30000 });
     await expect(page.getByText('I checked knowledge_search for docs.example.com.', { exact: true })).toBeVisible({ timeout: 30000 });
 
-    const workToggle = page.getByRole('button', { name: /Worked for \d+s/ }).last();
-    await expect(workToggle).toBeVisible({ timeout: 10000 });
-    await workToggle.click();
     await expect(page.getByText(/Called\s+knowledge_search/)).toBeVisible({ timeout: 10000 });
 
     const transcript = (await page.locator('body').textContent()) || '';

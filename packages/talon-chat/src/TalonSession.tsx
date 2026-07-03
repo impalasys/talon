@@ -647,15 +647,13 @@ export function TalonSession({
       const content = getMessageContent(message);
       const images = messageImageParts(message, objectUrlForRef);
       const timeline = getMessageAssistantTimeline(message);
-      const textTimelineItems = timeline.filter((item): item is Extract<AssistantTimelineItem, { type: "text" }> => item.type === "text");
-      const toolTimelineItems = timeline.filter((item): item is Extract<AssistantTimelineItem, { type: "tool" }> => item.type === "tool");
       const reasoningContent = getMessageReasoningContent(message);
       const usage = getMessageUsage(message);
       const usageSummary = formatUsageSummary(usage);
       const isUserMessage = message.role === "user";
       const isLatestMessage = messageIndex === messages.length - 1;
-      const isStreamingAssistantMessage = isLoading && isLatestMessage && message.role === "assistant" && !content;
-      const hasExpandedWorkDetails = Boolean(reasoningContent) || toolTimelineItems.length > 0 || Boolean(usageSummary);
+      const isStreamingAssistantMessage = isLoading && isLatestMessage && message.role === "assistant";
+      const hasExpandedWorkDetails = Boolean(reasoningContent) || Boolean(usageSummary);
       const hasWorkDetails = message.role === "assistant" && (hasExpandedWorkDetails || isStreamingAssistantMessage);
       let previousUserMessage: CopilotMessage | undefined;
       if (message.role === "assistant") {
@@ -741,69 +739,6 @@ export function TalonSession({
                       </div>
                     ) : null}
 
-                    {toolTimelineItems.map((item, index) => {
-                      const toolKey = `${message.id}-${item.toolCallId || index}`;
-                      const isToolExpanded = expandedToolItems[toolKey] ?? false;
-                      return (
-                        <div key={toolKey}>
-                          <button
-                            className="talon-session-tool-row"
-                            type="button"
-                            onClick={() => toggleToolItem(toolKey)}
-                            style={{
-                              width: "auto",
-                              maxWidth: "100%",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 8,
-                              border: "none",
-                              background: "transparent",
-                              padding: "0.25rem 0",
-                              color: "inherit",
-                              cursor: "pointer",
-                              textAlign: "left",
-                            }}
-                          >
-                            <Wrench size="14" strokeWidth={1.9} style={{ flexShrink: 0, color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))" }} />
-                            <span style={{ minWidth: 0, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                              Called <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{item.toolName}</span>
-                            </span>
-                            <ChevronRight
-                              className="talon-session-tool-chevron"
-                              size="14"
-                              style={{
-                                flexShrink: 0,
-                                transform: isToolExpanded ? "rotate(90deg)" : "rotate(0deg)",
-                                color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))",
-                              }}
-                            />
-                          </button>
-                          {isToolExpanded ? (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 12, paddingLeft: 22 }}>
-                              <div>
-                                <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                                  Input
-                                </div>
-                                <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
-                                  <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
-                                </pre>
-                              </div>
-                              {item.result !== undefined ? (
-                                <div>
-                                  <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                                    Output
-                                  </div>
-                                  <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
-                                    <code>{typeof item.result === "string" ? item.result : JSON.stringify(item.result, null, 2)}</code>
-                                  </pre>
-                                </div>
-                              ) : null}
-                            </div>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-
                     {usageSummary ? (
                       <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
                         {usageSummary}
@@ -827,13 +762,78 @@ export function TalonSession({
                 fontFamily: message.role === "system" ? "ui-monospace, SFMono-Regular, monospace" : undefined,
               }}
             >
-              {message.role === "assistant" && textTimelineItems.length > 0 ? (
+              {message.role === "assistant" && timeline.length > 0 ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {textTimelineItems.map((item, index) => (
-                    <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
-                      <MarkdownMessage>{item.text}</MarkdownMessage>
-                    </div>
-                  ))}
+                  {timeline.map((item, index) => {
+                    if (item.type === "text") {
+                      return (
+                        <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
+                          <MarkdownMessage>{item.text}</MarkdownMessage>
+                        </div>
+                      );
+                    }
+
+                    const toolKey = `${message.id}-timeline-tool-${item.toolCallId || index}`;
+                    const isToolExpanded = expandedToolItems[toolKey] ?? false;
+                    return (
+                      <div key={toolKey}>
+                        <button
+                          className="talon-session-tool-row"
+                          type="button"
+                          onClick={() => toggleToolItem(toolKey)}
+                          style={{
+                            width: "auto",
+                            maxWidth: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            border: "none",
+                            background: "transparent",
+                            padding: "0.25rem 0",
+                            color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))",
+                            cursor: "pointer",
+                            textAlign: "left",
+                          }}
+                        >
+                          <Wrench size="14" strokeWidth={1.9} style={{ flexShrink: 0, color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))" }} />
+                          <span style={{ minWidth: 0, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            Called <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{item.toolName}</span>
+                          </span>
+                          <ChevronRight
+                            className="talon-session-tool-chevron"
+                            size="14"
+                            style={{
+                              flexShrink: 0,
+                              transform: isToolExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                              color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))",
+                            }}
+                          />
+                        </button>
+                        {isToolExpanded ? (
+                          <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 12, paddingLeft: 22 }}>
+                            <div>
+                              <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
+                                Input
+                              </div>
+                              <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
+                                <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
+                              </pre>
+                            </div>
+                            {item.result !== undefined ? (
+                              <div>
+                                <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
+                                  Output
+                                </div>
+                                <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
+                                  <code>{typeof item.result === "string" ? item.result : JSON.stringify(item.result, null, 2)}</code>
+                                </pre>
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 message.role === "assistant" ? <MarkdownMessage>{content}</MarkdownMessage> : content
