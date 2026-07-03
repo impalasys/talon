@@ -124,7 +124,7 @@ Once the gateway is listening, mint a short-lived root bootstrap JWT from the
 private PEM and use it immediately to create a local API key:
 
 ```bash
-export TALON_API_KEY="$(./target/debug/talon-cli --gateway http://127.0.0.1:50051 --token "$(./target/debug/talon-cli auth local-token --private-key-pem-file ./src/control/security/test_rsa_private_key.pem)" auth api-key create --name local-dev --grant readwrite | awk -F= '/^secret=/{print $2}')"
+export TALON_API_KEY="$(./target/debug/talon-cli --gateway http://127.0.0.1:50051 --token "$(TALON_JWT_ISSUER=https://talon.localhost ./target/debug/talon-cli auth local-token --private-key-pem-file ./src/control/security/test_rsa_private_key.pem)" auth api-key create --name local-dev --grant readwrite | awk -F= '/^secret=/{print $2}')"
 ```
 
 Use the exported `TALON_API_KEY` for later CLI calls instead of reusing the
