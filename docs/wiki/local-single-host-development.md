@@ -104,6 +104,7 @@ From the repository root:
 env \
   TALON_CONFIG_PATH="$ROOT/config.yaml" \
   TALON_JWT_PRIVATE_KEY_PEM="$(cat ./src/control/security/test_rsa_private_key.pem)" \
+  TALON_JWT_ISSUER=https://talon.localhost \
   GRPC_ADDR=127.0.0.1:50051 \
   RUST_LOG=info \
   ./target/debug/talon-server
