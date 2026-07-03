@@ -223,7 +223,7 @@ impl ConnectorController {
             bail!("Connector spec.matchFields must not be empty");
         }
 
-        let compiled = compile_route_ids(class_spec, &spec.match_fields)?;
+        let compiled = compile_connector_route_ids(class_spec, &spec.match_fields)?;
         if compiled.is_empty() {
             bail!("Connector matchFields do not satisfy any ConnectorClass match index");
         }
@@ -421,21 +421,58 @@ pub fn compile_route_ids(
     class_spec: &resources_proto::ConnectorClassSpec,
     fields: &HashMap<String, String>,
 ) -> Result<Vec<String>> {
-    let mut keys = Vec::new();
+    Ok(compile_satisfied_route_ids(class_spec, fields)?
+        .into_iter()
+        .map(|route| route.key)
+        .collect())
+}
+
+fn compile_connector_route_ids(
+    class_spec: &resources_proto::ConnectorClassSpec,
+    fields: &HashMap<String, String>,
+) -> Result<Vec<String>> {
+    let routes = compile_satisfied_route_ids(class_spec, fields)?;
+    Ok(routes
+        .iter()
+        .filter(|route| {
+            !routes.iter().any(|candidate| {
+                candidate.fields.len() > route.fields.len()
+                    && candidate.fields.is_superset(&route.fields)
+            })
+        })
+        .map(|route| route.key.clone())
+        .collect())
+}
+
+#[derive(Clone, Debug)]
+struct CompiledRouteId {
+    key: String,
+    fields: HashSet<String>,
+}
+
+fn compile_satisfied_route_ids(
+    class_spec: &resources_proto::ConnectorClassSpec,
+    fields: &HashMap<String, String>,
+) -> Result<Vec<CompiledRouteId>> {
+    let mut routes = Vec::new();
     let mut seen = HashSet::new();
     for index in &class_spec.match_indexes {
         if index.name.trim().is_empty() || index.fields.is_empty() {
             continue;
         }
         let mut segments = Vec::new();
+        let mut route_fields = HashSet::new();
         let mut complete = true;
         for field in &index.fields {
             match fields.get(field).filter(|value| !value.trim().is_empty()) {
-                Some(value) => segments.push(format!(
-                    "{}={}",
-                    encode_match_component(field),
-                    encode_match_component(value)
-                )),
+                Some(value) => {
+                    route_fields.insert(field.clone());
+                    segments.push(format!(
+                        "{}={}",
+                        encode_match_component(field),
+                        encode_match_component(value)
+                    ));
+                }
                 None => {
                     complete = false;
                     break;
@@ -450,11 +487,14 @@ pub fn compile_route_ids(
                 segments.join(CONNECTOR_INDEX_FIELD_SEP)
             );
             if seen.insert(key.clone()) {
-                keys.push(key);
+                routes.push(CompiledRouteId {
+                    key,
+                    fields: route_fields,
+                });
             }
         }
     }
-    Ok(keys)
+    Ok(routes)
 }
 
 fn encode_match_component(value: &str) -> String {
@@ -814,7 +854,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn compile_route_ids_uses_declared_index_order_and_complete_fields() {
+    fn compile_route_ids_for_events_uses_declared_index_order_and_complete_fields() {
         let class_spec = resources_proto::ConnectorClassSpec {
             platform: "slack".to_string(),
             runtime: None,
@@ -847,6 +887,100 @@ mod tests {
                 "slack-channel\u{1f}teamId=T123\u{1f}channelId=C999".to_string(),
                 "slack-team\u{1f}teamId=T123".to_string(),
             ]
+        );
+    }
+
+    #[test]
+    fn compile_connector_route_ids_uses_only_most_specific_imessage_route() {
+        let class_spec = imessage_class_spec();
+        let fields = HashMap::from([
+            ("lineId".to_string(), "shared".to_string()),
+            ("participantId".to_string(), "+13025073162".to_string()),
+        ]);
+
+        let keys = compile_connector_route_ids(&class_spec, &fields).unwrap();
+
+        assert_eq!(
+            keys,
+            vec!["line-space\u{1f}lineId=shared\u{1f}participantId=%2B13025073162".to_string()]
+        );
+    }
+
+    #[test]
+    fn compile_connector_route_ids_keeps_broad_imessage_route_when_only_broad_fields_match() {
+        let class_spec = imessage_class_spec();
+        let fields = HashMap::from([("lineId".to_string(), "shared".to_string())]);
+
+        let keys = compile_connector_route_ids(&class_spec, &fields).unwrap();
+
+        assert_eq!(keys, vec!["line\u{1f}lineId=shared".to_string()]);
+    }
+
+    #[test]
+    fn compile_connector_route_ids_keeps_multiple_equally_specific_routes() {
+        let class_spec = resources_proto::ConnectorClassSpec {
+            platform: "chat".to_string(),
+            runtime: None,
+            auth: None,
+            match_indexes: vec![
+                resources_proto::ConnectorMatchIndex {
+                    name: "team-channel".to_string(),
+                    fields: vec!["teamId".to_string(), "channelId".to_string()],
+                },
+                resources_proto::ConnectorMatchIndex {
+                    name: "team-thread".to_string(),
+                    fields: vec!["teamId".to_string(), "threadId".to_string()],
+                },
+                resources_proto::ConnectorMatchIndex {
+                    name: "team".to_string(),
+                    fields: vec!["teamId".to_string()],
+                },
+            ],
+        };
+        let fields = HashMap::from([
+            ("teamId".to_string(), "T123".to_string()),
+            ("channelId".to_string(), "C999".to_string()),
+            ("threadId".to_string(), "THR".to_string()),
+        ]);
+
+        let keys = compile_connector_route_ids(&class_spec, &fields).unwrap();
+
+        assert_eq!(
+            keys,
+            vec![
+                "team-channel\u{1f}teamId=T123\u{1f}channelId=C999".to_string(),
+                "team-thread\u{1f}teamId=T123\u{1f}threadId=THR".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn compile_connector_route_ids_drops_strict_subset_indexes_regardless_of_order() {
+        let class_spec = resources_proto::ConnectorClassSpec {
+            platform: "chat".to_string(),
+            runtime: None,
+            auth: None,
+            match_indexes: vec![
+                resources_proto::ConnectorMatchIndex {
+                    name: "team".to_string(),
+                    fields: vec!["teamId".to_string()],
+                },
+                resources_proto::ConnectorMatchIndex {
+                    name: "team-channel".to_string(),
+                    fields: vec!["teamId".to_string(), "channelId".to_string()],
+                },
+            ],
+        };
+        let fields = HashMap::from([
+            ("teamId".to_string(), "T123".to_string()),
+            ("channelId".to_string(), "C999".to_string()),
+        ]);
+
+        let keys = compile_connector_route_ids(&class_spec, &fields).unwrap();
+
+        assert_eq!(
+            keys,
+            vec!["team-channel\u{1f}teamId=T123\u{1f}channelId=C999".to_string()]
         );
     }
 
@@ -965,5 +1099,23 @@ mod tests {
             "Tenant:conic:Customers:13",
             "slack"
         ));
+    }
+
+    fn imessage_class_spec() -> resources_proto::ConnectorClassSpec {
+        resources_proto::ConnectorClassSpec {
+            platform: "imessage".to_string(),
+            runtime: None,
+            auth: None,
+            match_indexes: vec![
+                resources_proto::ConnectorMatchIndex {
+                    name: "line-space".to_string(),
+                    fields: vec!["lineId".to_string(), "participantId".to_string()],
+                },
+                resources_proto::ConnectorMatchIndex {
+                    name: "line".to_string(),
+                    fields: vec!["lineId".to_string()],
+                },
+            ],
+        }
     }
 }
