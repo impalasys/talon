@@ -61,11 +61,37 @@ export function applyGatewayAuthorizationHeader(
   }
 }
 
+export const TALON_AUTH_EXPIRED_EVENT = "talon-auth-expired";
+
+export function isExpiredSignatureAuthError(error: unknown) {
+  const candidate = error as {
+    message?: string;
+    rawMessage?: string;
+    code?: string | number;
+    codeName?: string;
+    cause?: { message?: string };
+  };
+  const message = `${candidate?.rawMessage || candidate?.message || candidate?.cause?.message || ""}`.toLowerCase();
+  const code = `${candidate?.codeName || candidate?.code || ""}`.toLowerCase();
+  return (
+    message.includes("expired signature") ||
+    message.includes("signature has expired") ||
+    (code.includes("unauthenticated") && message.includes("expired"))
+  );
+}
+
 const authInterceptor: Interceptor = (next) => async (req) => {
   if (typeof window !== 'undefined') {
     applyGatewayAuthorizationHeader(req.header, localStorage.getItem('talon_auth_token'));
   }
-  return await next(req);
+  try {
+    return await next(req);
+  } catch (error) {
+    if (typeof window !== 'undefined' && isExpiredSignatureAuthError(error)) {
+      window.dispatchEvent(new CustomEvent(TALON_AUTH_EXPIRED_EVENT));
+    }
+    throw error;
+  }
 };
 
 const createClientset = (url: string): TalonClient => createTalonClient({

@@ -3,6 +3,7 @@ import {
   buildGatewayHeaders,
   getDefaultGatewayUrl,
   getGatewayClient,
+  isExpiredSignatureAuthError,
   normalizeGatewayUrl,
   updateGatewayClient,
 } from "./grpc";
@@ -92,6 +93,21 @@ describe("applyGatewayAuthorizationHeader", () => {
     );
 
     expect(calls).toEqual([]);
+  });
+});
+
+describe("isExpiredSignatureAuthError", () => {
+  it("detects expired signature messages", () => {
+    expect(isExpiredSignatureAuthError({ rawMessage: "JWT expired signature" })).toBe(true);
+    expect(isExpiredSignatureAuthError({ message: "signature has expired" })).toBe(true);
+  });
+
+  it("detects unauthenticated expired errors", () => {
+    expect(isExpiredSignatureAuthError({ codeName: "Unauthenticated", message: "token expired" })).toBe(true);
+  });
+
+  it("ignores unrelated auth errors", () => {
+    expect(isExpiredSignatureAuthError({ codeName: "Unauthenticated", message: "invalid audience" })).toBe(false);
   });
 });
 

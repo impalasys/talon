@@ -21,13 +21,13 @@ test.describe('Talon UI', () => {
 
     const connectButton = page.locator('button', { hasText: 'Initialize Connection' });
     const gatewayInput = page.getByLabel('Gateway URL');
-    const tokenInput = page.getByLabel('Authorization Token');
+    const apiKeyInput = page.getByLabel('API Key');
 
     await expect(gatewayInput).toBeVisible();
     await gatewayInput.evaluate((node) => {
       (node as HTMLInputElement).value = 'http://127.0.0.1:9';
     });
-    await tokenInput.evaluate((node) => {
+    await apiKeyInput.evaluate((node) => {
       (node as HTMLInputElement).value = 'autofilled-token';
     });
 
@@ -46,11 +46,11 @@ test.describe('Talon UI', () => {
 
     const connectButton = page.locator('button', { hasText: /Initialize Connection|Connecting/ });
     const gatewayInput = page.getByLabel('Gateway URL');
-    const tokenInput = page.getByLabel('Authorization Token');
 
     await expect(gatewayInput).toBeVisible();
     await gatewayInput.fill(new URL(page.url()).origin);
-    await tokenInput.fill('valid-looking-token');
+    await page.getByRole('button', { name: 'Advanced options' }).click();
+    await page.getByLabel('JWT Token').fill('valid-looking-token');
     await connectButton.click();
 
     await expect(connectButton).toContainText('Connecting');
@@ -69,15 +69,18 @@ test.describe('Talon UI', () => {
     // 2. Connect to the Gateway
     const connectButton = page.locator('button', { hasText: 'Initialize Connection' });
     const gatewayInput = page.getByLabel('Gateway URL');
-    const tokenInput = page.getByLabel('Authorization Token');
+    const apiKeyInput = page.getByLabel('API Key');
     
     // Ensure we are in disconnected state showing the form
     await expect(gatewayInput).toBeVisible();
     
     await gatewayInput.fill(gatewayUrl);
     const auth = readE2EAuth();
-    if (auth?.accessToken) {
-      await tokenInput.fill(auth.accessToken);
+    if (auth?.apiKey) {
+      await apiKeyInput.fill(auth.apiKey);
+    } else if (auth?.accessToken) {
+      await page.getByRole('button', { name: 'Advanced options' }).click();
+      await page.getByLabel('JWT Token').fill(auth.accessToken);
     }
     await connectButton.click();
 
