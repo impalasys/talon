@@ -49,6 +49,15 @@ message DeploymentStatus {
   string phase = 2;
   repeated ResourceCondition conditions = 3;
   repeated ResourceRef replicas = 4;
+  DeploymentReplicaCounts replica_counts = 5;
+}
+
+message DeploymentReplicaCounts {
+  uint64 desired = 1;
+  uint64 updated = 2;
+  uint64 ready = 3;
+  uint64 pending = 4;
+  uint64 degraded = 5;
 }
 
 message DeploymentReplicaStatus {

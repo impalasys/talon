@@ -696,6 +696,21 @@ pub struct DeploymentStatus {
     pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
     #[prost(message, repeated, tag = "4")]
     pub replicas: ::prost::alloc::vec::Vec<ResourceRef>,
+    #[prost(message, optional, tag = "5")]
+    pub replica_counts: ::core::option::Option<DeploymentReplicaCounts>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct DeploymentReplicaCounts {
+    #[prost(uint64, tag = "1")]
+    pub desired: u64,
+    #[prost(uint64, tag = "2")]
+    pub updated: u64,
+    #[prost(uint64, tag = "3")]
+    pub ready: u64,
+    #[prost(uint64, tag = "4")]
+    pub pending: u64,
+    #[prost(uint64, tag = "5")]
+    pub degraded: u64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeploymentReplicaStatus {

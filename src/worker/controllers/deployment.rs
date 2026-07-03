@@ -95,6 +95,10 @@ impl DeploymentController {
             .iter()
             .map(|target| target.name().to_string())
             .collect::<HashSet<_>>();
+        let mut replica_counts = resources_proto::DeploymentReplicaCounts {
+            desired: target_names.len() as u64,
+            ..Default::default()
+        };
         let stale_target_names = existing_replicas
             .keys()
             .filter(|target_namespace| !target_names.contains(*target_namespace))
@@ -164,6 +168,12 @@ impl DeploymentController {
             } else {
                 "Degraded"
             };
+            replica_counts.updated += 1;
+            if phase == "Ready" {
+                replica_counts.ready += 1;
+            } else {
+                replica_counts.degraded += 1;
+            }
             let replica = resources_proto::Resource {
                 api_version: deployment.api_version.clone(),
                 kind: "DeploymentReplica".to_string(),
@@ -210,7 +220,7 @@ impl DeploymentController {
                 status: Some(resources_proto::ResourceStatus {
                     kind: Some(resources_proto::resource_status::Kind::DeploymentReplica(
                         resources_proto::DeploymentReplicaStatus {
-                            observed_generation: 0,
+                            observed_generation: deployment_meta.generation,
                             phase: phase.to_string(),
                             conditions: Vec::new(),
                             rendered_resources: rendered_refs,
@@ -224,6 +234,33 @@ impl DeploymentController {
             };
             self.store
                 .upsert(&deployment_meta.namespace, replica)
+                .await?;
+        }
+
+        replica_counts.pending = replica_counts
+            .desired
+            .saturating_sub(replica_counts.updated);
+        let phase = deployment_phase(&replica_counts);
+        let status = resources_proto::ResourceStatus {
+            kind: Some(resources_proto::resource_status::Kind::Deployment(
+                resources_proto::DeploymentStatus {
+                    observed_generation: deployment_meta.generation,
+                    phase: phase.to_string(),
+                    conditions: Vec::new(),
+                    replicas: Vec::new(),
+                    replica_counts: Some(replica_counts),
+                },
+            )),
+        };
+        if deployment.status.as_ref() != Some(&status) {
+            self.store
+                .patch_status(
+                    &deployment_meta.namespace,
+                    "Deployment",
+                    &deployment_meta.name,
+                    None,
+                    status,
+                )
                 .await?;
         }
 
@@ -607,6 +644,16 @@ impl DeploymentController {
     }
 }
 
+fn deployment_phase(counts: &resources_proto::DeploymentReplicaCounts) -> &'static str {
+    if counts.degraded > 0 {
+        "Degraded"
+    } else if counts.pending > 0 {
+        "Pending"
+    } else {
+        "Ready"
+    }
+}
+
 fn schedule_resource(
     api_version: &str,
     schedule: &resources_proto::Schedule,
@@ -863,6 +910,66 @@ mod tests {
         status
     }
 
+    fn deployment_status(resource: resources_proto::Resource) -> resources_proto::DeploymentStatus {
+        let Some(resources_proto::resource_status::Kind::Deployment(status)) =
+            resource.status.and_then(|status| status.kind)
+        else {
+            panic!("expected deployment status");
+        };
+        status
+    }
+
+    fn replica_counts(
+        status: &resources_proto::DeploymentStatus,
+    ) -> &resources_proto::DeploymentReplicaCounts {
+        status
+            .replica_counts
+            .as_ref()
+            .expect("deployment replica counts")
+    }
+
+    fn deployment_meta_generation(resource: &resources_proto::Resource) -> u64 {
+        resource
+            .metadata
+            .as_ref()
+            .expect("deployment metadata")
+            .generation
+    }
+
+    #[test]
+    fn deployment_phase_prefers_degraded_then_pending_then_ready() {
+        assert_eq!(
+            deployment_phase(&resources_proto::DeploymentReplicaCounts {
+                desired: 3,
+                updated: 2,
+                ready: 2,
+                pending: 1,
+                degraded: 0,
+            }),
+            "Pending"
+        );
+        assert_eq!(
+            deployment_phase(&resources_proto::DeploymentReplicaCounts {
+                desired: 3,
+                updated: 3,
+                ready: 2,
+                pending: 0,
+                degraded: 1,
+            }),
+            "Degraded"
+        );
+        assert_eq!(
+            deployment_phase(&resources_proto::DeploymentReplicaCounts {
+                desired: 3,
+                updated: 3,
+                ready: 3,
+                pending: 0,
+                degraded: 0,
+            }),
+            "Ready"
+        );
+    }
+
     #[test]
     fn render_template_uses_namespace_annotation_with_name_fallback() {
         let rendered = controller()
@@ -928,7 +1035,7 @@ mod tests {
         add_namespace(&cp, labeled_target_namespace("prod")).await;
 
         let deployment = deployment_with_templates(&["coding-agent", "legacy-agent"]);
-        store
+        let deployment = store
             .upsert("customers", deployment.clone())
             .await
             .expect("upsert deployment");
@@ -980,9 +1087,27 @@ mod tests {
             .expect("get replica")
             .expect("replica exists");
         let status = replica_status(replica);
+        assert_eq!(
+            status.observed_generation,
+            deployment_meta_generation(&deployment)
+        );
         assert_eq!(status.phase, "Degraded");
         assert_eq!(status.rendered_resources.len(), 1);
         assert_eq!(status.conflicts.len(), 1);
+        let deployment = store
+            .get("customers", "Deployment", "company-builder")
+            .await
+            .expect("get deployment")
+            .expect("deployment exists");
+        let status = deployment_status(deployment);
+        assert_eq!(status.phase, "Degraded");
+        assert!(status.replicas.is_empty());
+        let counts = replica_counts(&status);
+        assert_eq!(counts.desired, 1);
+        assert_eq!(counts.updated, 1);
+        assert_eq!(counts.ready, 0);
+        assert_eq!(counts.pending, 0);
+        assert_eq!(counts.degraded, 1);
     }
 
     #[tokio::test]
@@ -995,7 +1120,7 @@ mod tests {
         add_namespace(&cp, labeled_target_namespace("prod")).await;
 
         let deployment = deployment_with_templates(&["coding-agent"]);
-        store
+        let deployment = store
             .upsert("customers", deployment.clone())
             .await
             .expect("upsert deployment");
@@ -1013,6 +1138,23 @@ mod tests {
             .await
             .expect("get coding")
             .is_some());
+        let deployment_after_initial_reconcile = store
+            .get("customers", "Deployment", "company-builder")
+            .await
+            .expect("get deployment")
+            .expect("deployment exists");
+        let status = deployment_status(deployment_after_initial_reconcile);
+        assert_eq!(
+            status.observed_generation,
+            deployment_meta_generation(&deployment)
+        );
+        assert_eq!(status.phase, "Ready");
+        let counts = replica_counts(&status);
+        assert_eq!(counts.desired, 1);
+        assert_eq!(counts.updated, 1);
+        assert_eq!(counts.ready, 1);
+        assert_eq!(counts.pending, 0);
+        assert_eq!(counts.degraded, 0);
 
         add_namespace(&cp, labeled_target_namespace("staging")).await;
         controller
@@ -1034,5 +1176,18 @@ mod tests {
             .await
             .expect("get replica")
             .is_none());
+        let deployment = store
+            .get("customers", "Deployment", "company-builder")
+            .await
+            .expect("get deployment")
+            .expect("deployment exists");
+        let status = deployment_status(deployment);
+        assert_eq!(status.phase, "Ready");
+        let counts = replica_counts(&status);
+        assert_eq!(counts.desired, 0);
+        assert_eq!(counts.updated, 0);
+        assert_eq!(counts.ready, 0);
+        assert_eq!(counts.pending, 0);
+        assert_eq!(counts.degraded, 0);
     }
 }

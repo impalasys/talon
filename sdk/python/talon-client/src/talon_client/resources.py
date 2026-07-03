@@ -9,7 +9,7 @@ from talon_client.proto.resources.channels_pb2 import Channel, ChannelSpec, Chan
 from talon_client.proto.resources.connectors_pb2 import ConnectorClassRuntimeSpec, ConnectorClassAuthSpec, ConnectorSecretRef, ConnectorMatchIndex, ConnectorClassSpec, ConnectorClassStatus, ConnectorSpec, ConnectorStatus, ConnectorClass, Connector
 from talon_client.proto.resources.schedules_pb2 import ScheduleTarget, ScheduleSpec, ScheduleStatus, ScheduleEvent, Schedule
 from talon_client.proto.resources.workflows_pb2 import WorkflowStepOutputPolicy, WorkflowStepRetryPolicy, WorkflowStep, WorkflowSpec, Workflow, WorkflowStatus
-from talon_client.proto.resources.deployments_pb2 import TemplateSpec, Template, DeploymentPlacement, DeploymentSpec, Deployment, DeploymentReplicaSpec, DeploymentReplica, DeploymentStatus, DeploymentReplicaStatus
+from talon_client.proto.resources.deployments_pb2 import TemplateSpec, Template, DeploymentPlacement, DeploymentSpec, Deployment, DeploymentReplicaSpec, DeploymentReplica, DeploymentStatus, DeploymentReplicaCounts, DeploymentReplicaStatus
 from talon_client.proto.resources.sandboxes_pb2 import SandboxClassSpec, SandboxClass, SandboxWorkspaceSpec, SandboxSetupSpec, SandboxNetworkSpec, SandboxFilesystemSpec, SandboxLeasePolicySpec, SandboxRuntimeTemplateSpec, SandboxPolicySpec, SandboxPolicy, SandboxLease, SandboxProcessStatus, SandboxStatus, SandboxSpec, Sandbox
 from talon_client.proto.resources.sessions_pb2 import SessionSpec, Session, SessionStatus
 from talon_client.proto.resources.skills_pb2 import SkillSpec, Skill
@@ -88,6 +88,7 @@ __all__ = [
     "DeploymentReplicaSpec",
     "DeploymentReplica",
     "DeploymentStatus",
+    "DeploymentReplicaCounts",
     "DeploymentReplicaStatus",
     "SandboxClassSpec",
     "SandboxClass",

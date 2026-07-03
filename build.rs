@@ -42,6 +42,7 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.DeploymentPlacement",
         ".talon.resources.Deployment",
         ".talon.resources.DeploymentReplica",
+        ".talon.resources.DeploymentReplicaCounts",
         ".talon.resources.DeploymentReplicaSpec",
         ".talon.resources.DeploymentReplicaStatus",
         ".talon.resources.DeploymentSpec",

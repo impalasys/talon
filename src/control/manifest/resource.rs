@@ -479,6 +479,9 @@ fn resource_spec_status_to_yaml_values(
                     ),
                 );
             }
+            if let Some(counts) = &status.replica_counts {
+                json.insert("replicaCounts".to_string(), replica_counts_json(counts));
+            }
             serde_json::to_string(&serde_json::Value::Object(json))?
         }
         Some(StatusKind::DeploymentReplica(status)) => {
@@ -984,6 +987,37 @@ fn deployment_status_from_value(
                     .collect()
             })
             .unwrap_or_default(),
+        replica_counts: value
+            .get("replicaCounts")
+            .map(deployment_replica_counts_from_value)
+            .transpose()?,
+    })
+}
+
+fn deployment_replica_counts_from_value(
+    value: &serde_json::Value,
+) -> Result<resources_proto::DeploymentReplicaCounts> {
+    Ok(resources_proto::DeploymentReplicaCounts {
+        desired: value
+            .get("desired")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0),
+        updated: value
+            .get("updated")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0),
+        ready: value
+            .get("ready")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0),
+        pending: value
+            .get("pending")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0),
+        degraded: value
+            .get("degraded")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0),
     })
 }
 
@@ -1646,5 +1680,15 @@ fn resource_ref_json(reference: &resources_proto::ResourceRef) -> serde_json::Va
     serde_json::json!({
         "namespace": reference.namespace,
         "name": reference.name,
+    })
+}
+
+fn replica_counts_json(counts: &resources_proto::DeploymentReplicaCounts) -> serde_json::Value {
+    serde_json::json!({
+        "desired": counts.desired,
+        "updated": counts.updated,
+        "ready": counts.ready,
+        "pending": counts.pending,
+        "degraded": counts.degraded,
     })
 }
