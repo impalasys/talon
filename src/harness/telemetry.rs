@@ -55,8 +55,6 @@ pub fn chat_span(
     reasoning_level: Option<&str>,
 ) -> Span {
     let provider = genai_provider_name(provider_key);
-    let input_messages = serialize_messages_json(&request.messages);
-    let tool_definitions = serialize_tool_definitions_json(&request.tools);
     let otel_name = format!("chat {model}");
     let span = tracing::info_span!(
         "chat",
@@ -67,8 +65,8 @@ pub fn chat_span(
         "gen_ai.request.stream" = true,
         "gen_ai.request.reasoning.level" = field::Empty,
         "gen_ai.conversation.id" = session_id,
-        "gen_ai.input.messages" = input_messages.as_str(),
-        "gen_ai.tool.definitions" = tool_definitions.as_str(),
+        "gen_ai.input.messages" = field::Empty,
+        "gen_ai.tool.definitions" = field::Empty,
         "gen_ai.output.messages" = field::Empty,
         "gen_ai.usage.input_tokens" = field::Empty,
         "gen_ai.usage.output_tokens" = field::Empty,
@@ -87,6 +85,12 @@ pub fn chat_span(
     }
     if let Some(level) = reasoning_level.filter(|level| !level.trim().is_empty()) {
         span.record("gen_ai.request.reasoning.level", level);
+    }
+    if !span.is_disabled() {
+        let input_messages = serialize_messages_json(&request.messages);
+        let tool_definitions = serialize_tool_definitions_json(&request.tools);
+        span.record("gen_ai.input.messages", input_messages.as_str());
+        span.record("gen_ai.tool.definitions", tool_definitions.as_str());
     }
     span
 }
