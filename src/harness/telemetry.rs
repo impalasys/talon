@@ -198,17 +198,34 @@ fn serialize_json_array(values: impl IntoIterator<Item = Value>) -> String {
 }
 
 fn message_value(message: &ChatMessage) -> Value {
-    let mut parts = content_parts_value(&message.content_parts);
-    for call in &message.tool_calls {
-        parts.push(tool_call_part_value(call));
-    }
-    if let Some(tool_call_id) = &message.tool_call_id {
-        for part in &mut parts {
-            if let Some(object) = part.as_object_mut() {
-                object.insert("id".to_string(), Value::String(tool_call_id.clone()));
+    let parts = if message.role == "tool" {
+        let tool_call_id = message.tool_call_id.as_deref().unwrap_or_default();
+        message
+            .content_parts
+            .iter()
+            .filter_map(|part| match part.content.as_ref()? {
+                chat_content_part::Content::Text(text) => Some(json!({
+                    "type": "tool_call_response",
+                    "id": tool_call_id,
+                    "result": text,
+                })),
+                _ => None,
+            })
+            .collect()
+    } else {
+        let mut parts = content_parts_value(&message.content_parts);
+        for call in &message.tool_calls {
+            parts.push(tool_call_part_value(call));
+        }
+        if let Some(tool_call_id) = &message.tool_call_id {
+            for part in &mut parts {
+                if let Some(object) = part.as_object_mut() {
+                    object.insert("id".to_string(), Value::String(tool_call_id.clone()));
+                }
             }
         }
-    }
+        parts
+    };
     json!({
         "role": message.role,
         "parts": parts,
@@ -250,9 +267,10 @@ fn tool_call_part_value(call: &ToolCall) -> Value {
 }
 
 fn low_cardinality_error_text(error: &str) -> &'static str {
-    if error.contains("cancel") || error.contains("interrupt") {
+    let error_lc = error.to_ascii_lowercase();
+    if error_lc.contains("cancel") || error_lc.contains("interrupt") {
         "cancelled"
-    } else if error.contains("timeout") {
+    } else if error_lc.contains("timeout") {
         "timeout"
     } else {
         "_OTHER"
@@ -350,6 +368,15 @@ mod tests {
         message.tool_call_id = Some("call-1".to_string());
         let json = serialize_messages_json(&[message]);
         let value: Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(value[0]["parts"][0]["type"], "tool_call_response");
         assert_eq!(value[0]["parts"][0]["id"], "call-1");
+        assert_eq!(value[0]["parts"][0]["result"], "result");
+    }
+
+    #[test]
+    fn error_classification_is_case_insensitive() {
+        assert_eq!(low_cardinality_error_text("Cancelled by user"), "cancelled");
+        assert_eq!(low_cardinality_error_text("Timeout occurred"), "timeout");
+        assert_eq!(low_cardinality_error_text("unknown failure"), "_OTHER");
     }
 }
