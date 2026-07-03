@@ -936,6 +936,73 @@ describe('TalonCopilot', () => {
     });
   });
 
+  it('does not scroll the transcript down for new tokens after the user scrolls up', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+
+    const scrollTo = jest.fn();
+    const originalScrollTo = HTMLElement.prototype.scrollTo;
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: scrollTo,
+    });
+
+    const stream = makeControllableStreamResponse();
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ sessionId: 'sess-scroll-lock' }))
+      .mockResolvedValueOnce(stream.response)
+      .mockResolvedValueOnce(makeJsonResponse({
+        sessionId: 'sess-scroll-lock',
+        state: 'IDLE',
+        messages: [
+          {
+            id: 'assistant-scroll-lock',
+            role: 'ROLE_ASSISTANT',
+            content: 'New token.',
+            createdAt: String(Date.now() * 1000),
+          },
+        ],
+        steps: [],
+      }));
+
+    const { container } = render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+      />,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
+      target: { value: 'please stream' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send message/i }));
+
+    stream.release('f:{"messageId":"assistant-scroll-lock"}\n');
+    await waitFor(() => expect(scrollTo).toHaveBeenCalled());
+    scrollTo.mockClear();
+
+    const scrollContainer = container.querySelector('div[style*="overflow-y: auto"]') as HTMLDivElement;
+    Object.defineProperty(scrollContainer, 'scrollTop', { configurable: true, value: 100, writable: true });
+    Object.defineProperty(scrollContainer, 'scrollHeight', { configurable: true, value: 1000 });
+    Object.defineProperty(scrollContainer, 'clientHeight', { configurable: true, value: 200 });
+    fireEvent.scroll(scrollContainer);
+
+    stream.release('0:"New token."\n');
+    expect(await screen.findByText('New token.')).toBeInTheDocument();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    stream.release(null);
+
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: originalScrollTo,
+    });
+  });
+
   it('loads older history pages when scrolled near the top', async () => {
     const gatewayClient = {
       createSession: jest.fn(),

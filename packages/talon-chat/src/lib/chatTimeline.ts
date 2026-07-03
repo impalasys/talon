@@ -207,7 +207,14 @@ function appendUsageToTimeline(
   timeline: AssistantTimelineItem[],
   usage: UsageSummary,
 ): AssistantTimelineItem[] {
-  return [...timeline, { type: "usage", usage }];
+  const nextTimeline = [...timeline];
+  const existingIndex = nextTimeline.findIndex((item) => item.type === "usage");
+  const nextItem: AssistantTimelineItem = { type: "usage", usage };
+  if (existingIndex >= 0) {
+    nextTimeline[existingIndex] = nextItem;
+    return nextTimeline;
+  }
+  return [...nextTimeline, nextItem];
 }
 
 function upsertToolInTimeline(

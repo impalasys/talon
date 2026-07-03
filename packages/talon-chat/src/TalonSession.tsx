@@ -122,6 +122,7 @@ const DEFAULT_HISTORY_PAGE_SIZE = 50;
 const DEFAULT_HISTORY_MESSAGE_LIMIT = 100;
 const DEFAULT_HISTORY_STEP_LIMIT = 1000;
 const HISTORY_SCROLL_LOAD_THRESHOLD_PX = 120;
+const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 48;
 
 function border(color: string) {
   return `1px solid ${color}`;
@@ -352,6 +353,10 @@ function splitFinalAssistantTimeline(timeline: AssistantTimelineItem[]) {
   };
 }
 
+function isNearScrollBottom(container: HTMLElement) {
+  return container.scrollHeight - container.scrollTop - container.clientHeight <= AUTO_SCROLL_BOTTOM_THRESHOLD_PX;
+}
+
 function historyMessageTimestamp(message: Pick<CopilotMessage, "createdAt">) {
   return normalizeEpochToMilliseconds(message.createdAt);
 }
@@ -527,6 +532,7 @@ export function TalonSession({
   const imageAttachmentsRef = useRef<PendingImageAttachment[]>([]);
   const submittedPreviewUrlsRef = useRef<string[]>([]);
   const skipNextAutoScrollRef = useRef(false);
+  const autoScrollPinnedRef = useRef(true);
   const prependScrollRestoreRef = useRef<{ previousScrollTop: number; previousScrollHeight: number } | null>(null);
   const isLoadingOlderHistoryRef = useRef(false);
 
@@ -570,6 +576,7 @@ export function TalonSession({
   }, [currentSession]);
 
   const scrollTranscriptToBottom = useCallback((behavior: ScrollBehavior) => {
+    autoScrollPinnedRef.current = true;
     const container = scrollContainerRef.current;
     if (container) {
       if (typeof container.scrollTo === "function") {
@@ -598,7 +605,9 @@ export function TalonSession({
       return;
     }
     const rafId = window.requestAnimationFrame(() => {
-      scrollTranscriptToBottom("auto");
+      if (autoScrollPinnedRef.current) {
+        scrollTranscriptToBottom("auto");
+      }
       updateTranscriptScrollThumb();
     });
     return () => window.cancelAnimationFrame(rafId);
@@ -766,9 +775,17 @@ export function TalonSession({
                 {isWorkExpanded ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 12, color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
                     {workTimeline.map((item, index) => {
-                      if (item.type === "text" || item.type === "reasoning") {
+                      if (item.type === "text") {
                         return (
-                          <div key={`${message.id}-work-${index}`} style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: 13, lineHeight: 1.55 }}>
+                          <div key={`${message.id}-work-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55 }}>
+                            <MarkdownMessage>{item.text}</MarkdownMessage>
+                          </div>
+                        );
+                      }
+
+                      if (item.type === "reasoning") {
+                        return (
+                          <div key={`${message.id}-work-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55 }}>
                             {item.text}
                           </div>
                         );
@@ -846,7 +863,7 @@ export function TalonSession({
                     })}
 
                     {!workHasReasoning && reasoningContent ? (
-                      <div style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: 13, lineHeight: 1.55 }}>
+                      <div style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55 }}>
                         {reasoningContent}
                       </div>
                     ) : null}
@@ -887,7 +904,7 @@ export function TalonSession({
 
                     if (item.type === "reasoning") {
                       return (
-                        <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
+                        <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
                           {item.text}
                         </div>
                       );
@@ -1048,6 +1065,7 @@ export function TalonSession({
   const loadInitialSessionPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
       const res = normalizeHistoryPage(await getSessionMessagesPage(target));
+      autoScrollPinnedRef.current = true;
       setMessages(res.messages);
       setHasMoreHistory(res.hasMore);
       setNextBeforeMessageId(res.nextBeforeMessageId);
@@ -1228,6 +1246,7 @@ export function TalonSession({
     setLoadingStartedAt(null);
     setExpandedThinkingMessages({});
     setExpandedToolItems({});
+    autoScrollPinnedRef.current = true;
   }, []);
 
   const clearSession = useCallback(async () => {
@@ -1472,6 +1491,7 @@ export function TalonSession({
       setMessages((prev) => [...prev, userMessage]);
       setLoadingStartedAt(normalizeEpochToMilliseconds(userMessage.createdAt) ?? Date.now());
       setLoadingNow(Date.now());
+      autoScrollPinnedRef.current = true;
       setIsLoading(true);
 
       const sessions = gatewayClient?.sessions;
@@ -1548,6 +1568,9 @@ export function TalonSession({
     updateTranscriptScrollThumb();
     const container = scrollContainerRef.current;
     const session = currentSessionRef.current;
+    if (container && !prependScrollRestoreRef.current) {
+      autoScrollPinnedRef.current = isNearScrollBottom(container);
+    }
     if (!container || !session || isLoadingOlderHistoryRef.current || !hasMoreHistory || !nextBeforeMessageId) {
       return;
     }
