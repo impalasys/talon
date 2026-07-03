@@ -10,6 +10,9 @@ use std::collections::{HashMap, HashSet};
 const CLI_PASSTHROUGH_NAMESPACES: &[&str] =
     &["namespace", "deployment", "template", "talon", "ctx"];
 const RESOURCE_PASSTHROUGH_NAMESPACES: &[&str] = &["talon", "ctx"];
+// Marker used to hide later-phase variables from the current MiniJinja render.
+// The full sentinel includes a source-specific token so user text that happens
+// to contain this prefix is not rewritten during restore.
 const SENTINEL_PREFIX: &str = "__TALON_TEMPLATE_PASSTHROUGH_";
 const SENTINEL_SUFFIX: &str = "__";
 
@@ -92,6 +95,8 @@ fn mask_passthrough_variables(
         return (source.to_string(), Vec::new());
     }
 
+    // Replace pass-through variables with opaque text before rendering so
+    // strict MiniJinja only validates namespaces owned by this phase.
     let sentinel_token = sentinel_token_for_source(source);
     let mut output = String::with_capacity(source.len());
     let mut preserved = Vec::new();
