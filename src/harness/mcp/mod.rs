@@ -97,18 +97,19 @@ impl McpClient {
         })
     }
 
-    pub async fn connect_http(target: &str, headers: &HashMap<String, String>) -> Result<Self> {
-        validate_http_headers(headers)?;
-        let mut transport_config =
-            StreamableHttpClientTransportConfig::with_uri(target.to_string());
-
-        let auth_header = authorization_bearer_token(headers)?;
-        if let Some(auth_header) = auth_header.clone() {
-            transport_config = transport_config.auth_header(auth_header);
-        }
+    pub async fn connect_http(
+        target: &str,
+        default_headers: reqwest::header::HeaderMap,
+    ) -> Result<Self> {
+        let transport_config = StreamableHttpClientTransportConfig::with_uri(target.to_string());
 
         let transport = StreamableHttpClientTransport::with_client(
-            AuthenticatedReqwestClient::new(reqwest::Client::default(), auth_header),
+            AuthenticatedReqwestClient::new(
+                reqwest::Client::builder()
+                    .default_headers(default_headers)
+                    .build()?,
+                None,
+            ),
             transport_config,
         );
         let service = ().serve(transport).await?;
@@ -268,6 +269,13 @@ impl AuthenticatedReqwestClient {
         }
         request_builder
     }
+
+    fn has_authorization_header(custom_headers: &HashMap<HeaderName, HeaderValue>) -> bool {
+        // Used before applying rmcp bearer-token fallback so explicit request auth wins.
+        custom_headers
+            .keys()
+            .any(|name| name.as_str().eq_ignore_ascii_case("authorization"))
+    }
 }
 
 pub(crate) fn content_type_matches(value: &reqwest::header::HeaderValue, expected: &str) -> bool {
@@ -295,12 +303,14 @@ impl StreamableHttpClient for AuthenticatedReqwestClient {
             .get(uri.as_ref())
             .header(ACCEPT, MCP_EVENT_STREAM_MIME_TYPE)
             .header(MCP_HEADER_SESSION_ID, session_id.as_ref());
+        if !Self::has_authorization_header(&custom_headers) {
+            if let Some(auth_header) = self.bearer_token(auth_token) {
+                request_builder = request_builder.bearer_auth(auth_header);
+            }
+        }
         request_builder = Self::apply_custom_headers(request_builder, custom_headers);
         if let Some(last_event_id) = last_event_id {
             request_builder = request_builder.header(MCP_HEADER_LAST_EVENT_ID, last_event_id);
-        }
-        if let Some(auth_header) = self.bearer_token(auth_token) {
-            request_builder = request_builder.bearer_auth(auth_header);
         }
 
         let response = request_builder
@@ -334,10 +344,12 @@ impl StreamableHttpClient for AuthenticatedReqwestClient {
         custom_headers: HashMap<HeaderName, HeaderValue>,
     ) -> Result<(), StreamableHttpError<Self::Error>> {
         let mut request_builder = self.inner.delete(uri.as_ref());
-        request_builder = Self::apply_custom_headers(request_builder, custom_headers);
-        if let Some(auth_header) = self.bearer_token(auth_token) {
-            request_builder = request_builder.bearer_auth(auth_header);
+        if !Self::has_authorization_header(&custom_headers) {
+            if let Some(auth_header) = self.bearer_token(auth_token) {
+                request_builder = request_builder.bearer_auth(auth_header);
+            }
         }
+        request_builder = Self::apply_custom_headers(request_builder, custom_headers);
 
         let response = request_builder
             .header(MCP_HEADER_SESSION_ID, session.as_ref())
@@ -368,10 +380,12 @@ impl StreamableHttpClient for AuthenticatedReqwestClient {
             .inner
             .post(uri.as_ref())
             .header(ACCEPT, MCP_POST_ACCEPT_HEADER);
-        request = Self::apply_custom_headers(request, custom_headers);
-        if let Some(auth_header) = self.bearer_token(auth_token) {
-            request = request.bearer_auth(auth_header);
+        if !Self::has_authorization_header(&custom_headers) {
+            if let Some(auth_header) = self.bearer_token(auth_token) {
+                request = request.bearer_auth(auth_header);
+            }
         }
+        request = Self::apply_custom_headers(request, custom_headers);
         if let Some(session_id) = session_id {
             request = request.header(MCP_HEADER_SESSION_ID, session_id.as_ref());
         }
@@ -463,7 +477,7 @@ async fn connect_configured(config: &McpConnectionConfig) -> Result<McpClient> {
         }
         "http" => {
             let headers = resolve_http_headers(config).await?;
-            McpClient::connect_http(&config.target, &headers).await
+            McpClient::connect_http(&config.target, headers).await
         }
         other => Err(anyhow!(
             "Unsupported MCP transport '{}' for server '{}'",
@@ -573,6 +587,7 @@ pub(crate) fn authorization_header(headers: &HashMap<String, String>) -> Option<
         .map(|(_, value)| value.clone())
 }
 
+#[cfg(test)]
 pub(crate) fn authorization_bearer_token(
     headers: &HashMap<String, String>,
 ) -> Result<Option<String>> {
@@ -603,25 +618,11 @@ pub(crate) fn authorization_bearer_token(
     Ok(Some(trimmed.to_string()))
 }
 
-pub(crate) fn validate_http_headers(headers: &HashMap<String, String>) -> Result<()> {
-    let unsupported = headers
-        .keys()
-        .find(|name| !name.eq_ignore_ascii_case("authorization"));
-    if let Some(name) = unsupported {
-        return Err(anyhow!(
-            "Unsupported HTTP header '{}' for MCP transport; only Authorization is currently supported",
-            name
-        ));
-    }
-
-    Ok(())
-}
-
 pub(crate) async fn resolve_http_headers(
     config: &McpConnectionConfig,
-) -> Result<HashMap<String, String>> {
-    validate_http_headers(&config.headers)?;
-
+) -> Result<reqwest::header::HeaderMap> {
+    // Preserve configured headers exactly, including Authorization; callers may use non-Bearer
+    // schemes or preformatted values that should not be normalized by the transport wrapper.
     let mut headers = config.headers.clone();
     if let Some(auth_broker) = &config.auth_broker {
         if authorization_header(&headers).is_some() {
@@ -635,7 +636,27 @@ pub(crate) async fn resolve_http_headers(
         headers.insert("Authorization".to_string(), format!("Bearer {}", token));
     }
 
-    Ok(headers)
+    let mut parsed = reqwest::header::HeaderMap::new();
+    for (name, value) in headers {
+        let header_name =
+            reqwest::header::HeaderName::from_bytes(name.as_bytes()).map_err(|err| {
+                anyhow!(
+                    "Invalid HTTP header name '{}' for MCP transport: {}",
+                    name,
+                    err
+                )
+            })?;
+        let header_value =
+            reqwest::header::HeaderValue::from_bytes(value.as_bytes()).map_err(|err| {
+                anyhow!(
+                    "Invalid HTTP header value for '{}' in MCP transport: {}",
+                    name,
+                    err
+                )
+            })?;
+        parsed.insert(header_name, header_value);
+    }
+    Ok(parsed)
 }
 
 async fn resolve_broker_bearer_token(
