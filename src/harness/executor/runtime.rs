@@ -3,7 +3,7 @@
 
 use crate::control::config::Config;
 use crate::control::ControlPlane;
-use crate::harness::executor::context_budget::compact_history_for_llm;
+use crate::harness::executor::compaction::compact_history_for_llm;
 use crate::harness::knowledge::KnowledgeBook;
 use crate::harness::llm::resolver::resolve_model_profile;
 use crate::harness::llm::{
@@ -1094,7 +1094,8 @@ mod tests {
                     .contains("Prior tool interaction omitted")
         }));
         assert!(messages.iter().any(|message| {
-            message.role == "system" && message.text_content().contains("earlier messages omitted")
+            message.role == "assistant"
+                && message.text_content().contains("earlier messages omitted")
         }));
     }
 

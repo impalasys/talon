@@ -11,7 +11,7 @@ use tokio::sync::Mutex as AsyncMutex;
 use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
 use crate::control::{keys::ResourceKey, topics, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::data_proto::{self, SessionSubmissionStatus};
-use crate::harness::executor::context_budget::tool_result_preview;
+use crate::harness::executor::compaction::tool_result_preview;
 use crate::harness::executor::{AgentEvent, ExecutionSink};
 use crate::harness::llm::{ChatResponse, ChatUsage};
 use crate::harness::sessions::{self, SessionSubmission};
