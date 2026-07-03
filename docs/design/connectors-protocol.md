@@ -703,7 +703,8 @@ Inbound flow:
 2. Read the ConnectorClass resource and require status `Ready`.
 3. Verify callback signature and timestamp.
 4. Compile candidate route ids from `ConnectorClass.spec.matchIndexes` and the
-   event's provider match fields.
+   event's provider match fields, preserving ConnectorClass precedence so
+   events can fall back from specific to broad routes.
 5. Reject if `connector_class` conflicts with the resolved ConnectorClass.
 6. Read the first matching `Route` under that ConnectorClass.
 7. Deduplicate `event_id` under that ConnectorClass.
@@ -717,10 +718,13 @@ Slack, preferred precedence is:
 3. App/profile + enterprise ID + team ID
 4. App/profile + team ID
 
-This lets a workspace-level Connector handle all messages while a
-channel-specific Connector overrides selected channels. Talon should reject
-ambiguous Connectors at write time or use an explicit priority field; it should
-not randomly choose between equally specific matches.
+Connector resources are materialized only onto their maximal satisfied match
+indexes. For example, a channel-specific Connector is not also written as a
+workspace-level fallback route; a workspace-level Connector must declare only
+the workspace-level match fields. This lets a workspace-level Connector handle
+all messages while a channel-specific Connector overrides selected channels.
+Talon should reject ambiguous Connectors at write time or use an explicit
+priority field; it should not randomly choose between equally specific matches.
 
 ## Session And Channel Consumers
 
