@@ -68,6 +68,11 @@ fn render_phase_template(
         return Ok(source.to_string());
     }
 
+    // Each phase owns only part of the shared `{{ ... }}` namespace. For
+    // example, CLI rendering should resolve `vars.*` but must leave
+    // `namespace.*` and `talon.*` intact for deployment/runtime phases. Before
+    // handing the template to MiniJinja, replace those later-phase variables
+    // with sentinels so strict rendering cannot evaluate or reject them.
     let passthrough_namespaces = passthrough_namespaces
         .iter()
         .copied()
@@ -84,6 +89,8 @@ fn render_phase_template(
         .render(context)
         .with_context(|| format!("Failed to render {} template", template_name))?;
 
+    // Put the original later-phase `{{ ... }}` expressions back after the
+    // current phase has rendered its owned variables.
     Ok(restore_passthrough_variables(rendered, &preserved))
 }
 
