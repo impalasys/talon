@@ -13,3 +13,4 @@ pub mod native_tools;
 pub mod sandbox;
 pub mod sessions;
 pub mod skills;
+pub mod telemetry;
