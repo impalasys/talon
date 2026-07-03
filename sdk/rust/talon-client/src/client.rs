@@ -277,14 +277,8 @@ mod tests {
 
     #[test]
     fn endpoint_url_keeps_local_gateways_on_http() {
-        assert_eq!(
-            endpoint_url("localhost:50051"),
-            "http://localhost:50051"
-        );
-        assert_eq!(
-            endpoint_url("127.0.0.1:50051"),
-            "http://127.0.0.1:50051"
-        );
+        assert_eq!(endpoint_url("localhost:50051"), "http://localhost:50051");
+        assert_eq!(endpoint_url("127.0.0.1:50051"), "http://127.0.0.1:50051");
         assert_eq!(endpoint_url("[::1]:50051"), "http://[::1]:50051");
     }
 
