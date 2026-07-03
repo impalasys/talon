@@ -12,6 +12,7 @@ use crate::harness::llm::{
 };
 use crate::harness::mcp::{call_tool_for_config, McpConnectionConfig};
 use crate::harness::skills::registry::ToolRegistry;
+use crate::harness::telemetry;
 use anyhow::Result;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -20,7 +21,9 @@ use serde_json::Value;
 use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Instant;
 use tokio_util::sync::CancellationToken;
+use tracing::Instrument;
 
 const DEFAULT_EXECUTION_TURN_LIMIT: usize = 25;
 const LLM_PREFLIGHT_METRICS: &[&str] = &[
@@ -469,12 +472,25 @@ impl AgentExecutor {
     /// Run the prepared execution context to completion, emitting events to
     /// `sink` along the way.
     /// Returns the final reply text.
-    #[tracing::instrument(
-        name = "AgentExecutor.execute",
-        skip_all,
-        fields(agent_id = %context.agent_id, history_len = context.history.len())
-    )]
     pub async fn execute(
+        &self,
+        context: &mut ExecutionContext,
+        sink: &dyn ExecutionSink,
+        cancellation_token: Option<&CancellationToken>,
+    ) -> Result<String> {
+        let span = telemetry::agent_span(&self.namespace, &self.agent_id, &self.session_id);
+        let instrument_span = span.clone();
+        let result = self
+            .execute_inner(context, sink, cancellation_token)
+            .instrument(instrument_span)
+            .await;
+        if let Err(err) = &result {
+            telemetry::record_error(&span, err);
+        }
+        result
+    }
+
+    async fn execute_inner(
         &self,
         context: &mut ExecutionContext,
         sink: &dyn ExecutionSink,
@@ -508,20 +524,45 @@ impl AgentExecutor {
                 chrono::Utc::now().timestamp(),
             )
             .await?;
-            let mut stream = self
+            let request = ChatRequest {
+                messages,
+                tools,
+                thinking,
+            };
+            let reasoning_level = request
+                .thinking
+                .as_ref()
+                .map(|thinking| thinking.effort.as_str());
+            let llm_span = telemetry::chat_span(
+                &self.namespace,
+                &self.agent_id,
+                &self.session_id,
+                &self.llm_provider_key,
+                &self.llm_model,
+                &request,
+                reasoning_level,
+            );
+            let llm_started_at = Instant::now();
+            let mut saw_first_chunk = false;
+            let mut stream = match self
                 .llm
-                .stream_chat_completion(ChatRequest {
-                    messages,
-                    tools,
-                    thinking,
-                })
-                .await?;
+                .stream_chat_completion(request)
+                .instrument(llm_span.clone())
+                .await
+            {
+                Ok(stream) => stream,
+                Err(err) => {
+                    telemetry::record_error(&llm_span, &err);
+                    return Err(err);
+                }
+            };
 
             loop {
                 let next_chunk = if let Some(token) = cancellation_token {
                     tokio::select! {
                         _ = token.cancelled() => {
                             tracing::info!(agent_id = %context.agent_id, "Generation interrupted by user");
+                            telemetry::record_chat_output(&llm_span, &final_reply, &[]);
                             context.push(LoopMessage::text("assistant", final_reply.clone()));
                             sink.on_done(&final_reply).await;
                             return Ok(final_reply);
@@ -536,7 +577,23 @@ impl AgentExecutor {
                     break;
                 };
 
-                match chunk? {
+                let chunk = match chunk {
+                    Ok(chunk) => chunk,
+                    Err(err) => {
+                        telemetry::record_error(&llm_span, &err);
+                        return Err(err);
+                    }
+                };
+
+                if !saw_first_chunk {
+                    saw_first_chunk = true;
+                    telemetry::record_time_to_first_chunk(
+                        &llm_span,
+                        llm_started_at.elapsed().as_secs_f64(),
+                    );
+                }
+
+                match chunk {
                     ChatStreamEvent {
                         event: Some(chat_stream_event::Event::TextDelta(token)),
                     } => {
@@ -589,6 +646,14 @@ impl AgentExecutor {
                 tool_calls: tool_calls.clone(),
                 usage: final_usage,
             };
+            telemetry::record_chat_output(
+                &llm_span,
+                &llm_response.content,
+                &llm_response.tool_calls,
+            );
+            if let Some(usage) = llm_response.usage.as_ref() {
+                telemetry::record_usage(&llm_span, usage);
+            }
             sink.on_llm_response(&llm_response).await?;
             crate::control::usage::charge_namespace_usage(
                 self.control_plane.kv.as_ref(),
@@ -610,6 +675,14 @@ impl AgentExecutor {
             if !tool_calls.is_empty() {
                 for tool in &tool_calls {
                     let input = Self::tool_call_input(tool);
+                    let tool_type = self.tool_type(&tool.name).await;
+                    let tool_span = telemetry::tool_span(
+                        &self.namespace,
+                        &self.agent_id,
+                        &self.session_id,
+                        tool,
+                        tool_type,
+                    );
                     crate::control::usage::check_namespace_usage(
                         self.control_plane.kv.as_ref(),
                         &self.usage_subject(),
@@ -618,7 +691,11 @@ impl AgentExecutor {
                     )
                     .await?;
                     sink.on_tool_call(&tool.id, &tool.name, &input).await;
-                    let result = self.execute_tool_call_result(tool).await;
+                    let result = self
+                        .execute_tool_call_result(tool)
+                        .instrument(tool_span.clone())
+                        .await;
+                    telemetry::record_tool_result(&tool_span, &result);
                     sink.on_tool_result_recorded(&tool.id, &tool.name, &result)
                         .await?;
                     crate::control::usage::charge_namespace_usage(
@@ -650,6 +727,24 @@ impl AgentExecutor {
 
     pub fn tool_call_input(tool: &ToolCall) -> Value {
         serde_json::from_str(&tool.arguments).unwrap_or(Value::Null)
+    }
+
+    async fn tool_type(&self, name: &str) -> &'static str {
+        if self.mcp_tools.contains_key(name) {
+            "mcp"
+        } else if matches!(
+            name,
+            crate::harness::knowledge::KNOWLEDGE_WRITE_TOOL
+                | crate::harness::knowledge::KNOWLEDGE_SEARCH_TOOL
+                | crate::harness::knowledge::KNOWLEDGE_GET_TOOL
+                | crate::harness::knowledge::KNOWLEDGE_LIST_TOOL
+        ) {
+            "retrieval"
+        } else if self.registry.read().await.get_tool(name).is_some() {
+            "native"
+        } else {
+            "unknown"
+        }
     }
 
     fn usage_subject(&self) -> crate::control::usage::UsageSubject {
