@@ -33,7 +33,7 @@ impl Default for ContextBudget {
         Self {
             total_chars: env_usize("TALON_LLM_HISTORY_MAX_CHARS", 96_000),
             max_message_chars: env_usize("TALON_LLM_MESSAGE_MAX_CHARS", 12_000),
-            max_tool_result_chars: env_usize("TALON_LLM_TOOL_RESULT_MAX_CHARS", 8_000),
+            max_tool_result_chars: env_usize("TALON_LLM_TOOL_RESULT_MAX_CHARS", 128_000),
             max_tool_argument_chars: env_usize("TALON_LLM_TOOL_ARGUMENT_MAX_CHARS", 4_000),
             max_json_string_chars: env_usize("TALON_LLM_JSON_STRING_MAX_CHARS", 512),
             max_json_object_entries: env_usize("TALON_LLM_JSON_OBJECT_MAX_ENTRIES", 24),

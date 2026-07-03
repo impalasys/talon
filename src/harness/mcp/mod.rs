@@ -59,7 +59,7 @@ const MCP_JSON_MIME_TYPE: &str = "application/json";
 const MCP_POST_ACCEPT_HEADER: &str = "text/event-stream, application/json";
 const MCP_HEADER_LAST_EVENT_ID: &str = "Last-Event-ID";
 const MCP_HEADER_SESSION_ID: &str = "Mcp-Session-Id";
-const MCP_TOOL_RESULT_MAX_CHARS: usize = 30_000;
+const MCP_TOOL_RESULT_MAX_CHARS: usize = 1_000_000;
 
 #[derive(Debug, Clone)]
 pub struct McpConnectionConfig {

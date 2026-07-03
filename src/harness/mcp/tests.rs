@@ -307,11 +307,11 @@ mod tests {
 
     #[test]
     fn test_format_tool_result_truncates_large_composite_output() {
-        let large_text = "a".repeat(31_000);
+        let large_text = "a".repeat(1_001_000);
         let result = format_tool_result(&[Content::text(large_text)], None, json!([])).unwrap();
 
         assert!(result.contains("...[CONTENT TRUNCATED DUE TO LENGTH LIMIT]"));
-        assert!(result.len() <= 30_000 + "\n\n...[CONTENT TRUNCATED DUE TO LENGTH LIMIT]".len());
+        assert!(result.len() <= 1_000_000 + "\n\n...[CONTENT TRUNCATED DUE TO LENGTH LIMIT]".len());
     }
 
     #[test]
