@@ -335,21 +335,68 @@ function messageImageParts(
   });
 }
 
+function coalesceAssistantTimelineForDisplay(timeline: AssistantTimelineItem[]) {
+  const nextTimeline: AssistantTimelineItem[] = [];
+  let latestUsage: Extract<AssistantTimelineItem, { type: "usage" }> | null = null;
+
+  for (const item of timeline) {
+    if (item.type === "usage") {
+      latestUsage = item;
+      continue;
+    }
+
+    if (item.type === "text") {
+      const lastItem = nextTimeline.at(-1);
+      if (lastItem?.type === "text") {
+        nextTimeline[nextTimeline.length - 1] = {
+          type: "text",
+          text: `${lastItem.text}${item.text}`,
+        };
+      } else {
+        nextTimeline.push(item);
+      }
+      continue;
+    }
+
+    if (item.type === "reasoning") {
+      const lastItem = nextTimeline.at(-1);
+      if (lastItem?.type === "reasoning") {
+        nextTimeline[nextTimeline.length - 1] = {
+          type: "reasoning",
+          text: `${lastItem.text}${item.text}`,
+        };
+      } else {
+        nextTimeline.push(item);
+      }
+      continue;
+    }
+
+    nextTimeline.push(item);
+  }
+
+  if (latestUsage) {
+    nextTimeline.push(latestUsage);
+  }
+
+  return nextTimeline;
+}
+
 function splitFinalAssistantTimeline(timeline: AssistantTimelineItem[]) {
+  const displayTimeline = coalesceAssistantTimelineForDisplay(timeline);
   let finalTextIndex = -1;
-  for (let index = timeline.length - 1; index >= 0; index -= 1) {
-    const item = timeline[index];
+  for (let index = displayTimeline.length - 1; index >= 0; index -= 1) {
+    const item = displayTimeline[index];
     if (item?.type === "text" && item.text.trim().length > 0) {
       finalTextIndex = index;
       break;
     }
   }
   if (finalTextIndex < 0) {
-    return { workTimeline: timeline, finalTimeline: [] };
+    return { workTimeline: displayTimeline, finalTimeline: [] };
   }
   return {
-    workTimeline: timeline.filter((_, index) => index !== finalTextIndex),
-    finalTimeline: [timeline[finalTextIndex]],
+    workTimeline: displayTimeline.filter((_, index) => index !== finalTextIndex),
+    finalTimeline: [displayTimeline[finalTextIndex]],
   };
 }
 
@@ -673,7 +720,7 @@ export function TalonSession({
     return messages.map((message, messageIndex) => {
       const content = getMessageContent(message);
       const images = messageImageParts(message, objectUrlForRef);
-      const timeline = getMessageAssistantTimeline(message);
+      const timeline = coalesceAssistantTimelineForDisplay(getMessageAssistantTimeline(message));
       const reasoningContent = getMessageReasoningContent(message);
       const usage = getMessageUsage(message);
       const usageSummary = formatUsageSummary(usage);
@@ -773,11 +820,11 @@ export function TalonSession({
                 <div style={{ borderTop: border("var(--talon-chat-divider, rgba(212,212,216,0.7))") }} />
 
                 {isWorkExpanded ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 12, color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12 }}>
                     {workTimeline.map((item, index) => {
                       if (item.type === "text") {
                         return (
-                          <div key={`${message.id}-work-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55 }}>
+                          <div key={`${message.id}-work-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-assistant-fg, inherit)" }}>
                             <MarkdownMessage>{item.text}</MarkdownMessage>
                           </div>
                         );
@@ -785,7 +832,7 @@ export function TalonSession({
 
                       if (item.type === "reasoning") {
                         return (
-                          <div key={`${message.id}-work-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55 }}>
+                          <div key={`${message.id}-work-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
                             {item.text}
                           </div>
                         );
@@ -817,7 +864,7 @@ export function TalonSession({
                               border: "none",
                               background: "transparent",
                               padding: "0.25rem 0",
-                              color: "inherit",
+                              color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))",
                               cursor: "pointer",
                               textAlign: "left",
                             }}
@@ -863,7 +910,7 @@ export function TalonSession({
                     })}
 
                     {!workHasReasoning && reasoningContent ? (
-                      <div style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55 }}>
+                      <div style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
                         {reasoningContent}
                       </div>
                     ) : null}

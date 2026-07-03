@@ -320,6 +320,93 @@ describe('TalonCopilot', () => {
     expect(await screen.findByText('Hello from history')).toBeInTheDocument();
   });
 
+  it('renders finalized work as typed timeline events instead of muting assistant text', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-work',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'assistant-work',
+              role: 'ROLE_ASSISTANT',
+              parts: [
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_REASONING',
+                  content: 'I should inspect the available tools first. ',
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: "I'll work on",
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_USAGE',
+                  payloadJson: JSON.stringify({
+                    reasoning_tokens: 141,
+                    output_tokens: 333,
+                    input_tokens: 726,
+                    total_tokens: 1059,
+                  }),
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: ' retrieving that email.',
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                  toolCallId: 'call-1',
+                  toolName: 'knowledge_search',
+                  payloadJson: JSON.stringify({
+                    tool_call_id: 'call-1',
+                    input: { query: 'inspection report' },
+                  }),
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                  toolCallId: 'call-1',
+                  toolName: 'knowledge_search',
+                  payloadJson: JSON.stringify({
+                    tool_call_id: 'call-1',
+                    output: { matches: 0 },
+                  }),
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: 'Final answer.',
+                },
+              ],
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+      getSession: jest.fn(),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-work"
+      />,
+    );
+
+    expect(await screen.findByText('Final answer.')).toBeInTheDocument();
+    expect(screen.queryByText("I'll work on")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
+
+    expect(await screen.findByText("I'll work on retrieving that email.")).toBeInTheDocument();
+    expect(screen.getByText('I should inspect the available tools first.')).toBeInTheDocument();
+    expect(screen.getByText(/Called/)).toHaveTextContent('knowledge_search');
+    expect(screen.getAllByText('141 reasoning • 333 output • 726 input • 1059 total')).toHaveLength(1);
+  });
+
   it('renders reloaded image object refs from session history', async () => {
     const gatewayClient = {
       createSession: jest.fn(),

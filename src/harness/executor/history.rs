@@ -208,18 +208,29 @@ fn flush_tool_batch(
         return;
     }
 
-    let mut matched_calls = Vec::new();
-    let mut matched_results = Vec::new();
-    let results_by_id = tool_results
+    let result_ids = tool_results
+        .iter()
+        .filter_map(|result| result.tool_call_id.as_deref())
+        .map(str::to_string)
+        .collect::<std::collections::HashSet<_>>();
+    let matched_calls = tool_calls
+        .iter()
+        .filter(|call| result_ids.contains(&call.id))
+        .cloned()
+        .collect::<Vec<_>>();
+    let matched_call_ids = matched_calls
+        .iter()
+        .map(|call| call.id.clone())
+        .collect::<std::collections::HashSet<_>>();
+    let matched_results = tool_results
         .drain(..)
-        .filter_map(|result| result.tool_call_id.clone().map(|id| (id, result)))
-        .collect::<std::collections::HashMap<_, _>>();
-    for call in tool_calls.iter() {
-        if let Some(result) = results_by_id.get(&call.id) {
-            matched_calls.push(call.clone());
-            matched_results.push(result.clone());
-        }
-    }
+        .filter(|result| {
+            result
+                .tool_call_id
+                .as_deref()
+                .is_some_and(|id| matched_call_ids.contains(id))
+        })
+        .collect::<Vec<_>>();
 
     if matched_calls.is_empty() {
         tool_calls.clear();
@@ -545,6 +556,39 @@ mod tests {
         assert_eq!(history[1].text_content(), "result-a");
         assert_eq!(history[2].tool_call_id.as_deref(), Some("call-b"));
         assert_eq!(history[2].text_content(), "result-b");
+        assert_eq!(history[3].role, "assistant");
+        assert_eq!(history[3].text_content(), "done.");
+    }
+
+    #[tokio::test]
+    async fn assistant_session_message_preserves_tool_result_order_within_batch() {
+        let store = InMemoryObjectStore::default();
+        let message = assistant_message(vec![
+            session_text_part("000001", "checking. "),
+            tool_call_part("call-a", "search", serde_json::json!({ "q": "a" })),
+            tool_call_part("call-b", "fetch", serde_json::json!({ "id": "b" })),
+            tool_result_part_for_call("call-b", "fetch", "result-b"),
+            tool_result_part_for_call("call-a", "search", "result-a"),
+            session_text_part("000006", "done."),
+        ]);
+
+        let history = session_message_to_loop_messages(&message, &store)
+            .await
+            .unwrap();
+
+        assert_eq!(history.len(), 4);
+        let calls = history[0].tool_calls.as_ref().unwrap();
+        assert_eq!(
+            calls
+                .iter()
+                .map(|call| call.id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["call-a", "call-b"]
+        );
+        assert_eq!(history[1].tool_call_id.as_deref(), Some("call-b"));
+        assert_eq!(history[1].text_content(), "result-b");
+        assert_eq!(history[2].tool_call_id.as_deref(), Some("call-a"));
+        assert_eq!(history[2].text_content(), "result-a");
         assert_eq!(history[3].role, "assistant");
         assert_eq!(history[3].text_content(), "done.");
     }
