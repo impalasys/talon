@@ -575,15 +575,6 @@
   --copilot-attachment-menu-fg: #0f172a;
   --copilot-attachment-menu-hover-bg: rgba(15, 23, 42, 0.06);
   --copilot-attachment-menu-icon-fg: #334155;
-  --sightline-expanded-composer-bg: rgba(255, 255, 255, 0.98);
-  --sightline-expanded-composer-border: rgba(148, 163, 184, 0.34);
-  --sightline-expanded-composer-shadow:
-    0 28px 76px rgba(15, 23, 42, 0.12),
-    0 2px 8px rgba(15, 23, 42, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  --sightline-expanded-composer-placeholder: rgba(100, 116, 139, 0.86);
-  --sightline-expanded-composer-control-bg: #eef2f7;
-  --sightline-expanded-composer-control-fg: #7c8798;
 }
 
 .dark {
@@ -693,26 +684,6 @@
   --copilot-attachment-menu-fg: #e6edf3;
   --copilot-attachment-menu-hover-bg: rgba(148, 163, 184, 0.14);
   --copilot-attachment-menu-icon-fg: #e6edf3;
-  --sightline-expanded-composer-bg: rgba(15, 23, 42, 0.94);
-  --sightline-expanded-composer-border: rgba(148, 163, 184, 0.32);
-  --sightline-expanded-composer-shadow:
-    0 28px 76px rgba(0, 0, 0, 0.4),
-    0 2px 8px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  --sightline-expanded-composer-placeholder: rgba(148, 163, 184, 0.76);
-  --sightline-expanded-composer-control-bg: rgba(226, 232, 240, 0.12);
-  --sightline-expanded-composer-control-fg: rgba(226, 232, 240, 0.72);
-}
-
-.sightline-expanded-session-input {
-  --talon-chat-composer-max-width: min(1792px, calc(100vw - 3rem));
-  --copilot-input-radius: 999px;
-  --copilot-input-bg: var(--sightline-expanded-composer-bg);
-  --copilot-input-border: var(--sightline-expanded-composer-border);
-  --copilot-input-shadow: var(--sightline-expanded-composer-shadow);
-  --copilot-input-placeholder: var(--sightline-expanded-composer-placeholder);
-  --copilot-control-bg: var(--sightline-expanded-composer-control-bg);
-  --copilot-control-fg: var(--sightline-expanded-composer-control-fg);
 }
 
 html,
