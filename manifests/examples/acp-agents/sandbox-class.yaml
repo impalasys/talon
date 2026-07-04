@@ -8,5 +8,5 @@ metadata:
 spec:
   provider: docker
   providerConfig:
-    image: talon-codex-acp:local
+    image: talon-acp-harness:local
   credentials: {}

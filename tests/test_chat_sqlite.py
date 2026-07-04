@@ -460,7 +460,27 @@ def wait_for_resources(stub, namespace, kind, expected_names):
     )
 
 
-def ensure_docker_codex_image(image):
+def yaml_scalar(value):
+    return json.dumps(value)
+
+
+def yaml_list_snippet(values, indent=10):
+    prefix = " " * indent
+    if not values:
+        return f"{prefix}[]"
+    return "\n".join(f"{prefix}- {yaml_scalar(value)}" for value in values)
+
+
+def yaml_map_snippet(values, indent=10):
+    prefix = " " * indent
+    if not values:
+        return f"{prefix}{{}}"
+    return "\n".join(
+        f"{prefix}{key}: {yaml_scalar(value)}" for key, value in values.items()
+    )
+
+
+def ensure_docker_acp_image(image):
     if not shutil.which("docker"):
         pytest.skip("docker is not installed")
     inspect = subprocess.run(
@@ -471,7 +491,12 @@ def ensure_docker_codex_image(image):
     )
     if inspect.returncode == 0:
         return
-    if image != "talon-zed-codex-acp:local":
+    local_images = {
+        "talon-acp-harness:local",
+        "talon-codex-acp:local",
+        "talon-zed-codex-acp:local",
+    }
+    if image not in local_images:
         pytest.skip(f"Docker image {image} is not available locally")
 
     dockerfile = conftest.REPO_ROOT / "dockerfiles" / "codex-acp.Dockerfile"
@@ -491,6 +516,93 @@ def ensure_docker_codex_image(image):
     )
     assert build.returncode == 0, (
         f"failed to build {image}\nstdout:\n{build.stdout}\nstderr:\n{build.stderr}"
+    )
+
+
+def live_acp_e2e_enabled():
+    return (
+        os.environ.get("TALON_ACP_DOCKER_E2E") == "1"
+        or os.environ.get("TALON_CODEX_DOCKER_E2E") == "1"
+    )
+
+
+def live_acp_harness_config():
+    dotenv = conftest.load_repo_dotenv_values()
+    harness = os.environ.get("TALON_ACP_E2E_HARNESS", "codex")
+    harness = harness.strip().lower().replace("_", "-")
+    if harness in {"claude", "claude-code-acp"}:
+        harness = "claude-code"
+    elif harness in {"open-code", "opencode-acp", "opencode-ai"}:
+        harness = "opencode"
+    elif harness == "codex-acp":
+        harness = "codex"
+
+    def credential(*keys):
+        for key in keys:
+            value = os.environ.get(key) or dotenv.get(key)
+            if value:
+                return key, value
+        return None, None
+
+    image = os.environ.get("TALON_ACP_E2E_IMAGE")
+    if harness == "codex":
+        _, value = credential("CODEX_API_KEY", "OPENAI_API_KEY")
+        if not value:
+            pytest.skip("CODEX_API_KEY or OPENAI_API_KEY is not available")
+        return {
+            "harness": harness,
+            "label": "Codex",
+            "command": "codex-acp",
+            "args": [],
+            "env": {
+                "OPENAI_API_KEY": value,
+                "CODEX_API_KEY": value,
+            },
+            "image": image
+            or os.environ.get("TALON_CODEX_ACP_IMAGE")
+            or "talon-acp-harness:local",
+            "marker": "TALON_CODEX_ACP_CODE_OK",
+        }
+    if harness == "claude-code":
+        _, value = credential("ANTHROPIC_API_KEY")
+        if not value:
+            pytest.skip("ANTHROPIC_API_KEY is not available")
+        return {
+            "harness": harness,
+            "label": "Claude Code",
+            "command": "claude-code-acp",
+            "args": [],
+            "env": {"ANTHROPIC_API_KEY": value},
+            "image": image
+            or os.environ.get("TALON_CLAUDE_CODE_ACP_IMAGE")
+            or "talon-acp-harness:local",
+            "marker": "TALON_CLAUDE_CODE_ACP_CODE_OK",
+        }
+    if harness == "opencode":
+        key, value = credential(
+            "OPENCODE_API_KEY",
+            "ANTHROPIC_API_KEY",
+            "OPENAI_API_KEY",
+            "GOOGLE_AI_API_KEY",
+            "GOOGLE_GENERATIVE_AI_API_KEY",
+        )
+        if not value:
+            pytest.skip(
+                "OPENCODE_API_KEY or a supported provider API key is not available"
+            )
+        return {
+            "harness": harness,
+            "label": "OpenCode",
+            "command": "opencode",
+            "args": ["acp"],
+            "env": {key: value},
+            "image": image
+            or os.environ.get("TALON_OPENCODE_ACP_IMAGE")
+            or "talon-acp-harness:local",
+            "marker": "TALON_OPENCODE_ACP_CODE_OK",
+        }
+    pytest.skip(
+        "TALON_ACP_E2E_HARNESS must be one of codex, claude-code, or opencode"
     )
 
 
@@ -742,37 +854,39 @@ def test_cli_apply_acp_deployment_starts_session_sqlite_local_socket(
     assert process["phase"] == "Succeeded"
 
 
-def test_cli_apply_zed_codex_acp_deployment_runs_code_in_sandbox_sqlite_local_socket(
+def test_cli_apply_live_acp_deployment_runs_code_in_sandbox_sqlite_local_socket(
     sqlite_test_grpc_port,
 ):
-    if os.environ.get("TALON_CODEX_DOCKER_E2E") != "1":
-        pytest.skip("set TALON_CODEX_DOCKER_E2E=1 to run the live Zed Codex ACP e2e")
-    dotenv = conftest.load_repo_dotenv_values()
-    openai_api_key = os.environ.get("OPENAI_API_KEY") or dotenv.get("OPENAI_API_KEY")
-    if not openai_api_key:
-        pytest.skip("OPENAI_API_KEY is not available in environment or repo .env")
-
-    image = os.environ.get("TALON_CODEX_ACP_IMAGE", "talon-zed-codex-acp:local")
-    ensure_docker_codex_image(image)
+    if not live_acp_e2e_enabled():
+        pytest.skip(
+            "set TALON_ACP_DOCKER_E2E=1 to run the live ACP harness Docker e2e"
+        )
+    harness = live_acp_harness_config()
+    ensure_docker_acp_image(harness["image"])
 
     cli = cli_for_grpc_port(sqlite_test_grpc_port)
     suffix = uuid.uuid4().hex[:8]
-    source_ns = f"zed-codex-customers-{suffix}"
+    harness_slug = harness["harness"].replace("-", "_")
+    source_ns = f"{harness['harness']}-customers-{suffix}"
     target_ns = f"{source_ns}:acme"
-    deployment_name = f"zed-codex-company-builder-{suffix}"
+    deployment_name = f"{harness['harness']}-company-builder-{suffix}"
+    workspace_file = f"/workspace/{harness_slug}_e2e.py"
     variables = acp_vars(
         suffix,
         source_ns,
         target_ns,
         deployment_name,
-        docker_image=image,
-        openai_api_key=openai_api_key,
+        docker_image=harness["image"],
+        acp_command=harness["command"],
+        acp_args_yaml=yaml_list_snippet(harness["args"]),
+        acp_env_yaml=yaml_map_snippet(harness["env"]),
+        acp_harness_label=harness["label"],
     )
     apply_acp_stack(
         cli,
         [
             "docker-sandbox-class.yaml",
-            "zed-codex-agent.template.yaml",
+            "acp-harness-agent.template.yaml",
             "docker-coding-sandbox-policy.template.yaml",
             "target-namespace.yaml",
             "deployment.yaml",
@@ -792,9 +906,12 @@ def test_cli_apply_zed_codex_acp_deployment_runs_code_in_sandbox_sqlite_local_so
     rendered_agent = next(
         resource for resource in agents if resource["metadata"]["name"] == "coding"
     )
-    assert rendered_agent["spec"]["runtime"]["acp"]["command"] == "codex-acp"
-    assert rendered_agent["spec"]["runtime"]["acp"]["cwd"] == "/workspace"
-    assert rendered_agent["spec"]["runtime"]["acp"]["env"]["CODEX_API_KEY"] == openai_api_key
+    rendered_acp = rendered_agent["spec"]["runtime"]["acp"]
+    assert rendered_acp["command"] == harness["command"]
+    assert rendered_acp.get("args", []) == harness["args"]
+    assert rendered_acp["cwd"] == "/workspace"
+    for key, value in harness["env"].items():
+        assert rendered_acp["env"][key] == value
     rendered_policy = next(
         resource for resource in policies if resource["metadata"]["name"] == "coding"
     )
@@ -808,11 +925,12 @@ def test_cli_apply_zed_codex_acp_deployment_runs_code_in_sandbox_sqlite_local_so
         "coding",
         session_id,
         (
-            "Create /workspace/zed_codex_e2e.py with a complete Python program that defines "
+            f"Create {workspace_file} with a complete Python program that defines "
             "a function named talon_value, asserts talon_value() == 42, and prints exactly "
-            "TALON_ZED_CODEX_CODE_OK. Then run python3 /workspace/zed_codex_e2e.py. "
-            "End your final answer with TALON_ZED_CODEX_CODE_OK."
+            f"{harness['marker']}. Then run python3 {workspace_file}. "
+            f"End your final answer with {harness['marker']}."
         ),
+        timeout=300,
     )
 
     completed = e2e.wait_for_session_text(
@@ -820,12 +938,12 @@ def test_cli_apply_zed_codex_acp_deployment_runs_code_in_sandbox_sqlite_local_so
         target_ns,
         "coding",
         session_id,
-        "TALON_ZED_CODEX_CODE_OK",
+        harness["marker"],
         attempts=240,
     )
     assistant = e2e.assistant_messages(completed)[-1]
     assistant_text = e2e.message_text(assistant)
-    assert "TALON_ZED_CODEX_CODE_OK" in assistant_text
+    assert harness["marker"] in assistant_text
 
     sandbox = wait_for_cli_sandbox(cli, target_ns)
     sandbox_status = sandbox["status"]
@@ -841,7 +959,7 @@ def test_cli_apply_zed_codex_acp_deployment_runs_code_in_sandbox_sqlite_local_so
             container_id,
             "sh",
             "-lc",
-            "cat /workspace/zed_codex_e2e.py && printf '\\n---\\n' && python3 /workspace/zed_codex_e2e.py",
+            f"cat {workspace_file} && printf '\\n---\\n' && python3 {workspace_file}",
         ],
         text=True,
         capture_output=True,
@@ -852,8 +970,8 @@ def test_cli_apply_zed_codex_acp_deployment_runs_code_in_sandbox_sqlite_local_so
             f"failed to inspect Docker sandbox\nstdout:\n{inspect.stdout}\nstderr:\n{inspect.stderr}"
         )
         assert "def talon_value" in inspect.stdout
-        assert "TALON_ZED_CODEX_CODE_OK" in inspect.stdout
-        assert inspect.stdout.rstrip().endswith("TALON_ZED_CODEX_CODE_OK")
+        assert harness["marker"] in inspect.stdout
+        assert inspect.stdout.rstrip().endswith(harness["marker"])
     finally:
         subprocess.run(
             ["docker", "rm", "-f", container_id],

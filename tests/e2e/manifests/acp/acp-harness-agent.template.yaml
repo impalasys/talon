@@ -11,18 +11,18 @@ spec:
     runtime:
       kind: acp
       acp:
-        command: codex-acp
-        args: []
+        command: "{{ vars.acp_command }}"
+        args:
+{{ vars.acp_args_yaml }}
         cwd: /workspace
         sandboxPolicyRef: coding
         persistSession: false
         env:
-          OPENAI_API_KEY: "{{ vars.openai_api_key }}"
-          CODEX_API_KEY: "{{ vars.openai_api_key }}"
+{{ vars.acp_env_yaml }}
         permissionPolicy:
           default: allow
           filesystemWrite: allow
           filesystemRead: allow
           terminal: allow
     systemPrompt: |
-      You are the upstream Zed Codex ACP coding agent for {% raw %}{{ namespace.name }}{% endraw %}.
+      You are the {{ vars.acp_harness_label }} ACP coding agent for {% raw %}{{ namespace.name }}{% endraw %}.

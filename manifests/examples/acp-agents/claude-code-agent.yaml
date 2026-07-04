@@ -1,7 +1,7 @@
 apiVersion: talon.impalasys.com/v1
 kind: Agent
 metadata:
-  name: coding
+  name: claude-code
   namespace: Example
   labels:
     example: acp-agents
@@ -9,7 +9,7 @@ spec:
   runtime:
     kind: acp
     acp:
-      harnessRef: codex
+      harnessRef: claude-code
       cwd: /workspace
       sandboxPolicyRef: coding
       persistSession: true
@@ -19,6 +19,6 @@ spec:
         filesystemWrite: ask
         terminal: ask
   systemPrompt: |
-    You are the ACP-backed coding agent for the Example namespace.
+    You are the Claude Code ACP-backed coding agent for the Example namespace.
     Work inside /workspace, explain meaningful file changes, and ask before
     taking actions that require elevated permission.
