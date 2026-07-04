@@ -249,31 +249,27 @@ struct E2bHandle {
 
 impl E2bHandle {
     fn parse(backend_id: &str) -> Result<Self> {
-        let parts = backend_id.split('|').collect::<Vec<_>>();
+        let mut parts = backend_id.split('|');
         let sandbox_id = parts
-            .first()
-            .copied()
+            .next()
             .filter(|value| !value.trim().is_empty())
             .ok_or_else(|| anyhow!("E2B backend id missing sandbox id"))?;
-        let access_token = parts.get(1).copied().unwrap_or_default();
+        let access_token = parts.next().unwrap_or_default();
         let sandbox_base_url = parts
-            .get(2)
-            .copied()
+            .next()
             .filter(|value| !value.trim().is_empty())
             .unwrap_or(DEFAULT_E2B_SANDBOX_BASE_URL);
         let api_base_url = parts
-            .get(3)
-            .copied()
+            .next()
             .filter(|value| !value.trim().is_empty())
             .unwrap_or(DEFAULT_E2B_API_BASE_URL)
             .trim_end_matches('/');
         let api_key_env = parts
-            .get(4)
-            .copied()
+            .next()
             .filter(|value| !value.trim().is_empty())
             .unwrap_or("E2B_API_KEY");
         let envd_port = parts
-            .get(5)
+            .next()
             .and_then(|value| value.parse::<u16>().ok())
             .unwrap_or(DEFAULT_E2B_ENVD_PORT);
         Ok(Self {
@@ -320,7 +316,7 @@ async fn e2b_run_command(backend_id: &str, spec: ExecSpec) -> Result<ProcessOutp
     headers.insert("E2b-Sandbox-Id", HeaderValue::from_str(&handle.sandbox_id)?);
     headers.insert(
         "E2b-Sandbox-Port",
-        HeaderValue::from_str(&handle.envd_port.to_string())?,
+        HeaderValue::from(handle.envd_port as u64),
     );
     if !handle.access_token.is_empty() {
         headers.insert(
