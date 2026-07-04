@@ -123,16 +123,11 @@ impl AcpAgentRuntime {
             .await?;
         let sandbox_backend_id = sandbox_backend_id(&leased.sandbox)?;
 
-        let command = if self.acp.command.trim().is_empty() {
-            self.acp.harness_ref.clone()
-        } else {
-            self.acp.command.clone()
-        };
+        let (effective_acp, command) = effective_acp_runtime(&self.acp);
         if command.trim().is_empty() {
             let _ = lease_service.release(&leased.sandbox, &leased.token).await;
             return Err(anyhow!("ACP runtime requires command or harnessRef"));
         }
-        let effective_acp = effective_acp_runtime(&self.acp, &command);
 
         let mut child = acp_harness_command(&effective_acp, &sandbox_backend_id, &command)
             .stdin(std::process::Stdio::piped())
@@ -181,16 +176,19 @@ impl AcpAgentRuntime {
             }),
         )
         .await?;
-        let _ = read_response(&mut lines, 1).await?;
-        send_request(
-            &mut stdin,
-            2,
-            "authenticate",
-            json!({ "methodId": acp_auth_method(&effective_acp) }),
-        )
-        .await?;
-        let _ = read_optional_capability_response(&mut lines, 2).await?;
-        let mut open_request_id = 3;
+        let initialize = read_response(&mut lines, 1).await?;
+        let mut open_request_id = 2;
+        if let Some(method_id) = acp_auth_method(&effective_acp, &initialize.result) {
+            send_request(
+                &mut stdin,
+                open_request_id,
+                "authenticate",
+                json!({ "methodId": method_id }),
+            )
+            .await?;
+            let _ = read_optional_capability_response(&mut lines, open_request_id).await?;
+            open_request_id += 1;
+        }
         let mut opened_new_session = false;
         let open_response = if effective_acp.persist_session {
             send_request(
@@ -722,36 +720,156 @@ fn acp_harness_command(
     local
 }
 
-fn effective_acp_runtime(acp: &manifests::AcpRuntime, command: &str) -> manifests::AcpRuntime {
-    let mut effective = acp.clone();
-    let command_name = if command.trim().is_empty() {
-        effective.harness_ref.as_str()
-    } else {
-        command
-    };
-    if !command_name.contains("codex") && !effective.harness_ref.contains("codex") {
-        return effective;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum KnownAcpHarness {
+    Codex,
+    ClaudeCode,
+    OpenCode,
+}
+
+impl KnownAcpHarness {
+    fn command(self) -> &'static str {
+        match self {
+            Self::Codex => "codex-acp",
+            Self::ClaudeCode => "claude-code-acp",
+            Self::OpenCode => "opencode",
+        }
     }
 
-    for key in ["OPENAI_API_KEY", "CODEX_API_KEY"] {
-        if effective.env.contains_key(key) {
+    fn default_args(self) -> &'static [&'static str] {
+        match self {
+            Self::OpenCode => &["acp"],
+            Self::Codex | Self::ClaudeCode => &[],
+        }
+    }
+
+    fn env_keys(self) -> &'static [&'static str] {
+        match self {
+            Self::Codex => &["OPENAI_API_KEY", "CODEX_API_KEY"],
+            Self::ClaudeCode => &["ANTHROPIC_API_KEY"],
+            Self::OpenCode => &[
+                "OPENCODE_API_KEY",
+                "ANTHROPIC_API_KEY",
+                "OPENAI_API_KEY",
+                "GOOGLE_AI_API_KEY",
+                "GOOGLE_GENERATIVE_AI_API_KEY",
+            ],
+        }
+    }
+
+    fn auth_method_candidates(self, acp: &manifests::AcpRuntime) -> Vec<&'static str> {
+        match self {
+            Self::Codex => {
+                let mut candidates = Vec::new();
+                if acp.env.contains_key("CODEX_API_KEY") {
+                    candidates.push("codex-api-key");
+                }
+                if acp.env.contains_key("OPENAI_API_KEY") {
+                    candidates.push("openai-api-key");
+                }
+                candidates.extend(["codex-api-key", "openai-api-key"]);
+                candidates
+            }
+            Self::ClaudeCode => {
+                let mut candidates = Vec::new();
+                if acp.env.contains_key("ANTHROPIC_API_KEY") {
+                    candidates.push("anthropic-api-key");
+                    candidates.push("api-key");
+                }
+                candidates
+            }
+            Self::OpenCode => {
+                let mut candidates = Vec::new();
+                if acp.env.contains_key("OPENCODE_API_KEY") {
+                    candidates.push("opencode-api-key");
+                    candidates.push("api-key");
+                }
+                candidates
+            }
+        }
+    }
+}
+
+fn known_acp_harness(name: &str) -> Option<KnownAcpHarness> {
+    let normalized = name
+        .trim()
+        .trim_start_matches("@zed-industries/")
+        .trim_start_matches("@anthropic-ai/")
+        .to_ascii_lowercase()
+        .replace(['_', ' '], "-");
+    match normalized.as_str() {
+        "codex" | "codex-acp" => Some(KnownAcpHarness::Codex),
+        "claude" | "claude-code" | "claude-code-acp" => Some(KnownAcpHarness::ClaudeCode),
+        "opencode" | "opencode-ai" | "opencode-acp" | "open-code" | "open-code-acp" => {
+            Some(KnownAcpHarness::OpenCode)
+        }
+        _ => None,
+    }
+}
+
+fn effective_acp_runtime(acp: &manifests::AcpRuntime) -> (manifests::AcpRuntime, String) {
+    let mut effective = acp.clone();
+    let profile =
+        known_acp_harness(&effective.harness_ref).or_else(|| known_acp_harness(&effective.command));
+    let command = if effective.command.trim().is_empty() {
+        profile
+            .map(KnownAcpHarness::command)
+            .unwrap_or(effective.harness_ref.as_str())
+            .to_string()
+    } else {
+        effective.command.clone()
+    };
+
+    if let Some(profile) = profile {
+        let default_args = profile.default_args();
+        if !default_args.is_empty()
+            && !effective
+                .args
+                .iter()
+                .take(default_args.len())
+                .map(String::as_str)
+                .eq(default_args.iter().copied())
+        {
+            let mut args = default_args
+                .iter()
+                .map(|arg| (*arg).to_string())
+                .collect::<Vec<_>>();
+            args.extend(effective.args);
+            effective.args = args;
+        }
+        copy_env_from_process(&mut effective, profile.env_keys());
+    } else if command.contains("codex") || effective.harness_ref.contains("codex") {
+        copy_env_from_process(&mut effective, &["OPENAI_API_KEY", "CODEX_API_KEY"]);
+    }
+
+    if matches!(profile, Some(KnownAcpHarness::Codex))
+        || command.contains("codex")
+        || effective.harness_ref.contains("codex")
+    {
+        alias_openai_api_key_to_codex_key(&mut effective);
+    }
+    (effective, command)
+}
+
+fn copy_env_from_process(acp: &mut manifests::AcpRuntime, keys: &[&str]) {
+    for key in keys {
+        if acp.env.contains_key(*key) {
             continue;
         }
         if let Ok(value) = std::env::var(key) {
             if !value.is_empty() {
-                effective.env.insert(key.to_string(), value);
+                acp.env.insert((*key).to_string(), value);
             }
         }
     }
+}
 
-    if !effective.env.contains_key("CODEX_API_KEY") {
-        if let Some(openai_api_key) = effective.env.get("OPENAI_API_KEY").cloned() {
-            effective
-                .env
-                .insert("CODEX_API_KEY".to_string(), openai_api_key);
+fn alias_openai_api_key_to_codex_key(acp: &mut manifests::AcpRuntime) {
+    if !acp.env.contains_key("CODEX_API_KEY") {
+        if let Some(openai_api_key) = acp.env.get("OPENAI_API_KEY").cloned() {
+            acp.env.insert("CODEX_API_KEY".to_string(), openai_api_key);
         }
     }
-    effective
 }
 
 async fn send_request(
@@ -881,14 +999,62 @@ fn session_prompt_params(
     }))
 }
 
-fn acp_auth_method(acp: &manifests::AcpRuntime) -> &'static str {
-    if acp.env.contains_key("CODEX_API_KEY") {
-        "codex-api-key"
-    } else if acp.env.contains_key("OPENAI_API_KEY") {
-        "openai-api-key"
-    } else {
-        "codex-api-key"
+fn acp_auth_method(acp: &manifests::AcpRuntime, initialize_result: &Value) -> Option<String> {
+    let advertised = advertised_auth_methods(initialize_result);
+    let profile = known_acp_harness(&acp.harness_ref).or_else(|| known_acp_harness(&acp.command));
+    let candidates = profile
+        .map(|profile| profile.auth_method_candidates(acp))
+        .unwrap_or_else(|| {
+            let mut candidates = Vec::new();
+            if acp.env.contains_key("CODEX_API_KEY") {
+                candidates.push("codex-api-key");
+            }
+            if acp.env.contains_key("OPENAI_API_KEY") {
+                candidates.push("openai-api-key");
+            }
+            if acp.env.contains_key("ANTHROPIC_API_KEY") {
+                candidates.push("anthropic-api-key");
+            }
+            if acp.env.contains_key("OPENCODE_API_KEY") {
+                candidates.push("opencode-api-key");
+            }
+            candidates
+        });
+    if advertised.is_empty() {
+        if matches!(profile, Some(KnownAcpHarness::Codex))
+            || acp.command.contains("codex")
+            || acp.harness_ref.contains("codex")
+        {
+            return candidates.first().map(|candidate| (*candidate).to_string());
+        }
+        return None;
     }
+
+    for candidate in candidates {
+        if advertised.iter().any(|method| method == candidate) {
+            return Some(candidate.to_string());
+        }
+    }
+    (advertised.len() == 1).then(|| advertised[0].clone())
+}
+
+fn advertised_auth_methods(initialize_result: &Value) -> Vec<String> {
+    initialize_result
+        .get("authMethods")
+        .or_else(|| initialize_result.get("auth_methods"))
+        .and_then(|methods| methods.as_array())
+        .map(|methods| {
+            methods
+                .iter()
+                .filter_map(|method| {
+                    method
+                        .as_str()
+                        .or_else(|| method.get("id").and_then(|id| id.as_str()))
+                        .map(str::to_string)
+                })
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 fn acp_full_access_allowed(acp: &manifests::AcpRuntime) -> bool {
@@ -987,12 +1153,95 @@ mod tests {
             permission_policy: Default::default(),
         };
 
-        let effective = effective_acp_runtime(&acp, "codex-acp");
+        let (effective, command) = effective_acp_runtime(&acp);
 
+        assert_eq!(command, "codex-acp");
         assert_eq!(
             effective.env.get("CODEX_API_KEY").map(String::as_str),
             Some("test-openai-key")
         );
+    }
+
+    #[test]
+    fn claude_code_harness_ref_resolves_command_and_env() {
+        let acp = manifests::AcpRuntime {
+            harness_ref: "claude-code".to_string(),
+            command: String::new(),
+            args: Vec::new(),
+            cwd: "/workspace".to_string(),
+            sandbox_policy_ref: "coding".to_string(),
+            persist_session: false,
+            env: std::collections::HashMap::from([(
+                "ANTHROPIC_API_KEY".to_string(),
+                "test-anthropic-key".to_string(),
+            )]),
+            permission_policy: Default::default(),
+        };
+
+        let (effective, command) = effective_acp_runtime(&acp);
+
+        assert_eq!(command, "claude-code-acp");
+        assert!(effective.args.is_empty());
+        assert_eq!(
+            effective.env.get("ANTHROPIC_API_KEY").map(String::as_str),
+            Some("test-anthropic-key")
+        );
+    }
+
+    #[test]
+    fn opencode_harness_ref_resolves_command_and_acp_arg() {
+        let acp = manifests::AcpRuntime {
+            harness_ref: "opencode".to_string(),
+            command: String::new(),
+            args: Vec::new(),
+            cwd: "/workspace".to_string(),
+            sandbox_policy_ref: "coding".to_string(),
+            persist_session: false,
+            env: std::collections::HashMap::from([(
+                "OPENCODE_API_KEY".to_string(),
+                "test-opencode-key".to_string(),
+            )]),
+            permission_policy: Default::default(),
+        };
+
+        let (effective, command) = effective_acp_runtime(&acp);
+
+        assert_eq!(command, "opencode");
+        assert_eq!(effective.args, vec!["acp"]);
+        assert_eq!(
+            effective.env.get("OPENCODE_API_KEY").map(String::as_str),
+            Some("test-opencode-key")
+        );
+    }
+
+    #[test]
+    fn acp_auth_method_uses_advertised_methods() {
+        let acp = manifests::AcpRuntime {
+            harness_ref: "claude-code".to_string(),
+            command: String::new(),
+            args: Vec::new(),
+            cwd: "/workspace".to_string(),
+            sandbox_policy_ref: "coding".to_string(),
+            persist_session: false,
+            env: std::collections::HashMap::from([(
+                "ANTHROPIC_API_KEY".to_string(),
+                "test-anthropic-key".to_string(),
+            )]),
+            permission_policy: Default::default(),
+        };
+
+        let initialize_result = json!({
+            "authMethods": [
+                { "id": "login", "name": "Login" },
+                { "id": "anthropic-api-key", "name": "Anthropic API key" }
+            ]
+        });
+
+        assert_eq!(
+            acp_auth_method(&acp, &initialize_result).as_deref(),
+            Some("anthropic-api-key")
+        );
+        assert_eq!(acp_auth_method(&acp, &json!({})), None);
     }
 
     #[test]
@@ -1070,7 +1319,7 @@ mod tests {
         }
         load_dotenv_for_codex_smoke();
         let image = std::env::var("TALON_CODEX_ACP_IMAGE")
-            .unwrap_or_else(|_| "talon-zed-codex-acp:local".into());
+            .unwrap_or_else(|_| "talon-acp-harness:local".into());
         let platform = std::env::var("TALON_CODEX_ACP_PLATFORM").ok();
         let command =
             std::env::var("TALON_CODEX_ACP_COMMAND").unwrap_or_else(|_| "codex-acp".into());

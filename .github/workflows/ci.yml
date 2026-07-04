@@ -89,8 +89,8 @@ jobs:
           cache-from: type=gha,scope=talon-runtime
           cache-to: type=gha,mode=max,scope=talon-runtime
 
-  codex_acp_image:
-    name: Codex ACP Sandbox Image
+  acp_harness_image:
+    name: ACP Harness Sandbox Image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -106,7 +106,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Codex ACP sandbox image
+      - name: Build ACP harness sandbox image
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -114,8 +114,14 @@ jobs:
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           load: false
           tags: |
+            ghcr.io/impalasys/talon-acp-harness:latest
+            ghcr.io/impalasys/talon-acp-harness:sha-${{ github.sha }}
             ghcr.io/impalasys/talon-codex-acp:latest
             ghcr.io/impalasys/talon-codex-acp:sha-${{ github.sha }}
+            ghcr.io/impalasys/talon-claude-code-acp:latest
+            ghcr.io/impalasys/talon-claude-code-acp:sha-${{ github.sha }}
+            ghcr.io/impalasys/talon-opencode-acp:latest
+            ghcr.io/impalasys/talon-opencode-acp:sha-${{ github.sha }}
 
   ui:
     name: UI
