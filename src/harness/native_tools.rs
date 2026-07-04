@@ -554,6 +554,7 @@ mod tests {
             features: Vec::new(),
             model_policy: None,
             system_prompt: String::new(),
+            post_history_prompt: String::new(),
             mcp_server_refs: Vec::new(),
             capabilities: HashMap::from([(
                 "schedules".to_string(),

@@ -109,6 +109,8 @@ pub struct AgentSpec {
     pub system_prompt: ::prost::alloc::string::String,
     #[prost(string, repeated, tag = "4")]
     pub mcp_server_refs: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag = "5")]
+    pub post_history_prompt: ::prost::alloc::string::String,
     #[prost(map = "string, message", tag = "6")]
     pub capabilities: ::std::collections::HashMap<
         ::prost::alloc::string::String,

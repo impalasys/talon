@@ -540,6 +540,29 @@ spec:
     }
 
     #[test]
+    fn agent_spec_serde_preserves_post_history_prompt() {
+        let spec: resources_proto::AgentSpec = serde_json::from_value(serde_json::json!({
+            "systemPrompt": "Be helpful.",
+            "postHistoryPrompt": "Current time: {{ talon.now }}"
+        }))
+        .expect("deserialize AgentSpec postHistoryPrompt");
+
+        assert_eq!(spec.system_prompt, "Be helpful.");
+        assert_eq!(spec.post_history_prompt, "Current time: {{ talon.now }}");
+
+        let rendered = serde_json::to_value(&spec).expect("serialize AgentSpec postHistoryPrompt");
+        assert_eq!(rendered["postHistoryPrompt"], "Current time: {{ talon.now }}");
+    }
+
+    #[test]
+    fn agent_spec_serde_defaults_post_history_prompt_to_empty() {
+        let spec: resources_proto::AgentSpec = serde_json::from_value(serde_json::json!({}))
+            .expect("deserialize empty AgentSpec");
+
+        assert_eq!(spec.post_history_prompt, "");
+    }
+
+    #[test]
     fn sandbox_policy_manifest_rejects_system_mount_path() {
         let error = parse_resource_manifest(
             r#"

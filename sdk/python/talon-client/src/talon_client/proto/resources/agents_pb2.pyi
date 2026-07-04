@@ -19,7 +19,7 @@ class Agent(_message.Message):
     def __init__(self, metadata: _Optional[_Union[_common_pb2.ResourceMeta, _Mapping]] = ..., spec: _Optional[_Union[AgentSpec, _Mapping]] = ..., status: _Optional[_Union[AgentStatus, _Mapping]] = ...) -> None: ...
 
 class AgentSpec(_message.Message):
-    __slots__ = ("features", "model_policy", "system_prompt", "mcp_server_refs", "capabilities", "a2a", "runtime")
+    __slots__ = ("features", "model_policy", "system_prompt", "mcp_server_refs", "post_history_prompt", "capabilities", "a2a", "runtime")
     class CapabilitiesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -31,6 +31,7 @@ class AgentSpec(_message.Message):
     MODEL_POLICY_FIELD_NUMBER: _ClassVar[int]
     SYSTEM_PROMPT_FIELD_NUMBER: _ClassVar[int]
     MCP_SERVER_REFS_FIELD_NUMBER: _ClassVar[int]
+    POST_HISTORY_PROMPT_FIELD_NUMBER: _ClassVar[int]
     CAPABILITIES_FIELD_NUMBER: _ClassVar[int]
     A2A_FIELD_NUMBER: _ClassVar[int]
     RUNTIME_FIELD_NUMBER: _ClassVar[int]
@@ -38,10 +39,11 @@ class AgentSpec(_message.Message):
     model_policy: ModelPolicy
     system_prompt: str
     mcp_server_refs: _containers.RepeatedScalarFieldContainer[str]
+    post_history_prompt: str
     capabilities: _containers.MessageMap[str, _struct_pb2.ListValue]
     a2a: A2A
     runtime: AgentRuntime
-    def __init__(self, features: _Optional[_Iterable[_Union[Feature, _Mapping]]] = ..., model_policy: _Optional[_Union[ModelPolicy, _Mapping]] = ..., system_prompt: _Optional[str] = ..., mcp_server_refs: _Optional[_Iterable[str]] = ..., capabilities: _Optional[_Mapping[str, _struct_pb2.ListValue]] = ..., a2a: _Optional[_Union[A2A, _Mapping]] = ..., runtime: _Optional[_Union[AgentRuntime, _Mapping]] = ...) -> None: ...
+    def __init__(self, features: _Optional[_Iterable[_Union[Feature, _Mapping]]] = ..., model_policy: _Optional[_Union[ModelPolicy, _Mapping]] = ..., system_prompt: _Optional[str] = ..., mcp_server_refs: _Optional[_Iterable[str]] = ..., post_history_prompt: _Optional[str] = ..., capabilities: _Optional[_Mapping[str, _struct_pb2.ListValue]] = ..., a2a: _Optional[_Union[A2A, _Mapping]] = ..., runtime: _Optional[_Union[AgentRuntime, _Mapping]] = ...) -> None: ...
 
 class AgentStatus(_message.Message):
     __slots__ = ("observed_generation", "phase", "conditions", "last_session_id")

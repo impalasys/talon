@@ -7,6 +7,7 @@ struct AgentSpecManifest {
     features: Vec<FeatureManifest>,
     model_policy: Option<ModelPolicyManifest>,
     system_prompt: String,
+    post_history_prompt: String,
     mcp_server_refs: Vec<String>,
     capabilities: Option<CapabilitiesPolicyManifest>,
     a2a: Option<A2AManifest>,

@@ -83,16 +83,17 @@ func (x *Agent) GetStatus() *AgentStatus {
 }
 
 type AgentSpec struct {
-	state         protoimpl.MessageState         `protogen:"open.v1"`
-	Features      []*Feature                     `protobuf:"bytes,1,rep,name=features,proto3" json:"features,omitempty"`
-	ModelPolicy   *ModelPolicy                   `protobuf:"bytes,2,opt,name=model_policy,json=modelPolicy,proto3" json:"model_policy,omitempty"`
-	SystemPrompt  string                         `protobuf:"bytes,3,opt,name=system_prompt,json=systemPrompt,proto3" json:"system_prompt,omitempty"`
-	McpServerRefs []string                       `protobuf:"bytes,4,rep,name=mcp_server_refs,json=mcpServerRefs,proto3" json:"mcp_server_refs,omitempty"`
-	Capabilities  map[string]*structpb.ListValue `protobuf:"bytes,6,rep,name=capabilities,proto3" json:"capabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	A2A           *A2A                           `protobuf:"bytes,7,opt,name=a2a,proto3" json:"a2a,omitempty"`
-	Runtime       *AgentRuntime                  `protobuf:"bytes,8,opt,name=runtime,proto3" json:"runtime,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState         `protogen:"open.v1"`
+	Features          []*Feature                     `protobuf:"bytes,1,rep,name=features,proto3" json:"features,omitempty"`
+	ModelPolicy       *ModelPolicy                   `protobuf:"bytes,2,opt,name=model_policy,json=modelPolicy,proto3" json:"model_policy,omitempty"`
+	SystemPrompt      string                         `protobuf:"bytes,3,opt,name=system_prompt,json=systemPrompt,proto3" json:"system_prompt,omitempty"`
+	McpServerRefs     []string                       `protobuf:"bytes,4,rep,name=mcp_server_refs,json=mcpServerRefs,proto3" json:"mcp_server_refs,omitempty"`
+	PostHistoryPrompt string                         `protobuf:"bytes,5,opt,name=post_history_prompt,json=postHistoryPrompt,proto3" json:"post_history_prompt,omitempty"`
+	Capabilities      map[string]*structpb.ListValue `protobuf:"bytes,6,rep,name=capabilities,proto3" json:"capabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	A2A               *A2A                           `protobuf:"bytes,7,opt,name=a2a,proto3" json:"a2a,omitempty"`
+	Runtime           *AgentRuntime                  `protobuf:"bytes,8,opt,name=runtime,proto3" json:"runtime,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *AgentSpec) Reset() {
@@ -151,6 +152,13 @@ func (x *AgentSpec) GetMcpServerRefs() []string {
 		return x.McpServerRefs
 	}
 	return nil
+}
+
+func (x *AgentSpec) GetPostHistoryPrompt() string {
+	if x != nil {
+		return x.PostHistoryPrompt
+	}
+	return ""
 }
 
 func (x *AgentSpec) GetCapabilities() map[string]*structpb.ListValue {
@@ -1287,12 +1295,13 @@ const file_proto_resources_agents_proto_rawDesc = "" +
 	"\x05Agent\x129\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12.\n" +
 	"\x04spec\x18\x02 \x01(\v2\x1a.talon.resources.AgentSpecR\x04spec\x124\n" +
-	"\x06status\x18\x03 \x01(\v2\x1c.talon.resources.AgentStatusR\x06status\"\xdf\x03\n" +
+	"\x06status\x18\x03 \x01(\v2\x1c.talon.resources.AgentStatusR\x06status\"\x8f\x04\n" +
 	"\tAgentSpec\x124\n" +
 	"\bfeatures\x18\x01 \x03(\v2\x18.talon.resources.FeatureR\bfeatures\x12?\n" +
 	"\fmodel_policy\x18\x02 \x01(\v2\x1c.talon.resources.ModelPolicyR\vmodelPolicy\x12#\n" +
 	"\rsystem_prompt\x18\x03 \x01(\tR\fsystemPrompt\x12&\n" +
-	"\x0fmcp_server_refs\x18\x04 \x03(\tR\rmcpServerRefs\x12P\n" +
+	"\x0fmcp_server_refs\x18\x04 \x03(\tR\rmcpServerRefs\x12.\n" +
+	"\x13post_history_prompt\x18\x05 \x01(\tR\x11postHistoryPrompt\x12P\n" +
 	"\fcapabilities\x18\x06 \x03(\v2,.talon.resources.AgentSpec.CapabilitiesEntryR\fcapabilities\x12&\n" +
 	"\x03a2a\x18\a \x01(\v2\x14.talon.resources.A2AR\x03a2a\x127\n" +
 	"\aruntime\x18\b \x01(\v2\x1d.talon.resources.AgentRuntimeR\aruntime\x1a[\n" +

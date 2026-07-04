@@ -1082,6 +1082,18 @@ public final class Agents extends com.google.protobuf.GeneratedFile {
         getMcpServerRefsBytes(int index);
 
     /**
+     * <code>string post_history_prompt = 5;</code>
+     * @return The postHistoryPrompt.
+     */
+    java.lang.String getPostHistoryPrompt();
+    /**
+     * <code>string post_history_prompt = 5;</code>
+     * @return The bytes for postHistoryPrompt.
+     */
+    com.google.protobuf.ByteString
+        getPostHistoryPromptBytes();
+
+    /**
      * <code>map&lt;string, .google.protobuf.ListValue&gt; capabilities = 6;</code>
      */
     int getCapabilitiesCount();
@@ -1171,6 +1183,7 @@ com.google.protobuf.ListValue defaultValue);
       systemPrompt_ = "";
       mcpServerRefs_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
+      postHistoryPrompt_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -1347,6 +1360,45 @@ com.google.protobuf.ListValue defaultValue);
       return mcpServerRefs_.getByteString(index);
     }
 
+    public static final int POST_HISTORY_PROMPT_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object postHistoryPrompt_ = "";
+    /**
+     * <code>string post_history_prompt = 5;</code>
+     * @return The postHistoryPrompt.
+     */
+    @java.lang.Override
+    public java.lang.String getPostHistoryPrompt() {
+      java.lang.Object ref = postHistoryPrompt_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        postHistoryPrompt_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string post_history_prompt = 5;</code>
+     * @return The bytes for postHistoryPrompt.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPostHistoryPromptBytes() {
+      java.lang.Object ref = postHistoryPrompt_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        postHistoryPrompt_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     public static final int CAPABILITIES_FIELD_NUMBER = 6;
     private static final class CapabilitiesDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
@@ -1504,6 +1556,9 @@ com.google.protobuf.ListValue defaultValue) {
       for (int i = 0; i < mcpServerRefs_.size(); i++) {
         com.google.protobuf.GeneratedMessage.writeString(output, 4, mcpServerRefs_.getRaw(i));
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(postHistoryPrompt_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, postHistoryPrompt_);
+      }
       com.google.protobuf.GeneratedMessage
         .serializeStringMapTo(
           output,
@@ -1549,6 +1604,9 @@ com.google.protobuf.ListValue defaultValue) {
         size += dataSize;
         size += 1 * getMcpServerRefsList().size();
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(postHistoryPrompt_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, postHistoryPrompt_);
+      }
       for (java.util.Map.Entry<java.lang.String, com.google.protobuf.ListValue> entry
            : internalGetCapabilities().getMap().entrySet()) {
         com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ListValue>
@@ -1593,6 +1651,8 @@ com.google.protobuf.ListValue defaultValue) {
           .equals(other.getSystemPrompt())) return false;
       if (!getMcpServerRefsList()
           .equals(other.getMcpServerRefsList())) return false;
+      if (!getPostHistoryPrompt()
+          .equals(other.getPostHistoryPrompt())) return false;
       if (!internalGetCapabilities().equals(
           other.internalGetCapabilities())) return false;
       if (hasA2A() != other.hasA2A()) return false;
@@ -1630,6 +1690,8 @@ com.google.protobuf.ListValue defaultValue) {
         hash = (37 * hash) + MCP_SERVER_REFS_FIELD_NUMBER;
         hash = (53 * hash) + getMcpServerRefsList().hashCode();
       }
+      hash = (37 * hash) + POST_HISTORY_PROMPT_FIELD_NUMBER;
+      hash = (53 * hash) + getPostHistoryPrompt().hashCode();
       if (!internalGetCapabilities().getMap().isEmpty()) {
         hash = (37 * hash) + CAPABILITIES_FIELD_NUMBER;
         hash = (53 * hash) + internalGetCapabilities().hashCode();
@@ -1819,6 +1881,7 @@ com.google.protobuf.ListValue defaultValue) {
         systemPrompt_ = "";
         mcpServerRefs_ =
             com.google.protobuf.LazyStringArrayList.emptyList();
+        postHistoryPrompt_ = "";
         internalGetMutableCapabilities().clear();
         a2A_ = null;
         if (a2ABuilder_ != null) {
@@ -1891,15 +1954,18 @@ com.google.protobuf.ListValue defaultValue) {
           result.mcpServerRefs_ = mcpServerRefs_;
         }
         if (((from_bitField0_ & 0x00000010) != 0)) {
-          result.capabilities_ = internalGetCapabilities().build(CapabilitiesDefaultEntryHolder.defaultEntry);
+          result.postHistoryPrompt_ = postHistoryPrompt_;
         }
         if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.capabilities_ = internalGetCapabilities().build(CapabilitiesDefaultEntryHolder.defaultEntry);
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
           result.a2A_ = a2ABuilder_ == null
               ? a2A_
               : a2ABuilder_.build();
           to_bitField0_ |= 0x00000002;
         }
-        if (((from_bitField0_ & 0x00000040) != 0)) {
+        if (((from_bitField0_ & 0x00000080) != 0)) {
           result.runtime_ = runtimeBuilder_ == null
               ? runtime_
               : runtimeBuilder_.build();
@@ -1964,9 +2030,14 @@ com.google.protobuf.ListValue defaultValue) {
           }
           onChanged();
         }
+        if (!other.getPostHistoryPrompt().isEmpty()) {
+          postHistoryPrompt_ = other.postHistoryPrompt_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
         internalGetMutableCapabilities().mergeFrom(
             other.internalGetCapabilities());
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000020;
         if (other.hasA2A()) {
           mergeA2A(other.getA2A());
         }
@@ -2029,27 +2100,32 @@ com.google.protobuf.ListValue defaultValue) {
                 mcpServerRefs_.add(input.readStringRequireUtf8());
                 break;
               } // case 34
+              case 42: {
+                postHistoryPrompt_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
               case 50: {
                 com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ListValue>
                 capabilities__ = input.readMessage(
                     CapabilitiesDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
                 internalGetMutableCapabilities().ensureBuilderMap().put(
                     capabilities__.getKey(), capabilities__.getValue());
-                bitField0_ |= 0x00000010;
+                bitField0_ |= 0x00000020;
                 break;
               } // case 50
               case 58: {
                 input.readMessage(
                     internalGetA2AFieldBuilder().getBuilder(),
                     extensionRegistry);
-                bitField0_ |= 0x00000020;
+                bitField0_ |= 0x00000040;
                 break;
               } // case 58
               case 66: {
                 input.readMessage(
                     internalGetRuntimeFieldBuilder().getBuilder(),
                     extensionRegistry);
-                bitField0_ |= 0x00000040;
+                bitField0_ |= 0x00000080;
                 break;
               } // case 66
               default: {
@@ -2613,6 +2689,78 @@ com.google.protobuf.ListValue defaultValue) {
         return this;
       }
 
+      private java.lang.Object postHistoryPrompt_ = "";
+      /**
+       * <code>string post_history_prompt = 5;</code>
+       * @return The postHistoryPrompt.
+       */
+      public java.lang.String getPostHistoryPrompt() {
+        java.lang.Object ref = postHistoryPrompt_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          postHistoryPrompt_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string post_history_prompt = 5;</code>
+       * @return The bytes for postHistoryPrompt.
+       */
+      public com.google.protobuf.ByteString
+          getPostHistoryPromptBytes() {
+        java.lang.Object ref = postHistoryPrompt_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          postHistoryPrompt_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string post_history_prompt = 5;</code>
+       * @param value The postHistoryPrompt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPostHistoryPrompt(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        postHistoryPrompt_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string post_history_prompt = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPostHistoryPrompt() {
+        postHistoryPrompt_ = getDefaultInstance().getPostHistoryPrompt();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string post_history_prompt = 5;</code>
+       * @param value The bytes for postHistoryPrompt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPostHistoryPromptBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        postHistoryPrompt_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
       private static final class CapabilitiesConverter implements com.google.protobuf.MapFieldBuilder.Converter<java.lang.String, com.google.protobuf.ListValueOrBuilder, com.google.protobuf.ListValue> {
         @java.lang.Override
         public com.google.protobuf.ListValue build(com.google.protobuf.ListValueOrBuilder val) {
@@ -2641,7 +2789,7 @@ com.google.protobuf.ListValue defaultValue) {
         if (capabilities_ == null) {
           capabilities_ = new com.google.protobuf.MapFieldBuilder<>(capabilitiesConverter);
         }
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000020;
         onChanged();
         return capabilities_;
       }
@@ -2699,7 +2847,7 @@ com.google.protobuf.ListValue defaultValue) {
         return capabilitiesConverter.build(map.get(key));
       }
       public Builder clearCapabilities() {
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000020);
         internalGetMutableCapabilities().clear();
         return this;
       }
@@ -2719,7 +2867,7 @@ com.google.protobuf.ListValue defaultValue) {
       @java.lang.Deprecated
       public java.util.Map<java.lang.String, com.google.protobuf.ListValue>
           getMutableCapabilities() {
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000020;
         return internalGetMutableCapabilities().ensureMessageMap();
       }
       /**
@@ -2732,7 +2880,7 @@ com.google.protobuf.ListValue defaultValue) {
         if (value == null) { throw new NullPointerException("map value"); }
         internalGetMutableCapabilities().ensureBuilderMap()
             .put(key, value);
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000020;
         return this;
       }
       /**
@@ -2747,7 +2895,7 @@ com.google.protobuf.ListValue defaultValue) {
         }
         internalGetMutableCapabilities().ensureBuilderMap()
             .putAll(values);
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000020;
         return this;
       }
       /**
@@ -2776,7 +2924,7 @@ com.google.protobuf.ListValue defaultValue) {
        * @return Whether the a2a field is set.
        */
       public boolean hasA2A() {
-        return ((bitField0_ & 0x00000020) != 0);
+        return ((bitField0_ & 0x00000040) != 0);
       }
       /**
        * <code>.talon.resources.A2A a2a = 7;</code>
@@ -2801,7 +2949,7 @@ com.google.protobuf.ListValue defaultValue) {
         } else {
           a2ABuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000040;
         onChanged();
         return this;
       }
@@ -2815,7 +2963,7 @@ com.google.protobuf.ListValue defaultValue) {
         } else {
           a2ABuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000040;
         onChanged();
         return this;
       }
@@ -2824,7 +2972,7 @@ com.google.protobuf.ListValue defaultValue) {
        */
       public Builder mergeA2A(talon.resources.Agents.A2A value) {
         if (a2ABuilder_ == null) {
-          if (((bitField0_ & 0x00000020) != 0) &&
+          if (((bitField0_ & 0x00000040) != 0) &&
             a2A_ != null &&
             a2A_ != talon.resources.Agents.A2A.getDefaultInstance()) {
             getA2ABuilder().mergeFrom(value);
@@ -2835,7 +2983,7 @@ com.google.protobuf.ListValue defaultValue) {
           a2ABuilder_.mergeFrom(value);
         }
         if (a2A_ != null) {
-          bitField0_ |= 0x00000020;
+          bitField0_ |= 0x00000040;
           onChanged();
         }
         return this;
@@ -2844,7 +2992,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.resources.A2A a2a = 7;</code>
        */
       public Builder clearA2A() {
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000040);
         a2A_ = null;
         if (a2ABuilder_ != null) {
           a2ABuilder_.dispose();
@@ -2857,7 +3005,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.resources.A2A a2a = 7;</code>
        */
       public talon.resources.Agents.A2A.Builder getA2ABuilder() {
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000040;
         onChanged();
         return internalGetA2AFieldBuilder().getBuilder();
       }
@@ -2897,7 +3045,7 @@ com.google.protobuf.ListValue defaultValue) {
        * @return Whether the runtime field is set.
        */
       public boolean hasRuntime() {
-        return ((bitField0_ & 0x00000040) != 0);
+        return ((bitField0_ & 0x00000080) != 0);
       }
       /**
        * <code>.talon.resources.AgentRuntime runtime = 8;</code>
@@ -2922,7 +3070,7 @@ com.google.protobuf.ListValue defaultValue) {
         } else {
           runtimeBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000080;
         onChanged();
         return this;
       }
@@ -2936,7 +3084,7 @@ com.google.protobuf.ListValue defaultValue) {
         } else {
           runtimeBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000080;
         onChanged();
         return this;
       }
@@ -2945,7 +3093,7 @@ com.google.protobuf.ListValue defaultValue) {
        */
       public Builder mergeRuntime(talon.resources.Agents.AgentRuntime value) {
         if (runtimeBuilder_ == null) {
-          if (((bitField0_ & 0x00000040) != 0) &&
+          if (((bitField0_ & 0x00000080) != 0) &&
             runtime_ != null &&
             runtime_ != talon.resources.Agents.AgentRuntime.getDefaultInstance()) {
             getRuntimeBuilder().mergeFrom(value);
@@ -2956,7 +3104,7 @@ com.google.protobuf.ListValue defaultValue) {
           runtimeBuilder_.mergeFrom(value);
         }
         if (runtime_ != null) {
-          bitField0_ |= 0x00000040;
+          bitField0_ |= 0x00000080;
           onChanged();
         }
         return this;
@@ -2965,7 +3113,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.resources.AgentRuntime runtime = 8;</code>
        */
       public Builder clearRuntime() {
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000080);
         runtime_ = null;
         if (runtimeBuilder_ != null) {
           runtimeBuilder_.dispose();
@@ -2978,7 +3126,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.resources.AgentRuntime runtime = 8;</code>
        */
       public talon.resources.Agents.AgentRuntime.Builder getRuntimeBuilder() {
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000080;
         onChanged();
         return internalGetRuntimeFieldBuilder().getBuilder();
       }
@@ -20274,70 +20422,71 @@ java.lang.String defaultValue) {
       "\010metadata\030\001 \001(\0132\035.talon.resources.Resour" +
       "ceMeta\022(\n\004spec\030\002 \001(\0132\032.talon.resources.A" +
       "gentSpec\022,\n\006status\030\003 \001(\0132\034.talon.resourc" +
-      "es.AgentStatus\"\203\003\n\tAgentSpec\022*\n\010features" +
+      "es.AgentStatus\"\240\003\n\tAgentSpec\022*\n\010features" +
       "\030\001 \003(\0132\030.talon.resources.Feature\0222\n\014mode" +
       "l_policy\030\002 \001(\0132\034.talon.resources.ModelPo" +
       "licy\022\025\n\rsystem_prompt\030\003 \001(\t\022\027\n\017mcp_serve" +
-      "r_refs\030\004 \003(\t\022B\n\014capabilities\030\006 \003(\0132,.tal" +
-      "on.resources.AgentSpec.CapabilitiesEntry" +
-      "\022!\n\003a2a\030\007 \001(\0132\024.talon.resources.A2A\022.\n\007r" +
-      "untime\030\010 \001(\0132\035.talon.resources.AgentRunt" +
-      "ime\032O\n\021CapabilitiesEntry\022\013\n\003key\030\001 \001(\t\022)\n" +
-      "\005value\030\002 \001(\0132\032.google.protobuf.ListValue" +
-      ":\0028\001\"\243\001\n\013AgentStatus\022\033\n\023observed_generat" +
-      "ion\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003" +
-      " \003(\0132\".talon.resources.ResourceCondition" +
-      "\022\034\n\017last_session_id\030\004 \001(\tH\000\210\001\001B\022\n\020_last_" +
-      "session_id\"F\n\014AgentRuntime\022\014\n\004kind\030\001 \001(\t" +
-      "\022(\n\003acp\030\002 \001(\0132\033.talon.resources.AcpRunti" +
-      "me\"\350\002\n\nAcpRuntime\022\023\n\013harness_ref\030\001 \001(\t\022\017" +
-      "\n\007command\030\002 \001(\t\022\014\n\004args\030\003 \003(\t\022\013\n\003cwd\030\004 \001" +
-      "(\t\022\032\n\022sandbox_policy_ref\030\005 \001(\t\022\027\n\017persis" +
-      "t_session\030\006 \001(\010\0221\n\003env\030\007 \003(\0132$.talon.res" +
-      "ources.AcpRuntime.EnvEntry\022L\n\021permission" +
-      "_policy\030\010 \003(\01321.talon.resources.AcpRunti" +
-      "me.PermissionPolicyEntry\032*\n\010EnvEntry\022\013\n\003" +
-      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\0327\n\025Permissi" +
-      "onPolicyEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
-      "\t:\0028\001\"7\n\007Feature\022\014\n\004name\030\001 \001(\t\022\014\n\004type\030\002" +
-      " \001(\t\022\020\n\010required\030\003 \001(\010\"o\n\005Model\022\020\n\010provi" +
-      "der\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\023\n\013temperature\030\003" +
-      " \001(\002\0221\n\010thinking\030\004 \001(\0132\037.talon.resources" +
-      ".ThinkingConfig\"_\n\016ThinkingConfig\022\017\n\007ena" +
-      "bled\030\001 \001(\010\022\032\n\rbudget_tokens\030\002 \001(\rH\000\210\001\001\022\016" +
-      "\n\006effort\030\003 \001(\tB\020\n\016_budget_tokens\"C\n\014Mode" +
-      "lProfile\022\014\n\004name\030\001 \001(\t\022%\n\005model\030\002 \001(\0132\026." +
-      "talon.resources.Model\">\n\013ModelPolicy\022/\n\010" +
-      "profiles\030\001 \003(\0132\035.talon.resources.ModelPr" +
-      "ofile\"g\n\003A2A\0220\n\013connections\030\001 \003(\0132\033.talo" +
-      "n.resources.Connection\022.\n\nagent_card\030\002 \001" +
-      "(\0132\032.talon.resources.AgentCard\"\345\001\n\nConne" +
-      "ction\022\014\n\004name\030\001 \001(\t\022\023\n\013description\030\002 \001(\t" +
-      "\022.\n\006target\030\003 \001(\0132\036.talon.resources.Conne" +
-      "ctionRef\022\023\n\013input_modes\030\004 \003(\t\022\024\n\014output_" +
-      "modes\030\005 \003(\t\022\027\n\017timeout_seconds\030\006 \001(\r\022\021\n\t" +
-      "max_depth\030\007 \001(\r\022-\n\004auth\030\010 \001(\0132\037.talon.re" +
-      "sources.ConnectionAuth\"\247\001\n\rConnectionRef" +
-      "\022=\n\010internal\030\001 \001(\0132&.talon.resources.Int" +
-      "ernalConnectionRefH\000\210\001\001\022=\n\010external\030\002 \001(" +
-      "\0132&.talon.resources.ExternalConnectionRe" +
-      "fH\001\210\001\001B\013\n\t_internalB\013\n\t_external\"9\n\025Inte" +
-      "rnalConnectionRef\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005" +
-      "agent\030\002 \001(\t\"/\n\025ExternalConnectionRef\022\026\n\016" +
-      "agent_card_url\030\001 \001(\t\"2\n\016ConnectionAuth\022\014" +
-      "\n\004kind\030\001 \001(\t\022\022\n\nsecret_ref\030\002 \001(\t\"\351\001\n\tAge" +
-      "ntCard\022\014\n\004name\030\001 \001(\t\022\023\n\013description\030\002 \001(" +
-      "\t\022\017\n\007version\030\003 \001(\t\022<\n\014capabilities\030\004 \001(\013" +
-      "2&.talon.resources.AgentCardCapabilities" +
-      "\022\033\n\023default_input_modes\030\005 \003(\t\022\034\n\024default" +
-      "_output_modes\030\006 \003(\t\022/\n\006skills\030\007 \003(\0132\037.ta" +
-      "lon.resources.AgentCardSkill\"c\n\025AgentCar" +
-      "dCapabilities\022\021\n\tstreaming\030\001 \001(\010\022\032\n\022push" +
-      "_notifications\030\002 \001(\010\022\033\n\023extended_agent_c" +
-      "ard\030\003 \001(\010\"\212\001\n\016AgentCardSkill\022\n\n\002id\030\001 \001(\t" +
-      "\022\014\n\004name\030\002 \001(\t\022\023\n\013description\030\003 \001(\t\022\014\n\004t" +
-      "ags\030\004 \003(\t\022\020\n\010examples\030\005 \003(\t\022\023\n\013input_mod" +
-      "es\030\006 \003(\t\022\024\n\014output_modes\030\007 \003(\tb\006proto3"
+      "r_refs\030\004 \003(\t\022\033\n\023post_history_prompt\030\005 \001(" +
+      "\t\022B\n\014capabilities\030\006 \003(\0132,.talon.resource" +
+      "s.AgentSpec.CapabilitiesEntry\022!\n\003a2a\030\007 \001" +
+      "(\0132\024.talon.resources.A2A\022.\n\007runtime\030\010 \001(" +
+      "\0132\035.talon.resources.AgentRuntime\032O\n\021Capa" +
+      "bilitiesEntry\022\013\n\003key\030\001 \001(\t\022)\n\005value\030\002 \001(" +
+      "\0132\032.google.protobuf.ListValue:\0028\001\"\243\001\n\013Ag" +
+      "entStatus\022\033\n\023observed_generation\030\001 \001(\004\022\r" +
+      "\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\".talo" +
+      "n.resources.ResourceCondition\022\034\n\017last_se" +
+      "ssion_id\030\004 \001(\tH\000\210\001\001B\022\n\020_last_session_id\"" +
+      "F\n\014AgentRuntime\022\014\n\004kind\030\001 \001(\t\022(\n\003acp\030\002 \001" +
+      "(\0132\033.talon.resources.AcpRuntime\"\350\002\n\nAcpR" +
+      "untime\022\023\n\013harness_ref\030\001 \001(\t\022\017\n\007command\030\002" +
+      " \001(\t\022\014\n\004args\030\003 \003(\t\022\013\n\003cwd\030\004 \001(\t\022\032\n\022sandb" +
+      "ox_policy_ref\030\005 \001(\t\022\027\n\017persist_session\030\006" +
+      " \001(\010\0221\n\003env\030\007 \003(\0132$.talon.resources.AcpR" +
+      "untime.EnvEntry\022L\n\021permission_policy\030\010 \003" +
+      "(\01321.talon.resources.AcpRuntime.Permissi" +
+      "onPolicyEntry\032*\n\010EnvEntry\022\013\n\003key\030\001 \001(\t\022\r" +
+      "\n\005value\030\002 \001(\t:\0028\001\0327\n\025PermissionPolicyEnt" +
+      "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"7\n\007Fe" +
+      "ature\022\014\n\004name\030\001 \001(\t\022\014\n\004type\030\002 \001(\t\022\020\n\010req" +
+      "uired\030\003 \001(\010\"o\n\005Model\022\020\n\010provider\030\001 \001(\t\022\014" +
+      "\n\004name\030\002 \001(\t\022\023\n\013temperature\030\003 \001(\002\0221\n\010thi" +
+      "nking\030\004 \001(\0132\037.talon.resources.ThinkingCo" +
+      "nfig\"_\n\016ThinkingConfig\022\017\n\007enabled\030\001 \001(\010\022" +
+      "\032\n\rbudget_tokens\030\002 \001(\rH\000\210\001\001\022\016\n\006effort\030\003 " +
+      "\001(\tB\020\n\016_budget_tokens\"C\n\014ModelProfile\022\014\n" +
+      "\004name\030\001 \001(\t\022%\n\005model\030\002 \001(\0132\026.talon.resou" +
+      "rces.Model\">\n\013ModelPolicy\022/\n\010profiles\030\001 " +
+      "\003(\0132\035.talon.resources.ModelProfile\"g\n\003A2" +
+      "A\0220\n\013connections\030\001 \003(\0132\033.talon.resources" +
+      ".Connection\022.\n\nagent_card\030\002 \001(\0132\032.talon." +
+      "resources.AgentCard\"\345\001\n\nConnection\022\014\n\004na" +
+      "me\030\001 \001(\t\022\023\n\013description\030\002 \001(\t\022.\n\006target\030" +
+      "\003 \001(\0132\036.talon.resources.ConnectionRef\022\023\n" +
+      "\013input_modes\030\004 \003(\t\022\024\n\014output_modes\030\005 \003(\t" +
+      "\022\027\n\017timeout_seconds\030\006 \001(\r\022\021\n\tmax_depth\030\007" +
+      " \001(\r\022-\n\004auth\030\010 \001(\0132\037.talon.resources.Con" +
+      "nectionAuth\"\247\001\n\rConnectionRef\022=\n\010interna" +
+      "l\030\001 \001(\0132&.talon.resources.InternalConnec" +
+      "tionRefH\000\210\001\001\022=\n\010external\030\002 \001(\0132&.talon.r" +
+      "esources.ExternalConnectionRefH\001\210\001\001B\013\n\t_" +
+      "internalB\013\n\t_external\"9\n\025InternalConnect" +
+      "ionRef\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t" +
+      "\"/\n\025ExternalConnectionRef\022\026\n\016agent_card_" +
+      "url\030\001 \001(\t\"2\n\016ConnectionAuth\022\014\n\004kind\030\001 \001(" +
+      "\t\022\022\n\nsecret_ref\030\002 \001(\t\"\351\001\n\tAgentCard\022\014\n\004n" +
+      "ame\030\001 \001(\t\022\023\n\013description\030\002 \001(\t\022\017\n\007versio" +
+      "n\030\003 \001(\t\022<\n\014capabilities\030\004 \001(\0132&.talon.re" +
+      "sources.AgentCardCapabilities\022\033\n\023default" +
+      "_input_modes\030\005 \003(\t\022\034\n\024default_output_mod" +
+      "es\030\006 \003(\t\022/\n\006skills\030\007 \003(\0132\037.talon.resourc" +
+      "es.AgentCardSkill\"c\n\025AgentCardCapabiliti" +
+      "es\022\021\n\tstreaming\030\001 \001(\010\022\032\n\022push_notificati" +
+      "ons\030\002 \001(\010\022\033\n\023extended_agent_card\030\003 \001(\010\"\212" +
+      "\001\n\016AgentCardSkill\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 " +
+      "\001(\t\022\023\n\013description\030\003 \001(\t\022\014\n\004tags\030\004 \003(\t\022\020" +
+      "\n\010examples\030\005 \003(\t\022\023\n\013input_modes\030\006 \003(\t\022\024\n" +
+      "\014output_modes\030\007 \003(\tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -20356,7 +20505,7 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_AgentSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_AgentSpec_descriptor,
-        new java.lang.String[] { "Features", "ModelPolicy", "SystemPrompt", "McpServerRefs", "Capabilities", "A2A", "Runtime", });
+        new java.lang.String[] { "Features", "ModelPolicy", "SystemPrompt", "McpServerRefs", "PostHistoryPrompt", "Capabilities", "A2A", "Runtime", });
     internal_static_talon_resources_AgentSpec_CapabilitiesEntry_descriptor =
       internal_static_talon_resources_AgentSpec_descriptor.getNestedType(0);
     internal_static_talon_resources_AgentSpec_CapabilitiesEntry_fieldAccessorTable = new

@@ -81,6 +81,11 @@ export class AgentSpec extends Message<AgentSpec> {
   mcpServerRefs: string[] = [];
 
   /**
+   * @generated from field: string post_history_prompt = 5;
+   */
+  postHistoryPrompt = "";
+
+  /**
    * @generated from field: map<string, google.protobuf.ListValue> capabilities = 6;
    */
   capabilities: { [key: string]: ListValue } = {};
@@ -107,6 +112,7 @@ export class AgentSpec extends Message<AgentSpec> {
     { no: 2, name: "model_policy", kind: "message", T: ModelPolicy },
     { no: 3, name: "system_prompt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "mcp_server_refs", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 5, name: "post_history_prompt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "capabilities", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ListValue} },
     { no: 7, name: "a2a", kind: "message", T: A2A },
     { no: 8, name: "runtime", kind: "message", T: AgentRuntime },

@@ -492,11 +492,10 @@ impl DeploymentController {
             .get("vibiz.io/customer-name")
             .map(String::as_str)
             .unwrap_or_else(|| namespace.name());
-        let env = minijinja::Environment::new();
-        let rendered_spec = env.render_str(
+        let rendered_spec = crate::control::manifest::templating::render_resource_template(
             &spec.spec_json,
-            minijinja::context! {
-                namespace => serde_json::json!({
+            serde_json::json!({
+                "namespace": {
                     "name": namespace.name(),
                     "parent": namespace.parent(),
                     "customerName": customer_name,
@@ -504,24 +503,24 @@ impl DeploymentController {
                         "labels": namespace_meta.labels,
                         "annotations": namespace_meta.annotations,
                     }
-                }),
-                deployment => serde_json::json!({
+                },
+                "deployment": {
                     "metadata": {
                         "name": deployment_meta.name,
                         "namespace": deployment_meta.namespace,
                         "labels": deployment_meta.labels,
                         "annotations": deployment_meta.annotations,
                     }
-                }),
-                template => serde_json::json!({
+                },
+                "template": {
                     "metadata": {
                         "name": template_meta.name,
                         "namespace": template_meta.namespace,
                         "labels": template_meta.labels,
                         "annotations": template_meta.annotations,
                     }
-                }),
-            },
+                },
+            }),
         )?;
         let mut rendered_template = template.clone();
         if let Some(resources_proto::resource_spec::Kind::Template(rendered)) = rendered_template
@@ -998,6 +997,35 @@ mod tests {
         assert_eq!(
             rendered_prompt(rendered),
             "You are the coding agent for customers:acme."
+        );
+    }
+
+    #[test]
+    fn render_template_preserves_runtime_prompt_variables() {
+        let mut template = coding_template();
+        let Some(resources_proto::resource_spec::Kind::Template(spec)) =
+            template.spec.as_mut().and_then(|spec| spec.kind.as_mut())
+        else {
+            panic!("expected template spec");
+        };
+        spec.spec_json = serde_json::json!({
+            "systemPrompt": "Agent for {{ namespace.customerName }} at {{ talon.now }}."
+        })
+        .to_string();
+
+        let rendered = controller()
+            .render_template_with_namespace(
+                "customers",
+                "customers:acme",
+                &target_namespace(Some("Acme")),
+                &deployment(),
+                &template,
+            )
+            .expect("render with runtime variable");
+
+        assert_eq!(
+            rendered_prompt(rendered),
+            "Agent for Acme at {{ talon.now }}."
         );
     }
 

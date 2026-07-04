@@ -255,7 +255,7 @@ impl AcpAgentRuntime {
                 prompt,
                 &self.system_prompt,
                 opened_new_session,
-            ),
+            )?,
         )
         .await?;
 
@@ -862,20 +862,23 @@ fn session_prompt_params(
     prompt: &str,
     system_prompt: &str,
     include_system_prompt: bool,
-) -> Value {
+) -> Result<Value> {
     let text = if include_system_prompt && !system_prompt.trim().is_empty() {
+        let system_prompt =
+            crate::control::manifest::templating::render_runtime_system_prompt_template(
+                system_prompt.trim(),
+            )?;
         format!(
             "System instructions from Talon agent spec:\n{}\n\nUser message:\n{}",
-            system_prompt.trim(),
-            prompt
+            system_prompt, prompt
         )
     } else {
         prompt.to_string()
     };
-    json!({
+    Ok(json!({
         "sessionId": session_id,
         "prompt": [{ "type": "text", "text": text }],
-    })
+    }))
 }
 
 fn acp_auth_method(acp: &manifests::AcpRuntime) -> &'static str {
@@ -994,7 +997,8 @@ mod tests {
 
     #[test]
     fn session_prompt_params_includes_system_prompt_for_new_sessions() {
-        let params = session_prompt_params("session-1", "Fix the bug", "Stay concise.", true);
+        let params =
+            session_prompt_params("session-1", "Fix the bug", "Stay concise.", true).unwrap();
 
         let text = params
             .pointer("/prompt/0/text")
@@ -1007,7 +1011,8 @@ mod tests {
 
     #[test]
     fn session_prompt_params_omits_system_prompt_for_loaded_sessions() {
-        let params = session_prompt_params("session-1", "Continue", "Stay concise.", false);
+        let params =
+            session_prompt_params("session-1", "Continue", "Stay concise.", false).unwrap();
 
         assert_eq!(
             params
@@ -1015,6 +1020,47 @@ mod tests {
                 .and_then(|value| value.as_str()),
             Some("Continue")
         );
+    }
+
+    #[test]
+    fn session_prompt_params_renders_system_prompt_template_for_new_sessions() {
+        let params =
+            session_prompt_params("session-1", "Fix the bug", "Now: {{ talon.now }}", true)
+                .unwrap();
+
+        let text = params
+            .pointer("/prompt/0/text")
+            .and_then(|value| value.as_str())
+            .unwrap();
+        let timestamp = text
+            .lines()
+            .find_map(|line| line.strip_prefix("Now: "))
+            .unwrap();
+        assert!(timestamp.ends_with('Z'));
+        chrono::DateTime::parse_from_rfc3339(timestamp).unwrap();
+    }
+
+    #[test]
+    fn session_prompt_params_does_not_render_system_prompt_for_loaded_sessions() {
+        let params =
+            session_prompt_params("session-1", "Continue", "{{ talon.nope }}", false).unwrap();
+
+        assert_eq!(
+            params
+                .pointer("/prompt/0/text")
+                .and_then(|value| value.as_str()),
+            Some("Continue")
+        );
+    }
+
+    #[test]
+    fn session_prompt_params_errors_on_unknown_system_prompt_variable() {
+        let err = session_prompt_params("session-1", "Fix", "{{ talon.nope }}", true)
+            .expect_err("unknown system prompt variables should fail");
+
+        assert!(err
+            .to_string()
+            .contains("Failed to render system prompt template"));
     }
 
     #[tokio::test]
