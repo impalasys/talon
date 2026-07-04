@@ -159,20 +159,14 @@ fn literalize_passthrough_variables(
 }
 
 fn trim_variable_expression(expression: &str) -> &str {
+    let mut expression = expression.trim();
+    if let Some(stripped) = expression.strip_prefix('-') {
+        expression = stripped.trim();
+    }
+    if let Some(stripped) = expression.strip_suffix('-') {
+        expression = stripped.trim();
+    }
     expression
-        .trim()
-        .strip_prefix('-')
-        .unwrap_or_else(|| expression.trim())
-        .trim()
-        .strip_suffix('-')
-        .unwrap_or_else(|| {
-            expression
-                .trim()
-                .strip_prefix('-')
-                .unwrap_or_else(|| expression.trim())
-                .trim()
-        })
-        .trim()
 }
 
 fn is_passthrough_expression(expr: &ast::Expr<'_>, passthrough_namespaces: &HashSet<&str>) -> bool {
@@ -183,12 +177,41 @@ fn is_passthrough_expression(expr: &ast::Expr<'_>, passthrough_namespaces: &Hash
 fn root_namespace<'a>(expr: &'a ast::Expr<'a>) -> Option<&'a str> {
     match expr {
         ast::Expr::Var(var) => Some(var.id),
+        ast::Expr::Const(_) => None,
+        ast::Expr::Slice(slice) => root_namespace(&slice.expr)
+            .or_else(|| slice.start.as_ref().and_then(root_namespace))
+            .or_else(|| slice.stop.as_ref().and_then(root_namespace))
+            .or_else(|| slice.step.as_ref().and_then(root_namespace)),
+        ast::Expr::UnaryOp(unary) => root_namespace(&unary.expr),
+        ast::Expr::BinOp(bin) => root_namespace(&bin.left).or_else(|| root_namespace(&bin.right)),
+        ast::Expr::IfExpr(if_expr) => root_namespace(&if_expr.test_expr)
+            .or_else(|| root_namespace(&if_expr.true_expr))
+            .or_else(|| if_expr.false_expr.as_ref().and_then(root_namespace)),
+        ast::Expr::Filter(filter) => filter
+            .expr
+            .as_ref()
+            .and_then(root_namespace)
+            .or_else(|| filter.args.iter().find_map(call_arg_root_namespace)),
+        ast::Expr::Test(test) => root_namespace(&test.expr)
+            .or_else(|| test.args.iter().find_map(call_arg_root_namespace)),
         ast::Expr::GetAttr(get_attr) => root_namespace(&get_attr.expr),
         ast::Expr::GetItem(get_item) => root_namespace(&get_item.expr),
         ast::Expr::Call(call) => root_namespace(&call.expr),
-        ast::Expr::Filter(filter) => filter.expr.as_ref().and_then(root_namespace),
-        ast::Expr::Test(test) => root_namespace(&test.expr),
-        _ => None,
+        ast::Expr::List(list) => list.items.iter().find_map(root_namespace),
+        ast::Expr::Map(map) => map
+            .keys
+            .iter()
+            .find_map(root_namespace)
+            .or_else(|| map.values.iter().find_map(root_namespace)),
+    }
+}
+
+fn call_arg_root_namespace<'a>(arg: &'a ast::CallArg<'a>) -> Option<&'a str> {
+    match arg {
+        ast::CallArg::Pos(expr)
+        | ast::CallArg::Kwarg(_, expr)
+        | ast::CallArg::PosSplat(expr)
+        | ast::CallArg::KwargSplat(expr) => root_namespace(expr),
     }
 }
 
@@ -369,7 +392,11 @@ mod tests {
                 r#"{{ talon["now"] }}"#,
                 "{{ talon.now is string }}",
                 "{{ talon.format('prefix', ctx.agent.name) }}",
-                "{{ namespace.customerName | default('Acme') }}"
+                "{{ namespace.customerName | default('Acme') }}",
+                "{{ talon.now ~ ' UTC' }}",
+                "{{ not talon.now }}",
+                "{{ talon.now if true else ctx.agent.name }}",
+                "{{ [talon.now, ctx.agent.name] }}"
             ),
             &HashMap::new(),
         )
@@ -381,7 +408,11 @@ mod tests {
                 r#"{{ talon["now"] }}"#,
                 "{{ talon.now is string }}",
                 "{{ talon.format('prefix', ctx.agent.name) }}",
-                "{{ namespace.customerName | default('Acme') }}"
+                "{{ namespace.customerName | default('Acme') }}",
+                "{{ talon.now ~ ' UTC' }}",
+                "{{ not talon.now }}",
+                "{{ talon.now if true else ctx.agent.name }}",
+                "{{ [talon.now, ctx.agent.name] }}"
             )
         );
     }
@@ -411,6 +442,8 @@ mod tests {
             "{{ talon.now ~ vars.name }}",
             "{{ vars.name or talon.now }}",
             "{{ talon.format(vars.name) }}",
+            "{{ [talon.now, vars.name] }}",
+            "{{ talon.now if vars.name else ctx.agent.name }}",
         ] {
             render_cli_manifest_template(source, &vars)
                 .expect_err("mixed current and later phase expressions should fail");
@@ -500,7 +533,9 @@ mod tests {
             concat!(
                 r#"{{ talon["now"] }}"#,
                 "{{ talon.now is string }}",
-                "{{ talon.format('prefix', ctx.agent.name) }}"
+                "{{ talon.format('prefix', ctx.agent.name) }}",
+                "{{ talon.now ~ ' UTC' }}",
+                "{{ not talon.now }}"
             ),
             json!({ "namespace": {} }),
         )
@@ -511,7 +546,9 @@ mod tests {
             concat!(
                 r#"{{ talon["now"] }}"#,
                 "{{ talon.now is string }}",
-                "{{ talon.format('prefix', ctx.agent.name) }}"
+                "{{ talon.format('prefix', ctx.agent.name) }}",
+                "{{ talon.now ~ ' UTC' }}",
+                "{{ not talon.now }}"
             )
         );
     }
@@ -527,6 +564,7 @@ mod tests {
         for source in [
             "{{ talon.now ~ namespace.customerName }}",
             "{{ talon.format(namespace.customerName) }}",
+            "{{ [talon.now, namespace.customerName] }}",
         ] {
             render_resource_template(source, context.clone())
                 .expect_err("mixed resource and runtime expressions should fail");
