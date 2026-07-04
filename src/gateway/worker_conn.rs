@@ -45,7 +45,41 @@ impl WorkerConnectionPool {
             return Ok(channel);
         }
 
-        let channel = worker_endpoint_channel(endpoint).await?;
+        let parsed = Url::parse(&url)
+            .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?;
+        let channel = if parsed.scheme() == "unix" {
+            if parsed.path().is_empty() {
+                return Err(tonic::Status::unavailable(
+                    "unix worker endpoint is missing a socket path",
+                ));
+            }
+            let path = urlencoding::decode(parsed.path()).map_err(|err| {
+                tonic::Status::unavailable(format!("invalid unix worker endpoint path: {err}"))
+            })?;
+            let path = Arc::new(PathBuf::from(path.into_owned()));
+            Endpoint::try_from("http://[::]:50051")
+                .map_err(|err| {
+                    tonic::Status::unavailable(format!("invalid worker endpoint: {err}"))
+                })?
+                .connect_with_connector(service_fn(move |_uri: Uri| {
+                    let path = path.clone();
+                    async move { UnixStream::connect(path.as_ref()).await.map(TokioIo::new) }
+                }))
+                .await
+                .map_err(|err| {
+                    tonic::Status::unavailable(format!("failed to connect to worker: {err}"))
+                })?
+        } else {
+            Channel::from_shared(url.clone())
+                .map_err(|err| {
+                    tonic::Status::unavailable(format!("invalid worker endpoint: {err}"))
+                })?
+                .connect()
+                .await
+                .map_err(|err| {
+                    tonic::Status::unavailable(format!("failed to connect to worker: {err}"))
+                })?
+        };
         let channel = self
             .channels
             .lock()
@@ -60,45 +94,4 @@ impl WorkerConnectionPool {
     pub(crate) async fn cached_channel_count(&self) -> usize {
         self.channels.lock().await.len()
     }
-}
-
-async fn worker_endpoint_channel(
-    endpoint: &resources_proto::WorkerEndpoint,
-) -> std::result::Result<Channel, tonic::Status> {
-    if let Some(path) = unix_endpoint_path(&endpoint.url)? {
-        let path = Arc::new(path);
-        return Endpoint::try_from("http://[::]:50051")
-            .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?
-            .connect_with_connector(service_fn(move |_uri: Uri| {
-                let path = path.clone();
-                async move { UnixStream::connect(path.as_ref()).await.map(TokioIo::new) }
-            }))
-            .await
-            .map_err(|err| {
-                tonic::Status::unavailable(format!("failed to connect to worker: {err}"))
-            });
-    }
-
-    Channel::from_shared(endpoint.url.clone())
-        .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?
-        .connect()
-        .await
-        .map_err(|err| tonic::Status::unavailable(format!("failed to connect to worker: {err}")))
-}
-
-fn unix_endpoint_path(url: &str) -> std::result::Result<Option<PathBuf>, tonic::Status> {
-    let parsed = Url::parse(url)
-        .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?;
-    if parsed.scheme() != "unix" {
-        return Ok(None);
-    }
-    if parsed.path().is_empty() {
-        return Err(tonic::Status::unavailable(
-            "unix worker endpoint is missing a socket path",
-        ));
-    }
-    let path = urlencoding::decode(parsed.path()).map_err(|err| {
-        tonic::Status::unavailable(format!("invalid unix worker endpoint path: {err}"))
-    })?;
-    Ok(Some(PathBuf::from(path.into_owned())))
 }
