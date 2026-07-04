@@ -3,6 +3,8 @@
 
 use anyhow::{Context, Result};
 use chrono::SecondsFormat;
+use minijinja::machinery::{ast, parse_expr, tokenize, Span, Token, WhitespaceConfig};
+use minijinja::syntax::SyntaxConfig;
 use minijinja::{Environment, UndefinedBehavior};
 use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
@@ -75,18 +77,12 @@ fn render_phase_template(
         return Ok(source.to_string());
     }
 
-    // Each phase owns only part of the shared `{{ ... }}` namespace. For
-    // example, CLI rendering should resolve `vars.*` but must leave
-    // `namespace.*` and `talon.*` intact for deployment/runtime phases. Before
-    // handing the template to MiniJinja, rewrite those later-phase variable
-    // tags into MiniJinja string literals. MiniJinja then emits the original
-    // `{{ ... }}` tag as text, so there is no post-render placeholder restore
-    // step that could accidentally rewrite a value produced by this phase.
     let passthrough_namespaces = passthrough_namespaces
         .iter()
         .copied()
         .collect::<HashSet<_>>();
-    let masked = literalize_passthrough_variables(source, &passthrough_namespaces);
+    let masked = literalize_passthrough_variables(source, &passthrough_namespaces)
+        .with_context(|| format!("Failed to prepare {} template", template_name))?;
 
     render_strict_template(template_name, &masked, context)
 }
@@ -105,72 +101,192 @@ fn render_strict_template(template_name: &str, source: &str, context: Value) -> 
 fn literalize_passthrough_variables(
     source: &str,
     passthrough_namespaces: &HashSet<&str>,
-) -> String {
+) -> Result<String> {
     if passthrough_namespaces.is_empty() {
-        return source.to_string();
+        return Ok(source.to_string());
     }
 
     let mut output = String::with_capacity(source.len());
-    let mut rest = source;
+    let mut copied_until = 0;
+    let mut variable_start: Option<Span> = None;
 
-    while let Some(start) = rest.find("{{") {
-        output.push_str(&rest[..start]);
-        let tag_start = &rest[start..];
-        let Some(end) = tag_start.find("}}") else {
-            output.push_str(tag_start);
-            return output;
-        };
-        let tag_end = start + end + 2;
-        let tag = &rest[start..tag_end];
-        if variable_namespace(tag)
-            .as_deref()
-            .is_some_and(|namespace| passthrough_namespaces.contains(namespace))
-        {
-            output.push_str("{{ ");
-            output.push_str(&serde_json::to_string(tag).expect("string serialization cannot fail"));
-            output.push_str(" }}");
-        } else {
-            output.push_str(tag);
+    // Each phase owns only part of Talon's shared `{{ ... }}` namespace. For
+    // example, CLI rendering resolves `vars.*` but leaves `talon.*` for the
+    // runtime phase. We use MiniJinja's tokenizer to locate exact variable tag
+    // byte spans and its expression parser to decide whether the whole tag is
+    // rooted in a later-owned namespace. Preserved tags are rewritten as
+    // MiniJinja string literals before the current phase renders, so MiniJinja
+    // emits the original `{{ ... }}` text and we never need a fragile
+    // post-render placeholder replacement step.
+    for token in tokenize(
+        source,
+        false,
+        SyntaxConfig::default(),
+        WhitespaceConfig::default(),
+    ) {
+        let (token, span) = token?;
+        match token {
+            Token::VariableStart => variable_start = Some(span),
+            Token::VariableEnd => {
+                let Some(start_span) = variable_start.take() else {
+                    continue;
+                };
+                let tag_start = start_span.start_offset as usize;
+                let tag_end = span.end_offset as usize;
+                let expression_start = start_span.end_offset as usize;
+                let expression_end = span.start_offset as usize;
+                let expression =
+                    trim_variable_expression(&source[expression_start..expression_end]);
+                let expr = parse_expr(expression)?;
+
+                if is_passthrough_expression(&expr, passthrough_namespaces) {
+                    let tag = &source[tag_start..tag_end];
+                    output.push_str(&source[copied_until..tag_start]);
+                    output.push_str("{{ ");
+                    output.push_str(
+                        &serde_json::to_string(tag).expect("string serialization cannot fail"),
+                    );
+                    output.push_str(" }}");
+                    copied_until = tag_end;
+                }
+            }
+            _ => {}
         }
-        rest = &rest[tag_end..];
     }
 
-    output.push_str(rest);
-    output
+    output.push_str(&source[copied_until..]);
+    Ok(output)
 }
 
-fn variable_namespace(tag: &str) -> Option<String> {
-    let inner = tag.strip_prefix("{{")?.strip_suffix("}}")?;
-    let expression = inner
+fn trim_variable_expression(expression: &str) -> &str {
+    expression
         .trim()
         .strip_prefix('-')
-        .unwrap_or_else(|| inner.trim())
+        .unwrap_or_else(|| expression.trim())
         .trim()
         .strip_suffix('-')
         .unwrap_or_else(|| {
-            inner
+            expression
                 .trim()
                 .strip_prefix('-')
-                .unwrap_or_else(|| inner.trim())
+                .unwrap_or_else(|| expression.trim())
                 .trim()
         })
-        .trim();
+        .trim()
+}
 
-    let mut chars = expression.chars();
-    let first = chars.next()?;
-    if !(first == '_' || first.is_ascii_alphabetic()) {
-        return None;
+fn is_passthrough_expression(expr: &ast::Expr<'_>, passthrough_namespaces: &HashSet<&str>) -> bool {
+    root_namespace(expr).is_some_and(|namespace| passthrough_namespaces.contains(namespace))
+        && all_variable_roots_are_passthrough(expr, passthrough_namespaces)
+}
+
+fn root_namespace<'a>(expr: &'a ast::Expr<'a>) -> Option<&'a str> {
+    match expr {
+        ast::Expr::Var(var) => Some(var.id),
+        ast::Expr::GetAttr(get_attr) => root_namespace(&get_attr.expr),
+        ast::Expr::GetItem(get_item) => root_namespace(&get_item.expr),
+        ast::Expr::Call(call) => root_namespace(&call.expr),
+        ast::Expr::Filter(filter) => filter.expr.as_ref().and_then(root_namespace),
+        ast::Expr::Test(test) => root_namespace(&test.expr),
+        _ => None,
     }
+}
 
-    let mut namespace = String::from(first);
-    for ch in chars {
-        if ch == '_' || ch.is_ascii_alphanumeric() {
-            namespace.push(ch);
-        } else {
-            break;
+fn all_variable_roots_are_passthrough(
+    expr: &ast::Expr<'_>,
+    passthrough_namespaces: &HashSet<&str>,
+) -> bool {
+    match expr {
+        ast::Expr::Var(var) => passthrough_namespaces.contains(var.id),
+        ast::Expr::Const(_) => true,
+        ast::Expr::Slice(slice) => {
+            all_variable_roots_are_passthrough(&slice.expr, passthrough_namespaces)
+                && slice.start.as_ref().is_none_or(|expr| {
+                    all_variable_roots_are_passthrough(expr, passthrough_namespaces)
+                })
+                && slice.stop.as_ref().is_none_or(|expr| {
+                    all_variable_roots_are_passthrough(expr, passthrough_namespaces)
+                })
+                && slice.step.as_ref().is_none_or(|expr| {
+                    all_variable_roots_are_passthrough(expr, passthrough_namespaces)
+                })
+        }
+        ast::Expr::UnaryOp(unary) => {
+            all_variable_roots_are_passthrough(&unary.expr, passthrough_namespaces)
+        }
+        ast::Expr::BinOp(bin) => {
+            all_variable_roots_are_passthrough(&bin.left, passthrough_namespaces)
+                && all_variable_roots_are_passthrough(&bin.right, passthrough_namespaces)
+        }
+        ast::Expr::IfExpr(if_expr) => {
+            all_variable_roots_are_passthrough(&if_expr.test_expr, passthrough_namespaces)
+                && all_variable_roots_are_passthrough(&if_expr.true_expr, passthrough_namespaces)
+                && if_expr.false_expr.as_ref().is_none_or(|expr| {
+                    all_variable_roots_are_passthrough(expr, passthrough_namespaces)
+                })
+        }
+        ast::Expr::Filter(filter) => {
+            filter
+                .expr
+                .as_ref()
+                .is_none_or(|expr| all_variable_roots_are_passthrough(expr, passthrough_namespaces))
+                && filter
+                    .args
+                    .iter()
+                    .all(|arg| call_arg_roots_are_passthrough(arg, passthrough_namespaces))
+        }
+        ast::Expr::Test(test) => {
+            all_variable_roots_are_passthrough(&test.expr, passthrough_namespaces)
+                && test
+                    .args
+                    .iter()
+                    .all(|arg| call_arg_roots_are_passthrough(arg, passthrough_namespaces))
+        }
+        ast::Expr::GetAttr(get_attr) => {
+            all_variable_roots_are_passthrough(&get_attr.expr, passthrough_namespaces)
+        }
+        ast::Expr::GetItem(get_item) => {
+            all_variable_roots_are_passthrough(&get_item.expr, passthrough_namespaces)
+                && all_variable_roots_are_passthrough(
+                    &get_item.subscript_expr,
+                    passthrough_namespaces,
+                )
+        }
+        ast::Expr::Call(call) => {
+            all_variable_roots_are_passthrough(&call.expr, passthrough_namespaces)
+                && call
+                    .args
+                    .iter()
+                    .all(|arg| call_arg_roots_are_passthrough(arg, passthrough_namespaces))
+        }
+        ast::Expr::List(list) => list
+            .items
+            .iter()
+            .all(|expr| all_variable_roots_are_passthrough(expr, passthrough_namespaces)),
+        ast::Expr::Map(map) => {
+            map.keys
+                .iter()
+                .all(|expr| all_variable_roots_are_passthrough(expr, passthrough_namespaces))
+                && map
+                    .values
+                    .iter()
+                    .all(|expr| all_variable_roots_are_passthrough(expr, passthrough_namespaces))
         }
     }
-    Some(namespace)
+}
+
+fn call_arg_roots_are_passthrough(
+    arg: &ast::CallArg<'_>,
+    passthrough_namespaces: &HashSet<&str>,
+) -> bool {
+    match arg {
+        ast::CallArg::Pos(expr)
+        | ast::CallArg::Kwarg(_, expr)
+        | ast::CallArg::PosSplat(expr)
+        | ast::CallArg::KwargSplat(expr) => {
+            all_variable_roots_are_passthrough(expr, passthrough_namespaces)
+        }
+    }
 }
 
 fn contains_template_syntax(source: &str) -> bool {
@@ -244,6 +360,61 @@ mod tests {
                 ":{{ talon.now }}"
             )
         );
+    }
+
+    #[test]
+    fn cli_preserves_parser_backed_later_phase_expression_shapes() {
+        let rendered = render_cli_manifest_template(
+            concat!(
+                r#"{{ talon["now"] }}"#,
+                "{{ talon.now is string }}",
+                "{{ talon.format('prefix', ctx.agent.name) }}",
+                "{{ namespace.customerName | default('Acme') }}"
+            ),
+            &HashMap::new(),
+        )
+        .unwrap();
+
+        assert_eq!(
+            rendered,
+            concat!(
+                r#"{{ talon["now"] }}"#,
+                "{{ talon.now is string }}",
+                "{{ talon.format('prefix', ctx.agent.name) }}",
+                "{{ namespace.customerName | default('Acme') }}"
+            )
+        );
+    }
+
+    #[test]
+    fn cli_handles_comments_raw_blocks_and_literal_strings_with_template_delimiters() {
+        let rendered = render_cli_manifest_template(
+            concat!(
+                "{# {{ talon.now }} #}",
+                "{% raw %}{{ talon.now }}{% endraw %}",
+                r#"{{ "{{ talon.now }}" }}"#,
+                "{{ talon.now }}"
+            ),
+            &HashMap::new(),
+        )
+        .unwrap();
+
+        assert_eq!(rendered, "{{ talon.now }}{{ talon.now }}{{ talon.now }}");
+    }
+
+    #[test]
+    fn cli_fails_on_mixed_current_and_later_phase_expressions() {
+        let mut vars = HashMap::new();
+        vars.insert("name".to_string(), String::new());
+
+        for source in [
+            "{{ talon.now ~ vars.name }}",
+            "{{ vars.name or talon.now }}",
+            "{{ talon.format(vars.name) }}",
+        ] {
+            render_cli_manifest_template(source, &vars)
+                .expect_err("mixed current and later phase expressions should fail");
+        }
     }
 
     #[test]
@@ -321,6 +492,45 @@ mod tests {
                 "{{ talon.now | upper }}"
             )
         );
+    }
+
+    #[test]
+    fn resource_preserves_parser_backed_runtime_expression_shapes() {
+        let rendered = render_resource_template(
+            concat!(
+                r#"{{ talon["now"] }}"#,
+                "{{ talon.now is string }}",
+                "{{ talon.format('prefix', ctx.agent.name) }}"
+            ),
+            json!({ "namespace": {} }),
+        )
+        .unwrap();
+
+        assert_eq!(
+            rendered,
+            concat!(
+                r#"{{ talon["now"] }}"#,
+                "{{ talon.now is string }}",
+                "{{ talon.format('prefix', ctx.agent.name) }}"
+            )
+        );
+    }
+
+    #[test]
+    fn resource_fails_on_mixed_resource_and_runtime_expressions() {
+        let context = json!({
+            "namespace": {
+                "customerName": "Acme",
+            },
+        });
+
+        for source in [
+            "{{ talon.now ~ namespace.customerName }}",
+            "{{ talon.format(namespace.customerName) }}",
+        ] {
+            render_resource_template(source, context.clone())
+                .expect_err("mixed resource and runtime expressions should fail");
+        }
     }
 
     #[test]
