@@ -287,7 +287,7 @@ pub mod test_support {
 
     impl PostgresContainer {
         pub fn start(prefix: &str) -> Self {
-            let name = format!("{}-{}", prefix, uuid::Uuid::now_v7());
+            let name = crate::control::uuid::unique_name(prefix);
             let run = Command::new("docker")
                 .args([
                     "run",

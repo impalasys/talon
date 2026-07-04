@@ -792,7 +792,7 @@ async fn dispatch_to_channel(
     let message = super::channels::persist_channel_message(
         cp,
         data_proto::ChannelMessage {
-            id: connector_message_id(event),
+            id: crate::control::uuid::channel_message_id(),
             ns: channel_namespace.clone(),
             channel: channel_name.to_string(),
             author_kind: connector_author_kind(event),
@@ -931,7 +931,7 @@ async fn connector_session_id(
         }
         let reservation = format!(
             "{CONNECTOR_SESSION_RESERVATION_PREFIX}{}",
-            uuid::Uuid::now_v7()
+            crate::control::uuid::session_id()
         );
         if !cp
             .kv
@@ -1256,7 +1256,7 @@ fn connector_session_message(
         ));
     }
     Ok(data_proto::SessionMessage {
-        id: connector_message_id(event),
+        id: crate::control::uuid::session_message_id(),
         role: data_proto::MessageRole::RoleUser as i32,
         created_at: now,
         labels,
@@ -1332,17 +1332,6 @@ fn insert_label(labels: &mut HashMap<String, String>, key: &str, value: &str) {
     if !value.trim().is_empty() {
         labels.insert(key.to_string(), value.to_string());
     }
-}
-
-fn connector_message_id(event: &external_proto::ConnectorMessageEvent) -> String {
-    let source = if !event.event_id.trim().is_empty() {
-        format!("{}\x1f{}", event.registration_id, event.event_id)
-    } else if !event.external_message_id.trim().is_empty() {
-        format!("{}\x1f{}", event.registration_id, event.external_message_id)
-    } else {
-        return uuid::Uuid::now_v7().to_string();
-    };
-    format!("connector-{}", hex_sha256(source.as_bytes()))
 }
 
 fn connector_author_kind(event: &external_proto::ConnectorMessageEvent) -> String {
@@ -1473,5 +1462,37 @@ fn map_dispatch_error(err: anyhow::Error) -> tonic::Status {
         tonic::Status::not_found("Session not found")
     } else {
         tonic::Status::internal(format!("failed to dispatch connector message: {err}"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn connector_session_message_uses_chronological_uuid_message_id() {
+        let message = connector_session_message(
+            &external_proto::ConnectorMessageEvent {
+                event_id: "provider-event-1".to_string(),
+                event_kind: external_proto::ConnectorMessageEventKind::Created as i32,
+                registration_id: "Namespace/conic/ConnectorClass/slack".to_string(),
+                connector_class: "slack".to_string(),
+                external_message_id: "provider-message-1".to_string(),
+                text: "hello from connector".to_string(),
+                event_time_ms: 1_700_000_000_000,
+                ..Default::default()
+            },
+            HashMap::new(),
+        )
+        .expect("connector message should be valid");
+
+        assert!(!message.id.starts_with("connector-"));
+        assert!(!message.id.ends_with("-assistant"));
+        assert_eq!(
+            uuid::Uuid::parse_str(&message.id)
+                .expect("message id should be UUID")
+                .get_version_num(),
+            7
+        );
     }
 }

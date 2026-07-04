@@ -74,7 +74,7 @@ fn normalize_appended_session_message(
 ) -> data_proto::SessionMessage {
     let now_micros = chrono::Utc::now().timestamp_micros();
     if message.id.is_empty() {
-        message.id = uuid::Uuid::now_v7().to_string();
+        message.id = crate::control::uuid::session_message_id();
     }
     if message.role == data_proto::MessageRole::RoleUnspecified as i32 {
         message.role = data_proto::MessageRole::RoleUser as i32;
@@ -319,7 +319,7 @@ impl GrpcGatewayHandler {
         })?;
 
         // Use ULID (UUID v7 gives time-sorted guarantees like ULID)
-        let session_id = uuid::Uuid::now_v7().to_string();
+        let session_id = crate::control::uuid::session_id();
 
         let session = data_proto::Session {
             id: session_id.clone(),

@@ -20,6 +20,7 @@ pub mod security;
 pub mod telemetry;
 pub mod topics;
 pub mod usage;
+pub mod uuid;
 
 use std::path::PathBuf;
 

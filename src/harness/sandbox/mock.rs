@@ -35,7 +35,7 @@ impl SandboxBackend for MockSandboxBackend {
         _policy: &SandboxPolicySpecJson,
     ) -> Result<SandboxHandle> {
         Ok(SandboxHandle {
-            backend_id: format!("mock-{}-{}", class.provider, uuid::Uuid::now_v7()),
+            backend_id: crate::control::uuid::unique_name(&format!("mock-{}", class.provider)),
         })
     }
 
@@ -44,7 +44,7 @@ impl SandboxBackend for MockSandboxBackend {
     }
 
     async fn exec(&self, _backend_id: &str, spec: ExecSpec) -> Result<ProcessHandle> {
-        let process_id = uuid::Uuid::now_v7().to_string();
+        let process_id = crate::control::uuid::process_id();
         mock_sandbox_state()
             .lock()
             .await

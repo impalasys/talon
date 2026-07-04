@@ -187,7 +187,7 @@ impl<B: SandboxBackend> SandboxLeaseService<B> {
         agent: &str,
         session_id: &str,
     ) -> Result<LeasedSandbox> {
-        let token = uuid::Uuid::now_v7().to_string();
+        let token = crate::control::uuid::v7();
         let leased = self
             .update_sandbox_status(&sandbox, |status| {
                 let now = chrono::Utc::now().timestamp_micros();
@@ -350,7 +350,7 @@ impl<B: SandboxBackend> SandboxController<B> {
             .metadata
             .as_ref()
             .ok_or_else(|| anyhow!("SandboxPolicy metadata is required"))?;
-        let name = format!("{}-{}", policy_meta.name, uuid::Uuid::now_v7());
+        let name = crate::control::uuid::unique_name(&policy_meta.name);
         let sandbox = resources_proto::Resource {
             api_version: policy.api_version.clone(),
             kind: "Sandbox".to_string(),

@@ -184,7 +184,7 @@ impl GrpcGatewayHandler {
             }
         }
 
-        let id = uuid::Uuid::now_v7().to_string();
+        let id = crate::control::uuid::auth_record_id();
         let secret = random_url_token(API_KEY_SECRET_BYTES);
         let raw_key = format!("{API_KEY_PREFIX}{id}_{secret}");
         let prefix = raw_key

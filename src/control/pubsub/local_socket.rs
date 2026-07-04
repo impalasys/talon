@@ -191,7 +191,7 @@ impl MessagePublisher for LocalSocketMessagePublisher {
         topic: &str,
     ) -> Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
         self.ensure_server().await?;
-        let subscription = format!("local-sub-{}", uuid::Uuid::now_v7());
+        let subscription = format!("local-sub-{}", crate::control::uuid::v7());
         self.subscriber()
             .subscribe_named(topic, &subscription)
             .await

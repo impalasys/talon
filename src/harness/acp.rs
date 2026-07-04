@@ -580,7 +580,7 @@ impl AcpAgentRuntime {
         params: &Value,
         sink: &dyn ExecutionSink,
     ) -> Result<Value> {
-        let request_id = uuid::Uuid::now_v7().to_string();
+        let request_id = crate::control::uuid::request_id();
         let payload = json!({
             "requestId": request_id,
             "protocol": "acp",

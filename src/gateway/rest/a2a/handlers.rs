@@ -14,7 +14,6 @@ use axum::{
 use futures::StreamExt;
 use serde_json::{json, Value};
 use tonic::Code;
-use uuid::Uuid;
 
 use crate::control::scheduling;
 use crate::control::{
@@ -685,7 +684,7 @@ fn a2a_stream_status_update_value(
                 "status": {
                     "state": state,
                     "message": {
-                        "messageId": Uuid::now_v7().to_string(),
+                        "messageId": crate::control::uuid::session_message_id(),
                         "contextId": context_id,
                         "taskId": task_id,
                         "role": "ROLE_AGENT",

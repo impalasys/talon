@@ -106,7 +106,7 @@ pub async fn claim_submission(
         }
 
         submission.status = SessionSubmissionStatus::Claimed as i32;
-        submission.attempt_id = uuid::Uuid::now_v7().to_string();
+        submission.attempt_id = crate::control::uuid::session_attempt_id();
         submission.claim_worker_id = worker_id.to_string();
         submission.attempt_count = submission.attempt_count.saturating_add(1);
         submission.claim_expires_at = Some(now_micros.saturating_add(claim_ttl_micros));

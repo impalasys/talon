@@ -227,8 +227,8 @@ impl ResourceStore {
             .and_then(|existing| existing.metadata.as_ref())
             .map(|meta| meta.uid.clone())
             .filter(|uid| !uid.is_empty())
-            .unwrap_or_else(|| uuid::Uuid::now_v7().to_string());
-        let resource_version = uuid::Uuid::now_v7().to_string();
+            .unwrap_or_else(crate::control::uuid::v7);
+        let resource_version = crate::control::uuid::resource_version();
 
         if preserve_existing_status {
             resource.status = existing
@@ -337,7 +337,7 @@ impl ResourceStore {
                 .metadata
                 .as_mut()
                 .ok_or_else(|| anyhow!("resource metadata missing"))?;
-            meta.resource_version = uuid::Uuid::now_v7().to_string();
+            meta.resource_version = crate::control::uuid::resource_version();
             validate_resource_kind(&resource)?;
             let next = encode_stored_resource(&resource)?;
             if self
@@ -413,7 +413,7 @@ impl ResourceStore {
                 .as_mut()
                 .ok_or_else(|| anyhow!("resource metadata missing"))?;
             meta.deletion_timestamp = Some(now);
-            meta.resource_version = uuid::Uuid::now_v7().to_string();
+            meta.resource_version = crate::control::uuid::resource_version();
             self.kv
                 .set(&key, &encode_stored_resource(&resource)?)
                 .await?;

@@ -57,7 +57,7 @@ fn a2a_context_id(message: &A2aMessageJson) -> String {
         .context_id
         .clone()
         .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| Uuid::now_v7().to_string())
+        .unwrap_or_else(crate::control::uuid::session_id)
 }
 
 pub(super) fn a2a_session_hint(message: &A2aMessageJson) -> Result<Option<String>, Response> {
@@ -784,7 +784,7 @@ fn a2a_message_to_session_message(
     }
 
     Ok(crate::gateway::rpc::data_proto::SessionMessage {
-        id: Uuid::now_v7().to_string(),
+        id: crate::control::uuid::session_message_id(),
         role: crate::gateway::rpc::data_proto::MessageRole::RoleUser as i32,
         created_at: timestamp,
         labels,

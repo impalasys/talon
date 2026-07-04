@@ -65,7 +65,7 @@ impl SandboxBackend for DaytonaSandboxBackend {
         let command = shell_command(&spec);
         let _ = daytona_execute(backend_id, &command).await?;
         Ok(ProcessHandle {
-            id: uuid::Uuid::now_v7().to_string(),
+            id: crate::control::uuid::process_id(),
         })
     }
 
