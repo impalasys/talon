@@ -1,6 +1,8 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::control::manifest::templating::render_cli_manifest_template;
+
 pub(super) fn parse_raw_manifest(content: &str) -> Result<crate::control::manifest::RawManifest> {
     serde_yaml::from_str(content).context("Failed to parse manifest YAML")
 }
@@ -22,7 +24,7 @@ pub(super) fn render_manifest_file(file: &str, vars: &[String]) -> Result<String
     let content = fs::read_to_string(file)
         .with_context(|| format!("Failed to read manifest file: {}", file))?;
     let vars = parse_vars(vars)?;
-    let rendered = render_manifest_template(&content, &vars)
+    let rendered = render_cli_manifest_template(&content, &vars)
         .with_context(|| format!("Failed to render manifest file: {}", file))?;
     if rendered.trim().is_empty() {
         return Ok(rendered);
@@ -124,8 +126,4 @@ fn parse_vars(entries: &[String]) -> Result<HashMap<String, String>> {
         vars.insert(key.to_string(), value.to_string());
     }
     Ok(vars)
-}
-
-fn render_manifest_template(template: &str, vars: &HashMap<String, String>) -> Result<String> {
-    crate::control::manifest::templating::render_cli_manifest_template(template, vars)
 }

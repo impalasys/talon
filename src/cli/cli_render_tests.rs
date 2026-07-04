@@ -9,7 +9,7 @@ mod cli_render_tests {
     fn render_manifest_template_renders_vars_and_preserves_later_layer_vars() {
         let mut vars = HashMap::new();
         vars.insert("source_ns".to_string(), "customers".to_string());
-        let rendered = render_manifest_template(
+        let rendered = render_cli_manifest_template(
             r#"
 apiVersion: talon.impalasys.com/v1
 kind: Template
@@ -35,7 +35,7 @@ spec:
     #[test]
     fn render_manifest_template_fails_on_undefined_vars() {
         let vars = HashMap::new();
-        render_manifest_template("name: {{ vars.missing }}", &vars)
+        render_cli_manifest_template("name: {{ vars.missing }}", &vars)
             .expect_err("undefined var should fail");
     }
 
