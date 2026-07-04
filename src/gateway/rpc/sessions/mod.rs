@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{data_proto, proto, GrpcGatewayHandler};
+use super::{connectors as connector_rpc, data_proto, proto, GrpcGatewayHandler};
 use crate::control::scheduling;
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
@@ -948,7 +948,10 @@ impl GrpcGatewayHandler {
                 "message must contain at least one part",
             ));
         }
+        let should_deliver_connector_reply =
+            message.role == data_proto::MessageRole::RoleAssistant as i32;
         let message_key = keys::session_message(&req.ns, &req.agent, &req.session_id, &message.id);
+        let message_id = message.id.clone();
         let inserted = self
             .gateway
             .kv
@@ -985,6 +988,30 @@ impl GrpcGatewayHandler {
                 message_id = %message.id,
                 "failed to publish search index event for appended session message"
             );
+        }
+
+        if should_deliver_connector_reply {
+            if let Err(error) = connector_rpc::maybe_deliver_connector_session_message(
+                &self.gateway.control_plane(),
+                &req.ns,
+                &req.agent,
+                &req.session_id,
+                &message_id,
+            )
+            .await
+            {
+                tracing::warn!(
+                    error = %error,
+                    namespace = %req.ns,
+                    agent = %req.agent,
+                    session_id = %req.session_id,
+                    message_id = %message_id,
+                    "failed to deliver appended connector session message"
+                );
+                return Err(tonic::Status::internal(format!(
+                    "Failed to deliver connector session message: {error}"
+                )));
+            }
         }
 
         Ok(tonic::Response::new(proto::AppendSessionMessageResponse {

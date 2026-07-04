@@ -36,6 +36,7 @@ import { motion } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { TalonChannel, TalonCopilot, type TalonChatObjectRef, type TalonImageUploadContext } from '@impalasys/talon-chat';
+import { data } from '@impalasys/talon-client';
 import { NamespaceExplorer } from '../components/Namespaces/NamespaceExplorer';
 import { WorkspaceCommandPalette } from '../components/Search/WorkspaceCommandPalette';
 import {
@@ -66,6 +67,15 @@ const isStaticExport = process.env.NEXT_PUBLIC_TALON_STATIC_EXPORT === '1';
 const CONNECT_TIMEOUT_MS = 8000;
 const RUNTIME_AUTH_TOKEN_STORAGE_KEY = 'talon_auth_token';
 const MANUAL_JWT_STORAGE_KEY = 'talon_manual_jwt';
+const LABEL_MESSAGE_SOURCE = 'talon.impalasys.com/message-source';
+const LABEL_AUTHOR_KIND = 'talon.impalasys.com/author-kind';
+const LABEL_AUTHOR = 'talon.impalasys.com/author';
+const LABEL_CONNECTOR = 'talon.impalasys.com/connector';
+const LABEL_CONNECTOR_CLASS = 'talon.impalasys.com/connector-class';
+const LABEL_CONNECTOR_REGISTRATION = 'talon.impalasys.com/connector-registration';
+const LABEL_EXTERNAL_CONVERSATION = 'talon.impalasys.com/external-conversation';
+const LABEL_EXTERNAL_SENDER = 'talon.impalasys.com/external-sender';
+const LABEL_CONVERSATION_TYPE = 'talon.impalasys.com/conversation-type';
 declare global {
   interface Window {
     google?: {
@@ -81,6 +91,37 @@ declare global {
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+type SessionConnectorMetadata = {
+  connector: string;
+  connectorClass: string;
+  registration: string;
+  externalConversation: string;
+  externalSender: string;
+  conversationType: string;
+};
+
+function normalizeLabels(value: unknown): Record<string, string> {
+  if (!value || typeof value !== 'object') return {};
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+  );
+}
+
+function connectorMetadataFromLabels(labels: Record<string, string>): SessionConnectorMetadata | null {
+  if (!labels[LABEL_CONNECTOR_REGISTRATION] || !labels[LABEL_EXTERNAL_CONVERSATION]) {
+    return null;
+  }
+  return {
+    connector: labels[LABEL_CONNECTOR] || '',
+    connectorClass: labels[LABEL_CONNECTOR_CLASS] || '',
+    registration: labels[LABEL_CONNECTOR_REGISTRATION] || '',
+    externalConversation: labels[LABEL_EXTERNAL_CONVERSATION] || '',
+    externalSender: labels[LABEL_EXTERNAL_SENDER] || '',
+    conversationType: labels[LABEL_CONVERSATION_TYPE] || '',
+  };
 }
 
 function positiveIntParam(searchParams: URLSearchParams, name: string) {
@@ -923,6 +964,8 @@ function DebuggerPageContent() {
   const [authScreenOpen, setAuthScreenOpen] = useState(false);
   const [isHoveringConnection, setIsHoveringConnection] = useState(false);
   const [selectedNamespace, setSelectedNamespace] = useState<Selection | null>(null);
+  const [sessionComposerRole, setSessionComposerRole] = useState<'user' | 'assistant'>('user');
+  const [sessionConnectorMetadata, setSessionConnectorMetadata] = useState<SessionConnectorMetadata | null>(null);
   const [isSidebarPinned, setIsSidebarPinned] = useState(true);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(true);
@@ -957,6 +1000,32 @@ function DebuggerPageContent() {
     },
     []
   );
+
+  useEffect(() => {
+    setSessionComposerRole('user');
+    setSessionConnectorMetadata(null);
+    if (!isConnected || selectedNamespace?.type !== 'session') return;
+
+    let canceled = false;
+    getGatewayClient().sessions.get({
+      ns: selectedNamespace.ns,
+      agent: selectedNamespace.agent || 'default',
+      sessionId: selectedNamespace.sessionId,
+      messageLimit: 0,
+    }).then((response: any) => {
+      if (canceled) return;
+      const labels = normalizeLabels(response?.labels);
+      setSessionConnectorMetadata(connectorMetadataFromLabels(labels));
+    }).catch(() => {
+      if (!canceled) {
+        setSessionConnectorMetadata(null);
+      }
+    });
+
+    return () => {
+      canceled = true;
+    };
+  }, [isConnected, selectedNamespace]);
 
   useEffect(() => {
     const savedUrl = localStorage.getItem('talon_gateway_url');
@@ -1457,28 +1526,89 @@ function DebuggerPageContent() {
           {/* Center Pane */}
           <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-transparent">
           {selectedNamespace?.type === 'session' ? (
-            <div className={cn("min-h-0 min-w-0 flex-1 overflow-hidden transition-opacity duration-300", !isConnected && "opacity-20 pointer-events-none")}>
-              <TalonCopilot
-                className="h-full"
-                namespace={selectedNamespace.ns}
-                agent={selectedNamespace.agent || 'default'}
-                sessionId={selectedNamespace.type === 'session' ? selectedNamespace.sessionId : undefined}
-                gatewayClient={getGatewayClient()}
-                historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
-                enabledBuiltInCommands={['clear']}
-                onImageUpload={isStaticExport ? undefined : uploadTalonImage}
-                objectUrlForRef={isStaticExport ? undefined : talonObjectUrl}
-                disabled={!isConnected}
-                onSessionChange={(nextSessionId) => {
-                  handleSelectionChange({
-                    type: 'session',
-                    ns: selectedNamespace.ns,
-                    agent: selectedNamespace.agent || 'default',
-                    sessionId: nextSessionId,
-                    fullPath: `${selectedNamespace.ns}/${selectedNamespace.agent || 'default'}/${nextSessionId}`,
-                  });
-                }}
-              />
+            <div className={cn("flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-opacity duration-300", !isConnected && "opacity-20 pointer-events-none")}>
+              {sessionConnectorMetadata ? (
+                <div className="mx-auto mt-3 flex w-[calc(100%-2rem)] max-w-4xl flex-wrap items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/8 px-3 py-2 text-xs text-emerald-200">
+                  <Plug className="h-3.5 w-3.5" />
+                  <span className="font-medium">{sessionConnectorMetadata.connectorClass || 'connector'}</span>
+                  {sessionConnectorMetadata.connector ? <span className="text-emerald-100/70">{sessionConnectorMetadata.connector}</span> : null}
+                  <span className="min-w-0 truncate text-emerald-100/80">{sessionConnectorMetadata.externalConversation}</span>
+                  {sessionConnectorMetadata.externalSender ? <span className="text-emerald-100/60">from {sessionConnectorMetadata.externalSender}</span> : null}
+                  {sessionConnectorMetadata.conversationType ? <span className="ml-auto rounded-full bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100/80">{sessionConnectorMetadata.conversationType}</span> : null}
+                </div>
+              ) : null}
+              <div className="min-h-0 flex-1 overflow-hidden">
+                <TalonCopilot
+                  className="h-full"
+                  namespace={selectedNamespace.ns}
+                  agent={selectedNamespace.agent || 'default'}
+                  sessionId={selectedNamespace.type === 'session' ? selectedNamespace.sessionId : undefined}
+                  gatewayClient={getGatewayClient()}
+                  historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
+                  enabledBuiltInCommands={['clear']}
+                  onImageUpload={sessionComposerRole === 'assistant' || isStaticExport ? undefined : uploadTalonImage}
+                  objectUrlForRef={isStaticExport ? undefined : talonObjectUrl}
+                  disabled={!isConnected}
+                  composerVariant="expanded"
+                  composerStartAdornment={
+                    <div className="flex h-8 overflow-hidden rounded-full border border-border bg-background/80 p-0.5">
+                      {(['user', 'assistant'] as const).map((role) => (
+                        <button
+                          key={role}
+                          type="button"
+                          className={cn(
+                            "rounded-full px-2.5 text-[11px] font-medium capitalize transition-colors",
+                            sessionComposerRole === role ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                          )}
+                          onClick={() => setSessionComposerRole(role)}
+                        >
+                          {role}
+                        </button>
+                      ))}
+                    </div>
+                  }
+                  onSubmitMessage={async ({ text, imageAttachments, ensureSession, clearInput, refreshSession }) => {
+                    if (sessionComposerRole !== 'assistant') return false;
+                    if (imageAttachments.length > 0) {
+                      throw new Error('Assistant-mode image delivery is not supported yet.');
+                    }
+                    const session = await ensureSession();
+                    const sessions = getGatewayClient().sessions as any;
+                    if (!sessions.appendMessage) {
+                      throw new Error('Gateway client does not support sessions.appendMessage().');
+                    }
+                    await sessions.appendMessage({
+                      ns: session.ns,
+                      agent: session.agent,
+                      sessionId: session.sessionId,
+                      message: {
+                        role: data.MessageRole.ROLE_ASSISTANT,
+                        labels: {
+                          [LABEL_MESSAGE_SOURCE]: 'sightline',
+                          [LABEL_AUTHOR_KIND]: 'human',
+                          [LABEL_AUTHOR]: 'sightline',
+                        },
+                        parts: [{
+                          partType: data.SessionMessagePartType.TEXT,
+                          content: text,
+                        }],
+                      },
+                    });
+                    clearInput();
+                    await refreshSession();
+                    return true;
+                  }}
+                  onSessionChange={(nextSessionId) => {
+                    handleSelectionChange({
+                      type: 'session',
+                      ns: selectedNamespace.ns,
+                      agent: selectedNamespace.agent || 'default',
+                      sessionId: nextSessionId,
+                      fullPath: `${selectedNamespace.ns}/${selectedNamespace.agent || 'default'}/${nextSessionId}`,
+                    });
+                  }}
+                />
+              </div>
             </div>
           ) : (
             <div className={cn("flex-1 overflow-y-auto overflow-x-hidden transition-opacity duration-300 elegant-scrollbar", !isConnected && "opacity-20 pointer-events-none")}>

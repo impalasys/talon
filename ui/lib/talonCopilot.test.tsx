@@ -188,6 +188,9 @@ function makeGatewayClient(raw: any = {}, gatewayUrl = 'http://localhost:18789',
       const response = await fetcher(`${gatewayUrl}/v1/ns/${request.ns}/agents/${request.agent}/sessions/${request.sessionId}`, expect.anything());
       return response.json();
     }),
+    appendMessage: raw.appendMessage ?? jest.fn(async (request: any) => {
+      return { sessionId: request.sessionId, message: request.message };
+    }),
     submitTurn: raw.submitTurn ?? jest.fn(async function* (request: any, options?: any) {
       const bodyParts = (request.message?.parts ?? []).map((part: any) => {
         const partType = part?.partType ?? part?.part_type;
@@ -966,6 +969,68 @@ describe('TalonCopilot', () => {
       },
       messages: [],
     }));
+  });
+
+  it('renders composer adornments and allows custom submit handling', async () => {
+    const appendMessage = jest.fn().mockResolvedValue({ sessionId: 'sess-custom' });
+    const submitTurn = jest.fn(async function* () {});
+    const gatewayClient = {
+      sessions: {
+        create: jest.fn(),
+        clear: jest.fn(),
+        appendMessage,
+        listMessages: jest.fn().mockResolvedValue({
+          sessionId: 'sess-custom',
+          state: 'IDLE',
+          items: [],
+        }),
+        submitTurn,
+        streamParts: jest.fn(async function* () {}),
+        stopGeneration: jest.fn(),
+      },
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-custom"
+        composerStartAdornment={<button type="button">Assistant</button>}
+        onSubmitMessage={async ({ text, ensureSession, clearInput }) => {
+          const session = await ensureSession();
+          await appendMessage({
+            ns: session.ns,
+            agent: session.agent,
+            sessionId: session.sessionId,
+            message: {
+              role: 2,
+              parts: [{ partType: 1, content: text }],
+            },
+          });
+          clearInput();
+          return true;
+        }}
+      />,
+    );
+
+    expect(await screen.findByRole('button', { name: 'Assistant' })).toBeInTheDocument();
+    const input = screen.getByPlaceholderText('Ask Talon to perform a task...');
+    fireEvent.change(input, { target: { value: 'human reply' } });
+    fireEvent.click(screen.getByRole('button', { name: /send message/i }));
+
+    await waitFor(() => expect(appendMessage).toHaveBeenCalled());
+    expect(appendMessage).toHaveBeenCalledWith(expect.objectContaining({
+      ns: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-custom',
+      message: expect.objectContaining({
+        role: 2,
+        parts: [expect.objectContaining({ content: 'human reply' })],
+      }),
+    }));
+    expect(submitTurn).not.toHaveBeenCalled();
+    expect(input).toHaveValue('');
   });
 
   it('scrolls the transcript container as streamed output arrives', async () => {

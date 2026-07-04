@@ -24,6 +24,7 @@ const LABEL_EXTERNAL_MESSAGE: &str = "talon.impalasys.com/external-message";
 const LABEL_EXTERNAL_SENDER: &str = "talon.impalasys.com/external-sender";
 const LABEL_CONVERSATION_TYPE: &str = "talon.impalasys.com/conversation-type";
 const LABEL_CONNECTOR_MATCH_PREFIX: &str = "talon.impalasys.com/connector-match/";
+const LABEL_CHANNEL_TRIGGER: &str = "talon.impalasys.com/channel-trigger";
 const CONNECTOR_HTTP_TIMEOUT: Duration = Duration::from_secs(15);
 const CONNECTOR_SESSION_RESERVATION_PREFIX: &str = "reserved:";
 
@@ -355,6 +356,105 @@ pub fn is_connector_silence_response(text: &str) -> bool {
         text.trim().to_ascii_uppercase().as_str(),
         "[SILENT]" | "SILENT" | "NO_REPLY" | "NO REPLY"
     )
+}
+
+pub(crate) fn session_message_final_response(message: &data_proto::SessionMessage) -> String {
+    let final_parts_start = message
+        .parts
+        .iter()
+        .rposition(|part| is_final_response_boundary(part.part_type));
+    let final_parts = match final_parts_start {
+        Some(index) => &message.parts[index + 1..],
+        None => message.parts.as_slice(),
+    };
+
+    final_parts
+        .iter()
+        .filter_map(final_response_text)
+        .filter(|content| !content.is_empty())
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+fn final_response_text(part: &data_proto::SessionMessagePart) -> Option<&str> {
+    match data_proto::SessionMessagePartType::try_from(part.part_type) {
+        Ok(data_proto::SessionMessagePartType::Text)
+        | Ok(data_proto::SessionMessagePartType::Error) => Some(part.content.trim()),
+        _ => None,
+    }
+}
+
+fn is_final_response_boundary(part_type: i32) -> bool {
+    matches!(
+        data_proto::SessionMessagePartType::try_from(part_type),
+        Ok(data_proto::SessionMessagePartType::Reasoning)
+            | Ok(data_proto::SessionMessagePartType::ToolCall)
+            | Ok(data_proto::SessionMessagePartType::ToolResult)
+            | Ok(data_proto::SessionMessagePartType::RequestPermission)
+            | Ok(data_proto::SessionMessagePartType::PermissionResult)
+    )
+}
+
+pub async fn maybe_deliver_connector_session_message(
+    cp: &ControlPlane,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    message_id: &str,
+) -> anyhow::Result<()> {
+    let session = cp
+        .kv
+        .get_msg::<data_proto::Session>(&keys::session(ns, agent, session_id))
+        .await?
+        .ok_or_else(|| anyhow::anyhow!("session not found"))?;
+    if !session.labels.contains_key(LABEL_CONNECTOR_REGISTRATION) {
+        return Ok(());
+    }
+    if session
+        .labels
+        .get(LABEL_MESSAGE_SOURCE)
+        .is_some_and(|source| source != "connector")
+    {
+        return Ok(());
+    }
+    if session.labels.contains_key(LABEL_CHANNEL_TRIGGER) {
+        return Ok(());
+    }
+
+    let message = cp
+        .kv
+        .get_msg::<data_proto::SessionMessage>(&keys::session_message(
+            ns, agent, session_id, message_id,
+        ))
+        .await?
+        .ok_or_else(|| anyhow::anyhow!("assistant message not found"))?;
+    if message.role != data_proto::MessageRole::RoleAssistant as i32 {
+        return Ok(());
+    }
+
+    let text = session_message_final_response(&message);
+    if text.trim().is_empty() {
+        tracing::info!(
+            namespace = %ns,
+            agent = %agent,
+            session = %session_id,
+            message_id = %message_id,
+            "connector session reply has no text; skipping outbound delivery"
+        );
+        return Ok(());
+    }
+    if is_connector_silence_response(&text) {
+        tracing::info!(
+            namespace = %ns,
+            agent = %agent,
+            session = %session_id,
+            message_id = %message_id,
+            "connector session reply suppressed by no-reply token"
+        );
+        return Ok(());
+    }
+
+    deliver_connector_session_message(cp, &session, &message, &text).await
 }
 
 pub async fn deliver_connector_session_message(
