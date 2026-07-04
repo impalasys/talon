@@ -7,6 +7,7 @@ use crate::control::{
     ControlPlane, KeyValueStore, MessagePublisher,
 };
 use crate::gateway::auth::AuthConfig;
+use crate::gateway::worker_conn::WorkerConnectionPool;
 use anyhow::Result;
 use axum::{
     body::Body,
@@ -30,6 +31,7 @@ pub struct Gateway {
     pub scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
     pub objects: Arc<dyn ObjectStore + Send + Sync>,
     pub documents: Arc<dyn DocumentStore + Send + Sync>,
+    pub(crate) worker_connections: Arc<WorkerConnectionPool>,
 }
 
 impl Gateway {
@@ -61,6 +63,7 @@ impl Gateway {
             scheduler,
             objects,
             documents,
+            worker_connections: Arc::new(WorkerConnectionPool::new()),
         }
     }
 
@@ -87,6 +90,7 @@ impl Gateway {
             scheduler: self.scheduler.clone(),
             objects: self.objects.clone(),
             documents: self.documents.clone(),
+            worker_connections: self.worker_connections.clone(),
         }
     }
 

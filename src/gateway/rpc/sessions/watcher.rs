@@ -7,20 +7,15 @@ use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{events, keys, ns, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::{data_proto, resources_proto, worker_proto};
 use crate::gateway::session_streams::SessionStreamTarget;
+use crate::gateway::worker_conn::WorkerConnectionPool;
 use futures::{stream::SelectAll, Stream, StreamExt};
-use hyper_util::rt::TokioIo;
 use prost::Message;
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::net::UnixStream;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
-use tonic::transport::{Channel, Endpoint, Uri};
-use tower::service_fn;
-use url::Url;
 
 const SESSION_STREAM_LEASE_CHECK_MAX_MICROS: u64 = 5_000_000;
 const SESSION_STREAM_LEASE_CHECK_MIN_MICROS: u64 = 100_000;
@@ -50,19 +45,21 @@ pub(crate) fn session_parts_event_stream(
     targets: Vec<SessionStreamTarget>,
     kv: Arc<dyn KeyValueStore + Send + Sync>,
     pubsub: Arc<dyn MessagePublisher + Send + Sync>,
+    worker_connections: Arc<WorkerConnectionPool>,
 ) -> SessionPartEventStream {
     if targets.is_empty() {
         return Box::pin(futures::stream::empty());
     }
 
     let stream = if targets.len() > 1 {
-        batch_session_parts_event_stream(targets, kv, pubsub)
+        batch_session_parts_event_stream(targets, kv, pubsub, worker_connections)
     } else {
         single_session_parts_event_stream(
             targets.into_iter().next().expect("target"),
             None,
             kv,
             pubsub,
+            worker_connections,
         )
     };
     eager_buffer_session_part_stream(stream)
@@ -73,12 +70,14 @@ pub(crate) fn session_submission_event_stream(
     submission_id: String,
     kv: Arc<dyn KeyValueStore + Send + Sync>,
     pubsub: Arc<dyn MessagePublisher + Send + Sync>,
+    worker_connections: Arc<WorkerConnectionPool>,
 ) -> SessionPartEventStream {
     eager_buffer_session_part_stream(single_session_parts_event_stream(
         target,
         Some(submission_id),
         kv,
         pubsub,
+        worker_connections,
     ))
 }
 
@@ -127,6 +126,7 @@ fn single_session_parts_event_stream(
     submission_id: Option<String>,
     kv: Arc<dyn KeyValueStore + Send + Sync>,
     pubsub: Arc<dyn MessagePublisher + Send + Sync>,
+    worker_connections: Arc<WorkerConnectionPool>,
 ) -> SessionPartEventStream {
     Box::pin(async_stream::stream! {
         let mut after_sequence = 0u64;
@@ -174,7 +174,14 @@ fn single_session_parts_event_stream(
                 continue;
             }
 
-            match connect_worker_stream(kv.as_ref(), pubsub.as_ref(), &target, &submission, after_sequence).await {
+            match connect_worker_stream(
+                kv.as_ref(),
+                pubsub.as_ref(),
+                worker_connections.as_ref(),
+                &target,
+                &submission,
+                after_sequence,
+            ).await {
                 Ok(mut stream) => {
                     while let Some(item) = stream.next().await {
                         match item {
@@ -246,6 +253,7 @@ fn batch_session_parts_event_stream(
     targets: Vec<SessionStreamTarget>,
     kv: Arc<dyn KeyValueStore + Send + Sync>,
     pubsub: Arc<dyn MessagePublisher + Send + Sync>,
+    worker_connections: Arc<WorkerConnectionPool>,
 ) -> SessionPartEventStream {
     Box::pin(async_stream::stream! {
         let mut states: Vec<BatchSessionState> = targets
@@ -345,6 +353,7 @@ fn batch_session_parts_event_stream(
                 match connect_worker_batch_stream(
                     kv.as_ref(),
                     pubsub.as_ref(),
+                    worker_connections.as_ref(),
                     &worker_id,
                     &streams,
                 )
@@ -419,6 +428,7 @@ fn batch_session_parts_event_stream(
 async fn connect_worker_stream(
     kv: &dyn KeyValueStore,
     pubsub: &dyn MessagePublisher,
+    worker_connections: &WorkerConnectionPool,
     target: &SessionStreamTarget,
     submission: &data_proto::SessionSubmission,
     after_sequence: u64,
@@ -427,7 +437,15 @@ async fn connect_worker_stream(
     let endpoints = worker_endpoints(kv, pubsub, &submission.claim_worker_id).await?;
     let mut last_status = None;
     for endpoint in endpoints {
-        match stream_from_endpoint(&endpoint, target, submission, after_sequence).await {
+        match stream_from_endpoint(
+            worker_connections,
+            &endpoint,
+            target,
+            submission,
+            after_sequence,
+        )
+        .await
+        {
             Ok(stream) => return Ok(stream),
             Err(status) => last_status = Some(status),
         }
@@ -438,6 +456,7 @@ async fn connect_worker_stream(
 async fn connect_worker_batch_stream(
     kv: &dyn KeyValueStore,
     pubsub: &dyn MessagePublisher,
+    worker_connections: &WorkerConnectionPool,
     worker_id: &str,
     streams: &[ClaimedBatchStream],
 ) -> std::result::Result<tonic::Streaming<worker_proto::StreamSessionPartsResponse>, tonic::Status>
@@ -445,7 +464,7 @@ async fn connect_worker_batch_stream(
     let endpoints = worker_endpoints(kv, pubsub, worker_id).await?;
     let mut last_status = None;
     for endpoint in endpoints {
-        match stream_batch_from_endpoint(&endpoint, streams).await {
+        match stream_batch_from_endpoint(worker_connections, &endpoint, streams).await {
             Ok(stream) => return Ok(stream),
             Err(status) => last_status = Some(status),
         }
@@ -454,14 +473,14 @@ async fn connect_worker_batch_stream(
 }
 
 async fn stream_from_endpoint(
+    worker_connections: &WorkerConnectionPool,
     endpoint: &resources_proto::WorkerEndpoint,
     target: &SessionStreamTarget,
     submission: &data_proto::SessionSubmission,
     after_sequence: u64,
 ) -> std::result::Result<tonic::Streaming<worker_proto::StreamSessionPartsResponse>, tonic::Status>
 {
-    let channel = worker_endpoint_channel(endpoint).await?;
-    let mut client = worker_proto::fanout_service_client::FanoutServiceClient::new(channel);
+    let mut client = worker_connections.fanout_client(endpoint).await?;
     let response = client
         .stream_session_parts(worker_proto::StreamSessionPartsRequest {
             ns: target.ns.clone(),
@@ -476,12 +495,12 @@ async fn stream_from_endpoint(
 }
 
 async fn stream_batch_from_endpoint(
+    worker_connections: &WorkerConnectionPool,
     endpoint: &resources_proto::WorkerEndpoint,
     streams: &[ClaimedBatchStream],
 ) -> std::result::Result<tonic::Streaming<worker_proto::StreamSessionPartsResponse>, tonic::Status>
 {
-    let channel = worker_endpoint_channel(endpoint).await?;
-    let mut client = worker_proto::fanout_service_client::FanoutServiceClient::new(channel);
+    let mut client = worker_connections.fanout_client(endpoint).await?;
     let response = client
         .stream_session_parts_batch(worker_proto::StreamSessionPartsBatchRequest {
             streams: streams
@@ -498,47 +517,6 @@ async fn stream_batch_from_endpoint(
         })
         .await?;
     Ok(response.into_inner())
-}
-
-async fn worker_endpoint_channel(
-    endpoint: &resources_proto::WorkerEndpoint,
-) -> std::result::Result<Channel, tonic::Status> {
-    if let Some(path) = unix_endpoint_path(&endpoint.url)? {
-        let path = Arc::new(path);
-        return Endpoint::try_from("http://[::]:50051")
-            .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?
-            .connect_with_connector(service_fn(move |_uri: Uri| {
-                let path = path.clone();
-                async move { UnixStream::connect(path.as_ref()).await.map(TokioIo::new) }
-            }))
-            .await
-            .map_err(|err| {
-                tonic::Status::unavailable(format!("failed to connect to worker: {err}"))
-            });
-    }
-
-    Channel::from_shared(endpoint.url.clone())
-        .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?
-        .connect()
-        .await
-        .map_err(|err| tonic::Status::unavailable(format!("failed to connect to worker: {err}")))
-}
-
-fn unix_endpoint_path(url: &str) -> std::result::Result<Option<PathBuf>, tonic::Status> {
-    let parsed = Url::parse(url)
-        .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?;
-    if parsed.scheme() != "unix" {
-        return Ok(None);
-    }
-    if parsed.path().is_empty() {
-        return Err(tonic::Status::unavailable(
-            "unix worker endpoint is missing a socket path",
-        ));
-    }
-    let path = urlencoding::decode(parsed.path()).map_err(|err| {
-        tonic::Status::unavailable(format!("invalid unix worker endpoint path: {err}"))
-    })?;
-    Ok(Some(PathBuf::from(path.into_owned())))
 }
 
 async fn worker_endpoints(
@@ -877,13 +855,15 @@ mod tests {
             ..Default::default()
         };
 
+        let pool = WorkerConnectionPool::new();
         let mut stream = tokio::time::timeout(
             Duration::from_secs(5),
-            stream_from_endpoint(&endpoint, &target, &submission, 0),
+            stream_from_endpoint(&pool, &endpoint, &target, &submission, 0),
         )
         .await
         .unwrap()
         .unwrap();
+        assert_eq!(pool.cached_channel_count().await, 1);
         hub.publish_session_part(
             &key,
             part_event(SessionMessagePartEventKind::Delta, "hello"),
@@ -897,7 +877,29 @@ mod tests {
         assert_eq!(response.sequence, 1);
         assert_eq!(response.event.unwrap().part.unwrap().content, "hello");
 
+        let mut second_stream = tokio::time::timeout(
+            Duration::from_secs(5),
+            stream_from_endpoint(&pool, &endpoint, &target, &submission, 1),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert_eq!(pool.cached_channel_count().await, 1);
+        hub.publish_session_part(
+            &key,
+            part_event(SessionMessagePartEventKind::Delta, "again"),
+        )
+        .await;
+        let response = tokio::time::timeout(Duration::from_secs(5), second_stream.message())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert_eq!(response.sequence, 2);
+        assert_eq!(response.event.unwrap().part.unwrap().content, "again");
+
         drop(stream);
+        drop(second_stream);
         shutdown.cancel();
         tokio::time::timeout(Duration::from_secs(5), server)
             .await
