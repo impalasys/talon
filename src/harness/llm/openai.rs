@@ -1280,6 +1280,62 @@ mod tests {
         assert_eq!(result.tool_calls.len(), 1);
         assert_eq!(result.tool_calls[0].id, "call_1");
         assert_eq!(result.tool_calls[0].name, "search");
+        assert_eq!(result.tool_calls[0].arguments, "{\"q\":\"talon\"}");
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn chat_completion_preserves_numeric_tool_arguments() {
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|| async {
+                Json(serde_json::json!({
+                    "choices": [{
+                        "message": {
+                            "tool_calls": [{
+                                "id": "call_1",
+                                "function": {
+                                    "name": "mcp_conic_list_links",
+                                    "arguments": "{\"limit\":50,\"offset\":0}"
+                                }
+                            }]
+                        }
+                    }]
+                }))
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+        );
+        let result = provider
+            .chat_completion(ChatRequest {
+                messages: vec![chat_message_text("user", "hi")],
+                tools: vec![],
+                thinking: None,
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(
+            result.tool_calls[0].arguments,
+            "{\"limit\":50,\"offset\":0}"
+        );
+        let parsed: serde_json::Value = serde_json::from_str(&result.tool_calls[0].arguments)
+            .expect("tool arguments should be valid JSON");
+        assert_eq!(parsed["limit"], 50);
+        assert_eq!(parsed["offset"], 0);
+        assert!(parsed["limit"].is_number());
+        assert!(!parsed["limit"].is_string());
 
         server.abort();
     }

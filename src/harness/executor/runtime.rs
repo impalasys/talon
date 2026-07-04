@@ -1213,6 +1213,22 @@ mod tests {
         }));
     }
 
+    #[test]
+    fn tool_call_input_preserves_numeric_arguments() {
+        let tool = crate::harness::llm::ToolCall {
+            id: "call_1".to_string(),
+            name: "mcp_conic_list_links".to_string(),
+            arguments: "{\"limit\":50,\"offset\":0}".to_string(),
+        };
+
+        let input = AgentExecutor::tool_call_input(&tool);
+
+        assert_eq!(input["limit"], 50);
+        assert_eq!(input["offset"], 0);
+        assert!(input["limit"].is_number());
+        assert!(!input["limit"].is_string());
+    }
+
     #[tokio::test]
     async fn executor_injects_agent_system_prompt_into_llm_request() {
         let llm = Arc::new(RecordingLlmProvider::default());
