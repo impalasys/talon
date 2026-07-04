@@ -33,7 +33,7 @@ impl SandboxBackend for DockerSandboxBackend {
         policy: &SandboxPolicySpecJson,
     ) -> Result<SandboxHandle> {
         let image = docker_image(class, policy);
-        let container_name = format!("talon-sandbox-{}", uuid::Uuid::now_v7());
+        let container_name = crate::control::uuid::unique_name("talon-sandbox");
         let mut args = vec![
             "run".to_string(),
             "-d".to_string(),
@@ -113,7 +113,7 @@ impl SandboxBackend for DockerSandboxBackend {
         args.extend(spec.args.clone());
 
         let output = Command::new("docker").args(&args).output().await?;
-        let process_id = uuid::Uuid::now_v7().to_string();
+        let process_id = crate::control::uuid::process_id();
         self.processes.lock().await.insert(
             process_id.clone(),
             ProcessOutput {

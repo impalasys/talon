@@ -40,7 +40,7 @@ impl WorkerRegistration {
 
 pub fn worker_id() -> String {
     GENERATED_WORKER_ID
-        .get_or_init(|| uuid::Uuid::now_v7().to_string())
+        .get_or_init(crate::control::uuid::worker_id)
         .clone()
 }
 

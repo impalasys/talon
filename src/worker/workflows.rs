@@ -255,7 +255,7 @@ pub async fn create_run(
     let now = Utc::now().timestamp_micros();
     let spec_json = serde_json::to_string(spec)?;
     let run = data_proto::WorkflowRun {
-        id: uuid::Uuid::now_v7().to_string(),
+        id: crate::control::uuid::v7(),
         workflow: workflow.name().to_string(),
         ns: workflow.namespace().to_string(),
         status: STATUS_QUEUED.to_string(),
@@ -1658,7 +1658,7 @@ pub async fn append_run_event(
     payload: Value,
 ) -> Result<data_proto::WorkflowRunEvent> {
     let event = data_proto::WorkflowRunEvent {
-        id: uuid::Uuid::now_v7().to_string(),
+        id: crate::control::uuid::v7(),
         ns: run.ns.clone(),
         workflow: run.workflow.clone(),
         run_id: run.id.clone(),

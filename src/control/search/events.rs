@@ -12,7 +12,7 @@ pub(crate) async fn publish_index_event(
 ) -> Result<()> {
     let now = chrono::Utc::now().timestamp_micros();
     if event.id.is_empty() {
-        event.id = uuid::Uuid::now_v7().to_string();
+        event.id = crate::control::uuid::event_id();
     }
     if event.operation == IndexOperation::Unspecified as i32 {
         event.operation = IndexOperation::Upsert as i32;

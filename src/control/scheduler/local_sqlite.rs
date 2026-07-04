@@ -421,7 +421,7 @@ impl LocalSqliteSchedulerStore {
     }
 
     async fn schedule(&self, req: ScheduleWakeupRequest) -> Result<ScheduledWakeup> {
-        let handle = uuid::Uuid::now_v7().to_string();
+        let handle = crate::control::uuid::scheduler_handle();
         let query = format!(
             "INSERT INTO {} (handle, namespace, schedule_id, revision, fire_at_micros, payload, created_at_micros)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",

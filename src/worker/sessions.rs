@@ -417,7 +417,7 @@ impl WorkerEventHandler {
             .lock()
             .await
             .insert(event.session_id.clone(), cancellation_token.clone());
-        let reply_msg_id = format!("{}-assistant", submission.submission_id);
+        let reply_msg_id = crate::control::uuid::session_message_id();
         let reply_msg_key = crate::control::keys::session_message(
             ns,
             &event.agent,
@@ -1910,7 +1910,12 @@ mod tests {
         let deliveries = deliveries.lock().unwrap().clone();
         assert_eq!(deliveries.len(), 1);
         let delivery = &deliveries[0];
-        assert_eq!(delivery["deliveryId"], "user-1-assistant");
+        assert_eq!(
+            uuid::Uuid::parse_str(delivery["deliveryId"].as_str().unwrap_or_default())
+                .expect("delivery id should be UUIDv7")
+                .get_version_num(),
+            7
+        );
         assert_eq!(delivery["connectorClass"], "slack");
         assert_eq!(delivery["connectorName"], "slack-main");
         assert_eq!(delivery["externalConversationId"], "C123");
@@ -2028,12 +2033,31 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(session.status, "ERROR");
+        let message_keys = kv
+            .list_keys(&crate::control::keys::session_message_prefix(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .unwrap();
+        let error_message_id = message_keys
+            .iter()
+            .map(|key| key.name.as_str())
+            .find(|id| *id != "user-1")
+            .expect("assistant error message should be persisted");
+        assert_eq!(
+            uuid::Uuid::parse_str(error_message_id)
+                .expect("assistant error message id should be UUIDv7")
+                .get_version_num(),
+            7
+        );
         let error_message = kv
             .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
                 "conic:test",
                 "assistant",
                 "session-1",
-                "user-1-assistant",
+                error_message_id,
             ))
             .await
             .unwrap()

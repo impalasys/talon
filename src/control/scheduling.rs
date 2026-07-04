@@ -555,7 +555,7 @@ pub async fn create_session_with_labels(
         chrono::Utc::now().timestamp(),
     )
     .await?;
-    let session_id = uuid::Uuid::now_v7().to_string();
+    let session_id = crate::control::uuid::session_id();
     let session = data_proto::Session {
         id: session_id.clone(),
         agent: agent.to_string(),
@@ -610,13 +610,13 @@ pub async fn send_message(
     message: &str,
     labels: HashMap<String, String>,
     now: DateTime<Utc>,
-) -> Result<()> {
+) -> Result<String> {
     if message.trim().is_empty() {
         return Err(EmptyMessageError.into());
     }
     let now_micros = now.timestamp_micros();
     let user_msg = data_proto::SessionMessage {
-        id: uuid::Uuid::now_v7().to_string(),
+        id: crate::control::uuid::session_message_id(),
         role: data_proto::MessageRole::RoleUser as i32,
         created_at: now_micros,
         labels,
@@ -631,9 +631,7 @@ pub async fn send_message(
         }],
     };
 
-    send_session_message(kv, pubsub, ns, agent, session_id, user_msg, now)
-        .await
-        .map(|_| ())
+    send_session_message(kv, pubsub, ns, agent, session_id, user_msg, now).await
 }
 
 pub async fn send_session_message(
@@ -684,7 +682,7 @@ pub async fn send_session_message(
     }
 
     if user_msg.id.is_empty() {
-        user_msg.id = uuid::Uuid::now_v7().to_string();
+        user_msg.id = crate::control::uuid::session_message_id();
     }
     if user_msg.role == data_proto::MessageRole::RoleUnspecified as i32 {
         user_msg.role = data_proto::MessageRole::RoleUser as i32;
@@ -732,7 +730,7 @@ pub async fn send_session_message(
         );
     }
 
-    let submission_id = message_id.clone();
+    let submission_id = crate::control::uuid::session_submission_id();
     let submission = crate::harness::sessions::pending_submission(
         submission_id.clone(),
         session_id.to_string(),
@@ -765,7 +763,7 @@ pub async fn send_session_message(
         agent: agent.to_string(),
         message: message_text,
         ns: ns.to_string(),
-        submission_id,
+        submission_id: submission_id.clone(),
     };
     if let Err(err) = pubsub
         .publish(
@@ -788,7 +786,7 @@ pub async fn send_session_message(
         message_id = %message_id,
         "Queued scheduled message for session dispatch"
     );
-    Ok(message_id)
+    Ok(submission_id)
 }
 
 pub(crate) fn session_message_text_projection(message: &data_proto::SessionMessage) -> String {
@@ -1335,7 +1333,7 @@ mod tests {
         let now = DateTime::parse_from_rfc3339("2026-05-02T12:00:00Z")
             .unwrap()
             .with_timezone(&Utc);
-        send_message(
+        let returned_submission_id = send_message(
             cp.kv.as_ref(),
             cp.pubsub.as_ref(),
             "conic:test",
@@ -1370,7 +1368,14 @@ mod tests {
                     .flatten()
             })
             .expect("session dispatch event should be published");
-        assert_eq!(dispatch.submission_id, dispatch.message_id);
+        assert_ne!(dispatch.submission_id, dispatch.message_id);
+        assert_eq!(returned_submission_id, dispatch.submission_id);
+        assert_eq!(
+            uuid::Uuid::parse_str(&dispatch.submission_id)
+                .expect("submission id should be UUIDv7")
+                .get_version_num(),
+            7
+        );
         assert_eq!(
             index_event.key,
             keys::session_message("conic:test", "assistant", "session-1", &dispatch.message_id)
@@ -1387,7 +1392,7 @@ mod tests {
             .await
             .unwrap()
             .expect("session submission should be created");
-        assert_eq!(submission.submission_id, dispatch.message_id);
+        assert_eq!(submission.submission_id, dispatch.submission_id);
         assert_eq!(submission.user_message_id, dispatch.message_id);
         assert_eq!(
             submission.status,

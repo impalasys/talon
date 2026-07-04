@@ -271,7 +271,7 @@ impl MessagePublisher for GcpPubSubPublisher {
         // Create a temporary subscription for this stream
         let project = configured_project_id();
         let base_name = topic_name.rsplit('/').next().unwrap_or(topic_name);
-        let sub_id = format!("{}-sub-{}", base_name, uuid::Uuid::now_v7());
+        let sub_id = format!("{}-sub-{}", base_name, crate::control::uuid::v7());
         let fq_sub = fully_qualified_subscription_name(&project, &sub_id);
         self.backend.ensure_subscription(&fq_topic, &fq_sub).await?;
         let _guard = SubscriptionGuard {

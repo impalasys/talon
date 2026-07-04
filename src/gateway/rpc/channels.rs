@@ -179,7 +179,7 @@ pub(crate) async fn persist_channel_message(
     mut message: data_proto::ChannelMessage,
 ) -> anyhow::Result<data_proto::ChannelMessage> {
     if message.id.is_empty() {
-        message.id = uuid::Uuid::now_v7().to_string();
+        message.id = crate::control::uuid::channel_message_id();
     }
     let now = chrono::Utc::now().timestamp_micros();
     if message.created_at == 0 {
@@ -497,7 +497,7 @@ impl GrpcGatewayHandler {
         let message = persist_channel_message(
             &cp,
             data_proto::ChannelMessage {
-                id: uuid::Uuid::now_v7().to_string(),
+                id: crate::control::uuid::channel_message_id(),
                 ns: req.ns.clone(),
                 channel: req.channel.clone(),
                 author_kind: if req.author_kind.is_empty() {
