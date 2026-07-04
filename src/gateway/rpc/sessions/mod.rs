@@ -1229,6 +1229,7 @@ impl GrpcGatewayHandler {
             targets,
             self.gateway.kv.clone(),
             self.gateway.pubsub.clone(),
+            self.gateway.worker_connections.clone(),
         );
 
         Ok(tonic::Response::new(event_stream))
@@ -1281,6 +1282,7 @@ impl GrpcGatewayHandler {
             targets,
             self.gateway.kv.clone(),
             self.gateway.pubsub.clone(),
+            self.gateway.worker_connections.clone(),
         );
 
         Ok(tonic::Response::new(event_stream))
@@ -1328,6 +1330,7 @@ impl GrpcGatewayHandler {
             submission_id,
             self.gateway.kv.clone(),
             self.gateway.pubsub.clone(),
+            self.gateway.worker_connections.clone(),
         );
         Ok(tonic::Response::new(event_stream))
     }

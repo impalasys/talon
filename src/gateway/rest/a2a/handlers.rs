@@ -169,6 +169,7 @@ async fn stream_message(
         )],
         gateway.kv.clone(),
         gateway.pubsub.clone(),
+        gateway.worker_connections.clone(),
     );
     let (event_sender, mut event_receiver) = tokio::sync::mpsc::channel(32);
     let watcher_cancel = tokio_util::sync::CancellationToken::new();
