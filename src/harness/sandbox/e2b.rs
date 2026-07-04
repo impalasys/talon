@@ -19,6 +19,10 @@ use super::{
     SandboxPolicySpecJson,
 };
 
+const DEFAULT_E2B_API_BASE_URL: &str = "https://api.e2b.app";
+const DEFAULT_E2B_SANDBOX_BASE_URL: &str = "https://{port}-{sandboxID}.e2b.app";
+const DEFAULT_E2B_ENVD_PORT: u16 = 49983;
+
 pub struct E2bSandboxBackend;
 
 #[async_trait]
@@ -71,20 +75,25 @@ impl SandboxBackend for E2bSandboxBackend {
             .and_then(|value| value.as_str())
             .unwrap_or_default();
         Ok(SandboxHandle {
-            backend_id: e2b_backend_id(sandbox_id, access_token, &e2b_sandbox_base(class)),
+            backend_id: e2b_backend_id(
+                sandbox_id,
+                access_token,
+                &e2b_sandbox_base(class),
+                &e2b_api_base(class),
+                &e2b_api_key_env(class),
+                e2b_envd_port(class),
+            ),
         })
     }
 
     async fn destroy(&self, backend_id: &str) -> Result<()> {
         let handle = E2bHandle::parse(backend_id)?;
-        let api_key = std::env::var("E2B_API_KEY")
-            .map_err(|_| anyhow!("E2B_API_KEY is required for E2B sandbox destroy"))?;
-        let api_base =
-            std::env::var("E2B_API_URL").unwrap_or_else(|_| "https://api.e2b.app".into());
+        let api_key = std::env::var(&handle.api_key_env)
+            .map_err(|_| anyhow!("{} is required for E2B sandbox destroy", handle.api_key_env))?;
         let response = reqwest::Client::new()
             .delete(format!(
                 "{}/sandboxes/{}",
-                api_base.trim_end_matches('/'),
+                handle.api_base_url,
                 urlencoding::encode(&handle.sandbox_id)
             ))
             .header("X-API-Key", api_key)
@@ -175,18 +184,23 @@ impl SandboxBackend for E2bSandboxBackend {
 }
 
 fn e2b_api_key(class: &SandboxClassSpecJson) -> Result<String> {
-    let env_key = class
+    let env_key = e2b_api_key_env(class);
+    std::env::var(&env_key).map_err(|_| anyhow!("{} is required for E2B sandbox backend", env_key))
+}
+
+fn e2b_api_key_env(class: &SandboxClassSpecJson) -> String {
+    class
         .credentials
         .pointer("/apiKey/key")
         .and_then(|value| value.as_str())
-        .unwrap_or("E2B_API_KEY");
-    std::env::var(env_key).map_err(|_| anyhow!("{} is required for E2B sandbox backend", env_key))
+        .unwrap_or("E2B_API_KEY")
+        .to_string()
 }
 
 fn e2b_api_base(class: &SandboxClassSpecJson) -> String {
     json_string_at(&class.provider_config, "/apiBaseUrl")
         .or_else(|| std::env::var("E2B_API_URL").ok())
-        .unwrap_or_else(|| "https://api.e2b.app".to_string())
+        .unwrap_or_else(|| DEFAULT_E2B_API_BASE_URL.to_string())
         .trim_end_matches('/')
         .to_string()
 }
@@ -194,7 +208,7 @@ fn e2b_api_base(class: &SandboxClassSpecJson) -> String {
 fn e2b_sandbox_base(class: &SandboxClassSpecJson) -> String {
     json_string_at(&class.provider_config, "/sandboxBaseUrl")
         .or_else(|| std::env::var("E2B_SANDBOX_URL").ok())
-        .unwrap_or_else(|| "https://49983-{sandboxID}.e2b.app".to_string())
+        .unwrap_or_else(|| DEFAULT_E2B_SANDBOX_BASE_URL.to_string())
 }
 
 fn e2b_template_id(class: &SandboxClassSpecJson, policy: &SandboxPolicySpecJson) -> String {
@@ -204,8 +218,23 @@ fn e2b_template_id(class: &SandboxClassSpecJson, policy: &SandboxPolicySpecJson)
         .unwrap_or_else(|| "base".to_string())
 }
 
-fn e2b_backend_id(sandbox_id: &str, access_token: &str, sandbox_base_url: &str) -> String {
-    format!("{sandbox_id}|{access_token}|{sandbox_base_url}")
+fn e2b_envd_port(class: &SandboxClassSpecJson) -> u16 {
+    json_u64_at(&class.provider_config, "/envdPort")
+        .and_then(|value| u16::try_from(value).ok())
+        .unwrap_or(DEFAULT_E2B_ENVD_PORT)
+}
+
+fn e2b_backend_id(
+    sandbox_id: &str,
+    access_token: &str,
+    sandbox_base_url: &str,
+    api_base_url: &str,
+    api_key_env: &str,
+    envd_port: u16,
+) -> String {
+    format!(
+        "{sandbox_id}|{access_token}|{sandbox_base_url}|{api_base_url}|{api_key_env}|{envd_port}"
+    )
 }
 
 #[derive(Debug)]
@@ -213,11 +242,14 @@ struct E2bHandle {
     sandbox_id: String,
     access_token: String,
     sandbox_base_url: String,
+    api_base_url: String,
+    api_key_env: String,
+    envd_port: u16,
 }
 
 impl E2bHandle {
     fn parse(backend_id: &str) -> Result<Self> {
-        let mut parts = backend_id.splitn(3, '|');
+        let mut parts = backend_id.split('|');
         let sandbox_id = parts
             .next()
             .filter(|value| !value.trim().is_empty())
@@ -226,17 +258,34 @@ impl E2bHandle {
         let sandbox_base_url = parts
             .next()
             .filter(|value| !value.trim().is_empty())
-            .unwrap_or("https://49983-{sandboxID}.e2b.app");
+            .unwrap_or(DEFAULT_E2B_SANDBOX_BASE_URL);
+        let api_base_url = parts
+            .next()
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or(DEFAULT_E2B_API_BASE_URL)
+            .trim_end_matches('/');
+        let api_key_env = parts
+            .next()
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or("E2B_API_KEY");
+        let envd_port = parts
+            .next()
+            .and_then(|value| value.parse::<u16>().ok())
+            .unwrap_or(DEFAULT_E2B_ENVD_PORT);
         Ok(Self {
             sandbox_id: sandbox_id.to_string(),
             access_token: access_token.to_string(),
             sandbox_base_url: sandbox_base_url.to_string(),
+            api_base_url: api_base_url.to_string(),
+            api_key_env: api_key_env.to_string(),
+            envd_port,
         })
     }
 
     fn envd_url(&self) -> String {
         self.sandbox_base_url
             .replace("{sandboxID}", &self.sandbox_id)
+            .replace("{port}", &self.envd_port.to_string())
             .trim_end_matches('/')
             .to_string()
     }
@@ -263,6 +312,11 @@ async fn e2b_run_command(backend_id: &str, spec: ExecSpec) -> Result<ProcessOutp
     headers.insert(
         CONTENT_TYPE,
         HeaderValue::from_static("application/connect+json"),
+    );
+    headers.insert("E2b-Sandbox-Id", HeaderValue::from_str(&handle.sandbox_id)?);
+    headers.insert(
+        "E2b-Sandbox-Port",
+        HeaderValue::from(handle.envd_port as u64),
     );
     if !handle.access_token.is_empty() {
         headers.insert(
@@ -340,4 +394,48 @@ fn process_text(value: &Value) -> Option<String> {
         .ok()
         .and_then(|bytes| String::from_utf8(bytes).ok())
         .or_else(|| Some(text.to_string()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn e2b_handle_parses_legacy_backend_ids() {
+        let handle =
+            E2bHandle::parse("sandbox-123|token-abc|https://49983-{sandboxID}.e2b.app").unwrap();
+
+        assert_eq!(handle.sandbox_id, "sandbox-123");
+        assert_eq!(handle.access_token, "token-abc");
+        assert_eq!(handle.api_base_url, DEFAULT_E2B_API_BASE_URL);
+        assert_eq!(handle.api_key_env, "E2B_API_KEY");
+        assert_eq!(handle.envd_port, DEFAULT_E2B_ENVD_PORT);
+        assert_eq!(
+            handle.envd_url(),
+            "https://49983-sandbox-123.e2b.app".to_string()
+        );
+    }
+
+    #[test]
+    fn e2b_handle_round_trips_connection_metadata() {
+        let backend_id = e2b_backend_id(
+            "sandbox-123",
+            "token-abc",
+            "https://{port}-{sandboxID}.example.test",
+            "https://api.example.test/",
+            "CUSTOM_E2B_API_KEY",
+            12345,
+        );
+        let handle = E2bHandle::parse(&backend_id).unwrap();
+
+        assert_eq!(handle.sandbox_id, "sandbox-123");
+        assert_eq!(handle.access_token, "token-abc");
+        assert_eq!(handle.api_base_url, "https://api.example.test");
+        assert_eq!(handle.api_key_env, "CUSTOM_E2B_API_KEY");
+        assert_eq!(handle.envd_port, 12345);
+        assert_eq!(
+            handle.envd_url(),
+            "https://12345-sandbox-123.example.test".to_string()
+        );
+    }
 }
