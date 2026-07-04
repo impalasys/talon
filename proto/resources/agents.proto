@@ -16,6 +16,7 @@ message AgentSpec {
   ModelPolicy model_policy = 2;
   string system_prompt = 3;
   repeated string mcp_server_refs = 4;
+  string post_history_prompt = 5;
   map<string, google.protobuf.ListValue> capabilities = 6;
   A2A a2a = 7;
   AgentRuntime runtime = 8;

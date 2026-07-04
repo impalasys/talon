@@ -192,6 +192,7 @@ mod tests {
         manifests::AgentSpec {
             features: Vec::new(),
             system_prompt: String::new(),
+            post_history_prompt: String::new(),
             mcp_server_refs: Vec::new(),
             capabilities: HashMap::new(),
             model_policy: Some(manifests::ModelPolicy {

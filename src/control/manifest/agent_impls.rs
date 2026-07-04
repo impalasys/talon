@@ -79,6 +79,7 @@ impl AgentSpecManifest {
                 .collect(),
             model_policy: self.model_policy.map(ModelPolicyManifest::into_proto),
             system_prompt: self.system_prompt,
+            post_history_prompt: self.post_history_prompt,
             mcp_server_refs: self.mcp_server_refs,
             capabilities: self
                 .capabilities
@@ -101,6 +102,7 @@ impl AgentSpecManifest {
                 .as_ref()
                 .map(ModelPolicyManifest::from_proto),
             system_prompt: spec.system_prompt.clone(),
+            post_history_prompt: spec.post_history_prompt.clone(),
             mcp_server_refs: spec.mcp_server_refs.clone(),
             capabilities: (!spec.capabilities.is_empty())
                 .then(|| capabilities_policy_from_proto(&spec.capabilities)),

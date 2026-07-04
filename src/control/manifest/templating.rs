@@ -44,10 +44,24 @@ pub fn render_runtime_system_prompt_template(system_prompt: &str) -> Result<Stri
         return Ok(system_prompt.to_string());
     }
 
+    render_runtime_talon_template("system_prompt", system_prompt)
+        .context("Failed to render system prompt template")
+}
+
+pub fn render_runtime_post_history_prompt_template(post_history_prompt: &str) -> Result<String> {
+    if !contains_template_syntax(post_history_prompt) {
+        return Ok(post_history_prompt.to_string());
+    }
+
+    render_runtime_talon_template("post_history_prompt", post_history_prompt)
+        .context("Failed to render post-history prompt template")
+}
+
+fn render_runtime_talon_template(template_name: &str, source: &str) -> Result<String> {
     let now = chrono::Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true);
     render_phase_template(
-        "system_prompt",
-        system_prompt,
+        template_name,
+        source,
         json!({
             "talon": {
                 "now": now,
@@ -55,7 +69,6 @@ pub fn render_runtime_system_prompt_template(system_prompt: &str) -> Result<Stri
         }),
         &[],
     )
-    .context("Failed to render system prompt template")
 }
 
 fn render_phase_template(
@@ -377,6 +390,17 @@ mod tests {
     }
 
     #[test]
+    fn runtime_renders_post_history_prompt_talon_now() {
+        let rendered =
+            render_runtime_post_history_prompt_template("Post: {{ talon.now }}").unwrap();
+        let timestamp = rendered.strip_prefix("Post: ").unwrap();
+
+        assert!(timestamp.ends_with('Z'));
+        assert_eq!(timestamp.len(), "2026-07-03T21:37:12Z".len());
+        chrono::DateTime::parse_from_rfc3339(timestamp).unwrap();
+    }
+
+    #[test]
     fn runtime_leaves_static_prompt_unchanged() {
         let prompt = "Answer like the configured agent.";
 
@@ -404,6 +428,16 @@ mod tests {
             render_runtime_system_prompt_template(prompt)
                 .expect_err("runtime prompt should reject unsupported variables");
         }
+    }
+
+    #[test]
+    fn runtime_post_history_prompt_fails_on_unknown_variables() {
+        let err = render_runtime_post_history_prompt_template("{{ talon.nope }}")
+            .expect_err("unknown post-history prompt variables should fail");
+
+        assert!(err
+            .to_string()
+            .contains("Failed to render post-history prompt template"));
     }
 
     #[test]

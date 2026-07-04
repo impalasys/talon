@@ -162,6 +162,22 @@ impl ExecutionContext {
     }
 }
 
+fn prefix_latest_user_message(history: &mut [LoopMessage], prefix: &str) {
+    let Some(message) = history.iter_mut().rev().find(|msg| msg.role == "user") else {
+        return;
+    };
+    let prefix = format!("{prefix}\n\n");
+
+    if let Some(first_part) = message.content_parts.first_mut() {
+        if let Some(chat_content_part::Content::Text(text)) = first_part.content.as_mut() {
+            text.insert_str(0, &prefix);
+            return;
+        }
+    }
+
+    message.content_parts.insert(0, text_part(prefix));
+}
+
 // ─── ExecutionSink ────────────────────────────────────────────────────────────
 
 /// Receives structured events from the executor. Implement this to fan out to
@@ -380,6 +396,12 @@ pub struct RegisteredMcpTool {
     pub remote_name: String,
 }
 
+#[derive(Debug, Default)]
+struct ExecutionPrompts {
+    system_prompt: Option<String>,
+    post_history_prompt: Option<String>,
+}
+
 impl AgentExecutor {
     pub fn new(
         llm: Arc<dyn LlmProvider>,
@@ -451,22 +473,49 @@ impl AgentExecutor {
         ))
     }
 
-    fn messages_for_llm(&self, context: &ExecutionContext) -> Result<Vec<ChatMessage>> {
-        let mut history = context.history.clone();
+    fn render_execution_prompts(&self, context: &ExecutionContext) -> Result<ExecutionPrompts> {
         let system_prompt = self.agent_spec.system_prompt.trim();
-        if !system_prompt.is_empty() && !context.has_system_message() {
-            history.insert(
-                0,
-                LoopMessage::text(
-                    "system",
-                    crate::control::manifest::templating::render_runtime_system_prompt_template(
-                        system_prompt,
-                    )?,
-                ),
-            );
+        let system_prompt = if !system_prompt.is_empty() && !context.has_system_message() {
+            Some(
+                crate::control::manifest::templating::render_runtime_system_prompt_template(
+                    system_prompt,
+                )?,
+            )
+        } else {
+            None
+        };
+
+        let post_history_prompt = self.agent_spec.post_history_prompt.trim();
+        let post_history_prompt = if post_history_prompt.is_empty() {
+            None
+        } else {
+            Some(
+                crate::control::manifest::templating::render_runtime_post_history_prompt_template(
+                    post_history_prompt,
+                )?,
+            )
+        };
+
+        Ok(ExecutionPrompts {
+            system_prompt,
+            post_history_prompt,
+        })
+    }
+
+    fn messages_for_llm(
+        &self,
+        context: &ExecutionContext,
+        prompts: &ExecutionPrompts,
+    ) -> Vec<ChatMessage> {
+        let mut history = context.history.clone();
+        if let Some(system_prompt) = prompts.system_prompt.as_deref() {
+            history.insert(0, LoopMessage::text("system", system_prompt.to_string()));
+        }
+        if let Some(post_history_prompt) = prompts.post_history_prompt.as_deref() {
+            prefix_latest_user_message(&mut history, post_history_prompt);
         }
 
-        Ok(compact_history_for_llm(&history)
+        compact_history_for_llm(&history)
             .iter()
             .map(|m| ChatMessage {
                 role: m.role.clone(),
@@ -474,7 +523,7 @@ impl AgentExecutor {
                 tool_calls: m.tool_calls.clone().unwrap_or_default(),
                 tool_call_id: m.tool_call_id.clone(),
             })
-            .collect())
+            .collect()
     }
 
     /// Run the prepared execution context to completion, emitting events to
@@ -504,6 +553,7 @@ impl AgentExecutor {
         sink: &dyn ExecutionSink,
         cancellation_token: Option<&CancellationToken>,
     ) -> Result<String> {
+        let prompts = self.render_execution_prompts(context)?;
         let mut turn_limit = DEFAULT_EXECUTION_TURN_LIMIT;
         loop {
             if turn_limit == 0 {
@@ -512,7 +562,7 @@ impl AgentExecutor {
             }
             turn_limit -= 1;
 
-            let messages = self.messages_for_llm(context)?;
+            let messages = self.messages_for_llm(context, &prompts);
 
             let tools = {
                 let reg = self.registry.read().await;
@@ -827,8 +877,8 @@ mod tests {
         KnowledgeBook, KnowledgeEntry, KnowledgeListEntry, KnowledgeResult,
     };
     use crate::harness::llm::provider::{
-        text_delta_event, tool_call_delta_event, ChatMessage, ChatMessageExt, ChatRequest,
-        ChatResponse, ChatStream, LlmProvider,
+        image_data_part, text_delta_event, tool_call_delta_event, ChatMessage, ChatMessageExt,
+        ChatRequest, ChatResponse, ChatStream, LlmProvider,
     };
     use crate::harness::memory::Embedding;
     use crate::harness::skills::registry::ToolRegistry;
@@ -1018,6 +1068,62 @@ mod tests {
                     Ok(text_delta_event(
                         "That failed because the minimum interval is 300 seconds.".to_string(),
                     ))
+                })) as ChatStream
+            };
+            Ok(stream)
+        }
+
+        async fn completion(&self, prompt: &str) -> Result<String> {
+            Ok(prompt.to_string())
+        }
+    }
+
+    struct DelayedToolThenReplyLlm {
+        seen_messages: Arc<Mutex<Vec<Vec<ChatMessage>>>>,
+        call_count: Arc<Mutex<usize>>,
+    }
+
+    impl Default for DelayedToolThenReplyLlm {
+        fn default() -> Self {
+            Self {
+                seen_messages: Arc::new(Mutex::new(Vec::new())),
+                call_count: Arc::new(Mutex::new(0)),
+            }
+        }
+    }
+
+    #[async_trait]
+    impl LlmProvider for DelayedToolThenReplyLlm {
+        async fn generate_embedding(&self, _text: &str) -> Result<Embedding> {
+            Ok(vec![0.0; 8])
+        }
+
+        async fn chat_completion(&self, _request: ChatRequest) -> Result<ChatResponse> {
+            unreachable!("stream_chat_completion is used in this test");
+        }
+
+        async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
+            self.seen_messages
+                .lock()
+                .unwrap()
+                .push(request.messages.clone());
+            let mut call_count = self.call_count.lock().unwrap();
+            let stream = if *call_count == 0 {
+                *call_count += 1;
+                Box::pin(futures::stream::once(async {
+                    tokio::time::sleep(std::time::Duration::from_millis(1100)).await;
+                    Ok(tool_call_delta_event(
+                        crate::harness::llm::provider::ToolCallDelta {
+                            index: 0,
+                            id: Some("tool-1".to_string()),
+                            name: Some("unknown_tool".to_string()),
+                            arguments: Some("{}".to_string()),
+                        },
+                    ))
+                })) as ChatStream
+            } else {
+                Box::pin(futures::stream::once(async {
+                    Ok(text_delta_event("done".to_string()))
                 })) as ChatStream
             };
             Ok(stream)
@@ -1220,6 +1326,174 @@ mod tests {
             .to_string()
             .contains("Failed to render system prompt template"));
         assert!(llm.seen_messages.lock().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn executor_prefixes_latest_user_message_with_post_history_prompt() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let mut spec = manifests::AgentSpec::default();
+        spec.post_history_prompt = "Current time: fixed".to_string();
+        let executor = AgentExecutor::new(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            Arc::new(EmptyKnowledgeBook),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            ControlPlane::noop(),
+            spec,
+            HashMap::new(),
+        );
+
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage::text("user", "Hello"));
+        let original_user_message = context.history[0].clone();
+
+        executor
+            .execute(&mut context, &CaptureSink::new(), None)
+            .await
+            .unwrap();
+
+        assert_eq!(context.history[0], original_user_message);
+        let seen = llm.seen_messages.lock().unwrap();
+        let messages = seen.last().unwrap();
+        assert_eq!(messages[0].role, "user");
+        assert_eq!(messages[0].text_content(), "Current time: fixed\n\nHello");
+    }
+
+    #[tokio::test]
+    async fn executor_prefixes_multimodal_latest_user_message_without_dropping_parts() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let mut spec = manifests::AgentSpec::default();
+        spec.post_history_prompt = "Use this context.".to_string();
+        let executor = AgentExecutor::new(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            Arc::new(EmptyKnowledgeBook),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            ControlPlane::noop(),
+            spec,
+            HashMap::new(),
+        );
+
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage {
+            role: "user".to_string(),
+            content_parts: vec![image_data_part("image/png", "cG5n", Some("low"))],
+            tool_calls: None,
+            tool_call_id: None,
+        });
+        let original_user_message = context.history[0].clone();
+
+        executor
+            .execute(&mut context, &CaptureSink::new(), None)
+            .await
+            .unwrap();
+
+        assert_eq!(context.history[0], original_user_message);
+        let seen = llm.seen_messages.lock().unwrap();
+        let messages = seen.last().unwrap();
+        assert_eq!(messages[0].role, "user");
+        assert_eq!(messages[0].content_parts.len(), 2);
+        assert_eq!(messages[0].text_content(), "Use this context.\n\n");
+        assert_eq!(
+            messages[0].content_parts[1],
+            original_user_message.content_parts[0]
+        );
+    }
+
+    #[tokio::test]
+    async fn executor_errors_on_unknown_post_history_prompt_template_variable() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let mut spec = manifests::AgentSpec::default();
+        spec.post_history_prompt = "{{ talon.nope }}".to_string();
+        let executor = AgentExecutor::new(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            Arc::new(EmptyKnowledgeBook),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            ControlPlane::noop(),
+            spec,
+            HashMap::new(),
+        );
+
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage::text("user", "Hello"));
+
+        let err = executor
+            .execute(&mut context, &CaptureSink::new(), None)
+            .await
+            .expect_err("unknown post-history prompt variables should fail");
+
+        assert!(err
+            .to_string()
+            .contains("Failed to render post-history prompt template"));
+        assert!(llm.seen_messages.lock().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn executor_reuses_rendered_runtime_prompts_across_tool_loop_calls() {
+        let llm = Arc::new(DelayedToolThenReplyLlm::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let mut spec = manifests::AgentSpec::default();
+        spec.system_prompt = "System now: {{ talon.now }}".to_string();
+        spec.post_history_prompt = "Post now: {{ talon.now }}".to_string();
+        let executor = AgentExecutor::new(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            Arc::new(EmptyKnowledgeBook),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            ControlPlane::noop(),
+            spec,
+            HashMap::new(),
+        );
+
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage::text("user", "Hello"));
+
+        executor
+            .execute(&mut context, &CaptureSink::new(), None)
+            .await
+            .unwrap();
+
+        let seen = llm.seen_messages.lock().unwrap();
+        assert_eq!(seen.len(), 2);
+        assert_eq!(seen[0][0].role, "system");
+        assert_eq!(seen[1][0].role, "system");
+        assert_eq!(seen[0][0].text_content(), seen[1][0].text_content());
+
+        let first_user = seen[0]
+            .iter()
+            .find(|message| message.role == "user")
+            .unwrap();
+        let second_user = seen[1]
+            .iter()
+            .find(|message| message.role == "user")
+            .unwrap();
+        assert_eq!(first_user.text_content(), second_user.text_content());
+        assert!(first_user.text_content().starts_with("Post now: "));
+        assert!(first_user.text_content().ends_with("\n\nHello"));
     }
 
     #[tokio::test]
