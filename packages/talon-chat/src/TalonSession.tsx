@@ -14,7 +14,7 @@ import {
   type AssistantTimelineItem,
   type CopilotMessage,
 } from "./lib/chatTimeline";
-import { TalonChatComposer } from "./lib/TalonChatComposer";
+import { TalonChatComposer, type TalonChatComposerVariant } from "./lib/TalonChatComposer";
 import {
   findTalonChatCommand,
   parseTalonChatCommandInput,
@@ -140,6 +140,7 @@ export type TalonSessionProps = {
    * must be enforced again by the onImageUpload implementation.
    */
   acceptedImageTypes?: string[];
+  composerVariant?: TalonChatComposerVariant;
   composerStartAdornment?: React.ReactNode;
   composerEndAdornment?: React.ReactNode;
   onSubmitMessage?: (context: TalonSessionSubmitContext) => Promise<boolean | void> | boolean | void;
@@ -575,6 +576,7 @@ export function TalonSession({
   maxImageAttachments = 4,
   maxImageBytes = 20 * 1024 * 1024,
   acceptedImageTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"],
+  composerVariant = "panel",
   composerStartAdornment,
   composerEndAdornment,
   onSubmitMessage,
@@ -1795,12 +1797,13 @@ export function TalonSession({
             backdropFilter: "blur(10px)",
           }}
         >
-          <div style={{ width: "100%", maxWidth: 896, paddingBottom: 8 }}>
+          <div style={{ width: "100%", maxWidth: "var(--talon-chat-composer-max-width, 896px)", paddingBottom: 8 }}>
             <TalonChatComposer
               value={input}
               onValueChange={setInput}
               onSubmit={(nextInput) => void submitMessage(nextInput)}
               placeholder={placeholder}
+              variant={composerVariant}
               autoFocus={autoFocus}
               rows={inputRows}
               canSubmit={Boolean((input || "").trim() || imageAttachments.length > 0) && !isLoading}

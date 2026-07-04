@@ -1539,7 +1539,7 @@ function DebuggerPageContent() {
               ) : null}
               <div className="min-h-0 flex-1 overflow-hidden">
                 <TalonCopilot
-                  className="h-full"
+                  className="h-full sightline-expanded-session-input"
                   namespace={selectedNamespace.ns}
                   agent={selectedNamespace.agent || 'default'}
                   sessionId={selectedNamespace.type === 'session' ? selectedNamespace.sessionId : undefined}
@@ -1549,15 +1549,16 @@ function DebuggerPageContent() {
                   onImageUpload={sessionComposerRole === 'assistant' || isStaticExport ? undefined : uploadTalonImage}
                   objectUrlForRef={isStaticExport ? undefined : talonObjectUrl}
                   disabled={!isConnected}
+                  composerVariant="panel"
                   composerStartAdornment={
-                    <div className="flex h-8 overflow-hidden rounded-full border border-border bg-background/80 p-0.5">
+                    <div className="flex h-10 overflow-hidden rounded-full border border-slate-200 bg-white p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:border-slate-700 dark:bg-slate-950/70">
                       {(['user', 'assistant'] as const).map((role) => (
                         <button
                           key={role}
                           type="button"
                           className={cn(
-                            "rounded-full px-2.5 text-[11px] font-medium capitalize transition-colors",
-                            sessionComposerRole === role ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                            "rounded-full px-4 text-[14px] font-medium capitalize transition-colors",
+                            sessionComposerRole === role ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950" : "text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
                           )}
                           onClick={() => setSessionComposerRole(role)}
                         >

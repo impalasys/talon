@@ -199,6 +199,7 @@ export type TalonSessionProps = {
    * must be enforced again by the onImageUpload implementation.
    */
   acceptedImageTypes?: string[];
+  composerVariant?: TalonChatComposerVariant;
   composerStartAdornment?: React.ReactNode;
   composerEndAdornment?: React.ReactNode;
   onSubmitMessage?: (context: TalonSessionSubmitContext) => Promise<boolean | void> | boolean | void;
