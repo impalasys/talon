@@ -10,11 +10,6 @@ use std::collections::{HashMap, HashSet};
 const CLI_PASSTHROUGH_NAMESPACES: &[&str] =
     &["namespace", "deployment", "template", "talon", "ctx"];
 const RESOURCE_PASSTHROUGH_NAMESPACES: &[&str] = &["talon", "ctx"];
-// Marker used to hide later-phase variables from the current MiniJinja render.
-// The full sentinel includes a source-specific token so user text that happens
-// to contain this prefix is not rewritten during restore.
-const SENTINEL_PREFIX: &str = "__TALON_TEMPLATE_PASSTHROUGH_";
-const SENTINEL_SUFFIX: &str = "__";
 
 pub fn render_cli_manifest_template(
     source: &str,
@@ -59,7 +54,7 @@ pub fn render_runtime_post_history_prompt_template(post_history_prompt: &str) ->
 
 fn render_runtime_talon_template(template_name: &str, source: &str) -> Result<String> {
     let now = chrono::Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true);
-    render_phase_template(
+    render_strict_template(
         template_name,
         source,
         json!({
@@ -67,7 +62,6 @@ fn render_runtime_talon_template(template_name: &str, source: &str) -> Result<St
                 "now": now,
             },
         }),
-        &[],
     )
 }
 
@@ -84,42 +78,39 @@ fn render_phase_template(
     // Each phase owns only part of the shared `{{ ... }}` namespace. For
     // example, CLI rendering should resolve `vars.*` but must leave
     // `namespace.*` and `talon.*` intact for deployment/runtime phases. Before
-    // handing the template to MiniJinja, replace those later-phase variables
-    // with sentinels so strict rendering cannot evaluate or reject them.
+    // handing the template to MiniJinja, rewrite those later-phase variable
+    // tags into MiniJinja string literals. MiniJinja then emits the original
+    // `{{ ... }}` tag as text, so there is no post-render placeholder restore
+    // step that could accidentally rewrite a value produced by this phase.
     let passthrough_namespaces = passthrough_namespaces
         .iter()
         .copied()
         .collect::<HashSet<_>>();
-    let (masked, preserved) = mask_passthrough_variables(source, &passthrough_namespaces);
+    let masked = literalize_passthrough_variables(source, &passthrough_namespaces);
 
-    let mut env = Environment::new();
-    env.set_undefined_behavior(UndefinedBehavior::Strict);
-    env.add_template(template_name, &masked)
-        .with_context(|| format!("Failed to compile {} template", template_name))?;
-    let rendered = env
-        .get_template(template_name)
-        .with_context(|| format!("Missing {} template", template_name))?
-        .render(context)
-        .with_context(|| format!("Failed to render {} template", template_name))?;
-
-    // Put the original later-phase `{{ ... }}` expressions back after the
-    // current phase has rendered its owned variables.
-    Ok(restore_passthrough_variables(rendered, &preserved))
+    render_strict_template(template_name, &masked, context)
 }
 
-fn mask_passthrough_variables(
+fn render_strict_template(template_name: &str, source: &str, context: Value) -> Result<String> {
+    let mut env = Environment::new();
+    env.set_undefined_behavior(UndefinedBehavior::Strict);
+    env.add_template(template_name, source)
+        .with_context(|| format!("Failed to compile {} template", template_name))?;
+    env.get_template(template_name)
+        .with_context(|| format!("Missing {} template", template_name))?
+        .render(context)
+        .with_context(|| format!("Failed to render {} template", template_name))
+}
+
+fn literalize_passthrough_variables(
     source: &str,
     passthrough_namespaces: &HashSet<&str>,
-) -> (String, Vec<(String, String)>) {
+) -> String {
     if passthrough_namespaces.is_empty() {
-        return (source.to_string(), Vec::new());
+        return source.to_string();
     }
 
-    // Replace pass-through variables with opaque text before rendering so
-    // strict MiniJinja only validates namespaces owned by this phase.
-    let sentinel_token = sentinel_token_for_source(source);
     let mut output = String::with_capacity(source.len());
-    let mut preserved = Vec::new();
     let mut rest = source;
 
     while let Some(start) = rest.find("{{") {
@@ -127,7 +118,7 @@ fn mask_passthrough_variables(
         let tag_start = &rest[start..];
         let Some(end) = tag_start.find("}}") else {
             output.push_str(tag_start);
-            return (output, preserved);
+            return output;
         };
         let tag_end = start + end + 2;
         let tag = &rest[start..tag_end];
@@ -135,9 +126,9 @@ fn mask_passthrough_variables(
             .as_deref()
             .is_some_and(|namespace| passthrough_namespaces.contains(namespace))
         {
-            let sentinel = passthrough_sentinel(&sentinel_token, preserved.len());
-            output.push_str(&sentinel);
-            preserved.push((sentinel, tag.to_string()));
+            output.push_str("{{ ");
+            output.push_str(&serde_json::to_string(tag).expect("string serialization cannot fail"));
+            output.push_str(" }}");
         } else {
             output.push_str(tag);
         }
@@ -145,29 +136,7 @@ fn mask_passthrough_variables(
     }
 
     output.push_str(rest);
-    (output, preserved)
-}
-
-fn restore_passthrough_variables(mut rendered: String, preserved: &[(String, String)]) -> String {
-    for (sentinel, tag) in preserved {
-        rendered = rendered.replace(sentinel, tag);
-    }
-    rendered
-}
-
-fn sentinel_token_for_source(source: &str) -> String {
-    let mut salt = 0usize;
-    loop {
-        let token = format!("{SENTINEL_PREFIX}{}{salt}_", source.len());
-        if !source.contains(&token) {
-            return token;
-        }
-        salt += 1;
-    }
-}
-
-fn passthrough_sentinel(token: &str, index: usize) -> String {
-    format!("{token}{index}{SENTINEL_SUFFIX}")
+    output
 }
 
 fn variable_namespace(tag: &str) -> Option<String> {
@@ -363,7 +332,7 @@ mod tests {
     }
 
     #[test]
-    fn passthrough_restoration_does_not_replace_user_sentinel_text() {
+    fn passthrough_literalization_does_not_replace_user_sentinel_text() {
         let mut vars = HashMap::new();
         vars.insert("name".to_string(), "coding".to_string());
 
@@ -376,6 +345,22 @@ mod tests {
         assert_eq!(
             rendered,
             "__TALON_TEMPLATE_PASSTHROUGH_0__ {{ talon.now }} coding"
+        );
+    }
+
+    #[test]
+    fn passthrough_literalization_does_not_rewrite_owned_value_matching_old_sentinel() {
+        let source = "{{ talon.now }} {{ vars.name }}";
+        let old_deterministic_sentinel =
+            format!("__TALON_TEMPLATE_PASSTHROUGH_{}0_0__", source.len());
+        let mut vars = HashMap::new();
+        vars.insert("name".to_string(), old_deterministic_sentinel.clone());
+
+        let rendered = render_cli_manifest_template(source, &vars).unwrap();
+
+        assert_eq!(
+            rendered,
+            format!("{{{{ talon.now }}}} {old_deterministic_sentinel}")
         );
     }
 
