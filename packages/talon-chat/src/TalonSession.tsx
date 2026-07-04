@@ -1482,11 +1482,17 @@ export function TalonSession({
     const ensureSession = async (): Promise<TalonSessionHandle> => {
       let session = currentSessionRef.current;
       if (!session) {
-        const sessionRes = await createSession({ ns: namespace, agent });
-        session = { ns: namespace, agent, sessionId: sessionRes.sessionId };
-        currentSessionRef.current = session;
-        setCurrentSession(session);
-        onSessionChange?.(session.sessionId);
+        if (sessionId) {
+          session = { ns: namespace, agent, sessionId };
+          currentSessionRef.current = session;
+          setCurrentSession(session);
+        } else {
+          const sessionRes = await createSession({ ns: namespace, agent });
+          session = { ns: namespace, agent, sessionId: sessionRes.sessionId };
+          currentSessionRef.current = session;
+          setCurrentSession(session);
+          onSessionChange?.(session.sessionId);
+        }
       }
       return session;
     };

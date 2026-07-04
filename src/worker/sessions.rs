@@ -47,46 +47,6 @@ fn fanout_subscriber_grace() -> std::time::Duration {
     std::time::Duration::from_millis(millis)
 }
 
-#[cfg(test)]
-fn session_message_final_response(message: &data_proto::SessionMessage) -> String {
-    let final_parts_start = message
-        .parts
-        .iter()
-        .rposition(|part| is_final_response_boundary(part.part_type));
-    let final_parts = match final_parts_start {
-        Some(index) => &message.parts[index + 1..],
-        None => message.parts.as_slice(),
-    };
-
-    final_parts
-        .iter()
-        .filter_map(final_response_text)
-        .filter(|content| !content.is_empty())
-        .collect::<Vec<_>>()
-        .join("\n")
-}
-
-#[cfg(test)]
-fn final_response_text(part: &data_proto::SessionMessagePart) -> Option<&str> {
-    match data_proto::SessionMessagePartType::try_from(part.part_type) {
-        Ok(data_proto::SessionMessagePartType::Text)
-        | Ok(data_proto::SessionMessagePartType::Error) => Some(part.content.trim()),
-        _ => None,
-    }
-}
-
-#[cfg(test)]
-fn is_final_response_boundary(part_type: i32) -> bool {
-    matches!(
-        data_proto::SessionMessagePartType::try_from(part_type),
-        Ok(data_proto::SessionMessagePartType::Reasoning)
-            | Ok(data_proto::SessionMessagePartType::ToolCall)
-            | Ok(data_proto::SessionMessagePartType::ToolResult)
-            | Ok(data_proto::SessionMessagePartType::RequestPermission)
-            | Ok(data_proto::SessionMessagePartType::PermissionResult)
-    )
-}
-
 async fn execute_with_panic_boundary<F>(
     future: F,
     sink: &dyn ExecutionSink,
@@ -1055,15 +1015,14 @@ impl WorkerEventHandler {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        execute_with_panic_boundary, session_message_final_response, SessionCompletionStatus,
-    };
+    use super::{execute_with_panic_boundary, SessionCompletionStatus};
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent},
         keys::{ResourceKey, ResourceList},
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
+    use crate::gateway::rpc::connectors::session_message_final_response;
     use crate::gateway::rpc::{data_proto, manifests, resources_proto};
     use crate::harness::executor::ExecutionSink;
     use crate::harness::sessions;

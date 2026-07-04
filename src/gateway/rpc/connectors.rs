@@ -358,7 +358,7 @@ pub fn is_connector_silence_response(text: &str) -> bool {
     )
 }
 
-fn session_message_final_response(message: &data_proto::SessionMessage) -> String {
+pub(crate) fn session_message_final_response(message: &data_proto::SessionMessage) -> String {
     let final_parts_start = message
         .parts
         .iter()
