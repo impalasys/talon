@@ -29,6 +29,7 @@ const useSafeLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : us
 export type SessionServiceClientLike = {
   create(request: { ns: string; agent: string; labels?: Record<string, string> }): Promise<{ sessionId: string }>;
   clear(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
+  appendMessage?(request: any): Promise<any>;
   listMessages(request: {
     ns: string;
     agent: string;
@@ -78,6 +79,32 @@ export type TalonImageUploadResult = TalonChatObjectRef | {
   url?: string;
 };
 
+type TalonSessionHandle = {
+  ns: string;
+  agent: string;
+  sessionId: string;
+};
+
+export type TalonSessionPendingImageAttachment = {
+  id: string;
+  file: File;
+  previewUrl: string;
+  object?: TalonChatObjectRef;
+  status: "queued" | "uploading" | "ready" | "error";
+  error?: string;
+};
+
+export type TalonSessionSubmitContext = {
+  text: string;
+  namespace: string;
+  agent: string;
+  sessionId: string | null;
+  imageAttachments: ReadonlyArray<TalonSessionPendingImageAttachment>;
+  ensureSession: () => Promise<TalonSessionHandle>;
+  clearInput: () => void;
+  refreshSession: () => Promise<void>;
+};
+
 export type TalonSessionProps = {
   namespace: string;
   agent: string;
@@ -113,6 +140,9 @@ export type TalonSessionProps = {
    * must be enforced again by the onImageUpload implementation.
    */
   acceptedImageTypes?: string[];
+  composerStartAdornment?: React.ReactNode;
+  composerEndAdornment?: React.ReactNode;
+  onSubmitMessage?: (context: TalonSessionSubmitContext) => Promise<boolean | void> | boolean | void;
 };
 
 export type TalonCopilotProps = TalonSessionProps;
@@ -206,15 +236,6 @@ type ScrollThumbState = {
   visible: boolean;
   top: number;
   height: number;
-};
-
-type PendingImageAttachment = {
-  id: string;
-  file: File;
-  previewUrl: string;
-  object?: TalonChatObjectRef;
-  status: "queued" | "uploading" | "ready" | "error";
-  error?: string;
 };
 
 function stableStringHash(value: string) {
@@ -554,10 +575,13 @@ export function TalonSession({
   maxImageAttachments = 4,
   maxImageBytes = 20 * 1024 * 1024,
   acceptedImageTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"],
+  composerStartAdornment,
+  composerEndAdornment,
+  onSubmitMessage,
 }: TalonSessionProps) {
   const [messages, setMessages] = useState<CopilotMessage[]>(emptyMessages);
   const [input, setInput] = useState("");
-  const [imageAttachments, setImageAttachments] = useState<PendingImageAttachment[]>([]);
+  const [imageAttachments, setImageAttachments] = useState<TalonSessionPendingImageAttachment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStartedAt, setLoadingStartedAt] = useState<string | number | null>(null);
   const [loadingNow, setLoadingNow] = useState(Date.now());
@@ -576,7 +600,7 @@ export function TalonSession({
   const resumeAbortControllerRef = useRef<AbortController | null>(null);
   const currentSessionRef = useRef<{ ns: string; agent: string; sessionId: string } | null>(null);
   const messagesRef = useRef<CopilotMessage[]>(emptyMessages);
-  const imageAttachmentsRef = useRef<PendingImageAttachment[]>([]);
+  const imageAttachmentsRef = useRef<TalonSessionPendingImageAttachment[]>([]);
   const submittedPreviewUrlsRef = useRef<string[]>([]);
   const skipNextAutoScrollRef = useRef(false);
   const autoScrollPinnedRef = useRef(true);
@@ -1455,6 +1479,43 @@ export function TalonSession({
     if ((!text && !hasImages) || isLoading || disabled) return;
     let submitTurnStarted = false;
 
+    const ensureSession = async (): Promise<TalonSessionHandle> => {
+      let session = currentSessionRef.current;
+      if (!session) {
+        const sessionRes = await createSession({ ns: namespace, agent });
+        session = { ns: namespace, agent, sessionId: sessionRes.sessionId };
+        currentSessionRef.current = session;
+        setCurrentSession(session);
+        onSessionChange?.(session.sessionId);
+      }
+      return session;
+    };
+
+    if (onSubmitMessage) {
+      setError(null);
+      try {
+        const handled = await onSubmitMessage({
+          text,
+          namespace,
+          agent,
+          sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null,
+          imageAttachments: pendingAttachments,
+          ensureSession,
+          clearInput: () => setInput(""),
+          refreshSession: async () => {
+            const session = await ensureSession();
+            await refreshNewestSessionPage(session);
+          },
+        });
+        if (handled) {
+          return;
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+        return;
+      }
+    }
+
     const parsedCommand = parseTalonChatCommandInput(text);
     const command = findTalonChatCommand(resolvedCommands, parsedCommand);
     if (command && parsedCommand && !hasImages) {
@@ -1493,13 +1554,7 @@ export function TalonSession({
         messagesRef.current.slice(-resolvedHistoryPageSize),
       );
 
-      if (!session) {
-        const sessionRes = await createSession({ ns: namespace, agent });
-        session = { ns: namespace, agent, sessionId: sessionRes.sessionId };
-        currentSessionRef.current = session;
-        setCurrentSession(session);
-        onSessionChange?.(session.sessionId);
-      }
+      session = await ensureSession();
 
       const controller = new AbortController();
       abortControllerRef.current = controller;
@@ -1746,6 +1801,8 @@ export function TalonSession({
               isGenerating={isLoading}
               canStop={Boolean(currentSession)}
               commandMenuItems={commandMenuItems}
+              startAdornment={composerStartAdornment}
+              endAdornment={composerEndAdornment}
               imageAttachments={imageAttachments.map((attachment) => ({
                 id: attachment.id,
                 filename: attachment.file.name,

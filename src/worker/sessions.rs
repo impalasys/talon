@@ -47,6 +47,7 @@ fn fanout_subscriber_grace() -> std::time::Duration {
     std::time::Duration::from_millis(millis)
 }
 
+#[cfg(test)]
 fn session_message_final_response(message: &data_proto::SessionMessage) -> String {
     let final_parts_start = message
         .parts
@@ -65,6 +66,7 @@ fn session_message_final_response(message: &data_proto::SessionMessage) -> Strin
         .join("\n")
 }
 
+#[cfg(test)]
 fn final_response_text(part: &data_proto::SessionMessagePart) -> Option<&str> {
     match data_proto::SessionMessagePartType::try_from(part.part_type) {
         Ok(data_proto::SessionMessagePartType::Text)
@@ -73,6 +75,7 @@ fn final_response_text(part: &data_proto::SessionMessagePart) -> Option<&str> {
     }
 }
 
+#[cfg(test)]
 fn is_final_response_boundary(part_type: i32) -> bool {
     matches!(
         data_proto::SessionMessagePartType::try_from(part_type),
@@ -926,57 +929,10 @@ impl WorkerEventHandler {
         session_id: &str,
         message_id: &str,
     ) -> Result<()> {
-        let session = self
-            .cp
-            .kv
-            .get_msg::<data_proto::Session>(&crate::control::keys::session(ns, agent, session_id))
-            .await?
-            .ok_or_else(|| anyhow!("session not found"))?;
-        if !session.labels.contains_key(LABEL_CONNECTOR_REGISTRATION) {
-            return Ok(());
-        }
-        if session
-            .labels
-            .get(LABEL_MESSAGE_SOURCE)
-            .is_some_and(|source| source != "connector")
-        {
-            return Ok(());
-        }
-        if session.labels.contains_key(LABEL_CHANNEL_TRIGGER) {
-            return Ok(());
-        }
-
-        let message = self
-            .cp
-            .kv
-            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
-                ns, agent, session_id, message_id,
-            ))
-            .await?
-            .ok_or_else(|| anyhow!("assistant message not found"))?;
-        let text = session_message_final_response(&message);
-        if text.trim().is_empty() {
-            tracing::info!(
-                namespace = %ns,
-                agent = %agent,
-                session = %session_id,
-                message_id = %message_id,
-                "connector session reply has no text; skipping outbound delivery"
-            );
-            return Ok(());
-        }
-        if connector_rpc::is_connector_silence_response(&text) {
-            tracing::info!(
-                namespace = %ns,
-                agent = %agent,
-                session = %session_id,
-                message_id = %message_id,
-                "connector session reply suppressed by no-reply token"
-            );
-            return Ok(());
-        }
-
-        connector_rpc::deliver_connector_session_message(&self.cp, &session, &message, &text).await
+        connector_rpc::maybe_deliver_connector_session_message(
+            &self.cp, ns, agent, session_id, message_id,
+        )
+        .await
     }
 
     pub async fn handle_session_control(
@@ -2036,6 +1992,123 @@ mod tests {
             .as_str()
             .unwrap_or_default()
             .contains("OpenAI provider config is missing api_key"));
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn maybe_deliver_connector_session_message_delivers_appended_assistant_message() {
+        let kv = Arc::new(MockKvStore::default());
+        let deliveries: Arc<Mutex<Vec<Value>>> = Arc::new(Mutex::new(Vec::new()));
+        let app = Router::new()
+            .route(
+                "/v1/deliveries",
+                post(
+                    |State(deliveries): State<Arc<Mutex<Vec<Value>>>>,
+                     Json(payload): Json<Value>| async move {
+                        deliveries.lock().unwrap().push(payload);
+                        Json(json!({
+                            "accepted": true,
+                            "disposition": "accepted",
+                            "error": ""
+                        }))
+                    },
+                ),
+            )
+            .with_state(deliveries.clone());
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let endpoint = format!("http://{}", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        put_connector_class_resource(kv.clone(), endpoint).await;
+
+        kv.set_msg(
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "assistant".to_string(),
+                ns: "conic:test".to_string(),
+                status: "READY".to_string(),
+                created_at: 0,
+                last_active: 123,
+                metadata: HashMap::new(),
+                labels: HashMap::from([
+                    (
+                        "talon.impalasys.com/message-source".to_string(),
+                        "connector".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/connector-registration".to_string(),
+                        "Namespace/conic%3Atest/ConnectorClass/slack".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/connector".to_string(),
+                        "slack-main".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/connector-class".to_string(),
+                        "slack".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/external-conversation".to_string(),
+                        "C123".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/external-message".to_string(),
+                        "1710000000.000100".to_string(),
+                    ),
+                ]),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "assistant-1",
+            ),
+            &data_proto::SessionMessage {
+                id: "assistant-1".to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 1,
+                labels: HashMap::from([(
+                    "talon.impalasys.com/message-source".to_string(),
+                    "sightline".to_string(),
+                )]),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: "000000".to_string(),
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
+                    content: "human-authored reply".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 1,
+                    object: None,
+                }],
+            },
+        )
+        .await
+        .unwrap();
+
+        let cp = ControlPlane::builder(kv, Arc::new(MockPubSub)).build();
+        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+            &cp,
+            "conic:test",
+            "assistant",
+            "session-1",
+            "assistant-1",
+        )
+        .await
+        .expect("assistant append should deliver");
+
+        let deliveries = deliveries.lock().unwrap().clone();
+        assert_eq!(deliveries.len(), 1);
+        let delivery = &deliveries[0];
+        assert_eq!(delivery["deliveryId"], "assistant-1");
+        assert_eq!(delivery["text"], "human-authored reply");
+        assert_eq!(delivery["externalConversationId"], "C123");
 
         server.abort();
     }

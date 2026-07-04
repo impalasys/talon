@@ -116,6 +116,8 @@ export type TalonChatComposerProps = {
   textareaMinHeight?: number;
   textareaMaxHeight?: number | string;
   commandMenuItems?: TalonChatComposerCommandMenuItem[];
+  startAdornment?: React.ReactNode;
+  endAdornment?: React.ReactNode;
   imageAttachments?: TalonChatComposerImageAttachment[];
   imageUploadEnabled?: boolean;
   imageAccept?: string;
@@ -158,6 +160,8 @@ export function TalonChatComposer({
   textareaMinHeight = 24,
   textareaMaxHeight = "40vh",
   commandMenuItems,
+  startAdornment,
+  endAdornment,
   imageAttachments,
   imageUploadEnabled = false,
   imageAccept = "image/png,image/jpeg,image/gif,image/webp",
@@ -616,6 +620,18 @@ export function TalonChatComposer({
             </button>
           </>
         ) : null}
+        {startAdornment ? (
+          <div
+            style={{
+              order: controlsBelow ? 2 : undefined,
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            {startAdornment}
+          </div>
+        ) : null}
         <textarea
           ref={textareaRef}
           className="talon-chat-input-textarea"
@@ -667,6 +683,18 @@ export function TalonChatComposer({
             }
           }}
         />
+        {endAdornment ? (
+          <div
+            style={{
+              order: controlsBelow ? 2 : undefined,
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            {endAdornment}
+          </div>
+        ) : null}
         <button
           type={isStopMode ? "button" : "submit"}
           onClick={isStopMode && onStop ? onStop : undefined}

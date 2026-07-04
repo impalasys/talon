@@ -5,10 +5,12 @@ export {
   type TalonSessionCommand,
   type TalonSessionCommandTarget,
   type TalonSessionProps,
+  type TalonSessionSubmitContext,
   type TalonCopilotProps,
   type TalonChatObjectRef,
   type TalonImageUploadContext,
   type TalonImageUploadResult,
+  type TalonSessionPendingImageAttachment,
 } from "./TalonSession";
 export {
   TalonChannel,

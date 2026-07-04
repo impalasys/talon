@@ -4,7 +4,7 @@ import type { TalonClient } from "@impalasys/talon-client";
 export type GatewayClientLike = {
   sessions: Pick<
     TalonClient["sessions"],
-    "create" | "clear" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
+    "create" | "clear" | "appendMessage" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
   >;
 };
 
@@ -100,6 +100,8 @@ export type TalonChatComposerProps = {
   textareaMinHeight?: number;
   textareaMaxHeight?: number | string;
   commandMenuItems?: TalonChatComposerCommandMenuItem[];
+  startAdornment?: React.ReactNode;
+  endAdornment?: React.ReactNode;
   imageAttachments?: TalonChatComposerImageAttachment[];
   imageUploadEnabled?: boolean;
   imageAccept?: string;
@@ -107,6 +109,26 @@ export type TalonChatComposerProps = {
   onImageFilesSelected?: (files: File[]) => void;
   onRemoveImageAttachment?: (id: string) => void;
   style?: React.CSSProperties;
+};
+
+export type TalonSessionPendingImageAttachment = {
+  id: string;
+  file: File;
+  previewUrl: string;
+  object?: TalonChatObjectRef;
+  status: "queued" | "uploading" | "ready" | "error";
+  error?: string;
+};
+
+export type TalonSessionSubmitContext = {
+  text: string;
+  namespace: string;
+  agent: string;
+  sessionId: string | null;
+  imageAttachments: ReadonlyArray<TalonSessionPendingImageAttachment>;
+  ensureSession: () => Promise<{ ns: string; agent: string; sessionId: string }>;
+  clearInput: () => void;
+  refreshSession: () => Promise<void>;
 };
 
 export type TalonSessionCommandTarget = {
@@ -177,6 +199,9 @@ export type TalonSessionProps = {
    * must be enforced again by the onImageUpload implementation.
    */
   acceptedImageTypes?: string[];
+  composerStartAdornment?: React.ReactNode;
+  composerEndAdornment?: React.ReactNode;
+  onSubmitMessage?: (context: TalonSessionSubmitContext) => Promise<boolean | void> | boolean | void;
 };
 
 export type TalonCopilotProps = TalonSessionProps;
