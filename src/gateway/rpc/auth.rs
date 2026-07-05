@@ -26,7 +26,7 @@ const API_KEY_SECRET_BYTES: usize = 32;
 #[derive(Debug, Deserialize, Clone)]
 struct OidcIdentityClaims {
     #[serde(rename = "iss")]
-    _iss: String,
+    iss: String,
     sub: String,
     #[serde(rename = "aud")]
     _aud: serde_json::Value,
@@ -54,6 +54,7 @@ struct DelegatedTokenScope {
     channel: Option<String>,
     expires_in: u64,
     origins: Vec<String>,
+    sub: Option<String>,
 }
 
 type StoredApiKey = data_proto::ApiKeyRecord;
@@ -127,10 +128,11 @@ impl GrpcGatewayHandler {
 
         let (expires_in, expires_at) = delegated_expiration(&parent_claims, scope.expires_in)?;
         let origins = delegated_origins(&parent_claims, &scope.origins)?;
+        let sub = delegated_subject(&parent_claims.sub, scope.sub.as_deref())?;
         let now = unix_seconds()?;
         let claims = Claims {
             iss: Some(platform_issuer()?),
-            sub: format!("delegated:{}", parent_claims.sub),
+            sub,
             aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
             iat: Some(now as usize),
             exp: expires_at as usize,
@@ -337,8 +339,44 @@ impl DelegatedTokenScope {
             channel,
             expires_in: request.expires_in,
             origins: request.origins,
+            sub: validate_delegated_sub(request.sub.as_deref())?,
         })
     }
+}
+
+fn validate_delegated_sub(value: Option<&str>) -> Result<Option<String>, tonic::Status> {
+    let Some(value) = value else {
+        return Ok(None);
+    };
+    let value = value.trim();
+    if value.is_empty() {
+        return Err(tonic::Status::invalid_argument("sub must not be empty"));
+    }
+    if value.len() > 256 {
+        return Err(tonic::Status::invalid_argument(
+            "sub must be 256 bytes or fewer",
+        ));
+    }
+    if value.chars().any(char::is_control) || value.chars().any(char::is_whitespace) {
+        return Err(tonic::Status::invalid_argument(
+            "sub must not contain whitespace or control characters",
+        ));
+    }
+    Ok(Some(value.to_string()))
+}
+
+fn delegated_subject(
+    parent_sub: &str,
+    requested_sub: Option<&str>,
+) -> Result<String, tonic::Status> {
+    let parent_sub = parent_sub.trim();
+    if parent_sub.is_empty() {
+        return Err(tonic::Status::permission_denied(
+            "Parent token subject is required to mint a delegated token",
+        ));
+    }
+    let suffix = requested_sub.unwrap_or("delegated");
+    Ok(format!("{parent_sub}:{suffix}"))
 }
 
 fn non_empty_optional(value: Option<String>) -> Option<String> {
@@ -1044,7 +1082,7 @@ fn mint_talon_access_token(
 
     let claims = Claims {
         iss: Some(platform_issuer()?),
-        sub: format!("oidc:{}", identity.claims.sub),
+        sub: canonical_oidc_subject(&identity.claims.iss, &identity.claims.sub),
         aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
         iat: Some(now as usize),
         exp: exp as usize,
@@ -1057,6 +1095,14 @@ fn mint_talon_access_token(
     };
 
     mint_platform_access_token(gateway, &claims)
+}
+
+fn canonical_oidc_subject(issuer: &str, subject: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(issuer.as_bytes());
+    hasher.update([0]);
+    hasher.update(subject.as_bytes());
+    format!("oidc:{:x}", hasher.finalize())
 }
 
 #[cfg(test)]
@@ -1166,6 +1212,7 @@ mod tests {
             channel: None,
             expires_in: 60,
             origins: Vec::new(),
+            sub: None,
         }
     }
 
@@ -1202,7 +1249,7 @@ mod tests {
         assert_eq!(response.token_type, "Bearer");
         assert_eq!(response.expires_in, 60);
         let minted = verify_platform_access_token(&response.access_token);
-        assert_eq!(minted.sub, "delegated:tenant-admin");
+        assert_eq!(minted.sub, "tenant-admin:delegated");
         assert_eq!(minted.ns.as_deref(), Some("Tenant:acme:child"));
         assert_eq!(minted.agent.as_deref(), Some("assistant"));
         assert!(minted.grants.is_empty());
@@ -1229,6 +1276,82 @@ mod tests {
             None
         )
         .is_err());
+    }
+
+    #[tokio::test]
+    async fn mint_access_token_suffixes_requested_sub_onto_parent_subject() {
+        let _env_guard = PlatformJwtEnvGuard::acquire().await;
+        let parent = token(claims(Some("Tenant:acme"), None, None));
+        let handler = handler();
+        let mut request = mint_request("Tenant:acme");
+        request.sub = Some("browser-client-1".to_string());
+
+        let response = handler
+            .handle_mint_access_token(bearer_request(&parent, request))
+            .await
+            .unwrap()
+            .into_inner();
+        let minted = verify_platform_access_token(&response.access_token);
+        assert_eq!(minted.sub, "tenant-admin:browser-client-1");
+
+        let mut request = mint_request("Tenant:acme");
+        request.sub = Some("   ".to_string());
+        let err = handler
+            .handle_mint_access_token(bearer_request(&parent, request))
+            .await
+            .expect_err("blank delegated sub suffix should be rejected");
+        assert_eq!(err.code(), tonic::Code::InvalidArgument);
+    }
+
+    #[tokio::test]
+    async fn mint_access_token_preserves_oidc_parent_subject_prefix() {
+        let _env_guard = PlatformJwtEnvGuard::acquire().await;
+        let mut parent_claims = claims(None, None, None);
+        parent_claims.sub = canonical_oidc_subject("https://accounts.example.com", "user123");
+        parent_claims.grants = vec![TalonGrantClaim {
+            kind: "readwrite".to_string(),
+            namespace: Some("Tenant:acme".to_string()),
+            agent: None,
+            session: None,
+            channel: None,
+        }];
+        let parent = token(parent_claims.clone());
+        let handler = handler();
+        let mut request = mint_request("Tenant:acme");
+        request.sub = Some("browser-client-1".to_string());
+
+        let response = handler
+            .handle_mint_access_token(bearer_request(&parent, request))
+            .await
+            .unwrap()
+            .into_inner();
+        let minted = verify_platform_access_token(&response.access_token);
+        assert_eq!(
+            minted.sub,
+            format!("{}:browser-client-1", parent_claims.sub)
+        );
+        assert_eq!(minted.ns.as_deref(), Some("Tenant:acme"));
+        assert!(minted.grants.is_empty());
+
+        let config = jwt_auth_config();
+        let mut metadata = tonic::metadata::MetadataMap::new();
+        metadata.insert(
+            "authorization",
+            format!("Bearer {}", response.access_token).parse().unwrap(),
+        );
+        assert!(check_auth(&metadata, &config, "Tenant:acme", None, None).is_ok());
+    }
+
+    #[test]
+    fn canonical_oidc_subject_hashes_raw_claim_values() {
+        assert_ne!(
+            canonical_oidc_subject("https://accounts.example.com", "user123"),
+            canonical_oidc_subject(" https://accounts.example.com", "user123")
+        );
+        assert_ne!(
+            canonical_oidc_subject("https://accounts.example.com", "user123"),
+            canonical_oidc_subject("https://accounts.example.com", "user123 ")
+        );
     }
 
     #[tokio::test]

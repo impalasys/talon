@@ -25,6 +25,7 @@ pub struct UsageSubject {
     pub agent: String,
     pub provider: String,
     pub model: String,
+    pub rate_limit_key: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -45,6 +46,12 @@ struct MatchedLimit {
 #[derive(Debug, Clone, Copy)]
 struct Window {
     seconds: u64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SubjectScope {
+    All,
+    Identity,
 }
 
 #[derive(Debug, Clone)]
@@ -89,6 +96,8 @@ pub fn llm_usage_charges(usage: Option<&harness_proto::ChatUsage>) -> Vec<UsageC
     charges
 }
 
+/// Checks whether any matching UsagePolicy counter is already at or above its
+/// limit without mutating counters.
 pub async fn check_namespace_usage(
     kv: &(dyn KeyValueStore + Send + Sync),
     subject: &UsageSubject,
@@ -100,6 +109,7 @@ pub async fn check_namespace_usage(
             &limit.policy_namespace,
             &limit.policy_name,
             &limit.rule_id,
+            counter_subject_key(&limit, subject)?,
             window_start(now_seconds, limit.window),
         );
         let used = read_counter(kv, &key).await?;
@@ -116,6 +126,10 @@ pub async fn check_namespace_usage(
     Ok(())
 }
 
+/// Increments matching UsagePolicy counters without enforcing their maximums.
+///
+/// Call this after an operation has already been admitted by another check, or
+/// for best-effort accounting where the charge itself should not reject work.
 pub async fn charge_namespace_usage(
     kv: &(dyn KeyValueStore + Send + Sync),
     subject: &UsageSubject,
@@ -140,6 +154,7 @@ pub async fn charge_namespace_usage(
             &limit.policy_namespace,
             &limit.policy_name,
             &limit.rule_id,
+            counter_subject_key(&limit, subject)?,
             window_start(now_seconds, limit.window),
         );
         increment_counter_cas(kv, &key, charge.delta).await?;
@@ -147,6 +162,108 @@ pub async fn charge_namespace_usage(
     Ok(())
 }
 
+/// Atomically admits and charges usage against all matching UsagePolicy limits.
+///
+/// If any matched counter would exceed its configured maximum, previously
+/// charged counters from this call are rolled back and the operation is denied.
+pub async fn charge_namespace_usage_under_limit(
+    kv: &(dyn KeyValueStore + Send + Sync),
+    subject: &UsageSubject,
+    charges: &[UsageCharge],
+    now_seconds: i64,
+) -> Result<()> {
+    let metrics = charges
+        .iter()
+        .map(|charge| charge.metric)
+        .collect::<Vec<_>>();
+    let limits = matched_limits(kv, subject, &metrics, now_seconds).await?;
+    let mut charged = Vec::new();
+    for limit in &limits {
+        let Some(charge) = charges
+            .iter()
+            .find(|charge| charge.metric == limit.limit.metric)
+        else {
+            continue;
+        };
+        if charge.delta == 0 {
+            continue;
+        }
+        let key = counter_key(
+            &limit.policy_namespace,
+            &limit.policy_name,
+            &limit.rule_id,
+            counter_subject_key(limit, subject)?,
+            window_start(now_seconds, limit.window),
+        );
+        if let Err(err) = increment_counter_cas_under_limit(
+            kv,
+            &key,
+            charge.delta,
+            limit.limit.max,
+            limit,
+            subject,
+        )
+        .await
+        {
+            for (charged_key, charged_delta) in charged.into_iter().rev() {
+                if let Err(rollback_err) =
+                    decrement_counter_cas(kv, &charged_key, charged_delta).await
+                {
+                    tracing::warn!(
+                        key = %charged_key,
+                        error = %rollback_err,
+                        "failed to roll back usage counter after quota admission failure"
+                    );
+                }
+            }
+            return Err(err);
+        }
+        charged.push((key, charge.delta));
+    }
+    Ok(())
+}
+
+/// Decrements matching UsagePolicy counters to undo a charge from a failed
+/// operation.
+///
+/// This is for rollback paths only. Normal completion/deletion should not call
+/// it for event-style metrics such as `agent.sessions`.
+pub async fn refund_namespace_usage(
+    kv: &(dyn KeyValueStore + Send + Sync),
+    subject: &UsageSubject,
+    charges: &[UsageCharge],
+    now_seconds: i64,
+) -> Result<()> {
+    let metrics = charges
+        .iter()
+        .map(|charge| charge.metric)
+        .collect::<Vec<_>>();
+    for limit in matched_limits(kv, subject, &metrics, now_seconds).await? {
+        let Some(charge) = charges
+            .iter()
+            .find(|charge| charge.metric == limit.limit.metric)
+        else {
+            continue;
+        };
+        if charge.delta == 0 {
+            continue;
+        }
+        let key = counter_key(
+            &limit.policy_namespace,
+            &limit.policy_name,
+            &limit.rule_id,
+            counter_subject_key(&limit, subject)?,
+            window_start(now_seconds, limit.window),
+        );
+        decrement_counter_cas(kv, &key, charge.delta).await?;
+    }
+    Ok(())
+}
+
+/// Populates UsagePolicy status from the counters for the current fixed window.
+///
+/// Identity-scoped status reports the hottest subject counter in the window,
+/// rather than summing all identities together.
 pub async fn populate_usage_policy_status(
     kv: &(dyn KeyValueStore + Send + Sync),
     resource: &mut resources_proto::Resource,
@@ -170,13 +287,14 @@ pub async fn populate_usage_policy_status(
         let start = window_start(now_seconds, window);
         let reset_at = start.saturating_add(i64::try_from(window.seconds).unwrap_or(i64::MAX));
         let rule_id = rule_id(limit);
-        let key = counter_key(&meta.namespace, &meta.name, &rule_id, start);
-        let used = read_counter(kv, &key).await?;
+        let used =
+            usage_status_used(kv, &meta.namespace, &meta.name, &rule_id, limit, start).await?;
         hard.push(resources_proto::UsageLimitStatus {
             selector: limit.selector.clone(),
             metric: limit.metric.clone(),
             max: limit.max,
             window: limit.window.clone(),
+            subject_scope: subject_scope_name(limit)?.to_string(),
             window_start: start,
             reset_at,
             used,
@@ -198,6 +316,39 @@ pub async fn populate_usage_policy_status(
     Ok(())
 }
 
+async fn usage_status_used(
+    kv: &(dyn KeyValueStore + Send + Sync),
+    policy_namespace: &str,
+    policy_name: &str,
+    rule_id: &str,
+    limit: &resources_proto::UsageLimit,
+    window_start: i64,
+) -> Result<u64> {
+    match subject_scope(limit)? {
+        SubjectScope::All => {
+            let key = counter_key(policy_namespace, policy_name, rule_id, None, window_start);
+            read_counter(kv, &key).await
+        }
+        SubjectScope::Identity => {
+            let parent = keys::ResourceParent::root(policy_namespace)
+                .child("UsagePolicy", policy_name)
+                .list(Some("UsageCounter"));
+            let prefix = format!("{rule_id}:subject=");
+            let suffix = format!(":{window_start}");
+            let mut max_used = 0;
+            for (key, value) in kv.list_entries(&parent).await? {
+                if key.name.starts_with(&prefix) && key.name.ends_with(&suffix) {
+                    max_used = max_used.max(
+                        decode_counter(&value)
+                            .with_context(|| format!("failed to decode usage counter {}", key))?,
+                    );
+                }
+            }
+            Ok(max_used)
+        }
+    }
+}
+
 pub fn validate_usage_policy_spec(spec: &resources_proto::UsagePolicySpec) -> Result<()> {
     match namespace_scope(spec.namespace_scope.as_str())? {
         NamespaceScope::Recursive | NamespaceScope::SelfOnly => {}
@@ -214,6 +365,7 @@ pub fn validate_usage_policy_spec(spec: &resources_proto::UsagePolicySpec) -> Re
             );
         }
         parse_window(&limit.window)?;
+        subject_scope(limit)?;
         if let Some(selector) = limit.selector.as_ref() {
             let is_llm = is_llm_metric(&limit.metric);
             if !is_llm && (!selector.provider.is_empty() || !selector.model.is_empty()) {
@@ -255,6 +407,83 @@ pub async fn increment_counter_cas(
     }
     bail!(
         "failed to increment usage counter {} after CAS retries",
+        key
+    )
+}
+
+async fn increment_counter_cas_under_limit(
+    kv: &(dyn KeyValueStore + Send + Sync),
+    key: &keys::ResourceKey,
+    delta: u64,
+    max: u64,
+    limit: &MatchedLimit,
+    subject: &UsageSubject,
+) -> Result<u64> {
+    let mut backoff = Duration::from_millis(1);
+    for _ in 0..MAX_CAS_RETRIES {
+        let current_bytes = kv.get(key).await?;
+        let current = match current_bytes.as_deref() {
+            Some(bytes) => decode_counter(bytes)
+                .with_context(|| format!("failed to decode usage counter {}", key))?,
+            None => 0,
+        };
+        let next = current
+            .checked_add(delta)
+            .ok_or_else(|| anyhow!("usage counter {} overflowed", key))?;
+        if next > max {
+            return Err(UsageQuotaExceeded {
+                metric: limit.limit.metric.clone(),
+                namespace: subject.namespace.clone(),
+                used: current,
+                max,
+            }
+            .into());
+        }
+        let next_bytes = encode_counter(next);
+        if kv
+            .compare_and_swap(key, current_bytes.as_deref(), &next_bytes)
+            .await?
+        {
+            return Ok(next);
+        }
+        tokio::time::sleep(backoff).await;
+        backoff = (backoff * 2).min(Duration::from_millis(25));
+    }
+    bail!(
+        "failed to increment usage counter {} after CAS retries",
+        key
+    )
+}
+
+async fn decrement_counter_cas(
+    kv: &(dyn KeyValueStore + Send + Sync),
+    key: &keys::ResourceKey,
+    delta: u64,
+) -> Result<u64> {
+    let mut backoff = Duration::from_millis(1);
+    for _ in 0..MAX_CAS_RETRIES {
+        let current_bytes = kv.get(key).await?;
+        let current = match current_bytes.as_deref() {
+            Some(bytes) => decode_counter(bytes)
+                .with_context(|| format!("failed to decode usage counter {}", key))?,
+            None => 0,
+        };
+        let next = current.saturating_sub(delta);
+        if current_bytes.is_none() && next == 0 {
+            return Ok(0);
+        }
+        let next_bytes = encode_counter(next);
+        if kv
+            .compare_and_swap(key, current_bytes.as_deref(), &next_bytes)
+            .await?
+        {
+            return Ok(next);
+        }
+        tokio::time::sleep(backoff).await;
+        backoff = (backoff * 2).min(Duration::from_millis(25));
+    }
+    bail!(
+        "failed to decrement usage counter {} after CAS retries",
         key
     )
 }
@@ -395,6 +624,43 @@ fn namespace_scope(scope: &str) -> Result<NamespaceScope> {
     }
 }
 
+fn subject_scope(limit: &resources_proto::UsageLimit) -> Result<SubjectScope> {
+    match limit.subject_scope.trim() {
+        "" => Ok(SubjectScope::All),
+        "all" => Ok(SubjectScope::All),
+        "identity" | "subject" => Ok(SubjectScope::Identity),
+        value => bail!(
+            "UsagePolicy limit '{}' subjectScope must be 'all' or 'identity', got '{value}'",
+            limit.metric
+        ),
+    }
+}
+
+fn subject_scope_name(limit: &resources_proto::UsageLimit) -> Result<&'static str> {
+    Ok(match subject_scope(limit)? {
+        SubjectScope::All => "all",
+        SubjectScope::Identity => "identity",
+    })
+}
+
+fn effective_rate_limit_key(subject: &UsageSubject) -> Result<&str> {
+    subject
+        .rate_limit_key
+        .as_deref()
+        .filter(|key| !key.trim().is_empty())
+        .ok_or_else(|| anyhow!("identity-scoped UsagePolicy requires a request identity"))
+}
+
+fn counter_subject_key<'a>(
+    limit: &MatchedLimit,
+    subject: &'a UsageSubject,
+) -> Result<Option<&'a str>> {
+    Ok(match subject_scope(&limit.limit)? {
+        SubjectScope::All => None,
+        SubjectScope::Identity => Some(effective_rate_limit_key(subject)?),
+    })
+}
+
 fn validate_metric(metric: &str) -> Result<()> {
     match metric {
         METRIC_LLM_REQUESTS
@@ -451,26 +717,44 @@ fn counter_key(
     policy_namespace: &str,
     policy_name: &str,
     rule_id: &str,
+    rate_limit_key: Option<&str>,
     window_start: i64,
 ) -> keys::ResourceKey {
+    let counter_name = match rate_limit_key {
+        Some(rate_limit_key) => format!("{rule_id}:subject={rate_limit_key}:{window_start}"),
+        None => format!("{rule_id}:{window_start}"),
+    };
     keys::ResourceKey::new(
         policy_namespace,
         &[("UsagePolicy", policy_name)],
         "UsageCounter",
-        &format!("{rule_id}:{window_start}"),
+        &counter_name,
     )
 }
 
 fn rule_id(limit: &resources_proto::UsageLimit) -> String {
     let selector = limit.selector.as_ref();
-    let canonical = format!(
-        "metric={};window={};agent={};provider={};model={}",
-        limit.metric,
-        limit.window,
-        selector.map(|s| s.agent.as_str()).unwrap_or_default(),
-        selector.map(|s| s.provider.as_str()).unwrap_or_default(),
-        selector.map(|s| s.model.as_str()).unwrap_or_default(),
-    );
+    let canonical = if limit.subject_scope.trim().is_empty() {
+        format!(
+            "metric={};window={};agent={};provider={};model={}",
+            limit.metric,
+            limit.window,
+            selector.map(|s| s.agent.as_str()).unwrap_or_default(),
+            selector.map(|s| s.provider.as_str()).unwrap_or_default(),
+            selector.map(|s| s.model.as_str()).unwrap_or_default(),
+        )
+    } else {
+        let subject_scope = subject_scope_name(limit).unwrap_or("invalid");
+        format!(
+            "metric={};window={};subjectScope={};agent={};provider={};model={}",
+            limit.metric,
+            limit.window,
+            subject_scope,
+            selector.map(|s| s.agent.as_str()).unwrap_or_default(),
+            selector.map(|s| s.provider.as_str()).unwrap_or_default(),
+            selector.map(|s| s.model.as_str()).unwrap_or_default(),
+        )
+    };
     format!("{:016x}", fnv1a64(canonical.as_bytes()))
 }
 
@@ -507,7 +791,56 @@ mod tests {
             metric: metric.to_string(),
             max: 10,
             window: window.to_string(),
+            subject_scope: String::new(),
         }
+    }
+
+    fn limit_with_scope(
+        metric: &str,
+        window: &str,
+        max: u64,
+        subject_scope: &str,
+    ) -> resources_proto::UsageLimit {
+        resources_proto::UsageLimit {
+            max,
+            subject_scope: subject_scope.to_string(),
+            ..limit(metric, window)
+        }
+    }
+
+    fn usage_subject(rate_limit_key: Option<&str>) -> UsageSubject {
+        UsageSubject {
+            namespace: "acme".to_string(),
+            agent: "agent".to_string(),
+            provider: String::new(),
+            model: String::new(),
+            rate_limit_key: rate_limit_key.map(str::to_string),
+        }
+    }
+
+    async fn install_policy(
+        kv: &MockKvStore,
+        name: &str,
+        limits: Vec<resources_proto::UsageLimit>,
+    ) {
+        let policy = resources_proto::UsagePolicy {
+            metadata: Some(resources_proto::ResourceMeta {
+                name: name.to_string(),
+                namespace: "acme".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::UsagePolicySpec {
+                namespace_scope: "self".to_string(),
+                hard: limits,
+            }),
+            status: None,
+        };
+        kv.set_msg(
+            &keys::ResourceKey::new("acme", &[], "UsagePolicy", name),
+            &policy,
+        )
+        .await
+        .unwrap();
     }
 
     #[test]
@@ -542,6 +875,7 @@ mod tests {
                 metric: METRIC_LLM_REQUESTS.to_string(),
                 max: 1,
                 window: "1m".to_string(),
+                subject_scope: String::new(),
             }],
         })
         .unwrap();
@@ -558,10 +892,44 @@ mod tests {
                     metric: METRIC_TOOL_CALLS.to_string(),
                     max: 1,
                     window: "1m".to_string(),
+                    subject_scope: String::new(),
                 }],
             })
             .is_err()
         );
+    }
+
+    #[test]
+    fn validates_subject_scope_and_defaults_by_metric() {
+        let sessions_default = limit(METRIC_AGENT_SESSIONS, "1m");
+        assert_eq!(subject_scope(&sessions_default).unwrap(), SubjectScope::All);
+
+        validate_usage_policy_spec(&resources_proto::UsagePolicySpec {
+            namespace_scope: "self".to_string(),
+            hard: vec![limit_with_scope(METRIC_AGENT_SESSIONS, "1m", 1, "identity")],
+        })
+        .unwrap();
+
+        assert!(
+            validate_usage_policy_spec(&resources_proto::UsagePolicySpec {
+                namespace_scope: "self".to_string(),
+                hard: vec![limit_with_scope(METRIC_AGENT_SESSIONS, "1m", 1, "nonsense")],
+            })
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn omitted_subject_scope_rule_id_uses_legacy_canonical_string() {
+        let default_scope = limit(METRIC_AGENT_SESSIONS, "1m");
+        let legacy_canonical = b"metric=agent.sessions;window=1m;agent=;provider=;model=";
+        assert_eq!(
+            rule_id(&default_scope),
+            format!("{:016x}", fnv1a64(legacy_canonical))
+        );
+
+        let explicit_all = limit_with_scope(METRIC_AGENT_SESSIONS, "1m", 10, "all");
+        assert_ne!(rule_id(&default_scope), rule_id(&explicit_all));
     }
 
     #[test]
@@ -575,7 +943,7 @@ mod tests {
     #[tokio::test]
     async fn increments_counter_with_cas_encoding() {
         let kv = MockKvStore::new();
-        let key = counter_key("acme", "policy", "rule", 120);
+        let key = counter_key("acme", "policy", "rule", None, 120);
         assert_eq!(increment_counter_cas(&kv, &key, 2).await.unwrap(), 2);
         assert_eq!(increment_counter_cas(&kv, &key, 3).await.unwrap(), 5);
         assert_eq!(read_counter(&kv, &key).await.unwrap(), 5);
@@ -584,10 +952,19 @@ mod tests {
     #[tokio::test]
     async fn rejects_malformed_counter_values() {
         let kv = MockKvStore::new();
-        let key = counter_key("acme", "policy", "rule", 120);
+        let key = counter_key("acme", "policy", "rule", None, 120);
         kv.set(&key, b"bad").await.unwrap();
         assert!(read_counter(&kv, &key).await.is_err());
         assert!(increment_counter_cas(&kv, &key, 1).await.is_err());
+    }
+
+    #[tokio::test]
+    async fn decrement_missing_counter_does_not_create_zero_record() {
+        let kv = MockKvStore::new();
+        let key = counter_key("acme", "policy", "rule", None, 120);
+
+        assert_eq!(decrement_counter_cas(&kv, &key, 1).await.unwrap(), 0);
+        assert!(kv.get(&key).await.unwrap().is_none());
     }
 
     #[tokio::test]
@@ -616,6 +993,7 @@ mod tests {
             agent: "agent".to_string(),
             provider: "openai".to_string(),
             model: "gpt-5".to_string(),
+            rate_limit_key: None,
         };
         charge_namespace_usage(
             &kv,
@@ -676,6 +1054,7 @@ mod tests {
             agent: "agent".to_string(),
             provider: "openai".to_string(),
             model: "gpt-5".to_string(),
+            rate_limit_key: None,
         };
         charge_namespace_usage(
             &kv,
@@ -693,6 +1072,127 @@ mod tests {
             .await
             .unwrap_err();
         assert!(is_quota_exceeded_error(&err));
+    }
+
+    #[tokio::test]
+    async fn namespace_usage_identity_subject_scope_limits_per_subject() {
+        let kv = MockKvStore::new();
+        install_policy(
+            &kv,
+            "session-identity",
+            vec![limit_with_scope(METRIC_AGENT_SESSIONS, "1m", 1, "identity")],
+        )
+        .await;
+        let charge = [UsageCharge {
+            metric: METRIC_AGENT_SESSIONS,
+            delta: 1,
+        }];
+        let first_subject = usage_subject(Some("oidc:first"));
+        let second_subject = usage_subject(Some("oidc:second"));
+
+        charge_namespace_usage_under_limit(&kv, &first_subject, &charge, 65)
+            .await
+            .unwrap();
+        let err = charge_namespace_usage_under_limit(&kv, &first_subject, &charge, 65)
+            .await
+            .expect_err("same subject should be over its identity-scoped quota");
+        assert!(err.downcast_ref::<UsageQuotaExceeded>().is_some());
+
+        charge_namespace_usage_under_limit(&kv, &second_subject, &charge, 65)
+            .await
+            .expect("different subject should have an independent quota");
+    }
+
+    #[tokio::test]
+    async fn identity_subject_scope_status_reports_hottest_subject() {
+        let kv = MockKvStore::new();
+        let limit = limit_with_scope(METRIC_AGENT_SESSIONS, "1m", 10, "identity");
+        let policy = resources_proto::UsagePolicy {
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "session-identity".to_string(),
+                namespace: "acme".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::UsagePolicySpec {
+                namespace_scope: "self".to_string(),
+                hard: vec![limit],
+            }),
+            status: None,
+        };
+        kv.set_msg(
+            &keys::ResourceKey::new("acme", &[], "UsagePolicy", "session-identity"),
+            &policy,
+        )
+        .await
+        .unwrap();
+
+        charge_namespace_usage(
+            &kv,
+            &usage_subject(Some("oidc:first")),
+            &[UsageCharge {
+                metric: METRIC_AGENT_SESSIONS,
+                delta: 2,
+            }],
+            65,
+        )
+        .await
+        .unwrap();
+        charge_namespace_usage(
+            &kv,
+            &usage_subject(Some("oidc:second")),
+            &[UsageCharge {
+                metric: METRIC_AGENT_SESSIONS,
+                delta: 4,
+            }],
+            65,
+        )
+        .await
+        .unwrap();
+
+        let mut resource = resources_proto::Resource {
+            kind: "UsagePolicy".to_string(),
+            metadata: policy.metadata.clone(),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::UsagePolicy(
+                    policy.spec.clone().unwrap(),
+                )),
+            }),
+            status: None,
+            ..Default::default()
+        };
+        populate_usage_policy_status(&kv, &mut resource, 65)
+            .await
+            .unwrap();
+
+        let status = match resource.status.unwrap().kind.unwrap() {
+            resources_proto::resource_status::Kind::UsagePolicy(status) => status,
+            _ => unreachable!(),
+        };
+        assert_eq!(status.hard[0].subject_scope, "identity");
+        assert_eq!(status.hard[0].used, 4);
+        assert_eq!(status.hard[0].remaining, 6);
+        assert!(!status.hard[0].exceeded);
+    }
+
+    #[tokio::test]
+    async fn namespace_identity_scope_rejects_missing_rate_limit_key() {
+        let kv = MockKvStore::new();
+        install_policy(
+            &kv,
+            "session-identity",
+            vec![limit_with_scope(METRIC_AGENT_SESSIONS, "1m", 1, "identity")],
+        )
+        .await;
+        let charge = [UsageCharge {
+            metric: METRIC_AGENT_SESSIONS,
+            delta: 1,
+        }];
+        let err = charge_namespace_usage_under_limit(&kv, &usage_subject(None), &charge, 65)
+            .await
+            .unwrap_err();
+        assert!(err
+            .to_string()
+            .contains("identity-scoped UsagePolicy requires a request identity"));
     }
 
     #[tokio::test]
@@ -727,6 +1227,7 @@ mod tests {
             agent: "agent".to_string(),
             provider: "openai".to_string(),
             model: "gpt-5".to_string(),
+            rate_limit_key: None,
         };
 
         charge_namespace_usage(

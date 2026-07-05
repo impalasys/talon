@@ -18,16 +18,18 @@ class UsageSelector(_message.Message):
     def __init__(self, agent: _Optional[str] = ..., provider: _Optional[str] = ..., model: _Optional[str] = ...) -> None: ...
 
 class UsageLimit(_message.Message):
-    __slots__ = ("selector", "metric", "max", "window")
+    __slots__ = ("selector", "metric", "max", "window", "subject_scope")
     SELECTOR_FIELD_NUMBER: _ClassVar[int]
     METRIC_FIELD_NUMBER: _ClassVar[int]
     MAX_FIELD_NUMBER: _ClassVar[int]
     WINDOW_FIELD_NUMBER: _ClassVar[int]
+    SUBJECT_SCOPE_FIELD_NUMBER: _ClassVar[int]
     selector: UsageSelector
     metric: str
     max: int
     window: str
-    def __init__(self, selector: _Optional[_Union[UsageSelector, _Mapping]] = ..., metric: _Optional[str] = ..., max: _Optional[int] = ..., window: _Optional[str] = ...) -> None: ...
+    subject_scope: str
+    def __init__(self, selector: _Optional[_Union[UsageSelector, _Mapping]] = ..., metric: _Optional[str] = ..., max: _Optional[int] = ..., window: _Optional[str] = ..., subject_scope: _Optional[str] = ...) -> None: ...
 
 class UsagePolicySpec(_message.Message):
     __slots__ = ("namespace_scope", "hard")
@@ -38,7 +40,7 @@ class UsagePolicySpec(_message.Message):
     def __init__(self, namespace_scope: _Optional[str] = ..., hard: _Optional[_Iterable[_Union[UsageLimit, _Mapping]]] = ...) -> None: ...
 
 class UsageLimitStatus(_message.Message):
-    __slots__ = ("selector", "metric", "max", "window", "window_start", "reset_at", "used", "remaining", "exceeded")
+    __slots__ = ("selector", "metric", "max", "window", "window_start", "reset_at", "used", "remaining", "exceeded", "subject_scope")
     SELECTOR_FIELD_NUMBER: _ClassVar[int]
     METRIC_FIELD_NUMBER: _ClassVar[int]
     MAX_FIELD_NUMBER: _ClassVar[int]
@@ -48,6 +50,7 @@ class UsageLimitStatus(_message.Message):
     USED_FIELD_NUMBER: _ClassVar[int]
     REMAINING_FIELD_NUMBER: _ClassVar[int]
     EXCEEDED_FIELD_NUMBER: _ClassVar[int]
+    SUBJECT_SCOPE_FIELD_NUMBER: _ClassVar[int]
     selector: UsageSelector
     metric: str
     max: int
@@ -57,7 +60,8 @@ class UsageLimitStatus(_message.Message):
     used: int
     remaining: int
     exceeded: bool
-    def __init__(self, selector: _Optional[_Union[UsageSelector, _Mapping]] = ..., metric: _Optional[str] = ..., max: _Optional[int] = ..., window: _Optional[str] = ..., window_start: _Optional[int] = ..., reset_at: _Optional[int] = ..., used: _Optional[int] = ..., remaining: _Optional[int] = ..., exceeded: bool = ...) -> None: ...
+    subject_scope: str
+    def __init__(self, selector: _Optional[_Union[UsageSelector, _Mapping]] = ..., metric: _Optional[str] = ..., max: _Optional[int] = ..., window: _Optional[str] = ..., window_start: _Optional[int] = ..., reset_at: _Optional[int] = ..., used: _Optional[int] = ..., remaining: _Optional[int] = ..., exceeded: bool = ..., subject_scope: _Optional[str] = ...) -> None: ...
 
 class UsagePolicyStatus(_message.Message):
     __slots__ = ("observed_generation", "phase", "conditions", "hard")

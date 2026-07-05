@@ -44,6 +44,7 @@ message MintAccessTokenRequest {
   optional string channel = 4;
   uint64 expires_in = 5;
   repeated string origins = 6;
+  optional string sub = 7;
 }
 
 message MintAccessTokenResponse {

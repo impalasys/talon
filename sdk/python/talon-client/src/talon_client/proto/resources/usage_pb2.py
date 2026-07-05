@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from talon_client.proto.resources import common_pb2 as proto_dot_resources_dot_common__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1bproto/resources/usage.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"?\n\rUsageSelector\x12\r\n\x05\x61gent\x18\x01 \x01(\t\x12\x10\n\x08provider\x18\x02 \x01(\t\x12\r\n\x05model\x18\x03 \x01(\t\"k\n\nUsageLimit\x12\x30\n\x08selector\x18\x01 \x01(\x0b\x32\x1e.talon.resources.UsageSelector\x12\x0e\n\x06metric\x18\x02 \x01(\t\x12\x0b\n\x03max\x18\x03 \x01(\x04\x12\x0e\n\x06window\x18\x04 \x01(\t\"U\n\x0fUsagePolicySpec\x12\x17\n\x0fnamespace_scope\x18\x01 \x01(\t\x12)\n\x04hard\x18\x02 \x03(\x0b\x32\x1b.talon.resources.UsageLimit\"\xcc\x01\n\x10UsageLimitStatus\x12\x30\n\x08selector\x18\x01 \x01(\x0b\x32\x1e.talon.resources.UsageSelector\x12\x0e\n\x06metric\x18\x02 \x01(\t\x12\x0b\n\x03max\x18\x03 \x01(\x04\x12\x0e\n\x06window\x18\x04 \x01(\t\x12\x14\n\x0cwindow_start\x18\x05 \x01(\x03\x12\x10\n\x08reset_at\x18\x06 \x01(\x03\x12\x0c\n\x04used\x18\x07 \x01(\x04\x12\x11\n\tremaining\x18\x08 \x01(\x04\x12\x10\n\x08\x65xceeded\x18\t \x01(\x08\"\xa8\x01\n\x11UsagePolicyStatus\x12\x1b\n\x13observed_generation\x18\x01 \x01(\x04\x12\r\n\x05phase\x18\x02 \x01(\t\x12\x36\n\nconditions\x18\x03 \x03(\x0b\x32\".talon.resources.ResourceCondition\x12/\n\x04hard\x18\x04 \x03(\x0b\x32!.talon.resources.UsageLimitStatus\"\xa2\x01\n\x0bUsagePolicy\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12.\n\x04spec\x18\x02 \x01(\x0b\x32 .talon.resources.UsagePolicySpec\x12\x32\n\x06status\x18\x03 \x01(\x0b\x32\".talon.resources.UsagePolicyStatusb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1bproto/resources/usage.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"?\n\rUsageSelector\x12\r\n\x05\x61gent\x18\x01 \x01(\t\x12\x10\n\x08provider\x18\x02 \x01(\t\x12\r\n\x05model\x18\x03 \x01(\t\"\x82\x01\n\nUsageLimit\x12\x30\n\x08selector\x18\x01 \x01(\x0b\x32\x1e.talon.resources.UsageSelector\x12\x0e\n\x06metric\x18\x02 \x01(\t\x12\x0b\n\x03max\x18\x03 \x01(\x04\x12\x0e\n\x06window\x18\x04 \x01(\t\x12\x15\n\rsubject_scope\x18\x05 \x01(\t\"U\n\x0fUsagePolicySpec\x12\x17\n\x0fnamespace_scope\x18\x01 \x01(\t\x12)\n\x04hard\x18\x02 \x03(\x0b\x32\x1b.talon.resources.UsageLimit\"\xe3\x01\n\x10UsageLimitStatus\x12\x30\n\x08selector\x18\x01 \x01(\x0b\x32\x1e.talon.resources.UsageSelector\x12\x0e\n\x06metric\x18\x02 \x01(\t\x12\x0b\n\x03max\x18\x03 \x01(\x04\x12\x0e\n\x06window\x18\x04 \x01(\t\x12\x14\n\x0cwindow_start\x18\x05 \x01(\x03\x12\x10\n\x08reset_at\x18\x06 \x01(\x03\x12\x0c\n\x04used\x18\x07 \x01(\x04\x12\x11\n\tremaining\x18\x08 \x01(\x04\x12\x10\n\x08\x65xceeded\x18\t \x01(\x08\x12\x15\n\rsubject_scope\x18\n \x01(\t\"\xa8\x01\n\x11UsagePolicyStatus\x12\x1b\n\x13observed_generation\x18\x01 \x01(\x04\x12\r\n\x05phase\x18\x02 \x01(\t\x12\x36\n\nconditions\x18\x03 \x03(\x0b\x32\".talon.resources.ResourceCondition\x12/\n\x04hard\x18\x04 \x03(\x0b\x32!.talon.resources.UsageLimitStatus\"\xa2\x01\n\x0bUsagePolicy\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12.\n\x04spec\x18\x02 \x01(\x0b\x32 .talon.resources.UsagePolicySpec\x12\x32\n\x06status\x18\x03 \x01(\x0b\x32\".talon.resources.UsagePolicyStatusb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,14 +34,14 @@ if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_USAGESELECTOR']._serialized_start=78
   _globals['_USAGESELECTOR']._serialized_end=141
-  _globals['_USAGELIMIT']._serialized_start=143
-  _globals['_USAGELIMIT']._serialized_end=250
-  _globals['_USAGEPOLICYSPEC']._serialized_start=252
-  _globals['_USAGEPOLICYSPEC']._serialized_end=337
-  _globals['_USAGELIMITSTATUS']._serialized_start=340
-  _globals['_USAGELIMITSTATUS']._serialized_end=544
-  _globals['_USAGEPOLICYSTATUS']._serialized_start=547
-  _globals['_USAGEPOLICYSTATUS']._serialized_end=715
-  _globals['_USAGEPOLICY']._serialized_start=718
-  _globals['_USAGEPOLICY']._serialized_end=880
+  _globals['_USAGELIMIT']._serialized_start=144
+  _globals['_USAGELIMIT']._serialized_end=274
+  _globals['_USAGEPOLICYSPEC']._serialized_start=276
+  _globals['_USAGEPOLICYSPEC']._serialized_end=361
+  _globals['_USAGELIMITSTATUS']._serialized_start=364
+  _globals['_USAGELIMITSTATUS']._serialized_end=591
+  _globals['_USAGEPOLICYSTATUS']._serialized_start=594
+  _globals['_USAGEPOLICYSTATUS']._serialized_end=762
+  _globals['_USAGEPOLICY']._serialized_start=765
+  _globals['_USAGEPOLICY']._serialized_end=927
 # @@protoc_insertion_point(module_scope)

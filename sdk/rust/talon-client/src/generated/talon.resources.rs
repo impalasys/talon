@@ -947,71 +947,125 @@ pub struct Skill {
     #[prost(message, optional, tag = "3")]
     pub status: ::core::option::Option<CommonResourceStatus>,
 }
+/// Selects the traffic within a namespace that a UsagePolicy limit applies to.
+/// Empty fields are wildcards.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UsageSelector {
+    /// Agent name to match. Empty matches all agents.
     #[prost(string, tag = "1")]
     pub agent: ::prost::alloc::string::String,
+    /// LLM provider name to match for llm.* metrics. Empty matches all providers.
     #[prost(string, tag = "2")]
     pub provider: ::prost::alloc::string::String,
+    /// LLM model name to match for llm.* metrics. Empty matches all models.
     #[prost(string, tag = "3")]
     pub model: ::prost::alloc::string::String,
 }
+/// A single hard usage limit enforced by a UsagePolicy.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UsageLimit {
+    /// Optional selector for narrowing the limit. If omitted, the limit applies to
+    /// all traffic in the policy namespace scope.
     #[prost(message, optional, tag = "1")]
     pub selector: ::core::option::Option<UsageSelector>,
+    /// Metric to limit. Valid values are:
+    /// - "llm.requests"
+    /// - "llm.inputTokens"
+    /// - "llm.outputTokens"
+    /// - "llm.reasoningTokens"
+    /// - "llm.totalTokens"
+    /// - "agent.sessions": successful session creations.
+    /// - "tool.calls"
     #[prost(string, tag = "2")]
     pub metric: ::prost::alloc::string::String,
+    /// Maximum allowed usage for the metric within the configured window.
     #[prost(uint64, tag = "3")]
     pub max: u64,
+    /// Rolling counter window encoded as an integer duration with a unit suffix,
+    /// such as "1m", "5h", or "7d". Supported units are seconds ("s"),
+    /// minutes ("m"), hours ("h"), and days ("d").
     #[prost(string, tag = "4")]
     pub window: ::prost::alloc::string::String,
+    /// Identity partitioning for this limit. Valid values are:
+    /// - "" or "all": one shared quota for all matching traffic.
+    /// - "identity": separate quota per authenticated rate-limit identity.
+    /// The value "subject" is accepted as a deprecated alias for "identity".
+    #[prost(string, tag = "5")]
+    pub subject_scope: ::prost::alloc::string::String,
 }
+/// Desired usage policy for a namespace.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UsagePolicySpec {
+    /// Namespace matching mode. Valid values are:
+    /// - "" or "recursive": applies to the policy namespace and descendant namespaces.
+    /// - "self": applies only to the policy namespace.
     #[prost(string, tag = "1")]
     pub namespace_scope: ::prost::alloc::string::String,
+    /// Hard limits enforced for matching traffic.
     #[prost(message, repeated, tag = "2")]
     pub hard: ::prost::alloc::vec::Vec<UsageLimit>,
 }
+/// Current status for one UsageLimit.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UsageLimitStatus {
+    /// Selector copied from the configured limit.
     #[prost(message, optional, tag = "1")]
     pub selector: ::core::option::Option<UsageSelector>,
+    /// Metric copied from the configured limit.
     #[prost(string, tag = "2")]
     pub metric: ::prost::alloc::string::String,
+    /// Maximum configured usage for the current window.
     #[prost(uint64, tag = "3")]
     pub max: u64,
+    /// Window copied from the configured limit.
     #[prost(string, tag = "4")]
     pub window: ::prost::alloc::string::String,
+    /// Unix timestamp in seconds for the start of the current window.
     #[prost(int64, tag = "5")]
     pub window_start: i64,
+    /// Unix timestamp in seconds when the current window resets.
     #[prost(int64, tag = "6")]
     pub reset_at: i64,
+    /// Used quota in the current window. For identity-scoped limits, this reports
+    /// the highest usage observed for any one identity in the window.
     #[prost(uint64, tag = "7")]
     pub used: u64,
+    /// Remaining quota in the current window.
     #[prost(uint64, tag = "8")]
     pub remaining: u64,
+    /// True when used is greater than or equal to max.
     #[prost(bool, tag = "9")]
     pub exceeded: bool,
+    /// Canonical subject scope for the limit. Values are "all" or "identity".
+    #[prost(string, tag = "10")]
+    pub subject_scope: ::prost::alloc::string::String,
 }
+/// Current status for a UsagePolicy resource.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UsagePolicyStatus {
+    /// Resource generation reflected by this status.
     #[prost(uint64, tag = "1")]
     pub observed_generation: u64,
+    /// Policy lifecycle phase. Current value is "Active" when the policy validates.
     #[prost(string, tag = "2")]
     pub phase: ::prost::alloc::string::String,
+    /// Conditions describing validation or reconciliation issues.
     #[prost(message, repeated, tag = "3")]
     pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    /// Status for each configured hard limit.
     #[prost(message, repeated, tag = "4")]
     pub hard: ::prost::alloc::vec::Vec<UsageLimitStatus>,
 }
+/// UsagePolicy configures quota and rate limits for a namespace.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UsagePolicy {
+    /// Resource identity and namespace metadata.
     #[prost(message, optional, tag = "1")]
     pub metadata: ::core::option::Option<ResourceMeta>,
+    /// Desired policy configuration.
     #[prost(message, optional, tag = "2")]
     pub spec: ::core::option::Option<UsagePolicySpec>,
+    /// Observed policy status.
     #[prost(message, optional, tag = "3")]
     pub status: ::core::option::Option<UsagePolicyStatus>,
 }

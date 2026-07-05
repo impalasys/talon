@@ -1314,6 +1314,7 @@ mod tests {
             metric: metric.to_string(),
             max,
             window: "1h".to_string(),
+            subject_scope: String::new(),
         }
     }
 
