@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::{topics, MessagePublisher};
+use crate::control::MessagePublisher;
 use anyhow::{anyhow, Result};
 use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_sqs::{config::Credentials, types::MessageAttributeValue, Client};
@@ -136,12 +136,6 @@ impl SqsMessagePublisher {
 #[async_trait::async_trait]
 impl MessagePublisher for SqsMessagePublisher {
     async fn publish(&self, topic: &str, message: &[u8]) -> Result<()> {
-        if !is_worker_delivered_topic(topic) {
-            return Err(anyhow!(
-                "SQS cannot publish Talon topic {topic}; SQS is a durable worker queue and only supports worker-delivered topics"
-            ));
-        }
-
         let queue_url = self.queue_url().await?;
         let body = general_purpose::STANDARD.encode(message);
         self.client
@@ -156,13 +150,8 @@ impl MessagePublisher for SqsMessagePublisher {
 
     async fn subscribe(
         &self,
-        topic: &str,
+        _topic: &str,
     ) -> Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
-        if is_live_session_stream_topic(topic) {
-            return Err(anyhow!(
-                "SQS cannot subscribe to live Talon session stream topic {topic}; SQS is a durable work queue and does not provide fanout for token deltas"
-            ));
-        }
         Err(anyhow!(
             "SQS generic subscriptions are not supported because the MessagePublisher stream API cannot acknowledge messages after handler completion; use Talon worker pull mode for SQS topics"
         ))
@@ -205,29 +194,9 @@ fn queue_name_for_config(value: String) -> String {
     }
 }
 
-fn is_live_session_stream_topic(topic: &str) -> bool {
-    topic
-        .strip_prefix(topics::SESSION_PARTS_TOPIC_PREFIX)
-        .is_some_and(|suffix| suffix.starts_with('.'))
-}
-
-fn is_worker_delivered_topic(topic: &str) -> bool {
-    matches!(
-        topic,
-        topics::SESSION_DISPATCH_TOPIC
-            | topics::RESOURCE_LIFECYCLE_TOPIC
-            | topics::SESSION_CONTROL_TOPIC
-            | topics::WORKFLOW_DISPATCH_TOPIC
-            | topics::INDEX_EVENTS_TOPIC
-    )
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{
-        configured_i32, is_live_session_stream_topic, is_worker_delivered_topic,
-        queue_name_for_config,
-    };
+    use super::{configured_i32, queue_name_for_config};
 
     #[test]
     fn queue_names_are_sqs_safe_and_stable() {
@@ -264,20 +233,5 @@ mod tests {
         assert_eq!(configured_i32(name, 10, 0, 20), 10);
 
         std::env::remove_var(name);
-    }
-
-    #[test]
-    fn live_session_stream_topics_are_not_sqs_subscribable() {
-        assert!(is_live_session_stream_topic("talon.session.parts.7"));
-        assert!(!is_live_session_stream_topic("talon.session.dispatch"));
-        assert!(!is_live_session_stream_topic("talon.session.parts-extra"));
-    }
-
-    #[test]
-    fn only_worker_delivered_topics_are_sqs_publishable() {
-        assert!(is_worker_delivered_topic("talon.session.dispatch"));
-        assert!(is_worker_delivered_topic("talon.workflow.dispatch"));
-        assert!(!is_worker_delivered_topic("talon.session.parts.7"));
-        assert!(!is_worker_delivered_topic("talon.channel.events.acme.main"));
     }
 }

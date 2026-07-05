@@ -133,8 +133,8 @@ Notes:
 - `TALON_DYNAMODB_ENDPOINT_URL` and `TALON_SQS_ENDPOINT_URL` point the AWS SDK clients at local emulators such as DynamoDB Local or LocalStack.
 - `TALON_SQS_QUEUE_NAME` defaults to `talon` and names the single SQS queue used for durable worker-delivered messages. `TALON_SQS_QUEUE_PREFIX` is still accepted as a compatibility fallback.
 - `TALON_SQS_WAIT_TIME_SECONDS` is clamped to the SQS `0..=20` range, and `TALON_SQS_VISIBILITY_TIMEOUT_SECONDS` is clamped to `0..=43200`. Worker pull mode extends visibility while a dispatch is in flight.
-- SQS provides durable work-queue semantics through worker pull mode. Talon writes all worker-delivered topics to the same queue and stores the logical Talon topic in SQS message attributes for dispatch routing. Messages are deleted only after the worker dispatch succeeds.
-- The generic Talon `subscribe` stream is not available for SQS because it cannot acknowledge messages after handler completion. Live `talon.session.parts.*` token streams still require Pub/Sub, `local_socket`, or direct worker streaming.
+- SQS provides durable work-queue semantics through worker pull mode. Talon writes worker messages to the same queue and stores the logical Talon routing key in SQS message attributes for dispatch routing. Messages are deleted only after the worker dispatch succeeds.
+- The generic Talon `subscribe` stream is not available for SQS because it cannot acknowledge messages after handler completion. Live session parts and workflow events are delivered through the worker `FanoutService`, not through SQS topics.
 
 ## Local environment
 

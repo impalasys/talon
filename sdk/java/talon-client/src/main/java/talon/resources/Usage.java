@@ -31,11 +31,19 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Agent name to match. Empty matches all agents.
+     * </pre>
+     *
      * <code>string agent = 1;</code>
      * @return The agent.
      */
     java.lang.String getAgent();
     /**
+     * <pre>
+     * Agent name to match. Empty matches all agents.
+     * </pre>
+     *
      * <code>string agent = 1;</code>
      * @return The bytes for agent.
      */
@@ -43,11 +51,19 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         getAgentBytes();
 
     /**
+     * <pre>
+     * LLM provider name to match for llm.* metrics. Empty matches all providers.
+     * </pre>
+     *
      * <code>string provider = 2;</code>
      * @return The provider.
      */
     java.lang.String getProvider();
     /**
+     * <pre>
+     * LLM provider name to match for llm.* metrics. Empty matches all providers.
+     * </pre>
+     *
      * <code>string provider = 2;</code>
      * @return The bytes for provider.
      */
@@ -55,11 +71,19 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         getProviderBytes();
 
     /**
+     * <pre>
+     * LLM model name to match for llm.* metrics. Empty matches all models.
+     * </pre>
+     *
      * <code>string model = 3;</code>
      * @return The model.
      */
     java.lang.String getModel();
     /**
+     * <pre>
+     * LLM model name to match for llm.* metrics. Empty matches all models.
+     * </pre>
+     *
      * <code>string model = 3;</code>
      * @return The bytes for model.
      */
@@ -67,6 +91,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         getModelBytes();
   }
   /**
+   * <pre>
+   * Selects the traffic within a namespace that a UsagePolicy limit applies to.
+   * Empty fields are wildcards.
+   * </pre>
+   *
    * Protobuf type {@code talon.resources.UsageSelector}
    */
   public static final class UsageSelector extends
@@ -115,6 +144,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object agent_ = "";
     /**
+     * <pre>
+     * Agent name to match. Empty matches all agents.
+     * </pre>
+     *
      * <code>string agent = 1;</code>
      * @return The agent.
      */
@@ -132,6 +165,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Agent name to match. Empty matches all agents.
+     * </pre>
+     *
      * <code>string agent = 1;</code>
      * @return The bytes for agent.
      */
@@ -154,6 +191,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object provider_ = "";
     /**
+     * <pre>
+     * LLM provider name to match for llm.* metrics. Empty matches all providers.
+     * </pre>
+     *
      * <code>string provider = 2;</code>
      * @return The provider.
      */
@@ -171,6 +212,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * LLM provider name to match for llm.* metrics. Empty matches all providers.
+     * </pre>
+     *
      * <code>string provider = 2;</code>
      * @return The bytes for provider.
      */
@@ -193,6 +238,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object model_ = "";
     /**
+     * <pre>
+     * LLM model name to match for llm.* metrics. Empty matches all models.
+     * </pre>
+     *
      * <code>string model = 3;</code>
      * @return The model.
      */
@@ -210,6 +259,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * LLM model name to match for llm.* metrics. Empty matches all models.
+     * </pre>
+     *
      * <code>string model = 3;</code>
      * @return The bytes for model.
      */
@@ -405,6 +458,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return builder;
     }
     /**
+     * <pre>
+     * Selects the traffic within a namespace that a UsagePolicy limit applies to.
+     * Empty fields are wildcards.
+     * </pre>
+     *
      * Protobuf type {@code talon.resources.UsageSelector}
      */
     public static final class Builder extends
@@ -572,6 +630,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object agent_ = "";
       /**
+       * <pre>
+       * Agent name to match. Empty matches all agents.
+       * </pre>
+       *
        * <code>string agent = 1;</code>
        * @return The agent.
        */
@@ -588,6 +650,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Agent name to match. Empty matches all agents.
+       * </pre>
+       *
        * <code>string agent = 1;</code>
        * @return The bytes for agent.
        */
@@ -605,6 +671,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Agent name to match. Empty matches all agents.
+       * </pre>
+       *
        * <code>string agent = 1;</code>
        * @param value The agent to set.
        * @return This builder for chaining.
@@ -618,6 +688,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Agent name to match. Empty matches all agents.
+       * </pre>
+       *
        * <code>string agent = 1;</code>
        * @return This builder for chaining.
        */
@@ -628,6 +702,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Agent name to match. Empty matches all agents.
+       * </pre>
+       *
        * <code>string agent = 1;</code>
        * @param value The bytes for agent to set.
        * @return This builder for chaining.
@@ -644,6 +722,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object provider_ = "";
       /**
+       * <pre>
+       * LLM provider name to match for llm.* metrics. Empty matches all providers.
+       * </pre>
+       *
        * <code>string provider = 2;</code>
        * @return The provider.
        */
@@ -660,6 +742,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * LLM provider name to match for llm.* metrics. Empty matches all providers.
+       * </pre>
+       *
        * <code>string provider = 2;</code>
        * @return The bytes for provider.
        */
@@ -677,6 +763,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * LLM provider name to match for llm.* metrics. Empty matches all providers.
+       * </pre>
+       *
        * <code>string provider = 2;</code>
        * @param value The provider to set.
        * @return This builder for chaining.
@@ -690,6 +780,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * LLM provider name to match for llm.* metrics. Empty matches all providers.
+       * </pre>
+       *
        * <code>string provider = 2;</code>
        * @return This builder for chaining.
        */
@@ -700,6 +794,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * LLM provider name to match for llm.* metrics. Empty matches all providers.
+       * </pre>
+       *
        * <code>string provider = 2;</code>
        * @param value The bytes for provider to set.
        * @return This builder for chaining.
@@ -716,6 +814,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object model_ = "";
       /**
+       * <pre>
+       * LLM model name to match for llm.* metrics. Empty matches all models.
+       * </pre>
+       *
        * <code>string model = 3;</code>
        * @return The model.
        */
@@ -732,6 +834,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * LLM model name to match for llm.* metrics. Empty matches all models.
+       * </pre>
+       *
        * <code>string model = 3;</code>
        * @return The bytes for model.
        */
@@ -749,6 +855,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * LLM model name to match for llm.* metrics. Empty matches all models.
+       * </pre>
+       *
        * <code>string model = 3;</code>
        * @param value The model to set.
        * @return This builder for chaining.
@@ -762,6 +872,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * LLM model name to match for llm.* metrics. Empty matches all models.
+       * </pre>
+       *
        * <code>string model = 3;</code>
        * @return This builder for chaining.
        */
@@ -772,6 +886,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * LLM model name to match for llm.* metrics. Empty matches all models.
+       * </pre>
+       *
        * <code>string model = 3;</code>
        * @param value The bytes for model to set.
        * @return This builder for chaining.
@@ -842,26 +960,63 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Optional selector for narrowing the limit. If omitted, the limit applies to
+     * all traffic in the policy namespace scope.
+     * </pre>
+     *
      * <code>.talon.resources.UsageSelector selector = 1;</code>
      * @return Whether the selector field is set.
      */
     boolean hasSelector();
     /**
+     * <pre>
+     * Optional selector for narrowing the limit. If omitted, the limit applies to
+     * all traffic in the policy namespace scope.
+     * </pre>
+     *
      * <code>.talon.resources.UsageSelector selector = 1;</code>
      * @return The selector.
      */
     talon.resources.Usage.UsageSelector getSelector();
     /**
+     * <pre>
+     * Optional selector for narrowing the limit. If omitted, the limit applies to
+     * all traffic in the policy namespace scope.
+     * </pre>
+     *
      * <code>.talon.resources.UsageSelector selector = 1;</code>
      */
     talon.resources.Usage.UsageSelectorOrBuilder getSelectorOrBuilder();
 
     /**
+     * <pre>
+     * Metric to limit. Valid values are:
+     * - "llm.requests"
+     * - "llm.inputTokens"
+     * - "llm.outputTokens"
+     * - "llm.reasoningTokens"
+     * - "llm.totalTokens"
+     * - "agent.sessions": successful session creations.
+     * - "tool.calls"
+     * </pre>
+     *
      * <code>string metric = 2;</code>
      * @return The metric.
      */
     java.lang.String getMetric();
     /**
+     * <pre>
+     * Metric to limit. Valid values are:
+     * - "llm.requests"
+     * - "llm.inputTokens"
+     * - "llm.outputTokens"
+     * - "llm.reasoningTokens"
+     * - "llm.totalTokens"
+     * - "agent.sessions": successful session creations.
+     * - "tool.calls"
+     * </pre>
+     *
      * <code>string metric = 2;</code>
      * @return The bytes for metric.
      */
@@ -869,24 +1024,70 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         getMetricBytes();
 
     /**
+     * <pre>
+     * Maximum allowed usage for the metric within the configured window.
+     * </pre>
+     *
      * <code>uint64 max = 3;</code>
      * @return The max.
      */
     long getMax();
 
     /**
+     * <pre>
+     * Rolling counter window encoded as an integer duration with a unit suffix,
+     * such as "1m", "5h", or "7d". Supported units are seconds ("s"),
+     * minutes ("m"), hours ("h"), and days ("d").
+     * </pre>
+     *
      * <code>string window = 4;</code>
      * @return The window.
      */
     java.lang.String getWindow();
     /**
+     * <pre>
+     * Rolling counter window encoded as an integer duration with a unit suffix,
+     * such as "1m", "5h", or "7d". Supported units are seconds ("s"),
+     * minutes ("m"), hours ("h"), and days ("d").
+     * </pre>
+     *
      * <code>string window = 4;</code>
      * @return The bytes for window.
      */
     com.google.protobuf.ByteString
         getWindowBytes();
+
+    /**
+     * <pre>
+     * Identity partitioning for this limit. Valid values are:
+     * - "" or "all": one shared quota for all matching traffic.
+     * - "identity": separate quota per authenticated rate-limit identity.
+     * The value "subject" is accepted as a deprecated alias for "identity".
+     * </pre>
+     *
+     * <code>string subject_scope = 5;</code>
+     * @return The subjectScope.
+     */
+    java.lang.String getSubjectScope();
+    /**
+     * <pre>
+     * Identity partitioning for this limit. Valid values are:
+     * - "" or "all": one shared quota for all matching traffic.
+     * - "identity": separate quota per authenticated rate-limit identity.
+     * The value "subject" is accepted as a deprecated alias for "identity".
+     * </pre>
+     *
+     * <code>string subject_scope = 5;</code>
+     * @return The bytes for subjectScope.
+     */
+    com.google.protobuf.ByteString
+        getSubjectScopeBytes();
   }
   /**
+   * <pre>
+   * A single hard usage limit enforced by a UsagePolicy.
+   * </pre>
+   *
    * Protobuf type {@code talon.resources.UsageLimit}
    */
   public static final class UsageLimit extends
@@ -910,6 +1111,7 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     private UsageLimit() {
       metric_ = "";
       window_ = "";
+      subjectScope_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -934,6 +1136,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     public static final int SELECTOR_FIELD_NUMBER = 1;
     private talon.resources.Usage.UsageSelector selector_;
     /**
+     * <pre>
+     * Optional selector for narrowing the limit. If omitted, the limit applies to
+     * all traffic in the policy namespace scope.
+     * </pre>
+     *
      * <code>.talon.resources.UsageSelector selector = 1;</code>
      * @return Whether the selector field is set.
      */
@@ -942,6 +1149,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
+     * <pre>
+     * Optional selector for narrowing the limit. If omitted, the limit applies to
+     * all traffic in the policy namespace scope.
+     * </pre>
+     *
      * <code>.talon.resources.UsageSelector selector = 1;</code>
      * @return The selector.
      */
@@ -950,6 +1162,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return selector_ == null ? talon.resources.Usage.UsageSelector.getDefaultInstance() : selector_;
     }
     /**
+     * <pre>
+     * Optional selector for narrowing the limit. If omitted, the limit applies to
+     * all traffic in the policy namespace scope.
+     * </pre>
+     *
      * <code>.talon.resources.UsageSelector selector = 1;</code>
      */
     @java.lang.Override
@@ -961,6 +1178,17 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object metric_ = "";
     /**
+     * <pre>
+     * Metric to limit. Valid values are:
+     * - "llm.requests"
+     * - "llm.inputTokens"
+     * - "llm.outputTokens"
+     * - "llm.reasoningTokens"
+     * - "llm.totalTokens"
+     * - "agent.sessions": successful session creations.
+     * - "tool.calls"
+     * </pre>
+     *
      * <code>string metric = 2;</code>
      * @return The metric.
      */
@@ -978,6 +1206,17 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Metric to limit. Valid values are:
+     * - "llm.requests"
+     * - "llm.inputTokens"
+     * - "llm.outputTokens"
+     * - "llm.reasoningTokens"
+     * - "llm.totalTokens"
+     * - "agent.sessions": successful session creations.
+     * - "tool.calls"
+     * </pre>
+     *
      * <code>string metric = 2;</code>
      * @return The bytes for metric.
      */
@@ -999,6 +1238,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     public static final int MAX_FIELD_NUMBER = 3;
     private long max_ = 0L;
     /**
+     * <pre>
+     * Maximum allowed usage for the metric within the configured window.
+     * </pre>
+     *
      * <code>uint64 max = 3;</code>
      * @return The max.
      */
@@ -1011,6 +1254,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object window_ = "";
     /**
+     * <pre>
+     * Rolling counter window encoded as an integer duration with a unit suffix,
+     * such as "1m", "5h", or "7d". Supported units are seconds ("s"),
+     * minutes ("m"), hours ("h"), and days ("d").
+     * </pre>
+     *
      * <code>string window = 4;</code>
      * @return The window.
      */
@@ -1028,6 +1277,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Rolling counter window encoded as an integer duration with a unit suffix,
+     * such as "1m", "5h", or "7d". Supported units are seconds ("s"),
+     * minutes ("m"), hours ("h"), and days ("d").
+     * </pre>
+     *
      * <code>string window = 4;</code>
      * @return The bytes for window.
      */
@@ -1040,6 +1295,59 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         window_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SUBJECT_SCOPE_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object subjectScope_ = "";
+    /**
+     * <pre>
+     * Identity partitioning for this limit. Valid values are:
+     * - "" or "all": one shared quota for all matching traffic.
+     * - "identity": separate quota per authenticated rate-limit identity.
+     * The value "subject" is accepted as a deprecated alias for "identity".
+     * </pre>
+     *
+     * <code>string subject_scope = 5;</code>
+     * @return The subjectScope.
+     */
+    @java.lang.Override
+    public java.lang.String getSubjectScope() {
+      java.lang.Object ref = subjectScope_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        subjectScope_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Identity partitioning for this limit. Valid values are:
+     * - "" or "all": one shared quota for all matching traffic.
+     * - "identity": separate quota per authenticated rate-limit identity.
+     * The value "subject" is accepted as a deprecated alias for "identity".
+     * </pre>
+     *
+     * <code>string subject_scope = 5;</code>
+     * @return The bytes for subjectScope.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSubjectScopeBytes() {
+      java.lang.Object ref = subjectScope_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        subjectScope_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -1072,6 +1380,9 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(window_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 4, window_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(subjectScope_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, subjectScope_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -1094,6 +1405,9 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(window_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(4, window_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(subjectScope_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, subjectScope_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -1121,6 +1435,8 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
           != other.getMax()) return false;
       if (!getWindow()
           .equals(other.getWindow())) return false;
+      if (!getSubjectScope()
+          .equals(other.getSubjectScope())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1143,6 +1459,8 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
           getMax());
       hash = (37 * hash) + WINDOW_FIELD_NUMBER;
       hash = (53 * hash) + getWindow().hashCode();
+      hash = (37 * hash) + SUBJECT_SCOPE_FIELD_NUMBER;
+      hash = (53 * hash) + getSubjectScope().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1241,6 +1559,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return builder;
     }
     /**
+     * <pre>
+     * A single hard usage limit enforced by a UsagePolicy.
+     * </pre>
+     *
      * Protobuf type {@code talon.resources.UsageLimit}
      */
     public static final class Builder extends
@@ -1288,6 +1610,7 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         metric_ = "";
         max_ = 0L;
         window_ = "";
+        subjectScope_ = "";
         return this;
       }
 
@@ -1337,6 +1660,9 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000008) != 0)) {
           result.window_ = window_;
         }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.subjectScope_ = subjectScope_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -1366,6 +1692,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         if (!other.getWindow().isEmpty()) {
           window_ = other.window_;
           bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getSubjectScope().isEmpty()) {
+          subjectScope_ = other.subjectScope_;
+          bitField0_ |= 0x00000010;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -1416,6 +1747,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000008;
                 break;
               } // case 34
+              case 42: {
+                subjectScope_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1437,6 +1773,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Usage.UsageSelector, talon.resources.Usage.UsageSelector.Builder, talon.resources.Usage.UsageSelectorOrBuilder> selectorBuilder_;
       /**
+       * <pre>
+       * Optional selector for narrowing the limit. If omitted, the limit applies to
+       * all traffic in the policy namespace scope.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        * @return Whether the selector field is set.
        */
@@ -1444,6 +1785,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
+       * <pre>
+       * Optional selector for narrowing the limit. If omitted, the limit applies to
+       * all traffic in the policy namespace scope.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        * @return The selector.
        */
@@ -1455,6 +1801,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Optional selector for narrowing the limit. If omitted, the limit applies to
+       * all traffic in the policy namespace scope.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       public Builder setSelector(talon.resources.Usage.UsageSelector value) {
@@ -1471,6 +1822,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Optional selector for narrowing the limit. If omitted, the limit applies to
+       * all traffic in the policy namespace scope.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       public Builder setSelector(
@@ -1485,6 +1841,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Optional selector for narrowing the limit. If omitted, the limit applies to
+       * all traffic in the policy namespace scope.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       public Builder mergeSelector(talon.resources.Usage.UsageSelector value) {
@@ -1506,6 +1867,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Optional selector for narrowing the limit. If omitted, the limit applies to
+       * all traffic in the policy namespace scope.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       public Builder clearSelector() {
@@ -1519,6 +1885,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Optional selector for narrowing the limit. If omitted, the limit applies to
+       * all traffic in the policy namespace scope.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       public talon.resources.Usage.UsageSelector.Builder getSelectorBuilder() {
@@ -1527,6 +1898,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return internalGetSelectorFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Optional selector for narrowing the limit. If omitted, the limit applies to
+       * all traffic in the policy namespace scope.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       public talon.resources.Usage.UsageSelectorOrBuilder getSelectorOrBuilder() {
@@ -1538,6 +1914,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Optional selector for narrowing the limit. If omitted, the limit applies to
+       * all traffic in the policy namespace scope.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -1556,6 +1937,17 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object metric_ = "";
       /**
+       * <pre>
+       * Metric to limit. Valid values are:
+       * - "llm.requests"
+       * - "llm.inputTokens"
+       * - "llm.outputTokens"
+       * - "llm.reasoningTokens"
+       * - "llm.totalTokens"
+       * - "agent.sessions": successful session creations.
+       * - "tool.calls"
+       * </pre>
+       *
        * <code>string metric = 2;</code>
        * @return The metric.
        */
@@ -1572,6 +1964,17 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Metric to limit. Valid values are:
+       * - "llm.requests"
+       * - "llm.inputTokens"
+       * - "llm.outputTokens"
+       * - "llm.reasoningTokens"
+       * - "llm.totalTokens"
+       * - "agent.sessions": successful session creations.
+       * - "tool.calls"
+       * </pre>
+       *
        * <code>string metric = 2;</code>
        * @return The bytes for metric.
        */
@@ -1589,6 +1992,17 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Metric to limit. Valid values are:
+       * - "llm.requests"
+       * - "llm.inputTokens"
+       * - "llm.outputTokens"
+       * - "llm.reasoningTokens"
+       * - "llm.totalTokens"
+       * - "agent.sessions": successful session creations.
+       * - "tool.calls"
+       * </pre>
+       *
        * <code>string metric = 2;</code>
        * @param value The metric to set.
        * @return This builder for chaining.
@@ -1602,6 +2016,17 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Metric to limit. Valid values are:
+       * - "llm.requests"
+       * - "llm.inputTokens"
+       * - "llm.outputTokens"
+       * - "llm.reasoningTokens"
+       * - "llm.totalTokens"
+       * - "agent.sessions": successful session creations.
+       * - "tool.calls"
+       * </pre>
+       *
        * <code>string metric = 2;</code>
        * @return This builder for chaining.
        */
@@ -1612,6 +2037,17 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Metric to limit. Valid values are:
+       * - "llm.requests"
+       * - "llm.inputTokens"
+       * - "llm.outputTokens"
+       * - "llm.reasoningTokens"
+       * - "llm.totalTokens"
+       * - "agent.sessions": successful session creations.
+       * - "tool.calls"
+       * </pre>
+       *
        * <code>string metric = 2;</code>
        * @param value The bytes for metric to set.
        * @return This builder for chaining.
@@ -1628,6 +2064,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private long max_ ;
       /**
+       * <pre>
+       * Maximum allowed usage for the metric within the configured window.
+       * </pre>
+       *
        * <code>uint64 max = 3;</code>
        * @return The max.
        */
@@ -1636,6 +2076,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return max_;
       }
       /**
+       * <pre>
+       * Maximum allowed usage for the metric within the configured window.
+       * </pre>
+       *
        * <code>uint64 max = 3;</code>
        * @param value The max to set.
        * @return This builder for chaining.
@@ -1648,6 +2092,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Maximum allowed usage for the metric within the configured window.
+       * </pre>
+       *
        * <code>uint64 max = 3;</code>
        * @return This builder for chaining.
        */
@@ -1660,6 +2108,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object window_ = "";
       /**
+       * <pre>
+       * Rolling counter window encoded as an integer duration with a unit suffix,
+       * such as "1m", "5h", or "7d". Supported units are seconds ("s"),
+       * minutes ("m"), hours ("h"), and days ("d").
+       * </pre>
+       *
        * <code>string window = 4;</code>
        * @return The window.
        */
@@ -1676,6 +2130,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Rolling counter window encoded as an integer duration with a unit suffix,
+       * such as "1m", "5h", or "7d". Supported units are seconds ("s"),
+       * minutes ("m"), hours ("h"), and days ("d").
+       * </pre>
+       *
        * <code>string window = 4;</code>
        * @return The bytes for window.
        */
@@ -1693,6 +2153,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Rolling counter window encoded as an integer duration with a unit suffix,
+       * such as "1m", "5h", or "7d". Supported units are seconds ("s"),
+       * minutes ("m"), hours ("h"), and days ("d").
+       * </pre>
+       *
        * <code>string window = 4;</code>
        * @param value The window to set.
        * @return This builder for chaining.
@@ -1706,6 +2172,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Rolling counter window encoded as an integer duration with a unit suffix,
+       * such as "1m", "5h", or "7d". Supported units are seconds ("s"),
+       * minutes ("m"), hours ("h"), and days ("d").
+       * </pre>
+       *
        * <code>string window = 4;</code>
        * @return This builder for chaining.
        */
@@ -1716,6 +2188,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Rolling counter window encoded as an integer duration with a unit suffix,
+       * such as "1m", "5h", or "7d". Supported units are seconds ("s"),
+       * minutes ("m"), hours ("h"), and days ("d").
+       * </pre>
+       *
        * <code>string window = 4;</code>
        * @param value The bytes for window to set.
        * @return This builder for chaining.
@@ -1726,6 +2204,113 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         checkByteStringIsUtf8(value);
         window_ = value;
         bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object subjectScope_ = "";
+      /**
+       * <pre>
+       * Identity partitioning for this limit. Valid values are:
+       * - "" or "all": one shared quota for all matching traffic.
+       * - "identity": separate quota per authenticated rate-limit identity.
+       * The value "subject" is accepted as a deprecated alias for "identity".
+       * </pre>
+       *
+       * <code>string subject_scope = 5;</code>
+       * @return The subjectScope.
+       */
+      public java.lang.String getSubjectScope() {
+        java.lang.Object ref = subjectScope_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          subjectScope_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Identity partitioning for this limit. Valid values are:
+       * - "" or "all": one shared quota for all matching traffic.
+       * - "identity": separate quota per authenticated rate-limit identity.
+       * The value "subject" is accepted as a deprecated alias for "identity".
+       * </pre>
+       *
+       * <code>string subject_scope = 5;</code>
+       * @return The bytes for subjectScope.
+       */
+      public com.google.protobuf.ByteString
+          getSubjectScopeBytes() {
+        java.lang.Object ref = subjectScope_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          subjectScope_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Identity partitioning for this limit. Valid values are:
+       * - "" or "all": one shared quota for all matching traffic.
+       * - "identity": separate quota per authenticated rate-limit identity.
+       * The value "subject" is accepted as a deprecated alias for "identity".
+       * </pre>
+       *
+       * <code>string subject_scope = 5;</code>
+       * @param value The subjectScope to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSubjectScope(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        subjectScope_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Identity partitioning for this limit. Valid values are:
+       * - "" or "all": one shared quota for all matching traffic.
+       * - "identity": separate quota per authenticated rate-limit identity.
+       * The value "subject" is accepted as a deprecated alias for "identity".
+       * </pre>
+       *
+       * <code>string subject_scope = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSubjectScope() {
+        subjectScope_ = getDefaultInstance().getSubjectScope();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Identity partitioning for this limit. Valid values are:
+       * - "" or "all": one shared quota for all matching traffic.
+       * - "identity": separate quota per authenticated rate-limit identity.
+       * The value "subject" is accepted as a deprecated alias for "identity".
+       * </pre>
+       *
+       * <code>string subject_scope = 5;</code>
+       * @param value The bytes for subjectScope to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSubjectScopeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        subjectScope_ = value;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
@@ -1786,11 +2371,23 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Namespace matching mode. Valid values are:
+     * - "" or "recursive": applies to the policy namespace and descendant namespaces.
+     * - "self": applies only to the policy namespace.
+     * </pre>
+     *
      * <code>string namespace_scope = 1;</code>
      * @return The namespaceScope.
      */
     java.lang.String getNamespaceScope();
     /**
+     * <pre>
+     * Namespace matching mode. Valid values are:
+     * - "" or "recursive": applies to the policy namespace and descendant namespaces.
+     * - "self": applies only to the policy namespace.
+     * </pre>
+     *
      * <code>string namespace_scope = 1;</code>
      * @return The bytes for namespaceScope.
      */
@@ -1798,30 +2395,54 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         getNamespaceScopeBytes();
 
     /**
+     * <pre>
+     * Hard limits enforced for matching traffic.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
      */
     java.util.List<talon.resources.Usage.UsageLimit>
         getHardList();
     /**
+     * <pre>
+     * Hard limits enforced for matching traffic.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
      */
     talon.resources.Usage.UsageLimit getHard(int index);
     /**
+     * <pre>
+     * Hard limits enforced for matching traffic.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
      */
     int getHardCount();
     /**
+     * <pre>
+     * Hard limits enforced for matching traffic.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
      */
     java.util.List<? extends talon.resources.Usage.UsageLimitOrBuilder>
         getHardOrBuilderList();
     /**
+     * <pre>
+     * Hard limits enforced for matching traffic.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
      */
     talon.resources.Usage.UsageLimitOrBuilder getHardOrBuilder(
         int index);
   }
   /**
+   * <pre>
+   * Desired usage policy for a namespace.
+   * </pre>
+   *
    * Protobuf type {@code talon.resources.UsagePolicySpec}
    */
   public static final class UsagePolicySpec extends
@@ -1869,6 +2490,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object namespaceScope_ = "";
     /**
+     * <pre>
+     * Namespace matching mode. Valid values are:
+     * - "" or "recursive": applies to the policy namespace and descendant namespaces.
+     * - "self": applies only to the policy namespace.
+     * </pre>
+     *
      * <code>string namespace_scope = 1;</code>
      * @return The namespaceScope.
      */
@@ -1886,6 +2513,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Namespace matching mode. Valid values are:
+     * - "" or "recursive": applies to the policy namespace and descendant namespaces.
+     * - "self": applies only to the policy namespace.
+     * </pre>
+     *
      * <code>string namespace_scope = 1;</code>
      * @return The bytes for namespaceScope.
      */
@@ -1908,6 +2541,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private java.util.List<talon.resources.Usage.UsageLimit> hard_;
     /**
+     * <pre>
+     * Hard limits enforced for matching traffic.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
      */
     @java.lang.Override
@@ -1915,6 +2552,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return hard_;
     }
     /**
+     * <pre>
+     * Hard limits enforced for matching traffic.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
      */
     @java.lang.Override
@@ -1923,6 +2564,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return hard_;
     }
     /**
+     * <pre>
+     * Hard limits enforced for matching traffic.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
      */
     @java.lang.Override
@@ -1930,6 +2575,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return hard_.size();
     }
     /**
+     * <pre>
+     * Hard limits enforced for matching traffic.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
      */
     @java.lang.Override
@@ -1937,6 +2586,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return hard_.get(index);
     }
     /**
+     * <pre>
+     * Hard limits enforced for matching traffic.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
      */
     @java.lang.Override
@@ -2120,6 +2773,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return builder;
     }
     /**
+     * <pre>
+     * Desired usage policy for a namespace.
+     * </pre>
+     *
      * Protobuf type {@code talon.resources.UsagePolicySpec}
      */
     public static final class Builder extends
@@ -2318,6 +2975,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object namespaceScope_ = "";
       /**
+       * <pre>
+       * Namespace matching mode. Valid values are:
+       * - "" or "recursive": applies to the policy namespace and descendant namespaces.
+       * - "self": applies only to the policy namespace.
+       * </pre>
+       *
        * <code>string namespace_scope = 1;</code>
        * @return The namespaceScope.
        */
@@ -2334,6 +2997,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Namespace matching mode. Valid values are:
+       * - "" or "recursive": applies to the policy namespace and descendant namespaces.
+       * - "self": applies only to the policy namespace.
+       * </pre>
+       *
        * <code>string namespace_scope = 1;</code>
        * @return The bytes for namespaceScope.
        */
@@ -2351,6 +3020,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Namespace matching mode. Valid values are:
+       * - "" or "recursive": applies to the policy namespace and descendant namespaces.
+       * - "self": applies only to the policy namespace.
+       * </pre>
+       *
        * <code>string namespace_scope = 1;</code>
        * @param value The namespaceScope to set.
        * @return This builder for chaining.
@@ -2364,6 +3039,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Namespace matching mode. Valid values are:
+       * - "" or "recursive": applies to the policy namespace and descendant namespaces.
+       * - "self": applies only to the policy namespace.
+       * </pre>
+       *
        * <code>string namespace_scope = 1;</code>
        * @return This builder for chaining.
        */
@@ -2374,6 +3055,12 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Namespace matching mode. Valid values are:
+       * - "" or "recursive": applies to the policy namespace and descendant namespaces.
+       * - "self": applies only to the policy namespace.
+       * </pre>
+       *
        * <code>string namespace_scope = 1;</code>
        * @param value The bytes for namespaceScope to set.
        * @return This builder for chaining.
@@ -2401,6 +3088,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
           talon.resources.Usage.UsageLimit, talon.resources.Usage.UsageLimit.Builder, talon.resources.Usage.UsageLimitOrBuilder> hardBuilder_;
 
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public java.util.List<talon.resources.Usage.UsageLimit> getHardList() {
@@ -2411,6 +3102,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public int getHardCount() {
@@ -2421,6 +3116,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public talon.resources.Usage.UsageLimit getHard(int index) {
@@ -2431,6 +3130,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public Builder setHard(
@@ -2448,6 +3151,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public Builder setHard(
@@ -2462,6 +3169,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public Builder addHard(talon.resources.Usage.UsageLimit value) {
@@ -2478,6 +3189,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public Builder addHard(
@@ -2495,6 +3210,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public Builder addHard(
@@ -2509,6 +3228,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public Builder addHard(
@@ -2523,6 +3246,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public Builder addAllHard(
@@ -2538,6 +3265,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public Builder clearHard() {
@@ -2551,6 +3282,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public Builder removeHard(int index) {
@@ -2564,6 +3299,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public talon.resources.Usage.UsageLimit.Builder getHardBuilder(
@@ -2571,6 +3310,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return internalGetHardFieldBuilder().getBuilder(index);
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public talon.resources.Usage.UsageLimitOrBuilder getHardOrBuilder(
@@ -2581,6 +3324,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public java.util.List<? extends talon.resources.Usage.UsageLimitOrBuilder>
@@ -2592,6 +3339,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public talon.resources.Usage.UsageLimit.Builder addHardBuilder() {
@@ -2599,6 +3350,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
             talon.resources.Usage.UsageLimit.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public talon.resources.Usage.UsageLimit.Builder addHardBuilder(
@@ -2607,6 +3362,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
             index, talon.resources.Usage.UsageLimit.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Hard limits enforced for matching traffic.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimit hard = 2;</code>
        */
       public java.util.List<talon.resources.Usage.UsageLimit.Builder>
@@ -2684,26 +3443,46 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Selector copied from the configured limit.
+     * </pre>
+     *
      * <code>.talon.resources.UsageSelector selector = 1;</code>
      * @return Whether the selector field is set.
      */
     boolean hasSelector();
     /**
+     * <pre>
+     * Selector copied from the configured limit.
+     * </pre>
+     *
      * <code>.talon.resources.UsageSelector selector = 1;</code>
      * @return The selector.
      */
     talon.resources.Usage.UsageSelector getSelector();
     /**
+     * <pre>
+     * Selector copied from the configured limit.
+     * </pre>
+     *
      * <code>.talon.resources.UsageSelector selector = 1;</code>
      */
     talon.resources.Usage.UsageSelectorOrBuilder getSelectorOrBuilder();
 
     /**
+     * <pre>
+     * Metric copied from the configured limit.
+     * </pre>
+     *
      * <code>string metric = 2;</code>
      * @return The metric.
      */
     java.lang.String getMetric();
     /**
+     * <pre>
+     * Metric copied from the configured limit.
+     * </pre>
+     *
      * <code>string metric = 2;</code>
      * @return The bytes for metric.
      */
@@ -2711,17 +3490,29 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         getMetricBytes();
 
     /**
+     * <pre>
+     * Maximum configured usage for the current window.
+     * </pre>
+     *
      * <code>uint64 max = 3;</code>
      * @return The max.
      */
     long getMax();
 
     /**
+     * <pre>
+     * Window copied from the configured limit.
+     * </pre>
+     *
      * <code>string window = 4;</code>
      * @return The window.
      */
     java.lang.String getWindow();
     /**
+     * <pre>
+     * Window copied from the configured limit.
+     * </pre>
+     *
      * <code>string window = 4;</code>
      * @return The bytes for window.
      */
@@ -2729,36 +3520,81 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         getWindowBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in seconds for the start of the current window.
+     * </pre>
+     *
      * <code>int64 window_start = 5;</code>
      * @return The windowStart.
      */
     long getWindowStart();
 
     /**
+     * <pre>
+     * Unix timestamp in seconds when the current window resets.
+     * </pre>
+     *
      * <code>int64 reset_at = 6;</code>
      * @return The resetAt.
      */
     long getResetAt();
 
     /**
+     * <pre>
+     * Used quota in the current window. For identity-scoped limits, this reports
+     * the highest usage observed for any one identity in the window.
+     * </pre>
+     *
      * <code>uint64 used = 7;</code>
      * @return The used.
      */
     long getUsed();
 
     /**
+     * <pre>
+     * Remaining quota in the current window.
+     * </pre>
+     *
      * <code>uint64 remaining = 8;</code>
      * @return The remaining.
      */
     long getRemaining();
 
     /**
+     * <pre>
+     * True when used is greater than or equal to max.
+     * </pre>
+     *
      * <code>bool exceeded = 9;</code>
      * @return The exceeded.
      */
     boolean getExceeded();
+
+    /**
+     * <pre>
+     * Canonical subject scope for the limit. Values are "all" or "identity".
+     * </pre>
+     *
+     * <code>string subject_scope = 10;</code>
+     * @return The subjectScope.
+     */
+    java.lang.String getSubjectScope();
+    /**
+     * <pre>
+     * Canonical subject scope for the limit. Values are "all" or "identity".
+     * </pre>
+     *
+     * <code>string subject_scope = 10;</code>
+     * @return The bytes for subjectScope.
+     */
+    com.google.protobuf.ByteString
+        getSubjectScopeBytes();
   }
   /**
+   * <pre>
+   * Current status for one UsageLimit.
+   * </pre>
+   *
    * Protobuf type {@code talon.resources.UsageLimitStatus}
    */
   public static final class UsageLimitStatus extends
@@ -2782,6 +3618,7 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     private UsageLimitStatus() {
       metric_ = "";
       window_ = "";
+      subjectScope_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -2806,6 +3643,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     public static final int SELECTOR_FIELD_NUMBER = 1;
     private talon.resources.Usage.UsageSelector selector_;
     /**
+     * <pre>
+     * Selector copied from the configured limit.
+     * </pre>
+     *
      * <code>.talon.resources.UsageSelector selector = 1;</code>
      * @return Whether the selector field is set.
      */
@@ -2814,6 +3655,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
+     * <pre>
+     * Selector copied from the configured limit.
+     * </pre>
+     *
      * <code>.talon.resources.UsageSelector selector = 1;</code>
      * @return The selector.
      */
@@ -2822,6 +3667,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return selector_ == null ? talon.resources.Usage.UsageSelector.getDefaultInstance() : selector_;
     }
     /**
+     * <pre>
+     * Selector copied from the configured limit.
+     * </pre>
+     *
      * <code>.talon.resources.UsageSelector selector = 1;</code>
      */
     @java.lang.Override
@@ -2833,6 +3682,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object metric_ = "";
     /**
+     * <pre>
+     * Metric copied from the configured limit.
+     * </pre>
+     *
      * <code>string metric = 2;</code>
      * @return The metric.
      */
@@ -2850,6 +3703,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Metric copied from the configured limit.
+     * </pre>
+     *
      * <code>string metric = 2;</code>
      * @return The bytes for metric.
      */
@@ -2871,6 +3728,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     public static final int MAX_FIELD_NUMBER = 3;
     private long max_ = 0L;
     /**
+     * <pre>
+     * Maximum configured usage for the current window.
+     * </pre>
+     *
      * <code>uint64 max = 3;</code>
      * @return The max.
      */
@@ -2883,6 +3744,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object window_ = "";
     /**
+     * <pre>
+     * Window copied from the configured limit.
+     * </pre>
+     *
      * <code>string window = 4;</code>
      * @return The window.
      */
@@ -2900,6 +3765,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Window copied from the configured limit.
+     * </pre>
+     *
      * <code>string window = 4;</code>
      * @return The bytes for window.
      */
@@ -2921,6 +3790,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     public static final int WINDOW_START_FIELD_NUMBER = 5;
     private long windowStart_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in seconds for the start of the current window.
+     * </pre>
+     *
      * <code>int64 window_start = 5;</code>
      * @return The windowStart.
      */
@@ -2932,6 +3805,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     public static final int RESET_AT_FIELD_NUMBER = 6;
     private long resetAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in seconds when the current window resets.
+     * </pre>
+     *
      * <code>int64 reset_at = 6;</code>
      * @return The resetAt.
      */
@@ -2943,6 +3820,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     public static final int USED_FIELD_NUMBER = 7;
     private long used_ = 0L;
     /**
+     * <pre>
+     * Used quota in the current window. For identity-scoped limits, this reports
+     * the highest usage observed for any one identity in the window.
+     * </pre>
+     *
      * <code>uint64 used = 7;</code>
      * @return The used.
      */
@@ -2954,6 +3836,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     public static final int REMAINING_FIELD_NUMBER = 8;
     private long remaining_ = 0L;
     /**
+     * <pre>
+     * Remaining quota in the current window.
+     * </pre>
+     *
      * <code>uint64 remaining = 8;</code>
      * @return The remaining.
      */
@@ -2965,12 +3851,63 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     public static final int EXCEEDED_FIELD_NUMBER = 9;
     private boolean exceeded_ = false;
     /**
+     * <pre>
+     * True when used is greater than or equal to max.
+     * </pre>
+     *
      * <code>bool exceeded = 9;</code>
      * @return The exceeded.
      */
     @java.lang.Override
     public boolean getExceeded() {
       return exceeded_;
+    }
+
+    public static final int SUBJECT_SCOPE_FIELD_NUMBER = 10;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object subjectScope_ = "";
+    /**
+     * <pre>
+     * Canonical subject scope for the limit. Values are "all" or "identity".
+     * </pre>
+     *
+     * <code>string subject_scope = 10;</code>
+     * @return The subjectScope.
+     */
+    @java.lang.Override
+    public java.lang.String getSubjectScope() {
+      java.lang.Object ref = subjectScope_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        subjectScope_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Canonical subject scope for the limit. Values are "all" or "identity".
+     * </pre>
+     *
+     * <code>string subject_scope = 10;</code>
+     * @return The bytes for subjectScope.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSubjectScopeBytes() {
+      java.lang.Object ref = subjectScope_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        subjectScope_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     private byte memoizedIsInitialized = -1;
@@ -3013,6 +3950,9 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
       if (exceeded_ != false) {
         output.writeBool(9, exceeded_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(subjectScope_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 10, subjectScope_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3057,6 +3997,9 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(9, exceeded_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(subjectScope_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(10, subjectScope_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -3093,6 +4036,8 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
           != other.getRemaining()) return false;
       if (getExceeded()
           != other.getExceeded()) return false;
+      if (!getSubjectScope()
+          .equals(other.getSubjectScope())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -3130,6 +4075,8 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       hash = (37 * hash) + EXCEEDED_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getExceeded());
+      hash = (37 * hash) + SUBJECT_SCOPE_FIELD_NUMBER;
+      hash = (53 * hash) + getSubjectScope().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -3228,6 +4175,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return builder;
     }
     /**
+     * <pre>
+     * Current status for one UsageLimit.
+     * </pre>
+     *
      * Protobuf type {@code talon.resources.UsageLimitStatus}
      */
     public static final class Builder extends
@@ -3280,6 +4231,7 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         used_ = 0L;
         remaining_ = 0L;
         exceeded_ = false;
+        subjectScope_ = "";
         return this;
       }
 
@@ -3344,6 +4296,9 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000100) != 0)) {
           result.exceeded_ = exceeded_;
         }
+        if (((from_bitField0_ & 0x00000200) != 0)) {
+          result.subjectScope_ = subjectScope_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -3389,6 +4344,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
         if (other.getExceeded() != false) {
           setExceeded(other.getExceeded());
+        }
+        if (!other.getSubjectScope().isEmpty()) {
+          subjectScope_ = other.subjectScope_;
+          bitField0_ |= 0x00000200;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -3463,6 +4423,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000100;
                 break;
               } // case 72
+              case 82: {
+                subjectScope_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000200;
+                break;
+              } // case 82
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3484,6 +4449,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Usage.UsageSelector, talon.resources.Usage.UsageSelector.Builder, talon.resources.Usage.UsageSelectorOrBuilder> selectorBuilder_;
       /**
+       * <pre>
+       * Selector copied from the configured limit.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        * @return Whether the selector field is set.
        */
@@ -3491,6 +4460,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
+       * <pre>
+       * Selector copied from the configured limit.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        * @return The selector.
        */
@@ -3502,6 +4475,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Selector copied from the configured limit.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       public Builder setSelector(talon.resources.Usage.UsageSelector value) {
@@ -3518,6 +4495,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Selector copied from the configured limit.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       public Builder setSelector(
@@ -3532,6 +4513,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Selector copied from the configured limit.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       public Builder mergeSelector(talon.resources.Usage.UsageSelector value) {
@@ -3553,6 +4538,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Selector copied from the configured limit.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       public Builder clearSelector() {
@@ -3566,6 +4555,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Selector copied from the configured limit.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       public talon.resources.Usage.UsageSelector.Builder getSelectorBuilder() {
@@ -3574,6 +4567,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return internalGetSelectorFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Selector copied from the configured limit.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       public talon.resources.Usage.UsageSelectorOrBuilder getSelectorOrBuilder() {
@@ -3585,6 +4582,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Selector copied from the configured limit.
+       * </pre>
+       *
        * <code>.talon.resources.UsageSelector selector = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -3603,6 +4604,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object metric_ = "";
       /**
+       * <pre>
+       * Metric copied from the configured limit.
+       * </pre>
+       *
        * <code>string metric = 2;</code>
        * @return The metric.
        */
@@ -3619,6 +4624,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Metric copied from the configured limit.
+       * </pre>
+       *
        * <code>string metric = 2;</code>
        * @return The bytes for metric.
        */
@@ -3636,6 +4645,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Metric copied from the configured limit.
+       * </pre>
+       *
        * <code>string metric = 2;</code>
        * @param value The metric to set.
        * @return This builder for chaining.
@@ -3649,6 +4662,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Metric copied from the configured limit.
+       * </pre>
+       *
        * <code>string metric = 2;</code>
        * @return This builder for chaining.
        */
@@ -3659,6 +4676,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Metric copied from the configured limit.
+       * </pre>
+       *
        * <code>string metric = 2;</code>
        * @param value The bytes for metric to set.
        * @return This builder for chaining.
@@ -3675,6 +4696,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private long max_ ;
       /**
+       * <pre>
+       * Maximum configured usage for the current window.
+       * </pre>
+       *
        * <code>uint64 max = 3;</code>
        * @return The max.
        */
@@ -3683,6 +4708,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return max_;
       }
       /**
+       * <pre>
+       * Maximum configured usage for the current window.
+       * </pre>
+       *
        * <code>uint64 max = 3;</code>
        * @param value The max to set.
        * @return This builder for chaining.
@@ -3695,6 +4724,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Maximum configured usage for the current window.
+       * </pre>
+       *
        * <code>uint64 max = 3;</code>
        * @return This builder for chaining.
        */
@@ -3707,6 +4740,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object window_ = "";
       /**
+       * <pre>
+       * Window copied from the configured limit.
+       * </pre>
+       *
        * <code>string window = 4;</code>
        * @return The window.
        */
@@ -3723,6 +4760,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Window copied from the configured limit.
+       * </pre>
+       *
        * <code>string window = 4;</code>
        * @return The bytes for window.
        */
@@ -3740,6 +4781,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Window copied from the configured limit.
+       * </pre>
+       *
        * <code>string window = 4;</code>
        * @param value The window to set.
        * @return This builder for chaining.
@@ -3753,6 +4798,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Window copied from the configured limit.
+       * </pre>
+       *
        * <code>string window = 4;</code>
        * @return This builder for chaining.
        */
@@ -3763,6 +4812,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Window copied from the configured limit.
+       * </pre>
+       *
        * <code>string window = 4;</code>
        * @param value The bytes for window to set.
        * @return This builder for chaining.
@@ -3779,6 +4832,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private long windowStart_ ;
       /**
+       * <pre>
+       * Unix timestamp in seconds for the start of the current window.
+       * </pre>
+       *
        * <code>int64 window_start = 5;</code>
        * @return The windowStart.
        */
@@ -3787,6 +4844,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return windowStart_;
       }
       /**
+       * <pre>
+       * Unix timestamp in seconds for the start of the current window.
+       * </pre>
+       *
        * <code>int64 window_start = 5;</code>
        * @param value The windowStart to set.
        * @return This builder for chaining.
@@ -3799,6 +4860,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in seconds for the start of the current window.
+       * </pre>
+       *
        * <code>int64 window_start = 5;</code>
        * @return This builder for chaining.
        */
@@ -3811,6 +4876,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private long resetAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in seconds when the current window resets.
+       * </pre>
+       *
        * <code>int64 reset_at = 6;</code>
        * @return The resetAt.
        */
@@ -3819,6 +4888,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return resetAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in seconds when the current window resets.
+       * </pre>
+       *
        * <code>int64 reset_at = 6;</code>
        * @param value The resetAt to set.
        * @return This builder for chaining.
@@ -3831,6 +4904,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in seconds when the current window resets.
+       * </pre>
+       *
        * <code>int64 reset_at = 6;</code>
        * @return This builder for chaining.
        */
@@ -3843,6 +4920,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private long used_ ;
       /**
+       * <pre>
+       * Used quota in the current window. For identity-scoped limits, this reports
+       * the highest usage observed for any one identity in the window.
+       * </pre>
+       *
        * <code>uint64 used = 7;</code>
        * @return The used.
        */
@@ -3851,6 +4933,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return used_;
       }
       /**
+       * <pre>
+       * Used quota in the current window. For identity-scoped limits, this reports
+       * the highest usage observed for any one identity in the window.
+       * </pre>
+       *
        * <code>uint64 used = 7;</code>
        * @param value The used to set.
        * @return This builder for chaining.
@@ -3863,6 +4950,11 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Used quota in the current window. For identity-scoped limits, this reports
+       * the highest usage observed for any one identity in the window.
+       * </pre>
+       *
        * <code>uint64 used = 7;</code>
        * @return This builder for chaining.
        */
@@ -3875,6 +4967,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private long remaining_ ;
       /**
+       * <pre>
+       * Remaining quota in the current window.
+       * </pre>
+       *
        * <code>uint64 remaining = 8;</code>
        * @return The remaining.
        */
@@ -3883,6 +4979,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return remaining_;
       }
       /**
+       * <pre>
+       * Remaining quota in the current window.
+       * </pre>
+       *
        * <code>uint64 remaining = 8;</code>
        * @param value The remaining to set.
        * @return This builder for chaining.
@@ -3895,6 +4995,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Remaining quota in the current window.
+       * </pre>
+       *
        * <code>uint64 remaining = 8;</code>
        * @return This builder for chaining.
        */
@@ -3907,6 +5011,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private boolean exceeded_ ;
       /**
+       * <pre>
+       * True when used is greater than or equal to max.
+       * </pre>
+       *
        * <code>bool exceeded = 9;</code>
        * @return The exceeded.
        */
@@ -3915,6 +5023,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return exceeded_;
       }
       /**
+       * <pre>
+       * True when used is greater than or equal to max.
+       * </pre>
+       *
        * <code>bool exceeded = 9;</code>
        * @param value The exceeded to set.
        * @return This builder for chaining.
@@ -3927,12 +5039,108 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * True when used is greater than or equal to max.
+       * </pre>
+       *
        * <code>bool exceeded = 9;</code>
        * @return This builder for chaining.
        */
       public Builder clearExceeded() {
         bitField0_ = (bitField0_ & ~0x00000100);
         exceeded_ = false;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object subjectScope_ = "";
+      /**
+       * <pre>
+       * Canonical subject scope for the limit. Values are "all" or "identity".
+       * </pre>
+       *
+       * <code>string subject_scope = 10;</code>
+       * @return The subjectScope.
+       */
+      public java.lang.String getSubjectScope() {
+        java.lang.Object ref = subjectScope_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          subjectScope_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Canonical subject scope for the limit. Values are "all" or "identity".
+       * </pre>
+       *
+       * <code>string subject_scope = 10;</code>
+       * @return The bytes for subjectScope.
+       */
+      public com.google.protobuf.ByteString
+          getSubjectScopeBytes() {
+        java.lang.Object ref = subjectScope_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          subjectScope_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Canonical subject scope for the limit. Values are "all" or "identity".
+       * </pre>
+       *
+       * <code>string subject_scope = 10;</code>
+       * @param value The subjectScope to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSubjectScope(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        subjectScope_ = value;
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Canonical subject scope for the limit. Values are "all" or "identity".
+       * </pre>
+       *
+       * <code>string subject_scope = 10;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSubjectScope() {
+        subjectScope_ = getDefaultInstance().getSubjectScope();
+        bitField0_ = (bitField0_ & ~0x00000200);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Canonical subject scope for the limit. Values are "all" or "identity".
+       * </pre>
+       *
+       * <code>string subject_scope = 10;</code>
+       * @param value The bytes for subjectScope to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSubjectScopeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        subjectScope_ = value;
+        bitField0_ |= 0x00000200;
         onChanged();
         return this;
       }
@@ -3993,17 +5201,29 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Resource generation reflected by this status.
+     * </pre>
+     *
      * <code>uint64 observed_generation = 1;</code>
      * @return The observedGeneration.
      */
     long getObservedGeneration();
 
     /**
+     * <pre>
+     * Policy lifecycle phase. Current value is "Active" when the policy validates.
+     * </pre>
+     *
      * <code>string phase = 2;</code>
      * @return The phase.
      */
     java.lang.String getPhase();
     /**
+     * <pre>
+     * Policy lifecycle phase. Current value is "Active" when the policy validates.
+     * </pre>
+     *
      * <code>string phase = 2;</code>
      * @return The bytes for phase.
      */
@@ -4011,54 +5231,98 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         getPhaseBytes();
 
     /**
+     * <pre>
+     * Conditions describing validation or reconciliation issues.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     java.util.List<talon.resources.Common.ResourceCondition>
         getConditionsList();
     /**
+     * <pre>
+     * Conditions describing validation or reconciliation issues.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     talon.resources.Common.ResourceCondition getConditions(int index);
     /**
+     * <pre>
+     * Conditions describing validation or reconciliation issues.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     int getConditionsCount();
     /**
+     * <pre>
+     * Conditions describing validation or reconciliation issues.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     java.util.List<? extends talon.resources.Common.ResourceConditionOrBuilder>
         getConditionsOrBuilderList();
     /**
+     * <pre>
+     * Conditions describing validation or reconciliation issues.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     talon.resources.Common.ResourceConditionOrBuilder getConditionsOrBuilder(
         int index);
 
     /**
+     * <pre>
+     * Status for each configured hard limit.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
      */
     java.util.List<talon.resources.Usage.UsageLimitStatus>
         getHardList();
     /**
+     * <pre>
+     * Status for each configured hard limit.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
      */
     talon.resources.Usage.UsageLimitStatus getHard(int index);
     /**
+     * <pre>
+     * Status for each configured hard limit.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
      */
     int getHardCount();
     /**
+     * <pre>
+     * Status for each configured hard limit.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
      */
     java.util.List<? extends talon.resources.Usage.UsageLimitStatusOrBuilder>
         getHardOrBuilderList();
     /**
+     * <pre>
+     * Status for each configured hard limit.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
      */
     talon.resources.Usage.UsageLimitStatusOrBuilder getHardOrBuilder(
         int index);
   }
   /**
+   * <pre>
+   * Current status for a UsagePolicy resource.
+   * </pre>
+   *
    * Protobuf type {@code talon.resources.UsagePolicyStatus}
    */
   public static final class UsagePolicyStatus extends
@@ -4106,6 +5370,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     public static final int OBSERVED_GENERATION_FIELD_NUMBER = 1;
     private long observedGeneration_ = 0L;
     /**
+     * <pre>
+     * Resource generation reflected by this status.
+     * </pre>
+     *
      * <code>uint64 observed_generation = 1;</code>
      * @return The observedGeneration.
      */
@@ -4118,6 +5386,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object phase_ = "";
     /**
+     * <pre>
+     * Policy lifecycle phase. Current value is "Active" when the policy validates.
+     * </pre>
+     *
      * <code>string phase = 2;</code>
      * @return The phase.
      */
@@ -4135,6 +5407,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Policy lifecycle phase. Current value is "Active" when the policy validates.
+     * </pre>
+     *
      * <code>string phase = 2;</code>
      * @return The bytes for phase.
      */
@@ -4157,6 +5433,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private java.util.List<talon.resources.Common.ResourceCondition> conditions_;
     /**
+     * <pre>
+     * Conditions describing validation or reconciliation issues.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -4164,6 +5444,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return conditions_;
     }
     /**
+     * <pre>
+     * Conditions describing validation or reconciliation issues.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -4172,6 +5456,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return conditions_;
     }
     /**
+     * <pre>
+     * Conditions describing validation or reconciliation issues.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -4179,6 +5467,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return conditions_.size();
     }
     /**
+     * <pre>
+     * Conditions describing validation or reconciliation issues.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -4186,6 +5478,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return conditions_.get(index);
     }
     /**
+     * <pre>
+     * Conditions describing validation or reconciliation issues.
+     * </pre>
+     *
      * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
      */
     @java.lang.Override
@@ -4198,6 +5494,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private java.util.List<talon.resources.Usage.UsageLimitStatus> hard_;
     /**
+     * <pre>
+     * Status for each configured hard limit.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
      */
     @java.lang.Override
@@ -4205,6 +5505,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return hard_;
     }
     /**
+     * <pre>
+     * Status for each configured hard limit.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
      */
     @java.lang.Override
@@ -4213,6 +5517,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return hard_;
     }
     /**
+     * <pre>
+     * Status for each configured hard limit.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
      */
     @java.lang.Override
@@ -4220,6 +5528,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return hard_.size();
     }
     /**
+     * <pre>
+     * Status for each configured hard limit.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
      */
     @java.lang.Override
@@ -4227,6 +5539,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return hard_.get(index);
     }
     /**
+     * <pre>
+     * Status for each configured hard limit.
+     * </pre>
+     *
      * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
      */
     @java.lang.Override
@@ -4440,6 +5756,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return builder;
     }
     /**
+     * <pre>
+     * Current status for a UsagePolicy resource.
+     * </pre>
+     *
      * Protobuf type {@code talon.resources.UsagePolicyStatus}
      */
     public static final class Builder extends
@@ -4705,6 +6025,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private long observedGeneration_ ;
       /**
+       * <pre>
+       * Resource generation reflected by this status.
+       * </pre>
+       *
        * <code>uint64 observed_generation = 1;</code>
        * @return The observedGeneration.
        */
@@ -4713,6 +6037,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return observedGeneration_;
       }
       /**
+       * <pre>
+       * Resource generation reflected by this status.
+       * </pre>
+       *
        * <code>uint64 observed_generation = 1;</code>
        * @param value The observedGeneration to set.
        * @return This builder for chaining.
@@ -4725,6 +6053,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Resource generation reflected by this status.
+       * </pre>
+       *
        * <code>uint64 observed_generation = 1;</code>
        * @return This builder for chaining.
        */
@@ -4737,6 +6069,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object phase_ = "";
       /**
+       * <pre>
+       * Policy lifecycle phase. Current value is "Active" when the policy validates.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @return The phase.
        */
@@ -4753,6 +6089,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Policy lifecycle phase. Current value is "Active" when the policy validates.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @return The bytes for phase.
        */
@@ -4770,6 +6110,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Policy lifecycle phase. Current value is "Active" when the policy validates.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @param value The phase to set.
        * @return This builder for chaining.
@@ -4783,6 +6127,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Policy lifecycle phase. Current value is "Active" when the policy validates.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @return This builder for chaining.
        */
@@ -4793,6 +6141,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Policy lifecycle phase. Current value is "Active" when the policy validates.
+       * </pre>
+       *
        * <code>string phase = 2;</code>
        * @param value The bytes for phase to set.
        * @return This builder for chaining.
@@ -4820,6 +6172,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
           talon.resources.Common.ResourceCondition, talon.resources.Common.ResourceCondition.Builder, talon.resources.Common.ResourceConditionOrBuilder> conditionsBuilder_;
 
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public java.util.List<talon.resources.Common.ResourceCondition> getConditionsList() {
@@ -4830,6 +6186,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public int getConditionsCount() {
@@ -4840,6 +6200,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceCondition getConditions(int index) {
@@ -4850,6 +6214,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder setConditions(
@@ -4867,6 +6235,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder setConditions(
@@ -4881,6 +6253,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addConditions(talon.resources.Common.ResourceCondition value) {
@@ -4897,6 +6273,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addConditions(
@@ -4914,6 +6294,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addConditions(
@@ -4928,6 +6312,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addConditions(
@@ -4942,6 +6330,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder addAllConditions(
@@ -4957,6 +6349,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder clearConditions() {
@@ -4970,6 +6366,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public Builder removeConditions(int index) {
@@ -4983,6 +6383,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceCondition.Builder getConditionsBuilder(
@@ -4990,6 +6394,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return internalGetConditionsFieldBuilder().getBuilder(index);
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceConditionOrBuilder getConditionsOrBuilder(
@@ -5000,6 +6408,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public java.util.List<? extends talon.resources.Common.ResourceConditionOrBuilder>
@@ -5011,6 +6423,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceCondition.Builder addConditionsBuilder() {
@@ -5018,6 +6434,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
             talon.resources.Common.ResourceCondition.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public talon.resources.Common.ResourceCondition.Builder addConditionsBuilder(
@@ -5026,6 +6446,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
             index, talon.resources.Common.ResourceCondition.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Conditions describing validation or reconciliation issues.
+       * </pre>
+       *
        * <code>repeated .talon.resources.ResourceCondition conditions = 3;</code>
        */
       public java.util.List<talon.resources.Common.ResourceCondition.Builder>
@@ -5060,6 +6484,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
           talon.resources.Usage.UsageLimitStatus, talon.resources.Usage.UsageLimitStatus.Builder, talon.resources.Usage.UsageLimitStatusOrBuilder> hardBuilder_;
 
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public java.util.List<talon.resources.Usage.UsageLimitStatus> getHardList() {
@@ -5070,6 +6498,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public int getHardCount() {
@@ -5080,6 +6512,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public talon.resources.Usage.UsageLimitStatus getHard(int index) {
@@ -5090,6 +6526,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public Builder setHard(
@@ -5107,6 +6547,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public Builder setHard(
@@ -5121,6 +6565,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public Builder addHard(talon.resources.Usage.UsageLimitStatus value) {
@@ -5137,6 +6585,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public Builder addHard(
@@ -5154,6 +6606,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public Builder addHard(
@@ -5168,6 +6624,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public Builder addHard(
@@ -5182,6 +6642,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public Builder addAllHard(
@@ -5197,6 +6661,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public Builder clearHard() {
@@ -5210,6 +6678,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public Builder removeHard(int index) {
@@ -5223,6 +6695,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public talon.resources.Usage.UsageLimitStatus.Builder getHardBuilder(
@@ -5230,6 +6706,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return internalGetHardFieldBuilder().getBuilder(index);
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public talon.resources.Usage.UsageLimitStatusOrBuilder getHardOrBuilder(
@@ -5240,6 +6720,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public java.util.List<? extends talon.resources.Usage.UsageLimitStatusOrBuilder>
@@ -5251,6 +6735,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public talon.resources.Usage.UsageLimitStatus.Builder addHardBuilder() {
@@ -5258,6 +6746,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
             talon.resources.Usage.UsageLimitStatus.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public talon.resources.Usage.UsageLimitStatus.Builder addHardBuilder(
@@ -5266,6 +6758,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
             index, talon.resources.Usage.UsageLimitStatus.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Status for each configured hard limit.
+       * </pre>
+       *
        * <code>repeated .talon.resources.UsageLimitStatus hard = 4;</code>
        */
       public java.util.List<talon.resources.Usage.UsageLimitStatus.Builder>
@@ -5343,51 +6839,91 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Resource identity and namespace metadata.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return Whether the metadata field is set.
      */
     boolean hasMetadata();
     /**
+     * <pre>
+     * Resource identity and namespace metadata.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return The metadata.
      */
     talon.resources.Common.ResourceMeta getMetadata();
     /**
+     * <pre>
+     * Resource identity and namespace metadata.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      */
     talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
 
     /**
+     * <pre>
+     * Desired policy configuration.
+     * </pre>
+     *
      * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
      * @return Whether the spec field is set.
      */
     boolean hasSpec();
     /**
+     * <pre>
+     * Desired policy configuration.
+     * </pre>
+     *
      * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
      * @return The spec.
      */
     talon.resources.Usage.UsagePolicySpec getSpec();
     /**
+     * <pre>
+     * Desired policy configuration.
+     * </pre>
+     *
      * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
      */
     talon.resources.Usage.UsagePolicySpecOrBuilder getSpecOrBuilder();
 
     /**
+     * <pre>
+     * Observed policy status.
+     * </pre>
+     *
      * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
      * @return Whether the status field is set.
      */
     boolean hasStatus();
     /**
+     * <pre>
+     * Observed policy status.
+     * </pre>
+     *
      * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
      * @return The status.
      */
     talon.resources.Usage.UsagePolicyStatus getStatus();
     /**
+     * <pre>
+     * Observed policy status.
+     * </pre>
+     *
      * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
      */
     talon.resources.Usage.UsagePolicyStatusOrBuilder getStatusOrBuilder();
   }
   /**
+   * <pre>
+   * UsagePolicy configures quota and rate limits for a namespace.
+   * </pre>
+   *
    * Protobuf type {@code talon.resources.UsagePolicy}
    */
   public static final class UsagePolicy extends
@@ -5433,6 +6969,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     public static final int METADATA_FIELD_NUMBER = 1;
     private talon.resources.Common.ResourceMeta metadata_;
     /**
+     * <pre>
+     * Resource identity and namespace metadata.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return Whether the metadata field is set.
      */
@@ -5441,6 +6981,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
+     * <pre>
+     * Resource identity and namespace metadata.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return The metadata.
      */
@@ -5449,6 +6993,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
     }
     /**
+     * <pre>
+     * Resource identity and namespace metadata.
+     * </pre>
+     *
      * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      */
     @java.lang.Override
@@ -5459,6 +7007,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     public static final int SPEC_FIELD_NUMBER = 2;
     private talon.resources.Usage.UsagePolicySpec spec_;
     /**
+     * <pre>
+     * Desired policy configuration.
+     * </pre>
+     *
      * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
      * @return Whether the spec field is set.
      */
@@ -5467,6 +7019,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
+     * <pre>
+     * Desired policy configuration.
+     * </pre>
+     *
      * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
      * @return The spec.
      */
@@ -5475,6 +7031,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return spec_ == null ? talon.resources.Usage.UsagePolicySpec.getDefaultInstance() : spec_;
     }
     /**
+     * <pre>
+     * Desired policy configuration.
+     * </pre>
+     *
      * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
      */
     @java.lang.Override
@@ -5485,6 +7045,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     public static final int STATUS_FIELD_NUMBER = 3;
     private talon.resources.Usage.UsagePolicyStatus status_;
     /**
+     * <pre>
+     * Observed policy status.
+     * </pre>
+     *
      * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
      * @return Whether the status field is set.
      */
@@ -5493,6 +7057,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000004) != 0);
     }
     /**
+     * <pre>
+     * Observed policy status.
+     * </pre>
+     *
      * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
      * @return The status.
      */
@@ -5501,6 +7069,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return status_ == null ? talon.resources.Usage.UsagePolicyStatus.getDefaultInstance() : status_;
     }
     /**
+     * <pre>
+     * Observed policy status.
+     * </pre>
+     *
      * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
      */
     @java.lang.Override
@@ -5703,6 +7275,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       return builder;
     }
     /**
+     * <pre>
+     * UsagePolicy configures quota and rate limits for a namespace.
+     * </pre>
+     *
      * Protobuf type {@code talon.resources.UsagePolicy}
      */
     public static final class Builder extends
@@ -5903,6 +7479,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
       /**
+       * <pre>
+       * Resource identity and namespace metadata.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        * @return Whether the metadata field is set.
        */
@@ -5910,6 +7490,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
+       * <pre>
+       * Resource identity and namespace metadata.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        * @return The metadata.
        */
@@ -5921,6 +7505,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Resource identity and namespace metadata.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder setMetadata(talon.resources.Common.ResourceMeta value) {
@@ -5937,6 +7525,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Resource identity and namespace metadata.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder setMetadata(
@@ -5951,6 +7543,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Resource identity and namespace metadata.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder mergeMetadata(talon.resources.Common.ResourceMeta value) {
@@ -5972,6 +7568,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Resource identity and namespace metadata.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder clearMetadata() {
@@ -5985,6 +7585,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Resource identity and namespace metadata.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public talon.resources.Common.ResourceMeta.Builder getMetadataBuilder() {
@@ -5993,6 +7597,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return internalGetMetadataFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Resource identity and namespace metadata.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
@@ -6004,6 +7612,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Resource identity and namespace metadata.
+       * </pre>
+       *
        * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -6024,6 +7636,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Usage.UsagePolicySpec, talon.resources.Usage.UsagePolicySpec.Builder, talon.resources.Usage.UsagePolicySpecOrBuilder> specBuilder_;
       /**
+       * <pre>
+       * Desired policy configuration.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
        * @return Whether the spec field is set.
        */
@@ -6031,6 +7647,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return ((bitField0_ & 0x00000002) != 0);
       }
       /**
+       * <pre>
+       * Desired policy configuration.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
        * @return The spec.
        */
@@ -6042,6 +7662,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Desired policy configuration.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
        */
       public Builder setSpec(talon.resources.Usage.UsagePolicySpec value) {
@@ -6058,6 +7682,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Desired policy configuration.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
        */
       public Builder setSpec(
@@ -6072,6 +7700,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Desired policy configuration.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
        */
       public Builder mergeSpec(talon.resources.Usage.UsagePolicySpec value) {
@@ -6093,6 +7725,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Desired policy configuration.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
        */
       public Builder clearSpec() {
@@ -6106,6 +7742,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Desired policy configuration.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
        */
       public talon.resources.Usage.UsagePolicySpec.Builder getSpecBuilder() {
@@ -6114,6 +7754,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return internalGetSpecFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Desired policy configuration.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
        */
       public talon.resources.Usage.UsagePolicySpecOrBuilder getSpecOrBuilder() {
@@ -6125,6 +7769,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Desired policy configuration.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicySpec spec = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -6145,6 +7793,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Usage.UsagePolicyStatus, talon.resources.Usage.UsagePolicyStatus.Builder, talon.resources.Usage.UsagePolicyStatusOrBuilder> statusBuilder_;
       /**
+       * <pre>
+       * Observed policy status.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
        * @return Whether the status field is set.
        */
@@ -6152,6 +7804,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return ((bitField0_ & 0x00000004) != 0);
       }
       /**
+       * <pre>
+       * Observed policy status.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
        * @return The status.
        */
@@ -6163,6 +7819,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Observed policy status.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
        */
       public Builder setStatus(talon.resources.Usage.UsagePolicyStatus value) {
@@ -6179,6 +7839,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Observed policy status.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
        */
       public Builder setStatus(
@@ -6193,6 +7857,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Observed policy status.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
        */
       public Builder mergeStatus(talon.resources.Usage.UsagePolicyStatus value) {
@@ -6214,6 +7882,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Observed policy status.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
        */
       public Builder clearStatus() {
@@ -6227,6 +7899,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Observed policy status.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
        */
       public talon.resources.Usage.UsagePolicyStatus.Builder getStatusBuilder() {
@@ -6235,6 +7911,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         return internalGetStatusFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Observed policy status.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
        */
       public talon.resources.Usage.UsagePolicyStatusOrBuilder getStatusOrBuilder() {
@@ -6246,6 +7926,10 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Observed policy status.
+       * </pre>
+       *
        * <code>.talon.resources.UsagePolicyStatus status = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -6355,26 +8039,27 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
       "\n\033proto/resources/usage.proto\022\017talon.res" +
       "ources\032\034proto/resources/common.proto\"?\n\r" +
       "UsageSelector\022\r\n\005agent\030\001 \001(\t\022\020\n\010provider" +
-      "\030\002 \001(\t\022\r\n\005model\030\003 \001(\t\"k\n\nUsageLimit\0220\n\010s" +
-      "elector\030\001 \001(\0132\036.talon.resources.UsageSel" +
-      "ector\022\016\n\006metric\030\002 \001(\t\022\013\n\003max\030\003 \001(\004\022\016\n\006wi" +
-      "ndow\030\004 \001(\t\"U\n\017UsagePolicySpec\022\027\n\017namespa" +
-      "ce_scope\030\001 \001(\t\022)\n\004hard\030\002 \003(\0132\033.talon.res" +
-      "ources.UsageLimit\"\314\001\n\020UsageLimitStatus\0220" +
-      "\n\010selector\030\001 \001(\0132\036.talon.resources.Usage" +
-      "Selector\022\016\n\006metric\030\002 \001(\t\022\013\n\003max\030\003 \001(\004\022\016\n" +
-      "\006window\030\004 \001(\t\022\024\n\014window_start\030\005 \001(\003\022\020\n\010r" +
-      "eset_at\030\006 \001(\003\022\014\n\004used\030\007 \001(\004\022\021\n\tremaining" +
-      "\030\010 \001(\004\022\020\n\010exceeded\030\t \001(\010\"\250\001\n\021UsagePolicy" +
-      "Status\022\033\n\023observed_generation\030\001 \001(\004\022\r\n\005p" +
-      "hase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\".talon.r" +
-      "esources.ResourceCondition\022/\n\004hard\030\004 \003(\013" +
-      "2!.talon.resources.UsageLimitStatus\"\242\001\n\013" +
-      "UsagePolicy\022/\n\010metadata\030\001 \001(\0132\035.talon.re" +
-      "sources.ResourceMeta\022.\n\004spec\030\002 \001(\0132 .tal" +
-      "on.resources.UsagePolicySpec\0222\n\006status\030\003" +
-      " \001(\0132\".talon.resources.UsagePolicyStatus" +
-      "b\006proto3"
+      "\030\002 \001(\t\022\r\n\005model\030\003 \001(\t\"\202\001\n\nUsageLimit\0220\n\010" +
+      "selector\030\001 \001(\0132\036.talon.resources.UsageSe" +
+      "lector\022\016\n\006metric\030\002 \001(\t\022\013\n\003max\030\003 \001(\004\022\016\n\006w" +
+      "indow\030\004 \001(\t\022\025\n\rsubject_scope\030\005 \001(\t\"U\n\017Us" +
+      "agePolicySpec\022\027\n\017namespace_scope\030\001 \001(\t\022)" +
+      "\n\004hard\030\002 \003(\0132\033.talon.resources.UsageLimi" +
+      "t\"\343\001\n\020UsageLimitStatus\0220\n\010selector\030\001 \001(\013" +
+      "2\036.talon.resources.UsageSelector\022\016\n\006metr" +
+      "ic\030\002 \001(\t\022\013\n\003max\030\003 \001(\004\022\016\n\006window\030\004 \001(\t\022\024\n" +
+      "\014window_start\030\005 \001(\003\022\020\n\010reset_at\030\006 \001(\003\022\014\n" +
+      "\004used\030\007 \001(\004\022\021\n\tremaining\030\010 \001(\004\022\020\n\010exceed" +
+      "ed\030\t \001(\010\022\025\n\rsubject_scope\030\n \001(\t\"\250\001\n\021Usag" +
+      "ePolicyStatus\022\033\n\023observed_generation\030\001 \001" +
+      "(\004\022\r\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\"." +
+      "talon.resources.ResourceCondition\022/\n\004har" +
+      "d\030\004 \003(\0132!.talon.resources.UsageLimitStat" +
+      "us\"\242\001\n\013UsagePolicy\022/\n\010metadata\030\001 \001(\0132\035.t" +
+      "alon.resources.ResourceMeta\022.\n\004spec\030\002 \001(" +
+      "\0132 .talon.resources.UsagePolicySpec\0222\n\006s" +
+      "tatus\030\003 \001(\0132\".talon.resources.UsagePolic" +
+      "yStatusb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -6392,7 +8077,7 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     internal_static_talon_resources_UsageLimit_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_UsageLimit_descriptor,
-        new java.lang.String[] { "Selector", "Metric", "Max", "Window", });
+        new java.lang.String[] { "Selector", "Metric", "Max", "Window", "SubjectScope", });
     internal_static_talon_resources_UsagePolicySpec_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_resources_UsagePolicySpec_fieldAccessorTable = new
@@ -6404,7 +8089,7 @@ public final class Usage extends com.google.protobuf.GeneratedFile {
     internal_static_talon_resources_UsageLimitStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_UsageLimitStatus_descriptor,
-        new java.lang.String[] { "Selector", "Metric", "Max", "Window", "WindowStart", "ResetAt", "Used", "Remaining", "Exceeded", });
+        new java.lang.String[] { "Selector", "Metric", "Max", "Window", "WindowStart", "ResetAt", "Used", "Remaining", "Exceeded", "SubjectScope", });
     internal_static_talon_resources_UsagePolicyStatus_descriptor =
       getDescriptor().getMessageType(4);
     internal_static_talon_resources_UsagePolicyStatus_fieldAccessorTable = new

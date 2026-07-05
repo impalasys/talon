@@ -7,6 +7,7 @@ use prost::Message;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
 use crate::control::resource_model::TypedResource;
 use crate::control::{
@@ -14,9 +15,11 @@ use crate::control::{
 };
 use crate::gateway::rpc::{data_proto, resources_proto};
 use crate::harness::knowledge::KvKnowledgeBook;
+use crate::worker::fanout::{FanoutHub, WorkflowFanoutKey};
 
 const MAX_CAS_RETRIES: usize = 8;
 const DEFAULT_WORKFLOW_CLAIM_TIMEOUT_SECONDS: i64 = 60;
+const WORKFLOW_OUTPUT_PREVIEW_CHARS: usize = 600;
 
 pub const LABEL_WORKFLOW: &str = "talon.impalasys.com/workflow";
 pub const LABEL_WORKFLOW_RUN: &str = "talon.impalasys.com/workflow-run";
@@ -421,7 +424,23 @@ pub async fn claim_run(
     Err(anyhow!("failed to atomically claim workflow run"))
 }
 
-pub async fn advance_run(cp: &ControlPlane, mut run: data_proto::WorkflowRun) -> Result<()> {
+pub async fn advance_run(cp: &ControlPlane, run: data_proto::WorkflowRun) -> Result<()> {
+    advance_run_inner(cp, run, None).await
+}
+
+pub async fn advance_run_with_fanout(
+    cp: &ControlPlane,
+    run: data_proto::WorkflowRun,
+    fanout_hub: Arc<FanoutHub>,
+) -> Result<()> {
+    advance_run_inner(cp, run, Some(&fanout_hub)).await
+}
+
+async fn advance_run_inner(
+    cp: &ControlPlane,
+    mut run: data_proto::WorkflowRun,
+    fanout_hub: Option<&Arc<FanoutHub>>,
+) -> Result<()> {
     let claimed_run = run.clone();
     let spec = load_run_spec(cp.kv.as_ref(), &run).await?;
     let mut step_runs = load_step_runs(cp.kv.as_ref(), &run).await?;
@@ -440,7 +459,9 @@ pub async fn advance_run(cp: &ControlPlane, mut run: data_proto::WorkflowRun) ->
             if step_runs.contains_key(&step.id) {
                 let status = &step_runs[&step.id].status;
                 if status == STATUS_STARTING {
-                    if retry_abandoned_starting_step(cp, &run, step, &mut step_runs).await? {
+                    if retry_abandoned_starting_step(cp, &run, step, &mut step_runs, fanout_hub)
+                        .await?
+                    {
                         progressed_this_round = true;
                         made_progress = true;
                         should_redispatch = true;
@@ -448,7 +469,7 @@ pub async fn advance_run(cp: &ControlPlane, mut run: data_proto::WorkflowRun) ->
                         waiting = true;
                     }
                 } else if status == STATUS_WAITING_RETRY {
-                    if try_retry_step(cp, &run, step, &mut step_runs).await? {
+                    if try_retry_step(cp, &run, step, &mut step_runs, fanout_hub).await? {
                         progressed_this_round = true;
                         made_progress = true;
                         should_redispatch = true;
@@ -456,7 +477,7 @@ pub async fn advance_run(cp: &ControlPlane, mut run: data_proto::WorkflowRun) ->
                         waiting = true;
                     }
                 } else if status == STATUS_WAITING_CHILD_SESSION {
-                    if try_complete_agent_step(cp, &run, step, &mut step_runs).await? {
+                    if try_complete_agent_step(cp, &run, step, &mut step_runs, fanout_hub).await? {
                         progressed_this_round = true;
                         made_progress = true;
                         should_redispatch = true;
@@ -464,7 +485,9 @@ pub async fn advance_run(cp: &ControlPlane, mut run: data_proto::WorkflowRun) ->
                         waiting = true;
                     }
                 } else if status == STATUS_WAITING_CHILD_WORKFLOW {
-                    if try_complete_workflow_step(cp, &run, step, &mut step_runs).await? {
+                    if try_complete_workflow_step(cp, &run, step, &mut step_runs, fanout_hub)
+                        .await?
+                    {
                         progressed_this_round = true;
                         made_progress = true;
                         should_redispatch = true;
@@ -472,7 +495,8 @@ pub async fn advance_run(cp: &ControlPlane, mut run: data_proto::WorkflowRun) ->
                         waiting = true;
                     }
                 } else if status == STATUS_SUSPENDED {
-                    if try_complete_resumed_step(cp, &run, step, &mut step_runs).await? {
+                    if try_complete_resumed_step(cp, &run, step, &mut step_runs, fanout_hub).await?
+                    {
                         progressed_this_round = true;
                         made_progress = true;
                         should_redispatch = true;
@@ -491,13 +515,14 @@ pub async fn advance_run(cp: &ControlPlane, mut run: data_proto::WorkflowRun) ->
             if !eval_when(&step.when_json, &view)? {
                 let step_run = new_step_run(step, STATUS_SKIPPED, "", Value::Null)?;
                 persist_step_run(cp, &run, &step_run).await?;
-                append_run_event(
+                append_run_event_with_fanout(
                     cp,
                     &run,
                     &step.id,
                     "step_skipped",
                     "step condition evaluated false",
                     Value::Null,
+                    fanout_hub,
                 )
                 .await?;
                 step_runs.insert(step.id.clone(), step_run);
@@ -512,13 +537,14 @@ pub async fn advance_run(cp: &ControlPlane, mut run: data_proto::WorkflowRun) ->
                 continue;
             }
 
-            append_run_event(
+            append_run_event_with_fanout(
                 cp,
                 &run,
                 &step.id,
                 "step_started",
                 "step started",
                 Value::Null,
+                fanout_hub,
             )
             .await?;
             let starter = new_step_run(step, STATUS_STARTING, "", Value::Null)?;
@@ -534,29 +560,32 @@ pub async fn advance_run(cp: &ControlPlane, mut run: data_proto::WorkflowRun) ->
             };
             match outcome {
                 StepStartOutcome::Completed(mut step_run) => {
-                    step_run = apply_failed_retry_policy(cp, &run, step, step_run).await?;
+                    step_run =
+                        apply_failed_retry_policy(cp, &run, step, step_run, fanout_hub).await?;
                     persist_step_run(cp, &run, &step_run).await?;
                     if step_run.status == STATUS_FAILED {
                         let error = step_run.error.clone();
-                        append_run_event(
+                        append_run_event_with_fanout(
                             cp,
                             &run,
                             &step.id,
                             "step_failed",
                             &error,
                             json!({ "error": error }),
+                            fanout_hub,
                         )
                         .await?;
                     } else if step_run.status == STATUS_WAITING_RETRY {
                         waiting = true;
                     } else {
-                        append_run_event(
+                        append_run_event_with_fanout(
                             cp,
                             &run,
                             &step.id,
                             "step_completed",
                             "step completed",
                             parse_json_or(&step_run.output_json, Value::Null)?,
+                            fanout_hub,
                         )
                         .await?;
                     }
@@ -574,13 +603,14 @@ pub async fn advance_run(cp: &ControlPlane, mut run: data_proto::WorkflowRun) ->
                 }
                 StepStartOutcome::Suspended(step_run) => {
                     persist_step_run(cp, &run, &step_run).await?;
-                    append_run_event(
+                    append_run_event_with_fanout(
                         cp,
                         &run,
                         &step.id,
                         "run_suspended",
                         "workflow run suspended",
                         parse_json_or(&step_run.suspend_json, Value::Null)?,
+                        fanout_hub,
                     )
                     .await?;
                     step_runs.insert(step.id.clone(), step_run);
@@ -647,11 +677,12 @@ pub async fn advance_run(cp: &ControlPlane, mut run: data_proto::WorkflowRun) ->
     }
 
     if let Some((event_type, message, payload)) = final_run_event {
-        append_run_event(cp, &run, "", &event_type, &message, payload).await?;
+        append_run_event_with_fanout(cp, &run, "", &event_type, &message, payload, fanout_hub)
+            .await?;
     }
 
     if run.status == STATUS_COMPLETED {
-        dispatch_workflow_reply(cp, &run).await?;
+        dispatch_workflow_reply(cp, &run, fanout_hub).await?;
     }
 
     if is_terminal(&run.status) {
@@ -854,7 +885,11 @@ async fn start_child_workflow_step(
     Ok(StepStartOutcome::Waiting(step_run))
 }
 
-async fn dispatch_workflow_reply(cp: &ControlPlane, run: &data_proto::WorkflowRun) -> Result<()> {
+async fn dispatch_workflow_reply(
+    cp: &ControlPlane,
+    run: &data_proto::WorkflowRun,
+    fanout_hub: Option<&Arc<FanoutHub>>,
+) -> Result<()> {
     let output = parse_json_or(&run.output_json, Value::Object(Map::new()))?;
     let Some(reply_value) = output.get("reply").cloned() else {
         return Ok(());
@@ -891,24 +926,26 @@ async fn dispatch_workflow_reply(cp: &ControlPlane, run: &data_proto::WorkflowRu
 
     match result {
         Ok(()) => {
-            append_run_event(
+            append_run_event_with_fanout(
                 cp,
                 run,
                 "",
                 "reply_sent",
                 "workflow reply dispatched",
                 json!({ "deliveryId": delivery_id }),
+                fanout_hub,
             )
             .await?;
         }
         Err(err) => {
-            append_run_event(
+            append_run_event_with_fanout(
                 cp,
                 run,
                 "",
                 "reply_failed",
                 "workflow reply dispatch failed",
                 json!({ "error": err.to_string() }),
+                fanout_hub,
             )
             .await?;
         }
@@ -921,11 +958,12 @@ async fn try_complete_agent_step(
     run: &data_proto::WorkflowRun,
     step: &resources_proto::WorkflowStep,
     step_runs: &mut HashMap<String, data_proto::WorkflowStepRun>,
+    fanout_hub: Option<&Arc<FanoutHub>>,
 ) -> Result<bool> {
     let Some(current) = step_runs.get(&step.id).cloned() else {
         return Ok(false);
     };
-    if let Some(failed) = timed_out_step(cp, run, step, current.clone()).await? {
+    if let Some(failed) = timed_out_step(cp, run, step, current.clone(), fanout_hub).await? {
         persist_step_run(cp, run, &failed).await?;
         step_runs.insert(step.id.clone(), failed);
         return Ok(true);
@@ -949,26 +987,28 @@ async fn try_complete_agent_step(
         failed.status = STATUS_FAILED.to_string();
         failed.error = format!("child session '{}' failed", session.id);
         failed.updated_at = Utc::now().timestamp_micros();
-        let failed = apply_failed_retry_policy(cp, run, step, failed).await?;
+        let failed = apply_failed_retry_policy(cp, run, step, failed, fanout_hub).await?;
         persist_step_run(cp, run, &failed).await?;
         if failed.status == STATUS_WAITING_RETRY {
-            append_run_event(
+            append_run_event_with_fanout(
                 cp,
                 run,
                 &step.id,
                 "step_retry_scheduled",
                 &failed.error,
                 json!({ "error": failed.error, "nextRetryAt": failed.next_retry_at }),
+                fanout_hub,
             )
             .await?;
         } else {
-            append_run_event(
+            append_run_event_with_fanout(
                 cp,
                 run,
                 &step.id,
                 "step_failed",
                 &failed.error,
                 json!({ "error": failed.error }),
+                fanout_hub,
             )
             .await?;
         }
@@ -976,33 +1016,59 @@ async fn try_complete_agent_step(
         return Ok(true);
     }
     let text = latest_assistant_text(cp.kv.as_ref(), &run.ns, &step.agent, &session.id).await?;
-    let output = match apply_output_policy(step, &text) {
-        Ok(output) => output,
+    let output_result = match apply_output_policy_with_repair(step, &text) {
+        Ok(output_result) => output_result,
         Err(err) => {
+            let assistant_text_preview = text_preview(&text, WORKFLOW_OUTPUT_PREVIEW_CHARS);
+            let assistant_text_length = text.chars().count();
+            tracing::warn!(
+                namespace = %run.ns,
+                workflow = %run.workflow,
+                run_id = %run.id,
+                step_id = %step.id,
+                agent = %step.agent,
+                session_id = %session.id,
+                attempt = current.attempt,
+                assistant_text_length,
+                assistant_text_preview = %assistant_text_preview,
+                error = %err,
+                "workflow step output parsing failed"
+            );
             let mut failed = current;
             failed.status = STATUS_FAILED.to_string();
             failed.error = err.to_string();
             failed.updated_at = Utc::now().timestamp_micros();
-            let failed = apply_failed_retry_policy(cp, run, step, failed).await?;
+            let failed = apply_failed_retry_policy(cp, run, step, failed, fanout_hub).await?;
             persist_step_run(cp, run, &failed).await?;
             if failed.status == STATUS_WAITING_RETRY {
-                append_run_event(
+                append_run_event_with_fanout(
                     cp,
                     run,
                     &step.id,
                     "step_retry_scheduled",
                     &failed.error,
-                    json!({ "error": failed.error, "nextRetryAt": failed.next_retry_at }),
+                    json!({
+                        "error": failed.error,
+                        "nextRetryAt": failed.next_retry_at,
+                        "assistantTextPreview": assistant_text_preview,
+                        "assistantTextLength": assistant_text_length,
+                    }),
+                    fanout_hub,
                 )
                 .await?;
             } else {
-                append_run_event(
+                append_run_event_with_fanout(
                     cp,
                     run,
                     &step.id,
                     "step_failed",
                     &failed.error,
-                    json!({ "error": failed.error }),
+                    json!({
+                        "error": failed.error,
+                        "assistantTextPreview": assistant_text_preview,
+                        "assistantTextLength": assistant_text_length,
+                    }),
+                    fanout_hub,
                 )
                 .await?;
             }
@@ -1010,18 +1076,28 @@ async fn try_complete_agent_step(
             return Ok(true);
         }
     };
+    let output = output_result.output;
+    let output_repair = output_result.repair;
     let mut completed = current;
     completed.status = STATUS_COMPLETED.to_string();
     completed.output_json = serde_json::to_string(&output)?;
     completed.updated_at = Utc::now().timestamp_micros();
     persist_step_run(cp, run, &completed).await?;
-    append_run_event(
+    let mut event_payload = output.clone();
+    if let Some(repair) = output_repair {
+        event_payload = json!({
+            "output": output,
+            "outputRepair": repair,
+        });
+    }
+    append_run_event_with_fanout(
         cp,
         run,
         &step.id,
         "step_completed",
         "agent step completed",
-        output,
+        event_payload,
+        fanout_hub,
     )
     .await?;
     step_runs.insert(step.id.clone(), completed);
@@ -1033,11 +1109,12 @@ async fn try_complete_workflow_step(
     run: &data_proto::WorkflowRun,
     step: &resources_proto::WorkflowStep,
     step_runs: &mut HashMap<String, data_proto::WorkflowStepRun>,
+    fanout_hub: Option<&Arc<FanoutHub>>,
 ) -> Result<bool> {
     let Some(current) = step_runs.get(&step.id).cloned() else {
         return Ok(false);
     };
-    if let Some(failed) = timed_out_step(cp, run, step, current.clone()).await? {
+    if let Some(failed) = timed_out_step(cp, run, step, current.clone(), fanout_hub).await? {
         persist_step_run(cp, run, &failed).await?;
         step_runs.insert(step.id.clone(), failed);
         return Ok(true);
@@ -1060,13 +1137,14 @@ async fn try_complete_workflow_step(
         completed.output_json = serde_json::to_string(&output)?;
         completed.updated_at = Utc::now().timestamp_micros();
         persist_step_run(cp, run, &completed).await?;
-        append_run_event(
+        append_run_event_with_fanout(
             cp,
             run,
             &step.id,
             "step_completed",
             "child workflow step completed",
             output,
+            fanout_hub,
         )
         .await?;
         step_runs.insert(step.id.clone(), completed);
@@ -1089,6 +1167,7 @@ async fn try_complete_resumed_step(
     run: &data_proto::WorkflowRun,
     step: &resources_proto::WorkflowStep,
     step_runs: &mut HashMap<String, data_proto::WorkflowStepRun>,
+    fanout_hub: Option<&Arc<FanoutHub>>,
 ) -> Result<bool> {
     let Some(current) = step_runs.get(&step.id).cloned() else {
         return Ok(false);
@@ -1102,13 +1181,14 @@ async fn try_complete_resumed_step(
                 completed.output_json = serde_json::to_string(&output)?;
                 completed.updated_at = Utc::now().timestamp_micros();
                 persist_step_run(cp, run, &completed).await?;
-                append_run_event(
+                append_run_event_with_fanout(
                     cp,
                     run,
                     &step.id,
                     "step_completed",
                     "wait step completed",
                     output,
+                    fanout_hub,
                 )
                 .await?;
                 step_runs.insert(step.id.clone(), completed);
@@ -1126,13 +1206,14 @@ async fn try_complete_resumed_step(
     completed.output_json = serde_json::to_string(&resume)?;
     completed.updated_at = Utc::now().timestamp_micros();
     persist_step_run(cp, run, &completed).await?;
-    append_run_event(
+    append_run_event_with_fanout(
         cp,
         run,
         &step.id,
         "step_completed",
         "resumed step completed",
         resume,
+        fanout_hub,
     )
     .await?;
     step_runs.insert(step.id.clone(), completed);
@@ -1427,6 +1508,7 @@ async fn timed_out_step(
     run: &data_proto::WorkflowRun,
     step: &resources_proto::WorkflowStep,
     mut step_run: data_proto::WorkflowStepRun,
+    fanout_hub: Option<&Arc<FanoutHub>>,
 ) -> Result<Option<data_proto::WorkflowStepRun>> {
     let Some(timeout_at) = step_run.timeout_at else {
         return Ok(None);
@@ -1438,7 +1520,7 @@ async fn timed_out_step(
     step_run.error = format!("workflow step '{}' timed out", step.id);
     step_run.updated_at = Utc::now().timestamp_micros();
     Ok(Some(
-        apply_failed_retry_policy(cp, run, step, step_run).await?,
+        apply_failed_retry_policy(cp, run, step, step_run, fanout_hub).await?,
     ))
 }
 
@@ -1447,6 +1529,7 @@ async fn retry_abandoned_starting_step(
     run: &data_proto::WorkflowRun,
     step: &resources_proto::WorkflowStep,
     step_runs: &mut HashMap<String, data_proto::WorkflowStepRun>,
+    fanout_hub: Option<&Arc<FanoutHub>>,
 ) -> Result<bool> {
     let Some(current) = step_runs.get(&step.id).cloned() else {
         return Ok(false);
@@ -1459,7 +1542,7 @@ async fn retry_abandoned_starting_step(
     failed.status = STATUS_FAILED.to_string();
     failed.error = format!("workflow step '{}' was abandoned while starting", step.id);
     failed.updated_at = Utc::now().timestamp_micros();
-    let failed = apply_failed_retry_policy(cp, run, step, failed).await?;
+    let failed = apply_failed_retry_policy(cp, run, step, failed, fanout_hub).await?;
     persist_step_run(cp, run, &failed).await?;
     step_runs.insert(step.id.clone(), failed);
     Ok(true)
@@ -1470,6 +1553,7 @@ async fn try_retry_step(
     run: &data_proto::WorkflowRun,
     step: &resources_proto::WorkflowStep,
     step_runs: &mut HashMap<String, data_proto::WorkflowStepRun>,
+    fanout_hub: Option<&Arc<FanoutHub>>,
 ) -> Result<bool> {
     let Some(current) = step_runs.get(&step.id).cloned() else {
         return Ok(false);
@@ -1481,13 +1565,14 @@ async fn try_retry_step(
         return Ok(false);
     }
     let view = run_view(run, step_runs)?;
-    append_run_event(
+    append_run_event_with_fanout(
         cp,
         run,
         &step.id,
         "step_started",
         "retry step started",
         Value::Null,
+        fanout_hub,
     )
     .await?;
     let attempt = current.attempt.saturating_add(1);
@@ -1503,7 +1588,7 @@ async fn try_retry_step(
         | StepStartOutcome::Suspended(step_run) => step_run,
     };
     if step_run.status == STATUS_FAILED {
-        step_run = apply_failed_retry_policy(cp, run, step, step_run).await?;
+        step_run = apply_failed_retry_policy(cp, run, step, step_run, fanout_hub).await?;
     }
     persist_step_run(cp, run, &step_run).await?;
     step_runs.insert(step.id.clone(), step_run);
@@ -1515,6 +1600,7 @@ async fn apply_failed_retry_policy(
     run: &data_proto::WorkflowRun,
     step: &resources_proto::WorkflowStep,
     mut step_run: data_proto::WorkflowStepRun,
+    fanout_hub: Option<&Arc<FanoutHub>>,
 ) -> Result<data_proto::WorkflowStepRun> {
     if step_run.status != STATUS_FAILED {
         return Ok(step_run);
@@ -1536,13 +1622,14 @@ async fn apply_failed_retry_policy(
     let wakeup =
         schedule_workflow_wakeup(cp, run, step, step_run.attempt, next_retry_at, "retry").await?;
     step_run.wait_wakeup_handle = wakeup.handle.unwrap_or_default();
-    append_run_event(
+    append_run_event_with_fanout(
         cp,
         run,
         &step.id,
         "step_retry_scheduled",
         &step_run.error,
         json!({ "attempt": step_run.attempt, "nextRetryAt": next_retry_at }),
+        fanout_hub,
     )
     .await?;
     Ok(step_run)
@@ -1657,6 +1744,18 @@ pub async fn append_run_event(
     message: &str,
     payload: Value,
 ) -> Result<data_proto::WorkflowRunEvent> {
+    append_run_event_with_fanout(cp, run, step_id, event_type, message, payload, None).await
+}
+
+async fn append_run_event_with_fanout(
+    cp: &ControlPlane,
+    run: &data_proto::WorkflowRun,
+    step_id: &str,
+    event_type: &str,
+    message: &str,
+    payload: Value,
+    fanout_hub: Option<&Arc<FanoutHub>>,
+) -> Result<data_proto::WorkflowRunEvent> {
     let event = data_proto::WorkflowRunEvent {
         id: crate::control::uuid::v7(),
         ns: run.ns.clone(),
@@ -1674,12 +1773,10 @@ pub async fn append_run_event(
             &event,
         )
         .await?;
-    cp.pubsub
-        .publish(
-            &topics::workflow_events_topic(&run.ns, &run.workflow, &run.id),
-            &event.encode_to_vec(),
-        )
-        .await?;
+    if let Some(fanout_hub) = fanout_hub {
+        let key = WorkflowFanoutKey::new(run.ns.clone(), run.workflow.clone(), run.id.clone());
+        fanout_hub.publish_workflow_event(&key, event.clone()).await;
+    }
     Ok(event)
 }
 
@@ -1948,23 +2045,128 @@ fn lookup_path<'a>(root: &'a Value, path: &str) -> Option<&'a Value> {
     Some(current)
 }
 
+#[derive(Debug)]
+struct OutputPolicyResult {
+    output: Value,
+    repair: Option<&'static str>,
+}
+
 fn apply_output_policy(step: &resources_proto::WorkflowStep, text: &str) -> Result<Value> {
+    Ok(apply_output_policy_with_repair(step, text)?.output)
+}
+
+fn apply_output_policy_with_repair(
+    step: &resources_proto::WorkflowStep,
+    text: &str,
+) -> Result<OutputPolicyResult> {
     let format = step
         .output
         .as_ref()
         .map(|output| output.format.as_str())
         .filter(|format| !format.is_empty())
         .unwrap_or("text");
-    let output = if format == "json" {
-        serde_json::from_str::<Value>(text)
+    let (output, repair) = if format == "json" {
+        parse_json_output(text)
             .map_err(|err| anyhow!("step '{}' expected JSON output: {}", step.id, err))?
     } else {
-        json!({ "text": text })
+        (json!({ "text": text }), None)
     };
     if let Some(policy) = &step.output {
         validate_basic_json_schema("step output", &policy.schema_json, &output)?;
     }
-    Ok(output)
+    Ok(OutputPolicyResult { output, repair })
+}
+
+fn parse_json_output(text: &str) -> Result<(Value, Option<&'static str>)> {
+    match serde_json::from_str::<Value>(text) {
+        Ok(value) => return Ok((value, None)),
+        Err(raw_err) => {
+            for candidate in fenced_json_candidates(text) {
+                if let Ok(value) = serde_json::from_str::<Value>(&candidate) {
+                    return Ok((value, Some("fenced_json")));
+                }
+            }
+            for candidate in balanced_json_candidates(text) {
+                if let Ok(value) = serde_json::from_str::<Value>(&candidate) {
+                    return Ok((value, Some("balanced_json")));
+                }
+            }
+            Err(raw_err.into())
+        }
+    }
+}
+
+fn fenced_json_candidates(text: &str) -> Vec<String> {
+    let mut candidates = Vec::new();
+    let mut rest = text;
+    while let Some(start) = rest.find("```") {
+        let after_start = &rest[start + 3..];
+        let Some(header_end) = after_start.find('\n') else {
+            break;
+        };
+        let fence_label = after_start[..header_end].trim().to_ascii_lowercase();
+        let after_header = &after_start[header_end + 1..];
+        let Some(end) = after_header.find("```") else {
+            break;
+        };
+        if fence_label.is_empty() || fence_label == "json" {
+            candidates.push(after_header[..end].trim().to_string());
+        }
+        rest = &after_header[end + 3..];
+    }
+    candidates
+}
+
+fn balanced_json_candidates(text: &str) -> Vec<String> {
+    let bytes = text.as_bytes();
+    let mut candidates = Vec::new();
+    for (start, byte) in bytes.iter().enumerate() {
+        if *byte != b'{' && *byte != b'[' {
+            continue;
+        }
+        let opening = *byte;
+        let closing = if opening == b'{' { b'}' } else { b']' };
+        let mut stack = vec![closing];
+        let mut in_string = false;
+        let mut escaped = false;
+        for idx in start + 1..bytes.len() {
+            let current = bytes[idx];
+            if in_string {
+                if escaped {
+                    escaped = false;
+                } else if current == b'\\' {
+                    escaped = true;
+                } else if current == b'"' {
+                    in_string = false;
+                }
+                continue;
+            }
+            match current {
+                b'"' => in_string = true,
+                b'{' => stack.push(b'}'),
+                b'[' => stack.push(b']'),
+                b'}' | b']' => {
+                    if stack.pop() != Some(current) {
+                        break;
+                    }
+                    if stack.is_empty() {
+                        candidates.push(text[start..=idx].trim().to_string());
+                        break;
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    candidates
+}
+
+fn text_preview(text: &str, max_chars: usize) -> String {
+    let mut preview: String = text.chars().take(max_chars).collect();
+    if text.chars().count() > max_chars {
+        preview.push_str("...");
+    }
+    preview
 }
 
 async fn latest_assistant_text(
@@ -2369,6 +2571,47 @@ mod tests {
         }
     }
 
+    #[tokio::test]
+    async fn create_run_persists_started_event_and_publishes_only_workflow_dispatch() {
+        let kv = Arc::new(MockKvStore::new());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let cp = ControlPlane::builder(kv.clone(), pubsub.clone()).build();
+        let workflow = workflow_fixture(
+            "default",
+            "dispatch-only",
+            resources_proto::WorkflowSpec {
+                steps: vec![resources_proto::WorkflowStep {
+                    id: "copy".to_string(),
+                    r#type: "transform".to_string(),
+                    input_json: r#"{"ok":true}"#.to_string(),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            },
+        );
+
+        let run = create_run(&cp, &workflow, "{}".to_string(), HashMap::new())
+            .await
+            .unwrap();
+
+        let published = pubsub.published.lock().await;
+        assert_eq!(published.len(), 1);
+        assert_eq!(published[0].0, topics::WORKFLOW_DISPATCH_TOPIC);
+        drop(published);
+
+        let events = kv
+            .list_entries(&keys::workflow_run_event_prefix(
+                "default",
+                "dispatch-only",
+                &run.id,
+            ))
+            .await
+            .unwrap();
+        assert_eq!(events.len(), 1);
+        let started = data_proto::WorkflowRunEvent::decode(events[0].1.as_slice()).unwrap();
+        assert_eq!(started.r#type, "run_started");
+    }
+
     fn workflow_dispatch(run: &data_proto::WorkflowRun, reason: &str) -> WorkflowDispatchEvent {
         WorkflowDispatchEvent {
             ns: run.ns.clone(),
@@ -2450,6 +2693,94 @@ mod tests {
             .into_iter()
             .filter(|current| current == event_type)
             .count()
+    }
+
+    #[test]
+    fn json_output_policy_accepts_raw_json() {
+        let (value, repair) = parse_json_output(r#"{"drafts":[]}"#).unwrap();
+        assert_eq!(value, json!({"drafts": []}));
+        assert_eq!(repair, None);
+    }
+
+    #[test]
+    fn json_output_policy_repairs_fenced_json() {
+        let (value, repair) = parse_json_output(
+            r#"Here is the result:
+
+```json
+{"drafts":[{"draftId":1,"status":"drafted"}]}
+```
+
+Done."#,
+        )
+        .unwrap();
+        assert_eq!(
+            value,
+            json!({"drafts": [{"draftId": 1, "status": "drafted"}]})
+        );
+        assert_eq!(repair, Some("fenced_json"));
+    }
+
+    #[test]
+    fn json_output_policy_repairs_unlabeled_fenced_json() {
+        let (value, repair) = parse_json_output(
+            r#"```
+[{"draftId":1,"status":"drafted"}]
+```"#,
+        )
+        .unwrap();
+        assert_eq!(value, json!([{"draftId": 1, "status": "drafted"}]));
+        assert_eq!(repair, Some("fenced_json"));
+    }
+
+    #[test]
+    fn json_output_policy_uses_first_valid_fence() {
+        let (value, repair) = parse_json_output(
+            r#"```json
+{not valid}
+```
+
+```json
+{"ok":true}
+```"#,
+        )
+        .unwrap();
+        assert_eq!(value, json!({"ok": true}));
+        assert_eq!(repair, Some("fenced_json"));
+    }
+
+    #[test]
+    fn json_output_policy_repairs_balanced_json() {
+        let (value, repair) =
+            parse_json_output(r#"I found this result: {"ok":true,"items":[1,2]}."#).unwrap();
+        assert_eq!(value, json!({"ok": true, "items": [1, 2]}));
+        assert_eq!(repair, Some("balanced_json"));
+    }
+
+    #[test]
+    fn json_output_policy_still_rejects_unrecoverable_prose() {
+        let err = parse_json_output("I cannot produce a draft for this input.").unwrap_err();
+        assert!(err.to_string().contains("expected value"));
+    }
+
+    #[test]
+    fn json_output_policy_validates_schema_after_repair() {
+        let step = resources_proto::WorkflowStep {
+            id: "generate_drafts".to_string(),
+            output: Some(resources_proto::WorkflowStepOutputPolicy {
+                format: "json".to_string(),
+                schema_json: r#"{"type":"object","required":["drafts"]}"#.to_string(),
+            }),
+            ..Default::default()
+        };
+        let err = apply_output_policy_with_repair(
+            &step,
+            r#"```json
+{"notDrafts":[]}
+```"#,
+        )
+        .unwrap_err();
+        assert!(err.to_string().contains("missing required property"));
     }
 
     #[tokio::test]

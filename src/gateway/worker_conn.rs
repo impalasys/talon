@@ -1,8 +1,10 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::control::{keys, ns, KeyValueStore};
 use crate::gateway::rpc::{resources_proto, worker_proto};
 use hyper_util::rt::TokioIo;
+use prost::Message;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -20,6 +22,37 @@ pub(crate) struct WorkerConnectionPool {
 impl WorkerConnectionPool {
     pub(crate) fn new() -> Self {
         Self::default()
+    }
+
+    pub(crate) async fn worker_endpoints(
+        kv: &dyn KeyValueStore,
+        worker_id: &str,
+    ) -> std::result::Result<Vec<resources_proto::WorkerEndpoint>, tonic::Status> {
+        let key = keys::ResourceKey::new(ns::TALON_SYSTEM, &[], "Worker", worker_id);
+        let Some(bytes) = kv
+            .get(&key)
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to fetch worker: {err}")))?
+        else {
+            return Err(tonic::Status::not_found("claim worker not found"));
+        };
+        let worker = resources_proto::Worker::decode(bytes.as_slice())
+            .map_err(|err| tonic::Status::internal(format!("Failed to decode worker: {err}")))?;
+        let Some(status) = worker.status else {
+            return Err(tonic::Status::unavailable("worker status is missing"));
+        };
+        if status.phase != "ready" {
+            return Err(tonic::Status::unavailable("worker is not ready"));
+        }
+        let endpoints: Vec<_> = status
+            .endpoints
+            .into_iter()
+            .filter(|endpoint| !endpoint.url.trim().is_empty())
+            .collect();
+        if endpoints.is_empty() {
+            return Err(tonic::Status::unavailable("worker has no endpoints"));
+        }
+        Ok(endpoints)
     }
 
     pub(crate) async fn fanout_client(

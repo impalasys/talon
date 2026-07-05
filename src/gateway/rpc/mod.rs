@@ -75,6 +75,10 @@ pub mod proto {
     pub use super::generated::proto::*;
 }
 
+pub mod data {
+    pub use super::generated::data::*;
+}
+
 pub mod data_proto {
     pub use super::generated::data::*;
 }

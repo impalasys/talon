@@ -1,18 +1,21 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
+use super::{data_proto, proto, resources_proto, worker_proto, GrpcGatewayHandler};
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, topics, KeyValueStore, ProtoKeyValueStoreExt};
+use crate::control::{keys, KeyValueStore, ProtoKeyValueStoreExt};
+use crate::gateway::worker_conn::WorkerConnectionPool;
 use crate::worker::workflows;
-use futures::{stream, StreamExt};
+use futures::StreamExt;
 use prost::Message;
 use std::collections::HashSet;
+use std::time::Duration;
 
 const DEFAULT_WORKFLOW_RUNS_PAGE_SIZE: usize = 50;
 const MAX_WORKFLOW_RUNS_PAGE_SIZE: usize = 200;
 const WORKFLOW_RUN_KEY_SCAN_BATCH_SIZE: usize = 512;
 const MAX_WORKFLOW_RUN_LIST_PAGES_SCANNED: usize = 10;
+const WORKFLOW_FANOUT_ATTACH_RETRY: Duration = Duration::from_millis(250);
 
 fn workflow_from_resource(
     resource: resources_proto::Resource,
@@ -230,7 +233,8 @@ impl GrpcGatewayHandler {
     >{
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
-        self.gateway
+        let run = self
+            .gateway
             .kv
             .get_msg::<data_proto::WorkflowRun>(&keys::workflow_run(
                 &req.ns,
@@ -240,46 +244,13 @@ impl GrpcGatewayHandler {
             .await
             .map_err(|err| tonic::Status::internal(err.to_string()))?
             .ok_or_else(|| tonic::Status::not_found("workflow run not found"))?;
-        let stream = self
-            .gateway
-            .pubsub
-            .subscribe(&topics::workflow_events_topic(
-                &req.ns,
-                &req.workflow,
-                &req.run_id,
-            ))
-            .await
-            .map_err(|err| tonic::Status::internal(err.to_string()))?;
-        let mut entries = self
-            .gateway
-            .kv
-            .list_entries(&keys::workflow_run_event_prefix(
-                &req.ns,
-                &req.workflow,
-                &req.run_id,
-            ))
-            .await
-            .map_err(|err| tonic::Status::internal(err.to_string()))?;
-        entries.sort_by(|left, right| left.0.cmp(&right.0));
-
-        let mut historical = Vec::new();
-        for (key, bytes) in entries {
-            match data_proto::WorkflowRunEvent::decode(bytes.as_slice()) {
-                Ok(event) => historical.push(event),
-                Err(err) => {
-                    tracing::warn!(
-                        event_key = %key,
-                        error = %err,
-                        "failed to decode workflow run event while listing history; skipping entry"
-                    );
-                }
-            }
-        }
-        historical.sort_by(|left, right| {
-            left.timestamp
-                .cmp(&right.timestamp)
-                .then_with(|| left.id.cmp(&right.id))
-        });
+        let historical = load_sorted_workflow_run_events(
+            self.gateway.kv.as_ref(),
+            &req.ns,
+            &req.workflow,
+            &req.run_id,
+        )
+        .await?;
 
         let mut seen = HashSet::new();
         let mut terminal_seen = false;
@@ -297,39 +268,124 @@ impl GrpcGatewayHandler {
             }
         }
 
-        let historical_stream = stream::iter(historical_items);
-        if terminal_seen {
-            return Ok(tonic::Response::new(Box::pin(historical_stream)));
-        }
+        let kv = self.gateway.kv.clone();
+        let worker_connections = self.gateway.worker_connections.clone();
+        let ns = req.ns;
+        let workflow = req.workflow;
+        let run_id = req.run_id;
+        let event_stream = async_stream::stream! {
+            let mut seen = seen;
+            for item in historical_items {
+                yield item;
+            }
+            if terminal_seen {
+                return;
+            }
 
-        let live_stream = stream
-            .scan((seen, false), |(seen, terminated), bytes| {
-                if *terminated {
-                    return futures::future::ready(None);
+            let mut current_run = run;
+            loop {
+                if is_terminal_workflow_status(&current_run.status) {
+                    return;
                 }
-                let item = match data_proto::WorkflowRunEvent::decode(bytes.as_slice()) {
-                    Ok(event) => {
-                        if !seen.insert(event.id.clone()) {
-                            Some(None)
-                        } else {
-                            if is_terminal_workflow_event(&event.r#type) {
-                                *terminated = true;
-                            }
-                            Some(Some(Ok(event)))
+                if current_run.claim_owner.trim().is_empty() {
+                    tokio::time::sleep(WORKFLOW_FANOUT_ATTACH_RETRY).await;
+                    match kv
+                        .get_msg::<data_proto::WorkflowRun>(&keys::workflow_run(&ns, &workflow, &run_id))
+                        .await
+                    {
+                        Ok(Some(updated)) => current_run = updated,
+                        Ok(None) => {
+                            yield Err(tonic::Status::not_found("workflow run not found"));
+                            return;
+                        }
+                        Err(err) => {
+                            yield Err(tonic::Status::internal(err.to_string()));
+                            return;
                         }
                     }
-                    Err(err) => {
-                        tracing::warn!(
-                            error = %err,
-                            "failed to decode workflow run event while streaming; skipping entry"
-                        );
-                        Some(None)
+                    continue;
+                }
+
+                match connect_workflow_event_stream(
+                    kv.as_ref(),
+                    worker_connections.as_ref(),
+                    &current_run,
+                )
+                .await
+                {
+                    Ok(mut stream) => {
+                        match load_sorted_workflow_run_events(kv.as_ref(), &ns, &workflow, &run_id).await {
+                            Ok(catch_up_events) => {
+                                for event in catch_up_events {
+                                    if !seen.insert(event.id.clone()) {
+                                        continue;
+                                    }
+                                    let terminal = is_terminal_workflow_event(&event.r#type);
+                                    yield Ok(event);
+                                    if terminal {
+                                        return;
+                                    }
+                                }
+                            }
+                            Err(status) => {
+                                yield Err(status);
+                                return;
+                            }
+                        }
+                        while let Some(item) = stream.next().await {
+                            match item {
+                                Ok(response) => {
+                                    let Some(event) = response.event else {
+                                        continue;
+                                    };
+                                    if !seen.insert(event.id.clone()) {
+                                        continue;
+                                    }
+                                    let terminal = is_terminal_workflow_event(&event.r#type);
+                                    yield Ok(event);
+                                    if terminal {
+                                        return;
+                                    }
+                                }
+                                Err(status) => {
+                                    if status.code() != tonic::Code::NotFound
+                                        && status.code() != tonic::Code::Unavailable
+                                    {
+                                        yield Err(status);
+                                        return;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
                     }
-                };
-                futures::future::ready(item)
-            })
-            .filter_map(|event| async move { event });
-        let event_stream = historical_stream.chain(live_stream);
+                    Err(status) => {
+                        if status.code() != tonic::Code::NotFound
+                            && status.code() != tonic::Code::Unavailable
+                        {
+                            yield Err(status);
+                            return;
+                        }
+                    }
+                }
+
+                tokio::time::sleep(WORKFLOW_FANOUT_ATTACH_RETRY).await;
+                match kv
+                    .get_msg::<data_proto::WorkflowRun>(&keys::workflow_run(&ns, &workflow, &run_id))
+                    .await
+                {
+                    Ok(Some(updated)) => current_run = updated,
+                    Ok(None) => {
+                        yield Err(tonic::Status::not_found("workflow run not found"));
+                        return;
+                    }
+                    Err(err) => {
+                        yield Err(tonic::Status::internal(err.to_string()));
+                        return;
+                    }
+                }
+            }
+        };
         Ok(tonic::Response::new(Box::pin(event_stream)))
     }
 }
@@ -349,6 +405,72 @@ async fn load_sorted_workflow_step_runs(
             .then_with(|| left.id.cmp(&right.id))
     });
     Ok(steps)
+}
+
+async fn load_sorted_workflow_run_events(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    workflow: &str,
+    run_id: &str,
+) -> Result<Vec<data_proto::WorkflowRunEvent>, tonic::Status> {
+    let mut entries = kv
+        .list_entries(&keys::workflow_run_event_prefix(ns, workflow, run_id))
+        .await
+        .map_err(|err| tonic::Status::internal(err.to_string()))?;
+    entries.sort_by(|left, right| left.0.cmp(&right.0));
+
+    let mut events = Vec::new();
+    for (key, bytes) in entries {
+        match data_proto::WorkflowRunEvent::decode(bytes.as_slice()) {
+            Ok(event) => events.push(event),
+            Err(err) => {
+                tracing::warn!(
+                    event_key = %key,
+                    error = %err,
+                    "failed to decode workflow run event while listing history; skipping entry"
+                );
+            }
+        }
+    }
+    events.sort_by(|left, right| {
+        left.timestamp
+            .cmp(&right.timestamp)
+            .then_with(|| left.id.cmp(&right.id))
+    });
+    Ok(events)
+}
+
+async fn connect_workflow_event_stream(
+    kv: &dyn KeyValueStore,
+    worker_connections: &WorkerConnectionPool,
+    run: &data_proto::WorkflowRun,
+) -> Result<tonic::Streaming<worker_proto::StreamWorkflowEventsResponse>, tonic::Status> {
+    let endpoints = WorkerConnectionPool::worker_endpoints(kv, &run.claim_owner).await?;
+    let mut last_status = None;
+    for endpoint in endpoints {
+        match stream_workflow_events_from_endpoint(worker_connections, &endpoint, run).await {
+            Ok(stream) => return Ok(stream),
+            Err(status) => last_status = Some(status),
+        }
+    }
+    Err(last_status.unwrap_or_else(|| tonic::Status::unavailable("worker has no endpoints")))
+}
+
+async fn stream_workflow_events_from_endpoint(
+    worker_connections: &WorkerConnectionPool,
+    endpoint: &resources_proto::WorkerEndpoint,
+    run: &data_proto::WorkflowRun,
+) -> Result<tonic::Streaming<worker_proto::StreamWorkflowEventsResponse>, tonic::Status> {
+    let mut client = worker_connections.fanout_client(endpoint).await?;
+    let response = client
+        .stream_workflow_events(worker_proto::StreamWorkflowEventsRequest {
+            ns: run.ns.clone(),
+            workflow: run.workflow.clone(),
+            run_id: run.id.clone(),
+            after_sequence: 0,
+        })
+        .await?;
+    Ok(response.into_inner())
 }
 
 fn workflow_run_mutation_status(err: anyhow::Error) -> tonic::Status {
@@ -384,6 +506,10 @@ fn validated_workflow_runs_page_size(page_size: i32) -> Result<usize, tonic::Sta
 
 fn is_terminal_workflow_event(event_type: &str) -> bool {
     matches!(event_type, "run_completed" | "run_failed" | "run_cancelled")
+}
+
+fn is_terminal_workflow_status(status: &str) -> bool {
+    matches!(status, "COMPLETED" | "FAILED" | "CANCELLED")
 }
 
 #[cfg(test)]

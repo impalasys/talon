@@ -48,20 +48,22 @@ class ExchangeOidcTokenResponse(_message.Message):
     def __init__(self, access_token: _Optional[str] = ..., token_type: _Optional[str] = ..., expires_in: _Optional[int] = ..., subject: _Optional[str] = ..., email: _Optional[str] = ..., trust: _Optional[str] = ..., client_type: _Optional[str] = ...) -> None: ...
 
 class MintAccessTokenRequest(_message.Message):
-    __slots__ = ("namespace", "agent", "session", "channel", "expires_in", "origins")
+    __slots__ = ("namespace", "agent", "session", "channel", "expires_in", "origins", "sub")
     NAMESPACE_FIELD_NUMBER: _ClassVar[int]
     AGENT_FIELD_NUMBER: _ClassVar[int]
     SESSION_FIELD_NUMBER: _ClassVar[int]
     CHANNEL_FIELD_NUMBER: _ClassVar[int]
     EXPIRES_IN_FIELD_NUMBER: _ClassVar[int]
     ORIGINS_FIELD_NUMBER: _ClassVar[int]
+    SUB_FIELD_NUMBER: _ClassVar[int]
     namespace: str
     agent: str
     session: str
     channel: str
     expires_in: int
     origins: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session: _Optional[str] = ..., channel: _Optional[str] = ..., expires_in: _Optional[int] = ..., origins: _Optional[_Iterable[str]] = ...) -> None: ...
+    sub: str
+    def __init__(self, namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session: _Optional[str] = ..., channel: _Optional[str] = ..., expires_in: _Optional[int] = ..., origins: _Optional[_Iterable[str]] = ..., sub: _Optional[str] = ...) -> None: ...
 
 class MintAccessTokenResponse(_message.Message):
     __slots__ = ("access_token", "token_type", "expires_in", "expires_at")

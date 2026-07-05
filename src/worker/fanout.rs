@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
+use crate::gateway::rpc::data_proto::WorkflowRunEvent;
 use crate::gateway::rpc::worker_proto::{
     fanout_service_server::FanoutService, StreamSessionPartsBatchRequest,
-    StreamSessionPartsRequest, StreamSessionPartsResponse,
+    StreamSessionPartsRequest, StreamSessionPartsResponse, StreamWorkflowEventsRequest,
+    StreamWorkflowEventsResponse,
 };
 use std::collections::HashMap;
 use std::pin::Pin;
@@ -45,6 +47,27 @@ impl SessionFanoutKey {
     }
 }
 
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct WorkflowFanoutKey {
+    pub ns: String,
+    pub workflow: String,
+    pub run_id: String,
+}
+
+impl WorkflowFanoutKey {
+    pub fn new(
+        ns: impl Into<String>,
+        workflow: impl Into<String>,
+        run_id: impl Into<String>,
+    ) -> Self {
+        Self {
+            ns: ns.into(),
+            workflow: workflow.into(),
+            run_id: run_id.into(),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum FanoutSubscribeError {
     NotFound,
@@ -53,6 +76,11 @@ pub enum FanoutSubscribeError {
 struct FanoutSubscriber {
     keys: Vec<SessionFanoutKey>,
     sender: mpsc::Sender<StreamSessionPartsResponse>,
+}
+
+struct WorkflowFanoutSubscriber {
+    keys: Vec<WorkflowFanoutKey>,
+    sender: mpsc::Sender<StreamWorkflowEventsResponse>,
 }
 
 struct SessionAttemptFanout {
@@ -71,10 +99,40 @@ impl SessionAttemptFanout {
     }
 }
 
+struct WorkflowRunFanout {
+    subscribers: Vec<u64>,
+    next_sequence: u64,
+    subscriber_notify: Arc<Notify>,
+}
+
+impl WorkflowRunFanout {
+    fn new() -> Self {
+        Self {
+            subscribers: Vec::new(),
+            next_sequence: 1,
+            subscriber_notify: Arc::new(Notify::new()),
+        }
+    }
+}
+
 #[derive(Default)]
 struct FanoutState {
+    // Active session attempts keyed by the exact worker-local stream identity.
+    // Each attempt owns ordering state and the subscriber ids currently attached
+    // to that attempt.
     attempts: HashMap<SessionFanoutKey, SessionAttemptFanout>,
+    // Subscriber id -> outbound session stream. This reverse index lets one
+    // batch subscriber attach to multiple attempts and be removed from all of
+    // them when the client disconnects.
     subscribers: HashMap<u64, FanoutSubscriber>,
+    // Active workflow runs keyed by namespace/workflow/run id. Each run owns
+    // ordering state and the subscriber ids currently attached to that run.
+    workflow_runs: HashMap<WorkflowFanoutKey, WorkflowRunFanout>,
+    // Subscriber id -> outbound workflow stream. Workflow streams currently
+    // attach to one run, but this mirrors session fanout so a future batch
+    // workflow stream can clean up one subscriber across multiple run keys.
+    workflow_subscribers: HashMap<u64, WorkflowFanoutSubscriber>,
+    // Shared monotonic id source for session and workflow subscribers.
     next_subscriber_id: u64,
 }
 
@@ -94,6 +152,14 @@ impl FanoutHub {
             .attempts
             .entry(key)
             .or_insert_with(SessionAttemptFanout::new);
+    }
+
+    pub async fn create_workflow_run(&self, key: WorkflowFanoutKey) {
+        let mut state = self.state.lock().await;
+        state
+            .workflow_runs
+            .entry(key)
+            .or_insert_with(WorkflowRunFanout::new);
     }
 
     pub async fn wait_for_subscriber(
@@ -179,6 +245,59 @@ impl FanoutHub {
         }
     }
 
+    pub async fn publish_workflow_event(&self, key: &WorkflowFanoutKey, event: WorkflowRunEvent) {
+        let terminal = workflow_event_is_terminal(&event);
+        let (response, subscribers) = {
+            let mut state = self.state.lock().await;
+            let fanout = state
+                .workflow_runs
+                .entry(key.clone())
+                .or_insert_with(WorkflowRunFanout::new);
+            let response = StreamWorkflowEventsResponse {
+                sequence: fanout.next_sequence,
+                event: Some(event),
+            };
+            fanout.next_sequence = fanout.next_sequence.saturating_add(1);
+
+            let subscriber_ids = fanout.subscribers.clone();
+            let subscribers = subscriber_ids
+                .into_iter()
+                .filter_map(|subscriber_id| {
+                    state
+                        .workflow_subscribers
+                        .get(&subscriber_id)
+                        .map(|subscriber| (subscriber_id, subscriber.sender.clone()))
+                })
+                .collect::<Vec<_>>();
+            (response, subscribers)
+        };
+
+        let mut stale_subscribers = Vec::new();
+        for (subscriber_id, sender) in subscribers {
+            match sender.try_send(response.clone()) {
+                Ok(()) => {}
+                Err(TrySendError::Full(_)) => stale_subscribers.push(subscriber_id),
+                Err(TrySendError::Closed(_)) => stale_subscribers.push(subscriber_id),
+            }
+        }
+
+        let mut state = self.state.lock().await;
+        for subscriber_id in stale_subscribers {
+            remove_workflow_subscriber(&mut state, subscriber_id);
+        }
+        if terminal {
+            for subscriber_id in state
+                .workflow_runs
+                .get(key)
+                .map(|fanout| fanout.subscribers.clone())
+                .unwrap_or_default()
+            {
+                remove_workflow_subscriber_from_key(&mut state, subscriber_id, key);
+            }
+            state.workflow_runs.remove(key);
+        }
+    }
+
     pub async fn subscribe_session_parts(
         &self,
         key: &SessionFanoutKey,
@@ -229,6 +348,43 @@ impl FanoutHub {
         })
     }
 
+    pub async fn subscribe_workflow_events(
+        &self,
+        key: &WorkflowFanoutKey,
+        _after_sequence: u64,
+    ) -> std::result::Result<WorkflowFanoutSubscription, FanoutSubscribeError> {
+        let mut state = self.state.lock().await;
+        if !state.workflow_runs.contains_key(key) {
+            return Err(FanoutSubscribeError::NotFound);
+        }
+
+        let subscriber_id = state.next_subscriber_id;
+        state.next_subscriber_id = state.next_subscriber_id.saturating_add(1);
+        let (sender, receiver) = mpsc::channel(subscriber_queue_capacity(1));
+        let notify = state.workflow_runs.get_mut(key).map(|fanout| {
+            fanout.subscribers.push(subscriber_id);
+            fanout.subscriber_notify.clone()
+        });
+        state.workflow_subscribers.insert(
+            subscriber_id,
+            WorkflowFanoutSubscriber {
+                keys: vec![key.clone()],
+                sender,
+            },
+        );
+        if let Some(notify) = notify {
+            notify.notify_one();
+        }
+
+        Ok(WorkflowFanoutSubscription {
+            receiver,
+            cleanup: WorkflowFanoutSubscriptionCleanup {
+                state: Some(self.state.clone()),
+                subscriber_id,
+            },
+        })
+    }
+
     #[cfg(test)]
     pub async fn attempt_count(&self) -> usize {
         self.state.lock().await.attempts.len()
@@ -237,6 +393,11 @@ impl FanoutHub {
     #[cfg(test)]
     pub async fn subscriber_count(&self) -> usize {
         self.state.lock().await.subscribers.len()
+    }
+
+    #[cfg(test)]
+    pub async fn workflow_run_count(&self) -> usize {
+        self.state.lock().await.workflow_runs.len()
     }
 }
 
@@ -276,9 +437,67 @@ fn remove_subscriber_from_key(state: &mut FanoutState, subscriber_id: u64, key: 
     }
 }
 
+fn remove_workflow_subscriber(state: &mut FanoutState, subscriber_id: u64) {
+    let Some(subscriber) = state.workflow_subscribers.remove(&subscriber_id) else {
+        return;
+    };
+    for key in subscriber.keys {
+        if let Some(fanout) = state.workflow_runs.get_mut(&key) {
+            fanout
+                .subscribers
+                .retain(|existing_id| *existing_id != subscriber_id);
+        }
+    }
+}
+
+fn remove_workflow_subscriber_from_key(
+    state: &mut FanoutState,
+    subscriber_id: u64,
+    key: &WorkflowFanoutKey,
+) {
+    if let Some(fanout) = state.workflow_runs.get_mut(key) {
+        fanout
+            .subscribers
+            .retain(|existing_id| *existing_id != subscriber_id);
+    }
+
+    let Some(subscriber) = state.workflow_subscribers.get_mut(&subscriber_id) else {
+        return;
+    };
+    subscriber.keys.retain(|existing_key| existing_key != key);
+    if subscriber.keys.is_empty() {
+        state.workflow_subscribers.remove(&subscriber_id);
+    }
+}
+
 pub struct FanoutSubscription {
     receiver: mpsc::Receiver<StreamSessionPartsResponse>,
     cleanup: FanoutSubscriptionCleanup,
+}
+
+pub struct WorkflowFanoutSubscription {
+    receiver: mpsc::Receiver<StreamWorkflowEventsResponse>,
+    cleanup: WorkflowFanoutSubscriptionCleanup,
+}
+
+impl WorkflowFanoutSubscription {
+    pub fn into_stream(
+        self,
+    ) -> Pin<
+        Box<
+            dyn futures::Stream<Item = std::result::Result<StreamWorkflowEventsResponse, Status>>
+                + Send,
+        >,
+    > {
+        let mut receiver = self.receiver;
+        let cleanup = self.cleanup;
+        Box::pin(async_stream::stream! {
+            let _cleanup = cleanup;
+            while let Some(event) = receiver.recv().await {
+                yield Ok(event);
+            }
+        })
+    }
 }
 
 impl FanoutSubscription {
@@ -319,6 +538,24 @@ impl Drop for FanoutSubscriptionCleanup {
     }
 }
 
+struct WorkflowFanoutSubscriptionCleanup {
+    state: Option<Arc<Mutex<FanoutState>>>,
+    subscriber_id: u64,
+}
+
+impl Drop for WorkflowFanoutSubscriptionCleanup {
+    fn drop(&mut self) {
+        let Some(state) = self.state.take() else {
+            return;
+        };
+        let subscriber_id = self.subscriber_id;
+        tokio::spawn(async move {
+            let mut state = state.lock().await;
+            remove_workflow_subscriber(&mut state, subscriber_id);
+        });
+    }
+}
+
 #[derive(Clone)]
 pub struct FanoutServiceImpl {
     hub: Arc<FanoutHub>,
@@ -341,6 +578,12 @@ impl FanoutService for FanoutServiceImpl {
     type StreamSessionPartsBatchStream = Pin<
         Box<
             dyn futures::Stream<Item = std::result::Result<StreamSessionPartsResponse, Status>>
+                + Send,
+        >,
+    >;
+    type StreamWorkflowEventsStream = Pin<
+        Box<
+            dyn futures::Stream<Item = std::result::Result<StreamWorkflowEventsResponse, Status>>
                 + Send,
         >,
     >;
@@ -403,11 +646,34 @@ impl FanoutService for FanoutServiceImpl {
             })?;
         Ok(Response::new(subscription.into_stream()))
     }
+
+    async fn stream_workflow_events(
+        &self,
+        request: Request<StreamWorkflowEventsRequest>,
+    ) -> std::result::Result<Response<Self::StreamWorkflowEventsStream>, Status> {
+        let request = request.into_inner();
+        let key = WorkflowFanoutKey::new(request.ns, request.workflow, request.run_id);
+        let subscription = self
+            .hub
+            .subscribe_workflow_events(&key, request.after_sequence)
+            .await
+            .map_err(|err| match err {
+                FanoutSubscribeError::NotFound => Status::not_found("workflow run not found"),
+            })?;
+        Ok(Response::new(subscription.into_stream()))
+    }
 }
 
 fn session_part_event_is_terminal(event: &SessionMessagePartEvent) -> bool {
     event.kind == SessionMessagePartEventKind::Done as i32
         || event.kind == SessionMessagePartEventKind::Error as i32
+}
+
+fn workflow_event_is_terminal(event: &WorkflowRunEvent) -> bool {
+    matches!(
+        event.r#type.as_str(),
+        "run_completed" | "run_failed" | "run_cancelled"
+    )
 }
 
 #[cfg(test)]
@@ -447,6 +713,19 @@ mod tests {
         SessionFanoutKey::new("ns", "agent", session_id, "submission-1", "attempt-1")
     }
 
+    fn workflow_key() -> WorkflowFanoutKey {
+        WorkflowFanoutKey::new("ns", "workflow", "run-1")
+    }
+
+    fn workflow_event(id: &str, event_type: &str) -> WorkflowRunEvent {
+        WorkflowRunEvent {
+            id: id.to_string(),
+            r#type: event_type.to_string(),
+            timestamp: 1,
+            ..Default::default()
+        }
+    }
+
     #[tokio::test]
     async fn fanout_streams_live_events_without_replay() {
         let hub = FanoutHub::new();
@@ -479,6 +758,64 @@ mod tests {
             hub.subscribe_session_parts(&key(), 0).await,
             Err(FanoutSubscribeError::NotFound)
         ));
+    }
+
+    #[tokio::test]
+    async fn workflow_fanout_streams_live_events_without_replay() {
+        let hub = FanoutHub::new();
+        let key = workflow_key();
+        hub.create_workflow_run(key.clone()).await;
+        hub.publish_workflow_event(&key, workflow_event("event-1", "run_started"))
+            .await;
+
+        let mut subscription = hub
+            .subscribe_workflow_events(&key, 0)
+            .await
+            .unwrap()
+            .into_stream();
+        hub.publish_workflow_event(&key, workflow_event("event-2", "step_started"))
+            .await;
+
+        let response = tokio::time::timeout(std::time::Duration::from_secs(5), subscription.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert_eq!(response.sequence, 2);
+        assert_eq!(response.event.unwrap().id, "event-2");
+    }
+
+    #[tokio::test]
+    async fn workflow_fanout_returns_not_found_for_unknown_run() {
+        let hub = FanoutHub::new();
+        assert!(matches!(
+            hub.subscribe_workflow_events(&workflow_key(), 0).await,
+            Err(FanoutSubscribeError::NotFound)
+        ));
+    }
+
+    #[tokio::test]
+    async fn terminal_workflow_event_removes_run_and_subscriber() {
+        let hub = FanoutHub::new();
+        let key = workflow_key();
+        hub.create_workflow_run(key.clone()).await;
+        let mut stream = hub
+            .subscribe_workflow_events(&key, 0)
+            .await
+            .unwrap()
+            .into_stream();
+
+        hub.publish_workflow_event(&key, workflow_event("event-1", "run_completed"))
+            .await;
+        let response = tokio::time::timeout(std::time::Duration::from_secs(5), stream.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert_eq!(response.event.unwrap().id, "event-1");
+        assert!(stream.next().await.is_none());
+        assert_eq!(hub.workflow_run_count().await, 0);
+        assert_eq!(hub.subscriber_count().await, 0);
     }
 
     #[tokio::test]

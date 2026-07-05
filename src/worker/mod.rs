@@ -356,7 +356,15 @@ impl WorkerEventHandler {
         else {
             return Ok(());
         };
-        crate::worker::workflows::advance_run(&self.cp, run).await
+        self.fanout_hub
+            .create_workflow_run(crate::worker::fanout::WorkflowFanoutKey::new(
+                run.ns.clone(),
+                run.workflow.clone(),
+                run.id.clone(),
+            ))
+            .await;
+        crate::worker::workflows::advance_run_with_fanout(&self.cp, run, self.fanout_hub.clone())
+            .await
     }
 }
 

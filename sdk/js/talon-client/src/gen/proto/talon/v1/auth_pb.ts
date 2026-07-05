@@ -237,6 +237,11 @@ export class MintAccessTokenRequest extends Message<MintAccessTokenRequest> {
    */
   origins: string[] = [];
 
+  /**
+   * @generated from field: optional string sub = 7;
+   */
+  sub?: string;
+
   constructor(data?: PartialMessage<MintAccessTokenRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -251,6 +256,7 @@ export class MintAccessTokenRequest extends Message<MintAccessTokenRequest> {
     { no: 4, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 5, name: "expires_in", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 6, name: "origins", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 7, name: "sub", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MintAccessTokenRequest {

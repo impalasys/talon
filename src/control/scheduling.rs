@@ -547,6 +547,7 @@ pub async fn create_session_with_labels(
         agent: agent.to_string(),
         provider: String::new(),
         model: String::new(),
+        rate_limit_key: None,
     };
     crate::control::usage::check_namespace_usage(
         cp.kv.as_ref(),
@@ -1721,7 +1722,8 @@ mod tests {
             run.labels.get("talon.impalasys.com/schedule-name"),
             Some(&"daily-digest".to_string())
         );
-        assert_eq!(pubsub.messages.lock().await.len(), 2);
+        let messages = pubsub.messages.lock().await;
+        assert_eq!(messages.len(), 1);
     }
 
     #[tokio::test]

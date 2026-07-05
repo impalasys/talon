@@ -5,7 +5,6 @@ pub mod auth;
 pub mod rest;
 pub mod rpc;
 pub mod server;
-pub mod session_streams;
 pub mod worker_conn;
 
 pub use server::Gateway;

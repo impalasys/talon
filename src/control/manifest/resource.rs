@@ -263,6 +263,11 @@ pub fn resource_spec_status_from_json(
         "Template" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Template(template_spec_from_value(spec_value)?)),
         },
+        "Workflow" => resources_proto::ResourceSpec {
+            kind: Some(SpecKind::Workflow(
+                serde_json::from_value::<WorkflowSpecManifest>(spec_value)?.into_proto()?,
+            )),
+        },
         "Deployment" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Deployment(deployment_spec_from_value(
                 spec_value,
@@ -317,6 +322,11 @@ pub fn resource_spec_status_from_json(
         },
         "Schedule" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Schedule(schedule_status_from_value(
+                status_value,
+            )?)),
+        },
+        "Workflow" => resources_proto::ResourceStatus {
+            kind: Some(StatusKind::Workflow(workflow_status_from_value(
                 status_value,
             )?)),
         },
@@ -396,6 +406,7 @@ fn resource_spec_status_to_yaml_values(
             "metadata": spec.metadata.as_ref().map(ObjectMetaManifest::from_resource_meta),
             "spec": json_string_to_json_value(&spec.spec_json)?,
         }))?,
+        Some(SpecKind::Workflow(spec)) => serde_json::to_string(&WorkflowSpecManifest::from_proto(spec)?)?,
         Some(SpecKind::Deployment(spec)) => serde_json::to_string(&serde_json::json!({
             "placement": {
                 "namespaceSelector": spec.placement.as_ref().and_then(|p| p.namespace_selector.as_ref()).map(|selector| serde_json::json!({
@@ -461,6 +472,11 @@ fn resource_spec_status_to_yaml_values(
         Some(StatusKind::Schedule(status)) => {
             serde_json::to_string(&schedule_status_to_json(status))?
         }
+        Some(StatusKind::Workflow(status)) => serde_json::to_string(&common_status_map(
+            status.observed_generation,
+            &status.phase,
+            &status.conditions,
+        ))?,
         Some(StatusKind::Deployment(status)) => {
             let mut json = common_status_map(
                 status.observed_generation,
@@ -1416,6 +1432,21 @@ fn common_status_from_value(
     value: serde_json::Value,
 ) -> Result<resources_proto::CommonResourceStatus> {
     Ok(resources_proto::CommonResourceStatus {
+        observed_generation: value
+            .get("observedGeneration")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0),
+        phase: value
+            .get("phase")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        conditions: conditions_from_value(&value),
+    })
+}
+
+fn workflow_status_from_value(value: serde_json::Value) -> Result<resources_proto::WorkflowStatus> {
+    Ok(resources_proto::WorkflowStatus {
         observed_generation: value
             .get("observedGeneration")
             .and_then(|value| value.as_u64())

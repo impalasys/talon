@@ -44,6 +44,31 @@ class AuthServiceStub(object):
                 request_serializer=proto_dot_talon_dot_v1_dot_auth__pb2.ExchangeOidcTokenRequest.SerializeToString,
                 response_deserializer=proto_dot_talon_dot_v1_dot_auth__pb2.ExchangeOidcTokenResponse.FromString,
                 _registered_method=True)
+        self.MintAccessToken = channel.unary_unary(
+                '/talon.v1.AuthService/MintAccessToken',
+                request_serializer=proto_dot_talon_dot_v1_dot_auth__pb2.MintAccessTokenRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_auth__pb2.MintAccessTokenResponse.FromString,
+                _registered_method=True)
+        self.CreateApiKey = channel.unary_unary(
+                '/talon.v1.AuthService/CreateApiKey',
+                request_serializer=proto_dot_talon_dot_v1_dot_auth__pb2.CreateApiKeyRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_auth__pb2.CreateApiKeyResponse.FromString,
+                _registered_method=True)
+        self.ListApiKeys = channel.unary_unary(
+                '/talon.v1.AuthService/ListApiKeys',
+                request_serializer=proto_dot_talon_dot_v1_dot_auth__pb2.ListApiKeysRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_auth__pb2.ListApiKeysResponse.FromString,
+                _registered_method=True)
+        self.RevokeApiKey = channel.unary_unary(
+                '/talon.v1.AuthService/RevokeApiKey',
+                request_serializer=proto_dot_talon_dot_v1_dot_auth__pb2.RevokeApiKeyRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_auth__pb2.RevokeApiKeyResponse.FromString,
+                _registered_method=True)
+        self.ExchangeApiKey = channel.unary_unary(
+                '/talon.v1.AuthService/ExchangeApiKey',
+                request_serializer=proto_dot_talon_dot_v1_dot_auth__pb2.ExchangeApiKeyRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_auth__pb2.ExchangeApiKeyResponse.FromString,
+                _registered_method=True)
 
 
 class AuthServiceServicer(object):
@@ -61,6 +86,36 @@ class AuthServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def MintAccessToken(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CreateApiKey(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListApiKeys(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RevokeApiKey(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ExchangeApiKey(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_AuthServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -73,6 +128,31 @@ def add_AuthServiceServicer_to_server(servicer, server):
                     servicer.ExchangeOidcToken,
                     request_deserializer=proto_dot_talon_dot_v1_dot_auth__pb2.ExchangeOidcTokenRequest.FromString,
                     response_serializer=proto_dot_talon_dot_v1_dot_auth__pb2.ExchangeOidcTokenResponse.SerializeToString,
+            ),
+            'MintAccessToken': grpc.unary_unary_rpc_method_handler(
+                    servicer.MintAccessToken,
+                    request_deserializer=proto_dot_talon_dot_v1_dot_auth__pb2.MintAccessTokenRequest.FromString,
+                    response_serializer=proto_dot_talon_dot_v1_dot_auth__pb2.MintAccessTokenResponse.SerializeToString,
+            ),
+            'CreateApiKey': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateApiKey,
+                    request_deserializer=proto_dot_talon_dot_v1_dot_auth__pb2.CreateApiKeyRequest.FromString,
+                    response_serializer=proto_dot_talon_dot_v1_dot_auth__pb2.CreateApiKeyResponse.SerializeToString,
+            ),
+            'ListApiKeys': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListApiKeys,
+                    request_deserializer=proto_dot_talon_dot_v1_dot_auth__pb2.ListApiKeysRequest.FromString,
+                    response_serializer=proto_dot_talon_dot_v1_dot_auth__pb2.ListApiKeysResponse.SerializeToString,
+            ),
+            'RevokeApiKey': grpc.unary_unary_rpc_method_handler(
+                    servicer.RevokeApiKey,
+                    request_deserializer=proto_dot_talon_dot_v1_dot_auth__pb2.RevokeApiKeyRequest.FromString,
+                    response_serializer=proto_dot_talon_dot_v1_dot_auth__pb2.RevokeApiKeyResponse.SerializeToString,
+            ),
+            'ExchangeApiKey': grpc.unary_unary_rpc_method_handler(
+                    servicer.ExchangeApiKey,
+                    request_deserializer=proto_dot_talon_dot_v1_dot_auth__pb2.ExchangeApiKeyRequest.FromString,
+                    response_serializer=proto_dot_talon_dot_v1_dot_auth__pb2.ExchangeApiKeyResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -129,6 +209,141 @@ class AuthService(object):
             '/talon.v1.AuthService/ExchangeOidcToken',
             proto_dot_talon_dot_v1_dot_auth__pb2.ExchangeOidcTokenRequest.SerializeToString,
             proto_dot_talon_dot_v1_dot_auth__pb2.ExchangeOidcTokenResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def MintAccessToken(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.v1.AuthService/MintAccessToken',
+            proto_dot_talon_dot_v1_dot_auth__pb2.MintAccessTokenRequest.SerializeToString,
+            proto_dot_talon_dot_v1_dot_auth__pb2.MintAccessTokenResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateApiKey(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.v1.AuthService/CreateApiKey',
+            proto_dot_talon_dot_v1_dot_auth__pb2.CreateApiKeyRequest.SerializeToString,
+            proto_dot_talon_dot_v1_dot_auth__pb2.CreateApiKeyResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListApiKeys(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.v1.AuthService/ListApiKeys',
+            proto_dot_talon_dot_v1_dot_auth__pb2.ListApiKeysRequest.SerializeToString,
+            proto_dot_talon_dot_v1_dot_auth__pb2.ListApiKeysResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RevokeApiKey(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.v1.AuthService/RevokeApiKey',
+            proto_dot_talon_dot_v1_dot_auth__pb2.RevokeApiKeyRequest.SerializeToString,
+            proto_dot_talon_dot_v1_dot_auth__pb2.RevokeApiKeyResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ExchangeApiKey(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.v1.AuthService/ExchangeApiKey',
+            proto_dot_talon_dot_v1_dot_auth__pb2.ExchangeApiKeyRequest.SerializeToString,
+            proto_dot_talon_dot_v1_dot_auth__pb2.ExchangeApiKeyResponse.FromString,
             options,
             channel_credentials,
             insecure,

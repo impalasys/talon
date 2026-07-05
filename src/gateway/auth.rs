@@ -14,6 +14,7 @@ use axum::{
     Json,
 };
 use serde::{Deserialize, Deserializer, Serialize};
+use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use tonic::{metadata::MetadataMap, Status};
 use url::Url;
@@ -125,6 +126,16 @@ impl<'de> Deserialize<'de> for Claims {
             grants: raw.grants,
         })
     }
+}
+
+pub fn rate_limit_key_from_request<T>(request: &tonic::Request<T>) -> Option<String> {
+    let subject = request.extensions().get::<Claims>()?.sub.trim();
+    if subject.is_empty() {
+        return None;
+    }
+    let mut hasher = Sha256::new();
+    hasher.update(subject.as_bytes());
+    Some(format!("sub:{:x}", hasher.finalize()))
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -370,7 +381,13 @@ fn check_claim_scope(
 ) -> Result<(), Status> {
     check_origin_scope(claims, origin_scope)?;
 
-    if claims.grants.is_empty() && claims.sub.starts_with("oidc:") {
+    if claims.grants.is_empty()
+        && claims.sub.starts_with("oidc:")
+        && claims.ns.is_none()
+        && claims.agent.is_none()
+        && claims.session.is_none()
+        && claims.channel.is_none()
+    {
         return Err(Status::permission_denied(
             "OIDC token does not include any Talon grants",
         ));
@@ -900,6 +917,41 @@ mod tests {
     }
 
     #[test]
+    fn rate_limit_key_uses_claim_subject_from_request_extensions() {
+        fn request_with_subject(subject: &str) -> tonic::Request<()> {
+            let mut request = tonic::Request::new(());
+            request.extensions_mut().insert(Claims {
+                iss: None,
+                sub: subject.to_string(),
+                aud: "talon".to_string(),
+                iat: None,
+                exp: 10000000000,
+                ns: None,
+                agent: None,
+                session: None,
+                channel: None,
+                origins: Vec::new(),
+                grants: Vec::new(),
+            });
+            request
+        }
+
+        let request = request_with_subject("oidc:user123:browser");
+        let key = rate_limit_key_from_request(&request).expect("subject rate limit key");
+        assert!(key.starts_with("sub:"));
+        assert_eq!(key.len(), "sub:".len() + 64);
+
+        let padded = request_with_subject("  oidc:user123:browser  ");
+        assert_eq!(rate_limit_key_from_request(&padded), Some(key.clone()));
+
+        let different_subject = request_with_subject("oidc:user123:other-client");
+        assert_ne!(rate_limit_key_from_request(&different_subject), Some(key));
+
+        let blank_subject = request_with_subject("   ");
+        assert!(rate_limit_key_from_request(&blank_subject).is_none());
+    }
+
+    #[test]
     fn test_grant_read_allows_reads_but_denies_writes() {
         let _guard = PlatformJwtEnvGuard::acquire_blocking();
         let token = create_grant_token(vec![TalonGrantClaim {
@@ -1062,6 +1114,36 @@ mod tests {
         assert_eq!(claims.ns.as_deref(), Some("ns"));
         assert_eq!(claims.agent.as_deref(), Some("agent"));
         assert_eq!(claims.session.as_deref(), Some("session"));
+
+        let oidc_claims = Claims {
+            iss: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
+            sub: "oidc:user123".to_string(),
+            aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+            iat: Some(1),
+            exp: 10000000000,
+            ns: None,
+            agent: None,
+            session: None,
+            channel: None,
+            origins: Vec::new(),
+            grants: vec![TalonGrantClaim {
+                kind: "readwrite".to_string(),
+                namespace: Some("ns".to_string()),
+                agent: None,
+                session: None,
+                channel: None,
+            }],
+        };
+        let oidc_token = sign_platform_claims(&oidc_claims);
+        let mut oidc_request = tonic::Request::new(());
+        oidc_request.metadata_mut().insert(
+            "authorization",
+            format!("Bearer {oidc_token}").parse().unwrap(),
+        );
+        let oidc_request = jwt_interceptor.call(oidc_request).unwrap();
+        let key = rate_limit_key_from_request(&oidc_request).expect("subject rate limit key");
+        assert!(key.starts_with("sub:"));
+        assert_eq!(key.len(), "sub:".len() + 64);
 
         let mut invalid_jwt = TalonAuthInterceptor {
             config: jwt_auth_config(),

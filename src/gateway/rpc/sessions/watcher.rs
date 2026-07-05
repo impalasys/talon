@@ -4,9 +4,8 @@
 use crate::control::scheduling;
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
-use crate::control::{events, keys, ns, KeyValueStore, MessagePublisher};
+use crate::control::{events, keys, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::{data_proto, resources_proto, worker_proto};
-use crate::gateway::session_streams::SessionStreamTarget;
 use crate::gateway::worker_conn::WorkerConnectionPool;
 use futures::{stream::SelectAll, Stream, StreamExt};
 use prost::Message;
@@ -21,6 +20,27 @@ const SESSION_STREAM_LEASE_CHECK_MAX_MICROS: u64 = 5_000_000;
 const SESSION_STREAM_LEASE_CHECK_MIN_MICROS: u64 = 100_000;
 const WORKER_FANOUT_NOT_FOUND_RETRY_DELAY: Duration = Duration::from_millis(50);
 const SESSION_PART_PREFETCH_BUFFER: usize = 64;
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+pub(crate) struct SessionStreamTarget {
+    pub ns: String,
+    pub agent: String,
+    pub session_id: String,
+}
+
+impl SessionStreamTarget {
+    pub(crate) fn new(
+        ns: impl Into<String>,
+        agent: impl Into<String>,
+        session_id: impl Into<String>,
+    ) -> Self {
+        Self {
+            ns: ns.into(),
+            agent: agent.into(),
+            session_id: session_id.into(),
+        }
+    }
+}
 
 pub(crate) type SessionPartEventStream = Pin<
     Box<
@@ -176,7 +196,6 @@ fn single_session_parts_event_stream(
 
             match connect_worker_stream(
                 kv.as_ref(),
-                pubsub.as_ref(),
                 worker_connections.as_ref(),
                 &target,
                 &submission,
@@ -352,7 +371,6 @@ fn batch_session_parts_event_stream(
                     .all(|stream| crate::harness::sessions::submission_is_terminal(&stream.submission));
                 match connect_worker_batch_stream(
                     kv.as_ref(),
-                    pubsub.as_ref(),
                     worker_connections.as_ref(),
                     &worker_id,
                     &streams,
@@ -427,14 +445,13 @@ fn batch_session_parts_event_stream(
 
 async fn connect_worker_stream(
     kv: &dyn KeyValueStore,
-    pubsub: &dyn MessagePublisher,
     worker_connections: &WorkerConnectionPool,
     target: &SessionStreamTarget,
     submission: &data_proto::SessionSubmission,
     after_sequence: u64,
 ) -> std::result::Result<tonic::Streaming<worker_proto::StreamSessionPartsResponse>, tonic::Status>
 {
-    let endpoints = worker_endpoints(kv, pubsub, &submission.claim_worker_id).await?;
+    let endpoints = WorkerConnectionPool::worker_endpoints(kv, &submission.claim_worker_id).await?;
     let mut last_status = None;
     for endpoint in endpoints {
         match stream_from_endpoint(
@@ -455,13 +472,12 @@ async fn connect_worker_stream(
 
 async fn connect_worker_batch_stream(
     kv: &dyn KeyValueStore,
-    pubsub: &dyn MessagePublisher,
     worker_connections: &WorkerConnectionPool,
     worker_id: &str,
     streams: &[ClaimedBatchStream],
 ) -> std::result::Result<tonic::Streaming<worker_proto::StreamSessionPartsResponse>, tonic::Status>
 {
-    let endpoints = worker_endpoints(kv, pubsub, worker_id).await?;
+    let endpoints = WorkerConnectionPool::worker_endpoints(kv, worker_id).await?;
     let mut last_status = None;
     for endpoint in endpoints {
         match stream_batch_from_endpoint(worker_connections, &endpoint, streams).await {
@@ -517,38 +533,6 @@ async fn stream_batch_from_endpoint(
         })
         .await?;
     Ok(response.into_inner())
-}
-
-async fn worker_endpoints(
-    kv: &dyn KeyValueStore,
-    _pubsub: &dyn MessagePublisher,
-    worker_id: &str,
-) -> std::result::Result<Vec<resources_proto::WorkerEndpoint>, tonic::Status> {
-    let key = keys::ResourceKey::new(ns::TALON_SYSTEM, &[], "Worker", worker_id);
-    let Some(bytes) = kv
-        .get(&key)
-        .await
-        .map_err(|err| tonic::Status::internal(format!("Failed to fetch worker: {err}")))?
-    else {
-        return Err(tonic::Status::not_found("claim worker not found"));
-    };
-    let worker = resources_proto::Worker::decode(bytes.as_slice())
-        .map_err(|err| tonic::Status::internal(format!("Failed to decode worker: {err}")))?;
-    let Some(status) = worker.status else {
-        return Err(tonic::Status::unavailable("worker status is missing"));
-    };
-    if status.phase != "ready" {
-        return Err(tonic::Status::unavailable("worker is not ready"));
-    }
-    let endpoints: Vec<_> = status
-        .endpoints
-        .into_iter()
-        .filter(|endpoint| !endpoint.url.trim().is_empty())
-        .collect();
-    if endpoints.is_empty() {
-        return Err(tonic::Status::unavailable("worker has no endpoints"));
-    }
-    Ok(endpoints)
 }
 
 async fn redispatch_expired_session_lease(
