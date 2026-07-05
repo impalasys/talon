@@ -266,7 +266,7 @@ jobs:
   python_e2e:
     name: Python E2E
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     env:
       TESTCONTAINERS_RYUK_DISABLED: "true"
     steps:
@@ -301,6 +301,8 @@ jobs:
         run: |
           pytest -q \
             tests/test_a2a_compat.py \
+            tests/test_harness.py \
+            tests/test_mock_llm.py \
             tests/test_workers.py \
             tests/test_chat.py \
             tests/test_search.py \

@@ -13,6 +13,7 @@ from talon_client import (
     TalonClient,
 )
 from talon_client.data import (
+    ROLE_ASSISTANT,
     ROLE_USER,
     SESSION_MESSAGE_PART_TYPE_TEXT,
     SessionMessage,
@@ -29,7 +30,7 @@ def message_text(message: SessionMessage) -> str:
 
 
 def assistant_messages(messages: Sequence[SessionMessage]) -> list[SessionMessage]:
-    return [message for message in messages if message.role == 2]
+    return [message for message in messages if message.role == ROLE_ASSISTANT]
 
 
 def last_assistant_message(messages: Sequence[SessionMessage]) -> SessionMessage | None:

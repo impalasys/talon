@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import time
 from dataclasses import dataclass
@@ -24,7 +25,9 @@ from e2e.stack import (  # noqa: E402
     MOCK_LLM_PORT,
     REPO_ROOT as STACK_REPO_ROOT,
     authenticated_gateway_channel,
+    binary_candidates,
     get_binary_path,
+    get_runfile_binary_path,
     load_repo_dotenv_values,
     start_postgres_pubsub_stack,
     start_sqlite_local_stack,
@@ -57,7 +60,7 @@ def llm_server() -> Iterator[LlmServer]:
             print(f"\nReusing existing mock LLM server on 127.0.0.1:{MOCK_LLM_PORT}")
             yield server
             return
-    except Exception:
+    except OSError:
         pass
 
     import threading
@@ -76,8 +79,12 @@ def llm_server() -> Iterator[LlmServer]:
         try:
             with socket.create_connection(("127.0.0.1", MOCK_LLM_PORT), timeout=1):
                 break
-        except Exception:
+        except OSError:
             time.sleep(0.5)
+    else:
+        raise RuntimeError(
+            f"Mock LLM server failed to start on 127.0.0.1:{MOCK_LLM_PORT}"
+        )
 
     yield server
     print("\nShutting down mock LLM server...")

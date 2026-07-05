@@ -1,12 +1,9 @@
-import os
-import subprocess
 import time
 import uuid
 from pathlib import Path
 
 import pytest
 
-import conftest
 from e2e import scenarios as e2e
 from e2e.stack import E2EStack
 
@@ -159,20 +156,8 @@ status:
   phase: Ready
 """
     )
-    cli = conftest.get_binary_path("talon_cli")
-    result = subprocess.run(
-        [
-            cli,
-            "--gateway",
-            stack.gateway_url,
-            "apply",
-            "-f",
-            str(manifest),
-        ],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    cli = stack.cli()
+    result = cli.run("apply", "-f", str(manifest), check=False)
 
     assert result.returncode != 0
     assert "Resource manifests cannot set status" in (result.stderr + result.stdout)

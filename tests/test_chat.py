@@ -1,7 +1,10 @@
 import json
+import logging
 import threading
 import time
 import uuid
+
+import grpc
 
 from e2e.blackbox import (
     create_agent_resource,
@@ -23,6 +26,10 @@ from talon_client.resources import AgentSpec, Model
 PART_TYPE_TEXT = 1
 PART_TYPE_REASONING = 2
 PART_TYPE_USAGE = 5
+STREAM_TIMEOUT_SECONDS = 30
+
+
+logger = logging.getLogger(__name__)
 
 
 def test_single_turn_chat(
@@ -150,7 +157,9 @@ def test_streaming_chat(
         saw_reasoning = False
         saw_token = False
         saw_usage = False
-        for idx, event in enumerate(client.sessions.StreamParts(stream_req)):
+        for idx, event in enumerate(
+            client.sessions.StreamParts(stream_req, timeout=STREAM_TIMEOUT_SECONDS)
+        ):
             events.append(event)
             if event.part.part_type == PART_TYPE_REASONING:
                 saw_reasoning = True
@@ -162,8 +171,8 @@ def test_streaming_chat(
                 break
             if idx > 20:
                 break
-    except Exception:
-        pass
+    except grpc.RpcError as err:
+        logger.debug("stream ended: %s", err)
     sender.join()
 
     assert len(events) >= 1

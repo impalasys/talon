@@ -37,10 +37,9 @@ E2E_JWT_ISSUER = os.environ.get(
     "TALON_E2E_JWT_ISSUER",
     "https://talon-e2e.example.com",
 )
-E2E_JWT_PRIVATE_KEY_PEM = os.environ.get(
-    "TALON_E2E_JWT_PRIVATE_KEY_PEM",
-    (REPO_ROOT / "src/control/security/test_rsa_private_key.pem").read_text(),
-)
+E2E_JWT_PRIVATE_KEY_PEM = os.environ.get("TALON_E2E_JWT_PRIVATE_KEY_PEM") or (
+    REPO_ROOT / "src/control/security/test_rsa_private_key.pem"
+).read_text()
 
 
 class _ClientCallDetails(

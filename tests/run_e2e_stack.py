@@ -42,17 +42,23 @@ def main():
         worker_port=8081,
         api_key_name="playwright-root",
     )
-    write_auth_handoff(E2E_AUTH_FILE, stack.grpc_port, stack.api_key)
+    ready_server: socketserver.TCPServer | None = None
+    try:
+        write_auth_handoff(E2E_AUTH_FILE, stack.grpc_port, stack.api_key)
 
-    class ReadyHandler(http.server.SimpleHTTPRequestHandler):
-        def do_GET(self):
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write(b"READY")
+        class ReadyHandler(http.server.SimpleHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"READY")
 
-    ready_server = socketserver.TCPServer(("127.0.0.1", READY_PORT), ReadyHandler)
-    ready_thread = threading.Thread(target=ready_server.serve_forever, daemon=True)
-    ready_thread.start()
+        ready_server = socketserver.TCPServer(("127.0.0.1", READY_PORT), ReadyHandler)
+        ready_thread = threading.Thread(target=ready_server.serve_forever, daemon=True)
+        ready_thread.start()
+    except BaseException:
+        E2E_AUTH_FILE.unlink(missing_ok=True)
+        stack.stop()
+        raise
 
     print("--- E2E STACK READY ---")
     stopped = False
@@ -63,8 +69,9 @@ def main():
             raise SystemExit(0)
         stopped = True
         print("Shutting down...")
-        ready_server.shutdown()
-        ready_server.server_close()
+        if ready_server is not None:
+            ready_server.shutdown()
+            ready_server.server_close()
         E2E_AUTH_FILE.unlink(missing_ok=True)
         stack.stop()
         raise SystemExit(0)
@@ -77,8 +84,9 @@ def main():
     finally:
         if not stopped:
             stopped = True
-            ready_server.shutdown()
-            ready_server.server_close()
+            if ready_server is not None:
+                ready_server.shutdown()
+                ready_server.server_close()
             E2E_AUTH_FILE.unlink(missing_ok=True)
             stack.stop()
 
