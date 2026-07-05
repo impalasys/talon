@@ -1,455 +1,61 @@
-import pytest
-import subprocess
-import time
-import grpc
-import requests
-import sys
 import os
+import sys
+import time
+from dataclasses import dataclass
 from pathlib import Path
-import tempfile
-from collections import namedtuple
+from typing import Iterator
 
-try:
-    from python.runfiles import runfiles
-except ModuleNotFoundError:
-    try:
-        import runfiles
-    except ModuleNotFoundError:
-        runfiles = None
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-PYTHON_SDK_SRC = REPO_ROOT / "sdk" / "python" / "talon-client" / "src"
+import pytest
 
 # Important: Add local test helpers and generated client packages to the import path.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+PYTHON_SDK_SRC = REPO_ROOT / "sdk" / "python" / "talon-client" / "src"
 sys.path.insert(0, str(PYTHON_SDK_SRC))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from testcontainers.postgres import PostgresContainer
-from testcontainers.core.container import DockerContainer
-import shutil
-from talon_client.auth import ApiKeyTokenSource
+from talon_client import TalonClient  # noqa: E402
+from talon_client.auth import ApiKeyTokenSource  # noqa: E402
 
-SESSION_DISPATCH_TOPIC = "talon.session.dispatch"
-RESOURCE_LIFECYCLE_TOPIC = "talon.resource.lifecycle"
-WORKFLOW_DISPATCH_TOPIC = "talon.workflow.dispatch"
-INDEX_EVENTS_TOPIC = "talon.index.events"
-MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
-E2E_JWT_ISSUER = os.environ.get(
-    "TALON_E2E_JWT_ISSUER",
-    "https://talon-e2e.example.com",
-)
-E2E_JWT_PRIVATE_KEY_PEM = os.environ.get(
-    "TALON_E2E_JWT_PRIVATE_KEY_PEM",
-    (REPO_ROOT / "src/control/security/test_rsa_private_key.pem").read_text(),
+from e2e.stack import (  # noqa: E402
+    E2E_JWT_ISSUER,
+    E2E_JWT_PRIVATE_KEY_PEM,
+    E2EStack,
+    MOCK_LLM_PORT,
+    REPO_ROOT as STACK_REPO_ROOT,
+    authenticated_gateway_channel,
+    get_binary_path,
+    load_repo_dotenv_values,
+    start_postgres_pubsub_stack,
+    start_sqlite_local_stack,
 )
 
-
-class _ClientCallDetails(
-    namedtuple(
-        "_ClientCallDetails",
-        ("method", "timeout", "metadata", "credentials", "wait_for_ready", "compression"),
-    ),
-    grpc.ClientCallDetails,
-):
-    pass
+REPO_ROOT = STACK_REPO_ROOT
 
 
-class ApiKeyAuthInterceptor(
-    grpc.UnaryUnaryClientInterceptor,
-    grpc.UnaryStreamClientInterceptor,
-    grpc.StreamUnaryClientInterceptor,
-    grpc.StreamStreamClientInterceptor,
-):
-    def __init__(self, token_source):
-        self._token_source = token_source
-
-    def _details(self, client_call_details):
-        metadata = list(client_call_details.metadata or [])
-        metadata.append(("authorization", f"Bearer {self._token_source.token()}"))
-        return _ClientCallDetails(
-            client_call_details.method,
-            client_call_details.timeout,
-            metadata,
-            client_call_details.credentials,
-            client_call_details.wait_for_ready,
-            client_call_details.compression,
-        )
-
-    def intercept_unary_unary(self, continuation, client_call_details, request):
-        return continuation(self._details(client_call_details), request)
-
-    def intercept_unary_stream(self, continuation, client_call_details, request):
-        return continuation(self._details(client_call_details), request)
-
-    def intercept_stream_unary(self, continuation, client_call_details, request_iterator):
-        return continuation(self._details(client_call_details), request_iterator)
-
-    def intercept_stream_stream(self, continuation, client_call_details, request_iterator):
-        return continuation(self._details(client_call_details), request_iterator)
+@dataclass(frozen=True)
+class LlmServer:
+    base_url: str
 
 
-def api_key_env_name(grpc_port):
+def api_key_env_name(grpc_port: int) -> str:
     return f"TALON_E2E_API_KEY_{grpc_port}"
 
 
-def api_key_auth_file_env_name(grpc_port):
+def api_key_auth_file_env_name(grpc_port: int) -> str:
     return f"TALON_E2E_AUTH_FILE_{grpc_port}"
 
 
-def write_e2e_private_key_file(grpc_port):
-    with tempfile.NamedTemporaryFile(
-        mode="w",
-        prefix=f"talon-e2e-platform-jwt-key-{grpc_port}-",
-        suffix=".pem",
-        delete=False,
-    ) as file:
-        file.write(E2E_JWT_PRIVATE_KEY_PEM)
-        path = Path(file.name)
-    try:
-        path.chmod(0o600)
-    except OSError:
-        pass
-    return path
-
-
-def create_e2e_bootstrap_token(grpc_port):
-    cli = get_binary_path("talon_cli")
-    key_file = write_e2e_private_key_file(grpc_port)
-    try:
-        result = subprocess.run(
-            [
-                cli,
-                "auth",
-                "local-token",
-                "--private-key-pem-file",
-                str(key_file),
-                "--subject",
-                "pytest-bootstrap",
-            ],
-            env={**os.environ, "TALON_JWT_ISSUER": E2E_JWT_ISSUER},
-            text=True,
-            capture_output=True,
-            check=False,
-            timeout=30,
-        )
-    finally:
-        key_file.unlink(missing_ok=True)
-    if result.returncode != 0:
-        raise RuntimeError(
-            "Failed to mint E2E bootstrap token\n"
-            f"stdout:\n{result.stdout}\n"
-            f"stderr:\n{result.stderr}"
-        )
-    token = result.stdout.strip()
-    if not token:
-        raise RuntimeError("E2E bootstrap token command printed no token")
-    return token
-
-
-def create_e2e_api_key(grpc_port, name):
-    cli = get_binary_path("talon_cli")
-    env = os.environ.copy()
-    for key in (
-        "TALON_API_KEY",
-        "TALON_AUTH_FILE",
-    ):
-        env.pop(key, None)
-    env["TALON_AUTH_FILE"] = str(
-        Path(tempfile.gettempdir()) / f"talon-e2e-bootstrap-auth-{grpc_port}.json"
-    )
-    result = subprocess.run(
-        [
-            cli,
-            "--gateway",
-            f"http://127.0.0.1:{grpc_port}",
-            "--token",
-            create_e2e_bootstrap_token(grpc_port),
-            "auth",
-            "api-key",
-            "create",
-            "--name",
-            name,
-            "--grant",
-            "readwrite",
-        ],
-        text=True,
-        capture_output=True,
-        check=False,
-        timeout=30,
-        env=env,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(
-            "Failed to create E2E API key\n"
-            f"stdout:\n{result.stdout}\n"
-            f"stderr:\n{result.stderr}"
-        )
-    for line in result.stdout.splitlines():
-        if line.startswith("secret="):
-            api_key = line.split("=", 1)[1].strip()
-            if api_key:
-                return api_key
-    raise RuntimeError(f"API key creation did not print a secret:\n{result.stdout}")
-
-
-def authenticated_gateway_channel(grpc_port, api_key):
-    raw_channel = grpc.insecure_channel(f"127.0.0.1:{grpc_port}")
-    token_source = ApiKeyTokenSource(raw_channel, api_key)
-    return raw_channel, grpc.intercept_channel(raw_channel, ApiKeyAuthInterceptor(token_source))
-
-
-def load_repo_dotenv_values():
-    dotenv_path = REPO_ROOT / ".env"
-    values = {}
-    if not dotenv_path.exists():
-        return values
-    for line in dotenv_path.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        key = key.strip()
-        value = value.strip().strip('"').strip("'")
-        if key:
-            values[key] = value
-    return values
-
-def load_repo_dotenv_into_env(env, keys=None):
-    values = load_repo_dotenv_values()
-    for key, value in values.items():
-        if keys is not None and key not in keys:
-            continue
-        if value and key not in env:
-            env[key] = value
-    return env
-
-def binary_candidates(name):
-    yield name
-    if "_" in name:
-        yield name.replace("_", "-")
-    if "-" in name:
-        yield name.replace("-", "_")
-
-def get_runfile_binary_path(name):
-    if runfiles is None:
-        return None
-
-    runfiles_manifest = runfiles.Create()
-    if runfiles_manifest is None:
-        return None
-
-    repo = runfiles_manifest.CurrentRepository()
-    for candidate in binary_candidates(name):
-        for runfile in (
-            f"{repo}/talon/{candidate}" if repo else None,
-            f"_main/talon/{candidate}",
-            f"talon/{candidate}",
-        ):
-            if runfile is None:
-                continue
-            path = runfiles_manifest.Rlocation(runfile)
-            if path and Path(path).exists():
-                return str(path)
-
-    return None
-
-def get_binary_path(name):
-    workspace = os.environ.get("BUILD_WORKSPACE_DIRECTORY")
-    for candidate in binary_candidates(name):
-        if workspace:
-            path = Path(workspace) / "bazel-bin" / "talon" / candidate
-            if path.exists():
-                return str(path)
-
-        runfile_path = get_runfile_binary_path(candidate)
-        if runfile_path:
-            return runfile_path
-
-        for base in (REPO_ROOT / "target" / "debug", REPO_ROOT / "target" / "release"):
-            path = base / candidate
-            if path.exists():
-                return str(path)
-
-        resolved = shutil.which(candidate)
-        if resolved:
-            return resolved
-
-    raise FileNotFoundError(f"Could not find binary {name}")
-
-
-def wait_for_gateway(host, port, attempts=20, delay_seconds=1):
-    import socket
-
-    for _ in range(attempts):
-        try:
-            with socket.create_connection((host, port), timeout=1):
-                return
-        except Exception:
-            time.sleep(delay_seconds)
-    raise RuntimeError(f"Talon server failed to start on port {port}")
-
-
-def start_talon_server_and_worker(env, grpc_port, worker_pull_mode=False):
-    server_bin = get_binary_path("talon_server")
-    worker_bin = get_binary_path("talon_worker")
-
-    server_proc = subprocess.Popen(
-        [server_bin],
-        env=env,
-        stdout=sys.stdout,
-        stderr=sys.stderr,
-    )
-
-    wait_for_gateway("127.0.0.1", grpc_port)
-    time.sleep(3)
-
-    worker_env = env.copy()
-    if worker_pull_mode:
-        worker_env["PULL_MODE"] = "1"
-    worker_env.setdefault(
-        "TALON_WORKER_ENDPOINT_URL",
-        f"http://127.0.0.1:{worker_env.get('PORT', '8081')}",
-    )
-    worker_env.setdefault("TALON_WORKER_ENDPOINT_PROTOCOL", "grpc")
-
-    worker_proc = subprocess.Popen(
-        [worker_bin],
-        env=worker_env,
-        stdout=sys.stdout,
-        stderr=sys.stderr,
-    )
-    wait_for_gateway("127.0.0.1", int(worker_env.get("PORT", "8081")))
-    time.sleep(1)
-
-    return server_proc, worker_proc
-
-@pytest.fixture(scope="session")
-def talon_infrastructure():
-    print("\nStarting Postgres container...")
-    postgres = PostgresContainer("postgres:15-alpine", dbname="talon", username="talon", password="password")
-    postgres.start()
-    
-    print("\nStarting PubSub emulator container...")
-    pubsub = DockerContainer("gcr.io/google.com/cloudsdktool/cloud-sdk:emulators")
-    pubsub.with_command("gcloud beta emulators pubsub start --host-port=0.0.0.0:8085")
-    pubsub.with_exposed_ports(8085)
-    pubsub.start()
-    
-    # Wait for pubsub to be ready
-    time.sleep(5)
-    
-    # Testcontainers returns postgresql+psycopg2:// format, which sqlx doesn't like. 
-    # Use postgres:// instead.
-    postgres_url = postgres.get_connection_url().replace("postgresql+psycopg2://", "postgres://")
-    pubsub_host = f"{pubsub.get_container_host_ip()}:{pubsub.get_exposed_port(8085)}"
-    
-    print(f"\nPostgres URL: {postgres_url}")
-    print(f"PubSub Host: {pubsub_host}")
-    
-    env = os.environ.copy()
-    load_repo_dotenv_into_env(env, keys={"OPENAI_API_KEY", "CODEX_API_KEY"})
-    env["POSTGRES_URL"] = postgres_url
-    env["PUBSUB_EMULATOR_HOST"] = pubsub_host
-    env["RUST_LOG"] = "info"
-    env["GCP_PROJECT_ID"] = "talon-local"
-    env["TALON_JWT_PRIVATE_KEY_PEM"] = E2E_JWT_PRIVATE_KEY_PEM
-    env["TALON_JWT_ISSUER"] = E2E_JWT_ISSUER
-    
-    # Pre-provision PubSub topics and subscriptions to avoid races
-    try:
-        print("\nPre-provisioning PubSub topics...")
-        for topic, subscription in [
-            (SESSION_DISPATCH_TOPIC, "talon-session-dispatch-sub"),
-            (RESOURCE_LIFECYCLE_TOPIC, "talon-resource-lifecycle-sub"),
-            (WORKFLOW_DISPATCH_TOPIC, "talon-workflow-dispatch-sub"),
-            (INDEX_EVENTS_TOPIC, "talon-index-events-sub"),
-        ]:
-            requests.put(
-                f"http://{pubsub_host}/v1/projects/talon-local/topics/{topic}",
-                timeout=5,
-            )
-            requests.put(
-                f"http://{pubsub_host}/v1/projects/talon-local/subscriptions/{subscription}",
-                json={"topic": f"projects/talon-local/topics/{topic}"},
-                timeout=5,
-            )
-    except Exception as e:
-        print(f"Warning: Failed to pre-provision pubsub: {e}")
-    
-    # Use an isolated port to guarantee we don't accidentally talk to a host docker-compose talon_server 
-    test_grpc_port = 50061
-    env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
-    env["NOVITA_API_KEY"] = "test-dummy-key"
-    
-    temp_dir = Path(tempfile.mkdtemp(prefix="talon-postgres-e2e-"))
-    config_path = temp_dir / "talon.e2e.postgres.yaml"
-    config_path.write_text(
-        f"""
-providers:
-  mock:
-    type: openai_compatible
-    name: mock
-    base_url: "http://127.0.0.1:{MOCK_LLM_PORT}"
-    model: minimax/minimax-m2.7
-    api_key:
-      source: env
-      key: NOVITA_API_KEY
-server:
-  host: "127.0.0.1"
-  port: {test_grpc_port}
-control_plane:
-  database:
-    driver: postgres
-    url:
-      source: env
-      key: POSTGRES_URL
-  message_broker:
-    driver: gcp_pubsub
-    project_id:
-      source: env
-      key: GCP_PROJECT_ID
-""".strip()
-        + "\n"
-    )
-    env["TALON_CONFIG_PATH"] = str(config_path)
-
-    print("\nStarting Talon server and worker...")
-    server_proc, worker_proc = start_talon_server_and_worker(
-        env,
-        test_grpc_port,
-        worker_pull_mode=True,
-    )
-
-    try:
-        api_key = create_e2e_api_key(test_grpc_port, "pytest-postgres-root")
-        auth_file = temp_dir / "talon-auth.json"
-        os.environ[api_key_env_name(test_grpc_port)] = api_key
-        os.environ[api_key_auth_file_env_name(test_grpc_port)] = str(auth_file)
-
-        yield {"api_key": api_key, "auth_file": str(auth_file)}
-    finally:
-        print("\nShutting down Talon servers and containers...")
-        server_proc.terminate()
-        worker_proc.terminate()
-        server_proc.wait()
-        worker_proc.wait()
-        os.environ.pop(api_key_env_name(test_grpc_port), None)
-        os.environ.pop(api_key_auth_file_env_name(test_grpc_port), None)
-        pubsub.stop()
-        postgres.stop()
-        shutil.rmtree(temp_dir, ignore_errors=True)
-
 @pytest.fixture(scope="session", autouse=True)
-def mock_llm_server():
-    """Starts the FastAPI mock LLM server before the test suite runs and tears it down after."""
+def llm_server() -> Iterator[LlmServer]:
     print("\nStarting mock LLM server...")
     import socket
+    server = LlmServer(base_url=f"http://127.0.0.1:{MOCK_LLM_PORT}")
 
     try:
-        with socket.create_connection(("127.0.0.1", 8000), timeout=1):
-            print("\nReusing existing mock LLM server on 127.0.0.1:8000")
-            yield
+        with socket.create_connection(("127.0.0.1", MOCK_LLM_PORT), timeout=1):
+            print(f"\nReusing existing mock LLM server on 127.0.0.1:{MOCK_LLM_PORT}")
+            yield server
             return
     except Exception:
         pass
@@ -457,133 +63,98 @@ def mock_llm_server():
     import threading
     import uvicorn
     from mock_llm import app
-    
+
     server_thread = threading.Thread(
         target=uvicorn.run,
         args=(app,),
         kwargs={"host": "0.0.0.0", "port": MOCK_LLM_PORT, "log_level": "info"},
-        daemon=True
+        daemon=True,
     )
     server_thread.start()
-    
-    # Wait for the server to be healthy
+
     for _ in range(10):
         try:
             with socket.create_connection(("127.0.0.1", MOCK_LLM_PORT), timeout=1):
                 break
         except Exception:
             time.sleep(0.5)
-            
-    yield
+
+    yield server
     print("\nShutting down mock LLM server...")
-
-@pytest.fixture
-def test_grpc_port():
-    return 50061
-
-@pytest.fixture
-def gateway_channel(talon_infrastructure, test_grpc_port):
-    """Returns a connected gRPC channel to the Talon gateway."""
-    raw_channel, channel = authenticated_gateway_channel(
-        test_grpc_port,
-        talon_infrastructure["api_key"],
-    )
-    yield channel
-    raw_channel.close()
 
 
 @pytest.fixture(scope="session")
-def talon_infrastructure_sqlite():
-    print("\nStarting SQLite + local_socket Talon stack...")
-    test_grpc_port = 50054
-    worker_port = 18082
+def mock_llm_server(llm_server: LlmServer) -> LlmServer:
+    return llm_server
 
-    env = os.environ.copy()
-    load_repo_dotenv_into_env(env, keys={"OPENAI_API_KEY", "CODEX_API_KEY"})
-    env["RUST_LOG"] = "info"
-    env["NOVITA_API_KEY"] = "test-dummy-key"
-    env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
-    env["PORT"] = str(worker_port)
-    env["TALON_SESSION_PROCESSING_TIMEOUT_SECONDS"] = "1"
-    env["TALON_JWT_PRIVATE_KEY_PEM"] = E2E_JWT_PRIVATE_KEY_PEM
-    env["TALON_JWT_ISSUER"] = E2E_JWT_ISSUER
 
-    temp_dir = Path(tempfile.mkdtemp(prefix="talon-sqlite-e2e-"))
-    data_dir = temp_dir / "data"
-    data_dir.mkdir(parents=True, exist_ok=True)
-    config_path = temp_dir / "talon.e2e.sqlite.yaml"
-    config_path.write_text(
-        f"""
-providers:
-  mock:
-    type: openai_compatible
-    name: mock
-    base_url: "http://127.0.0.1:{MOCK_LLM_PORT}"
-    model: minimax/minimax-m2.7
-    api_key:
-      source: env
-      key: NOVITA_API_KEY
-server:
-  host: "127.0.0.1"
-  port: {test_grpc_port}
-control_plane:
-  database:
-    driver: sqlite
-    data_dir: ./data
-  message_broker:
-    driver: local_socket
-""".strip()
-        + "\n"
-    )
-    env["TALON_CONFIG_PATH"] = str(config_path)
-
-    server_proc, worker_proc = start_talon_server_and_worker(
-        env,
-        test_grpc_port,
-        worker_pull_mode=True,
-    )
-    state = {"restarted_workers": []}
+@pytest.fixture(scope="session")
+def postgres_pubsub_stack(llm_server: LlmServer) -> Iterator[E2EStack]:
+    stack = start_postgres_pubsub_stack(grpc_port=50061, worker_port=8081)
+    os.environ[api_key_env_name(stack.grpc_port)] = stack.api_key
+    os.environ[api_key_auth_file_env_name(stack.grpc_port)] = stack.auth_file
     try:
-        api_key = create_e2e_api_key(test_grpc_port, "pytest-sqlite-root")
-        auth_file = temp_dir / "talon-auth.json"
-        os.environ[api_key_env_name(test_grpc_port)] = api_key
-        os.environ[api_key_auth_file_env_name(test_grpc_port)] = str(auth_file)
-
-        state = {
-            "grpc_port": test_grpc_port,
-            "worker_port": worker_port,
-            "config_path": str(config_path),
-            "data_dir": str(data_dir),
-            "api_key": api_key,
-            "auth_file": str(auth_file),
-            "env": env,
-            "server_proc": server_proc,
-            "worker_proc": worker_proc,
-            "restarted_workers": [],
-        }
-        yield state
+        yield stack
     finally:
-        print("\nShutting down SQLite + local_socket Talon stack...")
-        for proc in state.get("restarted_workers", []):
-            proc.terminate()
-        server_proc.terminate()
-        worker_proc.terminate()
-        for proc in state.get("restarted_workers", []):
-            proc.wait()
-        server_proc.wait()
-        worker_proc.wait()
-        os.environ.pop(api_key_env_name(test_grpc_port), None)
-        os.environ.pop(api_key_auth_file_env_name(test_grpc_port), None)
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        os.environ.pop(api_key_env_name(stack.grpc_port), None)
+        os.environ.pop(api_key_auth_file_env_name(stack.grpc_port), None)
+        stack.stop()
+
+
+@pytest.fixture(scope="session")
+def sqlite_local_stack(llm_server: LlmServer) -> Iterator[E2EStack]:
+    stack = start_sqlite_local_stack(grpc_port=50054, worker_port=18082)
+    os.environ[api_key_env_name(stack.grpc_port)] = stack.api_key
+    os.environ[api_key_auth_file_env_name(stack.grpc_port)] = stack.auth_file
+    try:
+        yield stack
+    finally:
+        os.environ.pop(api_key_env_name(stack.grpc_port), None)
+        os.environ.pop(api_key_auth_file_env_name(stack.grpc_port), None)
+        stack.stop()
+
+
+@pytest.fixture(scope="session")
+def talon_infrastructure(postgres_pubsub_stack):
+    return postgres_pubsub_stack
+
+
+@pytest.fixture(scope="session")
+def talon_infrastructure_sqlite(sqlite_local_stack):
+    return sqlite_local_stack
+
+
+@pytest.fixture
+def test_grpc_port(talon_infrastructure):
+    return talon_infrastructure.grpc_port
 
 
 @pytest.fixture
 def sqlite_test_grpc_port(talon_infrastructure_sqlite):
-    return talon_infrastructure_sqlite["grpc_port"]
+    return talon_infrastructure_sqlite.grpc_port
+
+
+@pytest.fixture
+def gateway_channel(talon_infrastructure, test_grpc_port):
+    if hasattr(talon_infrastructure, "channel"):
+        raw_channel, channel = talon_infrastructure.channel()
+    else:
+        raw_channel, channel = authenticated_gateway_channel(
+            test_grpc_port,
+            talon_infrastructure["api_key"],
+        )
+    yield channel
+    raw_channel.close()
 
 
 @pytest.fixture
 def gateway_channel_sqlite(talon_infrastructure_sqlite, sqlite_test_grpc_port):
+    if hasattr(talon_infrastructure_sqlite, "channel"):
+        raw_channel, channel = talon_infrastructure_sqlite.channel()
+        yield channel
+        raw_channel.close()
+        return
+
     if isinstance(talon_infrastructure_sqlite, dict):
         api_key = talon_infrastructure_sqlite.get("api_key")
     else:
@@ -597,6 +168,30 @@ def gateway_channel_sqlite(talon_infrastructure_sqlite, sqlite_test_grpc_port):
         raw_channel.close()
         return
 
+    import grpc
+
     channel = grpc.insecure_channel(f"127.0.0.1:{sqlite_test_grpc_port}")
     yield channel
     channel.close()
+
+
+@pytest.fixture(
+    params=["postgres_pubsub_stack", "sqlite_local_stack"],
+    ids=["postgres-pubsub", "sqlite-local"],
+)
+def stack(request):
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture
+def shared_e2e_stack(stack):
+    return stack
+
+
+@pytest.fixture
+def client(stack: E2EStack) -> Iterator[TalonClient]:
+    raw_channel, channel = stack.channel()
+    try:
+        yield TalonClient(channel)
+    finally:
+        raw_channel.close()

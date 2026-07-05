@@ -208,6 +208,8 @@ def create_a2a_fixture(
 async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
     talon_infrastructure, mock_llm_server, tmp_path, test_grpc_port
 ):
+    # Verify an upstream A2A SDK client can discover Talon's agent card, send a
+    # task, stream updates, and read back the finished task over A2A surfaces.
     run_id = uuid.uuid4().hex[:8]
     namespace = f"talon-a2a-compat-{run_id}"
     agent_name = f"a2a-agent-{run_id}"

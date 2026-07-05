@@ -1,0 +1,178 @@
+import os
+import subprocess
+import time
+import uuid
+from pathlib import Path
+
+import pytest
+
+import conftest
+from e2e import scenarios as e2e
+from e2e.stack import E2EStack
+
+
+@pytest.fixture
+def stack(sqlite_local_stack: E2EStack) -> E2EStack:
+    return sqlite_local_stack
+
+
+def test_cli_chat_sqlite_local_socket(
+    stack: E2EStack,
+) -> None:
+    # Verify the CLI can create an agent, open a session, send a message, and
+    # observe a completed assistant reply on the SQLite/local-socket stack.
+    cli = stack.cli()
+    suffix = uuid.uuid4().hex[:8]
+    namespace = f"talon-cli-chat-{suffix}"
+    agent = "cli-chat-agent"
+    e2e.apply(
+        cli,
+        e2e.MANIFEST_ROOT / "chat" / "agent.yaml",
+        {
+            "namespace": namespace,
+            "agent": agent,
+            "system_prompt": "You are a helpful CLI E2E test assistant.",
+        },
+    )
+    session_id = e2e.session_create(cli, namespace, agent)
+    e2e.session_send(
+        cli,
+        namespace,
+        agent,
+        session_id,
+        "What is the square root of 144?",
+    )
+    completed = e2e.wait_for_session_text(cli, namespace, agent, session_id, "12")
+    assert completed["state"] == "IDLE"
+
+
+def test_cli_filtered_search_sqlite_local_socket(
+    stack: E2EStack,
+) -> None:
+    # Verify the CLI session-search command can find indexed session content
+    # after a message is sent on the SQLite/local-socket stack.
+    cli = stack.cli()
+    suffix = uuid.uuid4().hex[:8]
+    namespace = f"talon-cli-search-{suffix}"
+    agent = "cli-search-agent"
+    token = f"clisearchtoken{suffix}"
+    e2e.apply(
+        cli,
+        e2e.MANIFEST_ROOT / "chat" / "agent.yaml",
+        {
+            "namespace": namespace,
+            "agent": agent,
+            "system_prompt": "You are a helpful search CLI E2E test assistant.",
+        },
+    )
+    session_id = e2e.session_create(cli, namespace, agent)
+    e2e.session_send(
+        cli,
+        namespace,
+        agent,
+        session_id,
+        f"Please index {token} for CLI search.",
+    )
+
+    last_output = ""
+    for _ in range(30):
+        result = cli.run(
+            "search",
+            "sessions",
+            "--namespace",
+            namespace,
+            "--agent",
+            agent,
+            token,
+        )
+        last_output = result.stdout
+        if token in last_output:
+            break
+        time.sleep(1)
+
+    assert token in last_output
+    assert namespace in last_output
+    assert "SessionMessage" in last_output
+    assert "part" in last_output
+
+
+def test_cli_streaming_chat_sqlite_local_socket(
+    stack: E2EStack,
+) -> None:
+    # Verify the CLI streaming path emits reasoning, text, and usage parts for a
+    # normal assistant response on the SQLite/local-socket stack.
+    cli = stack.cli()
+    suffix = uuid.uuid4().hex[:8]
+    namespace = f"talon-cli-stream-{suffix}"
+    agent = "cli-stream-agent"
+    e2e.apply(
+        cli,
+        e2e.MANIFEST_ROOT / "chat" / "agent.yaml",
+        {
+            "namespace": namespace,
+            "agent": agent,
+            "system_prompt": "You are a helpful streaming CLI E2E test assistant.",
+        },
+    )
+
+    session_id = e2e.session_create(cli, namespace, agent)
+    events = e2e.session_send_stream_json(
+        cli,
+        namespace,
+        agent,
+        session_id,
+        "Stream test message",
+    )
+    parts = [
+        event.get("part") or {}
+        for event in events
+        if event.get("part") is not None
+    ]
+    reasoning = [part for part in parts if part.get("type") == "reasoning"]
+    text = [part for part in parts if part.get("type") == "text"]
+    usage = [part for part in parts if part.get("type") == "usage"]
+
+    assert reasoning
+    assert text
+    assert usage
+    assert "Inspecting the request" in reasoning[0].get("content", "")
+    assert "received" in "".join(part.get("content", "") for part in text)
+
+
+def test_cli_apply_rejects_status_in_resource_manifest(
+    stack: E2EStack,
+    tmp_path: Path,
+) -> None:
+    # Verify `talon apply` rejects manifests that try to set resource status,
+    # which should remain server-owned.
+    manifest = tmp_path / "agent-with-status.yaml"
+    manifest.write_text(
+        """
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: status-owned
+  namespace: status-owned-test
+spec:
+  systemPrompt: This manifest should fail before apply.
+status:
+  phase: Ready
+"""
+    )
+    cli = conftest.get_binary_path("talon_cli")
+    result = subprocess.run(
+        [
+            cli,
+            "--gateway",
+            stack.gateway_url,
+            "apply",
+            "-f",
+            str(manifest),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "Resource manifests cannot set status" in (result.stderr + result.stdout)
