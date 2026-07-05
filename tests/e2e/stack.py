@@ -4,15 +4,19 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
+import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterator
 
+import boto3
 import grpc
 import requests
 from testcontainers.core.container import DockerContainer
 from testcontainers.postgres import PostgresContainer
+from talon_client import StreamSessionPartsRequest, TalonClient
 from talon_client.auth import ApiKeyTokenSource
 from talon_client.proto.talon.v1 import auth_pb2, auth_pb2_grpc
 
@@ -666,5 +670,240 @@ control_plane:
     except Exception:
         _stop_process(worker_proc)
         _stop_process(server_proc)
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise
+
+
+class SessionStreamBuffer:
+    def __init__(
+        self,
+        *,
+        grpc_port: int,
+        api_key: str,
+        namespace: str,
+        agent: str,
+        session_id: str,
+    ):
+        self.grpc_port = grpc_port
+        self.api_key = api_key
+        self.namespace = namespace
+        self.agent = agent
+        self.session_id = session_id
+        self.events = []
+        self._lock = threading.Lock()
+        self._ready = threading.Event()
+        self._stop = threading.Event()
+        self._raw_channel = None
+        self._channel = None
+        self._thread = None
+        self.error = None
+
+    def __enter__(self):
+        self._raw_channel, self._channel = authenticated_gateway_channel(
+            self.grpc_port, self.api_key
+        )
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
+        assert self._ready.wait(timeout=5), "session stream did not start"
+        return self
+
+    def __exit__(self, *args):
+        self._stop.set()
+        if self._channel is not None:
+            self._channel.close()
+        if self._raw_channel is not None:
+            self._raw_channel.close()
+        if self._thread is not None:
+            self._thread.join(timeout=5)
+
+    def _run(self):
+        stub = TalonClient(self._channel)
+        request = StreamSessionPartsRequest(
+            ns=self.namespace,
+            agent=self.agent,
+            session_id=self.session_id,
+        )
+        self._ready.set()
+        try:
+            for event in stub.sessions.StreamParts(request):
+                with self._lock:
+                    self.events.append(event)
+                if self._stop.is_set():
+                    break
+        except grpc.RpcError as err:
+            if not self._stop.is_set():
+                self.error = err
+
+    def saw_text(self) -> bool:
+        with self._lock:
+            return any(event.part.content for event in self.events)
+
+
+def _provision_localstack(endpoint: str, table_name: str, queue_name: str) -> None:
+    dynamodb = boto3.client(
+        "dynamodb",
+        endpoint_url=endpoint,
+        region_name="us-east-1",
+        aws_access_key_id="test",
+        aws_secret_access_key="test",
+    )
+    sqs = boto3.client(
+        "sqs",
+        endpoint_url=endpoint,
+        region_name="us-east-1",
+        aws_access_key_id="test",
+        aws_secret_access_key="test",
+    )
+    deadline = time.time() + 60
+    while True:
+        try:
+            dynamodb.list_tables()
+            sqs.list_queues()
+            break
+        except Exception:
+            if time.time() > deadline:
+                raise
+            time.sleep(1)
+
+    dynamodb.create_table(
+        TableName=table_name,
+        BillingMode="PAY_PER_REQUEST",
+        AttributeDefinitions=[
+            {"AttributeName": "PK", "AttributeType": "S"},
+            {"AttributeName": "SK", "AttributeType": "S"},
+        ],
+        KeySchema=[
+            {"AttributeName": "PK", "KeyType": "HASH"},
+            {"AttributeName": "SK", "KeyType": "RANGE"},
+        ],
+    )
+    dynamodb.get_waiter("table_exists").wait(TableName=table_name)
+    sqs.create_queue(QueueName=queue_name)
+
+
+def _wait_for_socket(path: Path) -> None:
+    deadline = time.time() + 30
+    while time.time() < deadline:
+        if path.exists():
+            return
+        time.sleep(0.25)
+    raise RuntimeError(f"Timed out waiting for worker Unix socket {path}")
+
+
+def start_aws_local_stack(
+    *,
+    grpc_port: int | None = None,
+    api_key_name: str = "pytest-aws-root",
+) -> E2EStack:
+    grpc_port = grpc_port or unused_tcp_port()
+    suffix = uuid.uuid4().hex[:10]
+    temp_dir = Path(tempfile.mkdtemp(prefix="talon-aws-e2e-"))
+    socket_path = temp_dir / "worker.sock"
+    table_name = f"talon_state_e2e_{suffix}"
+    queue_name = f"talon-e2e-{suffix}"
+    env = _base_env(grpc_port)
+
+    localstack: DockerContainer | None = None
+    server_proc: subprocess.Popen[Any] | None = None
+    worker_proc: subprocess.Popen[Any] | None = None
+    try:
+        localstack = DockerContainer("localstack/localstack:3")
+        localstack.with_exposed_ports(4566)
+        localstack.start()
+        endpoint = (
+            f"http://{localstack.get_container_host_ip()}:"
+            f"{localstack.get_exposed_port(4566)}"
+        )
+        _provision_localstack(endpoint, table_name, queue_name)
+        env.update(
+            {
+                "AWS_ACCESS_KEY_ID": "test",
+                "AWS_SECRET_ACCESS_KEY": "test",
+                "AWS_DEFAULT_REGION": "us-east-1",
+                "AWS_REGION": "us-east-1",
+                "TALON_DYNAMODB_ENDPOINT_URL": endpoint,
+                "TALON_DYNAMODB_TABLE": table_name,
+                "TALON_SQS_ENDPOINT_URL": endpoint,
+                "TALON_SQS_QUEUE_NAME": queue_name,
+                "TALON_WORKER_ENDPOINT_PROTOCOL": "grpc",
+                "TALON_WORKER_ENDPOINT_URL": f"unix://{socket_path}",
+            }
+        )
+
+        config_path = temp_dir / "talon.e2e.aws.yaml"
+        config_path.write_text(
+            f"""
+providers:
+  mock:
+    type: openai_compatible
+    name: mock
+    base_url: "http://127.0.0.1:{MOCK_LLM_PORT}"
+    model: minimax/minimax-m2.7
+    api_key:
+      source: env
+      key: NOVITA_API_KEY
+server:
+  host: "127.0.0.1"
+  port: {grpc_port}
+control_plane:
+  database:
+    driver: dynamodb
+    url:
+      source: env
+      key: TALON_DYNAMODB_TABLE
+  message_broker:
+    driver: sqs
+  documents:
+    driver: sqlite
+    data_dir: ./documents
+""".strip()
+            + "\n"
+        )
+        env["TALON_CONFIG_PATH"] = str(config_path)
+
+        server_proc = subprocess.Popen(
+            [get_binary_path("talon_server")],
+            env=env,
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+        )
+        wait_for_gateway("127.0.0.1", grpc_port, attempts=40)
+        time.sleep(2)
+
+        api_key = create_e2e_api_key(grpc_port, api_key_name)
+        worker_env = env.copy()
+        worker_env["PULL_MODE"] = "1"
+        worker_proc = subprocess.Popen(
+            [get_binary_path("talon_worker")],
+            env=worker_env,
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+        )
+        _wait_for_socket(socket_path)
+        time.sleep(1)
+
+        auth_file = temp_dir / "talon-auth.json"
+        return E2EStack(
+            name="aws_local",
+            grpc_port=grpc_port,
+            worker_port=None,
+            temp_dir=temp_dir,
+            env=env,
+            api_key=api_key,
+            auth_file=str(auth_file),
+            server_proc=server_proc,
+            worker_proc=worker_proc,
+            metadata={
+                "config_path": str(config_path),
+                "socket_path": str(socket_path),
+                "localstack_endpoint": endpoint,
+            },
+            _resources=[localstack],
+        )
+    except Exception:
+        _stop_process(worker_proc)
+        _stop_process(server_proc)
+        if localstack is not None:
+            localstack.stop()
         shutil.rmtree(temp_dir, ignore_errors=True)
         raise
