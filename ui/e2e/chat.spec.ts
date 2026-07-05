@@ -179,6 +179,15 @@ async function annotatePaginationProof(page: Page, label: string) {
   await page.waitForTimeout(2200);
 }
 
+async function screenshotOutputPath(testInfo: { outputPath: (...pathSegments: string[]) => string }, filename: string) {
+  const configuredDir = process.env.SIGHTLINE_SCREENSHOT_DIR;
+  const outputDir = configuredDir
+    ? path.resolve(configuredDir)
+    : testInfo.outputPath('sightline-screenshots');
+  await fs.mkdir(outputDir, { recursive: true });
+  return path.join(outputDir, filename);
+}
+
 test.describe('Sightline theme tokens', () => {
   test('resolves the browser light preference by default', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'light' });
@@ -189,12 +198,14 @@ test.describe('Sightline theme tokens', () => {
         className: document.documentElement.className,
         titleColor: getComputedStyle(document.documentElement).getPropertyValue('--color-title-50').trim(),
         inputBg: getComputedStyle(document.documentElement).getPropertyValue('--copilot-input-bg').trim(),
+        expandedInputBg: getComputedStyle(document.documentElement).getPropertyValue('--copilot-input-expanded-bg').trim(),
         bubbleFg: getComputedStyle(document.documentElement).getPropertyValue('--talon-chat-user-bubble-fg').trim(),
       }));
     }).toMatchObject({
       className: expect.stringContaining('light'),
       titleColor: '#0f172a',
       inputBg: expect.stringMatching(cssVarPattern('rgba(255, 255, 255, 0.96)', '#fffffff5')),
+      expandedInputBg: expect.stringMatching(cssVarPattern('var(--copilot-input-bg)', 'rgba(255, 255, 255, 0.96)', '#fffffff5')),
       bubbleFg: '#0f172a',
     });
   });
@@ -208,6 +219,7 @@ test.describe('Sightline theme tokens', () => {
     });
     await expect.poll(() => rootCssVar(page, '--color-title-50')).toBe('#0f172a');
     await expect.poll(() => rootCssVar(page, '--copilot-input-bg')).toMatch(cssVarPattern('rgba(255, 255, 255, 0.96)', '#fffffff5'));
+    await expect.poll(() => rootCssVar(page, '--copilot-input-expanded-bg')).toMatch(cssVarPattern('var(--copilot-input-bg)', 'rgba(255, 255, 255, 0.96)', '#fffffff5'));
     await expect.poll(() => rootCssVar(page, '--talon-chat-user-bubble-fg')).toBe('#0f172a');
 
     await page.evaluate(() => {
@@ -216,9 +228,44 @@ test.describe('Sightline theme tokens', () => {
     });
     await expect.poll(() => rootCssVar(page, '--color-title-50')).toBe('#f4f7ff');
     await expect.poll(() => rootCssVar(page, '--copilot-input-bg')).toMatch(cssVarPattern('rgba(15, 23, 42, 0.92)', '#0f172aeb'));
+    await expect.poll(() => rootCssVar(page, '--copilot-input-expanded-bg')).toMatch(cssVarPattern('var(--copilot-input-bg)', 'rgba(15, 23, 42, 0.92)', '#0f172aeb'));
     await expect.poll(() => rootCssVar(page, '--talon-chat-user-bubble-fg')).toBe('#e6edf3');
   });
 });
+
+test.describe('Sightline screenshots', () => {
+  test('captures the connected chat surface in light and dark mode @screenshots', async ({ page }, testInfo) => {
+    await page.emulateMedia({ colorScheme: 'dark' });
+    const { chatInput } = await provisionSession(page);
+    await chatInput.fill('Sightline screenshot smoke');
+
+    const composer = page.locator('form').filter({ has: chatInput });
+    await expect(composer).toBeVisible({ timeout: 5000 });
+    await expect.poll(async () => composer.evaluate((element) => getComputedStyle(element).backgroundColor))
+      .toMatch(cssVarPattern('rgba(15, 23, 42, 0.92)', 'rgba(15, 23, 42, 0.9)'));
+    await page.screenshot({
+      path: await screenshotOutputPath(testInfo, 'sightline-chat-dark.png'),
+      fullPage: true,
+    });
+
+    await page.emulateMedia({ colorScheme: 'light' });
+    await expect.poll(async () => documentTheme(page)).toBe('light');
+    await expect.poll(async () => composer.evaluate((element) => getComputedStyle(element).backgroundColor))
+      .toMatch(cssVarPattern('rgba(255, 255, 255, 0.96)', 'rgb(255, 255, 255)'));
+    await page.screenshot({
+      path: await screenshotOutputPath(testInfo, 'sightline-chat-light.png'),
+      fullPage: true,
+    });
+  });
+});
+
+async function documentTheme(page: Page) {
+  return page.evaluate(() => {
+    if (document.documentElement.classList.contains('dark')) return 'dark';
+    if (document.documentElement.classList.contains('light')) return 'light';
+    return '';
+  });
+}
 
 test.describe('Chat Streaming', () => {
   test('should send chat messages through the gateway UI transport', async ({ page }) => {

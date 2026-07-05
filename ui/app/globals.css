@@ -553,6 +553,9 @@
   --copilot-input-bg: rgba(255, 255, 255, 0.96);
   --copilot-input-border: rgba(15, 23, 42, 0.12);
   --copilot-input-shadow: 0 18px 44px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --copilot-input-expanded-bg: var(--copilot-input-bg);
+  --copilot-input-expanded-border: var(--copilot-input-border);
+  --copilot-input-expanded-shadow: var(--copilot-input-shadow);
   --copilot-input-placeholder: rgba(100, 116, 139, 0.9);
   --copilot-secondary-control-fg: rgba(51, 65, 85, 0.9);
   --copilot-control-bg: #e2e8f0;
@@ -662,6 +665,9 @@
   --copilot-input-bg: rgba(15, 23, 42, 0.92);
   --copilot-input-border: rgba(148, 163, 184, 0.3);
   --copilot-input-shadow: 0 18px 48px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --copilot-input-expanded-bg: var(--copilot-input-bg);
+  --copilot-input-expanded-border: var(--copilot-input-border);
+  --copilot-input-expanded-shadow: var(--copilot-input-shadow);
   --copilot-input-placeholder: rgba(148, 163, 184, 0.7);
   --copilot-secondary-control-fg: rgba(226, 232, 240, 0.88);
   --copilot-control-bg: #e6edf3;
