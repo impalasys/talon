@@ -23,8 +23,8 @@ use crate::control::{
 };
 use crate::gateway::auth::{self, AuthConfig};
 use crate::gateway::rpc::data_proto;
+use crate::gateway::rpc::sessions::watcher::SessionStreamTarget;
 use crate::gateway::server::Gateway;
-use crate::gateway::session_streams::SessionStreamTarget;
 
 use super::card::{
     agent_card_json, external_host_from_headers, resolve_agent_card_route, scheme_from_headers,

@@ -849,6 +849,54 @@ mod tests {
         }
     }
 
+    fn workflow_template() -> resources_proto::Resource {
+        resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Template".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "backlink-outreach".to_string(),
+                namespace: "customers".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::Template(
+                    resources_proto::TemplateSpec {
+                        kind: "Workflow".to_string(),
+                        metadata: Some(resources_proto::ResourceMeta {
+                            name: "backlink-outreach".to_string(),
+                            ..Default::default()
+                        }),
+                        spec_json: serde_json::json!({
+                            "description": "Prepare outreach drafts for {{ namespace.customerName }}.",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "instruction": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "steps": [
+                                {
+                                    "id": "copy",
+                                    "type": "transform",
+                                    "input": {
+                                        "instruction": "${$.input.instruction}"
+                                    }
+                                }
+                            ],
+                            "output": {
+                                "instruction": "${$.steps.copy.output.instruction}"
+                            }
+                        })
+                        .to_string(),
+                    },
+                )),
+            }),
+            status: None,
+        }
+    }
+
     fn target_namespace(annotation: Option<&str>) -> resources_proto::Namespace {
         let mut annotations = std::collections::HashMap::new();
         if let Some(value) = annotation {
@@ -894,6 +942,17 @@ mod tests {
             resource.spec.and_then(|spec| spec.kind)
         else {
             panic!("expected rendered Schedule");
+        };
+        spec
+    }
+
+    fn rendered_workflow_spec(
+        resource: resources_proto::Resource,
+    ) -> resources_proto::WorkflowSpec {
+        let Some(resources_proto::resource_spec::Kind::Workflow(spec)) =
+            resource.spec.and_then(|spec| spec.kind)
+        else {
+            panic!("expected rendered Workflow");
         };
         spec
     }
@@ -1051,6 +1110,28 @@ mod tests {
         assert_eq!(target.agent, "cmo");
         assert_eq!(target.session_mode, "new");
         assert!(spec.enabled);
+    }
+
+    #[test]
+    fn render_template_supports_workflow_specs() {
+        let rendered = controller()
+            .render_template_with_namespace(
+                "customers",
+                "customers:acme",
+                &target_namespace(Some("Acme")),
+                &deployment(),
+                &workflow_template(),
+            )
+            .expect("render workflow");
+
+        assert_eq!(rendered.kind, "Workflow");
+        let metadata = rendered.metadata.as_ref().expect("workflow metadata");
+        assert_eq!(metadata.namespace, "customers:acme");
+        assert_eq!(metadata.name, "backlink-outreach");
+        let spec = rendered_workflow_spec(rendered);
+        assert_eq!(spec.description, "Prepare outreach drafts for Acme.");
+        assert_eq!(spec.steps.len(), 1);
+        assert_eq!(spec.steps[0].id, "copy");
     }
 
     #[tokio::test]

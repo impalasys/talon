@@ -3,10 +3,12 @@ syntax = "proto3";
 package talon.worker.v1;
 
 import "proto/events.proto";
+import "proto/data/data.proto";
 
 service FanoutService {
   rpc StreamSessionParts(StreamSessionPartsRequest) returns (stream StreamSessionPartsResponse);
   rpc StreamSessionPartsBatch(StreamSessionPartsBatchRequest) returns (stream StreamSessionPartsResponse);
+  rpc StreamWorkflowEvents(StreamWorkflowEventsRequest) returns (stream StreamWorkflowEventsResponse);
 }
 
 message StreamSessionPartsRequest {
@@ -25,4 +27,16 @@ message StreamSessionPartsResponse {
 
 message StreamSessionPartsBatchRequest {
   repeated StreamSessionPartsRequest streams = 1;
+}
+
+message StreamWorkflowEventsRequest {
+  string ns = 1;
+  string workflow = 2;
+  string run_id = 3;
+  uint64 after_sequence = 4;
+}
+
+message StreamWorkflowEventsResponse {
+  uint64 sequence = 1;
+  talon.data.WorkflowRunEvent event = 2;
 }

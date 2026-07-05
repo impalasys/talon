@@ -6,14 +6,13 @@ use crate::control::scheduling;
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{events, keys, keys::ResourceParent, KeyValueStore};
-use crate::gateway::session_streams::SessionStreamTarget;
 use prost::Message;
 use serde_json::{json, Value};
 use std::sync::OnceLock;
 
 pub(crate) mod watcher;
 
-use watcher::{session_parts_event_stream, session_submission_event_stream};
+use watcher::{session_parts_event_stream, session_submission_event_stream, SessionStreamTarget};
 
 const LARGE_SESSION_PAYLOAD_WARNING_BYTES: usize = 128 * 1024;
 const DEFAULT_SESSION_MESSAGES_PAGE_SIZE: usize = 50;

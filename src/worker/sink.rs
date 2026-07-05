@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 use tokio::sync::Mutex as AsyncMutex;
 
 use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
-use crate::control::{keys::ResourceKey, topics, KeyValueStore, MessagePublisher};
+use crate::control::{keys::ResourceKey, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::data_proto::{self, SessionSubmissionStatus};
 use crate::harness::executor::compaction::tool_result_preview;
 use crate::harness::executor::{AgentEvent, ExecutionSink};
@@ -70,8 +70,7 @@ pub struct PubSubSessionSink {
     pub submission_id: String,
     pub attempt_id: String,
 
-    // Live UI event routing and batching.
-    pub status_topic: String,
+    // Live UI event batching.
     token_publish_interval: Duration,
     started_at: Instant,
     pending_token_event_buffer: Mutex<String>,
@@ -211,7 +210,6 @@ impl PubSubSessionSink {
         let agent_id = agent_id.into();
         let submission_id = submission_id.into();
         let attempt_id = attempt_id.into();
-        let status_topic = topics::session_part_topic_for_session(&session_id);
         let fanout_key = fanout_key.unwrap_or_else(|| {
             SessionFanoutKey::new(
                 ns.clone(),
@@ -233,7 +231,6 @@ impl PubSubSessionSink {
             reply_msg_key,
             submission_id,
             attempt_id,
-            status_topic,
             token_publish_interval,
             started_at: Instant::now(),
             accumulated: Mutex::new(String::new()),
