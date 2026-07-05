@@ -240,16 +240,6 @@ impl GrpcGatewayHandler {
             .await
             .map_err(|err| tonic::Status::internal(err.to_string()))?
             .ok_or_else(|| tonic::Status::not_found("workflow run not found"))?;
-        let stream = self
-            .gateway
-            .pubsub
-            .subscribe(&topics::workflow_events_topic(
-                &req.ns,
-                &req.workflow,
-                &req.run_id,
-            ))
-            .await
-            .map_err(|err| tonic::Status::internal(err.to_string()))?;
         let mut entries = self
             .gateway
             .kv
@@ -301,6 +291,30 @@ impl GrpcGatewayHandler {
         if terminal_seen {
             return Ok(tonic::Response::new(Box::pin(historical_stream)));
         }
+
+        let stream = match self
+            .gateway
+            .pubsub
+            .subscribe(&topics::workflow_events_topic(
+                &req.ns,
+                &req.workflow,
+                &req.run_id,
+            ))
+            .await
+        {
+            Ok(stream) => stream,
+            Err(err) if !seen.is_empty() => {
+                tracing::warn!(
+                    ns = %req.ns,
+                    workflow = %req.workflow,
+                    run_id = %req.run_id,
+                    error = %err,
+                    "workflow event live subscription unavailable; returning durable history only"
+                );
+                return Ok(tonic::Response::new(Box::pin(historical_stream)));
+            }
+            Err(err) => return Err(tonic::Status::internal(err.to_string())),
+        };
 
         let live_stream = stream
             .scan((seen, false), |(seen, terminated), bytes| {

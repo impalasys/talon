@@ -4,7 +4,6 @@ import socket
 import subprocess
 import sys
 import tempfile
-import threading
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -16,7 +15,6 @@ import grpc
 import requests
 from testcontainers.core.container import DockerContainer
 from testcontainers.postgres import PostgresContainer
-from talon_client import StreamSessionPartsRequest, TalonClient
 from talon_client.auth import ApiKeyTokenSource
 from talon_client.proto.talon.v1 import auth_pb2, auth_pb2_grpc
 
@@ -458,6 +456,8 @@ class E2EStack:
 
     @property
     def worker_endpoint_url(self) -> str | None:
+        if "worker_endpoint_url" in self.metadata:
+            return str(self.metadata["worker_endpoint_url"])
         if self.worker_port is None:
             return None
         return f"http://127.0.0.1:{self.worker_port}"
@@ -674,71 +674,6 @@ control_plane:
         raise
 
 
-class SessionStreamBuffer:
-    def __init__(
-        self,
-        *,
-        grpc_port: int,
-        api_key: str,
-        namespace: str,
-        agent: str,
-        session_id: str,
-    ):
-        self.grpc_port = grpc_port
-        self.api_key = api_key
-        self.namespace = namespace
-        self.agent = agent
-        self.session_id = session_id
-        self.events = []
-        self._lock = threading.Lock()
-        self._ready = threading.Event()
-        self._stop = threading.Event()
-        self._raw_channel = None
-        self._channel = None
-        self._thread = None
-        self.error = None
-
-    def __enter__(self):
-        self._raw_channel, self._channel = authenticated_gateway_channel(
-            self.grpc_port, self.api_key
-        )
-        self._thread = threading.Thread(target=self._run, daemon=True)
-        self._thread.start()
-        assert self._ready.wait(timeout=5), "session stream did not start"
-        return self
-
-    def __exit__(self, *args):
-        self._stop.set()
-        if self._channel is not None:
-            self._channel.close()
-        if self._raw_channel is not None:
-            self._raw_channel.close()
-        if self._thread is not None:
-            self._thread.join(timeout=5)
-
-    def _run(self):
-        stub = TalonClient(self._channel)
-        request = StreamSessionPartsRequest(
-            ns=self.namespace,
-            agent=self.agent,
-            session_id=self.session_id,
-        )
-        self._ready.set()
-        try:
-            for event in stub.sessions.StreamParts(request):
-                with self._lock:
-                    self.events.append(event)
-                if self._stop.is_set():
-                    break
-        except grpc.RpcError as err:
-            if not self._stop.is_set():
-                self.error = err
-
-    def saw_text(self) -> bool:
-        with self._lock:
-            return any(event.part.content for event in self.events)
-
-
 def _provision_localstack(endpoint: str, table_name: str, queue_name: str) -> None:
     dynamodb = boto3.client(
         "dynamodb",
@@ -896,6 +831,7 @@ control_plane:
             metadata={
                 "config_path": str(config_path),
                 "socket_path": str(socket_path),
+                "worker_endpoint_url": f"unix://{socket_path}",
                 "localstack_endpoint": endpoint,
             },
             _resources=[localstack],

@@ -292,7 +292,7 @@ jobs:
         run: docker info
 
       - name: Build Talon binaries
-        run: cargo build --locked --bins
+        run: cargo build --locked --features aws-local-e2e --bins
 
       - name: Install Python test dependencies
         run: python -m pip install -r tests/requirements.txt
@@ -310,43 +310,6 @@ jobs:
             tests/test_workflows.py \
             tests/test_cli_sqlite.py \
             tests/test_acp_sqlite.py
-
-  aws_local_e2e:
-    name: AWS Local E2E
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      TESTCONTAINERS_RYUK_DISABLED: "true"
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust artifacts
-        uses: Swatinem/rust-cache@v2
-
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev protobuf-compiler
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-
-      - name: Check Docker daemon
-        run: docker info
-
-      - name: Build Talon binaries with AWS backends
-        run: cargo build --locked --features aws-local-e2e --bins
-
-      - name: Install Python test dependencies
-        run: python -m pip install -r tests/requirements.txt
-
-      - name: Run AWS local E2E
-        run: pytest -q -s tests/test_aws_e2e.py
 
   binary_artifacts:
     name: Binary Artifacts

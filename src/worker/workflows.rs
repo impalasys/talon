@@ -1674,12 +1674,23 @@ pub async fn append_run_event(
             &event,
         )
         .await?;
-    cp.pubsub
+    if let Err(err) = cp
+        .pubsub
         .publish(
             &topics::workflow_events_topic(&run.ns, &run.workflow, &run.id),
             &event.encode_to_vec(),
         )
-        .await?;
+        .await
+    {
+        tracing::warn!(
+            ns = %run.ns,
+            workflow = %run.workflow,
+            run_id = %run.id,
+            event_type,
+            error = %err,
+            "failed to publish workflow run event; event remains available in durable history"
+        );
+    }
     Ok(event)
 }
 
