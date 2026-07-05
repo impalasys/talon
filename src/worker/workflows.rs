@@ -19,6 +19,7 @@ use crate::worker::fanout::{FanoutHub, WorkflowFanoutKey};
 
 const MAX_CAS_RETRIES: usize = 8;
 const DEFAULT_WORKFLOW_CLAIM_TIMEOUT_SECONDS: i64 = 60;
+const WORKFLOW_OUTPUT_PREVIEW_CHARS: usize = 600;
 
 pub const LABEL_WORKFLOW: &str = "talon.impalasys.com/workflow";
 pub const LABEL_WORKFLOW_RUN: &str = "talon.impalasys.com/workflow-run";
@@ -1015,9 +1016,24 @@ async fn try_complete_agent_step(
         return Ok(true);
     }
     let text = latest_assistant_text(cp.kv.as_ref(), &run.ns, &step.agent, &session.id).await?;
-    let output = match apply_output_policy(step, &text) {
-        Ok(output) => output,
+    let output_result = match apply_output_policy_with_repair(step, &text) {
+        Ok(output_result) => output_result,
         Err(err) => {
+            let assistant_text_preview = text_preview(&text, WORKFLOW_OUTPUT_PREVIEW_CHARS);
+            let assistant_text_length = text.chars().count();
+            tracing::warn!(
+                namespace = %run.ns,
+                workflow = %run.workflow,
+                run_id = %run.id,
+                step_id = %step.id,
+                agent = %step.agent,
+                session_id = %session.id,
+                attempt = current.attempt,
+                assistant_text_length,
+                assistant_text_preview = %assistant_text_preview,
+                error = %err,
+                "workflow step output parsing failed"
+            );
             let mut failed = current;
             failed.status = STATUS_FAILED.to_string();
             failed.error = err.to_string();
@@ -1031,7 +1047,12 @@ async fn try_complete_agent_step(
                     &step.id,
                     "step_retry_scheduled",
                     &failed.error,
-                    json!({ "error": failed.error, "nextRetryAt": failed.next_retry_at }),
+                    json!({
+                        "error": failed.error,
+                        "nextRetryAt": failed.next_retry_at,
+                        "assistantTextPreview": assistant_text_preview,
+                        "assistantTextLength": assistant_text_length,
+                    }),
                     fanout_hub,
                 )
                 .await?;
@@ -1042,7 +1063,11 @@ async fn try_complete_agent_step(
                     &step.id,
                     "step_failed",
                     &failed.error,
-                    json!({ "error": failed.error }),
+                    json!({
+                        "error": failed.error,
+                        "assistantTextPreview": assistant_text_preview,
+                        "assistantTextLength": assistant_text_length,
+                    }),
                     fanout_hub,
                 )
                 .await?;
@@ -1051,18 +1076,27 @@ async fn try_complete_agent_step(
             return Ok(true);
         }
     };
+    let output = output_result.output;
+    let output_repair = output_result.repair;
     let mut completed = current;
     completed.status = STATUS_COMPLETED.to_string();
     completed.output_json = serde_json::to_string(&output)?;
     completed.updated_at = Utc::now().timestamp_micros();
     persist_step_run(cp, run, &completed).await?;
+    let mut event_payload = output.clone();
+    if let Some(repair) = output_repair {
+        event_payload = json!({
+            "output": output,
+            "outputRepair": repair,
+        });
+    }
     append_run_event_with_fanout(
         cp,
         run,
         &step.id,
         "step_completed",
         "agent step completed",
-        output,
+        event_payload,
         fanout_hub,
     )
     .await?;
@@ -2011,23 +2045,128 @@ fn lookup_path<'a>(root: &'a Value, path: &str) -> Option<&'a Value> {
     Some(current)
 }
 
+#[derive(Debug)]
+struct OutputPolicyResult {
+    output: Value,
+    repair: Option<&'static str>,
+}
+
 fn apply_output_policy(step: &resources_proto::WorkflowStep, text: &str) -> Result<Value> {
+    Ok(apply_output_policy_with_repair(step, text)?.output)
+}
+
+fn apply_output_policy_with_repair(
+    step: &resources_proto::WorkflowStep,
+    text: &str,
+) -> Result<OutputPolicyResult> {
     let format = step
         .output
         .as_ref()
         .map(|output| output.format.as_str())
         .filter(|format| !format.is_empty())
         .unwrap_or("text");
-    let output = if format == "json" {
-        serde_json::from_str::<Value>(text)
+    let (output, repair) = if format == "json" {
+        parse_json_output(text)
             .map_err(|err| anyhow!("step '{}' expected JSON output: {}", step.id, err))?
     } else {
-        json!({ "text": text })
+        (json!({ "text": text }), None)
     };
     if let Some(policy) = &step.output {
         validate_basic_json_schema("step output", &policy.schema_json, &output)?;
     }
-    Ok(output)
+    Ok(OutputPolicyResult { output, repair })
+}
+
+fn parse_json_output(text: &str) -> Result<(Value, Option<&'static str>)> {
+    match serde_json::from_str::<Value>(text) {
+        Ok(value) => return Ok((value, None)),
+        Err(raw_err) => {
+            for candidate in fenced_json_candidates(text) {
+                if let Ok(value) = serde_json::from_str::<Value>(&candidate) {
+                    return Ok((value, Some("fenced_json")));
+                }
+            }
+            for candidate in balanced_json_candidates(text) {
+                if let Ok(value) = serde_json::from_str::<Value>(&candidate) {
+                    return Ok((value, Some("balanced_json")));
+                }
+            }
+            Err(raw_err.into())
+        }
+    }
+}
+
+fn fenced_json_candidates(text: &str) -> Vec<String> {
+    let mut candidates = Vec::new();
+    let mut rest = text;
+    while let Some(start) = rest.find("```") {
+        let after_start = &rest[start + 3..];
+        let Some(header_end) = after_start.find('\n') else {
+            break;
+        };
+        let fence_label = after_start[..header_end].trim().to_ascii_lowercase();
+        let after_header = &after_start[header_end + 1..];
+        let Some(end) = after_header.find("```") else {
+            break;
+        };
+        if fence_label.is_empty() || fence_label == "json" {
+            candidates.push(after_header[..end].trim().to_string());
+        }
+        rest = &after_header[end + 3..];
+    }
+    candidates
+}
+
+fn balanced_json_candidates(text: &str) -> Vec<String> {
+    let bytes = text.as_bytes();
+    let mut candidates = Vec::new();
+    for (start, byte) in bytes.iter().enumerate() {
+        if *byte != b'{' && *byte != b'[' {
+            continue;
+        }
+        let opening = *byte;
+        let closing = if opening == b'{' { b'}' } else { b']' };
+        let mut stack = vec![closing];
+        let mut in_string = false;
+        let mut escaped = false;
+        for idx in start + 1..bytes.len() {
+            let current = bytes[idx];
+            if in_string {
+                if escaped {
+                    escaped = false;
+                } else if current == b'\\' {
+                    escaped = true;
+                } else if current == b'"' {
+                    in_string = false;
+                }
+                continue;
+            }
+            match current {
+                b'"' => in_string = true,
+                b'{' => stack.push(b'}'),
+                b'[' => stack.push(b']'),
+                b'}' | b']' => {
+                    if stack.pop() != Some(current) {
+                        break;
+                    }
+                    if stack.is_empty() {
+                        candidates.push(text[start..=idx].trim().to_string());
+                        break;
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    candidates
+}
+
+fn text_preview(text: &str, max_chars: usize) -> String {
+    let mut preview: String = text.chars().take(max_chars).collect();
+    if text.chars().count() > max_chars {
+        preview.push_str("...");
+    }
+    preview
 }
 
 async fn latest_assistant_text(
@@ -2554,6 +2693,94 @@ mod tests {
             .into_iter()
             .filter(|current| current == event_type)
             .count()
+    }
+
+    #[test]
+    fn json_output_policy_accepts_raw_json() {
+        let (value, repair) = parse_json_output(r#"{"drafts":[]}"#).unwrap();
+        assert_eq!(value, json!({"drafts": []}));
+        assert_eq!(repair, None);
+    }
+
+    #[test]
+    fn json_output_policy_repairs_fenced_json() {
+        let (value, repair) = parse_json_output(
+            r#"Here is the result:
+
+```json
+{"drafts":[{"draftId":1,"status":"drafted"}]}
+```
+
+Done."#,
+        )
+        .unwrap();
+        assert_eq!(
+            value,
+            json!({"drafts": [{"draftId": 1, "status": "drafted"}]})
+        );
+        assert_eq!(repair, Some("fenced_json"));
+    }
+
+    #[test]
+    fn json_output_policy_repairs_unlabeled_fenced_json() {
+        let (value, repair) = parse_json_output(
+            r#"```
+[{"draftId":1,"status":"drafted"}]
+```"#,
+        )
+        .unwrap();
+        assert_eq!(value, json!([{"draftId": 1, "status": "drafted"}]));
+        assert_eq!(repair, Some("fenced_json"));
+    }
+
+    #[test]
+    fn json_output_policy_uses_first_valid_fence() {
+        let (value, repair) = parse_json_output(
+            r#"```json
+{not valid}
+```
+
+```json
+{"ok":true}
+```"#,
+        )
+        .unwrap();
+        assert_eq!(value, json!({"ok": true}));
+        assert_eq!(repair, Some("fenced_json"));
+    }
+
+    #[test]
+    fn json_output_policy_repairs_balanced_json() {
+        let (value, repair) =
+            parse_json_output(r#"I found this result: {"ok":true,"items":[1,2]}."#).unwrap();
+        assert_eq!(value, json!({"ok": true, "items": [1, 2]}));
+        assert_eq!(repair, Some("balanced_json"));
+    }
+
+    #[test]
+    fn json_output_policy_still_rejects_unrecoverable_prose() {
+        let err = parse_json_output("I cannot produce a draft for this input.").unwrap_err();
+        assert!(err.to_string().contains("expected value"));
+    }
+
+    #[test]
+    fn json_output_policy_validates_schema_after_repair() {
+        let step = resources_proto::WorkflowStep {
+            id: "generate_drafts".to_string(),
+            output: Some(resources_proto::WorkflowStepOutputPolicy {
+                format: "json".to_string(),
+                schema_json: r#"{"type":"object","required":["drafts"]}"#.to_string(),
+            }),
+            ..Default::default()
+        };
+        let err = apply_output_policy_with_repair(
+            &step,
+            r#"```json
+{"notDrafts":[]}
+```"#,
+        )
+        .unwrap_err();
+        assert!(err.to_string().contains("missing required property"));
     }
 
     #[tokio::test]
