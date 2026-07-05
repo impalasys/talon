@@ -31,7 +31,8 @@ chrono-tz = "0.10"
 cron = "0.12"
 jsonwebtoken = { version = "10.4", features = ["rust_crypto"] }
 futures = "0.3"
-hyper-util = { version = "0.1", features = ["tokio"] }
+hyper = { version = "1", features = ["server", "http1", "http2"] }
+hyper-util = { version = "0.1", features = ["tokio", "server-auto", "server-graceful", "service"] }
 opentelemetry = "0.31"
 opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "trace"] }
 opentelemetry_sdk = "0.31"
@@ -93,7 +94,6 @@ protoc-gen-tonic = "0.4.0"
 aws-smithy-runtime-api = "1.11"
 aws-smithy-types = "1.4"
 tempfile = "3.0"
-testcontainers-modules = { version = "0.15", features = ["dynamodb", "localstack"] }
 
 [[bin]]
 name = "talon-server"

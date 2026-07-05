@@ -10,7 +10,14 @@ use axum::{
     routing::post,
     Json, Router,
 };
+use hyper::body::Incoming;
+use hyper::service::service_fn;
+use hyper_util::rt::{TokioExecutor, TokioIo};
+use hyper_util::server::conn::auto::Builder as HyperServerBuilder;
+use hyper_util::server::graceful::GracefulShutdown;
 use serde::Deserialize;
+use std::convert::Infallible;
+use std::os::unix::fs::FileTypeExt;
 use std::path::PathBuf;
 use std::sync::Arc;
 use talon::control::build_control_plane;
@@ -26,11 +33,12 @@ use talon::control::ControlPlane;
 use talon::worker::{scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHandler};
 #[cfg(feature = "sqs")]
 use tokio::task::JoinSet;
-use tokio::{signal, task::JoinHandle};
+use tokio::{net::UnixListener, signal, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tonic::body::BoxBody;
 use tower::{Service, ServiceExt};
 use tracing::Instrument;
+use url::Url;
 
 #[cfg(feature = "heap-profile")]
 #[global_allocator]
@@ -1039,6 +1047,10 @@ async fn serve_worker_http(
     port: String,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
+    if let Some(socket_path) = configured_worker_unix_socket_path()? {
+        return serve_worker_unix(handler, socket_path, shutdown_token).await;
+    }
+
     let app = worker_router(handler);
     tracing::info!(
         port = %port,
@@ -1049,6 +1061,101 @@ async fn serve_worker_http(
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_token.cancelled_owned())
         .await?;
+    Ok(())
+}
+
+fn configured_worker_unix_socket_path() -> Result<Option<PathBuf>> {
+    let Ok(raw_url) = std::env::var("TALON_WORKER_ENDPOINT_URL") else {
+        return Ok(None);
+    };
+    let raw_url = raw_url.trim();
+    if raw_url.is_empty() {
+        return Ok(None);
+    }
+    let url = Url::parse(raw_url)?;
+    if url.scheme() != "unix" {
+        return Ok(None);
+    }
+    let path = urlencoding::decode(url.path())?.into_owned();
+    if path.trim().is_empty() {
+        anyhow::bail!("unix TALON_WORKER_ENDPOINT_URL is missing a socket path");
+    }
+    Ok(Some(PathBuf::from(path)))
+}
+
+async fn prepare_worker_unix_socket(path: &std::path::Path) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        tokio::fs::create_dir_all(parent).await?;
+    }
+    match tokio::fs::metadata(path).await {
+        Ok(metadata) if metadata.file_type().is_socket() => {
+            tokio::fs::remove_file(path).await?;
+        }
+        Ok(_) => {
+            anyhow::bail!(
+                "refusing to replace non-socket worker endpoint path {}",
+                path.display()
+            );
+        }
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
+        Err(err) => return Err(err.into()),
+    }
+    Ok(())
+}
+
+async fn serve_worker_unix(
+    handler: WorkerEventHandler,
+    socket_path: PathBuf,
+    shutdown_token: CancellationToken,
+) -> Result<()> {
+    prepare_worker_unix_socket(&socket_path).await?;
+    let listener = UnixListener::bind(&socket_path)?;
+    let app = worker_router(handler);
+    let builder = HyperServerBuilder::new(TokioExecutor::new());
+    let graceful = GracefulShutdown::new();
+    tracing::info!(
+        socket_path = %socket_path.display(),
+        "Worker listening for Push events / Health checks on Unix socket"
+    );
+
+    loop {
+        tokio::select! {
+            accepted = listener.accept() => {
+                let (stream, _) = accepted?;
+                let app = app.clone();
+                let service = service_fn(move |request: Request<Incoming>| {
+                    let app = app.clone();
+                    async move {
+                        let request = request.map(Body::new);
+                        Ok::<_, Infallible>(app.oneshot(request).await?)
+                    }
+                });
+                let connection = builder
+                    .serve_connection_with_upgrades(TokioIo::new(stream), service);
+                let connection = graceful.watch(connection.into_owned());
+                tokio::spawn(async move {
+                    if let Err(err) = connection.await {
+                        tracing::warn!(error = %err, "worker Unix socket connection failed");
+                    }
+                });
+            }
+            _ = shutdown_token.cancelled() => {
+                break;
+            }
+        }
+    }
+
+    drop(listener);
+    graceful.shutdown().await;
+    if let Err(err) = tokio::fs::remove_file(&socket_path).await {
+        if err.kind() != std::io::ErrorKind::NotFound {
+            tracing::warn!(
+                socket_path = %socket_path.display(),
+                error = %err,
+                "failed to remove worker Unix socket"
+            );
+        }
+    }
     Ok(())
 }
 
