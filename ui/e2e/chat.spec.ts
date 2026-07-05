@@ -241,31 +241,21 @@ test.describe('Sightline screenshots', () => {
 
     const composer = page.locator('form').filter({ has: chatInput });
     await expect(composer).toBeVisible({ timeout: 5000 });
-    await expect.poll(async () => composer.evaluate((element) => getComputedStyle(element).backgroundColor))
-      .toMatch(cssVarPattern('rgba(15, 23, 42, 0.92)', 'rgba(15, 23, 42, 0.9)'));
+    await expect(composer).toHaveCSS('background-color', cssVarPattern('rgba(15, 23, 42, 0.92)', 'rgba(15, 23, 42, 0.9)'));
     await page.screenshot({
       path: await screenshotOutputPath(testInfo, 'sightline-chat-dark.png'),
       fullPage: true,
     });
 
     await page.emulateMedia({ colorScheme: 'light' });
-    await expect.poll(async () => documentTheme(page)).toBe('light');
-    await expect.poll(async () => composer.evaluate((element) => getComputedStyle(element).backgroundColor))
-      .toMatch(cssVarPattern('rgba(255, 255, 255, 0.96)', 'rgb(255, 255, 255)'));
+    await expect(page.locator('html')).toHaveClass(/light/);
+    await expect(composer).toHaveCSS('background-color', cssVarPattern('rgba(255, 255, 255, 0.96)', 'rgb(255, 255, 255)'));
     await page.screenshot({
       path: await screenshotOutputPath(testInfo, 'sightline-chat-light.png'),
       fullPage: true,
     });
   });
 });
-
-async function documentTheme(page: Page) {
-  return page.evaluate(() => {
-    if (document.documentElement.classList.contains('dark')) return 'dark';
-    if (document.documentElement.classList.contains('light')) return 'light';
-    return '';
-  });
-}
 
 test.describe('Chat Streaming', () => {
   test('should send chat messages through the gateway UI transport', async ({ page }) => {
