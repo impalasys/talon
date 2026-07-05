@@ -29,6 +29,7 @@ from e2e.stack import (  # noqa: E402
     get_binary_path,
     get_runfile_binary_path,
     load_repo_dotenv_values,
+    start_aws_local_stack,
     start_postgres_pubsub_stack,
     start_sqlite_local_stack,
 )
@@ -122,6 +123,19 @@ def sqlite_local_stack(llm_server: LlmServer) -> Iterator[E2EStack]:
 
 
 @pytest.fixture(scope="session")
+def aws_local_stack(llm_server: LlmServer) -> Iterator[E2EStack]:
+    stack = start_aws_local_stack()
+    os.environ[api_key_env_name(stack.grpc_port)] = stack.api_key
+    os.environ[api_key_auth_file_env_name(stack.grpc_port)] = stack.auth_file
+    try:
+        yield stack
+    finally:
+        os.environ.pop(api_key_env_name(stack.grpc_port), None)
+        os.environ.pop(api_key_auth_file_env_name(stack.grpc_port), None)
+        stack.stop()
+
+
+@pytest.fixture(scope="session")
 def talon_infrastructure(postgres_pubsub_stack):
     return postgres_pubsub_stack
 
@@ -182,9 +196,35 @@ def gateway_channel_sqlite(talon_infrastructure_sqlite, sqlite_test_grpc_port):
     channel.close()
 
 
+def configured_stack_fixture_names() -> list[str]:
+    configured = os.environ.get("TALON_E2E_STACKS", "postgres_pubsub,sqlite_local,aws_local")
+    aliases = {
+        "postgres": "postgres_pubsub_stack",
+        "postgres_pubsub": "postgres_pubsub_stack",
+        "postgres-pubsub": "postgres_pubsub_stack",
+        "sqlite": "sqlite_local_stack",
+        "sqlite_local": "sqlite_local_stack",
+        "sqlite-local": "sqlite_local_stack",
+        "aws": "aws_local_stack",
+        "aws_local": "aws_local_stack",
+        "aws-local": "aws_local_stack",
+    }
+    stacks = []
+    for raw_name in configured.split(","):
+        name = raw_name.strip()
+        if not name:
+            continue
+        if name not in aliases:
+            raise ValueError(f"Unsupported TALON_E2E_STACKS entry: {name}")
+        stacks.append(aliases[name])
+    if not stacks:
+        raise ValueError("TALON_E2E_STACKS must select at least one stack")
+    return stacks
+
+
 @pytest.fixture(
-    params=["postgres_pubsub_stack", "sqlite_local_stack"],
-    ids=["postgres-pubsub", "sqlite-local"],
+    params=configured_stack_fixture_names(),
+    ids=lambda name: name.removesuffix("_stack").replace("_", "-"),
 )
 def stack(request):
     return request.getfixturevalue(request.param)
