@@ -173,6 +173,225 @@ jobs:
           build-args: |
             NEXT_PUBLIC_GATEWAY_URL=http://localhost:50051
 
+  sightline_e2e_screenshots:
+    name: Sightline E2E Screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: write
+      issues: write
+      pull-requests: write
+    env:
+      TESTCONTAINERS_RYUK_DISABLED: "true"
+      SIGHTLINE_SCREENSHOT_DIR: ../target/sightline-e2e-screenshots
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.17.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev protobuf-compiler
+
+      - name: Install Python test dependencies
+        run: python -m pip install -r tests/requirements.txt
+
+      - name: Install UI dependencies
+        working-directory: ui
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        working-directory: ui
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Check Docker daemon
+        run: docker info
+
+      - name: Capture Sightline E2E screenshots
+        working-directory: ui
+        run: pnpm test:e2e --grep @screenshots
+
+      - name: Upload Sightline screenshots
+        id: upload
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sightline-e2e-screenshots
+          path: target/sightline-e2e-screenshots/*.png
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload dark preview screenshot
+        id: upload-preview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sightline-e2e-dark-preview
+          path: target/sightline-e2e-screenshots/sightline-chat-dark.png
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish inline screenshot preview
+        id: preview
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require("fs");
+            const path = "target/sightline-e2e-screenshots/sightline-chat-dark.png";
+            const { owner, repo } = context.repo;
+            const issueNumber = context.payload.pull_request.number;
+            const previewBranch = `sightline-screenshot-previews/pr-${issueNumber}`;
+            const ref = `heads/${previewBranch}`;
+
+            const content = fs.readFileSync(path).toString("base64");
+            const { data: blob } = await github.rest.git.createBlob({
+              owner,
+              repo,
+              content,
+              encoding: "base64",
+            });
+
+            let branchSha;
+            let branchExists = true;
+            try {
+              const { data: previewRef } = await github.rest.git.getRef({ owner, repo, ref });
+              branchSha = previewRef.object.sha;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              branchExists = false;
+              const { data: baseRef } = await github.rest.git.getRef({
+                owner,
+                repo,
+                ref: `heads/${context.payload.pull_request.base.ref}`,
+              });
+              branchSha = baseRef.object.sha;
+            }
+
+            const { data: baseCommit } = await github.rest.git.getCommit({
+              owner,
+              repo,
+              commit_sha: branchSha,
+            });
+            const { data: tree } = await github.rest.git.createTree({
+              owner,
+              repo,
+              base_tree: baseCommit.tree.sha,
+              tree: [
+                {
+                  path: "sightline-chat-dark.png",
+                  mode: "100644",
+                  type: "blob",
+                  sha: blob.sha,
+                },
+              ],
+            });
+            const { data: commit } = await github.rest.git.createCommit({
+              owner,
+              repo,
+              message: `Update Sightline screenshot preview for PR #${issueNumber}`,
+              tree: tree.sha,
+              parents: [branchSha],
+            });
+
+            if (branchExists) {
+              await github.rest.git.updateRef({
+                owner,
+                repo,
+                ref,
+                sha: commit.sha,
+                force: true,
+              });
+            } else {
+              await github.rest.git.createRef({
+                owner,
+                repo,
+                ref: `refs/${ref}`,
+                sha: commit.sha,
+              });
+            }
+
+            const previewUrl = `https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/${previewBranch}/sightline-chat-dark.png?run=${context.runId}`;
+            core.setOutput("url", previewUrl);
+
+      - name: Comment Sightline screenshot links
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const marker = "<!-- sightline-e2e-screenshots -->";
+            const artifactUrl = "${{ steps.upload.outputs.artifact-url }}";
+            const previewArtifactUrl = "${{ steps.upload-preview.outputs.artifact-url }}";
+            const previewUrl = "${{ steps.preview.outputs.url }}";
+            const body = [
+              marker,
+              "## Sightline E2E screenshots",
+              "",
+              "Connected Sightline chat screenshots were captured for this PR.",
+              "",
+              `[Download all screenshots](${artifactUrl})`,
+              `[Download dark preview only](${previewArtifactUrl})`,
+              "",
+              "### Dark preview",
+              "",
+              `![Sightline dark chat composer preview](${previewUrl})`,
+              "",
+              "The full artifact includes light and dark captures of the connected Sightline chat surface.",
+            ].join("\n");
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = comments.find((comment) =>
+              comment.user?.type === "Bot" && comment.body?.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
+
   sdk:
     name: SDKs
     runs-on: ubuntu-latest

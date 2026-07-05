@@ -18,7 +18,7 @@ const reuseExistingServer = process.env.REUSE_EXISTING_SERVER === 'true'
     : !process.env.CI;
 const DEFAULT_BACKEND_COMMAND = [
   'cd ..',
-  'if [ ! -x target/debug/talon-server ] || [ ! -x target/debug/talon-worker ]; then cargo build --locked --bin talon-server --bin talon-worker; fi',
+  'if [ ! -x target/debug/talon-server ] || [ ! -x target/debug/talon-worker ] || [ ! -x target/debug/talon-cli ]; then cargo build --locked --bin talon-server --bin talon-worker --bin talon-cli; fi',
   `PYTHONPATH=.. PATH="$PWD/target/debug:$PATH" ${PYTHON_BIN} tests/run_e2e_stack.py`,
 ].join(' && ');
 
