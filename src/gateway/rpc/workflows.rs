@@ -16,6 +16,8 @@ const MAX_WORKFLOW_RUNS_PAGE_SIZE: usize = 200;
 const WORKFLOW_RUN_KEY_SCAN_BATCH_SIZE: usize = 512;
 const MAX_WORKFLOW_RUN_LIST_PAGES_SCANNED: usize = 10;
 const WORKFLOW_FANOUT_ATTACH_RETRY: Duration = Duration::from_millis(250);
+const WORKFLOW_TERMINAL_EVENT_CATCH_UP_ATTEMPTS: usize = 5;
+const WORKFLOW_TERMINAL_EVENT_CATCH_UP_DELAY: Duration = Duration::from_millis(100);
 
 fn workflow_from_resource(
     resource: resources_proto::Resource,
@@ -285,6 +287,27 @@ impl GrpcGatewayHandler {
             let mut current_run = run;
             loop {
                 if is_terminal_workflow_status(&current_run.status) {
+                    for _ in 0..WORKFLOW_TERMINAL_EVENT_CATCH_UP_ATTEMPTS {
+                        match load_sorted_workflow_run_events(kv.as_ref(), &ns, &workflow, &run_id).await {
+                            Ok(catch_up_events) => {
+                                for event in catch_up_events {
+                                    if !seen.insert(event.id.clone()) {
+                                        continue;
+                                    }
+                                    let terminal = is_terminal_workflow_event(&event.r#type);
+                                    yield Ok(event);
+                                    if terminal {
+                                        return;
+                                    }
+                                }
+                            }
+                            Err(status) => {
+                                yield Err(status);
+                                return;
+                            }
+                        }
+                        tokio::time::sleep(WORKFLOW_TERMINAL_EVENT_CATCH_UP_DELAY).await;
+                    }
                     return;
                 }
                 if current_run.claim_owner.trim().is_empty() {
@@ -366,6 +389,25 @@ impl GrpcGatewayHandler {
                             yield Err(status);
                             return;
                         }
+                    }
+                }
+
+                match load_sorted_workflow_run_events(kv.as_ref(), &ns, &workflow, &run_id).await {
+                    Ok(catch_up_events) => {
+                        for event in catch_up_events {
+                            if !seen.insert(event.id.clone()) {
+                                continue;
+                            }
+                            let terminal = is_terminal_workflow_event(&event.r#type);
+                            yield Ok(event);
+                            if terminal {
+                                return;
+                            }
+                        }
+                    }
+                    Err(status) => {
+                        yield Err(status);
+                        return;
                     }
                 }
 
