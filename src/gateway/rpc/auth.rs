@@ -590,6 +590,15 @@ fn ensure_root_jwt(
     }
     let claims = gateway_auth::jwt_claims_from_metadata(metadata, auth_config)?
         .ok_or_else(|| tonic::Status::unauthenticated("Root bearer JWT is required"))?;
+    if !claims_have_root_access(&claims) {
+        return Err(tonic::Status::permission_denied(
+            "Root JWT is required to manage API keys",
+        ));
+    }
+    Ok(claims)
+}
+
+fn claims_have_root_access(claims: &Claims) -> bool {
     if claims.ns.as_deref().is_some_and(|value| !value.is_empty())
         || claims
             .agent
@@ -603,13 +612,27 @@ fn ensure_root_jwt(
             .channel
             .as_deref()
             .is_some_and(|value| !value.is_empty())
-        || !claims.grants.is_empty()
     {
-        return Err(tonic::Status::permission_denied(
-            "Root JWT is required to manage API keys",
-        ));
+        return false;
     }
-    Ok(claims)
+    claims.grants.is_empty() || claims.grants.iter().any(is_root_readwrite_grant)
+}
+
+fn is_root_readwrite_grant(grant: &TalonGrantClaim) -> bool {
+    grant.kind == "readwrite"
+        && grant
+            .namespace
+            .as_deref()
+            .is_none_or(|value| value.is_empty())
+        && grant.agent.as_deref().is_none_or(|value| value.is_empty())
+        && grant
+            .session
+            .as_deref()
+            .is_none_or(|value| value.is_empty())
+        && grant
+            .channel
+            .as_deref()
+            .is_none_or(|value| value.is_empty())
 }
 
 fn api_key_key(id: &str) -> keys::ResourceKey {
@@ -1554,6 +1577,88 @@ mod tests {
             ))
             .await
             .expect_err("scoped JWT must not create API keys");
+        assert_eq!(err.code(), tonic::Code::PermissionDenied);
+    }
+
+    #[tokio::test]
+    async fn api_key_management_accepts_oidc_root_readwrite_grant() {
+        let _env_guard = PlatformJwtEnvGuard::acquire().await;
+        let handler = handler();
+        let mut root_claims = claims(None, None, None);
+        root_claims.sub = "oidc:user123".to_string();
+        root_claims.grants = vec![TalonGrantClaim {
+            kind: "readwrite".to_string(),
+            namespace: None,
+            agent: None,
+            session: None,
+            channel: None,
+        }];
+        let oidc_root = token(root_claims);
+
+        let created = handler
+            .handle_create_api_key(auth_request(
+                &oidc_root,
+                proto::CreateApiKeyRequest {
+                    name: "osprey tenant".to_string(),
+                    grants: vec![proto_grant(
+                        "readwrite",
+                        Some("Tenant:acme"),
+                        None,
+                        None,
+                        None,
+                    )],
+                    expires_at: None,
+                },
+            ))
+            .await
+            .unwrap()
+            .into_inner();
+        let info = created.api_key.as_ref().unwrap();
+
+        let listed = handler
+            .handle_list_api_keys(auth_request(&oidc_root, proto::ListApiKeysRequest {}))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(listed.api_keys.len(), 1);
+
+        handler
+            .handle_revoke_api_key(auth_request(
+                &oidc_root,
+                proto::RevokeApiKeyRequest {
+                    id: info.id.clone(),
+                },
+            ))
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn api_key_management_rejects_oidc_scoped_readwrite_grant() {
+        let _env_guard = PlatformJwtEnvGuard::acquire().await;
+        let handler = handler();
+        let mut scoped_claims = claims(None, None, None);
+        scoped_claims.sub = "oidc:user123".to_string();
+        scoped_claims.grants = vec![TalonGrantClaim {
+            kind: "readwrite".to_string(),
+            namespace: Some("Tenant:acme".to_string()),
+            agent: None,
+            session: None,
+            channel: None,
+        }];
+        let oidc_scoped = token(scoped_claims);
+
+        let err = handler
+            .handle_create_api_key(auth_request(
+                &oidc_scoped,
+                proto::CreateApiKeyRequest {
+                    name: "scoped".to_string(),
+                    grants: vec![proto_grant("read", Some("Tenant:acme"), None, None, None)],
+                    expires_at: None,
+                },
+            ))
+            .await
+            .expect_err("scoped OIDC grant must not create API keys");
         assert_eq!(err.code(), tonic::Code::PermissionDenied);
     }
 

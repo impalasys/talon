@@ -67,6 +67,8 @@ const isStaticExport = process.env.NEXT_PUBLIC_TALON_STATIC_EXPORT === '1';
 const CONNECT_TIMEOUT_MS = 8000;
 const RUNTIME_AUTH_TOKEN_STORAGE_KEY = 'talon_auth_token';
 const MANUAL_JWT_STORAGE_KEY = 'talon_manual_jwt';
+const SIGHTLINE_AUTH_COOKIE_NAME = 'sightline_talon_auth';
+const SIGHTLINE_AUTH_COOKIE_DOMAIN = '.impala.systems';
 const LABEL_MESSAGE_SOURCE = 'talon.impalasys.com/message-source';
 const LABEL_AUTHOR_KIND = 'talon.impalasys.com/author-kind';
 const LABEL_AUTHOR = 'talon.impalasys.com/author';
@@ -173,6 +175,34 @@ async function uploadTalonImage({ file, namespace, agent, sessionId, signal }: T
 
 function talonObjectUrl(object: TalonChatObjectRef) {
   return object.key ? `/api/talon/objects?key=${encodeURIComponent(object.key)}` : undefined;
+}
+
+function readCookie(name: string) {
+  if (typeof document === 'undefined') return null;
+  const prefix = `${name}=`;
+  return document.cookie
+    .split(';')
+    .map(part => part.trim())
+    .find(part => part.startsWith(prefix))
+    ?.slice(prefix.length) || null;
+}
+
+function clearCookie(name: string) {
+  if (typeof document === 'undefined') return;
+  const expires = 'Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  document.cookie = `${name}=; Path=/; ${expires}; SameSite=Lax`;
+  document.cookie = `${name}=; Path=/; Domain=${SIGHTLINE_AUTH_COOKIE_DOMAIN}; ${expires}; SameSite=Lax; Secure`;
+}
+
+function consumeSightlineAuthCookie() {
+  const rawValue = readCookie(SIGHTLINE_AUTH_COOKIE_NAME);
+  if (!rawValue) return null;
+  clearCookie(SIGHTLINE_AUTH_COOKIE_NAME);
+  try {
+    return decodeURIComponent(rawValue);
+  } catch {
+    return rawValue;
+  }
 }
 
 type StreamEventItem = {
@@ -1039,12 +1069,18 @@ function DebuggerPageContent() {
       }
     }
     localStorage.removeItem('talon_gateway_http_url');
-    const savedToken = localStorage.getItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
+    const cookieToken = consumeSightlineAuthCookie();
+    const savedToken = cookieToken || localStorage.getItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
     if (savedToken) {
       setAuthToken(savedToken);
+      localStorage.setItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY, savedToken);
+    }
+    if (cookieToken) {
+      localStorage.removeItem(MANUAL_JWT_STORAGE_KEY);
+      setManualJwtToken('');
     }
     const savedManualJwt = localStorage.getItem(MANUAL_JWT_STORAGE_KEY);
-    if (savedManualJwt) {
+    if (!cookieToken && savedManualJwt) {
       setManualJwtToken(savedManualJwt);
     }
     setStorageHydrated(true);
@@ -1054,17 +1090,9 @@ function DebuggerPageContent() {
     if (!storageHydrated) return;
 
     const currentParams = new URLSearchParams(searchParams.toString());
-    const talonAuthToken = currentParams.get('talon_auth_token');
     const talonGatewayUrl = currentParams.get('talon_gateway_url');
     const talonGatewayHttpUrl = currentParams.get('talon_gateway_http_url');
-    const hasTalonHandoff = Boolean(talonAuthToken || talonGatewayUrl || talonGatewayHttpUrl);
-    if (talonAuthToken) {
-      setAuthToken(talonAuthToken);
-      setManualJwtToken(talonAuthToken);
-      localStorage.setItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY, talonAuthToken);
-      localStorage.setItem(MANUAL_JWT_STORAGE_KEY, talonAuthToken);
-      currentParams.delete('talon_auth_token');
-    }
+    const hasTalonHandoff = Boolean(talonGatewayUrl || talonGatewayHttpUrl);
     if (talonGatewayUrl) {
       setGatewayUrl(talonGatewayUrl);
       localStorage.setItem('talon_gateway_url', talonGatewayUrl);
