@@ -131,6 +131,14 @@ export type TalonSessionSubmitContext = {
   refreshSession: () => Promise<void>;
 };
 
+export type TalonSessionMessageEditContext = {
+  message: CopilotMessage;
+  nextContent: string;
+  namespace: string;
+  agent: string;
+  sessionId: string | null;
+};
+
 export type TalonSessionCommandTarget = {
   type: "session";
   namespace: string;
@@ -203,6 +211,8 @@ export type TalonSessionProps = {
   composerStartAdornment?: React.ReactNode;
   composerEndAdornment?: React.ReactNode;
   onSubmitMessage?: (context: TalonSessionSubmitContext) => Promise<boolean | void> | boolean | void;
+  allowMessageEditing?: boolean;
+  onMessageEdit?: (context: TalonSessionMessageEditContext) => Promise<boolean | void> | boolean | void;
 };
 
 export type TalonCopilotProps = TalonSessionProps;

@@ -410,6 +410,151 @@ describe('TalonCopilot', () => {
     expect(screen.getAllByText('141 reasoning • 333 output • 726 input • 1059 total')).toHaveLength(1);
   });
 
+  it('hides message edit controls by default', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-edit-default',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'user-edit-default',
+              role: 'ROLE_USER',
+              content: 'Original user message',
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+      getSession: jest.fn(),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-edit-default"
+      />,
+    );
+
+    expect(await screen.findByText('Original user message')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /edit user message/i })).not.toBeInTheDocument();
+  });
+
+  it('allows editing user and assistant session messages when enabled', async () => {
+    const onMessageEdit = jest.fn();
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-edit',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'user-edit',
+              role: 'ROLE_USER',
+              parts: [
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: 'Original user message',
+                },
+              ],
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+          {
+            message: {
+              id: 'assistant-edit',
+              role: 'ROLE_ASSISTANT',
+              content: 'Original assistant message',
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+      getSession: jest.fn(),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-edit"
+        allowMessageEditing
+        onMessageEdit={onMessageEdit}
+      />,
+    );
+
+    expect(await screen.findByText('Original user message')).toBeInTheDocument();
+    expect(await screen.findByText('Original assistant message')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /edit user message/i })).toHaveClass('talon-session-edit-trigger');
+    expect(screen.getByRole('button', { name: /edit assistant message/i })).toHaveClass('talon-session-edit-trigger');
+    expect(screen.getByRole('button', { name: /edit user message/i })).toHaveClass('talon-session-message-action-button');
+    expect(screen.getByRole('button', { name: /copy user message/i })).toHaveClass('talon-session-message-action-button');
+    expect(screen.getByRole('button', { name: /edit user message/i }).closest('.talon-session-message-actions')).not.toBeNull();
+    expect(screen.getByRole('button', { name: /copy user message/i }).closest('.talon-session-message-actions')).not.toBeNull();
+    expect(document.querySelector('.talon-session-message-action-time')).not.toBeNull();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /copy assistant message/i }));
+    });
+    expect(writeText).toHaveBeenCalledWith('Original assistant message');
+
+    fireEvent.click(screen.getByRole('button', { name: /edit user message/i }));
+    fireEvent.change(screen.getByLabelText('Edit message'), {
+      target: { value: 'Edited user message' },
+    });
+    expect(screen.getByLabelText('Edit message')).toHaveClass('talon-session-edit-textarea');
+    expect(screen.getByRole('button', { name: /save message edit/i })).toHaveClass('talon-session-edit-action');
+    expect(screen.getByRole('button', { name: /cancel message edit/i })).toHaveClass('talon-session-edit-action');
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /save message edit/i }));
+    });
+
+    expect(await screen.findByText('Edited user message')).toBeInTheDocument();
+    expect(screen.queryByText('Original user message')).not.toBeInTheDocument();
+    expect(onMessageEdit).toHaveBeenCalledWith(expect.objectContaining({
+      message: expect.objectContaining({ id: 'user-edit', role: 'user' }),
+      nextContent: 'Edited user message',
+      namespace: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-edit',
+    }));
+
+    fireEvent.click(screen.getByRole('button', { name: /edit assistant message/i }));
+    fireEvent.change(screen.getByLabelText('Edit message'), {
+      target: { value: 'Edited assistant **message**' },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /save message edit/i }));
+    });
+
+    expect(await screen.findByText('Edited assistant **message**')).toBeInTheDocument();
+    expect(screen.queryByText('Original assistant message')).not.toBeInTheDocument();
+    expect(onMessageEdit).toHaveBeenLastCalledWith(expect.objectContaining({
+      message: expect.objectContaining({ id: 'assistant-edit', role: 'assistant' }),
+      nextContent: 'Edited assistant **message**',
+      namespace: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-edit',
+    }));
+  });
+
   it('renders reloaded image object refs from session history', async () => {
     const gatewayClient = {
       createSession: jest.fn(),

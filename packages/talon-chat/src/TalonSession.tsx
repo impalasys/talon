@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { data } from "@impalasys/talon-client";
-import { Activity, ChevronRight, Wrench } from "lucide-react";
+import { Activity, Check, ChevronRight, Copy, Pencil, X, Wrench } from "lucide-react";
 import {
   formatUsageSummary,
   getMessageAssistantTimeline,
@@ -105,6 +105,14 @@ export type TalonSessionSubmitContext = {
   refreshSession: () => Promise<void>;
 };
 
+export type TalonSessionMessageEditContext = {
+  message: CopilotMessage;
+  nextContent: string;
+  namespace: string;
+  agent: string;
+  sessionId: string | null;
+};
+
 export type TalonSessionProps = {
   namespace: string;
   agent: string;
@@ -144,6 +152,8 @@ export type TalonSessionProps = {
   composerStartAdornment?: React.ReactNode;
   composerEndAdornment?: React.ReactNode;
   onSubmitMessage?: (context: TalonSessionSubmitContext) => Promise<boolean | void> | boolean | void;
+  allowMessageEditing?: boolean;
+  onMessageEdit?: (context: TalonSessionMessageEditContext) => Promise<boolean | void> | boolean | void;
 };
 
 export type TalonCopilotProps = TalonSessionProps;
@@ -430,6 +440,17 @@ function historyMessageTimestamp(message: Pick<CopilotMessage, "createdAt">) {
   return normalizeEpochToMilliseconds(message.createdAt);
 }
 
+function formatMessageActionTimestamp(message: CopilotMessage) {
+  const timestampMs = historyMessageTimestamp(message);
+  if (timestampMs === null) {
+    return null;
+  }
+  return new Date(timestampMs).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 function formatWorkDuration(start: unknown, end: unknown) {
   const startMs = normalizeEpochToMilliseconds(start);
   const endMs = normalizeEpochToMilliseconds(end);
@@ -457,6 +478,49 @@ function formatWorkingDuration(start: unknown, now = Date.now()) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return seconds > 0 ? `Working for ${minutes}m ${seconds}s` : `Working for ${minutes}m`;
+}
+
+function messageWithEditedContent(message: CopilotMessage, nextContent: string): CopilotMessage {
+  const nextMessage: CopilotMessage = { ...message, content: nextContent };
+  if (Array.isArray(nextMessage.parts)) {
+    let replacedTextPart = false;
+    nextMessage.parts = nextMessage.parts.map((part: any) => {
+      if (!part || typeof part !== "object") {
+        return part;
+      }
+      const type = part?.partType ?? part?.part_type ?? part?.type;
+      const isTextPart =
+        type === "text" ||
+        type === data.SessionMessagePartType.TEXT ||
+        type === "SESSION_MESSAGE_PART_TYPE_TEXT";
+      if (!isTextPart || replacedTextPart) {
+        return part;
+      }
+      replacedTextPart = true;
+      const nextPart = { ...part };
+      if ("text" in nextPart) nextPart.text = nextContent;
+      if ("content" in nextPart) nextPart.content = nextContent;
+      return nextPart;
+    });
+  }
+  if (message.role === "assistant") {
+    nextMessage.timeline = [{ type: "text", text: nextContent }];
+  }
+  return nextMessage;
+}
+
+function editableMessageContent(message: CopilotMessage) {
+  if (message.role === "assistant") {
+    const timeline = coalesceAssistantTimelineForDisplay(getMessageAssistantTimeline(message));
+    const { finalTimeline } = splitFinalAssistantTimeline(timeline);
+    const visibleTextTimeline = finalTimeline.length > 0 ? finalTimeline : timeline;
+    const textItems = visibleTextTimeline
+      .filter((item): item is Extract<AssistantTimelineItem, { type: "text" }> => item.type === "text");
+    if (textItems.length > 0) {
+      return textItems.map((item) => item.text).join("");
+    }
+  }
+  return getMessageContent(message);
 }
 
 function isLocalMessageId(id: string) {
@@ -580,6 +644,8 @@ export function TalonSession({
   composerStartAdornment,
   composerEndAdornment,
   onSubmitMessage,
+  allowMessageEditing = false,
+  onMessageEdit,
 }: TalonSessionProps) {
   const [messages, setMessages] = useState<CopilotMessage[]>(emptyMessages);
   const [input, setInput] = useState("");
@@ -591,6 +657,8 @@ export function TalonSession({
   const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
   const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
   const [expandedToolItems, setExpandedToolItems] = useState<Record<string, boolean>>({});
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingMessageValue, setEditingMessageValue] = useState("");
   const [currentSession, setCurrentSession] = useState<{ ns: string; agent: string; sessionId: string } | null>(null);
   const [hasMoreHistory, setHasMoreHistory] = useState(false);
   const [nextBeforeMessageId, setNextBeforeMessageId] = useState<string | null>(null);
@@ -742,6 +810,69 @@ export function TalonSession({
     }));
   }, []);
 
+  const startEditingMessage = useCallback((message: CopilotMessage) => {
+    setEditingMessageId(message.id);
+    setEditingMessageValue(editableMessageContent(message));
+  }, []);
+
+  const cancelEditingMessage = useCallback(() => {
+    setEditingMessageId(null);
+    setEditingMessageValue("");
+  }, []);
+
+  const saveEditingMessage = useCallback(async (message: CopilotMessage) => {
+    const nextContent = editingMessageValue.trim();
+    if (!nextContent) {
+      return;
+    }
+    setError(null);
+    try {
+      const handled = await onMessageEdit?.({
+        message,
+        nextContent,
+        namespace,
+        agent,
+        sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null,
+      });
+      if (handled === false) {
+        return;
+      }
+      setMessages((prev) => {
+        const nextMessages = prev.map((item) => item.id === message.id ? messageWithEditedContent(item, nextContent) : item);
+        messagesRef.current = nextMessages;
+        return nextMessages;
+      });
+      cancelEditingMessage();
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+    }
+  }, [agent, cancelEditingMessage, editingMessageValue, namespace, onMessageEdit, sessionId]);
+
+  const copyMessageContent = useCallback(async (message: CopilotMessage) => {
+    const nextContent = editableMessageContent(message);
+    if (!nextContent.trim()) {
+      return;
+    }
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard API is unavailable.");
+      }
+      await navigator.clipboard.writeText(nextContent);
+    } catch {
+      const selection = window.getSelection();
+      const textArea = document.createElement("textarea");
+      textArea.value = nextContent;
+      textArea.setAttribute("readonly", "");
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      selection?.removeAllRanges();
+    }
+  }, []);
+
   const renderedMessages = useMemo(() => {
     return messages.map((message, messageIndex) => {
       const content = getMessageContent(message);
@@ -751,6 +882,9 @@ export function TalonSession({
       const usage = getMessageUsage(message);
       const usageSummary = formatUsageSummary(usage);
       const isUserMessage = message.role === "user";
+      const isEditableMessage = allowMessageEditing && (message.role === "user" || message.role === "assistant") && !isLoading;
+      const isEditingMessage = editingMessageId === message.id;
+      const messageActionTimestamp = isEditableMessage ? formatMessageActionTimestamp(message) : null;
       const isLatestMessage = messageIndex === messages.length - 1;
       const isLiveAssistantMessage = isLoading && isLatestMessage && message.role === "assistant";
       const finalizedTimeline = isLiveAssistantMessage
@@ -785,6 +919,7 @@ export function TalonSession({
       return (
         <div
           key={message.id}
+          className="talon-session-message-row"
           style={{
             display: "flex",
             justifyContent: isUserMessage ? "flex-end" : "stretch",
@@ -796,54 +931,59 @@ export function TalonSession({
               width: isUserMessage ? "auto" : "100%",
               maxWidth: isUserMessage ? "min(80%, 36rem)" : "100%",
               overflow: "hidden",
-              borderRadius: isUserMessage ? 18 : 0,
-              background: isUserMessage
-                ? "var(--talon-chat-user-bubble-bg, rgba(24,24,27,0.07))"
-                : "transparent",
-              color: isUserMessage ? "var(--talon-chat-user-bubble-fg, inherit)" : "inherit",
-              padding: isUserMessage ? "0.65rem 0.85rem" : 0,
             }}
           >
-            {hasWorkDetails ? (
-              <div style={{ marginBottom: 16 }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (hasExpandedWorkDetails) {
-                      toggleThinkingMessage(message.id);
-                    }
-                  }}
-                  disabled={!hasExpandedWorkDetails}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    border: "none",
-                    background: "transparent",
-                    padding: "0 0 0.65rem",
-                    cursor: hasExpandedWorkDetails ? "pointer" : "default",
-                    textAlign: "left",
-                    color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))",
-                  }}
-                >
-                  <span style={{ fontSize: 13, fontWeight: 500 }}>
-                    {workLabel}
-                  </span>
-                  {hasExpandedWorkDetails ? (
-                    <ChevronRight
-                      size="16"
-                      style={{
-                        flexShrink: 0,
-                        transform: isWorkExpanded ? "rotate(90deg)" : "rotate(0deg)",
-                        transition: "transform 160ms ease",
-                        color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))",
-                      }}
-                    />
-                  ) : null}
-                </button>
-                <div style={{ borderTop: border("var(--talon-chat-divider, rgba(212,212,216,0.7))") }} />
+            <div
+              style={{
+                overflow: "hidden",
+                borderRadius: isUserMessage ? 18 : 0,
+                background: isUserMessage
+                  ? "var(--talon-chat-user-bubble-bg, rgba(24,24,27,0.07))"
+                  : "transparent",
+                color: isUserMessage ? "var(--talon-chat-user-bubble-fg, inherit)" : "inherit",
+                padding: isUserMessage ? "0.65rem 0.85rem" : 0,
+              }}
+            >
+              {hasWorkDetails ? (
+                <div style={{ marginBottom: 16 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (hasExpandedWorkDetails) {
+                        toggleThinkingMessage(message.id);
+                      }
+                    }}
+                    disabled={!hasExpandedWorkDetails}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 12,
+                      border: "none",
+                      background: "transparent",
+                      padding: "0 0 0.65rem",
+                      cursor: hasExpandedWorkDetails ? "pointer" : "default",
+                      textAlign: "left",
+                      color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))",
+                    }}
+                  >
+                    <span style={{ fontSize: 13, fontWeight: 500 }}>
+                      {workLabel}
+                    </span>
+                    {hasExpandedWorkDetails ? (
+                      <ChevronRight
+                        size="16"
+                        style={{
+                          flexShrink: 0,
+                          transform: isWorkExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                          transition: "transform 160ms ease",
+                          color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))",
+                        }}
+                      />
+                    ) : null}
+                  </button>
+                  <div style={{ borderTop: border("var(--talon-chat-divider, rgba(212,212,216,0.7))") }} />
 
                 {isWorkExpanded ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12 }}>
@@ -951,113 +1091,184 @@ export function TalonSession({
               </div>
             ) : null}
 
-            <div
-              className={cn(message.role === "system" && "copilot-system-message")}
-              style={{
-                minWidth: 0,
-                overflow: "hidden",
-                overflowWrap: "anywhere",
-                whiteSpace: message.role === "assistant" ? "normal" : "pre-wrap",
-                fontSize: message.role === "system" ? 12 : 14,
-                lineHeight: 1.65,
-                opacity: message.role === "system" ? 0.72 : 0.94,
-                fontFamily: message.role === "system" ? "ui-monospace, SFMono-Regular, monospace" : undefined,
-              }}
-            >
-              {message.role === "assistant" && visibleTimeline.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {visibleTimeline.map((item, index) => {
-                    if (item.type === "text") {
+            {isEditingMessage ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <textarea
+                  className="talon-session-edit-textarea"
+                  aria-label="Edit message"
+                  value={editingMessageValue}
+                  onChange={(event) => setEditingMessageValue(event.currentTarget.value)}
+                  rows={Math.min(8, Math.max(2, editingMessageValue.split("\n").length))}
+                  style={{
+                    width: "100%",
+                    resize: "vertical",
+                    border: border("var(--talon-chat-edit-border, rgba(82,82,91,0.86))"),
+                    borderRadius: 8,
+                    background: "var(--talon-chat-edit-bg, rgba(24,24,27,0.92))",
+                    color: "var(--talon-chat-edit-fg, inherit)",
+                    padding: "0.55rem 0.65rem",
+                    font: "inherit",
+                    lineHeight: 1.55,
+                    outline: "none",
+                    boxShadow: "var(--talon-chat-edit-shadow, inset 0 0 0 1px rgba(255,255,255,0.02))",
+                  }}
+                />
+                <div style={{ display: "flex", justifyContent: isUserMessage ? "flex-end" : "flex-start", gap: 6 }}>
+                  <button
+                    className="talon-session-edit-action"
+                    type="button"
+                    aria-label="Save message edit"
+                    title="Save"
+                    onClick={() => void saveEditingMessage(message)}
+                    disabled={!editingMessageValue.trim()}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: 8,
+                      border: border("var(--talon-chat-edit-action-border, rgba(82,82,91,0.82))"),
+                      background: "var(--talon-chat-edit-action-bg, rgba(39,39,42,0.92))",
+                      color: "var(--talon-chat-edit-action-fg, inherit)",
+                      cursor: editingMessageValue.trim() ? "pointer" : "not-allowed",
+                      opacity: editingMessageValue.trim() ? 1 : 0.45,
+                    }}
+                  >
+                    <Check size="14" strokeWidth={2} />
+                  </button>
+                  <button
+                    className="talon-session-edit-action"
+                    type="button"
+                    aria-label="Cancel message edit"
+                    title="Cancel"
+                    onClick={cancelEditingMessage}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: 8,
+                      border: border("var(--talon-chat-edit-action-border, rgba(82,82,91,0.82))"),
+                      background: "var(--talon-chat-edit-action-bg, rgba(39,39,42,0.92))",
+                      color: "var(--talon-chat-edit-action-fg, inherit)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <X size="14" strokeWidth={2} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div
+                className={cn(message.role === "system" && "copilot-system-message")}
+                style={{
+                  minWidth: 0,
+                  overflow: "hidden",
+                  overflowWrap: "anywhere",
+                  whiteSpace: message.role === "assistant" ? "normal" : "pre-wrap",
+                  fontSize: message.role === "system" ? 12 : 14,
+                  lineHeight: 1.65,
+                  opacity: message.role === "system" ? 0.72 : 0.94,
+                  fontFamily: message.role === "system" ? "ui-monospace, SFMono-Regular, monospace" : undefined,
+                }}
+              >
+                {message.role === "assistant" && visibleTimeline.length > 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {visibleTimeline.map((item, index) => {
+                      if (item.type === "text") {
+                        return (
+                          <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
+                            <MarkdownMessage>{item.text}</MarkdownMessage>
+                          </div>
+                        );
+                      }
+
+                      if (item.type === "reasoning") {
+                        return (
+                          <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
+                            {item.text}
+                          </div>
+                        );
+                      }
+
+                      if (item.type === "usage") {
+                        const itemUsageSummary = formatUsageSummary(item.usage);
+                        return itemUsageSummary ? (
+                          <div key={`${message.id}-timeline-${index}`} style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
+                            {itemUsageSummary}
+                          </div>
+                        ) : null;
+                      }
+
+                      const toolKey = `${message.id}-timeline-tool-${item.toolCallId || index}`;
+                      const isToolExpanded = expandedToolItems[toolKey] ?? false;
                       return (
-                        <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
-                          <MarkdownMessage>{item.text}</MarkdownMessage>
-                        </div>
-                      );
-                    }
-
-                    if (item.type === "reasoning") {
-                      return (
-                        <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
-                          {item.text}
-                        </div>
-                      );
-                    }
-
-                    if (item.type === "usage") {
-                      const itemUsageSummary = formatUsageSummary(item.usage);
-                      return itemUsageSummary ? (
-                        <div key={`${message.id}-timeline-${index}`} style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                          {itemUsageSummary}
-                        </div>
-                      ) : null;
-                    }
-
-                    const toolKey = `${message.id}-timeline-tool-${item.toolCallId || index}`;
-                    const isToolExpanded = expandedToolItems[toolKey] ?? false;
-                    return (
-                      <div key={toolKey}>
-                        <button
-                          className="talon-session-tool-row"
-                          type="button"
-                          onClick={() => toggleToolItem(toolKey)}
-                          style={{
-                            width: "auto",
-                            maxWidth: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            border: "none",
-                            background: "transparent",
-                            padding: "0.25rem 0",
-                            color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))",
-                            cursor: "pointer",
-                            textAlign: "left",
-                          }}
-                        >
-                          <Wrench size="14" strokeWidth={1.9} style={{ flexShrink: 0, color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))" }} />
-                          <span style={{ minWidth: 0, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            Called <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{item.toolName}</span>
-                          </span>
-                          <ChevronRight
-                            className="talon-session-tool-chevron"
-                            size="14"
+                        <div key={toolKey}>
+                          <button
+                            className="talon-session-tool-row"
+                            type="button"
+                            onClick={() => toggleToolItem(toolKey)}
                             style={{
-                              flexShrink: 0,
-                              transform: isToolExpanded ? "rotate(90deg)" : "rotate(0deg)",
-                              color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))",
+                              width: "auto",
+                              maxWidth: "100%",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                              border: "none",
+                              background: "transparent",
+                              padding: "0.25rem 0",
+                              color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))",
+                              cursor: "pointer",
+                              textAlign: "left",
                             }}
-                          />
-                        </button>
-                        {isToolExpanded ? (
-                          <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 12, paddingLeft: 22 }}>
-                            <div>
-                              <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                                Input
-                              </div>
-                              <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
-                                <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
-                              </pre>
-                            </div>
-                            {item.result !== undefined ? (
+                          >
+                            <Wrench size="14" strokeWidth={1.9} style={{ flexShrink: 0, color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))" }} />
+                            <span style={{ minWidth: 0, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              Called <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{item.toolName}</span>
+                            </span>
+                            <ChevronRight
+                              className="talon-session-tool-chevron"
+                              size="14"
+                              style={{
+                                flexShrink: 0,
+                                transform: isToolExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                                color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))",
+                              }}
+                            />
+                          </button>
+                          {isToolExpanded ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 12, paddingLeft: 22 }}>
                               <div>
                                 <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                                  Output
+                                  Input
                                 </div>
                                 <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
-                                  <code>{typeof item.result === "string" ? item.result : JSON.stringify(item.result, null, 2)}</code>
+                                  <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
                                 </pre>
                               </div>
-                            ) : null}
-                          </div>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                message.role === "assistant" ? <MarkdownMessage>{content}</MarkdownMessage> : content
-              )}
-            </div>
+                              {item.result !== undefined ? (
+                                <div>
+                                  <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
+                                    Output
+                                  </div>
+                                  <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
+                                    <code>{typeof item.result === "string" ? item.result : JSON.stringify(item.result, null, 2)}</code>
+                                  </pre>
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  message.role === "assistant" ? <MarkdownMessage>{content}</MarkdownMessage> : content
+                )}
+              </div>
+            )}
             {images.length > 0 ? (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: content ? 10 : 0 }}>
                 {images.map((image) => (
@@ -1096,11 +1307,82 @@ export function TalonSession({
                 ))}
               </div>
             ) : null}
+            </div>
+            {isEditableMessage && !isEditingMessage ? (
+              <div
+                className={cn("talon-session-message-actions", isUserMessage && "talon-session-message-actions-user")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: isUserMessage ? "flex-end" : "flex-start",
+                  gap: 10,
+                  marginTop: 6,
+                  minHeight: 22,
+                }}
+              >
+                {messageActionTimestamp ? (
+                  <span
+                    className="talon-session-message-action-time"
+                    title={new Date(historyMessageTimestamp(message) ?? 0).toLocaleString()}
+                    style={{
+                      color: "var(--talon-chat-message-action-fg, var(--talon-chat-muted-fg, rgba(113,113,122,0.9)))",
+                      fontSize: 12,
+                      lineHeight: 1,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {messageActionTimestamp}
+                  </span>
+                ) : null}
+                <button
+                  className="talon-session-message-action-button"
+                  type="button"
+                  aria-label={`Copy ${message.role} message`}
+                  title="Copy"
+                  onClick={() => void copyMessageContent(message)}
+                  style={{
+                    width: 22,
+                    height: 22,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 6,
+                    border: "none",
+                    background: "transparent",
+                    color: "var(--talon-chat-message-action-fg, var(--talon-chat-muted-fg, rgba(113,113,122,0.9)))",
+                    cursor: "pointer",
+                  }}
+                >
+                  <Copy size="14" strokeWidth={1.9} />
+                </button>
+                <button
+                  className="talon-session-edit-trigger talon-session-message-action-button"
+                  type="button"
+                  aria-label={`Edit ${message.role} message`}
+                  title="Edit"
+                  onClick={() => startEditingMessage(message)}
+                  style={{
+                    width: 22,
+                    height: 22,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 6,
+                    border: "none",
+                    background: "transparent",
+                    color: "var(--talon-chat-message-action-fg, var(--talon-chat-muted-fg, rgba(113,113,122,0.9)))",
+                    cursor: "pointer",
+                  }}
+                >
+                  <Pencil size="14" strokeWidth={1.9} />
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       );
     });
-  }, [messages, expandedThinkingMessages, expandedToolItems, isLoading, loadingNow, loadingStartedAt, objectUrlForRef, toggleThinkingMessage, toggleToolItem]);
+  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, expandedThinkingMessages, expandedToolItems, isLoading, loadingNow, loadingStartedAt, messages, objectUrlForRef, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem]);
 
   const resolvedHistoryPageSize = Math.max(
     1,
@@ -1714,6 +1996,41 @@ export function TalonSession({
           .talon-session-tool-row:hover .talon-session-tool-chevron,
           .talon-session-tool-row:focus-visible .talon-session-tool-chevron {
             opacity: 1;
+          }
+
+          .talon-session-message-actions {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 120ms ease;
+          }
+
+          .talon-session-message-row:hover .talon-session-message-actions {
+            opacity: 1;
+            pointer-events: auto;
+          }
+
+          .talon-session-message-action-button {
+            transition: color 120ms ease, background 120ms ease;
+          }
+
+          .talon-session-message-action-button:hover,
+          .talon-session-message-action-button:focus-visible {
+            background: var(--talon-chat-edit-trigger-hover-bg, rgba(113,113,122,0.14)) !important;
+            color: var(--talon-chat-edit-trigger-hover-fg, var(--talon-chat-edit-trigger-fg, inherit)) !important;
+          }
+
+          .talon-session-edit-textarea::placeholder {
+            color: var(--talon-chat-edit-placeholder-fg, rgba(161,161,170,0.72));
+          }
+
+          .talon-session-edit-textarea:focus {
+            border-color: var(--talon-chat-edit-focus-border, rgba(161,161,170,0.95)) !important;
+            box-shadow: var(--talon-chat-edit-focus-shadow, 0 0 0 2px rgba(161,161,170,0.2)) !important;
+          }
+
+          .talon-session-edit-action:hover:not(:disabled),
+          .talon-session-edit-action:focus-visible:not(:disabled) {
+            background: var(--talon-chat-edit-action-hover-bg, rgba(63,63,70,0.96)) !important;
           }
 
           .talon-session-transcript {

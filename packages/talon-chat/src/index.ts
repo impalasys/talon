@@ -5,6 +5,7 @@ export {
   type TalonSessionCommand,
   type TalonSessionCommandTarget,
   type TalonSessionProps,
+  type TalonSessionMessageEditContext,
   type TalonSessionSubmitContext,
   type TalonCopilotProps,
   type TalonChatObjectRef,
