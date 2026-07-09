@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { data } from "@impalasys/talon-client";
+import { data, type TalonClient } from "@impalasys/talon-client";
 import { Activity, Check, ChevronRight, Copy, Pencil, X, Wrench } from "lucide-react";
 import {
   formatUsageSummary,
@@ -27,21 +27,11 @@ import { streamSessionPartEvents, type StreamEventItem } from "./lib/uiStream";
 const useSafeLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 export type SessionServiceClientLike = {
-  create(request: { ns: string; agent: string; labels?: Record<string, string> }): Promise<{ sessionId: string }>;
-  clear(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
-  appendMessage?(request: any): Promise<any>;
-  updateMessage?(request: any): Promise<any>;
-  listMessages(request: {
-    ns: string;
-    agent: string;
-    sessionId: string;
-    pageSize: number;
-    beforeMessageId?: string;
-  }): Promise<any>;
-  submitTurn(request: any, options?: { signal?: AbortSignal }): AsyncIterable<any>;
-  streamParts(request: { ns: string; agent: string; sessionId: string }, options?: { signal?: AbortSignal }): AsyncIterable<any>;
-  stopGeneration(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
-};
+  sessions: Pick<
+    TalonClient["sessions"],
+    "create" | "clear" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
+  > & Partial<Pick<TalonClient["sessions"], "appendMessage" | "updateMessage">>;
+}["sessions"];
 
 export type GatewayClientLike = {
   sessions: SessionServiceClientLike;
