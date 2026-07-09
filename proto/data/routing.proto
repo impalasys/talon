@@ -24,6 +24,11 @@ message SessionMessageConsumer {
   // for the external conversation/thread; "pinned" requires session_id; any
   // other value creates a new Session for each message.
   string continuity = 3;
+
+  // Reply behavior requested from the connector-aware session router.
+  // "hold_for_review" stores assistant replies as pending connector deliveries
+  // until an operator updates the message labels to request delivery or skip.
+  string reply_mode = 4;
 }
 
 message ChannelMessageConsumer {

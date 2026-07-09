@@ -76,7 +76,7 @@ impl AgentRuntime {
                     && session
                         .labels
                         .get(crate::gateway::rpc::channels::LABEL_CHANNEL_REPLY_MODE)
-                        .map(|mode| mode != "none")
+                        .map(|mode| mode != "none" && mode != "hold_for_review" && mode != "review")
                         .unwrap_or(true)
             })
             .unwrap_or(false);

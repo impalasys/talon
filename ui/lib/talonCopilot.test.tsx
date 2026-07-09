@@ -191,6 +191,18 @@ function makeGatewayClient(raw: any = {}, gatewayUrl = 'http://localhost:18789',
     appendMessage: raw.appendMessage ?? jest.fn(async (request: any) => {
       return { sessionId: request.sessionId, message: request.message };
     }),
+    updateMessage: raw.updateMessage ?? jest.fn(async (request: any) => {
+      return {
+        sessionId: request.sessionId,
+        message: {
+          id: request.messageId,
+          role: 'ROLE_ASSISTANT',
+          parts: request.parts,
+          labels: request.labels,
+          createdAt: String(Date.now() * 1000),
+        },
+      };
+    }),
     submitTurn: raw.submitTurn ?? jest.fn(async function* (request: any, options?: any) {
       const bodyParts = (request.message?.parts ?? []).map((part: any) => {
         const partType = part?.partType ?? part?.part_type;
@@ -321,6 +333,182 @@ describe('TalonCopilot', () => {
       });
     });
     expect(await screen.findByText('Hello from history')).toBeInTheDocument();
+  });
+
+  it('shows pending connector replies and requests delivery by updating message labels', async () => {
+    const updateMessage = jest.fn(async (request: any) => ({
+      sessionId: request.sessionId,
+      message: {
+        id: request.messageId,
+        role: 'ROLE_ASSISTANT',
+        parts: request.parts,
+        labels: {
+          ...request.labels,
+          'talon.impalasys.com/connector-delivery-status': 'delivered',
+        },
+        createdAt: String(Date.now() * 1000),
+      },
+    }));
+    const gatewayClient = {
+      createSession: jest.fn(),
+      updateMessage,
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-review',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'assistant-review',
+              role: 'ROLE_ASSISTANT',
+              content: 'Draft reply',
+              labels: {
+                'talon.impalasys.com/connector-delivery-status': 'pending_review',
+                'talon.impalasys.com/connector': 'slack-main',
+              },
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-review"
+        enableDebugMessageEditing
+      />,
+    );
+
+    expect(await screen.findByText('Pending send')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Send'));
+    await waitFor(() => expect(updateMessage).toHaveBeenCalled());
+    expect(updateMessage).toHaveBeenCalledWith(expect.objectContaining({
+      ns: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-review',
+      messageId: 'assistant-review',
+      labels: expect.objectContaining({
+        'talon.impalasys.com/connector-delivery-status': 'delivery_requested',
+        'talon.impalasys.com/connector': 'slack-main',
+      }),
+      parts: [
+        expect.objectContaining({
+          content: 'Draft reply',
+        }),
+      ],
+    }));
+  });
+
+  it('hides pending connector reply controls unless debug editing is enabled', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      updateMessage: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-review-hidden',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'assistant-review-hidden',
+              role: 'ROLE_ASSISTANT',
+              content: 'Draft reply',
+              labels: {
+                'talon.impalasys.com/connector-delivery-status': 'pending_review',
+              },
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-review-hidden"
+      />,
+    );
+
+    expect(await screen.findByText('Draft reply')).toBeInTheDocument();
+    expect(screen.queryByText('Pending send')).not.toBeInTheDocument();
+    expect(screen.queryByText('Send')).not.toBeInTheDocument();
+    expect(screen.queryByText('Skip')).not.toBeInTheDocument();
+  });
+
+  it('preserves hydrated work details when updating a pending connector reply', async () => {
+    const updateMessage = jest.fn(async (request: any) => ({
+      sessionId: request.sessionId,
+      message: {
+        id: request.messageId,
+        role: 'ROLE_ASSISTANT',
+        parts: request.parts,
+        labels: {
+          ...request.labels,
+          'talon.impalasys.com/connector-delivery-status': 'delivered',
+        },
+        createdAt: String(Date.now() * 1000),
+      },
+    }));
+    const gatewayClient = {
+      createSession: jest.fn(),
+      updateMessage,
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-review-work',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'assistant-review-work',
+              role: 'ROLE_ASSISTANT',
+              parts: [
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_REASONING',
+                  content: 'Reviewing connector context.',
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: 'Draft reply',
+                },
+              ],
+              labels: {
+                'talon.impalasys.com/connector-delivery-status': 'pending_review',
+              },
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-review-work"
+        enableDebugMessageEditing
+      />,
+    );
+
+    expect(await screen.findByText('Draft reply')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Send'));
+    await waitFor(() => expect(updateMessage).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
+    expect(await screen.findByText('Reviewing connector context.')).toBeInTheDocument();
   });
 
   it('renders finalized work as typed timeline events instead of muting assistant text', async () => {

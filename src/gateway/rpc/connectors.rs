@@ -24,9 +24,22 @@ const LABEL_EXTERNAL_MESSAGE: &str = "talon.impalasys.com/external-message";
 const LABEL_EXTERNAL_SENDER: &str = "talon.impalasys.com/external-sender";
 const LABEL_CONVERSATION_TYPE: &str = "talon.impalasys.com/conversation-type";
 const LABEL_CONNECTOR_MATCH_PREFIX: &str = "talon.impalasys.com/connector-match/";
+const LABEL_CONNECTOR_REPLY_MODE: &str = "talon.impalasys.com/connector-reply-mode";
+const LABEL_CONNECTOR_DELIVERY_STATUS: &str = "talon.impalasys.com/connector-delivery-status";
+const LABEL_CONNECTOR_DELIVERY_ERROR: &str = "talon.impalasys.com/connector-delivery-error";
 const LABEL_CHANNEL_TRIGGER: &str = "talon.impalasys.com/channel-trigger";
+const LABEL_CHANNEL_REPLY_MODE: &str = "talon.impalasys.com/channel-reply-mode";
+const LABEL_CHANNEL: &str = "talon.impalasys.com/channel";
+const LABEL_CHANNEL_MESSAGE: &str = "talon.impalasys.com/channel-message";
+const LABEL_CHANNEL_SUBSCRIPTION: &str = "talon.impalasys.com/channel-subscription";
 const CONNECTOR_HTTP_TIMEOUT: Duration = Duration::from_secs(15);
 const CONNECTOR_SESSION_RESERVATION_PREFIX: &str = "reserved:";
+const CONNECTOR_REPLY_MODE_HOLD_FOR_REVIEW: &str = "hold_for_review";
+const CONNECTOR_DELIVERY_PENDING_REVIEW: &str = "pending_review";
+const CONNECTOR_DELIVERY_REQUESTED: &str = "delivery_requested";
+const CONNECTOR_DELIVERY_DELIVERED: &str = "delivered";
+const CONNECTOR_DELIVERY_FAILED: &str = "failed";
+const CONNECTOR_DELIVERY_SKIPPED: &str = "skipped";
 
 struct ConnectorClassRegistration {
     namespace: String,
@@ -417,7 +430,11 @@ pub async fn maybe_deliver_connector_session_message(
     {
         return Ok(());
     }
-    if session.labels.contains_key(LABEL_CHANNEL_TRIGGER) {
+    let hold_for_review = connector_reply_mode_from_labels(&session.labels).as_deref()
+        == Some(CONNECTOR_REPLY_MODE_HOLD_FOR_REVIEW)
+        || connector_channel_reply_mode_from_labels(&session.labels).as_deref()
+            == Some(CONNECTOR_REPLY_MODE_HOLD_FOR_REVIEW);
+    if session.labels.contains_key(LABEL_CHANNEL_TRIGGER) && !hold_for_review {
         return Ok(());
     }
 
@@ -432,8 +449,53 @@ pub async fn maybe_deliver_connector_session_message(
         return Ok(());
     }
 
+    let status = message
+        .labels
+        .get(LABEL_CONNECTOR_DELIVERY_STATUS)
+        .map(|value| value.as_str());
+    match status {
+        Some(CONNECTOR_DELIVERY_PENDING_REVIEW)
+        | Some(CONNECTOR_DELIVERY_DELIVERED)
+        | Some(CONNECTOR_DELIVERY_FAILED)
+        | Some(CONNECTOR_DELIVERY_SKIPPED) => return Ok(()),
+        Some(CONNECTOR_DELIVERY_REQUESTED) => {}
+        Some(_) => return Ok(()),
+        None if hold_for_review => {
+            mutate_connector_session_message_labels(
+                cp,
+                ns,
+                agent,
+                session_id,
+                message_id,
+                |labels| {
+                    copy_connector_delivery_context_labels(&session.labels, labels);
+                    labels.insert(
+                        LABEL_CONNECTOR_DELIVERY_STATUS.to_string(),
+                        CONNECTOR_DELIVERY_PENDING_REVIEW.to_string(),
+                    );
+                    labels.remove(LABEL_CONNECTOR_DELIVERY_ERROR);
+                },
+            )
+            .await?;
+            return Ok(());
+        }
+        None => {}
+    }
+
     let text = session_message_final_response(&message);
     if text.trim().is_empty() {
+        if status == Some(CONNECTOR_DELIVERY_REQUESTED) {
+            set_connector_delivery_status(
+                cp,
+                ns,
+                agent,
+                session_id,
+                message_id,
+                CONNECTOR_DELIVERY_FAILED,
+                Some("connector reply text is empty"),
+            )
+            .await?;
+        }
         tracing::info!(
             namespace = %ns,
             agent = %agent,
@@ -444,6 +506,18 @@ pub async fn maybe_deliver_connector_session_message(
         return Ok(());
     }
     if is_connector_silence_response(&text) {
+        if status == Some(CONNECTOR_DELIVERY_REQUESTED) {
+            set_connector_delivery_status(
+                cp,
+                ns,
+                agent,
+                session_id,
+                message_id,
+                CONNECTOR_DELIVERY_SKIPPED,
+                None,
+            )
+            .await?;
+        }
         tracing::info!(
             namespace = %ns,
             agent = %agent,
@@ -454,7 +528,48 @@ pub async fn maybe_deliver_connector_session_message(
         return Ok(());
     }
 
-    deliver_connector_session_message(cp, &session, &message, &text).await
+    let mut delivery_context_labels = session.labels.clone();
+    delivery_context_labels.extend(message.labels.clone());
+    let delivery_result = deliver_connector_session_message_with_labels(
+        cp,
+        &session,
+        &message,
+        &text,
+        &delivery_context_labels,
+    )
+    .await;
+    if status == Some(CONNECTOR_DELIVERY_REQUESTED) {
+        match delivery_result {
+            Ok(()) => {
+                set_connector_delivery_status(
+                    cp,
+                    ns,
+                    agent,
+                    session_id,
+                    message_id,
+                    CONNECTOR_DELIVERY_DELIVERED,
+                    None,
+                )
+                .await?;
+                Ok(())
+            }
+            Err(error) => {
+                set_connector_delivery_status(
+                    cp,
+                    ns,
+                    agent,
+                    session_id,
+                    message_id,
+                    CONNECTOR_DELIVERY_FAILED,
+                    Some(&error.to_string()),
+                )
+                .await?;
+                Ok(())
+            }
+        }
+    } else {
+        delivery_result
+    }
 }
 
 pub async fn deliver_connector_session_message(
@@ -463,15 +578,25 @@ pub async fn deliver_connector_session_message(
     message: &data_proto::SessionMessage,
     text: &str,
 ) -> anyhow::Result<()> {
-    let registration_id = required_label(&session.labels, LABEL_CONNECTOR_REGISTRATION)?;
-    let connector_name = required_label(&session.labels, LABEL_CONNECTOR)?;
-    let connector_class = required_label(&session.labels, LABEL_CONNECTOR_CLASS)?;
-    let external_conversation_id = required_label(&session.labels, LABEL_EXTERNAL_CONVERSATION)?;
+    deliver_connector_session_message_with_labels(cp, session, message, text, &session.labels).await
+}
+
+async fn deliver_connector_session_message_with_labels(
+    cp: &ControlPlane,
+    session: &data_proto::Session,
+    message: &data_proto::SessionMessage,
+    text: &str,
+    labels: &HashMap<String, String>,
+) -> anyhow::Result<()> {
+    let registration_id = required_label(labels, LABEL_CONNECTOR_REGISTRATION)?;
+    let connector_name = required_label(labels, LABEL_CONNECTOR)?;
+    let connector_class = required_label(labels, LABEL_CONNECTOR_CLASS)?;
+    let external_conversation_id = required_label(labels, LABEL_EXTERNAL_CONVERSATION)?;
     let (runtime_endpoint, api_key) =
         connector_runtime_endpoint_and_api_key(cp, registration_id, connector_class).await?;
 
     let mut match_fields = HashMap::new();
-    for (key, value) in &session.labels {
+    for (key, value) in labels {
         if let Some(field) = key.strip_prefix(LABEL_CONNECTOR_MATCH_PREFIX) {
             match_fields.insert(field.to_string(), value.clone());
         }
@@ -481,7 +606,7 @@ pub async fn deliver_connector_session_message(
     delivery_labels.insert("talon.session".to_string(), session.id.clone());
     delivery_labels.insert("talon.agent".to_string(), session.agent.clone());
     delivery_labels.insert("talon.sessionMessage".to_string(), message.id.clone());
-    if let Some(source_event) = session.labels.get(LABEL_CONNECTOR_EVENT).cloned() {
+    if let Some(source_event) = labels.get(LABEL_CONNECTOR_EVENT).cloned() {
         delivery_labels.insert("talon.connectorEvent".to_string(), source_event);
     }
 
@@ -497,12 +622,11 @@ pub async fn deliver_connector_session_message(
             connector_name: connector_name.to_string(),
             match_fields,
             external_conversation_id: external_conversation_id.to_string(),
-            external_thread_id: session
-                .labels
+            external_thread_id: labels
                 .get(LABEL_EXTERNAL_THREAD)
                 .cloned()
-                .or_else(|| session.labels.get(LABEL_EXTERNAL_MESSAGE).cloned()),
-            reply_to_external_message_id: session.labels.get(LABEL_EXTERNAL_MESSAGE).cloned(),
+                .or_else(|| labels.get(LABEL_EXTERNAL_MESSAGE).cloned()),
+            reply_to_external_message_id: labels.get(LABEL_EXTERNAL_MESSAGE).cloned(),
             text: text.trim().to_string(),
             attachments: Vec::new(),
             labels: delivery_labels,
@@ -520,6 +644,124 @@ pub async fn deliver_connector_session_message(
             "connector delivery rejected: HTTP {status} disposition={} error={}",
             body.disposition,
             body.error
+        );
+    }
+    Ok(())
+}
+
+fn connector_reply_mode_from_labels(labels: &HashMap<String, String>) -> Option<String> {
+    labels
+        .get(LABEL_CONNECTOR_REPLY_MODE)
+        .map(|value| normalize_connector_reply_mode(value))
+        .filter(|value| !value.is_empty())
+}
+
+fn connector_channel_reply_mode_from_labels(labels: &HashMap<String, String>) -> Option<String> {
+    labels
+        .get(LABEL_CHANNEL_REPLY_MODE)
+        .map(|value| normalize_connector_reply_mode(value))
+        .filter(|value| !value.is_empty())
+}
+
+fn normalize_connector_reply_mode(value: &str) -> String {
+    match value.trim() {
+        "review" | "hold_for_review" => CONNECTOR_REPLY_MODE_HOLD_FOR_REVIEW.to_string(),
+        other => other.to_string(),
+    }
+}
+
+fn copy_connector_delivery_context_labels(
+    source: &HashMap<String, String>,
+    destination: &mut HashMap<String, String>,
+) {
+    for key in [
+        LABEL_MESSAGE_SOURCE,
+        LABEL_CONNECTOR,
+        LABEL_CONNECTOR_CLASS,
+        LABEL_CONNECTOR_REGISTRATION,
+        LABEL_CONNECTOR_EVENT,
+        LABEL_EXTERNAL_CONVERSATION,
+        LABEL_EXTERNAL_THREAD,
+        LABEL_EXTERNAL_MESSAGE,
+        LABEL_EXTERNAL_SENDER,
+        LABEL_CONVERSATION_TYPE,
+        LABEL_CONNECTOR_REPLY_MODE,
+        LABEL_CHANNEL_TRIGGER,
+        LABEL_CHANNEL_REPLY_MODE,
+        LABEL_CHANNEL,
+        LABEL_CHANNEL_MESSAGE,
+        LABEL_CHANNEL_SUBSCRIPTION,
+    ] {
+        if let Some(value) = source.get(key).filter(|value| !value.trim().is_empty()) {
+            destination.insert(key.to_string(), value.clone());
+        }
+    }
+    for (key, value) in source {
+        if key.starts_with(LABEL_CONNECTOR_MATCH_PREFIX) && !value.trim().is_empty() {
+            destination.insert(key.clone(), value.clone());
+        }
+    }
+}
+
+async fn set_connector_delivery_status(
+    cp: &ControlPlane,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    message_id: &str,
+    status: &str,
+    error: Option<&str>,
+) -> anyhow::Result<()> {
+    mutate_connector_session_message_labels(cp, ns, agent, session_id, message_id, |labels| {
+        labels.insert(
+            LABEL_CONNECTOR_DELIVERY_STATUS.to_string(),
+            status.to_string(),
+        );
+        if let Some(error) = error.filter(|value| !value.trim().is_empty()) {
+            labels.insert(
+                LABEL_CONNECTOR_DELIVERY_ERROR.to_string(),
+                error.to_string(),
+            );
+        } else {
+            labels.remove(LABEL_CONNECTOR_DELIVERY_ERROR);
+        }
+    })
+    .await
+}
+
+async fn mutate_connector_session_message_labels(
+    cp: &ControlPlane,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    message_id: &str,
+    mutate: impl FnOnce(&mut HashMap<String, String>),
+) -> anyhow::Result<()> {
+    let message_key = keys::session_message(ns, agent, session_id, message_id);
+    let mut message = cp
+        .kv
+        .get_msg::<data_proto::SessionMessage>(&message_key)
+        .await?
+        .ok_or_else(|| anyhow::anyhow!("assistant message not found"))?;
+    mutate(&mut message.labels);
+    cp.kv.set_msg(&message_key, &message).await?;
+    if let Err(error) = crate::control::search::publish_index_event(
+        cp.pubsub.as_ref(),
+        crate::control::events::IndexEvent {
+            operation: crate::control::events::IndexOperation::Upsert as i32,
+            key: message_key.canonical(),
+            ..Default::default()
+        },
+    )
+    .await
+    {
+        tracing::warn!(
+            error = %error,
+            namespace = %ns,
+            agent = %agent,
+            session_id = %session_id,
+            message_id = %message_id,
+            "failed to publish search index event for connector delivery label update"
         );
     }
     Ok(())
@@ -789,6 +1031,12 @@ async fn dispatch_to_session(
     let agent_name = consumer_ref_name(agent, "Session consumer requires agent name")?;
     let mut labels = connector_labels(route, event)?;
     labels.insert(LABEL_MESSAGE_SOURCE.to_string(), "connector".to_string());
+    if !consumer.reply_mode.trim().is_empty() {
+        labels.insert(
+            LABEL_CONNECTOR_REPLY_MODE.to_string(),
+            normalize_connector_reply_mode(&consumer.reply_mode),
+        );
+    }
     tracing::info!(
         registration_id = %event.registration_id,
         connector_class = %event.connector_class,
@@ -800,6 +1048,7 @@ async fn dispatch_to_session(
         agent_name = %agent_name,
         configured_continuity = %consumer.continuity,
         configured_session_id = %consumer.session_id,
+        configured_reply_mode = %consumer.reply_mode,
         elapsed_ms = started.elapsed().as_millis(),
         "connector session dispatch selecting session"
     );

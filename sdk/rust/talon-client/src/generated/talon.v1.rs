@@ -659,6 +659,31 @@ pub struct AppendSessionMessageResponse {
     pub message: ::core::option::Option<super::data::SessionMessage>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateSessionMessageRequest {
+    #[prost(string, tag = "1")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub message_id: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "5")]
+    pub parts: ::prost::alloc::vec::Vec<super::data::SessionMessagePart>,
+    #[prost(map = "string, string", tag = "6")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateSessionMessageResponse {
+    #[prost(string, tag = "1")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub message: ::core::option::Option<super::data::SessionMessage>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AnswerSessionPermissionRequest {
     #[prost(string, tag = "1")]
     pub session_id: ::prost::alloc::string::String,
@@ -995,6 +1020,30 @@ pub mod session_service_client {
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("talon.v1.SessionService", "AppendMessage"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn update_message(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateSessionMessageRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UpdateSessionMessageResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.SessionService/UpdateMessage",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.SessionService", "UpdateMessage"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn answer_permission(

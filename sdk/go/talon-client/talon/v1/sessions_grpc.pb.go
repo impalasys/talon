@@ -28,6 +28,7 @@ const (
 	SessionService_Clear_FullMethodName            = "/talon.v1.SessionService/Clear"
 	SessionService_SendMessage_FullMethodName      = "/talon.v1.SessionService/SendMessage"
 	SessionService_AppendMessage_FullMethodName    = "/talon.v1.SessionService/AppendMessage"
+	SessionService_UpdateMessage_FullMethodName    = "/talon.v1.SessionService/UpdateMessage"
 	SessionService_AnswerPermission_FullMethodName = "/talon.v1.SessionService/AnswerPermission"
 	SessionService_StopGeneration_FullMethodName   = "/talon.v1.SessionService/StopGeneration"
 	SessionService_StreamParts_FullMethodName      = "/talon.v1.SessionService/StreamParts"
@@ -47,6 +48,7 @@ type SessionServiceClient interface {
 	Clear(ctx context.Context, in *ClearSessionRequest, opts ...grpc.CallOption) (*ClearSessionResponse, error)
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
 	AppendMessage(ctx context.Context, in *AppendSessionMessageRequest, opts ...grpc.CallOption) (*AppendSessionMessageResponse, error)
+	UpdateMessage(ctx context.Context, in *UpdateSessionMessageRequest, opts ...grpc.CallOption) (*UpdateSessionMessageResponse, error)
 	AnswerPermission(ctx context.Context, in *AnswerSessionPermissionRequest, opts ...grpc.CallOption) (*AnswerSessionPermissionResponse, error)
 	StopGeneration(ctx context.Context, in *StopSessionGenerationRequest, opts ...grpc.CallOption) (*StopSessionGenerationResponse, error)
 	StreamParts(ctx context.Context, in *StreamSessionPartsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error)
@@ -142,6 +144,16 @@ func (c *sessionServiceClient) AppendMessage(ctx context.Context, in *AppendSess
 	return out, nil
 }
 
+func (c *sessionServiceClient) UpdateMessage(ctx context.Context, in *UpdateSessionMessageRequest, opts ...grpc.CallOption) (*UpdateSessionMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateSessionMessageResponse)
+	err := c.cc.Invoke(ctx, SessionService_UpdateMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *sessionServiceClient) AnswerPermission(ctx context.Context, in *AnswerSessionPermissionRequest, opts ...grpc.CallOption) (*AnswerSessionPermissionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AnswerSessionPermissionResponse)
@@ -231,6 +243,7 @@ type SessionServiceServer interface {
 	Clear(context.Context, *ClearSessionRequest) (*ClearSessionResponse, error)
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
 	AppendMessage(context.Context, *AppendSessionMessageRequest) (*AppendSessionMessageResponse, error)
+	UpdateMessage(context.Context, *UpdateSessionMessageRequest) (*UpdateSessionMessageResponse, error)
 	AnswerPermission(context.Context, *AnswerSessionPermissionRequest) (*AnswerSessionPermissionResponse, error)
 	StopGeneration(context.Context, *StopSessionGenerationRequest) (*StopSessionGenerationResponse, error)
 	StreamParts(*StreamSessionPartsRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error
@@ -269,6 +282,9 @@ func (UnimplementedSessionServiceServer) SendMessage(context.Context, *SendMessa
 }
 func (UnimplementedSessionServiceServer) AppendMessage(context.Context, *AppendSessionMessageRequest) (*AppendSessionMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AppendMessage not implemented")
+}
+func (UnimplementedSessionServiceServer) UpdateMessage(context.Context, *UpdateSessionMessageRequest) (*UpdateSessionMessageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateMessage not implemented")
 }
 func (UnimplementedSessionServiceServer) AnswerPermission(context.Context, *AnswerSessionPermissionRequest) (*AnswerSessionPermissionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AnswerPermission not implemented")
@@ -450,6 +466,24 @@ func _SessionService_AppendMessage_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SessionService_UpdateMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSessionMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SessionServiceServer).UpdateMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SessionService_UpdateMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SessionServiceServer).UpdateMessage(ctx, req.(*UpdateSessionMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SessionService_AnswerPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AnswerSessionPermissionRequest)
 	if err := dec(in); err != nil {
@@ -557,6 +591,10 @@ var SessionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AppendMessage",
 			Handler:    _SessionService_AppendMessage_Handler,
+		},
+		{
+			MethodName: "UpdateMessage",
+			Handler:    _SessionService_UpdateMessage_Handler,
 		},
 		{
 			MethodName: "AnswerPermission",

@@ -20,6 +20,35 @@ const MAX_SESSION_MESSAGES_PAGE_SIZE: usize = 200;
 const SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
 const DEFAULT_SESSION_STREAM_BATCH_MAX: usize = 10_000;
 const CLEAR_SESSION_CAS_RETRIES: usize = 8;
+const LABEL_CONNECTOR_DELIVERY_ERROR: &str = "talon.impalasys.com/connector-delivery-error";
+const LABEL_CONNECTOR_DELIVERY_STATUS: &str = "talon.impalasys.com/connector-delivery-status";
+const RESERVED_CONNECTOR_LABEL_PREFIX: &str = "talon.impalasys.com/connector-";
+const RESERVED_CONNECTOR_MATCH_LABEL_PREFIX: &str = "talon.impalasys.com/connector-match/";
+const RESERVED_EXTERNAL_LABEL_PREFIX: &str = "talon.impalasys.com/external-";
+
+fn is_mutable_connector_delivery_label(key: &str) -> bool {
+    key == LABEL_CONNECTOR_DELIVERY_STATUS || key == LABEL_CONNECTOR_DELIVERY_ERROR
+}
+
+fn is_reserved_connector_routing_label(key: &str) -> bool {
+    let is_connector_or_external = key.starts_with(RESERVED_CONNECTOR_LABEL_PREFIX)
+        || key.starts_with(RESERVED_EXTERNAL_LABEL_PREFIX)
+        || key.starts_with(RESERVED_CONNECTOR_MATCH_LABEL_PREFIX);
+    is_connector_or_external && !is_mutable_connector_delivery_label(key)
+}
+
+fn merge_update_session_message_labels(
+    existing: &std::collections::HashMap<String, String>,
+    requested: std::collections::HashMap<String, String>,
+) -> std::collections::HashMap<String, String> {
+    let mut labels = requested;
+    for (key, value) in existing {
+        if is_reserved_connector_routing_label(key) {
+            labels.insert(key.clone(), value.clone());
+        }
+    }
+    labels
+}
 
 // Session creation charges namespace/agent usage; provider/model are only used
 // by LLM metrics and intentionally stay empty here.
@@ -203,6 +232,20 @@ fn normalize_appended_session_message(
         }
     }
     message
+}
+
+fn normalize_session_message_parts(
+    parts: &mut [data_proto::SessionMessagePart],
+    message_created_at: i64,
+) {
+    for (index, part) in parts.iter_mut().enumerate() {
+        if part.id.is_empty() {
+            part.id = format!("{index:06}");
+        }
+        if part.created_at == 0 {
+            part.created_at = message_created_at;
+        }
+    }
 }
 
 fn request_permission_part_id(part: &data_proto::SessionMessagePart) -> Option<String> {
@@ -1123,6 +1166,140 @@ impl GrpcGatewayHandler {
         }))
     }
 
+    pub async fn handle_update_session_message(
+        &self,
+        req: tonic::Request<proto::UpdateSessionMessageRequest>,
+    ) -> std::result::Result<tonic::Response<proto::UpdateSessionMessageResponse>, tonic::Status>
+    {
+        crate::require_auth!(
+            self,
+            req,
+            &req.get_ref().ns,
+            &req.get_ref().agent,
+            &req.get_ref().session_id
+        );
+        let req = req.into_inner();
+        if req.message_id.trim().is_empty() {
+            return Err(tonic::Status::invalid_argument("message_id is required"));
+        }
+
+        let session_db_key = keys::session(&req.ns, &req.agent, &req.session_id);
+        let mut session = self
+            .gateway
+            .kv
+            .get_msg::<data_proto::Session>(&session_db_key)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to fetch session: {}", e)))?
+            .ok_or_else(|| tonic::Status::not_found("Session not found"))?;
+
+        let message_key =
+            keys::session_message(&req.ns, &req.agent, &req.session_id, &req.message_id);
+        let mut message = self
+            .gateway
+            .kv
+            .get_msg::<data_proto::SessionMessage>(&message_key)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to fetch session message: {}", e))
+            })?
+            .ok_or_else(|| tonic::Status::not_found("Session message not found"))?;
+
+        if message.role != data_proto::MessageRole::RoleUser as i32
+            && message.role != data_proto::MessageRole::RoleAssistant as i32
+        {
+            return Err(tonic::Status::failed_precondition(
+                "Only user and assistant session messages can be updated",
+            ));
+        }
+        if req.parts.is_empty() {
+            return Err(tonic::Status::invalid_argument(
+                "message must contain at least one part",
+            ));
+        }
+
+        message.parts = req.parts;
+        message.labels = merge_update_session_message_labels(&message.labels, req.labels);
+        normalize_session_message_parts(&mut message.parts, message.created_at);
+
+        self.gateway
+            .kv
+            .set_msg(&message_key, &message)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to update session message: {}", e))
+            })?;
+
+        session.last_active = chrono::Utc::now().timestamp_micros();
+        self.gateway
+            .kv
+            .set_msg(&session_db_key, &session)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to update session: {}", e)))?;
+
+        if let Err(error) = crate::control::search::publish_index_event(
+            self.gateway.pubsub.as_ref(),
+            crate::control::events::IndexEvent {
+                operation: crate::control::events::IndexOperation::Upsert as i32,
+                key: message_key.canonical(),
+                ..Default::default()
+            },
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %error,
+                namespace = %req.ns,
+                agent = %req.agent,
+                session_id = %req.session_id,
+                message_id = %message.id,
+                "failed to publish search index event for updated session message"
+            );
+        }
+
+        if message.role == data_proto::MessageRole::RoleAssistant as i32 {
+            if let Err(error) = connector_rpc::maybe_deliver_connector_session_message(
+                &self.gateway.control_plane(),
+                &req.ns,
+                &req.agent,
+                &req.session_id,
+                &message.id,
+            )
+            .await
+            {
+                tracing::warn!(
+                    error = %error,
+                    namespace = %req.ns,
+                    agent = %req.agent,
+                    session_id = %req.session_id,
+                    message_id = %message.id,
+                    "failed to process connector delivery for updated session message"
+                );
+                return Err(tonic::Status::internal(format!(
+                    "Failed to process connector delivery for updated session message: {error}"
+                )));
+            }
+            if let Some(updated_message) = self
+                .gateway
+                .kv
+                .get_msg::<data_proto::SessionMessage>(&message_key)
+                .await
+                .map_err(|e| {
+                    tonic::Status::internal(format!(
+                        "Failed to reload updated session message: {}",
+                        e
+                    ))
+                })?
+            {
+                message = updated_message;
+            }
+        }
+
+        Ok(tonic::Response::new(proto::UpdateSessionMessageResponse {
+            session_id: req.session_id,
+            message: Some(message),
+        }))
+    }
+
     pub async fn handle_answer_session_permission(
         &self,
         req: tonic::Request<proto::AnswerSessionPermissionRequest>,
@@ -1441,6 +1618,7 @@ mod tests {
     use crate::gateway::Gateway;
     use crate::test_support::{MockKvStore, RecordingPubSub};
     use futures::stream;
+    use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
 
@@ -1549,6 +1727,189 @@ mod tests {
             resources_proto::resource_status::Kind::UsagePolicy(status) => status,
             _ => panic!("expected UsagePolicy status"),
         }
+    }
+
+    #[tokio::test]
+    async fn update_session_message_replaces_parts_and_labels_only_for_editable_roles() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub);
+        kv.set_msg(
+            &keys::session("conic:test", "assistant", "session-1"),
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "assistant".to_string(),
+                ns: "conic:test".to_string(),
+                status: "READY".to_string(),
+                created_at: 10,
+                last_active: 20,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &keys::session_message("conic:test", "assistant", "session-1", "assistant-1"),
+            &data_proto::SessionMessage {
+                id: "assistant-1".to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 123,
+                labels: HashMap::from([
+                    ("old".to_string(), "label".to_string()),
+                    (
+                        "talon.impalasys.com/connector-registration".to_string(),
+                        "Namespace/conic/ConnectorClass/slack".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/connector-match/teamId".to_string(),
+                        "team-1".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/external-conversation".to_string(),
+                        "thread-1".to_string(),
+                    ),
+                    (
+                        "talon.impalasys.com/connector-delivery-status".to_string(),
+                        "pending_review".to_string(),
+                    ),
+                ]),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: "old-part".to_string(),
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
+                    content: "old text".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 124,
+                    object: None,
+                }],
+            },
+        )
+        .await
+        .unwrap();
+
+        let response = handler
+            .handle_update_session_message(tonic::Request::new(
+                proto::UpdateSessionMessageRequest {
+                    ns: "conic:test".to_string(),
+                    agent: "assistant".to_string(),
+                    session_id: "session-1".to_string(),
+                    message_id: "assistant-1".to_string(),
+                    parts: vec![data_proto::SessionMessagePart {
+                        id: String::new(),
+                        part_type: data_proto::SessionMessagePartType::Text as i32,
+                        content: "edited text".to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 0,
+                        object: None,
+                    }],
+                    labels: HashMap::from([
+                        ("new".to_string(), "label".to_string()),
+                        (
+                            "talon.impalasys.com/connector-registration".to_string(),
+                            "Namespace/other/ConnectorClass/evil".to_string(),
+                        ),
+                        (
+                            "talon.impalasys.com/connector-match/teamId".to_string(),
+                            "team-2".to_string(),
+                        ),
+                        (
+                            "talon.impalasys.com/external-conversation".to_string(),
+                            "thread-2".to_string(),
+                        ),
+                        (
+                            "talon.impalasys.com/connector-delivery-status".to_string(),
+                            "delivery_requested".to_string(),
+                        ),
+                    ]),
+                },
+            ))
+            .await
+            .unwrap()
+            .into_inner();
+
+        let message = response.message.expect("updated message");
+        assert_eq!(message.id, "assistant-1");
+        assert_eq!(message.role, data_proto::MessageRole::RoleAssistant as i32);
+        assert_eq!(message.created_at, 123);
+        assert_eq!(message.labels.get("new").map(String::as_str), Some("label"));
+        assert!(!message.labels.contains_key("old"));
+        assert_eq!(
+            message
+                .labels
+                .get("talon.impalasys.com/connector-registration")
+                .map(String::as_str),
+            Some("Namespace/conic/ConnectorClass/slack")
+        );
+        assert_eq!(
+            message
+                .labels
+                .get("talon.impalasys.com/connector-match/teamId")
+                .map(String::as_str),
+            Some("team-1")
+        );
+        assert_eq!(
+            message
+                .labels
+                .get("talon.impalasys.com/external-conversation")
+                .map(String::as_str),
+            Some("thread-1")
+        );
+        assert_eq!(
+            message
+                .labels
+                .get("talon.impalasys.com/connector-delivery-status")
+                .map(String::as_str),
+            Some("delivery_requested")
+        );
+        assert_eq!(message.parts[0].id, "000000");
+        assert_eq!(message.parts[0].created_at, 123);
+        assert_eq!(message.parts[0].content, "edited text");
+
+        kv.set_msg(
+            &keys::session_message("conic:test", "assistant", "session-1", "system-1"),
+            &data_proto::SessionMessage {
+                id: "system-1".to_string(),
+                role: data_proto::MessageRole::RoleSystem as i32,
+                created_at: 200,
+                labels: HashMap::new(),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: "000000".to_string(),
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
+                    content: "system".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 200,
+                    object: None,
+                }],
+            },
+        )
+        .await
+        .unwrap();
+
+        let error = handler
+            .handle_update_session_message(tonic::Request::new(
+                proto::UpdateSessionMessageRequest {
+                    ns: "conic:test".to_string(),
+                    agent: "assistant".to_string(),
+                    session_id: "session-1".to_string(),
+                    message_id: "system-1".to_string(),
+                    parts: vec![data_proto::SessionMessagePart {
+                        id: "000000".to_string(),
+                        part_type: data_proto::SessionMessagePartType::Text as i32,
+                        content: "blocked".to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 200,
+                        object: None,
+                    }],
+                    labels: HashMap::new(),
+                },
+            ))
+            .await
+            .expect_err("system messages cannot be updated");
+        assert_eq!(error.code(), tonic::Code::FailedPrecondition);
     }
 
     #[tokio::test]

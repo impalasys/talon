@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AnswerSessionPermissionRequest, AnswerSessionPermissionResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, ClearSessionRequest, ClearSessionResponse, CreateSessionRequest, DeleteSessionRequest, DeleteSessionResponse, GetSessionRequest, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, SubmitSessionTurnRequest } from "./sessions_pb.js";
+import { AnswerSessionPermissionRequest, AnswerSessionPermissionResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, ClearSessionRequest, ClearSessionResponse, CreateSessionRequest, DeleteSessionRequest, DeleteSessionResponse, GetSessionRequest, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, SubmitSessionTurnRequest, UpdateSessionMessageRequest, UpdateSessionMessageResponse } from "./sessions_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 import { SessionMessagePartEvent } from "../../events_pb.js";
 
@@ -83,6 +83,15 @@ export const SessionService = {
       name: "AppendMessage",
       I: AppendSessionMessageRequest,
       O: AppendSessionMessageResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.v1.SessionService.UpdateMessage
+     */
+    updateMessage: {
+      name: "UpdateMessage",
+      I: UpdateSessionMessageRequest,
+      O: UpdateSessionMessageResponse,
       kind: MethodKind.Unary,
     },
     /**

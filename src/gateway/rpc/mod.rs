@@ -336,6 +336,14 @@ impl proto::session_service_server::SessionService for GrpcGatewayHandler {
         self.handle_append_session_message(req).await
     }
 
+    async fn update_message(
+        &self,
+        req: tonic::Request<proto::UpdateSessionMessageRequest>,
+    ) -> std::result::Result<tonic::Response<proto::UpdateSessionMessageResponse>, tonic::Status>
+    {
+        self.handle_update_session_message(req).await
+    }
+
     async fn answer_permission(
         &self,
         req: tonic::Request<proto::AnswerSessionPermissionRequest>,

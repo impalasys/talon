@@ -75,6 +75,11 @@ class SessionServiceStub(object):
                 request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.AppendSessionMessageRequest.SerializeToString,
                 response_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.AppendSessionMessageResponse.FromString,
                 _registered_method=True)
+        self.UpdateMessage = channel.unary_unary(
+                '/talon.v1.SessionService/UpdateMessage',
+                request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.UpdateSessionMessageRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.UpdateSessionMessageResponse.FromString,
+                _registered_method=True)
         self.AnswerPermission = channel.unary_unary(
                 '/talon.v1.SessionService/AnswerPermission',
                 request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.AnswerSessionPermissionRequest.SerializeToString,
@@ -153,6 +158,12 @@ class SessionServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def UpdateMessage(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def AnswerPermission(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -225,6 +236,11 @@ def add_SessionServiceServicer_to_server(servicer, server):
                     servicer.AppendMessage,
                     request_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.AppendSessionMessageRequest.FromString,
                     response_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.AppendSessionMessageResponse.SerializeToString,
+            ),
+            'UpdateMessage': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateMessage,
+                    request_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.UpdateSessionMessageRequest.FromString,
+                    response_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.UpdateSessionMessageResponse.SerializeToString,
             ),
             'AnswerPermission': grpc.unary_unary_rpc_method_handler(
                     servicer.AnswerPermission,
@@ -468,6 +484,33 @@ class SessionService(object):
             '/talon.v1.SessionService/AppendMessage',
             proto_dot_talon_dot_v1_dot_sessions__pb2.AppendSessionMessageRequest.SerializeToString,
             proto_dot_talon_dot_v1_dot_sessions__pb2.AppendSessionMessageResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateMessage(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.v1.SessionService/UpdateMessage',
+            proto_dot_talon_dot_v1_dot_sessions__pb2.UpdateSessionMessageRequest.SerializeToString,
+            proto_dot_talon_dot_v1_dot_sessions__pb2.UpdateSessionMessageResponse.FromString,
             options,
             channel_credentials,
             insecure,

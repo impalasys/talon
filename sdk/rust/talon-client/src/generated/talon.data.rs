@@ -27,6 +27,11 @@ pub struct SessionMessageConsumer {
     /// other value creates a new Session for each message.
     #[prost(string, tag = "3")]
     pub continuity: ::prost::alloc::string::String,
+    /// Reply behavior requested from the connector-aware session router.
+    /// "hold_for_review" stores assistant replies as pending connector deliveries
+    /// until an operator updates the message labels to request delivery or skip.
+    #[prost(string, tag = "4")]
+    pub reply_mode: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChannelMessageConsumer {

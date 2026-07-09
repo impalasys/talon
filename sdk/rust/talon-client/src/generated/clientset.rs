@@ -190,6 +190,13 @@ impl crate::TalonClient {
         crate::v1::AppendSessionMessageResponse,
     );
     delegate_dynamic_unary_rpc!(
+        update_session_message,
+        sessions,
+        update_message,
+        crate::v1::UpdateSessionMessageRequest,
+        crate::v1::UpdateSessionMessageResponse,
+    );
+    delegate_dynamic_unary_rpc!(
         answer_session_permission,
         sessions,
         answer_permission,

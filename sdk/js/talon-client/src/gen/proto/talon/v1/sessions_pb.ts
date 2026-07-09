@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { SessionMessage } from "../../data/data_pb.js";
+import { SessionMessage, SessionMessagePart } from "../../data/data_pb.js";
 
 /**
  * @generated from message talon.v1.CreateSessionRequest
@@ -904,6 +904,116 @@ export class AppendSessionMessageResponse extends Message<AppendSessionMessageRe
 
   static equals(a: AppendSessionMessageResponse | PlainMessage<AppendSessionMessageResponse> | undefined, b: AppendSessionMessageResponse | PlainMessage<AppendSessionMessageResponse> | undefined): boolean {
     return proto3.util.equals(AppendSessionMessageResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.UpdateSessionMessageRequest
+ */
+export class UpdateSessionMessageRequest extends Message<UpdateSessionMessageRequest> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string ns = 3;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string message_id = 4;
+   */
+  messageId = "";
+
+  /**
+   * @generated from field: repeated talon.data.SessionMessagePart parts = 5;
+   */
+  parts: SessionMessagePart[] = [];
+
+  /**
+   * @generated from field: map<string, string> labels = 6;
+   */
+  labels: { [key: string]: string } = {};
+
+  constructor(data?: PartialMessage<UpdateSessionMessageRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.UpdateSessionMessageRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "message_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "parts", kind: "message", T: SessionMessagePart, repeated: true },
+    { no: 6, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateSessionMessageRequest {
+    return new UpdateSessionMessageRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateSessionMessageRequest {
+    return new UpdateSessionMessageRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateSessionMessageRequest {
+    return new UpdateSessionMessageRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UpdateSessionMessageRequest | PlainMessage<UpdateSessionMessageRequest> | undefined, b: UpdateSessionMessageRequest | PlainMessage<UpdateSessionMessageRequest> | undefined): boolean {
+    return proto3.util.equals(UpdateSessionMessageRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.UpdateSessionMessageResponse
+ */
+export class UpdateSessionMessageResponse extends Message<UpdateSessionMessageResponse> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: talon.data.SessionMessage message = 2;
+   */
+  message?: SessionMessage;
+
+  constructor(data?: PartialMessage<UpdateSessionMessageResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.UpdateSessionMessageResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "message", kind: "message", T: SessionMessage },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateSessionMessageResponse {
+    return new UpdateSessionMessageResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateSessionMessageResponse {
+    return new UpdateSessionMessageResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateSessionMessageResponse {
+    return new UpdateSessionMessageResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UpdateSessionMessageResponse | PlainMessage<UpdateSessionMessageResponse> | undefined, b: UpdateSessionMessageResponse | PlainMessage<UpdateSessionMessageResponse> | undefined): boolean {
+    return proto3.util.equals(UpdateSessionMessageResponse, a, b);
   }
 }
 

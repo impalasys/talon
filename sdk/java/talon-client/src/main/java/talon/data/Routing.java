@@ -848,6 +848,30 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
      */
     com.google.protobuf.ByteString
         getContinuityBytes();
+
+    /**
+     * <pre>
+     * Reply behavior requested from the connector-aware session router.
+     * "hold_for_review" stores assistant replies as pending connector deliveries
+     * until an operator updates the message labels to request delivery or skip.
+     * </pre>
+     *
+     * <code>string reply_mode = 4;</code>
+     * @return The replyMode.
+     */
+    java.lang.String getReplyMode();
+    /**
+     * <pre>
+     * Reply behavior requested from the connector-aware session router.
+     * "hold_for_review" stores assistant replies as pending connector deliveries
+     * until an operator updates the message labels to request delivery or skip.
+     * </pre>
+     *
+     * <code>string reply_mode = 4;</code>
+     * @return The bytes for replyMode.
+     */
+    com.google.protobuf.ByteString
+        getReplyModeBytes();
   }
   /**
    * Protobuf type {@code talon.data.SessionMessageConsumer}
@@ -873,6 +897,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     private SessionMessageConsumer() {
       sessionId_ = "";
       continuity_ = "";
+      replyMode_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -1034,6 +1059,57 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
     }
 
+    public static final int REPLY_MODE_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object replyMode_ = "";
+    /**
+     * <pre>
+     * Reply behavior requested from the connector-aware session router.
+     * "hold_for_review" stores assistant replies as pending connector deliveries
+     * until an operator updates the message labels to request delivery or skip.
+     * </pre>
+     *
+     * <code>string reply_mode = 4;</code>
+     * @return The replyMode.
+     */
+    @java.lang.Override
+    public java.lang.String getReplyMode() {
+      java.lang.Object ref = replyMode_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        replyMode_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Reply behavior requested from the connector-aware session router.
+     * "hold_for_review" stores assistant replies as pending connector deliveries
+     * until an operator updates the message labels to request delivery or skip.
+     * </pre>
+     *
+     * <code>string reply_mode = 4;</code>
+     * @return The bytes for replyMode.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getReplyModeBytes() {
+      java.lang.Object ref = replyMode_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        replyMode_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -1057,6 +1133,9 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(continuity_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 3, continuity_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(replyMode_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, replyMode_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -1075,6 +1154,9 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(continuity_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(3, continuity_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(replyMode_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, replyMode_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -1100,6 +1182,8 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
           .equals(other.getSessionId())) return false;
       if (!getContinuity()
           .equals(other.getContinuity())) return false;
+      if (!getReplyMode()
+          .equals(other.getReplyMode())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1119,6 +1203,8 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
       hash = (53 * hash) + getSessionId().hashCode();
       hash = (37 * hash) + CONTINUITY_FIELD_NUMBER;
       hash = (53 * hash) + getContinuity().hashCode();
+      hash = (37 * hash) + REPLY_MODE_FIELD_NUMBER;
+      hash = (53 * hash) + getReplyMode().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1263,6 +1349,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
         }
         sessionId_ = "";
         continuity_ = "";
+        replyMode_ = "";
         return this;
       }
 
@@ -1309,6 +1396,9 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000004) != 0)) {
           result.continuity_ = continuity_;
         }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.replyMode_ = replyMode_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -1335,6 +1425,11 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
         if (!other.getContinuity().isEmpty()) {
           continuity_ = other.continuity_;
           bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getReplyMode().isEmpty()) {
+          replyMode_ = other.replyMode_;
+          bitField0_ |= 0x00000008;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -1380,6 +1475,11 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
+              case 34: {
+                replyMode_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1754,6 +1854,108 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
         checkByteStringIsUtf8(value);
         continuity_ = value;
         bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object replyMode_ = "";
+      /**
+       * <pre>
+       * Reply behavior requested from the connector-aware session router.
+       * "hold_for_review" stores assistant replies as pending connector deliveries
+       * until an operator updates the message labels to request delivery or skip.
+       * </pre>
+       *
+       * <code>string reply_mode = 4;</code>
+       * @return The replyMode.
+       */
+      public java.lang.String getReplyMode() {
+        java.lang.Object ref = replyMode_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          replyMode_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Reply behavior requested from the connector-aware session router.
+       * "hold_for_review" stores assistant replies as pending connector deliveries
+       * until an operator updates the message labels to request delivery or skip.
+       * </pre>
+       *
+       * <code>string reply_mode = 4;</code>
+       * @return The bytes for replyMode.
+       */
+      public com.google.protobuf.ByteString
+          getReplyModeBytes() {
+        java.lang.Object ref = replyMode_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          replyMode_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Reply behavior requested from the connector-aware session router.
+       * "hold_for_review" stores assistant replies as pending connector deliveries
+       * until an operator updates the message labels to request delivery or skip.
+       * </pre>
+       *
+       * <code>string reply_mode = 4;</code>
+       * @param value The replyMode to set.
+       * @return This builder for chaining.
+       */
+      public Builder setReplyMode(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        replyMode_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Reply behavior requested from the connector-aware session router.
+       * "hold_for_review" stores assistant replies as pending connector deliveries
+       * until an operator updates the message labels to request delivery or skip.
+       * </pre>
+       *
+       * <code>string reply_mode = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearReplyMode() {
+        replyMode_ = getDefaultInstance().getReplyMode();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Reply behavior requested from the connector-aware session router.
+       * "hold_for_review" stores assistant replies as pending connector deliveries
+       * until an operator updates the message labels to request delivery or skip.
+       * </pre>
+       *
+       * <code>string reply_mode = 4;</code>
+       * @param value The bytes for replyMode to set.
+       * @return This builder for chaining.
+       */
+      public Builder setReplyModeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        replyMode_ = value;
+        bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
@@ -5218,21 +5420,22 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     java.lang.String[] descriptorData = {
       "\n\030proto/data/routing.proto\022\ntalon.data\"." +
       "\n\013ResourceRef\022\021\n\tnamespace\030\001 \001(\t\022\014\n\004name" +
-      "\030\002 \001(\t\"h\n\026SessionMessageConsumer\022&\n\005agen" +
+      "\030\002 \001(\t\"|\n\026SessionMessageConsumer\022&\n\005agen" +
       "t\030\001 \001(\0132\027.talon.data.ResourceRef\022\022\n\nsess" +
-      "ion_id\030\002 \001(\t\022\022\n\ncontinuity\030\003 \001(\t\"\224\001\n\026Cha" +
-      "nnelMessageConsumer\022(\n\007channel\030\001 \001(\0132\027.t" +
-      "alon.data.ResourceRef\022&\n\005agent\030\002 \001(\0132\027.t" +
-      "alon.data.ResourceRef\022\022\n\ncontinuity\030\003 \001(" +
-      "\t\022\024\n\014reply_policy\030\004 \001(\t\"N\n\027WorkflowMessa" +
-      "geConsumer\022\021\n\tnamespace\030\001 \001(\t\022\014\n\004name\030\002 " +
-      "\001(\t\022\022\n\nreply_mode\030\003 \001(\t\"\346\001\n\017MessageConsu" +
-      "mer\0228\n\007session\030\001 \001(\0132\".talon.data.Sessio" +
-      "nMessageConsumerH\000\210\001\001\0228\n\007channel\030\002 \001(\0132\"" +
-      ".talon.data.ChannelMessageConsumerH\001\210\001\001\022" +
-      ":\n\010workflow\030\003 \001(\0132#.talon.data.WorkflowM" +
-      "essageConsumerH\002\210\001\001B\n\n\010_sessionB\n\n\010_chan" +
-      "nelB\013\n\t_workflowb\006proto3"
+      "ion_id\030\002 \001(\t\022\022\n\ncontinuity\030\003 \001(\t\022\022\n\nrepl" +
+      "y_mode\030\004 \001(\t\"\224\001\n\026ChannelMessageConsumer\022" +
+      "(\n\007channel\030\001 \001(\0132\027.talon.data.ResourceRe" +
+      "f\022&\n\005agent\030\002 \001(\0132\027.talon.data.ResourceRe" +
+      "f\022\022\n\ncontinuity\030\003 \001(\t\022\024\n\014reply_policy\030\004 " +
+      "\001(\t\"N\n\027WorkflowMessageConsumer\022\021\n\tnamesp" +
+      "ace\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\022\n\nreply_mode\030\003 " +
+      "\001(\t\"\346\001\n\017MessageConsumer\0228\n\007session\030\001 \001(\013" +
+      "2\".talon.data.SessionMessageConsumerH\000\210\001" +
+      "\001\0228\n\007channel\030\002 \001(\0132\".talon.data.ChannelM" +
+      "essageConsumerH\001\210\001\001\022:\n\010workflow\030\003 \001(\0132#." +
+      "talon.data.WorkflowMessageConsumerH\002\210\001\001B" +
+      "\n\n\010_sessionB\n\n\010_channelB\013\n\t_workflowb\006pr" +
+      "oto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -5249,7 +5452,7 @@ public final class Routing extends com.google.protobuf.GeneratedFile {
     internal_static_talon_data_SessionMessageConsumer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessageConsumer_descriptor,
-        new java.lang.String[] { "Agent", "SessionId", "Continuity", });
+        new java.lang.String[] { "Agent", "SessionId", "Continuity", "ReplyMode", });
     internal_static_talon_data_ChannelMessageConsumer_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_data_ChannelMessageConsumer_fieldAccessorTable = new

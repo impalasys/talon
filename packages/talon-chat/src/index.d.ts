@@ -4,8 +4,8 @@ import type { TalonClient } from "@impalasys/talon-client";
 export type GatewayClientLike = {
   sessions: Pick<
     TalonClient["sessions"],
-    "create" | "clear" | "appendMessage" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
-  >;
+    "create" | "clear" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
+  > & Partial<Pick<TalonClient["sessions"], "appendMessage" | "updateMessage">>;
 };
 
 export type ToolInvocationItem = {
@@ -213,6 +213,7 @@ export type TalonSessionProps = {
   onSubmitMessage?: (context: TalonSessionSubmitContext) => Promise<boolean | void> | boolean | void;
   allowMessageEditing?: boolean;
   onMessageEdit?: (context: TalonSessionMessageEditContext) => Promise<boolean | void> | boolean | void;
+  enableDebugMessageEditing?: boolean;
 };
 
 export type TalonCopilotProps = TalonSessionProps;
