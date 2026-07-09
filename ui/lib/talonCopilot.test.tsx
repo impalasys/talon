@@ -360,16 +360,11 @@ describe('TalonCopilot', () => {
             message: {
               id: 'assistant-review',
               role: 'ROLE_ASSISTANT',
+              content: 'Draft reply',
               labels: {
                 'talon.impalasys.com/connector-delivery-status': 'pending_review',
                 'talon.impalasys.com/connector': 'slack-main',
               },
-              parts: [
-                {
-                  partType: 1,
-                  content: 'Draft reply',
-                },
-              ],
               createdAt: String(Date.now() * 1000),
             },
             steps: [],
@@ -402,6 +397,11 @@ describe('TalonCopilot', () => {
         'talon.impalasys.com/connector-delivery-status': 'delivery_requested',
         'talon.impalasys.com/connector': 'slack-main',
       }),
+      parts: [
+        expect.objectContaining({
+          content: 'Draft reply',
+        }),
+      ],
     }));
   });
 

@@ -265,7 +265,7 @@ function stableHistoryMessageId(message: any, index: number) {
 }
 
 function normalizeMessageLabels(labels: unknown): Record<string, string> | undefined {
-  if (!labels || typeof labels !== "object") return undefined;
+  if (!labels || typeof labels !== "object" || Array.isArray(labels)) return undefined;
   const entries = Object.entries(labels as Record<string, unknown>)
     .filter((entry): entry is [string, string] => typeof entry[1] === "string");
   return entries.length > 0 ? Object.fromEntries(entries) : undefined;
@@ -356,6 +356,17 @@ function replaceMessageTextPart(message: CopilotMessage, text: string) {
       content: text,
     },
   ];
+}
+
+function messagePartsForSessionUpdate(message: CopilotMessage) {
+  return Array.isArray(message.parts) && message.parts.length > 0
+    ? message.parts
+    : [
+        {
+          partType: data.SessionMessagePartType.TEXT,
+          content: getMessageContent(message),
+        },
+      ];
 }
 
 function parsePayloadJson(payloadJson: unknown): Record<string, unknown> {
@@ -945,7 +956,7 @@ export function TalonSession({
       setError(null);
       setReviewActionMessageId(message.id);
       try {
-        await updateSessionMessage(message, Array.isArray(message.parts) ? message.parts : [], labels);
+        await updateSessionMessage(message, messagePartsForSessionUpdate(message), labels);
       } catch (err) {
         setError(err instanceof Error ? err : new Error(String(err)));
       } finally {
