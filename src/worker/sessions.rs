@@ -697,12 +697,15 @@ impl WorkerEventHandler {
             .lock()
             .await
             .remove(&event.session_id);
-        let completion_status = outcome
+        let mut completion_status = outcome
             .as_ref()
             .map(|(status, _)| *status)
             .unwrap_or(SessionCompletionStatus::Errored);
         if let Err(err) = &outcome {
             sink.on_error(&format!("Error: {:#}", err)).await;
+        }
+        if completion_status == SessionCompletionStatus::Completed && sink.is_cutover_terminal() {
+            completion_status = SessionCompletionStatus::Errored;
         }
 
         // Release the user-visible session lock after the worker has either
