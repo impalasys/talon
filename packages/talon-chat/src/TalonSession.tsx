@@ -30,6 +30,7 @@ export type SessionServiceClientLike = {
   create(request: { ns: string; agent: string; labels?: Record<string, string> }): Promise<{ sessionId: string }>;
   clear(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
   appendMessage?(request: any): Promise<any>;
+  updateMessage?(request: any): Promise<any>;
   listMessages(request: {
     ns: string;
     agent: string;
