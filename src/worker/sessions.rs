@@ -2212,9 +2212,27 @@ mod tests {
             .route(
                 "/v1/deliveries",
                 post(
-                    |State(deliveries): State<Arc<Mutex<Vec<Value>>>>,
+                    |State((deliveries, delivery_kv)): State<(
+                        Arc<Mutex<Vec<Value>>>,
+                        Arc<MockKvStore>,
+                    )>,
                      Json(payload): Json<Value>| async move {
                         deliveries.lock().unwrap().push(payload);
+                        let message_key = crate::control::keys::session_message(
+                            "conic:test",
+                            "assistant",
+                            "session-1",
+                            "assistant-1",
+                        );
+                        let mut message = delivery_kv
+                            .get_msg::<data_proto::SessionMessage>(&message_key)
+                            .await
+                            .unwrap()
+                            .unwrap();
+                        message
+                            .labels
+                            .insert("operator-note".to_string(), "keep me".to_string());
+                        delivery_kv.set_msg(&message_key, &message).await.unwrap();
                         Json(json!({
                             "accepted": true,
                             "disposition": "accepted",
@@ -2223,7 +2241,7 @@ mod tests {
                     },
                 ),
             )
-            .with_state(deliveries.clone());
+            .with_state((deliveries.clone(), kv.clone()));
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let endpoint = format!("http://{}", listener.local_addr().unwrap());
         let server = tokio::spawn(async move {
@@ -2274,6 +2292,10 @@ mod tests {
                 .get("talon.impalasys.com/connector-delivery-status")
                 .map(String::as_str),
             Some("delivered")
+        );
+        assert_eq!(
+            message.labels.get("operator-note").map(String::as_str),
+            Some("keep me")
         );
 
         server.abort();

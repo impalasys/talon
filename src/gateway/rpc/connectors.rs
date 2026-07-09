@@ -461,15 +461,22 @@ pub async fn maybe_deliver_connector_session_message(
         Some(CONNECTOR_DELIVERY_REQUESTED) => {}
         Some(_) => return Ok(()),
         None if hold_for_review => {
-            let mut labels = message.labels.clone();
-            copy_connector_delivery_context_labels(&session.labels, &mut labels);
-            labels.insert(
-                LABEL_CONNECTOR_DELIVERY_STATUS.to_string(),
-                CONNECTOR_DELIVERY_PENDING_REVIEW.to_string(),
-            );
-            labels.remove(LABEL_CONNECTOR_DELIVERY_ERROR);
-            update_connector_session_message_labels(cp, ns, agent, session_id, message_id, labels)
-                .await?;
+            mutate_connector_session_message_labels(
+                cp,
+                ns,
+                agent,
+                session_id,
+                message_id,
+                |labels| {
+                    copy_connector_delivery_context_labels(&session.labels, labels);
+                    labels.insert(
+                        LABEL_CONNECTOR_DELIVERY_STATUS.to_string(),
+                        CONNECTOR_DELIVERY_PENDING_REVIEW.to_string(),
+                    );
+                    labels.remove(LABEL_CONNECTOR_DELIVERY_ERROR);
+                },
+            )
+            .await?;
             return Ok(());
         }
         None => {}
@@ -484,7 +491,6 @@ pub async fn maybe_deliver_connector_session_message(
                 agent,
                 session_id,
                 message_id,
-                &message,
                 CONNECTOR_DELIVERY_FAILED,
                 Some("connector reply text is empty"),
             )
@@ -507,7 +513,6 @@ pub async fn maybe_deliver_connector_session_message(
                 agent,
                 session_id,
                 message_id,
-                &message,
                 CONNECTOR_DELIVERY_SKIPPED,
                 None,
             )
@@ -542,7 +547,6 @@ pub async fn maybe_deliver_connector_session_message(
                     agent,
                     session_id,
                     message_id,
-                    &message,
                     CONNECTOR_DELIVERY_DELIVERED,
                     None,
                 )
@@ -556,7 +560,6 @@ pub async fn maybe_deliver_connector_session_message(
                     agent,
                     session_id,
                     message_id,
-                    &message,
                     CONNECTOR_DELIVERY_FAILED,
                     Some(&error.to_string()),
                 )
@@ -706,33 +709,33 @@ async fn set_connector_delivery_status(
     agent: &str,
     session_id: &str,
     message_id: &str,
-    message: &data_proto::SessionMessage,
     status: &str,
     error: Option<&str>,
 ) -> anyhow::Result<()> {
-    let mut labels = message.labels.clone();
-    labels.insert(
-        LABEL_CONNECTOR_DELIVERY_STATUS.to_string(),
-        status.to_string(),
-    );
-    if let Some(error) = error.filter(|value| !value.trim().is_empty()) {
+    mutate_connector_session_message_labels(cp, ns, agent, session_id, message_id, |labels| {
         labels.insert(
-            LABEL_CONNECTOR_DELIVERY_ERROR.to_string(),
-            error.to_string(),
+            LABEL_CONNECTOR_DELIVERY_STATUS.to_string(),
+            status.to_string(),
         );
-    } else {
-        labels.remove(LABEL_CONNECTOR_DELIVERY_ERROR);
-    }
-    update_connector_session_message_labels(cp, ns, agent, session_id, message_id, labels).await
+        if let Some(error) = error.filter(|value| !value.trim().is_empty()) {
+            labels.insert(
+                LABEL_CONNECTOR_DELIVERY_ERROR.to_string(),
+                error.to_string(),
+            );
+        } else {
+            labels.remove(LABEL_CONNECTOR_DELIVERY_ERROR);
+        }
+    })
+    .await
 }
 
-async fn update_connector_session_message_labels(
+async fn mutate_connector_session_message_labels(
     cp: &ControlPlane,
     ns: &str,
     agent: &str,
     session_id: &str,
     message_id: &str,
-    labels: HashMap<String, String>,
+    mutate: impl FnOnce(&mut HashMap<String, String>),
 ) -> anyhow::Result<()> {
     let message_key = keys::session_message(ns, agent, session_id, message_id);
     let mut message = cp
@@ -740,7 +743,7 @@ async fn update_connector_session_message_labels(
         .get_msg::<data_proto::SessionMessage>(&message_key)
         .await?
         .ok_or_else(|| anyhow::anyhow!("assistant message not found"))?;
-    message.labels = labels;
+    mutate(&mut message.labels);
     cp.kv.set_msg(&message_key, &message).await?;
     if let Err(error) = crate::control::search::publish_index_event(
         cp.pubsub.as_ref(),

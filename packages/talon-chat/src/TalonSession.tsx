@@ -884,7 +884,7 @@ export function TalonSession({
         labels,
       });
       const updated = response?.message
-        ? normalizeRawSessionMessage(response.message, 0)
+        ? { ...message, ...normalizeRawSessionMessage(response.message, 0) }
         : { ...message, parts, labels, content: getMessageContent({ ...message, parts }) };
       setMessages((current) => {
         const nextMessages = current.map((item) => item.id === message.id ? updated : item);
@@ -1038,7 +1038,8 @@ export function TalonSession({
         : formatWorkDuration(previousUserMessage?.createdAt, message.createdAt);
       const isWorkExpanded = expandedThinkingMessages[message.id] ?? false;
       const deliveryStatus = message.labels?.[LABEL_CONNECTOR_DELIVERY_STATUS];
-      const isPendingConnectorDelivery = deliveryStatus === CONNECTOR_DELIVERY_PENDING_REVIEW;
+      const isPendingConnectorDelivery =
+        enableDebugMessageEditing && deliveryStatus === CONNECTOR_DELIVERY_PENDING_REVIEW;
       const isReviewActionPending = reviewActionMessageId === message.id;
       return (
         <div
