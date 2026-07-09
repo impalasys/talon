@@ -1569,11 +1569,112 @@ func (x *CloudTasksSchedulerConfig) GetCallbackAuth() *SchedulerCallbackAuthConf
 	return nil
 }
 
+type AwsEventBridgeSchedulerConfig struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	GroupName              string                 `protobuf:"bytes,1,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
+	QueueUrl               string                 `protobuf:"bytes,2,opt,name=queue_url,json=queueUrl,proto3" json:"queue_url,omitempty"`
+	ExecutionRoleArn       string                 `protobuf:"bytes,3,opt,name=execution_role_arn,json=executionRoleArn,proto3" json:"execution_role_arn,omitempty"`
+	ScheduleNamePrefix     string                 `protobuf:"bytes,4,opt,name=schedule_name_prefix,json=scheduleNamePrefix,proto3" json:"schedule_name_prefix,omitempty"`
+	DlqArn                 string                 `protobuf:"bytes,5,opt,name=dlq_arn,json=dlqArn,proto3" json:"dlq_arn,omitempty"`
+	MaximumEventAgeSeconds uint32                 `protobuf:"varint,6,opt,name=maximum_event_age_seconds,json=maximumEventAgeSeconds,proto3" json:"maximum_event_age_seconds,omitempty"`
+	MaximumRetryAttempts   *uint32                `protobuf:"varint,7,opt,name=maximum_retry_attempts,json=maximumRetryAttempts,proto3,oneof" json:"maximum_retry_attempts,omitempty"`
+	EndpointUrl            string                 `protobuf:"bytes,8,opt,name=endpoint_url,json=endpointUrl,proto3" json:"endpoint_url,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *AwsEventBridgeSchedulerConfig) Reset() {
+	*x = AwsEventBridgeSchedulerConfig{}
+	mi := &file_proto_config_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AwsEventBridgeSchedulerConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AwsEventBridgeSchedulerConfig) ProtoMessage() {}
+
+func (x *AwsEventBridgeSchedulerConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_config_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AwsEventBridgeSchedulerConfig.ProtoReflect.Descriptor instead.
+func (*AwsEventBridgeSchedulerConfig) Descriptor() ([]byte, []int) {
+	return file_proto_config_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *AwsEventBridgeSchedulerConfig) GetGroupName() string {
+	if x != nil {
+		return x.GroupName
+	}
+	return ""
+}
+
+func (x *AwsEventBridgeSchedulerConfig) GetQueueUrl() string {
+	if x != nil {
+		return x.QueueUrl
+	}
+	return ""
+}
+
+func (x *AwsEventBridgeSchedulerConfig) GetExecutionRoleArn() string {
+	if x != nil {
+		return x.ExecutionRoleArn
+	}
+	return ""
+}
+
+func (x *AwsEventBridgeSchedulerConfig) GetScheduleNamePrefix() string {
+	if x != nil {
+		return x.ScheduleNamePrefix
+	}
+	return ""
+}
+
+func (x *AwsEventBridgeSchedulerConfig) GetDlqArn() string {
+	if x != nil {
+		return x.DlqArn
+	}
+	return ""
+}
+
+func (x *AwsEventBridgeSchedulerConfig) GetMaximumEventAgeSeconds() uint32 {
+	if x != nil {
+		return x.MaximumEventAgeSeconds
+	}
+	return 0
+}
+
+func (x *AwsEventBridgeSchedulerConfig) GetMaximumRetryAttempts() uint32 {
+	if x != nil && x.MaximumRetryAttempts != nil {
+		return *x.MaximumRetryAttempts
+	}
+	return 0
+}
+
+func (x *AwsEventBridgeSchedulerConfig) GetEndpointUrl() string {
+	if x != nil {
+		return x.EndpointUrl
+	}
+	return ""
+}
+
 type SchedulerConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Backend:
 	//
 	//	*SchedulerConfig_CloudTasks
+	//	*SchedulerConfig_AwsEventbridgeScheduler
 	Backend       isSchedulerConfig_Backend `protobuf_oneof:"backend"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1581,7 +1682,7 @@ type SchedulerConfig struct {
 
 func (x *SchedulerConfig) Reset() {
 	*x = SchedulerConfig{}
-	mi := &file_proto_config_proto_msgTypes[21]
+	mi := &file_proto_config_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1593,7 +1694,7 @@ func (x *SchedulerConfig) String() string {
 func (*SchedulerConfig) ProtoMessage() {}
 
 func (x *SchedulerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[21]
+	mi := &file_proto_config_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1606,7 +1707,7 @@ func (x *SchedulerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchedulerConfig.ProtoReflect.Descriptor instead.
 func (*SchedulerConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{21}
+	return file_proto_config_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *SchedulerConfig) GetBackend() isSchedulerConfig_Backend {
@@ -1625,6 +1726,15 @@ func (x *SchedulerConfig) GetCloudTasks() *CloudTasksSchedulerConfig {
 	return nil
 }
 
+func (x *SchedulerConfig) GetAwsEventbridgeScheduler() *AwsEventBridgeSchedulerConfig {
+	if x != nil {
+		if x, ok := x.Backend.(*SchedulerConfig_AwsEventbridgeScheduler); ok {
+			return x.AwsEventbridgeScheduler
+		}
+	}
+	return nil
+}
+
 type isSchedulerConfig_Backend interface {
 	isSchedulerConfig_Backend()
 }
@@ -1633,7 +1743,13 @@ type SchedulerConfig_CloudTasks struct {
 	CloudTasks *CloudTasksSchedulerConfig `protobuf:"bytes,1,opt,name=cloud_tasks,json=cloudTasks,proto3,oneof"`
 }
 
+type SchedulerConfig_AwsEventbridgeScheduler struct {
+	AwsEventbridgeScheduler *AwsEventBridgeSchedulerConfig `protobuf:"bytes,2,opt,name=aws_eventbridge_scheduler,json=awsEventbridgeScheduler,proto3,oneof"`
+}
+
 func (*SchedulerConfig_CloudTasks) isSchedulerConfig_Backend() {}
+
+func (*SchedulerConfig_AwsEventbridgeScheduler) isSchedulerConfig_Backend() {}
 
 type ControlPlaneConfig struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1648,7 +1764,7 @@ type ControlPlaneConfig struct {
 
 func (x *ControlPlaneConfig) Reset() {
 	*x = ControlPlaneConfig{}
-	mi := &file_proto_config_proto_msgTypes[22]
+	mi := &file_proto_config_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1660,7 +1776,7 @@ func (x *ControlPlaneConfig) String() string {
 func (*ControlPlaneConfig) ProtoMessage() {}
 
 func (x *ControlPlaneConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[22]
+	mi := &file_proto_config_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1673,7 +1789,7 @@ func (x *ControlPlaneConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ControlPlaneConfig.ProtoReflect.Descriptor instead.
 func (*ControlPlaneConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{22}
+	return file_proto_config_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ControlPlaneConfig) GetDatabase() *DatabaseConfig {
@@ -1721,7 +1837,7 @@ type ServerConfig struct {
 
 func (x *ServerConfig) Reset() {
 	*x = ServerConfig{}
-	mi := &file_proto_config_proto_msgTypes[23]
+	mi := &file_proto_config_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1733,7 +1849,7 @@ func (x *ServerConfig) String() string {
 func (*ServerConfig) ProtoMessage() {}
 
 func (x *ServerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[23]
+	mi := &file_proto_config_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1746,7 +1862,7 @@ func (x *ServerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerConfig.ProtoReflect.Descriptor instead.
 func (*ServerConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{23}
+	return file_proto_config_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ServerConfig) GetHost() string {
@@ -1880,10 +1996,22 @@ const file_proto_config_proto_rawDesc = "" +
 	"\x05queue\x18\x03 \x01(\tR\x05queue\x12\x1d\n" +
 	"\n" +
 	"target_url\x18\x04 \x01(\tR\ttargetUrl\x12N\n" +
-	"\rcallback_auth\x18\x05 \x01(\v2).talon.config.SchedulerCallbackAuthConfigR\fcallbackAuth\"h\n" +
+	"\rcallback_auth\x18\x05 \x01(\v2).talon.config.SchedulerCallbackAuthConfigR\fcallbackAuth\"\x88\x03\n" +
+	"\x1dAwsEventBridgeSchedulerConfig\x12\x1d\n" +
+	"\n" +
+	"group_name\x18\x01 \x01(\tR\tgroupName\x12\x1b\n" +
+	"\tqueue_url\x18\x02 \x01(\tR\bqueueUrl\x12,\n" +
+	"\x12execution_role_arn\x18\x03 \x01(\tR\x10executionRoleArn\x120\n" +
+	"\x14schedule_name_prefix\x18\x04 \x01(\tR\x12scheduleNamePrefix\x12\x17\n" +
+	"\adlq_arn\x18\x05 \x01(\tR\x06dlqArn\x129\n" +
+	"\x19maximum_event_age_seconds\x18\x06 \x01(\rR\x16maximumEventAgeSeconds\x129\n" +
+	"\x16maximum_retry_attempts\x18\a \x01(\rH\x00R\x14maximumRetryAttempts\x88\x01\x01\x12!\n" +
+	"\fendpoint_url\x18\b \x01(\tR\vendpointUrlB\x19\n" +
+	"\x17_maximum_retry_attempts\"\xd3\x01\n" +
 	"\x0fSchedulerConfig\x12J\n" +
 	"\vcloud_tasks\x18\x01 \x01(\v2'.talon.config.CloudTasksSchedulerConfigH\x00R\n" +
-	"cloudTasksB\t\n" +
+	"cloudTasks\x12i\n" +
+	"\x19aws_eventbridge_scheduler\x18\x02 \x01(\v2+.talon.config.AwsEventBridgeSchedulerConfigH\x00R\x17awsEventbridgeSchedulerB\t\n" +
 	"\abackend\"\xd5\x02\n" +
 	"\x12ControlPlaneConfig\x128\n" +
 	"\bdatabase\x18\x01 \x01(\v2\x1c.talon.config.DatabaseConfigR\bdatabase\x12H\n" +
@@ -1908,43 +2036,44 @@ func file_proto_config_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_config_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_config_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_proto_config_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_proto_config_proto_goTypes = []any{
-	(OidcTrustGrant_Kind)(0),            // 0: talon.config.OidcTrustGrant.Kind
-	(SecretRef_Source)(0),               // 1: talon.config.SecretRef.Source
-	(*TalonConfig)(nil),                 // 2: talon.config.TalonConfig
-	(*TrustConfig)(nil),                 // 3: talon.config.TrustConfig
-	(*OidcTrustEntry)(nil),              // 4: talon.config.OidcTrustEntry
-	(*OidcTrustGrant)(nil),              // 5: talon.config.OidcTrustGrant
-	(*ControllerConfig)(nil),            // 6: talon.config.ControllerConfig
-	(*LlmProviderConfig)(nil),           // 7: talon.config.LlmProviderConfig
-	(*OpenAiConfig)(nil),                // 8: talon.config.OpenAiConfig
-	(*AnthropicConfig)(nil),             // 9: talon.config.AnthropicConfig
-	(*GoogleConfig)(nil),                // 10: talon.config.GoogleConfig
-	(*GenericConfig)(nil),               // 11: talon.config.GenericConfig
-	(*Secret)(nil),                      // 12: talon.config.Secret
-	(*SecretRef)(nil),                   // 13: talon.config.SecretRef
-	(*DatabaseConfig)(nil),              // 14: talon.config.DatabaseConfig
-	(*MessageBrokerConfig)(nil),         // 15: talon.config.MessageBrokerConfig
-	(*LocalObjectStoreConfig)(nil),      // 16: talon.config.LocalObjectStoreConfig
-	(*GcsObjectStoreConfig)(nil),        // 17: talon.config.GcsObjectStoreConfig
-	(*S3ObjectStoreConfig)(nil),         // 18: talon.config.S3ObjectStoreConfig
-	(*ObjectStoreConfig)(nil),           // 19: talon.config.ObjectStoreConfig
-	(*SchedulerCallbackAuthConfig)(nil), // 20: talon.config.SchedulerCallbackAuthConfig
-	(*GoogleOidcAuthConfig)(nil),        // 21: talon.config.GoogleOidcAuthConfig
-	(*CloudTasksSchedulerConfig)(nil),   // 22: talon.config.CloudTasksSchedulerConfig
-	(*SchedulerConfig)(nil),             // 23: talon.config.SchedulerConfig
-	(*ControlPlaneConfig)(nil),          // 24: talon.config.ControlPlaneConfig
-	(*ServerConfig)(nil),                // 25: talon.config.ServerConfig
-	nil,                                 // 26: talon.config.TalonConfig.ProvidersEntry
-	nil,                                 // 27: talon.config.TalonConfig.ControllersEntry
+	(OidcTrustGrant_Kind)(0),              // 0: talon.config.OidcTrustGrant.Kind
+	(SecretRef_Source)(0),                 // 1: talon.config.SecretRef.Source
+	(*TalonConfig)(nil),                   // 2: talon.config.TalonConfig
+	(*TrustConfig)(nil),                   // 3: talon.config.TrustConfig
+	(*OidcTrustEntry)(nil),                // 4: talon.config.OidcTrustEntry
+	(*OidcTrustGrant)(nil),                // 5: talon.config.OidcTrustGrant
+	(*ControllerConfig)(nil),              // 6: talon.config.ControllerConfig
+	(*LlmProviderConfig)(nil),             // 7: talon.config.LlmProviderConfig
+	(*OpenAiConfig)(nil),                  // 8: talon.config.OpenAiConfig
+	(*AnthropicConfig)(nil),               // 9: talon.config.AnthropicConfig
+	(*GoogleConfig)(nil),                  // 10: talon.config.GoogleConfig
+	(*GenericConfig)(nil),                 // 11: talon.config.GenericConfig
+	(*Secret)(nil),                        // 12: talon.config.Secret
+	(*SecretRef)(nil),                     // 13: talon.config.SecretRef
+	(*DatabaseConfig)(nil),                // 14: talon.config.DatabaseConfig
+	(*MessageBrokerConfig)(nil),           // 15: talon.config.MessageBrokerConfig
+	(*LocalObjectStoreConfig)(nil),        // 16: talon.config.LocalObjectStoreConfig
+	(*GcsObjectStoreConfig)(nil),          // 17: talon.config.GcsObjectStoreConfig
+	(*S3ObjectStoreConfig)(nil),           // 18: talon.config.S3ObjectStoreConfig
+	(*ObjectStoreConfig)(nil),             // 19: talon.config.ObjectStoreConfig
+	(*SchedulerCallbackAuthConfig)(nil),   // 20: talon.config.SchedulerCallbackAuthConfig
+	(*GoogleOidcAuthConfig)(nil),          // 21: talon.config.GoogleOidcAuthConfig
+	(*CloudTasksSchedulerConfig)(nil),     // 22: talon.config.CloudTasksSchedulerConfig
+	(*AwsEventBridgeSchedulerConfig)(nil), // 23: talon.config.AwsEventBridgeSchedulerConfig
+	(*SchedulerConfig)(nil),               // 24: talon.config.SchedulerConfig
+	(*ControlPlaneConfig)(nil),            // 25: talon.config.ControlPlaneConfig
+	(*ServerConfig)(nil),                  // 26: talon.config.ServerConfig
+	nil,                                   // 27: talon.config.TalonConfig.ProvidersEntry
+	nil,                                   // 28: talon.config.TalonConfig.ControllersEntry
 }
 var file_proto_config_proto_depIdxs = []int32{
-	26, // 0: talon.config.TalonConfig.providers:type_name -> talon.config.TalonConfig.ProvidersEntry
+	27, // 0: talon.config.TalonConfig.providers:type_name -> talon.config.TalonConfig.ProvidersEntry
 	14, // 1: talon.config.TalonConfig.database:type_name -> talon.config.DatabaseConfig
-	25, // 2: talon.config.TalonConfig.server:type_name -> talon.config.ServerConfig
-	24, // 3: talon.config.TalonConfig.control_plane:type_name -> talon.config.ControlPlaneConfig
-	27, // 4: talon.config.TalonConfig.controllers:type_name -> talon.config.TalonConfig.ControllersEntry
+	26, // 2: talon.config.TalonConfig.server:type_name -> talon.config.ServerConfig
+	25, // 3: talon.config.TalonConfig.control_plane:type_name -> talon.config.ControlPlaneConfig
+	28, // 4: talon.config.TalonConfig.controllers:type_name -> talon.config.TalonConfig.ControllersEntry
 	3,  // 5: talon.config.TalonConfig.trust:type_name -> talon.config.TrustConfig
 	4,  // 6: talon.config.TrustConfig.oidc:type_name -> talon.config.OidcTrustEntry
 	5,  // 7: talon.config.OidcTrustEntry.grants:type_name -> talon.config.OidcTrustGrant
@@ -1967,18 +2096,19 @@ var file_proto_config_proto_depIdxs = []int32{
 	21, // 24: talon.config.SchedulerCallbackAuthConfig.google_oidc:type_name -> talon.config.GoogleOidcAuthConfig
 	20, // 25: talon.config.CloudTasksSchedulerConfig.callback_auth:type_name -> talon.config.SchedulerCallbackAuthConfig
 	22, // 26: talon.config.SchedulerConfig.cloud_tasks:type_name -> talon.config.CloudTasksSchedulerConfig
-	14, // 27: talon.config.ControlPlaneConfig.database:type_name -> talon.config.DatabaseConfig
-	15, // 28: talon.config.ControlPlaneConfig.message_broker:type_name -> talon.config.MessageBrokerConfig
-	23, // 29: talon.config.ControlPlaneConfig.scheduler:type_name -> talon.config.SchedulerConfig
-	19, // 30: talon.config.ControlPlaneConfig.object_store:type_name -> talon.config.ObjectStoreConfig
-	14, // 31: talon.config.ControlPlaneConfig.documents:type_name -> talon.config.DatabaseConfig
-	7,  // 32: talon.config.TalonConfig.ProvidersEntry.value:type_name -> talon.config.LlmProviderConfig
-	6,  // 33: talon.config.TalonConfig.ControllersEntry.value:type_name -> talon.config.ControllerConfig
-	34, // [34:34] is the sub-list for method output_type
-	34, // [34:34] is the sub-list for method input_type
-	34, // [34:34] is the sub-list for extension type_name
-	34, // [34:34] is the sub-list for extension extendee
-	0,  // [0:34] is the sub-list for field type_name
+	23, // 27: talon.config.SchedulerConfig.aws_eventbridge_scheduler:type_name -> talon.config.AwsEventBridgeSchedulerConfig
+	14, // 28: talon.config.ControlPlaneConfig.database:type_name -> talon.config.DatabaseConfig
+	15, // 29: talon.config.ControlPlaneConfig.message_broker:type_name -> talon.config.MessageBrokerConfig
+	24, // 30: talon.config.ControlPlaneConfig.scheduler:type_name -> talon.config.SchedulerConfig
+	19, // 31: talon.config.ControlPlaneConfig.object_store:type_name -> talon.config.ObjectStoreConfig
+	14, // 32: talon.config.ControlPlaneConfig.documents:type_name -> talon.config.DatabaseConfig
+	7,  // 33: talon.config.TalonConfig.ProvidersEntry.value:type_name -> talon.config.LlmProviderConfig
+	6,  // 34: talon.config.TalonConfig.ControllersEntry.value:type_name -> talon.config.ControllerConfig
+	35, // [35:35] is the sub-list for method output_type
+	35, // [35:35] is the sub-list for method input_type
+	35, // [35:35] is the sub-list for extension type_name
+	35, // [35:35] is the sub-list for extension extendee
+	0,  // [0:35] is the sub-list for field type_name
 }
 
 func init() { file_proto_config_proto_init() }
@@ -2005,8 +2135,10 @@ func file_proto_config_proto_init() {
 		(*SchedulerCallbackAuthConfig_SharedSecret)(nil),
 		(*SchedulerCallbackAuthConfig_GoogleOidc)(nil),
 	}
-	file_proto_config_proto_msgTypes[21].OneofWrappers = []any{
+	file_proto_config_proto_msgTypes[21].OneofWrappers = []any{}
+	file_proto_config_proto_msgTypes[22].OneofWrappers = []any{
 		(*SchedulerConfig_CloudTasks)(nil),
+		(*SchedulerConfig_AwsEventbridgeScheduler)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -2014,7 +2146,7 @@ func file_proto_config_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_config_proto_rawDesc), len(file_proto_config_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   26,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

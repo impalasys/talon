@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 mod local_socket;
-#[cfg(feature = "sqs")]
+#[cfg(feature = "aws")]
 mod sqs;
 
 use crate::control::MessagePublisher;
@@ -19,7 +19,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 pub use local_socket::{LocalSocketMessagePublisher, LocalSocketSubscriber};
-#[cfg(feature = "sqs")]
+#[cfg(feature = "aws")]
 pub use sqs::{SqsMessagePublisher, TALON_TOPIC_ATTRIBUTE};
 
 pub struct GcpPubSubPublisher {

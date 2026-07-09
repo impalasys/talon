@@ -20365,6 +20365,1435 @@ talon.config.Config.ControllerConfig defaultValue) {
 
   }
 
+  public interface AwsEventBridgeSchedulerConfigOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.config.AwsEventBridgeSchedulerConfig)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string group_name = 1;</code>
+     * @return The groupName.
+     */
+    java.lang.String getGroupName();
+    /**
+     * <code>string group_name = 1;</code>
+     * @return The bytes for groupName.
+     */
+    com.google.protobuf.ByteString
+        getGroupNameBytes();
+
+    /**
+     * <code>string queue_url = 2;</code>
+     * @return The queueUrl.
+     */
+    java.lang.String getQueueUrl();
+    /**
+     * <code>string queue_url = 2;</code>
+     * @return The bytes for queueUrl.
+     */
+    com.google.protobuf.ByteString
+        getQueueUrlBytes();
+
+    /**
+     * <code>string execution_role_arn = 3;</code>
+     * @return The executionRoleArn.
+     */
+    java.lang.String getExecutionRoleArn();
+    /**
+     * <code>string execution_role_arn = 3;</code>
+     * @return The bytes for executionRoleArn.
+     */
+    com.google.protobuf.ByteString
+        getExecutionRoleArnBytes();
+
+    /**
+     * <code>string schedule_name_prefix = 4;</code>
+     * @return The scheduleNamePrefix.
+     */
+    java.lang.String getScheduleNamePrefix();
+    /**
+     * <code>string schedule_name_prefix = 4;</code>
+     * @return The bytes for scheduleNamePrefix.
+     */
+    com.google.protobuf.ByteString
+        getScheduleNamePrefixBytes();
+
+    /**
+     * <code>string dlq_arn = 5;</code>
+     * @return The dlqArn.
+     */
+    java.lang.String getDlqArn();
+    /**
+     * <code>string dlq_arn = 5;</code>
+     * @return The bytes for dlqArn.
+     */
+    com.google.protobuf.ByteString
+        getDlqArnBytes();
+
+    /**
+     * <code>uint32 maximum_event_age_seconds = 6;</code>
+     * @return The maximumEventAgeSeconds.
+     */
+    int getMaximumEventAgeSeconds();
+
+    /**
+     * <code>optional uint32 maximum_retry_attempts = 7;</code>
+     * @return Whether the maximumRetryAttempts field is set.
+     */
+    boolean hasMaximumRetryAttempts();
+    /**
+     * <code>optional uint32 maximum_retry_attempts = 7;</code>
+     * @return The maximumRetryAttempts.
+     */
+    int getMaximumRetryAttempts();
+
+    /**
+     * <code>string endpoint_url = 8;</code>
+     * @return The endpointUrl.
+     */
+    java.lang.String getEndpointUrl();
+    /**
+     * <code>string endpoint_url = 8;</code>
+     * @return The bytes for endpointUrl.
+     */
+    com.google.protobuf.ByteString
+        getEndpointUrlBytes();
+  }
+  /**
+   * Protobuf type {@code talon.config.AwsEventBridgeSchedulerConfig}
+   */
+  public static final class AwsEventBridgeSchedulerConfig extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.config.AwsEventBridgeSchedulerConfig)
+      AwsEventBridgeSchedulerConfigOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "AwsEventBridgeSchedulerConfig");
+    }
+    // Use AwsEventBridgeSchedulerConfig.newBuilder() to construct.
+    private AwsEventBridgeSchedulerConfig(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private AwsEventBridgeSchedulerConfig() {
+      groupName_ = "";
+      queueUrl_ = "";
+      executionRoleArn_ = "";
+      scheduleNamePrefix_ = "";
+      dlqArn_ = "";
+      endpointUrl_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.config.Config.internal_static_talon_config_AwsEventBridgeSchedulerConfig_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.config.Config.internal_static_talon_config_AwsEventBridgeSchedulerConfig_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.config.Config.internal_static_talon_config_AwsEventBridgeSchedulerConfig_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.config.Config.AwsEventBridgeSchedulerConfig.class, talon.config.Config.AwsEventBridgeSchedulerConfig.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int GROUP_NAME_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object groupName_ = "";
+    /**
+     * <code>string group_name = 1;</code>
+     * @return The groupName.
+     */
+    @java.lang.Override
+    public java.lang.String getGroupName() {
+      java.lang.Object ref = groupName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        groupName_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string group_name = 1;</code>
+     * @return The bytes for groupName.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getGroupNameBytes() {
+      java.lang.Object ref = groupName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        groupName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int QUEUE_URL_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object queueUrl_ = "";
+    /**
+     * <code>string queue_url = 2;</code>
+     * @return The queueUrl.
+     */
+    @java.lang.Override
+    public java.lang.String getQueueUrl() {
+      java.lang.Object ref = queueUrl_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        queueUrl_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string queue_url = 2;</code>
+     * @return The bytes for queueUrl.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getQueueUrlBytes() {
+      java.lang.Object ref = queueUrl_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        queueUrl_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int EXECUTION_ROLE_ARN_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object executionRoleArn_ = "";
+    /**
+     * <code>string execution_role_arn = 3;</code>
+     * @return The executionRoleArn.
+     */
+    @java.lang.Override
+    public java.lang.String getExecutionRoleArn() {
+      java.lang.Object ref = executionRoleArn_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        executionRoleArn_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string execution_role_arn = 3;</code>
+     * @return The bytes for executionRoleArn.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getExecutionRoleArnBytes() {
+      java.lang.Object ref = executionRoleArn_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        executionRoleArn_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SCHEDULE_NAME_PREFIX_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object scheduleNamePrefix_ = "";
+    /**
+     * <code>string schedule_name_prefix = 4;</code>
+     * @return The scheduleNamePrefix.
+     */
+    @java.lang.Override
+    public java.lang.String getScheduleNamePrefix() {
+      java.lang.Object ref = scheduleNamePrefix_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        scheduleNamePrefix_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string schedule_name_prefix = 4;</code>
+     * @return The bytes for scheduleNamePrefix.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getScheduleNamePrefixBytes() {
+      java.lang.Object ref = scheduleNamePrefix_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        scheduleNamePrefix_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int DLQ_ARN_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object dlqArn_ = "";
+    /**
+     * <code>string dlq_arn = 5;</code>
+     * @return The dlqArn.
+     */
+    @java.lang.Override
+    public java.lang.String getDlqArn() {
+      java.lang.Object ref = dlqArn_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        dlqArn_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string dlq_arn = 5;</code>
+     * @return The bytes for dlqArn.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getDlqArnBytes() {
+      java.lang.Object ref = dlqArn_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        dlqArn_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int MAXIMUM_EVENT_AGE_SECONDS_FIELD_NUMBER = 6;
+    private int maximumEventAgeSeconds_ = 0;
+    /**
+     * <code>uint32 maximum_event_age_seconds = 6;</code>
+     * @return The maximumEventAgeSeconds.
+     */
+    @java.lang.Override
+    public int getMaximumEventAgeSeconds() {
+      return maximumEventAgeSeconds_;
+    }
+
+    public static final int MAXIMUM_RETRY_ATTEMPTS_FIELD_NUMBER = 7;
+    private int maximumRetryAttempts_ = 0;
+    /**
+     * <code>optional uint32 maximum_retry_attempts = 7;</code>
+     * @return Whether the maximumRetryAttempts field is set.
+     */
+    @java.lang.Override
+    public boolean hasMaximumRetryAttempts() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional uint32 maximum_retry_attempts = 7;</code>
+     * @return The maximumRetryAttempts.
+     */
+    @java.lang.Override
+    public int getMaximumRetryAttempts() {
+      return maximumRetryAttempts_;
+    }
+
+    public static final int ENDPOINT_URL_FIELD_NUMBER = 8;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object endpointUrl_ = "";
+    /**
+     * <code>string endpoint_url = 8;</code>
+     * @return The endpointUrl.
+     */
+    @java.lang.Override
+    public java.lang.String getEndpointUrl() {
+      java.lang.Object ref = endpointUrl_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        endpointUrl_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string endpoint_url = 8;</code>
+     * @return The bytes for endpointUrl.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getEndpointUrlBytes() {
+      java.lang.Object ref = endpointUrl_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        endpointUrl_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(groupName_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, groupName_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(queueUrl_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, queueUrl_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(executionRoleArn_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, executionRoleArn_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(scheduleNamePrefix_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, scheduleNamePrefix_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(dlqArn_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, dlqArn_);
+      }
+      if (maximumEventAgeSeconds_ != 0) {
+        output.writeUInt32(6, maximumEventAgeSeconds_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeUInt32(7, maximumRetryAttempts_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(endpointUrl_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, endpointUrl_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(groupName_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, groupName_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(queueUrl_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, queueUrl_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(executionRoleArn_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, executionRoleArn_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(scheduleNamePrefix_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, scheduleNamePrefix_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(dlqArn_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, dlqArn_);
+      }
+      if (maximumEventAgeSeconds_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(6, maximumEventAgeSeconds_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(7, maximumRetryAttempts_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(endpointUrl_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, endpointUrl_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.config.Config.AwsEventBridgeSchedulerConfig)) {
+        return super.equals(obj);
+      }
+      talon.config.Config.AwsEventBridgeSchedulerConfig other = (talon.config.Config.AwsEventBridgeSchedulerConfig) obj;
+
+      if (!getGroupName()
+          .equals(other.getGroupName())) return false;
+      if (!getQueueUrl()
+          .equals(other.getQueueUrl())) return false;
+      if (!getExecutionRoleArn()
+          .equals(other.getExecutionRoleArn())) return false;
+      if (!getScheduleNamePrefix()
+          .equals(other.getScheduleNamePrefix())) return false;
+      if (!getDlqArn()
+          .equals(other.getDlqArn())) return false;
+      if (getMaximumEventAgeSeconds()
+          != other.getMaximumEventAgeSeconds()) return false;
+      if (hasMaximumRetryAttempts() != other.hasMaximumRetryAttempts()) return false;
+      if (hasMaximumRetryAttempts()) {
+        if (getMaximumRetryAttempts()
+            != other.getMaximumRetryAttempts()) return false;
+      }
+      if (!getEndpointUrl()
+          .equals(other.getEndpointUrl())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + GROUP_NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getGroupName().hashCode();
+      hash = (37 * hash) + QUEUE_URL_FIELD_NUMBER;
+      hash = (53 * hash) + getQueueUrl().hashCode();
+      hash = (37 * hash) + EXECUTION_ROLE_ARN_FIELD_NUMBER;
+      hash = (53 * hash) + getExecutionRoleArn().hashCode();
+      hash = (37 * hash) + SCHEDULE_NAME_PREFIX_FIELD_NUMBER;
+      hash = (53 * hash) + getScheduleNamePrefix().hashCode();
+      hash = (37 * hash) + DLQ_ARN_FIELD_NUMBER;
+      hash = (53 * hash) + getDlqArn().hashCode();
+      hash = (37 * hash) + MAXIMUM_EVENT_AGE_SECONDS_FIELD_NUMBER;
+      hash = (53 * hash) + getMaximumEventAgeSeconds();
+      if (hasMaximumRetryAttempts()) {
+        hash = (37 * hash) + MAXIMUM_RETRY_ATTEMPTS_FIELD_NUMBER;
+        hash = (53 * hash) + getMaximumRetryAttempts();
+      }
+      hash = (37 * hash) + ENDPOINT_URL_FIELD_NUMBER;
+      hash = (53 * hash) + getEndpointUrl().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.config.Config.AwsEventBridgeSchedulerConfig parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.AwsEventBridgeSchedulerConfig parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.AwsEventBridgeSchedulerConfig parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.AwsEventBridgeSchedulerConfig parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.AwsEventBridgeSchedulerConfig parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.AwsEventBridgeSchedulerConfig parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.AwsEventBridgeSchedulerConfig parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.AwsEventBridgeSchedulerConfig parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.config.Config.AwsEventBridgeSchedulerConfig parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.config.Config.AwsEventBridgeSchedulerConfig parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.config.Config.AwsEventBridgeSchedulerConfig parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.AwsEventBridgeSchedulerConfig parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.config.Config.AwsEventBridgeSchedulerConfig prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.config.AwsEventBridgeSchedulerConfig}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.config.AwsEventBridgeSchedulerConfig)
+        talon.config.Config.AwsEventBridgeSchedulerConfigOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.config.Config.internal_static_talon_config_AwsEventBridgeSchedulerConfig_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.config.Config.internal_static_talon_config_AwsEventBridgeSchedulerConfig_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.config.Config.AwsEventBridgeSchedulerConfig.class, talon.config.Config.AwsEventBridgeSchedulerConfig.Builder.class);
+      }
+
+      // Construct using talon.config.Config.AwsEventBridgeSchedulerConfig.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        groupName_ = "";
+        queueUrl_ = "";
+        executionRoleArn_ = "";
+        scheduleNamePrefix_ = "";
+        dlqArn_ = "";
+        maximumEventAgeSeconds_ = 0;
+        maximumRetryAttempts_ = 0;
+        endpointUrl_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.config.Config.internal_static_talon_config_AwsEventBridgeSchedulerConfig_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.AwsEventBridgeSchedulerConfig getDefaultInstanceForType() {
+        return talon.config.Config.AwsEventBridgeSchedulerConfig.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.config.Config.AwsEventBridgeSchedulerConfig build() {
+        talon.config.Config.AwsEventBridgeSchedulerConfig result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.AwsEventBridgeSchedulerConfig buildPartial() {
+        talon.config.Config.AwsEventBridgeSchedulerConfig result = new talon.config.Config.AwsEventBridgeSchedulerConfig(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.config.Config.AwsEventBridgeSchedulerConfig result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.groupName_ = groupName_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.queueUrl_ = queueUrl_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.executionRoleArn_ = executionRoleArn_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.scheduleNamePrefix_ = scheduleNamePrefix_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.dlqArn_ = dlqArn_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.maximumEventAgeSeconds_ = maximumEventAgeSeconds_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.maximumRetryAttempts_ = maximumRetryAttempts_;
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.endpointUrl_ = endpointUrl_;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.config.Config.AwsEventBridgeSchedulerConfig) {
+          return mergeFrom((talon.config.Config.AwsEventBridgeSchedulerConfig)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.config.Config.AwsEventBridgeSchedulerConfig other) {
+        if (other == talon.config.Config.AwsEventBridgeSchedulerConfig.getDefaultInstance()) return this;
+        if (!other.getGroupName().isEmpty()) {
+          groupName_ = other.groupName_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getQueueUrl().isEmpty()) {
+          queueUrl_ = other.queueUrl_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getExecutionRoleArn().isEmpty()) {
+          executionRoleArn_ = other.executionRoleArn_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getScheduleNamePrefix().isEmpty()) {
+          scheduleNamePrefix_ = other.scheduleNamePrefix_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getDlqArn().isEmpty()) {
+          dlqArn_ = other.dlqArn_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (other.getMaximumEventAgeSeconds() != 0) {
+          setMaximumEventAgeSeconds(other.getMaximumEventAgeSeconds());
+        }
+        if (other.hasMaximumRetryAttempts()) {
+          setMaximumRetryAttempts(other.getMaximumRetryAttempts());
+        }
+        if (!other.getEndpointUrl().isEmpty()) {
+          endpointUrl_ = other.endpointUrl_;
+          bitField0_ |= 0x00000080;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                groupName_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                queueUrl_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                executionRoleArn_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                scheduleNamePrefix_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                dlqArn_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 48: {
+                maximumEventAgeSeconds_ = input.readUInt32();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 48
+              case 56: {
+                maximumRetryAttempts_ = input.readUInt32();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 56
+              case 66: {
+                endpointUrl_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 66
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object groupName_ = "";
+      /**
+       * <code>string group_name = 1;</code>
+       * @return The groupName.
+       */
+      public java.lang.String getGroupName() {
+        java.lang.Object ref = groupName_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          groupName_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string group_name = 1;</code>
+       * @return The bytes for groupName.
+       */
+      public com.google.protobuf.ByteString
+          getGroupNameBytes() {
+        java.lang.Object ref = groupName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          groupName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string group_name = 1;</code>
+       * @param value The groupName to set.
+       * @return This builder for chaining.
+       */
+      public Builder setGroupName(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        groupName_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string group_name = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearGroupName() {
+        groupName_ = getDefaultInstance().getGroupName();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string group_name = 1;</code>
+       * @param value The bytes for groupName to set.
+       * @return This builder for chaining.
+       */
+      public Builder setGroupNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        groupName_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object queueUrl_ = "";
+      /**
+       * <code>string queue_url = 2;</code>
+       * @return The queueUrl.
+       */
+      public java.lang.String getQueueUrl() {
+        java.lang.Object ref = queueUrl_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          queueUrl_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string queue_url = 2;</code>
+       * @return The bytes for queueUrl.
+       */
+      public com.google.protobuf.ByteString
+          getQueueUrlBytes() {
+        java.lang.Object ref = queueUrl_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          queueUrl_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string queue_url = 2;</code>
+       * @param value The queueUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setQueueUrl(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        queueUrl_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string queue_url = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearQueueUrl() {
+        queueUrl_ = getDefaultInstance().getQueueUrl();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string queue_url = 2;</code>
+       * @param value The bytes for queueUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setQueueUrlBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        queueUrl_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object executionRoleArn_ = "";
+      /**
+       * <code>string execution_role_arn = 3;</code>
+       * @return The executionRoleArn.
+       */
+      public java.lang.String getExecutionRoleArn() {
+        java.lang.Object ref = executionRoleArn_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          executionRoleArn_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string execution_role_arn = 3;</code>
+       * @return The bytes for executionRoleArn.
+       */
+      public com.google.protobuf.ByteString
+          getExecutionRoleArnBytes() {
+        java.lang.Object ref = executionRoleArn_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          executionRoleArn_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string execution_role_arn = 3;</code>
+       * @param value The executionRoleArn to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExecutionRoleArn(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        executionRoleArn_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string execution_role_arn = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearExecutionRoleArn() {
+        executionRoleArn_ = getDefaultInstance().getExecutionRoleArn();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string execution_role_arn = 3;</code>
+       * @param value The bytes for executionRoleArn to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExecutionRoleArnBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        executionRoleArn_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object scheduleNamePrefix_ = "";
+      /**
+       * <code>string schedule_name_prefix = 4;</code>
+       * @return The scheduleNamePrefix.
+       */
+      public java.lang.String getScheduleNamePrefix() {
+        java.lang.Object ref = scheduleNamePrefix_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          scheduleNamePrefix_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string schedule_name_prefix = 4;</code>
+       * @return The bytes for scheduleNamePrefix.
+       */
+      public com.google.protobuf.ByteString
+          getScheduleNamePrefixBytes() {
+        java.lang.Object ref = scheduleNamePrefix_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          scheduleNamePrefix_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string schedule_name_prefix = 4;</code>
+       * @param value The scheduleNamePrefix to set.
+       * @return This builder for chaining.
+       */
+      public Builder setScheduleNamePrefix(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        scheduleNamePrefix_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string schedule_name_prefix = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearScheduleNamePrefix() {
+        scheduleNamePrefix_ = getDefaultInstance().getScheduleNamePrefix();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string schedule_name_prefix = 4;</code>
+       * @param value The bytes for scheduleNamePrefix to set.
+       * @return This builder for chaining.
+       */
+      public Builder setScheduleNamePrefixBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        scheduleNamePrefix_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object dlqArn_ = "";
+      /**
+       * <code>string dlq_arn = 5;</code>
+       * @return The dlqArn.
+       */
+      public java.lang.String getDlqArn() {
+        java.lang.Object ref = dlqArn_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          dlqArn_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string dlq_arn = 5;</code>
+       * @return The bytes for dlqArn.
+       */
+      public com.google.protobuf.ByteString
+          getDlqArnBytes() {
+        java.lang.Object ref = dlqArn_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          dlqArn_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string dlq_arn = 5;</code>
+       * @param value The dlqArn to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDlqArn(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        dlqArn_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string dlq_arn = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDlqArn() {
+        dlqArn_ = getDefaultInstance().getDlqArn();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string dlq_arn = 5;</code>
+       * @param value The bytes for dlqArn to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDlqArnBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        dlqArn_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private int maximumEventAgeSeconds_ ;
+      /**
+       * <code>uint32 maximum_event_age_seconds = 6;</code>
+       * @return The maximumEventAgeSeconds.
+       */
+      @java.lang.Override
+      public int getMaximumEventAgeSeconds() {
+        return maximumEventAgeSeconds_;
+      }
+      /**
+       * <code>uint32 maximum_event_age_seconds = 6;</code>
+       * @param value The maximumEventAgeSeconds to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMaximumEventAgeSeconds(int value) {
+
+        maximumEventAgeSeconds_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 maximum_event_age_seconds = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMaximumEventAgeSeconds() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        maximumEventAgeSeconds_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int maximumRetryAttempts_ ;
+      /**
+       * <code>optional uint32 maximum_retry_attempts = 7;</code>
+       * @return Whether the maximumRetryAttempts field is set.
+       */
+      @java.lang.Override
+      public boolean hasMaximumRetryAttempts() {
+        return ((bitField0_ & 0x00000040) != 0);
+      }
+      /**
+       * <code>optional uint32 maximum_retry_attempts = 7;</code>
+       * @return The maximumRetryAttempts.
+       */
+      @java.lang.Override
+      public int getMaximumRetryAttempts() {
+        return maximumRetryAttempts_;
+      }
+      /**
+       * <code>optional uint32 maximum_retry_attempts = 7;</code>
+       * @param value The maximumRetryAttempts to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMaximumRetryAttempts(int value) {
+
+        maximumRetryAttempts_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint32 maximum_retry_attempts = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMaximumRetryAttempts() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        maximumRetryAttempts_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object endpointUrl_ = "";
+      /**
+       * <code>string endpoint_url = 8;</code>
+       * @return The endpointUrl.
+       */
+      public java.lang.String getEndpointUrl() {
+        java.lang.Object ref = endpointUrl_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          endpointUrl_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string endpoint_url = 8;</code>
+       * @return The bytes for endpointUrl.
+       */
+      public com.google.protobuf.ByteString
+          getEndpointUrlBytes() {
+        java.lang.Object ref = endpointUrl_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          endpointUrl_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string endpoint_url = 8;</code>
+       * @param value The endpointUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEndpointUrl(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        endpointUrl_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string endpoint_url = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearEndpointUrl() {
+        endpointUrl_ = getDefaultInstance().getEndpointUrl();
+        bitField0_ = (bitField0_ & ~0x00000080);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string endpoint_url = 8;</code>
+       * @param value The bytes for endpointUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEndpointUrlBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        endpointUrl_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.config.AwsEventBridgeSchedulerConfig)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.config.AwsEventBridgeSchedulerConfig)
+    private static final talon.config.Config.AwsEventBridgeSchedulerConfig DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.config.Config.AwsEventBridgeSchedulerConfig();
+    }
+
+    public static talon.config.Config.AwsEventBridgeSchedulerConfig getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<AwsEventBridgeSchedulerConfig>
+        PARSER = new com.google.protobuf.AbstractParser<AwsEventBridgeSchedulerConfig>() {
+      @java.lang.Override
+      public AwsEventBridgeSchedulerConfig parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<AwsEventBridgeSchedulerConfig> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<AwsEventBridgeSchedulerConfig> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.config.Config.AwsEventBridgeSchedulerConfig getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface SchedulerConfigOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.config.SchedulerConfig)
       com.google.protobuf.MessageOrBuilder {
@@ -20383,6 +21812,21 @@ talon.config.Config.ControllerConfig defaultValue) {
      * <code>.talon.config.CloudTasksSchedulerConfig cloud_tasks = 1;</code>
      */
     talon.config.Config.CloudTasksSchedulerConfigOrBuilder getCloudTasksOrBuilder();
+
+    /**
+     * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+     * @return Whether the awsEventbridgeScheduler field is set.
+     */
+    boolean hasAwsEventbridgeScheduler();
+    /**
+     * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+     * @return The awsEventbridgeScheduler.
+     */
+    talon.config.Config.AwsEventBridgeSchedulerConfig getAwsEventbridgeScheduler();
+    /**
+     * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+     */
+    talon.config.Config.AwsEventBridgeSchedulerConfigOrBuilder getAwsEventbridgeSchedulerOrBuilder();
 
     talon.config.Config.SchedulerConfig.BackendCase getBackendCase();
   }
@@ -20435,6 +21879,7 @@ talon.config.Config.ControllerConfig defaultValue) {
         implements com.google.protobuf.Internal.EnumLite,
             com.google.protobuf.AbstractMessage.InternalOneOfEnum {
       CLOUD_TASKS(1),
+      AWS_EVENTBRIDGE_SCHEDULER(2),
       BACKEND_NOT_SET(0);
       private final int value;
       private BackendCase(int value) {
@@ -20453,6 +21898,7 @@ talon.config.Config.ControllerConfig defaultValue) {
       public static BackendCase forNumber(int value) {
         switch (value) {
           case 1: return CLOUD_TASKS;
+          case 2: return AWS_EVENTBRIDGE_SCHEDULER;
           case 0: return BACKEND_NOT_SET;
           default: return null;
         }
@@ -20499,6 +21945,37 @@ talon.config.Config.ControllerConfig defaultValue) {
       return talon.config.Config.CloudTasksSchedulerConfig.getDefaultInstance();
     }
 
+    public static final int AWS_EVENTBRIDGE_SCHEDULER_FIELD_NUMBER = 2;
+    /**
+     * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+     * @return Whether the awsEventbridgeScheduler field is set.
+     */
+    @java.lang.Override
+    public boolean hasAwsEventbridgeScheduler() {
+      return backendCase_ == 2;
+    }
+    /**
+     * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+     * @return The awsEventbridgeScheduler.
+     */
+    @java.lang.Override
+    public talon.config.Config.AwsEventBridgeSchedulerConfig getAwsEventbridgeScheduler() {
+      if (backendCase_ == 2) {
+         return (talon.config.Config.AwsEventBridgeSchedulerConfig) backend_;
+      }
+      return talon.config.Config.AwsEventBridgeSchedulerConfig.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+     */
+    @java.lang.Override
+    public talon.config.Config.AwsEventBridgeSchedulerConfigOrBuilder getAwsEventbridgeSchedulerOrBuilder() {
+      if (backendCase_ == 2) {
+         return (talon.config.Config.AwsEventBridgeSchedulerConfig) backend_;
+      }
+      return talon.config.Config.AwsEventBridgeSchedulerConfig.getDefaultInstance();
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -20516,6 +21993,9 @@ talon.config.Config.ControllerConfig defaultValue) {
       if (backendCase_ == 1) {
         output.writeMessage(1, (talon.config.Config.CloudTasksSchedulerConfig) backend_);
       }
+      if (backendCase_ == 2) {
+        output.writeMessage(2, (talon.config.Config.AwsEventBridgeSchedulerConfig) backend_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -20528,6 +22008,10 @@ talon.config.Config.ControllerConfig defaultValue) {
       if (backendCase_ == 1) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, (talon.config.Config.CloudTasksSchedulerConfig) backend_);
+      }
+      if (backendCase_ == 2) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, (talon.config.Config.AwsEventBridgeSchedulerConfig) backend_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -20550,6 +22034,10 @@ talon.config.Config.ControllerConfig defaultValue) {
           if (!getCloudTasks()
               .equals(other.getCloudTasks())) return false;
           break;
+        case 2:
+          if (!getAwsEventbridgeScheduler()
+              .equals(other.getAwsEventbridgeScheduler())) return false;
+          break;
         case 0:
         default:
       }
@@ -20568,6 +22056,10 @@ talon.config.Config.ControllerConfig defaultValue) {
         case 1:
           hash = (37 * hash) + CLOUD_TASKS_FIELD_NUMBER;
           hash = (53 * hash) + getCloudTasks().hashCode();
+          break;
+        case 2:
+          hash = (37 * hash) + AWS_EVENTBRIDGE_SCHEDULER_FIELD_NUMBER;
+          hash = (53 * hash) + getAwsEventbridgeScheduler().hashCode();
           break;
         case 0:
         default:
@@ -20706,6 +22198,9 @@ talon.config.Config.ControllerConfig defaultValue) {
         if (cloudTasksBuilder_ != null) {
           cloudTasksBuilder_.clear();
         }
+        if (awsEventbridgeSchedulerBuilder_ != null) {
+          awsEventbridgeSchedulerBuilder_.clear();
+        }
         backendCase_ = 0;
         backend_ = null;
         return this;
@@ -20751,6 +22246,10 @@ talon.config.Config.ControllerConfig defaultValue) {
             cloudTasksBuilder_ != null) {
           result.backend_ = cloudTasksBuilder_.build();
         }
+        if (backendCase_ == 2 &&
+            awsEventbridgeSchedulerBuilder_ != null) {
+          result.backend_ = awsEventbridgeSchedulerBuilder_.build();
+        }
       }
 
       @java.lang.Override
@@ -20768,6 +22267,10 @@ talon.config.Config.ControllerConfig defaultValue) {
         switch (other.getBackendCase()) {
           case CLOUD_TASKS: {
             mergeCloudTasks(other.getCloudTasks());
+            break;
+          }
+          case AWS_EVENTBRIDGE_SCHEDULER: {
+            mergeAwsEventbridgeScheduler(other.getAwsEventbridgeScheduler());
             break;
           }
           case BACKEND_NOT_SET: {
@@ -20807,6 +22310,13 @@ talon.config.Config.ControllerConfig defaultValue) {
                 backendCase_ = 1;
                 break;
               } // case 10
+              case 18: {
+                input.readMessage(
+                    internalGetAwsEventbridgeSchedulerFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                backendCase_ = 2;
+                break;
+              } // case 18
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -20979,6 +22489,148 @@ talon.config.Config.ControllerConfig defaultValue) {
         backendCase_ = 1;
         onChanged();
         return cloudTasksBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.AwsEventBridgeSchedulerConfig, talon.config.Config.AwsEventBridgeSchedulerConfig.Builder, talon.config.Config.AwsEventBridgeSchedulerConfigOrBuilder> awsEventbridgeSchedulerBuilder_;
+      /**
+       * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+       * @return Whether the awsEventbridgeScheduler field is set.
+       */
+      @java.lang.Override
+      public boolean hasAwsEventbridgeScheduler() {
+        return backendCase_ == 2;
+      }
+      /**
+       * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+       * @return The awsEventbridgeScheduler.
+       */
+      @java.lang.Override
+      public talon.config.Config.AwsEventBridgeSchedulerConfig getAwsEventbridgeScheduler() {
+        if (awsEventbridgeSchedulerBuilder_ == null) {
+          if (backendCase_ == 2) {
+            return (talon.config.Config.AwsEventBridgeSchedulerConfig) backend_;
+          }
+          return talon.config.Config.AwsEventBridgeSchedulerConfig.getDefaultInstance();
+        } else {
+          if (backendCase_ == 2) {
+            return awsEventbridgeSchedulerBuilder_.getMessage();
+          }
+          return talon.config.Config.AwsEventBridgeSchedulerConfig.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+       */
+      public Builder setAwsEventbridgeScheduler(talon.config.Config.AwsEventBridgeSchedulerConfig value) {
+        if (awsEventbridgeSchedulerBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          backend_ = value;
+          onChanged();
+        } else {
+          awsEventbridgeSchedulerBuilder_.setMessage(value);
+        }
+        backendCase_ = 2;
+        return this;
+      }
+      /**
+       * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+       */
+      public Builder setAwsEventbridgeScheduler(
+          talon.config.Config.AwsEventBridgeSchedulerConfig.Builder builderForValue) {
+        if (awsEventbridgeSchedulerBuilder_ == null) {
+          backend_ = builderForValue.build();
+          onChanged();
+        } else {
+          awsEventbridgeSchedulerBuilder_.setMessage(builderForValue.build());
+        }
+        backendCase_ = 2;
+        return this;
+      }
+      /**
+       * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+       */
+      public Builder mergeAwsEventbridgeScheduler(talon.config.Config.AwsEventBridgeSchedulerConfig value) {
+        if (awsEventbridgeSchedulerBuilder_ == null) {
+          if (backendCase_ == 2 &&
+              backend_ != talon.config.Config.AwsEventBridgeSchedulerConfig.getDefaultInstance()) {
+            backend_ = talon.config.Config.AwsEventBridgeSchedulerConfig.newBuilder((talon.config.Config.AwsEventBridgeSchedulerConfig) backend_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            backend_ = value;
+          }
+          onChanged();
+        } else {
+          if (backendCase_ == 2) {
+            awsEventbridgeSchedulerBuilder_.mergeFrom(value);
+          } else {
+            awsEventbridgeSchedulerBuilder_.setMessage(value);
+          }
+        }
+        backendCase_ = 2;
+        return this;
+      }
+      /**
+       * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+       */
+      public Builder clearAwsEventbridgeScheduler() {
+        if (awsEventbridgeSchedulerBuilder_ == null) {
+          if (backendCase_ == 2) {
+            backendCase_ = 0;
+            backend_ = null;
+            onChanged();
+          }
+        } else {
+          if (backendCase_ == 2) {
+            backendCase_ = 0;
+            backend_ = null;
+          }
+          awsEventbridgeSchedulerBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+       */
+      public talon.config.Config.AwsEventBridgeSchedulerConfig.Builder getAwsEventbridgeSchedulerBuilder() {
+        return internalGetAwsEventbridgeSchedulerFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+       */
+      @java.lang.Override
+      public talon.config.Config.AwsEventBridgeSchedulerConfigOrBuilder getAwsEventbridgeSchedulerOrBuilder() {
+        if ((backendCase_ == 2) && (awsEventbridgeSchedulerBuilder_ != null)) {
+          return awsEventbridgeSchedulerBuilder_.getMessageOrBuilder();
+        } else {
+          if (backendCase_ == 2) {
+            return (talon.config.Config.AwsEventBridgeSchedulerConfig) backend_;
+          }
+          return talon.config.Config.AwsEventBridgeSchedulerConfig.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.AwsEventBridgeSchedulerConfig, talon.config.Config.AwsEventBridgeSchedulerConfig.Builder, talon.config.Config.AwsEventBridgeSchedulerConfigOrBuilder>
+          internalGetAwsEventbridgeSchedulerFieldBuilder() {
+        if (awsEventbridgeSchedulerBuilder_ == null) {
+          if (!(backendCase_ == 2)) {
+            backend_ = talon.config.Config.AwsEventBridgeSchedulerConfig.getDefaultInstance();
+          }
+          awsEventbridgeSchedulerBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.config.Config.AwsEventBridgeSchedulerConfig, talon.config.Config.AwsEventBridgeSchedulerConfig.Builder, talon.config.Config.AwsEventBridgeSchedulerConfigOrBuilder>(
+                  (talon.config.Config.AwsEventBridgeSchedulerConfig) backend_,
+                  getParentForChildren(),
+                  isClean());
+          backend_ = null;
+        }
+        backendCase_ = 2;
+        onChanged();
+        return awsEventbridgeSchedulerBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.config.SchedulerConfig)
@@ -23110,6 +24762,11 @@ talon.config.Config.ControllerConfig defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_CloudTasksSchedulerConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_config_AwsEventBridgeSchedulerConfig_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_config_AwsEventBridgeSchedulerConfig_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_SchedulerConfig_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -23203,18 +24860,26 @@ talon.config.Config.ControllerConfig defaultValue) {
       "project_id\030\001 \001(\t\022\020\n\010location\030\002 \001(\t\022\r\n\005qu" +
       "eue\030\003 \001(\t\022\022\n\ntarget_url\030\004 \001(\t\022@\n\rcallbac" +
       "k_auth\030\005 \001(\0132).talon.config.SchedulerCal" +
-      "lbackAuthConfig\"\\\n\017SchedulerConfig\022>\n\013cl" +
-      "oud_tasks\030\001 \001(\0132\'.talon.config.CloudTask" +
-      "sSchedulerConfigH\000B\t\n\007backend\"\231\002\n\022Contro" +
-      "lPlaneConfig\022.\n\010database\030\001 \001(\0132\034.talon.c" +
-      "onfig.DatabaseConfig\0229\n\016message_broker\030\002" +
-      " \001(\0132!.talon.config.MessageBrokerConfig\022" +
-      "0\n\tscheduler\030\003 \001(\0132\035.talon.config.Schedu" +
-      "lerConfig\0225\n\014object_store\030\004 \001(\0132\037.talon." +
-      "config.ObjectStoreConfig\022/\n\tdocuments\030\005 " +
-      "\001(\0132\034.talon.config.DatabaseConfig\"*\n\014Ser" +
-      "verConfig\022\014\n\004host\030\001 \001(\t\022\014\n\004port\030\002 \001(\rb\006p" +
-      "roto3"
+      "lbackAuthConfig\"\212\002\n\035AwsEventBridgeSchedu" +
+      "lerConfig\022\022\n\ngroup_name\030\001 \001(\t\022\021\n\tqueue_u" +
+      "rl\030\002 \001(\t\022\032\n\022execution_role_arn\030\003 \001(\t\022\034\n\024" +
+      "schedule_name_prefix\030\004 \001(\t\022\017\n\007dlq_arn\030\005 " +
+      "\001(\t\022!\n\031maximum_event_age_seconds\030\006 \001(\r\022#" +
+      "\n\026maximum_retry_attempts\030\007 \001(\rH\000\210\001\001\022\024\n\014e" +
+      "ndpoint_url\030\010 \001(\tB\031\n\027_maximum_retry_atte" +
+      "mpts\"\256\001\n\017SchedulerConfig\022>\n\013cloud_tasks\030" +
+      "\001 \001(\0132\'.talon.config.CloudTasksScheduler" +
+      "ConfigH\000\022P\n\031aws_eventbridge_scheduler\030\002 " +
+      "\001(\0132+.talon.config.AwsEventBridgeSchedul" +
+      "erConfigH\000B\t\n\007backend\"\231\002\n\022ControlPlaneCo" +
+      "nfig\022.\n\010database\030\001 \001(\0132\034.talon.config.Da" +
+      "tabaseConfig\0229\n\016message_broker\030\002 \001(\0132!.t" +
+      "alon.config.MessageBrokerConfig\0220\n\tsched" +
+      "uler\030\003 \001(\0132\035.talon.config.SchedulerConfi" +
+      "g\0225\n\014object_store\030\004 \001(\0132\037.talon.config.O" +
+      "bjectStoreConfig\022/\n\tdocuments\030\005 \001(\0132\034.ta" +
+      "lon.config.DatabaseConfig\"*\n\014ServerConfi" +
+      "g\022\014\n\004host\030\001 \001(\t\022\014\n\004port\030\002 \001(\rb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -23358,20 +25023,26 @@ talon.config.Config.ControllerConfig defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_CloudTasksSchedulerConfig_descriptor,
         new java.lang.String[] { "ProjectId", "Location", "Queue", "TargetUrl", "CallbackAuth", });
-    internal_static_talon_config_SchedulerConfig_descriptor =
+    internal_static_talon_config_AwsEventBridgeSchedulerConfig_descriptor =
       getDescriptor().getMessageType(21);
+    internal_static_talon_config_AwsEventBridgeSchedulerConfig_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_config_AwsEventBridgeSchedulerConfig_descriptor,
+        new java.lang.String[] { "GroupName", "QueueUrl", "ExecutionRoleArn", "ScheduleNamePrefix", "DlqArn", "MaximumEventAgeSeconds", "MaximumRetryAttempts", "EndpointUrl", });
+    internal_static_talon_config_SchedulerConfig_descriptor =
+      getDescriptor().getMessageType(22);
     internal_static_talon_config_SchedulerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_SchedulerConfig_descriptor,
-        new java.lang.String[] { "CloudTasks", "Backend", });
+        new java.lang.String[] { "CloudTasks", "AwsEventbridgeScheduler", "Backend", });
     internal_static_talon_config_ControlPlaneConfig_descriptor =
-      getDescriptor().getMessageType(22);
+      getDescriptor().getMessageType(23);
     internal_static_talon_config_ControlPlaneConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ControlPlaneConfig_descriptor,
         new java.lang.String[] { "Database", "MessageBroker", "Scheduler", "ObjectStore", "Documents", });
     internal_static_talon_config_ServerConfig_descriptor =
-      getDescriptor().getMessageType(23);
+      getDescriptor().getMessageType(24);
     internal_static_talon_config_ServerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ServerConfig_descriptor,

@@ -925,4 +925,59 @@ control_plane:
         assert_eq!(secret_ref.source, proto::secret_ref::Source::Env as i32);
         assert_eq!(secret_ref.key, "NAME");
     }
+
+    #[test]
+    fn test_serde_config_into_proto_preserves_aws_eventbridge_scheduler() {
+        let scheduler = crate::control::config::SchedulerConfigWrapper::AwsEventBridgeScheduler {
+            group_name: Some("talon-group".to_string()),
+            queue_url: Some("https://sqs.us-east-1.amazonaws.com/123/talon".to_string()),
+            execution_role_arn: Some("arn:aws:iam::123:role/talon-scheduler".to_string()),
+            schedule_name_prefix: Some("talon-dev".to_string()),
+            dlq_arn: Some("arn:aws:sqs:us-east-1:123:talon-dlq".to_string()),
+            maximum_event_age_seconds: Some(600),
+            maximum_retry_attempts: Some(2),
+            endpoint_url: Some("http://localhost:4566".to_string()),
+        };
+
+        let proto: proto::SchedulerConfig = scheduler.into();
+        let Some(proto::scheduler_config::Backend::AwsEventbridgeScheduler(cfg)) = proto.backend
+        else {
+            panic!("expected EventBridge Scheduler backend");
+        };
+        assert_eq!(cfg.group_name, "talon-group");
+        assert_eq!(
+            cfg.queue_url,
+            "https://sqs.us-east-1.amazonaws.com/123/talon"
+        );
+        assert_eq!(
+            cfg.execution_role_arn,
+            "arn:aws:iam::123:role/talon-scheduler"
+        );
+        assert_eq!(cfg.schedule_name_prefix, "talon-dev");
+        assert_eq!(cfg.dlq_arn, "arn:aws:sqs:us-east-1:123:talon-dlq");
+        assert_eq!(cfg.maximum_event_age_seconds, 600);
+        assert_eq!(cfg.maximum_retry_attempts, Some(2));
+        assert_eq!(cfg.endpoint_url, "http://localhost:4566");
+    }
+
+    #[test]
+    fn test_serde_config_into_proto_preserves_zero_aws_retry_attempts() {
+        let scheduler = crate::control::config::SchedulerConfigWrapper::AwsEventBridgeScheduler {
+            group_name: None,
+            queue_url: None,
+            execution_role_arn: None,
+            schedule_name_prefix: None,
+            dlq_arn: None,
+            maximum_event_age_seconds: None,
+            maximum_retry_attempts: Some(0),
+            endpoint_url: None,
+        };
+
+        let proto: proto::SchedulerConfig = scheduler.into();
+        let Some(proto::scheduler_config::Backend::AwsEventbridgeScheduler(cfg)) = proto.backend
+        else {
+            panic!("expected EventBridge Scheduler backend");
+        };
+        assert_eq!(cfg.maximum_retry_attempts, Some(0));
+    }
 }

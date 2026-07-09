@@ -261,11 +261,33 @@ class CloudTasksSchedulerConfig(_message.Message):
     callback_auth: SchedulerCallbackAuthConfig
     def __init__(self, project_id: _Optional[str] = ..., location: _Optional[str] = ..., queue: _Optional[str] = ..., target_url: _Optional[str] = ..., callback_auth: _Optional[_Union[SchedulerCallbackAuthConfig, _Mapping]] = ...) -> None: ...
 
+class AwsEventBridgeSchedulerConfig(_message.Message):
+    __slots__ = ("group_name", "queue_url", "execution_role_arn", "schedule_name_prefix", "dlq_arn", "maximum_event_age_seconds", "maximum_retry_attempts", "endpoint_url")
+    GROUP_NAME_FIELD_NUMBER: _ClassVar[int]
+    QUEUE_URL_FIELD_NUMBER: _ClassVar[int]
+    EXECUTION_ROLE_ARN_FIELD_NUMBER: _ClassVar[int]
+    SCHEDULE_NAME_PREFIX_FIELD_NUMBER: _ClassVar[int]
+    DLQ_ARN_FIELD_NUMBER: _ClassVar[int]
+    MAXIMUM_EVENT_AGE_SECONDS_FIELD_NUMBER: _ClassVar[int]
+    MAXIMUM_RETRY_ATTEMPTS_FIELD_NUMBER: _ClassVar[int]
+    ENDPOINT_URL_FIELD_NUMBER: _ClassVar[int]
+    group_name: str
+    queue_url: str
+    execution_role_arn: str
+    schedule_name_prefix: str
+    dlq_arn: str
+    maximum_event_age_seconds: int
+    maximum_retry_attempts: int
+    endpoint_url: str
+    def __init__(self, group_name: _Optional[str] = ..., queue_url: _Optional[str] = ..., execution_role_arn: _Optional[str] = ..., schedule_name_prefix: _Optional[str] = ..., dlq_arn: _Optional[str] = ..., maximum_event_age_seconds: _Optional[int] = ..., maximum_retry_attempts: _Optional[int] = ..., endpoint_url: _Optional[str] = ...) -> None: ...
+
 class SchedulerConfig(_message.Message):
-    __slots__ = ("cloud_tasks",)
+    __slots__ = ("cloud_tasks", "aws_eventbridge_scheduler")
     CLOUD_TASKS_FIELD_NUMBER: _ClassVar[int]
+    AWS_EVENTBRIDGE_SCHEDULER_FIELD_NUMBER: _ClassVar[int]
     cloud_tasks: CloudTasksSchedulerConfig
-    def __init__(self, cloud_tasks: _Optional[_Union[CloudTasksSchedulerConfig, _Mapping]] = ...) -> None: ...
+    aws_eventbridge_scheduler: AwsEventBridgeSchedulerConfig
+    def __init__(self, cloud_tasks: _Optional[_Union[CloudTasksSchedulerConfig, _Mapping]] = ..., aws_eventbridge_scheduler: _Optional[_Union[AwsEventBridgeSchedulerConfig, _Mapping]] = ...) -> None: ...
 
 class ControlPlaneConfig(_message.Message):
     __slots__ = ("database", "message_broker", "scheduler", "object_store", "documents")

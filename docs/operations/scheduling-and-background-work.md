@@ -47,6 +47,10 @@ The codebase also supports Cloud Tasks-backed scheduler callbacks with either:
 - shared-secret auth
 - Google OIDC callback auth
 
+On AWS, Talon supports EventBridge Scheduler-backed wakeups. EventBridge Scheduler creates one-time wakeups and targets the Talon SQS worker queue; Talon still owns recurrence, claiming, status updates, and re-arming. Use `TALON_SCHEDULER_DRIVER=aws_eventbridge_scheduler` with SQS worker pull mode.
+
+LocalStack can validate EventBridge Scheduler create/get/delete calls, but its Scheduler implementation does not fire targets into SQS. Use Talon's local scheduler backends for deterministic end-to-end schedule execution tests, and keep real AWS Scheduler-to-SQS smoke tests opt-in.
+
 ## Why this matters
 
 Schedules are part of the same durable control plane as sessions and agents. They are not an external cron wrapper bolted onto the side.

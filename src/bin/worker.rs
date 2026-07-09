@@ -33,14 +33,14 @@ use talon::control::pubsub::{
     configured_local_socket_path, fully_qualified_subscription_name, fully_qualified_topic_name,
     LocalSocketMessagePublisher,
 };
-#[cfg(feature = "sqs")]
+#[cfg(feature = "aws")]
 use talon::control::pubsub::{SqsMessagePublisher, TALON_TOPIC_ATTRIBUTE};
 use talon::control::topics;
 use talon::control::ControlPlane;
 use talon::worker::{scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHandler};
 #[cfg(unix)]
 use tokio::net::UnixListener;
-#[cfg(feature = "sqs")]
+#[cfg(feature = "aws")]
 use tokio::task::JoinSet;
 use tokio::{signal, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -58,10 +58,10 @@ static GLOBAL_ALLOCATOR: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemall
 const HEALTHY_PULL_RUNTIME_RESET: std::time::Duration = std::time::Duration::from_millis(50);
 #[cfg(not(test))]
 const HEALTHY_PULL_RUNTIME_RESET: std::time::Duration = std::time::Duration::from_secs(30);
-#[cfg(feature = "sqs")]
+#[cfg(feature = "aws")]
 const SQS_RECEIVE_ERROR_INITIAL_BACKOFF: std::time::Duration =
     std::time::Duration::from_millis(250);
-#[cfg(feature = "sqs")]
+#[cfg(feature = "aws")]
 const SQS_RECEIVE_ERROR_MAX_BACKOFF: std::time::Duration = std::time::Duration::from_secs(10);
 
 fn next_pull_error_backoff(
@@ -359,7 +359,7 @@ struct LocalSocketPullSubscriptionBackend {
     subscription_name: String,
 }
 
-#[cfg(feature = "sqs")]
+#[cfg(feature = "aws")]
 struct SqsPullSubscriptionBackend {
     publisher: SqsMessagePublisher,
 }
@@ -398,7 +398,7 @@ impl LocalSocketPullSubscriptionBackend {
     }
 }
 
-#[cfg(feature = "sqs")]
+#[cfg(feature = "aws")]
 impl SqsPullSubscriptionBackend {
     async fn new(_topic_name: String, _subscription_name: String) -> Result<Self> {
         Ok(Self {
@@ -533,7 +533,7 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
     }
 }
 
-#[cfg(feature = "sqs")]
+#[cfg(feature = "aws")]
 #[async_trait::async_trait]
 impl PullSubscriptionBackend for SqsPullSubscriptionBackend {
     async fn ensure_topic(&self) -> Result<()> {
@@ -753,7 +753,7 @@ impl PullSubscriptionBackend for SqsPullSubscriptionBackend {
     }
 }
 
-#[cfg(feature = "sqs")]
+#[cfg(feature = "aws")]
 fn sqs_message_topic(message: &aws_sdk_sqs::types::Message) -> Option<String> {
     message
         .message_attributes()
@@ -762,7 +762,7 @@ fn sqs_message_topic(message: &aws_sdk_sqs::types::Message) -> Option<String> {
         .map(str::to_string)
 }
 
-#[cfg(feature = "sqs")]
+#[cfg(feature = "aws")]
 fn spawn_sqs_visibility_heartbeat(
     client: aws_sdk_sqs::Client,
     queue_url: String,
@@ -960,11 +960,11 @@ fn spawn_pull_subscription_task(
                                 .await?,
                             ))
                         }
-                        #[cfg(feature = "sqs")]
+                        #[cfg(feature = "aws")]
                         "sqs" => Ok::<Box<dyn PullSubscriptionBackend>, anyhow::Error>(Box::new(
                             SqsPullSubscriptionBackend::new(topic_name, subscription_name).await?,
                         )),
-                        #[cfg(not(feature = "sqs"))]
+                        #[cfg(not(feature = "aws"))]
                         "sqs" => Err(anyhow::anyhow!(
                             "SQS pull subscriptions are not enabled in this build"
                         )),
@@ -1341,7 +1341,7 @@ async fn schedule_fire(
         return axum::http::StatusCode::UNAUTHORIZED;
     }
 
-    let payload = match decode_scheduler_fire_payload(&body) {
+    let payload = match talon::worker::decode_scheduler_fire_payload(&body) {
         Ok(payload) => payload,
         Err(err) => {
             tracing::warn!(error = %err, "Invalid scheduler wakeup payload");
@@ -1349,46 +1349,13 @@ async fn schedule_fire(
         }
     };
 
-    match payload {
-        talon::control::scheduling::SchedulerFirePayload::Schedule(payload) => {
-            match handler.handle_schedule_wakeup(payload).await {
-                Ok(_) => axum::http::StatusCode::OK,
-                Err(err) => {
-                    tracing::error!(error = %err, "Failed to process schedule wakeup");
-                    axum::http::StatusCode::INTERNAL_SERVER_ERROR
-                }
-            }
-        }
-        talon::control::scheduling::SchedulerFirePayload::Workflow(payload) => {
-            match handler.handle_workflow_wakeup(payload).await {
-                Ok(_) => axum::http::StatusCode::OK,
-                Err(err) => {
-                    tracing::error!(error = %err, "Failed to process workflow wakeup");
-                    axum::http::StatusCode::INTERNAL_SERVER_ERROR
-                }
-            }
+    match handler.handle_scheduler_fire_payload_value(payload).await {
+        Ok(_) => axum::http::StatusCode::OK,
+        Err(err) => {
+            tracing::error!(error = %err, "Failed to process scheduler wakeup");
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR
         }
     }
-}
-
-fn decode_scheduler_fire_payload(
-    body: &[u8],
-) -> Result<talon::control::scheduling::SchedulerFirePayload> {
-    let value: serde_json::Value = serde_json::from_slice(body)?;
-    if value.get("kind").is_some() {
-        return serde_json::from_value(value).map_err(Into::into);
-    }
-    if value.get("schedule_id").is_some()
-        && value.get("revision").is_some()
-        && value.get("intended_run_at").is_some()
-    {
-        let payload =
-            serde_json::from_value::<talon::control::scheduling::ScheduleWakeupPayload>(value)?;
-        return Ok(talon::control::scheduling::SchedulerFirePayload::Schedule(
-            payload,
-        ));
-    }
-    anyhow::bail!("scheduler wakeup payload requires kind discriminator")
 }
 
 #[tokio::main]
@@ -1432,15 +1399,14 @@ async fn main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::{
-        build_worker_handler, decode_scheduler_fire_payload, fully_qualified_subscription,
-        fully_qualified_topic, handle_pull_message, maybe_spawn_pull_subscriptions,
-        next_pull_error_backoff, next_pull_reconnect_delay, pubsub_project_id, pull_mode_enabled,
-        pull_subscription_specs, push_webhook, resolved_pull_subscription_specs,
-        run_pull_subscription_loop, run_pull_subscription_with_backend, run_worker_main_with,
-        run_worker_with, schedule_fire, serve_worker_http, session_dispatch_concurrency,
-        worker_bind_addr, worker_port, worker_router, LocalSocketMessagePublisher,
-        LocalSocketPullSubscriptionBackend, PullSubscriptionBackend, ResolvedPullSubscriptionSpec,
-        HEALTHY_PULL_RUNTIME_RESET,
+        build_worker_handler, fully_qualified_subscription, fully_qualified_topic,
+        handle_pull_message, maybe_spawn_pull_subscriptions, next_pull_error_backoff,
+        next_pull_reconnect_delay, pubsub_project_id, pull_mode_enabled, pull_subscription_specs,
+        push_webhook, resolved_pull_subscription_specs, run_pull_subscription_loop,
+        run_pull_subscription_with_backend, run_worker_main_with, run_worker_with, schedule_fire,
+        serve_worker_http, session_dispatch_concurrency, worker_bind_addr, worker_port,
+        worker_router, LocalSocketMessagePublisher, LocalSocketPullSubscriptionBackend,
+        PullSubscriptionBackend, ResolvedPullSubscriptionSpec, HEALTHY_PULL_RUNTIME_RESET,
     };
     use anyhow::Result;
     use axum::body::Bytes;
@@ -2183,7 +2149,9 @@ mod tests {
                 "reason": "wait"
             }
         });
-        match decode_scheduler_fire_payload(&serde_json::to_vec(&workflow).unwrap()).unwrap() {
+        match talon::worker::decode_scheduler_fire_payload(&serde_json::to_vec(&workflow).unwrap())
+            .unwrap()
+        {
             talon::control::scheduling::SchedulerFirePayload::Workflow(payload) => {
                 assert_eq!(payload.workflow, "wf");
                 assert_eq!(payload.reason, "wait");
@@ -2197,7 +2165,10 @@ mod tests {
             "revision": 7,
             "intended_run_at": 123
         });
-        match decode_scheduler_fire_payload(&serde_json::to_vec(&legacy_schedule).unwrap()).unwrap()
+        match talon::worker::decode_scheduler_fire_payload(
+            &serde_json::to_vec(&legacy_schedule).unwrap(),
+        )
+        .unwrap()
         {
             talon::control::scheduling::SchedulerFirePayload::Schedule(payload) => {
                 assert_eq!(payload.schedule_id, "nightly");
@@ -2211,7 +2182,10 @@ mod tests {
             "workflow": "wf",
             "run_id": "run"
         });
-        assert!(decode_scheduler_fire_payload(&serde_json::to_vec(&ambiguous).unwrap()).is_err());
+        assert!(talon::worker::decode_scheduler_fire_payload(
+            &serde_json::to_vec(&ambiguous).unwrap()
+        )
+        .is_err());
     }
 
     #[tokio::test]

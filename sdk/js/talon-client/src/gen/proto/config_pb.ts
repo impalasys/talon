@@ -1161,6 +1161,85 @@ export class CloudTasksSchedulerConfig extends Message<CloudTasksSchedulerConfig
 }
 
 /**
+ * @generated from message talon.config.AwsEventBridgeSchedulerConfig
+ */
+export class AwsEventBridgeSchedulerConfig extends Message<AwsEventBridgeSchedulerConfig> {
+  /**
+   * @generated from field: string group_name = 1;
+   */
+  groupName = "";
+
+  /**
+   * @generated from field: string queue_url = 2;
+   */
+  queueUrl = "";
+
+  /**
+   * @generated from field: string execution_role_arn = 3;
+   */
+  executionRoleArn = "";
+
+  /**
+   * @generated from field: string schedule_name_prefix = 4;
+   */
+  scheduleNamePrefix = "";
+
+  /**
+   * @generated from field: string dlq_arn = 5;
+   */
+  dlqArn = "";
+
+  /**
+   * @generated from field: uint32 maximum_event_age_seconds = 6;
+   */
+  maximumEventAgeSeconds = 0;
+
+  /**
+   * @generated from field: optional uint32 maximum_retry_attempts = 7;
+   */
+  maximumRetryAttempts?: number;
+
+  /**
+   * @generated from field: string endpoint_url = 8;
+   */
+  endpointUrl = "";
+
+  constructor(data?: PartialMessage<AwsEventBridgeSchedulerConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.AwsEventBridgeSchedulerConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "group_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "queue_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "execution_role_arn", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "schedule_name_prefix", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "dlq_arn", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "maximum_event_age_seconds", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 7, name: "maximum_retry_attempts", kind: "scalar", T: 13 /* ScalarType.UINT32 */, opt: true },
+    { no: 8, name: "endpoint_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AwsEventBridgeSchedulerConfig {
+    return new AwsEventBridgeSchedulerConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AwsEventBridgeSchedulerConfig {
+    return new AwsEventBridgeSchedulerConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AwsEventBridgeSchedulerConfig {
+    return new AwsEventBridgeSchedulerConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AwsEventBridgeSchedulerConfig | PlainMessage<AwsEventBridgeSchedulerConfig> | undefined, b: AwsEventBridgeSchedulerConfig | PlainMessage<AwsEventBridgeSchedulerConfig> | undefined): boolean {
+    return proto3.util.equals(AwsEventBridgeSchedulerConfig, a, b);
+  }
+}
+
+/**
  * @generated from message talon.config.SchedulerConfig
  */
 export class SchedulerConfig extends Message<SchedulerConfig> {
@@ -1173,6 +1252,12 @@ export class SchedulerConfig extends Message<SchedulerConfig> {
      */
     value: CloudTasksSchedulerConfig;
     case: "cloudTasks";
+  } | {
+    /**
+     * @generated from field: talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;
+     */
+    value: AwsEventBridgeSchedulerConfig;
+    case: "awsEventbridgeScheduler";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<SchedulerConfig>) {
@@ -1184,6 +1269,7 @@ export class SchedulerConfig extends Message<SchedulerConfig> {
   static readonly typeName = "talon.config.SchedulerConfig";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "cloud_tasks", kind: "message", T: CloudTasksSchedulerConfig, oneof: "backend" },
+    { no: 2, name: "aws_eventbridge_scheduler", kind: "message", T: AwsEventBridgeSchedulerConfig, oneof: "backend" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SchedulerConfig {

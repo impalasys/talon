@@ -36,6 +36,11 @@ impl SchedulerRequestAuthenticator {
                 Some(crate::control::config::proto::scheduler_config::Backend::CloudTasks(
                     cloud_tasks,
                 )) => cloud_tasks.callback_auth.as_ref(),
+                Some(
+                    crate::control::config::proto::scheduler_config::Backend::AwsEventbridgeScheduler(
+                        _,
+                    ),
+                ) => None,
                 None => None,
             })
         {

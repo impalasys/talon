@@ -11,11 +11,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "sdk" / "python" / 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from e2e.stack import MOCK_LLM_PORT, start_postgres_pubsub_stack, write_auth_handoff
+from e2e.stack import (
+    MOCK_LLM_PORT,
+    start_aws_local_stack,
+    start_postgres_pubsub_stack,
+    write_auth_handoff,
+)
 
 
 READY_PORT = int(os.environ.get("READY_PORT", os.environ.get("E2E_READY_PORT", "8090")))
 GATEWAY_GRPC_PORT = int(os.environ.get("GRPC_PORT", "50051"))
+E2E_STACK = os.environ.get("TALON_E2E_STACK", "gcp").strip().lower()
 E2E_AUTH_FILE = Path(
     os.environ.get(
         "TALON_E2E_AUTH_FILE",
@@ -37,11 +43,22 @@ def main():
     )
     server_thread.start()
 
-    stack = start_postgres_pubsub_stack(
-        grpc_port=GATEWAY_GRPC_PORT,
-        worker_port=8081,
-        api_key_name="playwright-root",
-    )
+    if E2E_STACK == "aws":
+        stack = start_aws_local_stack(
+            grpc_port=GATEWAY_GRPC_PORT,
+            api_key_name="playwright-root",
+        )
+    elif E2E_STACK in ("gcp", "default", ""):
+        stack = start_postgres_pubsub_stack(
+            grpc_port=GATEWAY_GRPC_PORT,
+            worker_port=8081,
+            api_key_name="playwright-root",
+        )
+    else:
+        raise RuntimeError(
+            f"Unsupported TALON_E2E_STACK={E2E_STACK!r}; expected 'gcp' or 'aws'"
+        )
+
     ready_server: socketserver.TCPServer | None = None
     try:
         write_auth_handoff(E2E_AUTH_FILE, stack.grpc_port, stack.api_key)

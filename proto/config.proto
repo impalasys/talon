@@ -154,9 +154,21 @@ message CloudTasksSchedulerConfig {
   SchedulerCallbackAuthConfig callback_auth = 5;
 }
 
+message AwsEventBridgeSchedulerConfig {
+  string group_name = 1;
+  string queue_url = 2;
+  string execution_role_arn = 3;
+  string schedule_name_prefix = 4;
+  string dlq_arn = 5;
+  uint32 maximum_event_age_seconds = 6;
+  optional uint32 maximum_retry_attempts = 7;
+  string endpoint_url = 8;
+}
+
 message SchedulerConfig {
   oneof backend {
     CloudTasksSchedulerConfig cloud_tasks = 1;
+    AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;
   }
 }
 

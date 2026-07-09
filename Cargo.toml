@@ -5,8 +5,8 @@ edition = "2021"
 
 [features]
 bazel = []
+aws = ["dep:aws-sdk-dynamodb", "dep:aws-sdk-scheduler", "dep:aws-sdk-sqs"]
 cpu-profile = ["dep:pprof"]
-dynamodb = ["dep:aws-sdk-dynamodb"]
 heap-profile = [
     "dep:tikv-jemallocator",
     "tikv-jemallocator/profiling",
@@ -15,8 +15,6 @@ heap-profile = [
     "tikv-jemalloc-ctl/stats",
 ]
 rocksdb = ["dep:rocksdb"]
-sqs = ["dep:aws-sdk-sqs"]
-aws-local-e2e = ["dynamodb", "sqs"]
 
 [dependencies]
 aead = "0.5"
@@ -70,6 +68,7 @@ google-cloud-secretmanager-v1 = "1.7"
 google-cloud-auth = "1.8"
 aws-config = "1.8"
 aws-sdk-dynamodb = { version = "1.103", optional = true }
+aws-sdk-scheduler = { version = "=1.102.0", optional = true }
 aws-sdk-s3 = "1.103"
 aws-sdk-secretsmanager = "1.103"
 aws-sdk-sqs = { version = "1.102", optional = true }

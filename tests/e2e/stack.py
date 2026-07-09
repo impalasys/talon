@@ -35,6 +35,7 @@ WORKFLOW_DISPATCH_TOPIC = "talon.workflow.dispatch"
 INDEX_EVENTS_TOPIC = "talon.index.events"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
+AWS_ACCOUNT_ID = os.environ.get("AWS_ACCOUNT_ID", "000000000000")
 E2E_JWT_ISSUER = os.environ.get(
     "TALON_E2E_JWT_ISSUER",
     "https://talon-e2e.example.com",
@@ -674,7 +675,7 @@ control_plane:
         raise
 
 
-def _provision_localstack(endpoint: str, table_name: str, queue_name: str) -> None:
+def _provision_localstack(endpoint: str, table_name: str, queue_name: str) -> str:
     dynamodb = boto3.client(
         "dynamodb",
         endpoint_url=endpoint,
@@ -713,7 +714,7 @@ def _provision_localstack(endpoint: str, table_name: str, queue_name: str) -> No
         ],
     )
     dynamodb.get_waiter("table_exists").wait(TableName=table_name)
-    sqs.create_queue(QueueName=queue_name)
+    return sqs.create_queue(QueueName=queue_name)["QueueUrl"]
 
 
 def _wait_for_socket(path: Path) -> None:
@@ -743,13 +744,15 @@ def start_aws_local_stack(
     worker_proc: subprocess.Popen[Any] | None = None
     try:
         localstack = DockerContainer("localstack/localstack:3")
+        localstack.with_env("SERVICES", "dynamodb,sqs,scheduler")
         localstack.with_exposed_ports(4566)
         localstack.start()
         endpoint = (
             f"http://{localstack.get_container_host_ip()}:"
             f"{localstack.get_exposed_port(4566)}"
         )
-        _provision_localstack(endpoint, table_name, queue_name)
+        queue_url = _provision_localstack(endpoint, table_name, queue_name)
+        scheduler_role_arn = f"arn:aws:iam::{AWS_ACCOUNT_ID}:role/talon-e2e-scheduler"
         env.update(
             {
                 "AWS_ACCESS_KEY_ID": "test",
@@ -760,6 +763,10 @@ def start_aws_local_stack(
                 "TALON_DYNAMODB_TABLE": table_name,
                 "TALON_SQS_ENDPOINT_URL": endpoint,
                 "TALON_SQS_QUEUE_NAME": queue_name,
+                "TALON_AWS_SCHEDULER_ENDPOINT_URL": endpoint,
+                "TALON_AWS_SCHEDULER_QUEUE_URL": queue_url,
+                "TALON_AWS_SCHEDULER_EXECUTION_ROLE_ARN": scheduler_role_arn,
+                "TALON_AWS_SCHEDULER_NAME_PREFIX": "talon-e2e",
                 "TALON_WORKER_ENDPOINT_PROTOCOL": "grpc",
                 "TALON_WORKER_ENDPOINT_URL": f"unix://{socket_path}",
             }
@@ -788,6 +795,13 @@ control_plane:
       key: TALON_DYNAMODB_TABLE
   message_broker:
     driver: sqs
+  scheduler:
+    driver: aws_event_bridge_scheduler
+    group_name: default
+    queue_url: "{queue_url}"
+    execution_role_arn: "{scheduler_role_arn}"
+    schedule_name_prefix: talon-e2e
+    endpoint_url: "{endpoint}"
   documents:
     driver: sqlite
     data_dir: ./documents
@@ -833,6 +847,7 @@ control_plane:
                 "socket_path": str(socket_path),
                 "worker_endpoint_url": f"unix://{socket_path}",
                 "localstack_endpoint": endpoint,
+                "sqs_queue_url": queue_url,
             },
             _resources=[localstack],
         )
