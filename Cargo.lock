@@ -5482,6 +5482,7 @@ dependencies = [
  "chrono-tz",
  "clap",
  "cron",
+ "flate2",
  "futures",
  "google-cloud-auth 1.8.0",
  "google-cloud-googleapis",

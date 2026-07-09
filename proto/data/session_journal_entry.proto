@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package talon.data;
 
+import "proto/data/data.proto";
 import "proto/harness/llm.proto";
 
 enum SessionExecutionPhase {
@@ -29,6 +30,7 @@ message SessionJournalEntryPayloadToolResult {
   string tool_call_id = 1;
   string name = 2;
   string output = 3;
+  ObjectRef object = 4;
 }
 
 message SessionJournalEntryPayloadCommit {

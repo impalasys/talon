@@ -8,6 +8,7 @@ use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{events, keys, keys::ResourceParent, KeyValueStore};
 use prost::Message;
 use serde_json::{json, Value};
+use std::collections::HashSet;
 use std::sync::OnceLock;
 
 pub(crate) mod watcher;
@@ -174,6 +175,75 @@ async fn delete_descendants(kv: &dyn KeyValueStore, parent: ResourceParent) -> a
         }
     }
     Ok(())
+}
+
+async fn collect_session_tool_result_object_keys(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+) -> anyhow::Result<Vec<String>> {
+    let mut keys_to_delete = HashSet::new();
+    for key in kv
+        .list_keys(&keys::session_message_prefix(ns, agent, session_id))
+        .await?
+    {
+        let Some(message) = kv.get_msg::<data_proto::SessionMessage>(&key).await? else {
+            continue;
+        };
+        for part in message.parts {
+            if part.part_type == data_proto::SessionMessagePartType::ToolResult as i32 {
+                collect_tool_result_object_key(part.object.as_ref(), &mut keys_to_delete);
+            }
+        }
+    }
+
+    for submission_key in kv
+        .list_keys(&keys::session_submission_prefix(ns, agent, session_id))
+        .await?
+    {
+        for (_, bytes) in kv
+            .list_entries(&keys::session_journal_entry_prefix(
+                ns,
+                agent,
+                session_id,
+                &submission_key.name,
+            ))
+            .await?
+        {
+            let entry = data_proto::SessionJournalEntry::decode(bytes.as_slice())?;
+            let object = entry
+                .payload
+                .as_ref()
+                .and_then(|payload| payload.payload.as_ref())
+                .and_then(|payload| match payload {
+                    data_proto::session_journal_entry_payload::Payload::ToolResult(result) => {
+                        result.object.as_ref()
+                    }
+                    _ => None,
+                });
+            collect_tool_result_object_key(object, &mut keys_to_delete);
+        }
+    }
+
+    Ok(keys_to_delete.into_iter().collect())
+}
+
+fn collect_tool_result_object_key(
+    object: Option<&data_proto::ObjectRef>,
+    keys_to_delete: &mut HashSet<String>,
+) {
+    let Some(object) = object else {
+        return;
+    };
+    let is_tool_result = object
+        .metadata
+        .get("kind")
+        .is_some_and(|kind| kind == "tool_result")
+        || object.key.contains("/tool-results/");
+    if is_tool_result && !object.key.trim().is_empty() {
+        keys_to_delete.insert(object.key.clone());
+    }
 }
 
 fn requested_limit(limit: i32) -> Option<usize> {
@@ -892,6 +962,19 @@ impl GrpcGatewayHandler {
         let req = req.into_inner();
 
         let session_db_key = keys::session(&req.ns, &req.agent, &req.session_id);
+        let tool_result_object_keys = collect_session_tool_result_object_keys(
+            self.gateway.kv.as_ref(),
+            &req.ns,
+            &req.agent,
+            &req.session_id,
+        )
+        .await
+        .map_err(|e| {
+            tonic::Status::internal(format!(
+                "Failed to collect session tool result objects: {}",
+                e
+            ))
+        })?;
 
         delete_descendants(
             self.gateway.kv.as_ref(),
@@ -922,8 +1005,21 @@ impl GrpcGatewayHandler {
                 namespace = %req.ns,
                 agent = %req.agent,
                 session_id = %req.session_id,
-                "failed to publish search delete event for deleted session"
+            "failed to publish search delete event for deleted session"
             );
+        }
+
+        for object_key in tool_result_object_keys {
+            if let Err(error) = self.gateway.objects.delete(&object_key).await {
+                tracing::warn!(
+                    error = %error,
+                    namespace = %req.ns,
+                    agent = %req.agent,
+                    session_id = %req.session_id,
+                    object_key = %object_key,
+                    "failed to delete tool result object for deleted session"
+                );
+            }
         }
 
         let event = events::LifecycleEvent {
@@ -1611,12 +1707,16 @@ fn map_session_submit_error(err: anyhow::Error) -> tonic::Status {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::control::object_store::{
+        InMemoryObjectStore, ObjectMetadata, ObjectStore, StoredObject,
+    };
     use crate::control::ControlPlane;
     use crate::control::MessagePublisher;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::gateway::rpc::resources_proto;
     use crate::gateway::Gateway;
     use crate::test_support::{MockKvStore, RecordingPubSub};
+    use anyhow::Result;
     use futures::stream;
     use std::collections::HashMap;
     use std::pin::Pin;
@@ -1626,6 +1726,41 @@ mod tests {
         let control_plane = ControlPlane::builder(kv, pubsub).build();
         GrpcGatewayHandler {
             gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
+        }
+    }
+
+    fn handler_with_objects(
+        kv: Arc<MockKvStore>,
+        pubsub: Arc<RecordingPubSub>,
+        objects: Arc<dyn ObjectStore + Send + Sync>,
+    ) -> GrpcGatewayHandler {
+        let control_plane = ControlPlane::builder(kv, pubsub).objects(objects).build();
+        GrpcGatewayHandler {
+            gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
+        }
+    }
+
+    struct FailingDeleteObjectStore {
+        inner: InMemoryObjectStore,
+    }
+
+    #[async_trait::async_trait]
+    impl ObjectStore for FailingDeleteObjectStore {
+        async fn put(
+            &self,
+            key: &str,
+            bytes: &[u8],
+            metadata: ObjectMetadata,
+        ) -> Result<data_proto::ObjectRef> {
+            self.inner.put(key, bytes, metadata).await
+        }
+
+        async fn get(&self, key: &str) -> Result<Option<StoredObject>> {
+            self.inner.get(key).await
+        }
+
+        async fn delete(&self, _key: &str) -> Result<()> {
+            Err(anyhow::anyhow!("delete failed"))
         }
     }
 
@@ -1727,6 +1862,257 @@ mod tests {
             resources_proto::resource_status::Kind::UsagePolicy(status) => status,
             _ => panic!("expected UsagePolicy status"),
         }
+    }
+
+    async fn seed_session(kv: &MockKvStore, ns: &str, agent: &str, session_id: &str) {
+        kv.set_msg(
+            &keys::session(ns, agent, session_id),
+            &data_proto::Session {
+                id: session_id.to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+                status: "READY".to_string(),
+                created_at: 1,
+                last_active: 1,
+                metadata: Default::default(),
+                labels: Default::default(),
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    fn tool_result_metadata(
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        message_id: &str,
+        tool_call_id: &str,
+    ) -> ObjectMetadata {
+        ObjectMetadata {
+            media_type: "text/plain; charset=utf-8".to_string(),
+            filename: format!("{tool_call_id}.txt"),
+            metadata: HashMap::from([
+                ("kind".to_string(), "tool_result".to_string()),
+                ("namespace".to_string(), ns.to_string()),
+                ("agent".to_string(), agent.to_string()),
+                ("session_id".to_string(), session_id.to_string()),
+                ("message_id".to_string(), message_id.to_string()),
+                ("tool_call_id".to_string(), tool_call_id.to_string()),
+                ("tool_name".to_string(), "shell".to_string()),
+            ]),
+            ..Default::default()
+        }
+    }
+
+    #[tokio::test]
+    async fn delete_session_removes_tool_result_objects_from_session_messages() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub);
+        let ns = "conic";
+        let agent = "coding";
+        let session_id = "session-1";
+        let message_id = "message-1";
+        let tool_call_id = "tool-1";
+        let object_key =
+            "sessions/conic/coding/session-1/messages/message-1/tool-results/tool-1.txt";
+        seed_session(kv.as_ref(), ns, agent, session_id).await;
+        let object = handler
+            .gateway
+            .objects
+            .put(
+                object_key,
+                b"large tool output",
+                tool_result_metadata(ns, agent, session_id, message_id, tool_call_id),
+            )
+            .await
+            .unwrap();
+        kv.set_msg(
+            &keys::session_message(ns, agent, session_id, message_id),
+            &data_proto::SessionMessage {
+                id: message_id.to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 1,
+                labels: Default::default(),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: "part-1".to_string(),
+                    part_type: data_proto::SessionMessagePartType::ToolResult as i32,
+                    content: "large tool".to_string(),
+                    name: "shell".to_string(),
+                    payload_json: json!({
+                        "tool_call_id": tool_call_id,
+                        "output_preview": "large tool",
+                        "output_object_key": object.key,
+                    })
+                    .to_string(),
+                    created_at: 1,
+                    object: Some(object),
+                }],
+            },
+        )
+        .await
+        .unwrap();
+
+        handler
+            .handle_delete_session(tonic::Request::new(proto::DeleteSessionRequest {
+                ns: ns.to_string(),
+                agent: agent.to_string(),
+                session_id: session_id.to_string(),
+            }))
+            .await
+            .unwrap();
+
+        assert!(handler
+            .gateway
+            .objects
+            .get(object_key)
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
+    async fn delete_session_removes_tool_result_objects_from_journal_only_entries() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub);
+        let ns = "conic";
+        let agent = "coding";
+        let session_id = "session-1";
+        let message_id = "message-1";
+        let submission_id = "submission-1";
+        let tool_call_id = "tool-1";
+        let object_key =
+            "sessions/conic/coding/session-1/messages/message-1/tool-results/tool-1.txt";
+        seed_session(kv.as_ref(), ns, agent, session_id).await;
+        let object = handler
+            .gateway
+            .objects
+            .put(
+                object_key,
+                b"large journal-only tool output",
+                tool_result_metadata(ns, agent, session_id, message_id, tool_call_id),
+            )
+            .await
+            .unwrap();
+        kv.set_msg(
+            &keys::session_submission(ns, agent, session_id, submission_id),
+            &crate::harness::sessions::pending_submission(submission_id, session_id, "user-1", 1),
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &keys::session_journal_entry(ns, agent, session_id, submission_id, "000001"),
+            &data_proto::SessionJournalEntry {
+                journal_entry_id: "000001".to_string(),
+                submission_id: submission_id.to_string(),
+                attempt_id: "attempt-1".to_string(),
+                phase: data_proto::SessionExecutionPhase::ToolResult as i32,
+                created_at: 1,
+                updated_at: 1,
+                committed_at: None,
+                committed_message_id: None,
+                payload: Some(data_proto::SessionJournalEntryPayload {
+                    payload: Some(
+                        data_proto::session_journal_entry_payload::Payload::ToolResult(
+                            data_proto::SessionJournalEntryPayloadToolResult {
+                                tool_call_id: tool_call_id.to_string(),
+                                name: "shell".to_string(),
+                                output: "large journal".to_string(),
+                                object: Some(object),
+                            },
+                        ),
+                    ),
+                }),
+            },
+        )
+        .await
+        .unwrap();
+
+        handler
+            .handle_delete_session(tonic::Request::new(proto::DeleteSessionRequest {
+                ns: ns.to_string(),
+                agent: agent.to_string(),
+                session_id: session_id.to_string(),
+            }))
+            .await
+            .unwrap();
+
+        assert!(handler
+            .gateway
+            .objects
+            .get(object_key)
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
+    async fn delete_session_warns_but_succeeds_when_tool_result_object_delete_fails() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let objects = Arc::new(FailingDeleteObjectStore {
+            inner: InMemoryObjectStore::default(),
+        });
+        let handler = handler_with_objects(kv.clone(), pubsub, objects.clone());
+        let ns = "conic";
+        let agent = "coding";
+        let session_id = "session-1";
+        let message_id = "message-1";
+        let tool_call_id = "tool-1";
+        let object_key =
+            "sessions/conic/coding/session-1/messages/message-1/tool-results/tool-1.txt";
+        seed_session(kv.as_ref(), ns, agent, session_id).await;
+        let object = objects
+            .put(
+                object_key,
+                b"large tool output",
+                tool_result_metadata(ns, agent, session_id, message_id, tool_call_id),
+            )
+            .await
+            .unwrap();
+        kv.set_msg(
+            &keys::session_message(ns, agent, session_id, message_id),
+            &data_proto::SessionMessage {
+                id: message_id.to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 1,
+                labels: Default::default(),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: "part-1".to_string(),
+                    part_type: data_proto::SessionMessagePartType::ToolResult as i32,
+                    content: "large tool".to_string(),
+                    name: "shell".to_string(),
+                    payload_json: json!({
+                        "tool_call_id": tool_call_id,
+                        "output_preview": "large tool",
+                        "output_object_key": object.key,
+                    })
+                    .to_string(),
+                    created_at: 1,
+                    object: Some(object),
+                }],
+            },
+        )
+        .await
+        .unwrap();
+
+        handler
+            .handle_delete_session(tonic::Request::new(proto::DeleteSessionRequest {
+                ns: ns.to_string(),
+                agent: agent.to_string(),
+                session_id: session_id.to_string(),
+            }))
+            .await
+            .unwrap();
+
+        assert!(kv
+            .get(&keys::session(ns, agent, session_id))
+            .await
+            .unwrap()
+            .is_none());
+        assert!(objects.get(object_key).await.unwrap().is_some());
     }
 
     #[tokio::test]

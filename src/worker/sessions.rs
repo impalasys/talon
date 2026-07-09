@@ -18,6 +18,7 @@ use crate::gateway::rpc::data_proto::{
 };
 use crate::harness::executor::{tool_result_loop_message, ExecutionSink, LoopMessage};
 use crate::harness::sessions::{self, ClaimOutcome};
+use crate::harness::tool_results::hydrate_tool_result;
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
 
@@ -125,6 +126,7 @@ async fn prepare_context_for_claimed_submission(
     ns: &str,
     agent: &str,
     session_id: &str,
+    message_id: &str,
     submission_id: &str,
     attempt_id: &str,
     journal_entries: &[sessions::SessionJournalEntry],
@@ -241,14 +243,21 @@ async fn prepare_context_for_claimed_submission(
             });
 
             let result = if let Some(recorded) = results_by_call_id.get(&tool.id) {
-                recorded.output.clone()
+                hydrate_tool_result(
+                    cp.objects.as_ref(),
+                    recorded.object.as_ref(),
+                    &recorded.output,
+                )
+                .await?
             } else {
                 let (_input, result) = runtime.executor.execute_tool_call(tool).await;
                 sessions::append_tool_result(
                     cp.kv.as_ref(),
+                    cp.objects.as_ref(),
                     ns,
                     agent,
                     session_id,
+                    message_id,
                     submission_id,
                     attempt_id,
                     &tool.id,
@@ -429,12 +438,13 @@ impl WorkerEventHandler {
         let sink = PubSubSessionSink::new_with_fanout(
             self.cp.kv.clone(),
             self.cp.pubsub.clone(),
+            self.cp.objects.clone(),
             self.fanout_hub.clone(),
             fanout_key,
             event.ns.clone(),
             event.session_id.clone(),
             event.agent.clone(),
-            reply_msg_id,
+            reply_msg_id.clone(),
             reply_msg_key,
             submission.submission_id.clone(),
             submission.attempt_id.clone(),
@@ -651,6 +661,7 @@ impl WorkerEventHandler {
                 ns,
                 &event.agent,
                 &event.session_id,
+                &reply_msg_id,
                 &submission.submission_id,
                 &submission.attempt_id,
                 &journal_entries,
@@ -666,7 +677,8 @@ impl WorkerEventHandler {
                         sink.seed_recovered_tool_call_part(id, name, input);
                     }
                     RecoveredProjectionPart::ToolResult { id, name, result } => {
-                        sink.seed_recovered_tool_result_part(id, name, result);
+                        sink.seed_recovered_tool_result_part(id, name, result)
+                            .await?;
                     }
                 }
             }

@@ -9,12 +9,14 @@ use std::time::{Duration, Instant};
 use tokio::sync::Mutex as AsyncMutex;
 
 use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
+use crate::control::object_store::{default_object_store, ObjectStore};
 use crate::control::{keys::ResourceKey, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::data_proto::{self, SessionSubmissionStatus};
 use crate::harness::executor::compaction::tool_result_preview;
 use crate::harness::executor::{AgentEvent, ExecutionSink};
 use crate::harness::llm::{ChatResponse, ChatUsage};
 use crate::harness::sessions::{self, SessionSubmission};
+use crate::harness::tool_results::{store_tool_result, StoredToolResult};
 use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
 use tracing::Instrument;
 
@@ -178,6 +180,7 @@ pub struct PubSubSessionSink {
     // Shared IO handles and session identity.
     pub kv: Arc<dyn KeyValueStore>,
     pub pubsub: Arc<dyn MessagePublisher>,
+    pub objects: Arc<dyn ObjectStore + Send + Sync>,
     pub fanout_hub: Arc<FanoutHub>,
     pub fanout_key: SessionFanoutKey,
     pub ns: String,
@@ -210,6 +213,7 @@ pub struct PubSubSessionSink {
     // current submission attempt; journal entries remain the backend authority.
     last_flush: Mutex<Instant>, // Last time the UI projection was considered for persistence.
     latest_journal_entry_id: Mutex<Option<String>>, // Latest durable boundary reflected in projection labels.
+    recorded_tool_results: Mutex<std::collections::HashMap<String, StoredToolResult>>,
     persist_lock: Arc<AsyncMutex<()>>, // Serializes projection writes with final message commit.
 
     // Run summary counters for logs/telemetry.
@@ -239,6 +243,7 @@ impl PubSubSessionSink {
         Self::new_inner(
             kv,
             pubsub,
+            default_object_store(),
             None,
             None,
             ns,
@@ -255,6 +260,7 @@ impl PubSubSessionSink {
     pub fn new_with_fanout(
         kv: Arc<dyn KeyValueStore>,
         pubsub: Arc<dyn MessagePublisher>,
+        objects: Arc<dyn ObjectStore + Send + Sync>,
         fanout_hub: Arc<FanoutHub>,
         fanout_key: SessionFanoutKey,
         ns: impl Into<String>,
@@ -268,6 +274,7 @@ impl PubSubSessionSink {
         Self::new_inner(
             kv,
             pubsub,
+            objects,
             Some(fanout_hub),
             Some(fanout_key),
             ns,
@@ -297,6 +304,7 @@ impl PubSubSessionSink {
         Self::new_inner(
             kv,
             pubsub,
+            default_object_store(),
             None,
             None,
             ns,
@@ -313,6 +321,7 @@ impl PubSubSessionSink {
     fn new_inner(
         kv: Arc<dyn KeyValueStore>,
         pubsub: Arc<dyn MessagePublisher>,
+        objects: Arc<dyn ObjectStore + Send + Sync>,
         fanout_hub: Option<Arc<FanoutHub>>,
         fanout_key: Option<SessionFanoutKey>,
         ns: impl Into<String>,
@@ -341,6 +350,7 @@ impl PubSubSessionSink {
         Self {
             kv,
             pubsub,
+            objects,
             fanout_hub: fanout_hub.unwrap_or_else(|| Arc::new(FanoutHub::new())),
             fanout_key,
             ns,
@@ -357,6 +367,7 @@ impl PubSubSessionSink {
             next_part_index: Mutex::new(0),
             last_flush: Mutex::new(Instant::now()),
             latest_journal_entry_id: Mutex::new(None),
+            recorded_tool_results: Mutex::new(std::collections::HashMap::new()),
             persist_lock: Arc::new(AsyncMutex::new(())),
             input_token_chunks: Mutex::new(0),
             input_token_chars: Mutex::new(0),
@@ -384,17 +395,49 @@ impl PubSubSessionSink {
         content: String,
         payload_json: String,
     ) {
+        self.record_part_with_id_and_object(
+            self.next_part_id(),
+            part_type,
+            name,
+            content,
+            payload_json,
+            None,
+        );
+    }
+
+    // Used when provisional stream chunks have already reserved the logical
+    // final SessionMessagePart id for a text segment.
+    fn record_part_with_id(
+        &self,
+        id: String,
+        part_type: data_proto::SessionMessagePartType,
+        name: String,
+        content: String,
+        payload_json: String,
+    ) {
+        self.record_part_with_id_and_object(id, part_type, name, content, payload_json, None);
+    }
+
+    fn record_part_with_id_and_object(
+        &self,
+        id: String,
+        part_type: data_proto::SessionMessagePartType,
+        name: String,
+        content: String,
+        payload_json: String,
+        object: Option<data_proto::ObjectRef>,
+    ) {
         self.durable_parts
             .lock()
             .unwrap()
             .push(data_proto::SessionMessagePart {
-                id: self.next_part_id(),
+                id,
                 part_type: part_type as i32,
                 content,
                 name,
                 payload_json,
                 created_at: chrono::Utc::now().timestamp_micros(),
-                object: None,
+                object,
             });
     }
 
@@ -402,11 +445,12 @@ impl PubSubSessionSink {
         self.durable_parts.lock().unwrap().push(part);
     }
 
-    pub(crate) fn seed_recovered_text_part(&self, content: &str) {
+    pub(crate) fn seed_recovered_text_part(&self, part_id: &str, content: &str) {
         if content.is_empty() {
             return;
         }
-        self.record_part(
+        self.record_part_with_id(
+            part_id.to_string(),
             data_proto::SessionMessagePartType::Text,
             String::new(),
             content.to_string(),
@@ -414,8 +458,15 @@ impl PubSubSessionSink {
         );
     }
 
-    pub(crate) fn seed_recovered_tool_call_part(&self, id: &str, name: &str, input: &Value) {
-        self.record_part(
+    pub(crate) fn seed_recovered_tool_call_part(
+        &self,
+        part_id: &str,
+        id: &str,
+        name: &str,
+        input: &Value,
+    ) {
+        self.record_part_with_id(
+            part_id.to_string(),
             data_proto::SessionMessagePartType::ToolCall,
             name.to_string(),
             "Tool call".to_string(),
@@ -427,19 +478,35 @@ impl PubSubSessionSink {
         );
     }
 
-    pub(crate) fn seed_recovered_tool_result_part(&self, id: &str, name: &str, result: &str) {
-        let preview = tool_result_preview(result);
-        self.record_part(
+    pub(crate) async fn seed_recovered_tool_result_part(
+        &self,
+        part_id: &str,
+        id: &str,
+        name: &str,
+        result: &str,
+    ) -> Result<()> {
+        let stored = store_tool_result(
+            self.objects.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &self.reply_msg_id,
+            part_id,
+            id,
+            name,
+            result,
+        )
+        .await?;
+        let payload_json = stored.payload_json(id);
+        self.record_part_with_id_and_object(
+            stored.part_id,
             data_proto::SessionMessagePartType::ToolResult,
             name.to_string(),
-            preview.clone(),
-            serde_json::to_string(&serde_json::json!({
-                "tool_call_id": id,
-                "output_preview": preview,
-                "output": result,
-            }))
-            .unwrap_or_else(|_| "{}".to_string()),
+            stored.preview.clone(),
+            payload_json,
+            stored.object,
         );
+        Ok(())
     }
 
     fn final_message_parts(&self) -> anyhow::Result<Vec<data_proto::SessionMessagePart>> {
@@ -946,11 +1013,15 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_tool_result_recorded(&self, id: &str, name: &str, result: &str) -> Result<()> {
+        let part_id = self.next_part_id();
         let entry = sessions::append_tool_result(
             self.kv.as_ref(),
+            self.objects.as_ref(),
             &self.ns,
             &self.agent_id,
             &self.session_id,
+            &self.reply_msg_id,
+            &part_id,
             &self.submission_id,
             &self.attempt_id,
             id,
@@ -959,6 +1030,27 @@ impl ExecutionSink for PubSubSessionSink {
             chrono::Utc::now().timestamp_micros(),
         )
         .await?;
+        if let Some(payload) = entry
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+            .and_then(|payload| match payload {
+                data_proto::session_journal_entry_payload::Payload::ToolResult(result) => {
+                    Some(result)
+                }
+                _ => None,
+            })
+        {
+            self.recorded_tool_results.lock().unwrap().insert(
+                id.to_string(),
+                StoredToolResult {
+                    part_id: part_id.clone(),
+                    output: payload.output.clone(),
+                    preview: tool_result_preview(result),
+                    object: payload.object.clone(),
+                },
+            );
+        }
         *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
         Ok(())
     }
@@ -967,17 +1059,51 @@ impl ExecutionSink for PubSubSessionSink {
         *self.tool_results.lock().unwrap() += 1;
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
-        let preview = tool_result_preview(result);
-        self.record_part(
+        let recorded = { self.recorded_tool_results.lock().unwrap().remove(id) };
+        let stored = match recorded {
+            Some(stored) => stored,
+            None => {
+                let part_id = self.next_part_id();
+                match store_tool_result(
+                    self.objects.as_ref(),
+                    &self.ns,
+                    &self.agent_id,
+                    &self.session_id,
+                    &self.reply_msg_id,
+                    &part_id,
+                    id,
+                    name,
+                    result,
+                )
+                .await
+                {
+                    Ok(stored) => stored,
+                    Err(err) => {
+                        tracing::error!(
+                            error = %err,
+                            namespace = %self.ns,
+                            agent = %self.agent_id,
+                            session = %self.session_id,
+                            tool_call_id = %id,
+                            "Failed to store tool result object"
+                        );
+                        self.publish_event(AgentEvent::Error(
+                            "Error: failed to persist tool result".to_string(),
+                        ))
+                        .await;
+                        return;
+                    }
+                }
+            }
+        };
+        let payload_json = stored.payload_json(id);
+        self.record_part_with_id_and_object(
+            stored.part_id,
             data_proto::SessionMessagePartType::ToolResult,
             name.to_string(),
-            preview.clone(),
-            serde_json::to_string(&serde_json::json!({
-                "tool_call_id": id,
-                "output_preview": preview,
-                "output": result,
-            }))
-            .unwrap_or_else(|_| "{}".to_string()),
+            stored.preview.clone(),
+            payload_json,
+            stored.object,
         );
         self.publish_event(AgentEvent::Observation {
             id: id.to_string(),
@@ -1793,7 +1919,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn tool_results_store_preview_in_content_and_raw_output_in_payload() {
+    async fn large_tool_results_store_preview_in_content_and_object_in_payload() {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
         let sink = PubSubSessionSink::new_with_token_publish_interval(
@@ -1812,7 +1938,7 @@ mod tests {
         );
         let raw_output = format!(
             "{{\"items\":[{{\"path\":\"footer.tsx\",\"content\":\"{}\"}}]}}",
-            "x".repeat(20_000)
+            "x".repeat(40_000)
         );
 
         sink.on_tool_result("tool-1", "mcp_github_get_file_contents", &raw_output)
@@ -1829,8 +1955,20 @@ mod tests {
         let payload: serde_json::Value = serde_json::from_str(&persisted.payload_json).unwrap();
 
         assert!(persisted.content.len() < raw_output.len());
-        assert_eq!(payload["output"], raw_output);
+        assert!(payload.get("output").is_none());
         assert_eq!(payload["output_preview"], persisted.content);
+        assert_eq!(
+            payload["output_object_key"],
+            persisted.object.as_ref().unwrap().key
+        );
+        let hydrated = crate::harness::tool_results::hydrate_tool_result(
+            sink.objects.as_ref(),
+            persisted.object.as_ref(),
+            "",
+        )
+        .await
+        .unwrap();
+        assert_eq!(hydrated, raw_output);
     }
 
     #[tokio::test]

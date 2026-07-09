@@ -6,6 +6,7 @@ use prost::Message;
 
 use super::submission::{ensure_submission_attempt_current, update_submission_from_entry};
 use super::SessionJournalEntry;
+use crate::control::object_store::ObjectStore;
 use crate::control::{keys, KeyValueStore};
 use crate::gateway::rpc::data_proto::{
     session_journal_entry_payload, SessionExecutionPhase, SessionJournalEntryPayload,
@@ -13,6 +14,7 @@ use crate::gateway::rpc::data_proto::{
     SessionJournalEntryPayloadToolResult,
 };
 use crate::harness::llm::ChatResponse;
+use crate::harness::tool_results::store_tool_result;
 
 pub async fn append_llm_response(
     kv: &dyn KeyValueStore,
@@ -47,9 +49,11 @@ pub async fn append_llm_response(
 
 pub async fn append_tool_result(
     kv: &dyn KeyValueStore,
+    objects: &(dyn ObjectStore + Send + Sync),
     ns: &str,
     agent: &str,
     session_id: &str,
+    message_id: &str,
     submission_id: &str,
     attempt_id: &str,
     tool_call_id: &str,
@@ -57,6 +61,17 @@ pub async fn append_tool_result(
     result: &str,
     now_micros: i64,
 ) -> Result<SessionJournalEntry> {
+    let stored = store_tool_result(
+        objects,
+        ns,
+        agent,
+        session_id,
+        message_id,
+        tool_call_id,
+        name,
+        result,
+    )
+    .await?;
     append_journal_entry(
         kv,
         ns,
@@ -70,7 +85,8 @@ pub async fn append_tool_result(
                 SessionJournalEntryPayloadToolResult {
                     tool_call_id: tool_call_id.to_string(),
                     name: name.to_string(),
-                    output: result.to_string(),
+                    output: stored.output,
+                    object: stored.object,
                 },
             )),
         }),
@@ -383,6 +399,7 @@ mod tests {
     #[tokio::test]
     async fn journal_entries_append_in_order_and_update_submission_pointer() {
         let kv = crate::test_support::MockKvStore::default();
+        let objects = crate::control::object_store::InMemoryObjectStore::default();
         seed_claimed_submission(&kv).await;
 
         let response = ChatResponse {
@@ -404,9 +421,11 @@ mod tests {
         .unwrap();
         let second = append_tool_result(
             &kv,
+            &objects,
             "ns",
             "agent",
             "session-1",
+            "message-1",
             "submission-1",
             "attempt-1",
             "call-1",
