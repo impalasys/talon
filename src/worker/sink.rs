@@ -1,8 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
+use prost::Message;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -27,6 +28,7 @@ use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
 use tracing::Instrument;
 
 const TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
+const DEFAULT_SESSION_MESSAGE_MAX_BYTES: usize = 350 * 1024;
 
 fn chat_usage_payload_json(usage: &ChatUsage) -> String {
     serde_json::to_string(&serde_json::json!({
@@ -363,6 +365,7 @@ pub struct PubSubSessionSink {
     latest_journal_entry_id: Mutex<Option<String>>, // Latest durable boundary reflected in projection labels.
     recorded_tool_results: Mutex<std::collections::HashMap<String, RecordedToolResult>>,
     persist_lock: Arc<AsyncMutex<()>>, // Serializes projection writes with final message commit.
+    terminal_cutover: Mutex<bool>,     // Set after the sink writes a compact terminal failure.
 
     // Run summary counters for logs/telemetry.
     input_token_chunks: Mutex<u64>,
@@ -517,6 +520,7 @@ impl PubSubSessionSink {
             latest_journal_entry_id: Mutex::new(None),
             recorded_tool_results: Mutex::new(std::collections::HashMap::new()),
             persist_lock: Arc::new(AsyncMutex::new(())),
+            terminal_cutover: Mutex::new(false),
             input_token_chunks: Mutex::new(0),
             input_token_chars: Mutex::new(0),
             published_token_batches: Mutex::new(0),
@@ -1084,6 +1088,163 @@ impl PubSubSessionSink {
         }
     }
 
+    fn durable_message(&self, state: &str) -> data_proto::SessionMessage {
+        data_proto::SessionMessage {
+            id: self.reply_msg_id.clone(),
+            role: data_proto::MessageRole::RoleAssistant as i32,
+            created_at: chrono::Utc::now().timestamp_micros(),
+            labels: self.projection_labels(state),
+            parts: self.durable_parts.lock().unwrap().clone(),
+        }
+    }
+
+    fn session_message_max_bytes() -> usize {
+        std::env::var("TALON_SESSION_MESSAGE_MAX_BYTES")
+            .ok()
+            .and_then(|value| value.parse::<usize>().ok())
+            .filter(|bytes| *bytes > 0)
+            .unwrap_or(DEFAULT_SESSION_MESSAGE_MAX_BYTES)
+    }
+
+    fn check_session_message_size(
+        message: &data_proto::SessionMessage,
+        operation: &str,
+    ) -> Result<usize> {
+        let size = message.encoded_len();
+        let max = Self::session_message_max_bytes();
+        if size > max {
+            return Err(anyhow!(
+                "session message encoded size {size} bytes exceeds {max} byte limit during {operation}"
+            ));
+        }
+        Ok(size)
+    }
+
+    fn compact_failed_message(&self, err: &str) -> data_proto::SessionMessage {
+        data_proto::SessionMessage {
+            id: self.reply_msg_id.clone(),
+            role: data_proto::MessageRole::RoleAssistant as i32,
+            created_at: chrono::Utc::now().timestamp_micros(),
+            labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_FAILED),
+            parts: vec![data_proto::SessionMessagePart {
+                id: self.next_part_id(),
+                part_type: data_proto::SessionMessagePartType::Error as i32,
+                content: err.to_string(),
+                name: String::new(),
+                payload_json: String::new(),
+                created_at: chrono::Utc::now().timestamp_micros(),
+                object: None,
+            }],
+        }
+    }
+
+    async fn set_session_message(
+        &self,
+        message: &data_proto::SessionMessage,
+        operation: &'static str,
+    ) -> Result<usize> {
+        let size = Self::check_session_message_size(message, operation)?;
+        self.kv.set_msg(&self.reply_msg_key, message).await?;
+        tracing::debug!(
+            operation,
+            size_bytes = size,
+            max_bytes = Self::session_message_max_bytes(),
+            namespace = %self.ns,
+            agent = %self.agent_id,
+            session = %self.session_id,
+            message = %self.reply_msg_id,
+            "persisted session message"
+        );
+        Ok(size)
+    }
+
+    async fn cutover_if_message_too_large(
+        &self,
+        message: &data_proto::SessionMessage,
+        operation: &'static str,
+    ) -> bool {
+        match Self::check_session_message_size(message, operation) {
+            Ok(size) => {
+                tracing::debug!(
+                    operation,
+                    size_bytes = size,
+                    max_bytes = Self::session_message_max_bytes(),
+                    namespace = %self.ns,
+                    agent = %self.agent_id,
+                    session = %self.session_id,
+                    message = %self.reply_msg_id,
+                    "tracked session message size"
+                );
+                false
+            }
+            Err(err) => {
+                self.cutover_to_failed(format!(
+                    "Error: assistant message exceeded the session message storage limit. {err}"
+                ))
+                .await;
+                true
+            }
+        }
+    }
+
+    async fn cutover_to_failed(&self, err: String) {
+        {
+            let mut terminal = self.terminal_cutover.lock().unwrap();
+            if *terminal {
+                return;
+            }
+            *terminal = true;
+        }
+
+        let msg = self.compact_failed_message(&err);
+        let result = async {
+            let _guard = self.persist_lock.lock().await;
+            self.set_session_message(&msg, "compact_failed_cutover")
+                .await
+        }
+        .instrument(tracing::info_span!(
+            "PubSubSessionSink.persist_compact_failed_cutover",
+            namespace = %self.ns,
+            agent = %self.agent_id,
+            session = %self.session_id,
+        ))
+        .await;
+        match result {
+            Ok(size) => {
+                tracing::warn!(
+                    size_bytes = size,
+                    namespace = %self.ns,
+                    agent = %self.agent_id,
+                    session = %self.session_id,
+                    message = %self.reply_msg_id,
+                    "session message cut over to compact failed projection"
+                );
+                self.mark_terminal(SessionSubmissionStatus::Failed as i32)
+                    .await;
+                self.publish_reply_index_event().await;
+                self.publish_event(AgentEvent::Error(err)).await;
+            }
+            Err(persist_err) => {
+                tracing::error!(
+                    error = %persist_err,
+                    namespace = %self.ns,
+                    agent = %self.agent_id,
+                    session = %self.session_id,
+                    message = %self.reply_msg_id,
+                    "failed to persist compact failed projection"
+                );
+                self.publish_event(AgentEvent::Error(
+                    "Error: failed to persist compact session failure message".to_string(),
+                ))
+                .await;
+            }
+        }
+    }
+
+    pub(crate) fn is_cutover_terminal(&self) -> bool {
+        *self.terminal_cutover.lock().unwrap()
+    }
+
     async fn submission_attempt_is_current(
         kv: &dyn KeyValueStore,
         ns: &str,
@@ -1107,6 +1268,9 @@ impl PubSubSessionSink {
     }
 
     async fn maybe_flush_kv(&self) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         let should_flush = {
             let mut last = self.last_flush.lock().unwrap();
             if last.elapsed().as_millis() > 1000 {
@@ -1124,7 +1288,7 @@ impl PubSubSessionSink {
                 agent = %self.agent_id,
                 session = %self.session_id,
             );
-            async {
+            let oversized_error = async {
                 let _guard = self.persist_lock.lock().await;
                 if !Self::submission_attempt_is_current(
                     self.kv.as_ref(),
@@ -1136,39 +1300,38 @@ impl PubSubSessionSink {
                 )
                 .await
                 {
-                    return;
+                    return None;
                 }
-                if let Err(e) = crate::control::ProtoKeyValueStoreExt::set_msg(
-                    self.kv.as_ref(),
-                    &self.reply_msg_key,
-                    &msg,
-                )
-                .await
+                if let Err(e) = self
+                    .set_session_message(&msg, "in_progress_projection")
+                    .await
                 {
                     tracing::error!("Failed to persist session projection: {}", e);
+                    if e.to_string().contains("encoded size") {
+                        return Some(e.to_string());
+                    }
                 }
+                None
             }
             .instrument(span)
             .await;
+            if let Some(err) = oversized_error {
+                self.cutover_to_failed(format!(
+                    "Error: assistant message exceeded the session message storage limit. {err}"
+                ))
+                .await;
+            }
         }
     }
 
     async fn persist_durable_message(&self, span_name: &'static str) {
-        let msg = data_proto::SessionMessage {
-            id: self.reply_msg_id.clone(),
-            role: data_proto::MessageRole::RoleAssistant as i32,
-            created_at: chrono::Utc::now().timestamp_micros(),
-            labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED),
-            parts: self.durable_parts.lock().unwrap().clone(),
-        };
+        if self.is_cutover_terminal() {
+            return;
+        }
+        let msg = self.durable_message(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED);
         let result = async {
             let _guard = self.persist_lock.lock().await;
-            crate::control::ProtoKeyValueStoreExt::set_msg(
-                self.kv.as_ref(),
-                &self.reply_msg_key,
-                &msg,
-            )
-            .await
+            self.set_session_message(&msg, span_name).await
         }
         .instrument(tracing::info_span!(
             "PubSubSessionSink.persist_durable_message",
@@ -1184,6 +1347,12 @@ impl PubSubSessionSink {
                 "Failed to persist durable message: {}",
                 e
             );
+            if e.to_string().contains("encoded size") {
+                self.cutover_to_failed(format!(
+                    "Error: assistant message exceeded the session message storage limit. {e}"
+                ))
+                .await;
+            }
             return;
         }
         self.publish_reply_index_event().await;
@@ -1255,6 +1424,11 @@ impl PubSubSessionSink {
 #[async_trait]
 impl ExecutionSink for PubSubSessionSink {
     async fn on_llm_response(&self, response: &ChatResponse) -> Result<()> {
+        if self.is_cutover_terminal() {
+            return Err(anyhow!(
+                "session message exceeded storage limit and was cut over to failed"
+            ));
+        }
         let entry = sessions::append_llm_response(
             self.kv.as_ref(),
             &self.ns,
@@ -1271,6 +1445,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_token(&self, token: &str) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         *self.input_token_chunks.lock().unwrap() += 1;
         *self.input_token_chars.lock().unwrap() += token.len();
         if self
@@ -1287,6 +1464,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_reasoning(&self, reasoning: &str) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         *self.reasoning_chunks.lock().unwrap() += 1;
         *self.reasoning_chars.lock().unwrap() += reasoning.len();
         if self
@@ -1303,6 +1483,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         *self.tool_calls.lock().unwrap() += 1;
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
@@ -1326,6 +1509,11 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_tool_result_recorded(&self, id: &str, name: &str, result: &str) -> Result<()> {
+        if self.is_cutover_terminal() {
+            return Err(anyhow!(
+                "session message exceeded storage limit and was cut over to failed"
+            ));
+        }
         let part_id = self.next_part_id();
         let cas = CasStore::new(self.objects.clone());
         let entry = sessions::append_tool_result(
@@ -1369,6 +1557,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_tool_result(&self, id: &str, name: &str, result: &str) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         *self.tool_results.lock().unwrap() += 1;
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
@@ -1438,6 +1629,13 @@ impl ExecutionSink for PubSubSessionSink {
             payload_json,
             stored.object,
         );
+        let msg = self.durable_message(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED);
+        if self
+            .cutover_if_message_too_large(&msg, "tool_result_boundary")
+            .await
+        {
+            return;
+        }
         self.publish_event(AgentEvent::Observation {
             id: id.to_string(),
             name: name.to_string(),
@@ -1447,6 +1645,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_request_permission(&self, id: &str, action: &str, payload: &Value) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
         self.record_part(
@@ -1470,6 +1671,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_permission_result(&self, id: &str, outcome: &Value) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
         self.record_part(
@@ -1495,6 +1699,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_usage(&self, usage: &ChatUsage) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         *self.usage_events.lock().unwrap() += 1;
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
@@ -1508,6 +1715,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_done(&self) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         self.flush_active_stream_event_buffer().await;
         // Final KV write (complete message)
         let mut parts = match self.final_message_parts() {
@@ -1552,12 +1762,7 @@ impl ExecutionSink for PubSubSessionSink {
         };
         let result = async {
             let _guard = self.persist_lock.lock().await;
-            crate::control::ProtoKeyValueStoreExt::set_msg(
-                self.kv.as_ref(),
-                &self.reply_msg_key,
-                &msg,
-            )
-            .await
+            self.set_session_message(&msg, "final_message").await
         }
         .instrument(tracing::info_span!(
             "PubSubSessionSink.persist_final_message",
@@ -1567,7 +1772,7 @@ impl ExecutionSink for PubSubSessionSink {
         ))
         .await;
         match result {
-            Ok(()) => {
+            Ok(_) => {
                 if self
                     .mark_terminal(SessionSubmissionStatus::Committed as i32)
                     .await
@@ -1579,16 +1784,19 @@ impl ExecutionSink for PubSubSessionSink {
                     };
                     let commit_result = async {
                         let _guard = self.persist_lock.lock().await;
-                        crate::control::ProtoKeyValueStoreExt::set_msg(
-                            self.kv.as_ref(),
-                            &self.reply_msg_key,
-                            &committed_msg,
-                        )
-                        .await
+                        self.set_session_message(&committed_msg, "committed_projection")
+                            .await
                     }
                     .await;
                     if let Err(err) = commit_result {
                         tracing::error!(error = %err, "Failed to persist committed projection");
+                        if err.to_string().contains("encoded size") {
+                            self.cutover_to_failed(format!(
+                                "Error: assistant message exceeded the session message storage limit. {err}"
+                            ))
+                            .await;
+                            return;
+                        }
                         self.publish_event(AgentEvent::Error(
                             "Error: failed to persist committed assistant message".to_string(),
                         ))
@@ -1606,15 +1814,25 @@ impl ExecutionSink for PubSubSessionSink {
             }
             Err(e) => {
                 tracing::error!("Failed to persist final message: {}", e);
-                self.publish_event(AgentEvent::Error(
-                    "Error: failed to persist final assistant message".to_string(),
-                ))
-                .await;
+                if e.to_string().contains("encoded size") {
+                    self.cutover_to_failed(format!(
+                        "Error: assistant message exceeded the session message storage limit. {e}"
+                    ))
+                    .await;
+                } else {
+                    self.cutover_to_failed(
+                        "Error: failed to persist final assistant message".to_string(),
+                    )
+                    .await;
+                }
             }
         }
     }
 
     async fn on_error(&self, err: &str) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
 
@@ -1633,12 +1851,7 @@ impl ExecutionSink for PubSubSessionSink {
         };
         let result = async {
             let _guard = self.persist_lock.lock().await;
-            crate::control::ProtoKeyValueStoreExt::set_msg(
-                self.kv.as_ref(),
-                &self.reply_msg_key,
-                &msg,
-            )
-            .await
+            self.set_session_message(&msg, "error_message").await
         }
         .instrument(tracing::info_span!(
             "PubSubSessionSink.persist_error_message",
@@ -1648,7 +1861,7 @@ impl ExecutionSink for PubSubSessionSink {
         ))
         .await;
         match result {
-            Ok(()) => {
+            Ok(_) => {
                 self.mark_terminal(SessionSubmissionStatus::Failed as i32)
                     .await;
                 self.publish_reply_index_event().await;
@@ -1656,10 +1869,17 @@ impl ExecutionSink for PubSubSessionSink {
             }
             Err(e) => {
                 tracing::error!("Failed to persist error message: {}", e);
-                self.publish_event(AgentEvent::Error(
-                    "Error: failed to persist session error message".to_string(),
-                ))
-                .await;
+                if e.to_string().contains("encoded size") {
+                    self.cutover_to_failed(format!(
+                        "Error: assistant message exceeded the session message storage limit. {e}"
+                    ))
+                    .await;
+                } else {
+                    self.cutover_to_failed(
+                        "Error: failed to persist session error message".to_string(),
+                    )
+                    .await;
+                }
             }
         }
     }
@@ -1701,7 +1921,7 @@ mod tests {
     #[derive(Default)]
     struct MockKvStore {
         entries: Arc<Mutex<Vec<(String, Vec<u8>)>>>,
-        fail_reply_sets_after: Option<usize>,
+        fail_reply_set_ordinals: Vec<usize>,
         reply_set_count: Arc<Mutex<usize>>,
     }
 
@@ -1725,10 +1945,7 @@ mod tests {
             if key.to_string() == reply_key().to_string() {
                 let mut count = self.reply_set_count.lock().await;
                 *count += 1;
-                if self
-                    .fail_reply_sets_after
-                    .is_some_and(|limit| *count > limit)
-                {
+                if self.fail_reply_set_ordinals.contains(&*count) {
                     anyhow::bail!("injected reply write failure");
                 }
             }
@@ -1740,10 +1957,21 @@ mod tests {
         }
         async fn compare_and_swap(
             &self,
-            _k: &ResourceKey,
-            _expected: Option<&[u8]>,
-            _value: &[u8],
+            key: &ResourceKey,
+            expected: Option<&[u8]>,
+            value: &[u8],
         ) -> anyhow::Result<bool> {
+            let mut entries = self.entries.lock().await;
+            let key_string = key.to_string();
+            let current = entries
+                .iter()
+                .rev()
+                .find(|(entry_key, _)| entry_key == &key_string)
+                .map(|(_, value)| value.as_slice());
+            if current != expected {
+                return Ok(false);
+            }
+            entries.push((key_string, value.to_vec()));
             Ok(true)
         }
         async fn delete(&self, _k: &ResourceKey) -> anyhow::Result<()> {
@@ -2602,6 +2830,139 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn oversized_projection_cuts_over_to_compact_failed_message() {
+        let _guard = crate::test_support::async_env_mutex().lock().await;
+        let _env = crate::test_support::EnvVarGuard::set("TALON_SESSION_MESSAGE_MAX_BYTES", "1500");
+
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        crate::control::ProtoKeyValueStoreExt::set_msg(
+            kv.as_ref(),
+            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &submission,
+        )
+        .await
+        .unwrap();
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        *sink.last_flush.lock().unwrap() = Instant::now() - Duration::from_secs(2);
+        sink.on_token(&"x".repeat(5_000)).await;
+        sink.on_done().await;
+
+        assert!(sink.is_cutover_terminal());
+        let reply = latest_reply_message(kv.as_ref()).await;
+        assert_eq!(
+            reply
+                .labels
+                .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+                .map(String::as_str),
+            Some(sessions::SESSION_PROJECTION_STATE_FAILED)
+        );
+        assert_eq!(reply.parts.len(), 1);
+        assert_eq!(
+            reply.parts[0].part_type,
+            data_proto::SessionMessagePartType::Error as i32
+        );
+        assert!(reply.parts[0]
+            .content
+            .contains("assistant message exceeded the session message storage limit"));
+
+        let stored_submission = kv
+            .entries
+            .lock()
+            .await
+            .iter()
+            .filter_map(|(_, value)| sessions::SessionSubmission::decode(value.as_slice()).ok())
+            .rev()
+            .find(|submission| submission.submission_id == "submission-1")
+            .expect("submission should be updated");
+        assert_eq!(
+            stored_submission.status,
+            data_proto::SessionSubmissionStatus::Failed as i32
+        );
+    }
+
+    #[tokio::test]
+    async fn oversized_final_message_cuts_over_to_compact_failed_message() {
+        let _guard = crate::test_support::async_env_mutex().lock().await;
+        let _env = crate::test_support::EnvVarGuard::set("TALON_SESSION_MESSAGE_MAX_BYTES", "1500");
+
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        crate::control::ProtoKeyValueStoreExt::set_msg(
+            kv.as_ref(),
+            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &submission,
+        )
+        .await
+        .unwrap();
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        sink.on_token(&"x".repeat(5_000)).await;
+        sink.on_done().await;
+
+        assert!(sink.is_cutover_terminal());
+        let reply = latest_reply_message(kv.as_ref()).await;
+        assert_eq!(
+            reply
+                .labels
+                .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+                .map(String::as_str),
+            Some(sessions::SESSION_PROJECTION_STATE_FAILED)
+        );
+        assert_eq!(reply.parts.len(), 1);
+        assert_eq!(
+            reply.parts[0].part_type,
+            data_proto::SessionMessagePartType::Error as i32
+        );
+        assert!(!reply.parts[0].content.contains(&"x".repeat(100)));
+
+        let stored_submission = kv
+            .entries
+            .lock()
+            .await
+            .iter()
+            .filter_map(|(_, value)| sessions::SessionSubmission::decode(value.as_slice()).ok())
+            .rev()
+            .find(|submission| submission.submission_id == "submission-1")
+            .expect("submission should be updated");
+        assert_eq!(
+            stored_submission.status,
+            data_proto::SessionSubmissionStatus::Failed as i32
+        );
+    }
+
+    #[tokio::test]
     async fn live_parts_advance_past_recovered_part_ids() {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
@@ -2919,7 +3280,7 @@ mod tests {
     async fn done_publishes_error_when_committed_projection_write_fails() {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore {
-            fail_reply_sets_after: Some(1),
+            fail_reply_set_ordinals: vec![2],
             ..MockKvStore::default()
         });
         let mut submission =
