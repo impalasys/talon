@@ -1578,6 +1578,7 @@ function DebuggerPageContent() {
                   objectUrlForRef={isStaticExport ? undefined : talonObjectUrl}
                   disabled={!isConnected}
                   allowMessageEditing
+                  enableDebugMessageEditing={Boolean(sessionConnectorMetadata)}
                   composerVariant="expanded"
                   composerStartAdornment={
                     <div className="flex h-8 overflow-hidden rounded-full border border-border bg-background/80 p-0.5">

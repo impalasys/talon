@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18proto/data/routing.proto\x12\ntalon.data\".\n\x0bResourceRef\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\"h\n\x16SessionMessageConsumer\x12&\n\x05\x61gent\x18\x01 \x01(\x0b\x32\x17.talon.data.ResourceRef\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\x12\n\ncontinuity\x18\x03 \x01(\t\"\x94\x01\n\x16\x43hannelMessageConsumer\x12(\n\x07\x63hannel\x18\x01 \x01(\x0b\x32\x17.talon.data.ResourceRef\x12&\n\x05\x61gent\x18\x02 \x01(\x0b\x32\x17.talon.data.ResourceRef\x12\x12\n\ncontinuity\x18\x03 \x01(\t\x12\x14\n\x0creply_policy\x18\x04 \x01(\t\"N\n\x17WorkflowMessageConsumer\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x12\n\nreply_mode\x18\x03 \x01(\t\"\xe6\x01\n\x0fMessageConsumer\x12\x38\n\x07session\x18\x01 \x01(\x0b\x32\".talon.data.SessionMessageConsumerH\x00\x88\x01\x01\x12\x38\n\x07\x63hannel\x18\x02 \x01(\x0b\x32\".talon.data.ChannelMessageConsumerH\x01\x88\x01\x01\x12:\n\x08workflow\x18\x03 \x01(\x0b\x32#.talon.data.WorkflowMessageConsumerH\x02\x88\x01\x01\x42\n\n\x08_sessionB\n\n\x08_channelB\x0b\n\t_workflowb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18proto/data/routing.proto\x12\ntalon.data\".\n\x0bResourceRef\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\"|\n\x16SessionMessageConsumer\x12&\n\x05\x61gent\x18\x01 \x01(\x0b\x32\x17.talon.data.ResourceRef\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\x12\n\ncontinuity\x18\x03 \x01(\t\x12\x12\n\nreply_mode\x18\x04 \x01(\t\"\x94\x01\n\x16\x43hannelMessageConsumer\x12(\n\x07\x63hannel\x18\x01 \x01(\x0b\x32\x17.talon.data.ResourceRef\x12&\n\x05\x61gent\x18\x02 \x01(\x0b\x32\x17.talon.data.ResourceRef\x12\x12\n\ncontinuity\x18\x03 \x01(\t\x12\x14\n\x0creply_policy\x18\x04 \x01(\t\"N\n\x17WorkflowMessageConsumer\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x12\n\nreply_mode\x18\x03 \x01(\t\"\xe6\x01\n\x0fMessageConsumer\x12\x38\n\x07session\x18\x01 \x01(\x0b\x32\".talon.data.SessionMessageConsumerH\x00\x88\x01\x01\x12\x38\n\x07\x63hannel\x18\x02 \x01(\x0b\x32\".talon.data.ChannelMessageConsumerH\x01\x88\x01\x01\x12:\n\x08workflow\x18\x03 \x01(\x0b\x32#.talon.data.WorkflowMessageConsumerH\x02\x88\x01\x01\x42\n\n\x08_sessionB\n\n\x08_channelB\x0b\n\t_workflowb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,11 +34,11 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_RESOURCEREF']._serialized_start=40
   _globals['_RESOURCEREF']._serialized_end=86
   _globals['_SESSIONMESSAGECONSUMER']._serialized_start=88
-  _globals['_SESSIONMESSAGECONSUMER']._serialized_end=192
-  _globals['_CHANNELMESSAGECONSUMER']._serialized_start=195
-  _globals['_CHANNELMESSAGECONSUMER']._serialized_end=343
-  _globals['_WORKFLOWMESSAGECONSUMER']._serialized_start=345
-  _globals['_WORKFLOWMESSAGECONSUMER']._serialized_end=423
-  _globals['_MESSAGECONSUMER']._serialized_start=426
-  _globals['_MESSAGECONSUMER']._serialized_end=656
+  _globals['_SESSIONMESSAGECONSUMER']._serialized_end=212
+  _globals['_CHANNELMESSAGECONSUMER']._serialized_start=215
+  _globals['_CHANNELMESSAGECONSUMER']._serialized_end=363
+  _globals['_WORKFLOWMESSAGECONSUMER']._serialized_start=365
+  _globals['_WORKFLOWMESSAGECONSUMER']._serialized_end=443
+  _globals['_MESSAGECONSUMER']._serialized_start=446
+  _globals['_MESSAGECONSUMER']._serialized_end=676
 # @@protoc_insertion_point(module_scope)

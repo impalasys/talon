@@ -260,6 +260,37 @@ public final class SessionServiceGrpc {
     return getAppendMessageMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.UpdateSessionMessageRequest,
+      talon.v1.Sessions.UpdateSessionMessageResponse> getUpdateMessageMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "UpdateMessage",
+      requestType = talon.v1.Sessions.UpdateSessionMessageRequest.class,
+      responseType = talon.v1.Sessions.UpdateSessionMessageResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.UpdateSessionMessageRequest,
+      talon.v1.Sessions.UpdateSessionMessageResponse> getUpdateMessageMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.UpdateSessionMessageRequest, talon.v1.Sessions.UpdateSessionMessageResponse> getUpdateMessageMethod;
+    if ((getUpdateMessageMethod = SessionServiceGrpc.getUpdateMessageMethod) == null) {
+      synchronized (SessionServiceGrpc.class) {
+        if ((getUpdateMessageMethod = SessionServiceGrpc.getUpdateMessageMethod) == null) {
+          SessionServiceGrpc.getUpdateMessageMethod = getUpdateMessageMethod =
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.UpdateSessionMessageRequest, talon.v1.Sessions.UpdateSessionMessageResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "UpdateMessage"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Sessions.UpdateSessionMessageRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Sessions.UpdateSessionMessageResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("UpdateMessage"))
+              .build();
+        }
+      }
+    }
+    return getUpdateMessageMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.AnswerSessionPermissionRequest,
       talon.v1.Sessions.AnswerSessionPermissionResponse> getAnswerPermissionMethod;
 
@@ -536,6 +567,13 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    default void updateMessage(talon.v1.Sessions.UpdateSessionMessageRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.UpdateSessionMessageResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getUpdateMessageMethod(), responseObserver);
+    }
+
+    /**
+     */
     default void answerPermission(talon.v1.Sessions.AnswerSessionPermissionRequest request,
         io.grpc.stub.StreamObserver<talon.v1.Sessions.AnswerSessionPermissionResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getAnswerPermissionMethod(), responseObserver);
@@ -663,6 +701,14 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    public void updateMessage(talon.v1.Sessions.UpdateSessionMessageRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.UpdateSessionMessageResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getUpdateMessageMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
     public void answerPermission(talon.v1.Sessions.AnswerSessionPermissionRequest request,
         io.grpc.stub.StreamObserver<talon.v1.Sessions.AnswerSessionPermissionResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
@@ -772,6 +818,13 @@ public final class SessionServiceGrpc {
     public talon.v1.Sessions.AppendSessionMessageResponse appendMessage(talon.v1.Sessions.AppendSessionMessageRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getAppendMessageMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Sessions.UpdateSessionMessageResponse updateMessage(talon.v1.Sessions.UpdateSessionMessageRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getUpdateMessageMethod(), getCallOptions(), request);
     }
 
     /**
@@ -886,6 +939,13 @@ public final class SessionServiceGrpc {
     public talon.v1.Sessions.AppendSessionMessageResponse appendMessage(talon.v1.Sessions.AppendSessionMessageRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getAppendMessageMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Sessions.UpdateSessionMessageResponse updateMessage(talon.v1.Sessions.UpdateSessionMessageRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getUpdateMessageMethod(), getCallOptions(), request);
     }
 
     /**
@@ -1009,6 +1069,14 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.UpdateSessionMessageResponse> updateMessage(
+        talon.v1.Sessions.UpdateSessionMessageRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getUpdateMessageMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
     public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.AnswerSessionPermissionResponse> answerPermission(
         talon.v1.Sessions.AnswerSessionPermissionRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
@@ -1032,11 +1100,12 @@ public final class SessionServiceGrpc {
   private static final int METHODID_CLEAR = 5;
   private static final int METHODID_SEND_MESSAGE = 6;
   private static final int METHODID_APPEND_MESSAGE = 7;
-  private static final int METHODID_ANSWER_PERMISSION = 8;
-  private static final int METHODID_STOP_GENERATION = 9;
-  private static final int METHODID_STREAM_PARTS = 10;
-  private static final int METHODID_STREAM_PARTS_BATCH = 11;
-  private static final int METHODID_SUBMIT_TURN = 12;
+  private static final int METHODID_UPDATE_MESSAGE = 8;
+  private static final int METHODID_ANSWER_PERMISSION = 9;
+  private static final int METHODID_STOP_GENERATION = 10;
+  private static final int METHODID_STREAM_PARTS = 11;
+  private static final int METHODID_STREAM_PARTS_BATCH = 12;
+  private static final int METHODID_SUBMIT_TURN = 13;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -1086,6 +1155,10 @@ public final class SessionServiceGrpc {
         case METHODID_APPEND_MESSAGE:
           serviceImpl.appendMessage((talon.v1.Sessions.AppendSessionMessageRequest) request,
               (io.grpc.stub.StreamObserver<talon.v1.Sessions.AppendSessionMessageResponse>) responseObserver);
+          break;
+        case METHODID_UPDATE_MESSAGE:
+          serviceImpl.updateMessage((talon.v1.Sessions.UpdateSessionMessageRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.UpdateSessionMessageResponse>) responseObserver);
           break;
         case METHODID_ANSWER_PERMISSION:
           serviceImpl.answerPermission((talon.v1.Sessions.AnswerSessionPermissionRequest) request,
@@ -1182,6 +1255,13 @@ public final class SessionServiceGrpc {
               talon.v1.Sessions.AppendSessionMessageResponse>(
                 service, METHODID_APPEND_MESSAGE)))
         .addMethod(
+          getUpdateMessageMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.v1.Sessions.UpdateSessionMessageRequest,
+              talon.v1.Sessions.UpdateSessionMessageResponse>(
+                service, METHODID_UPDATE_MESSAGE)))
+        .addMethod(
           getAnswerPermissionMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
@@ -1272,6 +1352,7 @@ public final class SessionServiceGrpc {
               .addMethod(getClearMethod())
               .addMethod(getSendMessageMethod())
               .addMethod(getAppendMessageMethod())
+              .addMethod(getUpdateMessageMethod())
               .addMethod(getAnswerPermissionMethod())
               .addMethod(getStopGenerationMethod())
               .addMethod(getStreamPartsMethod())

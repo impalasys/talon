@@ -29,6 +29,7 @@ export type CopilotMessage = {
   role: "user" | "assistant" | "system";
   content: string;
   createdAt?: string | number | bigint;
+  labels?: Record<string, string>;
   parts?: unknown;
   reasoningContent?: string;
   timeline?: AssistantTimelineItem[];

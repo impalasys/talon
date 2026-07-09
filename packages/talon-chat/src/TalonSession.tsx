@@ -154,6 +154,7 @@ export type TalonSessionProps = {
   onSubmitMessage?: (context: TalonSessionSubmitContext) => Promise<boolean | void> | boolean | void;
   allowMessageEditing?: boolean;
   onMessageEdit?: (context: TalonSessionMessageEditContext) => Promise<boolean | void> | boolean | void;
+  enableDebugMessageEditing?: boolean;
 };
 
 export type TalonCopilotProps = TalonSessionProps;
@@ -164,6 +165,11 @@ const DEFAULT_HISTORY_MESSAGE_LIMIT = 100;
 const DEFAULT_HISTORY_STEP_LIMIT = 1000;
 const HISTORY_SCROLL_LOAD_THRESHOLD_PX = 120;
 const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 48;
+const LABEL_CONNECTOR_DELIVERY_STATUS = "talon.impalasys.com/connector-delivery-status";
+const LABEL_CONNECTOR_DELIVERY_ERROR = "talon.impalasys.com/connector-delivery-error";
+const CONNECTOR_DELIVERY_PENDING_REVIEW = "pending_review";
+const CONNECTOR_DELIVERY_REQUESTED = "delivery_requested";
+const CONNECTOR_DELIVERY_SKIPPED = "skipped";
 
 function border(color: string) {
   return `1px solid ${color}`;
@@ -267,6 +273,13 @@ function stableHistoryMessageId(message: any, index: number) {
   return `history-${role}-${createdAt}-${index}-${stableStringHash(content)}`;
 }
 
+function normalizeMessageLabels(labels: unknown): Record<string, string> | undefined {
+  if (!labels || typeof labels !== "object") return undefined;
+  const entries = Object.entries(labels as Record<string, unknown>)
+    .filter((entry): entry is [string, string] => typeof entry[1] === "string");
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
+
 function objectRefMediaType(object: TalonChatObjectRef | undefined) {
   return object?.mediaType || object?.media_type || "";
 }
@@ -319,6 +332,39 @@ function protoSessionPartsFromChatParts(parts: unknown) {
       content: String(part?.text ?? part?.content ?? ""),
     };
   });
+}
+
+function isSessionTextPart(part: any) {
+  const type = part?.type ?? part?.partType ?? part?.part_type;
+  return type === "text" || type === data.SessionMessagePartType.TEXT || type === "SESSION_MESSAGE_PART_TYPE_TEXT";
+}
+
+function replaceMessageTextPart(message: CopilotMessage, text: string) {
+  const sourceParts = Array.isArray(message.parts) ? message.parts : [];
+  const parts = sourceParts.map((part: any) => part && typeof part === "object" ? { ...part } : part);
+  let textPartIndex = -1;
+  for (let index = parts.length - 1; index >= 0; index -= 1) {
+    if (isSessionTextPart(parts[index])) {
+      textPartIndex = index;
+      break;
+    }
+  }
+  if (textPartIndex >= 0) {
+    const part = parts[textPartIndex] as any;
+    if ("text" in part) {
+      part.text = text;
+    } else {
+      part.content = text;
+    }
+    return parts;
+  }
+  return [
+    ...parts,
+    {
+      partType: data.SessionMessagePartType.TEXT,
+      content: text,
+    },
+  ];
 }
 
 function parsePayloadJson(payloadJson: unknown): Record<string, unknown> {
@@ -553,18 +599,23 @@ function historyItemsFromResponse(response: any) {
   return [];
 }
 
+function normalizeRawSessionMessage(message: any, index: number): CopilotMessage {
+  return {
+    id: stableHistoryMessageId(message, index),
+    role: normalizeMessageRole(message.role),
+    content: getMessageContent(message),
+    labels: normalizeMessageLabels(message.labels),
+    parts: Array.isArray(message.parts) ? message.parts : undefined,
+    createdAt: message.createdAt ?? message.created_at,
+  };
+}
+
 function normalizeHistoryPage(response: any): SessionHistoryPage {
   const items = historyItemsFromResponse(response);
   const rawMessages = items
     .map((item) => item?.message)
     .filter(Boolean)
-    .map((message: any, index: number) => ({
-      id: stableHistoryMessageId(message, index),
-      role: normalizeMessageRole(message.role),
-      content: getMessageContent(message),
-      parts: Array.isArray(message.parts) ? message.parts : undefined,
-      createdAt: message.createdAt ?? message.created_at,
-    }));
+    .map((message: any, index: number) => normalizeRawSessionMessage(message, index));
   const steps = items.flatMap((item) => item?.steps || []);
   return {
     messages: hydrateMessagesWithSteps(rawMessages, steps),
@@ -646,6 +697,7 @@ export function TalonSession({
   onSubmitMessage,
   allowMessageEditing = false,
   onMessageEdit,
+  enableDebugMessageEditing = false,
 }: TalonSessionProps) {
   const [messages, setMessages] = useState<CopilotMessage[]>(emptyMessages);
   const [input, setInput] = useState("");
@@ -659,6 +711,7 @@ export function TalonSession({
   const [expandedToolItems, setExpandedToolItems] = useState<Record<string, boolean>>({});
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingMessageValue, setEditingMessageValue] = useState("");
+  const [reviewActionMessageId, setReviewActionMessageId] = useState<string | null>(null);
   const [currentSession, setCurrentSession] = useState<{ ns: string; agent: string; sessionId: string } | null>(null);
   const [hasMoreHistory, setHasMoreHistory] = useState(false);
   const [nextBeforeMessageId, setNextBeforeMessageId] = useState<string | null>(null);
@@ -810,6 +863,37 @@ export function TalonSession({
     }));
   }, []);
 
+  const updateSessionMessage = useCallback(
+    async (message: CopilotMessage, parts: unknown[], labels: Record<string, string>) => {
+      const session = currentSessionRef.current ?? (sessionId ? { ns: namespace, agent, sessionId } : null);
+      const sessions = gatewayClient?.sessions;
+      if (!session) {
+        throw new Error("No active session to update.");
+      }
+      if (!sessions?.updateMessage) {
+        throw new Error("Gateway client does not support sessions.updateMessage().");
+      }
+      const response = await sessions.updateMessage({
+        ns: session.ns,
+        agent: session.agent,
+        sessionId: session.sessionId,
+        messageId: message.id,
+        parts,
+        labels,
+      });
+      const updated = response?.message
+        ? normalizeRawSessionMessage(response.message, 0)
+        : { ...message, parts, labels, content: getMessageContent({ ...message, parts }) };
+      setMessages((current) => {
+        const nextMessages = current.map((item) => item.id === message.id ? updated : item);
+        messagesRef.current = nextMessages;
+        return nextMessages;
+      });
+      return updated;
+    },
+    [agent, gatewayClient, namespace, sessionId],
+  );
+
   const startEditingMessage = useCallback((message: CopilotMessage) => {
     setEditingMessageId(message.id);
     setEditingMessageValue(editableMessageContent(message));
@@ -826,7 +910,17 @@ export function TalonSession({
       return;
     }
     setError(null);
+    const shouldPersistSessionEdit =
+      enableDebugMessageEditing &&
+      (message.role === "user" || message.role === "assistant") &&
+      !isLocalMessageId(message.id);
     try {
+      if (shouldPersistSessionEdit) {
+        setReviewActionMessageId(message.id);
+        await updateSessionMessage(message, replaceMessageTextPart(message, nextContent), { ...(message.labels ?? {}) });
+        cancelEditingMessage();
+        return;
+      }
       const handled = await onMessageEdit?.({
         message,
         nextContent,
@@ -845,8 +939,30 @@ export function TalonSession({
       cancelEditingMessage();
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      setReviewActionMessageId(null);
     }
-  }, [agent, cancelEditingMessage, editingMessageValue, namespace, onMessageEdit, sessionId]);
+  }, [agent, cancelEditingMessage, editingMessageValue, enableDebugMessageEditing, namespace, onMessageEdit, sessionId, updateSessionMessage]);
+
+  const updateConnectorDeliveryStatus = useCallback(
+    async (message: CopilotMessage, status: string) => {
+      const labels = {
+        ...(message.labels ?? {}),
+        [LABEL_CONNECTOR_DELIVERY_STATUS]: status,
+      };
+      delete labels[LABEL_CONNECTOR_DELIVERY_ERROR];
+      setError(null);
+      setReviewActionMessageId(message.id);
+      try {
+        await updateSessionMessage(message, Array.isArray(message.parts) ? message.parts : [], labels);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
+        setReviewActionMessageId(null);
+      }
+    },
+    [updateSessionMessage],
+  );
 
   const copyMessageContent = useCallback(async (message: CopilotMessage) => {
     const nextContent = editableMessageContent(message);
@@ -882,11 +998,14 @@ export function TalonSession({
       const usage = getMessageUsage(message);
       const usageSummary = formatUsageSummary(usage);
       const isUserMessage = message.role === "user";
-      const isEditableMessage = allowMessageEditing && (message.role === "user" || message.role === "assistant") && !isLoading;
-      const isEditingMessage = editingMessageId === message.id;
-      const messageActionTimestamp = isEditableMessage ? formatMessageActionTimestamp(message) : null;
       const isLatestMessage = messageIndex === messages.length - 1;
       const isLiveAssistantMessage = isLoading && isLatestMessage && message.role === "assistant";
+      const isEditableMessage =
+        (allowMessageEditing || enableDebugMessageEditing) &&
+        (message.role === "user" || message.role === "assistant") &&
+        !isLiveAssistantMessage;
+      const isEditingMessage = editingMessageId === message.id;
+      const messageActionTimestamp = isEditableMessage ? formatMessageActionTimestamp(message) : null;
       const finalizedTimeline = isLiveAssistantMessage
         ? { workTimeline: [], finalTimeline: timeline }
         : splitFinalAssistantTimeline(timeline);
@@ -916,6 +1035,9 @@ export function TalonSession({
         ? formatWorkingDuration(loadingStartedAt, loadingNow)
         : formatWorkDuration(previousUserMessage?.createdAt, message.createdAt);
       const isWorkExpanded = expandedThinkingMessages[message.id] ?? false;
+      const deliveryStatus = message.labels?.[LABEL_CONNECTOR_DELIVERY_STATUS];
+      const isPendingConnectorDelivery = deliveryStatus === CONNECTOR_DELIVERY_PENDING_REVIEW;
+      const isReviewActionPending = reviewActionMessageId === message.id;
       return (
         <div
           key={message.id}
@@ -1088,6 +1210,40 @@ export function TalonSession({
                     ) : null}
                   </div>
                 ) : null}
+              </div>
+            ) : null}
+
+            {isPendingConnectorDelivery ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 8,
+                  marginBottom: 8,
+                  color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))",
+                  fontSize: 12,
+                }}
+              >
+                <span>Pending send</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <button
+                    type="button"
+                    disabled={isReviewActionPending || isEditingMessage}
+                    onClick={() => void updateConnectorDeliveryStatus(message, CONNECTOR_DELIVERY_REQUESTED)}
+                    style={{ border: "none", background: "transparent", color: "var(--talon-chat-accent-fg, #047857)", cursor: isReviewActionPending || isEditingMessage ? "not-allowed" : "pointer", fontWeight: 700, padding: "2px 4px", opacity: isReviewActionPending || isEditingMessage ? 0.55 : 1 }}
+                  >
+                    Send
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isReviewActionPending || isEditingMessage}
+                    onClick={() => void updateConnectorDeliveryStatus(message, CONNECTOR_DELIVERY_SKIPPED)}
+                    style={{ border: "none", background: "transparent", color: "inherit", cursor: isReviewActionPending || isEditingMessage ? "not-allowed" : "pointer", padding: "2px 4px", opacity: isReviewActionPending || isEditingMessage ? 0.55 : 1 }}
+                  >
+                    Skip
+                  </button>
+                </div>
               </div>
             ) : null}
 
@@ -1382,7 +1538,7 @@ export function TalonSession({
         </div>
       );
     });
-  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, expandedThinkingMessages, expandedToolItems, isLoading, loadingNow, loadingStartedAt, messages, objectUrlForRef, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem]);
+  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, isLoading, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, updateConnectorDeliveryStatus]);
 
   const resolvedHistoryPageSize = Math.max(
     1,

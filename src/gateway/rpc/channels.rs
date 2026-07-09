@@ -36,6 +36,7 @@ const LABEL_EXTERNAL_CONVERSATION: &str = "talon.impalasys.com/external-conversa
 const CONNECTOR_HTTP_TIMEOUT: Duration = Duration::from_secs(15);
 const LABEL_EXTERNAL_MESSAGE: &str = "talon.impalasys.com/external-message";
 const LABEL_EXTERNAL_THREAD: &str = "talon.impalasys.com/external-thread";
+const CHANNEL_REPLY_MODE_HOLD_FOR_REVIEW: &str = "hold_for_review";
 
 fn validate_resource_name(kind: &str, name: &str) -> Result<(), tonic::Status> {
     if name.trim().is_empty() {
@@ -890,10 +891,11 @@ pub(crate) async fn route_connector_channel_message(
     connector_name: &str,
     reply_mode: &str,
 ) -> anyhow::Result<String> {
-    let reply_mode = if reply_mode.trim().is_empty() {
+    let normalized_reply_mode = normalize_channel_reply_mode(reply_mode);
+    let reply_mode = if normalized_reply_mode.is_empty() {
         "auto"
     } else {
-        reply_mode.trim()
+        normalized_reply_mode.as_str()
     };
 
     let mut labels = HashMap::new();
@@ -975,6 +977,8 @@ fn format_connector_channel_prompt(
 ) -> String {
     let reply_instruction = if reply_mode == "none" {
         "Normal assistant text stays private in your session and will not be posted to the channel. This connector is configured with replyPolicy none, so no public channel reply is expected."
+    } else if reply_mode == CHANNEL_REPLY_MODE_HOLD_FOR_REVIEW {
+        "Your final assistant response will be held for operator review before it is posted through the connector. Do not call channel_publish. If no public reply is appropriate, answer with the no-reply token <talon:no-reply>."
     } else if reply_mode == "thread" {
         "Normal assistant text stays private in your session and will not be posted to the channel. This connector is configured with replyPolicy thread, so answer by calling channel_publish exactly once with the public response content. Only call channel_skip_reply for spam, bot loops, or messages that clearly require no response."
     } else {
@@ -990,6 +994,13 @@ fn format_connector_channel_prompt(
         message.author,
         message.content,
     )
+}
+
+fn normalize_channel_reply_mode(value: &str) -> String {
+    match value.trim() {
+        "review" | "hold_for_review" => CHANNEL_REPLY_MODE_HOLD_FOR_REVIEW.to_string(),
+        other => other.to_string(),
+    }
 }
 
 async fn delete_routed_session(

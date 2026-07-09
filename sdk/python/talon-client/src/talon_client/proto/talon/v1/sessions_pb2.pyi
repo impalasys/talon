@@ -229,6 +229,37 @@ class AppendSessionMessageResponse(_message.Message):
     message: _data_pb2.SessionMessage
     def __init__(self, session_id: _Optional[str] = ..., message: _Optional[_Union[_data_pb2.SessionMessage, _Mapping]] = ...) -> None: ...
 
+class UpdateSessionMessageRequest(_message.Message):
+    __slots__ = ("session_id", "agent", "ns", "message_id", "parts", "labels")
+    class LabelsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
+    NS_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_ID_FIELD_NUMBER: _ClassVar[int]
+    PARTS_FIELD_NUMBER: _ClassVar[int]
+    LABELS_FIELD_NUMBER: _ClassVar[int]
+    session_id: str
+    agent: str
+    ns: str
+    message_id: str
+    parts: _containers.RepeatedCompositeFieldContainer[_data_pb2.SessionMessagePart]
+    labels: _containers.ScalarMap[str, str]
+    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ..., message_id: _Optional[str] = ..., parts: _Optional[_Iterable[_Union[_data_pb2.SessionMessagePart, _Mapping]]] = ..., labels: _Optional[_Mapping[str, str]] = ...) -> None: ...
+
+class UpdateSessionMessageResponse(_message.Message):
+    __slots__ = ("session_id", "message")
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    session_id: str
+    message: _data_pb2.SessionMessage
+    def __init__(self, session_id: _Optional[str] = ..., message: _Optional[_Union[_data_pb2.SessionMessage, _Mapping]] = ...) -> None: ...
+
 class AnswerSessionPermissionRequest(_message.Message):
     __slots__ = ("session_id", "agent", "ns", "request_id", "outcome", "option_id", "decided_by")
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]

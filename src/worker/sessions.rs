@@ -1254,6 +1254,89 @@ mod tests {
             .unwrap();
     }
 
+    fn connector_session_labels(
+        extra: impl IntoIterator<Item = (&'static str, &'static str)>,
+    ) -> HashMap<String, String> {
+        let mut labels = HashMap::from([
+            (
+                "talon.impalasys.com/message-source".to_string(),
+                "connector".to_string(),
+            ),
+            (
+                "talon.impalasys.com/connector-registration".to_string(),
+                "Namespace/conic%3Atest/ConnectorClass/slack".to_string(),
+            ),
+            (
+                "talon.impalasys.com/connector".to_string(),
+                "slack-main".to_string(),
+            ),
+            (
+                "talon.impalasys.com/connector-class".to_string(),
+                "slack".to_string(),
+            ),
+            (
+                "talon.impalasys.com/external-conversation".to_string(),
+                "C123".to_string(),
+            ),
+            (
+                "talon.impalasys.com/external-message".to_string(),
+                "1710000000.000100".to_string(),
+            ),
+        ]);
+        for (key, value) in extra {
+            labels.insert(key.to_string(), value.to_string());
+        }
+        labels
+    }
+
+    async fn put_connector_session_and_assistant_message(
+        kv: Arc<MockKvStore>,
+        session_labels: HashMap<String, String>,
+        message_labels: HashMap<String, String>,
+        text: &str,
+    ) {
+        kv.set_msg(
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "assistant".to_string(),
+                ns: "conic:test".to_string(),
+                status: "READY".to_string(),
+                created_at: 0,
+                last_active: 123,
+                metadata: HashMap::new(),
+                labels: session_labels,
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "assistant-1",
+            ),
+            &data_proto::SessionMessage {
+                id: "assistant-1".to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 1,
+                labels: message_labels,
+                parts: vec![data_proto::SessionMessagePart {
+                    id: "000000".to_string(),
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
+                    content: text.to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 1,
+                    object: None,
+                }],
+            },
+        )
+        .await
+        .unwrap();
+    }
+
     async fn put_usage_policy(
         kv: Arc<MockKvStore>,
         namespace: &str,
@@ -2069,6 +2152,247 @@ mod tests {
         assert_eq!(delivery["deliveryId"], "assistant-1");
         assert_eq!(delivery["text"], "human-authored reply");
         assert_eq!(delivery["externalConversationId"], "C123");
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn maybe_deliver_connector_session_message_marks_hold_for_review_pending() {
+        let kv = Arc::new(MockKvStore::default());
+        put_connector_session_and_assistant_message(
+            kv.clone(),
+            connector_session_labels([("talon.impalasys.com/connector-reply-mode", "review")]),
+            HashMap::new(),
+            "draft reply",
+        )
+        .await;
+
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+            &cp,
+            "conic:test",
+            "assistant",
+            "session-1",
+            "assistant-1",
+        )
+        .await
+        .expect("hold_for_review should only mark pending");
+
+        let message = kv
+            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "assistant-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            message
+                .labels
+                .get("talon.impalasys.com/connector-delivery-status")
+                .map(String::as_str),
+            Some("pending_review")
+        );
+        assert_eq!(
+            message
+                .labels
+                .get("talon.impalasys.com/connector")
+                .map(String::as_str),
+            Some("slack-main")
+        );
+    }
+
+    #[tokio::test]
+    async fn maybe_deliver_connector_session_message_delivers_requested_review_text() {
+        let kv = Arc::new(MockKvStore::default());
+        let deliveries: Arc<Mutex<Vec<Value>>> = Arc::new(Mutex::new(Vec::new()));
+        let app = Router::new()
+            .route(
+                "/v1/deliveries",
+                post(
+                    |State(deliveries): State<Arc<Mutex<Vec<Value>>>>,
+                     Json(payload): Json<Value>| async move {
+                        deliveries.lock().unwrap().push(payload);
+                        Json(json!({
+                            "accepted": true,
+                            "disposition": "accepted",
+                            "error": ""
+                        }))
+                    },
+                ),
+            )
+            .with_state(deliveries.clone());
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let endpoint = format!("http://{}", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        put_connector_class_resource(kv.clone(), endpoint).await;
+        put_connector_session_and_assistant_message(
+            kv.clone(),
+            connector_session_labels([(
+                "talon.impalasys.com/connector-reply-mode",
+                "hold_for_review",
+            )]),
+            HashMap::from([(
+                "talon.impalasys.com/connector-delivery-status".to_string(),
+                "delivery_requested".to_string(),
+            )]),
+            "edited reply",
+        )
+        .await;
+
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+            &cp,
+            "conic:test",
+            "assistant",
+            "session-1",
+            "assistant-1",
+        )
+        .await
+        .expect("delivery_requested should deliver");
+
+        let deliveries = deliveries.lock().unwrap().clone();
+        assert_eq!(deliveries.len(), 1);
+        assert_eq!(deliveries[0]["text"], "edited reply");
+        let message = kv
+            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "assistant-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            message
+                .labels
+                .get("talon.impalasys.com/connector-delivery-status")
+                .map(String::as_str),
+            Some("delivered")
+        );
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn maybe_deliver_connector_session_message_skips_review_delivery() {
+        let kv = Arc::new(MockKvStore::default());
+        put_connector_session_and_assistant_message(
+            kv.clone(),
+            connector_session_labels([(
+                "talon.impalasys.com/connector-reply-mode",
+                "hold_for_review",
+            )]),
+            HashMap::from([(
+                "talon.impalasys.com/connector-delivery-status".to_string(),
+                "skipped".to_string(),
+            )]),
+            "do not send",
+        )
+        .await;
+
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+            &cp,
+            "conic:test",
+            "assistant",
+            "session-1",
+            "assistant-1",
+        )
+        .await
+        .expect("skipped review delivery should be a no-op");
+        let message = kv
+            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "assistant-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            message
+                .labels
+                .get("talon.impalasys.com/connector-delivery-status")
+                .map(String::as_str),
+            Some("skipped")
+        );
+    }
+
+    #[tokio::test]
+    async fn maybe_deliver_connector_session_message_marks_requested_delivery_failed() {
+        let kv = Arc::new(MockKvStore::default());
+        let app = Router::new().route(
+            "/v1/deliveries",
+            post(|| async {
+                (
+                    axum::http::StatusCode::BAD_REQUEST,
+                    Json(json!({
+                        "accepted": false,
+                        "disposition": "rejected",
+                        "error": "provider rejected message"
+                    })),
+                )
+            }),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let endpoint = format!("http://{}", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        put_connector_class_resource(kv.clone(), endpoint).await;
+        put_connector_session_and_assistant_message(
+            kv.clone(),
+            connector_session_labels([(
+                "talon.impalasys.com/connector-reply-mode",
+                "hold_for_review",
+            )]),
+            HashMap::from([(
+                "talon.impalasys.com/connector-delivery-status".to_string(),
+                "delivery_requested".to_string(),
+            )]),
+            "edited reply",
+        )
+        .await;
+
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+            &cp,
+            "conic:test",
+            "assistant",
+            "session-1",
+            "assistant-1",
+        )
+        .await
+        .expect("requested delivery failure should be recorded on the message");
+
+        let message = kv
+            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "assistant-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            message
+                .labels
+                .get("talon.impalasys.com/connector-delivery-status")
+                .map(String::as_str),
+            Some("failed")
+        );
+        assert!(message
+            .labels
+            .get("talon.impalasys.com/connector-delivery-error")
+            .is_some_and(|error| error.contains("provider rejected message")));
 
         server.abort();
     }

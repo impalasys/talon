@@ -191,6 +191,18 @@ function makeGatewayClient(raw: any = {}, gatewayUrl = 'http://localhost:18789',
     appendMessage: raw.appendMessage ?? jest.fn(async (request: any) => {
       return { sessionId: request.sessionId, message: request.message };
     }),
+    updateMessage: raw.updateMessage ?? jest.fn(async (request: any) => {
+      return {
+        sessionId: request.sessionId,
+        message: {
+          id: request.messageId,
+          role: 'ROLE_ASSISTANT',
+          parts: request.parts,
+          labels: request.labels,
+          createdAt: String(Date.now() * 1000),
+        },
+      };
+    }),
     submitTurn: raw.submitTurn ?? jest.fn(async function* (request: any, options?: any) {
       const bodyParts = (request.message?.parts ?? []).map((part: any) => {
         const partType = part?.partType ?? part?.part_type;
@@ -321,6 +333,76 @@ describe('TalonCopilot', () => {
       });
     });
     expect(await screen.findByText('Hello from history')).toBeInTheDocument();
+  });
+
+  it('shows pending connector replies and requests delivery by updating message labels', async () => {
+    const updateMessage = jest.fn(async (request: any) => ({
+      sessionId: request.sessionId,
+      message: {
+        id: request.messageId,
+        role: 'ROLE_ASSISTANT',
+        parts: request.parts,
+        labels: {
+          ...request.labels,
+          'talon.impalasys.com/connector-delivery-status': 'delivered',
+        },
+        createdAt: String(Date.now() * 1000),
+      },
+    }));
+    const gatewayClient = {
+      createSession: jest.fn(),
+      updateMessage,
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-review',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'assistant-review',
+              role: 'ROLE_ASSISTANT',
+              labels: {
+                'talon.impalasys.com/connector-delivery-status': 'pending_review',
+                'talon.impalasys.com/connector': 'slack-main',
+              },
+              parts: [
+                {
+                  partType: 1,
+                  content: 'Draft reply',
+                },
+              ],
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-review"
+        enableDebugMessageEditing
+      />,
+    );
+
+    expect(await screen.findByText('Pending send')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Send'));
+    await waitFor(() => expect(updateMessage).toHaveBeenCalled());
+    expect(updateMessage).toHaveBeenCalledWith(expect.objectContaining({
+      ns: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-review',
+      messageId: 'assistant-review',
+      labels: expect.objectContaining({
+        'talon.impalasys.com/connector-delivery-status': 'delivery_requested',
+        'talon.impalasys.com/connector': 'slack-main',
+      }),
+    }));
   });
 
   it('renders finalized work as typed timeline events instead of muting assistant text', async () => {

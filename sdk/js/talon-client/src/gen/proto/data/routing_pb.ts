@@ -83,6 +83,15 @@ export class SessionMessageConsumer extends Message<SessionMessageConsumer> {
    */
   continuity = "";
 
+  /**
+   * Reply behavior requested from the connector-aware session router.
+   * "hold_for_review" stores assistant replies as pending connector deliveries
+   * until an operator updates the message labels to request delivery or skip.
+   *
+   * @generated from field: string reply_mode = 4;
+   */
+  replyMode = "";
+
   constructor(data?: PartialMessage<SessionMessageConsumer>) {
     super();
     proto3.util.initPartial(data, this);
@@ -94,6 +103,7 @@ export class SessionMessageConsumer extends Message<SessionMessageConsumer> {
     { no: 1, name: "agent", kind: "message", T: ResourceRef },
     { no: 2, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "continuity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "reply_mode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionMessageConsumer {

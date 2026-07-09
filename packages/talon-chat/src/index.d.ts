@@ -213,6 +213,7 @@ export type TalonSessionProps = {
   onSubmitMessage?: (context: TalonSessionSubmitContext) => Promise<boolean | void> | boolean | void;
   allowMessageEditing?: boolean;
   onMessageEdit?: (context: TalonSessionMessageEditContext) => Promise<boolean | void> | boolean | void;
+  enableDebugMessageEditing?: boolean;
 };
 
 export type TalonCopilotProps = TalonSessionProps;

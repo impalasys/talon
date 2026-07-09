@@ -14,6 +14,7 @@ service SessionService {
   rpc Clear(ClearSessionRequest) returns (ClearSessionResponse);
   rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
   rpc AppendMessage(AppendSessionMessageRequest) returns (AppendSessionMessageResponse);
+  rpc UpdateMessage(UpdateSessionMessageRequest) returns (UpdateSessionMessageResponse);
   rpc AnswerPermission(AnswerSessionPermissionRequest) returns (AnswerSessionPermissionResponse);
   rpc StopGeneration(StopSessionGenerationRequest) returns (StopSessionGenerationResponse);
   rpc StreamParts(StreamSessionPartsRequest) returns (stream talon.events.SessionMessagePartEvent);
@@ -137,6 +138,20 @@ message AppendSessionMessageRequest {
 }
 
 message AppendSessionMessageResponse {
+  string session_id = 1;
+  talon.data.SessionMessage message = 2;
+}
+
+message UpdateSessionMessageRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+  string message_id = 4;
+  repeated talon.data.SessionMessagePart parts = 5;
+  map<string, string> labels = 6;
+}
+
+message UpdateSessionMessageResponse {
   string session_id = 1;
   talon.data.SessionMessage message = 2;
 }

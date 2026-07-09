@@ -87,7 +87,11 @@ type SessionMessageConsumer struct {
 	// Session continuity policy. "reuse" reuses the connector session pointer
 	// for the external conversation/thread; "pinned" requires session_id; any
 	// other value creates a new Session for each message.
-	Continuity    string `protobuf:"bytes,3,opt,name=continuity,proto3" json:"continuity,omitempty"`
+	Continuity string `protobuf:"bytes,3,opt,name=continuity,proto3" json:"continuity,omitempty"`
+	// Reply behavior requested from the connector-aware session router.
+	// "hold_for_review" stores assistant replies as pending connector deliveries
+	// until an operator updates the message labels to request delivery or skip.
+	ReplyMode     string `protobuf:"bytes,4,opt,name=reply_mode,json=replyMode,proto3" json:"reply_mode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -139,6 +143,13 @@ func (x *SessionMessageConsumer) GetSessionId() string {
 func (x *SessionMessageConsumer) GetContinuity() string {
 	if x != nil {
 		return x.Continuity
+	}
+	return ""
+}
+
+func (x *SessionMessageConsumer) GetReplyMode() string {
+	if x != nil {
+		return x.ReplyMode
 	}
 	return ""
 }
@@ -353,14 +364,16 @@ const file_proto_data_routing_proto_rawDesc = "" +
 	"talon.data\"?\n" +
 	"\vResourceRef\x12\x1c\n" +
 	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"\x86\x01\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"\xa5\x01\n" +
 	"\x16SessionMessageConsumer\x12-\n" +
 	"\x05agent\x18\x01 \x01(\v2\x17.talon.data.ResourceRefR\x05agent\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x02 \x01(\tR\tsessionId\x12\x1e\n" +
 	"\n" +
 	"continuity\x18\x03 \x01(\tR\n" +
-	"continuity\"\xbd\x01\n" +
+	"continuity\x12\x1d\n" +
+	"\n" +
+	"reply_mode\x18\x04 \x01(\tR\treplyMode\"\xbd\x01\n" +
 	"\x16ChannelMessageConsumer\x121\n" +
 	"\achannel\x18\x01 \x01(\v2\x17.talon.data.ResourceRefR\achannel\x12-\n" +
 	"\x05agent\x18\x02 \x01(\v2\x17.talon.data.ResourceRefR\x05agent\x12\x1e\n" +
