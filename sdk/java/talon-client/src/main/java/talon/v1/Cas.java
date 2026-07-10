@@ -546,72 +546,35 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <pre>
-     * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-     * plus best-effort object attributes; callers already supplied the key and
-     * should not treat this as a newly minted durable ObjectRef.
-     * </pre>
-     *
-     * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-     * @deprecated talon.v1.GetCasObjectResponse.object is deprecated.
-     *     See proto/talon/v1/cas.proto;l=18
-     * @return Whether the object field is set.
-     */
-    @java.lang.Deprecated boolean hasObject();
-    /**
-     * <pre>
-     * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-     * plus best-effort object attributes; callers already supplied the key and
-     * should not treat this as a newly minted durable ObjectRef.
-     * </pre>
-     *
-     * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-     * @deprecated talon.v1.GetCasObjectResponse.object is deprecated.
-     *     See proto/talon/v1/cas.proto;l=18
-     * @return The object.
-     */
-    @java.lang.Deprecated talon.data.Data.ObjectRef getObject();
-    /**
-     * <pre>
-     * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-     * plus best-effort object attributes; callers already supplied the key and
-     * should not treat this as a newly minted durable ObjectRef.
-     * </pre>
-     *
-     * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-     */
-    @java.lang.Deprecated talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder();
-
-    /**
-     * <code>bytes data = 2;</code>
+     * <code>bytes data = 1;</code>
      * @return The data.
      */
     com.google.protobuf.ByteString getData();
 
     /**
-     * <code>string signed_url = 3;</code>
+     * <code>string signed_url = 2;</code>
      * @return The signedUrl.
      */
     java.lang.String getSignedUrl();
     /**
-     * <code>string signed_url = 3;</code>
+     * <code>string signed_url = 2;</code>
      * @return The bytes for signedUrl.
      */
     com.google.protobuf.ByteString
         getSignedUrlBytes();
 
     /**
-     * <code>int64 signed_url_expires_at_unix_seconds = 4;</code>
+     * <code>int64 signed_url_expires_at_unix_seconds = 3;</code>
      * @return The signedUrlExpiresAtUnixSeconds.
      */
     long getSignedUrlExpiresAtUnixSeconds();
 
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 4;</code>
      */
     int getMetadataCount();
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 4;</code>
      */
     boolean containsMetadata(
         java.lang.String key);
@@ -622,12 +585,12 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
     java.util.Map<java.lang.String, java.lang.String>
     getMetadata();
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 4;</code>
      */
     java.util.Map<java.lang.String, java.lang.String>
     getMetadataMap();
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 4;</code>
      */
     /* nullable */
 java.lang.String getMetadataOrDefault(
@@ -635,48 +598,48 @@ java.lang.String getMetadataOrDefault(
         /* nullable */
 java.lang.String defaultValue);
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 4;</code>
      */
     java.lang.String getMetadataOrThrow(
         java.lang.String key);
 
     /**
-     * <code>string media_type = 6;</code>
+     * <code>string media_type = 5;</code>
      * @return The mediaType.
      */
     java.lang.String getMediaType();
     /**
-     * <code>string media_type = 6;</code>
+     * <code>string media_type = 5;</code>
      * @return The bytes for mediaType.
      */
     com.google.protobuf.ByteString
         getMediaTypeBytes();
 
     /**
-     * <code>uint64 size_bytes = 7;</code>
+     * <code>uint64 size_bytes = 6;</code>
      * @return The sizeBytes.
      */
     long getSizeBytes();
 
     /**
-     * <code>string sha256 = 8;</code>
+     * <code>string sha256 = 7;</code>
      * @return The sha256.
      */
     java.lang.String getSha256();
     /**
-     * <code>string sha256 = 8;</code>
+     * <code>string sha256 = 7;</code>
      * @return The bytes for sha256.
      */
     com.google.protobuf.ByteString
         getSha256Bytes();
 
     /**
-     * <code>string filename = 9;</code>
+     * <code>string filename = 8;</code>
      * @return The filename.
      */
     java.lang.String getFilename();
     /**
-     * <code>string filename = 9;</code>
+     * <code>string filename = 8;</code>
      * @return The bytes for filename.
      */
     com.google.protobuf.ByteString
@@ -726,7 +689,7 @@ java.lang.String defaultValue);
     protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
         int number) {
       switch (number) {
-        case 5:
+        case 4:
           return internalGetMetadata();
         default:
           throw new RuntimeException(
@@ -741,59 +704,10 @@ java.lang.String defaultValue);
               talon.v1.Cas.GetCasObjectResponse.class, talon.v1.Cas.GetCasObjectResponse.Builder.class);
     }
 
-    private int bitField0_;
-    public static final int OBJECT_FIELD_NUMBER = 1;
-    private talon.data.Data.ObjectRef object_;
-    /**
-     * <pre>
-     * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-     * plus best-effort object attributes; callers already supplied the key and
-     * should not treat this as a newly minted durable ObjectRef.
-     * </pre>
-     *
-     * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-     * @deprecated talon.v1.GetCasObjectResponse.object is deprecated.
-     *     See proto/talon/v1/cas.proto;l=18
-     * @return Whether the object field is set.
-     */
-    @java.lang.Override
-    @java.lang.Deprecated public boolean hasObject() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <pre>
-     * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-     * plus best-effort object attributes; callers already supplied the key and
-     * should not treat this as a newly minted durable ObjectRef.
-     * </pre>
-     *
-     * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-     * @deprecated talon.v1.GetCasObjectResponse.object is deprecated.
-     *     See proto/talon/v1/cas.proto;l=18
-     * @return The object.
-     */
-    @java.lang.Override
-    @java.lang.Deprecated public talon.data.Data.ObjectRef getObject() {
-      return object_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : object_;
-    }
-    /**
-     * <pre>
-     * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-     * plus best-effort object attributes; callers already supplied the key and
-     * should not treat this as a newly minted durable ObjectRef.
-     * </pre>
-     *
-     * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-     */
-    @java.lang.Override
-    @java.lang.Deprecated public talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder() {
-      return object_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : object_;
-    }
-
-    public static final int DATA_FIELD_NUMBER = 2;
+    public static final int DATA_FIELD_NUMBER = 1;
     private com.google.protobuf.ByteString data_ = com.google.protobuf.ByteString.EMPTY;
     /**
-     * <code>bytes data = 2;</code>
+     * <code>bytes data = 1;</code>
      * @return The data.
      */
     @java.lang.Override
@@ -801,11 +715,11 @@ java.lang.String defaultValue);
       return data_;
     }
 
-    public static final int SIGNED_URL_FIELD_NUMBER = 3;
+    public static final int SIGNED_URL_FIELD_NUMBER = 2;
     @SuppressWarnings("serial")
     private volatile java.lang.Object signedUrl_ = "";
     /**
-     * <code>string signed_url = 3;</code>
+     * <code>string signed_url = 2;</code>
      * @return The signedUrl.
      */
     @java.lang.Override
@@ -822,7 +736,7 @@ java.lang.String defaultValue);
       }
     }
     /**
-     * <code>string signed_url = 3;</code>
+     * <code>string signed_url = 2;</code>
      * @return The bytes for signedUrl.
      */
     @java.lang.Override
@@ -840,10 +754,10 @@ java.lang.String defaultValue);
       }
     }
 
-    public static final int SIGNED_URL_EXPIRES_AT_UNIX_SECONDS_FIELD_NUMBER = 4;
+    public static final int SIGNED_URL_EXPIRES_AT_UNIX_SECONDS_FIELD_NUMBER = 3;
     private long signedUrlExpiresAtUnixSeconds_ = 0L;
     /**
-     * <code>int64 signed_url_expires_at_unix_seconds = 4;</code>
+     * <code>int64 signed_url_expires_at_unix_seconds = 3;</code>
      * @return The signedUrlExpiresAtUnixSeconds.
      */
     @java.lang.Override
@@ -851,7 +765,7 @@ java.lang.String defaultValue);
       return signedUrlExpiresAtUnixSeconds_;
     }
 
-    public static final int METADATA_FIELD_NUMBER = 5;
+    public static final int METADATA_FIELD_NUMBER = 4;
     private static final class MetadataDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
           java.lang.String, java.lang.String> defaultEntry =
@@ -878,7 +792,7 @@ java.lang.String defaultValue);
       return internalGetMetadata().getMap().size();
     }
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 4;</code>
      */
     @java.lang.Override
     public boolean containsMetadata(
@@ -895,14 +809,14 @@ java.lang.String defaultValue);
       return getMetadataMap();
     }
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 4;</code>
      */
     @java.lang.Override
     public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
       return internalGetMetadata().getMap();
     }
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 4;</code>
      */
     @java.lang.Override
     public /* nullable */
@@ -916,7 +830,7 @@ java.lang.String defaultValue) {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 4;</code>
      */
     @java.lang.Override
     public java.lang.String getMetadataOrThrow(
@@ -930,11 +844,11 @@ java.lang.String defaultValue) {
       return map.get(key);
     }
 
-    public static final int MEDIA_TYPE_FIELD_NUMBER = 6;
+    public static final int MEDIA_TYPE_FIELD_NUMBER = 5;
     @SuppressWarnings("serial")
     private volatile java.lang.Object mediaType_ = "";
     /**
-     * <code>string media_type = 6;</code>
+     * <code>string media_type = 5;</code>
      * @return The mediaType.
      */
     @java.lang.Override
@@ -951,7 +865,7 @@ java.lang.String defaultValue) {
       }
     }
     /**
-     * <code>string media_type = 6;</code>
+     * <code>string media_type = 5;</code>
      * @return The bytes for mediaType.
      */
     @java.lang.Override
@@ -969,10 +883,10 @@ java.lang.String defaultValue) {
       }
     }
 
-    public static final int SIZE_BYTES_FIELD_NUMBER = 7;
+    public static final int SIZE_BYTES_FIELD_NUMBER = 6;
     private long sizeBytes_ = 0L;
     /**
-     * <code>uint64 size_bytes = 7;</code>
+     * <code>uint64 size_bytes = 6;</code>
      * @return The sizeBytes.
      */
     @java.lang.Override
@@ -980,11 +894,11 @@ java.lang.String defaultValue) {
       return sizeBytes_;
     }
 
-    public static final int SHA256_FIELD_NUMBER = 8;
+    public static final int SHA256_FIELD_NUMBER = 7;
     @SuppressWarnings("serial")
     private volatile java.lang.Object sha256_ = "";
     /**
-     * <code>string sha256 = 8;</code>
+     * <code>string sha256 = 7;</code>
      * @return The sha256.
      */
     @java.lang.Override
@@ -1001,7 +915,7 @@ java.lang.String defaultValue) {
       }
     }
     /**
-     * <code>string sha256 = 8;</code>
+     * <code>string sha256 = 7;</code>
      * @return The bytes for sha256.
      */
     @java.lang.Override
@@ -1019,11 +933,11 @@ java.lang.String defaultValue) {
       }
     }
 
-    public static final int FILENAME_FIELD_NUMBER = 9;
+    public static final int FILENAME_FIELD_NUMBER = 8;
     @SuppressWarnings("serial")
     private volatile java.lang.Object filename_ = "";
     /**
-     * <code>string filename = 9;</code>
+     * <code>string filename = 8;</code>
      * @return The filename.
      */
     @java.lang.Override
@@ -1040,7 +954,7 @@ java.lang.String defaultValue) {
       }
     }
     /**
-     * <code>string filename = 9;</code>
+     * <code>string filename = 8;</code>
      * @return The bytes for filename.
      */
     @java.lang.Override
@@ -1072,35 +986,32 @@ java.lang.String defaultValue) {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(1, getObject());
-      }
       if (!data_.isEmpty()) {
-        output.writeBytes(2, data_);
+        output.writeBytes(1, data_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(signedUrl_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, signedUrl_);
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, signedUrl_);
       }
       if (signedUrlExpiresAtUnixSeconds_ != 0L) {
-        output.writeInt64(4, signedUrlExpiresAtUnixSeconds_);
+        output.writeInt64(3, signedUrlExpiresAtUnixSeconds_);
       }
       com.google.protobuf.GeneratedMessage
         .serializeStringMapTo(
           output,
           internalGetMetadata(),
           MetadataDefaultEntryHolder.defaultEntry,
-          5);
+          4);
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 6, mediaType_);
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, mediaType_);
       }
       if (sizeBytes_ != 0L) {
-        output.writeUInt64(7, sizeBytes_);
+        output.writeUInt64(6, sizeBytes_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sha256_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 8, sha256_);
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, sha256_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(filename_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 9, filename_);
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, filename_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1111,20 +1022,16 @@ java.lang.String defaultValue) {
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, getObject());
-      }
       if (!data_.isEmpty()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, data_);
+          .computeBytesSize(1, data_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(signedUrl_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, signedUrl_);
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, signedUrl_);
       }
       if (signedUrlExpiresAtUnixSeconds_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(4, signedUrlExpiresAtUnixSeconds_);
+          .computeInt64Size(3, signedUrlExpiresAtUnixSeconds_);
       }
       for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
            : internalGetMetadata().getMap().entrySet()) {
@@ -1134,20 +1041,20 @@ java.lang.String defaultValue) {
             .setValue(entry.getValue())
             .buildPartial();
         size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(5, metadata__);
+            .computeMessageSize(4, metadata__);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, mediaType_);
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, mediaType_);
       }
       if (sizeBytes_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(7, sizeBytes_);
+          .computeUInt64Size(6, sizeBytes_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sha256_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, sha256_);
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, sha256_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(filename_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(9, filename_);
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, filename_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -1164,11 +1071,6 @@ java.lang.String defaultValue) {
       }
       talon.v1.Cas.GetCasObjectResponse other = (talon.v1.Cas.GetCasObjectResponse) obj;
 
-      if (hasObject() != other.hasObject()) return false;
-      if (hasObject()) {
-        if (!getObject()
-            .equals(other.getObject())) return false;
-      }
       if (!getData()
           .equals(other.getData())) return false;
       if (!getSignedUrl()
@@ -1196,10 +1098,6 @@ java.lang.String defaultValue) {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasObject()) {
-        hash = (37 * hash) + OBJECT_FIELD_NUMBER;
-        hash = (53 * hash) + getObject().hashCode();
-      }
       hash = (37 * hash) + DATA_FIELD_NUMBER;
       hash = (53 * hash) + getData().hashCode();
       hash = (37 * hash) + SIGNED_URL_FIELD_NUMBER;
@@ -1333,7 +1231,7 @@ java.lang.String defaultValue) {
       protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
           int number) {
         switch (number) {
-          case 5:
+          case 4:
             return internalGetMetadata();
           default:
             throw new RuntimeException(
@@ -1344,7 +1242,7 @@ java.lang.String defaultValue) {
       protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
           int number) {
         switch (number) {
-          case 5:
+          case 4:
             return internalGetMutableMetadata();
           default:
             throw new RuntimeException(
@@ -1361,29 +1259,18 @@ java.lang.String defaultValue) {
 
       // Construct using talon.v1.Cas.GetCasObjectResponse.newBuilder()
       private Builder() {
-        maybeForceBuilderInitialization();
+
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage
-                .alwaysUseFieldBuilders) {
-          internalGetObjectFieldBuilder();
-        }
+
       }
       @java.lang.Override
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        object_ = null;
-        if (objectBuilder_ != null) {
-          objectBuilder_.dispose();
-          objectBuilder_ = null;
-        }
         data_ = com.google.protobuf.ByteString.EMPTY;
         signedUrl_ = "";
         signedUrlExpiresAtUnixSeconds_ = 0L;
@@ -1425,39 +1312,31 @@ java.lang.String defaultValue) {
 
       private void buildPartial0(talon.v1.Cas.GetCasObjectResponse result) {
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.object_ = objectBuilder_ == null
-              ? object_
-              : objectBuilder_.build();
-          to_bitField0_ |= 0x00000001;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
           result.data_ = data_;
         }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
           result.signedUrl_ = signedUrl_;
         }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           result.signedUrlExpiresAtUnixSeconds_ = signedUrlExpiresAtUnixSeconds_;
         }
-        if (((from_bitField0_ & 0x00000010) != 0)) {
+        if (((from_bitField0_ & 0x00000008) != 0)) {
           result.metadata_ = internalGetMetadata();
           result.metadata_.makeImmutable();
         }
-        if (((from_bitField0_ & 0x00000020) != 0)) {
+        if (((from_bitField0_ & 0x00000010) != 0)) {
           result.mediaType_ = mediaType_;
         }
-        if (((from_bitField0_ & 0x00000040) != 0)) {
+        if (((from_bitField0_ & 0x00000020) != 0)) {
           result.sizeBytes_ = sizeBytes_;
         }
-        if (((from_bitField0_ & 0x00000080) != 0)) {
+        if (((from_bitField0_ & 0x00000040) != 0)) {
           result.sha256_ = sha256_;
         }
-        if (((from_bitField0_ & 0x00000100) != 0)) {
+        if (((from_bitField0_ & 0x00000080) != 0)) {
           result.filename_ = filename_;
         }
-        result.bitField0_ |= to_bitField0_;
       }
 
       @java.lang.Override
@@ -1472,15 +1351,12 @@ java.lang.String defaultValue) {
 
       public Builder mergeFrom(talon.v1.Cas.GetCasObjectResponse other) {
         if (other == talon.v1.Cas.GetCasObjectResponse.getDefaultInstance()) return this;
-        if (other.hasObject()) {
-          mergeObject(other.getObject());
-        }
         if (!other.getData().isEmpty()) {
           setData(other.getData());
         }
         if (!other.getSignedUrl().isEmpty()) {
           signedUrl_ = other.signedUrl_;
-          bitField0_ |= 0x00000004;
+          bitField0_ |= 0x00000002;
           onChanged();
         }
         if (other.getSignedUrlExpiresAtUnixSeconds() != 0L) {
@@ -1488,10 +1364,10 @@ java.lang.String defaultValue) {
         }
         internalGetMutableMetadata().mergeFrom(
             other.internalGetMetadata());
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         if (!other.getMediaType().isEmpty()) {
           mediaType_ = other.mediaType_;
-          bitField0_ |= 0x00000020;
+          bitField0_ |= 0x00000010;
           onChanged();
         }
         if (other.getSizeBytes() != 0L) {
@@ -1499,12 +1375,12 @@ java.lang.String defaultValue) {
         }
         if (!other.getSha256().isEmpty()) {
           sha256_ = other.sha256_;
-          bitField0_ |= 0x00000080;
+          bitField0_ |= 0x00000040;
           onChanged();
         }
         if (!other.getFilename().isEmpty()) {
           filename_ = other.filename_;
-          bitField0_ |= 0x00000100;
+          bitField0_ |= 0x00000080;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -1534,56 +1410,49 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                input.readMessage(
-                    internalGetObjectFieldBuilder().getBuilder(),
-                    extensionRegistry);
+                data_ = input.readBytes();
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
               case 18: {
-                data_ = input.readBytes();
+                signedUrl_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
-              case 26: {
-                signedUrl_ = input.readStringRequireUtf8();
+              case 24: {
+                signedUrlExpiresAtUnixSeconds_ = input.readInt64();
                 bitField0_ |= 0x00000004;
                 break;
-              } // case 26
-              case 32: {
-                signedUrlExpiresAtUnixSeconds_ = input.readInt64();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 32
-              case 42: {
+              } // case 24
+              case 34: {
                 com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
                 metadata__ = input.readMessage(
                     MetadataDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
                 internalGetMutableMetadata().getMutableMap().put(
                     metadata__.getKey(), metadata__.getValue());
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                mediaType_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000010;
                 break;
               } // case 42
-              case 50: {
-                mediaType_ = input.readStringRequireUtf8();
+              case 48: {
+                sizeBytes_ = input.readUInt64();
                 bitField0_ |= 0x00000020;
                 break;
-              } // case 50
-              case 56: {
-                sizeBytes_ = input.readUInt64();
+              } // case 48
+              case 58: {
+                sha256_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000040;
                 break;
-              } // case 56
+              } // case 58
               case 66: {
-                sha256_ = input.readStringRequireUtf8();
+                filename_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000080;
                 break;
               } // case 66
-              case 74: {
-                filename_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000100;
-                break;
-              } // case 74
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1601,188 +1470,9 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private talon.data.Data.ObjectRef object_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder> objectBuilder_;
-      /**
-       * <pre>
-       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-       * plus best-effort object attributes; callers already supplied the key and
-       * should not treat this as a newly minted durable ObjectRef.
-       * </pre>
-       *
-       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-       * @deprecated talon.v1.GetCasObjectResponse.object is deprecated.
-       *     See proto/talon/v1/cas.proto;l=18
-       * @return Whether the object field is set.
-       */
-      @java.lang.Deprecated public boolean hasObject() {
-        return ((bitField0_ & 0x00000001) != 0);
-      }
-      /**
-       * <pre>
-       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-       * plus best-effort object attributes; callers already supplied the key and
-       * should not treat this as a newly minted durable ObjectRef.
-       * </pre>
-       *
-       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-       * @deprecated talon.v1.GetCasObjectResponse.object is deprecated.
-       *     See proto/talon/v1/cas.proto;l=18
-       * @return The object.
-       */
-      @java.lang.Deprecated public talon.data.Data.ObjectRef getObject() {
-        if (objectBuilder_ == null) {
-          return object_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : object_;
-        } else {
-          return objectBuilder_.getMessage();
-        }
-      }
-      /**
-       * <pre>
-       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-       * plus best-effort object attributes; callers already supplied the key and
-       * should not treat this as a newly minted durable ObjectRef.
-       * </pre>
-       *
-       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-       */
-      @java.lang.Deprecated public Builder setObject(talon.data.Data.ObjectRef value) {
-        if (objectBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          object_ = value;
-        } else {
-          objectBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-       * plus best-effort object attributes; callers already supplied the key and
-       * should not treat this as a newly minted durable ObjectRef.
-       * </pre>
-       *
-       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-       */
-      @java.lang.Deprecated public Builder setObject(
-          talon.data.Data.ObjectRef.Builder builderForValue) {
-        if (objectBuilder_ == null) {
-          object_ = builderForValue.build();
-        } else {
-          objectBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-       * plus best-effort object attributes; callers already supplied the key and
-       * should not treat this as a newly minted durable ObjectRef.
-       * </pre>
-       *
-       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-       */
-      @java.lang.Deprecated public Builder mergeObject(talon.data.Data.ObjectRef value) {
-        if (objectBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) != 0) &&
-            object_ != null &&
-            object_ != talon.data.Data.ObjectRef.getDefaultInstance()) {
-            getObjectBuilder().mergeFrom(value);
-          } else {
-            object_ = value;
-          }
-        } else {
-          objectBuilder_.mergeFrom(value);
-        }
-        if (object_ != null) {
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-       * plus best-effort object attributes; callers already supplied the key and
-       * should not treat this as a newly minted durable ObjectRef.
-       * </pre>
-       *
-       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-       */
-      @java.lang.Deprecated public Builder clearObject() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        object_ = null;
-        if (objectBuilder_ != null) {
-          objectBuilder_.dispose();
-          objectBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-       * plus best-effort object attributes; callers already supplied the key and
-       * should not treat this as a newly minted durable ObjectRef.
-       * </pre>
-       *
-       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-       */
-      @java.lang.Deprecated public talon.data.Data.ObjectRef.Builder getObjectBuilder() {
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return internalGetObjectFieldBuilder().getBuilder();
-      }
-      /**
-       * <pre>
-       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-       * plus best-effort object attributes; callers already supplied the key and
-       * should not treat this as a newly minted durable ObjectRef.
-       * </pre>
-       *
-       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-       */
-      @java.lang.Deprecated public talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder() {
-        if (objectBuilder_ != null) {
-          return objectBuilder_.getMessageOrBuilder();
-        } else {
-          return object_ == null ?
-              talon.data.Data.ObjectRef.getDefaultInstance() : object_;
-        }
-      }
-      /**
-       * <pre>
-       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-       * plus best-effort object attributes; callers already supplied the key and
-       * should not treat this as a newly minted durable ObjectRef.
-       * </pre>
-       *
-       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>
-          internalGetObjectFieldBuilder() {
-        if (objectBuilder_ == null) {
-          objectBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>(
-                  getObject(),
-                  getParentForChildren(),
-                  isClean());
-          object_ = null;
-        }
-        return objectBuilder_;
-      }
-
       private com.google.protobuf.ByteString data_ = com.google.protobuf.ByteString.EMPTY;
       /**
-       * <code>bytes data = 2;</code>
+       * <code>bytes data = 1;</code>
        * @return The data.
        */
       @java.lang.Override
@@ -1790,23 +1480,23 @@ java.lang.String defaultValue) {
         return data_;
       }
       /**
-       * <code>bytes data = 2;</code>
+       * <code>bytes data = 1;</code>
        * @param value The data to set.
        * @return This builder for chaining.
        */
       public Builder setData(com.google.protobuf.ByteString value) {
         if (value == null) { throw new NullPointerException(); }
         data_ = value;
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>bytes data = 2;</code>
+       * <code>bytes data = 1;</code>
        * @return This builder for chaining.
        */
       public Builder clearData() {
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         data_ = getDefaultInstance().getData();
         onChanged();
         return this;
@@ -1814,7 +1504,7 @@ java.lang.String defaultValue) {
 
       private java.lang.Object signedUrl_ = "";
       /**
-       * <code>string signed_url = 3;</code>
+       * <code>string signed_url = 2;</code>
        * @return The signedUrl.
        */
       public java.lang.String getSignedUrl() {
@@ -1830,7 +1520,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>string signed_url = 3;</code>
+       * <code>string signed_url = 2;</code>
        * @return The bytes for signedUrl.
        */
       public com.google.protobuf.ByteString
@@ -1847,7 +1537,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>string signed_url = 3;</code>
+       * <code>string signed_url = 2;</code>
        * @param value The signedUrl to set.
        * @return This builder for chaining.
        */
@@ -1855,22 +1545,22 @@ java.lang.String defaultValue) {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         signedUrl_ = value;
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>string signed_url = 3;</code>
+       * <code>string signed_url = 2;</code>
        * @return This builder for chaining.
        */
       public Builder clearSignedUrl() {
         signedUrl_ = getDefaultInstance().getSignedUrl();
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         onChanged();
         return this;
       }
       /**
-       * <code>string signed_url = 3;</code>
+       * <code>string signed_url = 2;</code>
        * @param value The bytes for signedUrl to set.
        * @return This builder for chaining.
        */
@@ -1879,14 +1569,14 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         signedUrl_ = value;
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
 
       private long signedUrlExpiresAtUnixSeconds_ ;
       /**
-       * <code>int64 signed_url_expires_at_unix_seconds = 4;</code>
+       * <code>int64 signed_url_expires_at_unix_seconds = 3;</code>
        * @return The signedUrlExpiresAtUnixSeconds.
        */
       @java.lang.Override
@@ -1894,23 +1584,23 @@ java.lang.String defaultValue) {
         return signedUrlExpiresAtUnixSeconds_;
       }
       /**
-       * <code>int64 signed_url_expires_at_unix_seconds = 4;</code>
+       * <code>int64 signed_url_expires_at_unix_seconds = 3;</code>
        * @param value The signedUrlExpiresAtUnixSeconds to set.
        * @return This builder for chaining.
        */
       public Builder setSignedUrlExpiresAtUnixSeconds(long value) {
 
         signedUrlExpiresAtUnixSeconds_ = value;
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>int64 signed_url_expires_at_unix_seconds = 4;</code>
+       * <code>int64 signed_url_expires_at_unix_seconds = 3;</code>
        * @return This builder for chaining.
        */
       public Builder clearSignedUrlExpiresAtUnixSeconds() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000004);
         signedUrlExpiresAtUnixSeconds_ = 0L;
         onChanged();
         return this;
@@ -1935,7 +1625,7 @@ java.lang.String defaultValue) {
         if (!metadata_.isMutable()) {
           metadata_ = metadata_.copy();
         }
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         onChanged();
         return metadata_;
       }
@@ -1943,7 +1633,7 @@ java.lang.String defaultValue) {
         return internalGetMetadata().getMap().size();
       }
       /**
-       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       * <code>map&lt;string, string&gt; metadata = 4;</code>
        */
       @java.lang.Override
       public boolean containsMetadata(
@@ -1960,14 +1650,14 @@ java.lang.String defaultValue) {
         return getMetadataMap();
       }
       /**
-       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       * <code>map&lt;string, string&gt; metadata = 4;</code>
        */
       @java.lang.Override
       public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
         return internalGetMetadata().getMap();
       }
       /**
-       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       * <code>map&lt;string, string&gt; metadata = 4;</code>
        */
       @java.lang.Override
       public /* nullable */
@@ -1981,7 +1671,7 @@ java.lang.String defaultValue) {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
-       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       * <code>map&lt;string, string&gt; metadata = 4;</code>
        */
       @java.lang.Override
       public java.lang.String getMetadataOrThrow(
@@ -1995,13 +1685,13 @@ java.lang.String defaultValue) {
         return map.get(key);
       }
       public Builder clearMetadata() {
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000008);
         internalGetMutableMetadata().getMutableMap()
             .clear();
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       * <code>map&lt;string, string&gt; metadata = 4;</code>
        */
       public Builder removeMetadata(
           java.lang.String key) {
@@ -2016,11 +1706,11 @@ java.lang.String defaultValue) {
       @java.lang.Deprecated
       public java.util.Map<java.lang.String, java.lang.String>
           getMutableMetadata() {
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         return internalGetMutableMetadata().getMutableMap();
       }
       /**
-       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       * <code>map&lt;string, string&gt; metadata = 4;</code>
        */
       public Builder putMetadata(
           java.lang.String key,
@@ -2029,23 +1719,23 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException("map value"); }
         internalGetMutableMetadata().getMutableMap()
             .put(key, value);
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       * <code>map&lt;string, string&gt; metadata = 4;</code>
        */
       public Builder putAllMetadata(
           java.util.Map<java.lang.String, java.lang.String> values) {
         internalGetMutableMetadata().getMutableMap()
             .putAll(values);
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         return this;
       }
 
       private java.lang.Object mediaType_ = "";
       /**
-       * <code>string media_type = 6;</code>
+       * <code>string media_type = 5;</code>
        * @return The mediaType.
        */
       public java.lang.String getMediaType() {
@@ -2061,7 +1751,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>string media_type = 6;</code>
+       * <code>string media_type = 5;</code>
        * @return The bytes for mediaType.
        */
       public com.google.protobuf.ByteString
@@ -2078,7 +1768,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>string media_type = 6;</code>
+       * <code>string media_type = 5;</code>
        * @param value The mediaType to set.
        * @return This builder for chaining.
        */
@@ -2086,22 +1776,22 @@ java.lang.String defaultValue) {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         mediaType_ = value;
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
       /**
-       * <code>string media_type = 6;</code>
+       * <code>string media_type = 5;</code>
        * @return This builder for chaining.
        */
       public Builder clearMediaType() {
         mediaType_ = getDefaultInstance().getMediaType();
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000010);
         onChanged();
         return this;
       }
       /**
-       * <code>string media_type = 6;</code>
+       * <code>string media_type = 5;</code>
        * @param value The bytes for mediaType to set.
        * @return This builder for chaining.
        */
@@ -2110,14 +1800,14 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         mediaType_ = value;
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
 
       private long sizeBytes_ ;
       /**
-       * <code>uint64 size_bytes = 7;</code>
+       * <code>uint64 size_bytes = 6;</code>
        * @return The sizeBytes.
        */
       @java.lang.Override
@@ -2125,23 +1815,23 @@ java.lang.String defaultValue) {
         return sizeBytes_;
       }
       /**
-       * <code>uint64 size_bytes = 7;</code>
+       * <code>uint64 size_bytes = 6;</code>
        * @param value The sizeBytes to set.
        * @return This builder for chaining.
        */
       public Builder setSizeBytes(long value) {
 
         sizeBytes_ = value;
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
       /**
-       * <code>uint64 size_bytes = 7;</code>
+       * <code>uint64 size_bytes = 6;</code>
        * @return This builder for chaining.
        */
       public Builder clearSizeBytes() {
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000020);
         sizeBytes_ = 0L;
         onChanged();
         return this;
@@ -2149,7 +1839,7 @@ java.lang.String defaultValue) {
 
       private java.lang.Object sha256_ = "";
       /**
-       * <code>string sha256 = 8;</code>
+       * <code>string sha256 = 7;</code>
        * @return The sha256.
        */
       public java.lang.String getSha256() {
@@ -2165,7 +1855,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>string sha256 = 8;</code>
+       * <code>string sha256 = 7;</code>
        * @return The bytes for sha256.
        */
       public com.google.protobuf.ByteString
@@ -2182,7 +1872,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>string sha256 = 8;</code>
+       * <code>string sha256 = 7;</code>
        * @param value The sha256 to set.
        * @return This builder for chaining.
        */
@@ -2190,22 +1880,22 @@ java.lang.String defaultValue) {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         sha256_ = value;
-        bitField0_ |= 0x00000080;
+        bitField0_ |= 0x00000040;
         onChanged();
         return this;
       }
       /**
-       * <code>string sha256 = 8;</code>
+       * <code>string sha256 = 7;</code>
        * @return This builder for chaining.
        */
       public Builder clearSha256() {
         sha256_ = getDefaultInstance().getSha256();
-        bitField0_ = (bitField0_ & ~0x00000080);
+        bitField0_ = (bitField0_ & ~0x00000040);
         onChanged();
         return this;
       }
       /**
-       * <code>string sha256 = 8;</code>
+       * <code>string sha256 = 7;</code>
        * @param value The bytes for sha256 to set.
        * @return This builder for chaining.
        */
@@ -2214,14 +1904,14 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         sha256_ = value;
-        bitField0_ |= 0x00000080;
+        bitField0_ |= 0x00000040;
         onChanged();
         return this;
       }
 
       private java.lang.Object filename_ = "";
       /**
-       * <code>string filename = 9;</code>
+       * <code>string filename = 8;</code>
        * @return The filename.
        */
       public java.lang.String getFilename() {
@@ -2237,7 +1927,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>string filename = 9;</code>
+       * <code>string filename = 8;</code>
        * @return The bytes for filename.
        */
       public com.google.protobuf.ByteString
@@ -2254,7 +1944,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>string filename = 9;</code>
+       * <code>string filename = 8;</code>
        * @param value The filename to set.
        * @return This builder for chaining.
        */
@@ -2262,22 +1952,22 @@ java.lang.String defaultValue) {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         filename_ = value;
-        bitField0_ |= 0x00000100;
+        bitField0_ |= 0x00000080;
         onChanged();
         return this;
       }
       /**
-       * <code>string filename = 9;</code>
+       * <code>string filename = 8;</code>
        * @return This builder for chaining.
        */
       public Builder clearFilename() {
         filename_ = getDefaultInstance().getFilename();
-        bitField0_ = (bitField0_ & ~0x00000100);
+        bitField0_ = (bitField0_ & ~0x00000080);
         onChanged();
         return this;
       }
       /**
-       * <code>string filename = 9;</code>
+       * <code>string filename = 8;</code>
        * @param value The bytes for filename to set.
        * @return This builder for chaining.
        */
@@ -2286,7 +1976,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         filename_ = value;
-        bitField0_ |= 0x00000100;
+        bitField0_ |= 0x00000080;
         onChanged();
         return this;
       }
@@ -2366,25 +2056,22 @@ java.lang.String defaultValue) {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\030proto/talon/v1/cas.proto\022\010talon.v1\032\025pr" +
-      "oto/data/data.proto\"\"\n\023GetCasObjectReque" +
-      "st\022\013\n\003key\030\001 \001(\t\"\312\002\n\024GetCasObjectResponse" +
-      "\022)\n\006object\030\001 \001(\0132\025.talon.data.ObjectRefB" +
-      "\002\030\001\022\014\n\004data\030\002 \001(\014\022\022\n\nsigned_url\030\003 \001(\t\022*\n" +
-      "\"signed_url_expires_at_unix_seconds\030\004 \001(" +
-      "\003\022>\n\010metadata\030\005 \003(\0132,.talon.v1.GetCasObj" +
-      "ectResponse.MetadataEntry\022\022\n\nmedia_type\030" +
-      "\006 \001(\t\022\022\n\nsize_bytes\030\007 \001(\004\022\016\n\006sha256\030\010 \001(" +
-      "\t\022\020\n\010filename\030\t \001(\t\032/\n\rMetadataEntry\022\013\n\003" +
-      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\0012X\n\nCasServi" +
-      "ce\022J\n\tGetObject\022\035.talon.v1.GetCasObjectR" +
-      "equest\032\036.talon.v1.GetCasObjectResponseb\006" +
-      "proto3"
+      "\n\030proto/talon/v1/cas.proto\022\010talon.v1\"\"\n\023" +
+      "GetCasObjectRequest\022\013\n\003key\030\001 \001(\t\"\237\002\n\024Get" +
+      "CasObjectResponse\022\014\n\004data\030\001 \001(\014\022\022\n\nsigne" +
+      "d_url\030\002 \001(\t\022*\n\"signed_url_expires_at_uni" +
+      "x_seconds\030\003 \001(\003\022>\n\010metadata\030\004 \003(\0132,.talo" +
+      "n.v1.GetCasObjectResponse.MetadataEntry\022" +
+      "\022\n\nmedia_type\030\005 \001(\t\022\022\n\nsize_bytes\030\006 \001(\004\022" +
+      "\016\n\006sha256\030\007 \001(\t\022\020\n\010filename\030\010 \001(\t\032/\n\rMet" +
+      "adataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\002" +
+      "8\0012X\n\nCasService\022J\n\tGetObject\022\035.talon.v1" +
+      ".GetCasObjectRequest\032\036.talon.v1.GetCasOb" +
+      "jectResponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          talon.data.Data.getDescriptor(),
         });
     internal_static_talon_v1_GetCasObjectRequest_descriptor =
       getDescriptor().getMessageType(0);
@@ -2397,7 +2084,7 @@ java.lang.String defaultValue) {
     internal_static_talon_v1_GetCasObjectResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_GetCasObjectResponse_descriptor,
-        new java.lang.String[] { "Object", "Data", "SignedUrl", "SignedUrlExpiresAtUnixSeconds", "Metadata", "MediaType", "SizeBytes", "Sha256", "Filename", });
+        new java.lang.String[] { "Data", "SignedUrl", "SignedUrlExpiresAtUnixSeconds", "Metadata", "MediaType", "SizeBytes", "Sha256", "Filename", });
     internal_static_talon_v1_GetCasObjectResponse_MetadataEntry_descriptor =
       internal_static_talon_v1_GetCasObjectResponse_descriptor.getNestedType(0);
     internal_static_talon_v1_GetCasObjectResponse_MetadataEntry_fieldAccessorTable = new
@@ -2405,7 +2092,6 @@ java.lang.String defaultValue) {
         internal_static_talon_v1_GetCasObjectResponse_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     descriptor.resolveAllFeaturesImmutable();
-    talon.data.Data.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

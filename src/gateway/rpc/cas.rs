@@ -50,7 +50,6 @@ impl GrpcGatewayHandler {
         };
         let object_ref = object_ref_from_stored_object(&body.key, &object);
         Ok(tonic::Response::new(proto::GetCasObjectResponse {
-            object: Some(object_ref.clone()),
             data,
             signed_url,
             signed_url_expires_at_unix_seconds,

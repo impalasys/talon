@@ -5,7 +5,6 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { ObjectRef } from "../../data/data_pb.js";
 
 /**
  * @generated from message talon.v1.GetCasObjectRequest
@@ -49,52 +48,42 @@ export class GetCasObjectRequest extends Message<GetCasObjectRequest> {
  */
 export class GetCasObjectResponse extends Message<GetCasObjectResponse> {
   /**
-   * Deprecated: retained for old clients. CAS retrieval returns stored bytes
-   * plus best-effort object attributes; callers already supplied the key and
-   * should not treat this as a newly minted durable ObjectRef.
-   *
-   * @generated from field: talon.data.ObjectRef object = 1 [deprecated = true];
-   * @deprecated
-   */
-  object?: ObjectRef;
-
-  /**
-   * @generated from field: bytes data = 2;
+   * @generated from field: bytes data = 1;
    */
   data = new Uint8Array(0);
 
   /**
-   * @generated from field: string signed_url = 3;
+   * @generated from field: string signed_url = 2;
    */
   signedUrl = "";
 
   /**
-   * @generated from field: int64 signed_url_expires_at_unix_seconds = 4;
+   * @generated from field: int64 signed_url_expires_at_unix_seconds = 3;
    */
   signedUrlExpiresAtUnixSeconds = protoInt64.zero;
 
   /**
-   * @generated from field: map<string, string> metadata = 5;
+   * @generated from field: map<string, string> metadata = 4;
    */
   metadata: { [key: string]: string } = {};
 
   /**
-   * @generated from field: string media_type = 6;
+   * @generated from field: string media_type = 5;
    */
   mediaType = "";
 
   /**
-   * @generated from field: uint64 size_bytes = 7;
+   * @generated from field: uint64 size_bytes = 6;
    */
   sizeBytes = protoInt64.zero;
 
   /**
-   * @generated from field: string sha256 = 8;
+   * @generated from field: string sha256 = 7;
    */
   sha256 = "";
 
   /**
-   * @generated from field: string filename = 9;
+   * @generated from field: string filename = 8;
    */
   filename = "";
 
@@ -106,15 +95,14 @@ export class GetCasObjectResponse extends Message<GetCasObjectResponse> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.v1.GetCasObjectResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "object", kind: "message", T: ObjectRef },
-    { no: 2, name: "data", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
-    { no: 3, name: "signed_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "signed_url_expires_at_unix_seconds", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 5, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-    { no: 6, name: "media_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 8, name: "sha256", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 9, name: "filename", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "data", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 2, name: "signed_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "signed_url_expires_at_unix_seconds", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 4, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 5, name: "media_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 7, name: "sha256", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "filename", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCasObjectResponse {
