@@ -188,8 +188,20 @@ async fn collect_session_tool_result_object_keys(
         .list_keys(&keys::session_message_prefix(ns, agent, session_id))
         .await?
     {
-        let Some(message) = kv.get_msg::<data_proto::SessionMessage>(&key).await? else {
-            continue;
+        let message = match kv.get_msg::<data_proto::SessionMessage>(&key).await {
+            Ok(Some(message)) => message,
+            Ok(None) => continue,
+            Err(error) => {
+                tracing::warn!(
+                    error = %error,
+                    namespace = %ns,
+                    agent = %agent,
+                    session_id = %session_id,
+                    key = %key,
+                    "failed to fetch or decode session message while collecting tool result objects for deletion"
+                );
+                continue;
+            }
         };
         for part in message.parts {
             if part.part_type == data_proto::SessionMessagePartType::ToolResult as i32 {
@@ -211,7 +223,20 @@ async fn collect_session_tool_result_object_keys(
             ))
             .await?
         {
-            let entry = data_proto::SessionJournalEntry::decode(bytes.as_slice())?;
+            let entry = match data_proto::SessionJournalEntry::decode(bytes.as_slice()) {
+                Ok(entry) => entry,
+                Err(error) => {
+                    tracing::warn!(
+                        error = %error,
+                        namespace = %ns,
+                        agent = %agent,
+                        session_id = %session_id,
+                        submission_id = %submission_key.name,
+                        "failed to decode session journal entry while collecting tool result objects for deletion"
+                    );
+                    continue;
+                }
+            };
             let object = entry
                 .payload
                 .as_ref()
@@ -2113,6 +2138,77 @@ mod tests {
             .unwrap()
             .is_none());
         assert!(objects.get(object_key).await.unwrap().is_some());
+    }
+
+    #[tokio::test]
+    async fn delete_session_continues_when_session_message_is_corrupt() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub);
+        let ns = "conic";
+        let agent = "coding";
+        let session_id = "session-1";
+        seed_session(kv.as_ref(), ns, agent, session_id).await;
+        kv.set(
+            &keys::session_message(ns, agent, session_id, "message-1"),
+            b"not a protobuf message",
+        )
+        .await
+        .unwrap();
+
+        handler
+            .handle_delete_session(tonic::Request::new(proto::DeleteSessionRequest {
+                ns: ns.to_string(),
+                agent: agent.to_string(),
+                session_id: session_id.to_string(),
+            }))
+            .await
+            .unwrap();
+
+        assert!(kv
+            .get(&keys::session(ns, agent, session_id))
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
+    async fn delete_session_continues_when_journal_entry_is_corrupt() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub);
+        let ns = "conic";
+        let agent = "coding";
+        let session_id = "session-1";
+        let submission_id = "submission-1";
+        seed_session(kv.as_ref(), ns, agent, session_id).await;
+        kv.set_msg(
+            &keys::session_submission(ns, agent, session_id, submission_id),
+            &crate::harness::sessions::pending_submission(submission_id, session_id, "user-1", 1),
+        )
+        .await
+        .unwrap();
+        kv.set(
+            &keys::session_journal_entry(ns, agent, session_id, submission_id, "000001"),
+            b"not a protobuf message",
+        )
+        .await
+        .unwrap();
+
+        handler
+            .handle_delete_session(tonic::Request::new(proto::DeleteSessionRequest {
+                ns: ns.to_string(),
+                agent: agent.to_string(),
+                session_id: session_id.to_string(),
+            }))
+            .await
+            .unwrap();
+
+        assert!(kv
+            .get(&keys::session(ns, agent, session_id))
+            .await
+            .unwrap()
+            .is_none());
     }
 
     #[tokio::test]

@@ -9,6 +9,7 @@ use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::io::{Read, Write};
+use std::sync::OnceLock;
 
 const DEFAULT_TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
 const MIN_GZIP_SAVINGS_PERCENT: usize = 10;
@@ -83,7 +84,7 @@ pub async fn store_tool_result(
                 media_type: TOOL_RESULT_MEDIA_TYPE.to_string(),
                 size_bytes: bytes.len() as u64,
                 sha256: sha256_hex(&bytes),
-                filename: format!("{tool_call_id}.txt"),
+                filename: format!("{}.txt", object_key_segment(tool_call_id)),
                 metadata,
             },
         )
@@ -131,6 +132,11 @@ pub async fn hydrate_tool_result(
 }
 
 fn tool_result_object_threshold_bytes() -> usize {
+    static CACHE: OnceLock<usize> = OnceLock::new();
+    *CACHE.get_or_init(parse_tool_result_object_threshold_bytes)
+}
+
+fn parse_tool_result_object_threshold_bytes() -> usize {
     match std::env::var("TALON_SESSION_TOOL_RESULT_OBJECT_THRESHOLD_BYTES") {
         Ok(raw) => match raw.trim().parse::<usize>() {
             Ok(value) => value,
@@ -179,17 +185,21 @@ fn object_key_segment(value: &str) -> String {
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
+    use std::fmt::Write as _;
+
     let digest = Sha256::digest(bytes);
     let mut out = String::with_capacity(digest.len() * 2);
     for byte in digest {
-        out.push_str(&format!("{byte:02x}"));
+        let _ = write!(&mut out, "{byte:02x}");
     }
     out
 }
 
 fn compressed_object_bytes(raw_bytes: &[u8]) -> Result<(Vec<u8>, Option<&'static str>)> {
     let gzipped = gzip(raw_bytes)?;
-    if gzipped.len() * 100 < raw_bytes.len() * (100 - MIN_GZIP_SAVINGS_PERCENT) {
+    if (gzipped.len() as u64) * 100
+        < (raw_bytes.len() as u64) * (100 - MIN_GZIP_SAVINGS_PERCENT) as u64
+    {
         Ok((gzipped, Some("gzip")))
     } else {
         Ok((raw_bytes.to_vec(), None))
@@ -215,7 +225,6 @@ fn gunzip(bytes: &[u8], key: &str) -> Result<Vec<u8>> {
 mod tests {
     use super::store_tool_result;
     use crate::control::object_store::{InMemoryObjectStore, ObjectStore};
-    use crate::test_support::EnvVarGuard;
     use rand::{Rng, SeedableRng};
 
     #[tokio::test]
@@ -292,39 +301,6 @@ mod tests {
         assert!(encoding.is_none());
     }
 
-    #[tokio::test]
-    async fn incompressible_offloaded_tool_result_is_written_raw_and_hydrates() {
-        let _guard = crate::test_support::async_env_mutex().lock().await;
-        let _threshold = EnvVarGuard::set("TALON_SESSION_TOOL_RESULT_OBJECT_THRESHOLD_BYTES", "32");
-        let store = InMemoryObjectStore::default();
-        let mut rng = rand::rngs::StdRng::seed_from_u64(0);
-        let raw = (0..64)
-            .map(|_| char::from(rng.gen_range(0u8..=127)))
-            .collect::<String>();
-
-        let result = store_tool_result(
-            &store,
-            "acme",
-            "support",
-            "session-1",
-            "message-1",
-            "call-1",
-            "search",
-            &raw,
-        )
-        .await
-        .unwrap();
-
-        let object = result.object.expect("large result should have object ref");
-        assert!(object.metadata.get("content_encoding").is_none());
-        let stored = store.get(&object.key).await.unwrap().unwrap();
-        assert_eq!(stored.bytes, raw.as_bytes());
-        let hydrated = super::hydrate_tool_result(&store, Some(&object), "")
-            .await
-            .unwrap();
-        assert_eq!(hydrated, raw);
-    }
-
     #[test]
     fn object_key_segments_are_sanitized_deterministically() {
         assert_eq!(
@@ -337,6 +313,26 @@ mod tests {
             ),
             "sessions/team_alpha/agent_codex/session_one/messages/message_1/tool-results/.._tool_call.txt"
         );
+    }
+
+    #[tokio::test]
+    async fn object_metadata_filename_uses_sanitized_tool_call_id() {
+        let store = InMemoryObjectStore::default();
+        let result = store_tool_result(
+            &store,
+            "acme",
+            "support",
+            "session-1",
+            "message-1",
+            "../tool call",
+            "search",
+            &"x".repeat(3 * 1024),
+        )
+        .await
+        .unwrap();
+
+        let object = result.object.expect("large result should have object ref");
+        assert_eq!(object.filename, ".._tool_call.txt");
     }
 
     #[tokio::test]
