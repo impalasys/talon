@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::runtime::LoopMessage;
+use crate::control::cas::decode_stored_object_bytes;
 use crate::control::object_store::ObjectStore;
 use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{image_data_part, image_url_part, text_part, ChatContentPart, ToolCall};
-use crate::harness::tool_results::hydrate_tool_result;
 use anyhow::{anyhow, Result};
 use base64::{engine::general_purpose, Engine as _};
 use std::path::Path;
@@ -283,7 +283,21 @@ async fn tool_result_message_from_part(
         .or_else(|| payload.get("output_preview").and_then(|v| v.as_str()))
         .map(str::to_string)
         .unwrap_or_else(|| part.content.clone());
-    let output = hydrate_tool_result(objects, part.object.as_ref(), &inline_output).await?;
+    let output = if let Some(object) = part.object.as_ref() {
+        let stored = objects
+            .get(&object.key)
+            .await?
+            .ok_or_else(|| anyhow!("tool result object '{}' is missing", object.key))?;
+        let bytes = decode_stored_object_bytes(&stored, &object.key)?;
+        String::from_utf8(bytes).map_err(|err| {
+            anyhow!(
+                "tool result object '{}' is not valid UTF-8: {err}",
+                object.key
+            )
+        })?
+    } else {
+        inline_output
+    };
     let mut message = LoopMessage::text("tool", output);
     message.tool_call_id = Some(tool_call_id.to_string());
     Ok(Some(message))

@@ -72,6 +72,8 @@ mod tests {
     use crate::test_support::{MockKvStore, RecordingPubSub};
     use std::sync::Arc;
 
+    const TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
+
     fn handler(objects: Arc<InMemoryObjectStore>) -> GrpcGatewayHandler {
         let control_plane = ControlPlane::builder(
             Arc::new(MockKvStore::default()),
@@ -130,7 +132,7 @@ mod tests {
                 "call-1",
                 "search",
                 raw.as_bytes(),
-                crate::harness::tool_results::tool_result_object_threshold_bytes(),
+                TOOL_RESULT_OBJECT_THRESHOLD_BYTES,
             )
             .await
             .unwrap()

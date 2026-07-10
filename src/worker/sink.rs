@@ -16,9 +16,10 @@ use crate::gateway::rpc::data_proto::{self, SessionSubmissionStatus};
 use crate::harness::executor::{AgentEvent, ExecutionSink};
 use crate::harness::llm::{ChatResponse, ChatUsage};
 use crate::harness::sessions::{self, SessionSubmission};
-use crate::harness::tool_results::{tool_result_object_threshold_bytes, tool_result_payload_json};
 use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
 use tracing::Instrument;
+
+const TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
 
 fn chat_usage_payload_json(usage: &ChatUsage) -> String {
     serde_json::to_string(&serde_json::json!({
@@ -521,11 +522,21 @@ impl PubSubSessionSink {
                 id,
                 name,
                 result.as_bytes(),
-                tool_result_object_threshold_bytes(),
+                TOOL_RESULT_OBJECT_THRESHOLD_BYTES,
             )
             .await?;
-        let payload_json =
-            tool_result_payload_json(id, object.is_none().then_some(result), object.as_ref());
+        let payload_json = if let Some(object) = object.as_ref() {
+            serde_json::to_string(&serde_json::json!({
+                "tool_call_id": id,
+                "output_object_key": object.key,
+            }))
+        } else {
+            serde_json::to_string(&serde_json::json!({
+                "tool_call_id": id,
+                "output": result,
+            }))
+        }
+        .unwrap_or_else(|_| "{}".to_string());
         self.record_part_with_id_and_object(
             part_id.to_string(),
             data_proto::SessionMessagePartType::ToolResult,
@@ -1102,7 +1113,7 @@ impl ExecutionSink for PubSubSessionSink {
                         id,
                         name,
                         result.as_bytes(),
-                        tool_result_object_threshold_bytes(),
+                        TOOL_RESULT_OBJECT_THRESHOLD_BYTES,
                     )
                     .await
                 {
@@ -1133,11 +1144,18 @@ impl ExecutionSink for PubSubSessionSink {
                 }
             }
         };
-        let payload_json = tool_result_payload_json(
-            id,
-            stored.object.is_none().then_some(stored.output.as_str()),
-            stored.object.as_ref(),
-        );
+        let payload_json = if let Some(object) = stored.object.as_ref() {
+            serde_json::to_string(&serde_json::json!({
+                "tool_call_id": id,
+                "output_object_key": object.key,
+            }))
+        } else {
+            serde_json::to_string(&serde_json::json!({
+                "tool_call_id": id,
+                "output": stored.output.as_str(),
+            }))
+        }
+        .unwrap_or_else(|_| "{}".to_string());
         self.record_part_with_id_and_object(
             stored.part_id,
             data_proto::SessionMessagePartType::ToolResult,
@@ -2010,12 +2028,11 @@ mod tests {
             payload["output_object_key"],
             persisted.object.as_ref().unwrap().key
         );
-        let hydrated = crate::harness::tool_results::hydrate_tool_result(
-            sink.objects.as_ref(),
-            persisted.object.as_ref(),
-            "",
+        let object = persisted.object.as_ref().unwrap();
+        let stored = sink.objects.get(&object.key).await.unwrap().unwrap();
+        let hydrated = String::from_utf8(
+            crate::control::cas::decode_stored_object_bytes(&stored, &object.key).unwrap(),
         )
-        .await
         .unwrap();
         assert_eq!(hydrated, raw_output);
     }

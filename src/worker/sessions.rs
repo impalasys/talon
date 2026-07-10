@@ -11,7 +11,7 @@ use std::panic::AssertUnwindSafe;
 use super::runtime::AgentRuntime;
 use super::sink::PubSubSessionSink;
 use super::WorkerEventHandler;
-use crate::control::cas::CasStore;
+use crate::control::cas::{decode_stored_object_bytes, CasStore};
 use crate::control::{events::SessionMessageEvent, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::connectors as connector_rpc;
 use crate::gateway::rpc::data_proto::{
@@ -19,7 +19,6 @@ use crate::gateway::rpc::data_proto::{
 };
 use crate::harness::executor::{tool_result_loop_message, ExecutionSink, LoopMessage};
 use crate::harness::sessions::{self, ClaimOutcome};
-use crate::harness::tool_results::hydrate_tool_result;
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
 
@@ -253,12 +252,21 @@ async fn prepare_context_for_claimed_submission(
             let tool_result_part_id = next_recovered_part_id(&mut next_projection_part_index);
 
             let result = if let Some(recorded) = results_by_call_id.get(&tool.id) {
-                hydrate_tool_result(
-                    cp.objects.as_ref(),
-                    recorded.object.as_ref(),
-                    &recorded.output,
-                )
-                .await?
+                if let Some(object) = recorded.object.as_ref() {
+                    let stored =
+                        cp.objects.get(&object.key).await?.ok_or_else(|| {
+                            anyhow!("tool result object '{}' is missing", object.key)
+                        })?;
+                    let bytes = decode_stored_object_bytes(&stored, &object.key)?;
+                    String::from_utf8(bytes).map_err(|err| {
+                        anyhow!(
+                            "tool result object '{}' is not valid UTF-8: {err}",
+                            object.key
+                        )
+                    })?
+                } else {
+                    recorded.output.clone()
+                }
             } else {
                 let (_input, result) = runtime.executor.execute_tool_call(tool).await;
                 let cas = CasStore::new(cp.objects.clone());
