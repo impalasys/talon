@@ -30,6 +30,7 @@ cron = "0.12"
 jsonwebtoken = { version = "10.4", features = ["rust_crypto"] }
 futures = "0.3"
 flate2 = "1.1"
+zstd = "0.13"
 hyper = { version = "1", features = ["server", "http1", "http2"] }
 hyper-util = { version = "0.1", features = ["tokio", "server-auto", "server-graceful", "service"] }
 opentelemetry = "0.31"

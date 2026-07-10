@@ -7,7 +7,7 @@ use anyhow::{anyhow, Result};
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
-use std::io::{Read, Write};
+use std::io::{Cursor, Read, Write};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -29,8 +29,9 @@ pub const METADATA_CONTENT_ENCODING: &str = "content_encoding";
 pub const METADATA_UNCOMPRESSED_SIZE_BYTES: &str = "uncompressed_size_bytes";
 pub const METADATA_UNCOMPRESSED_SHA256: &str = "uncompressed_sha256";
 pub const CONTENT_ENCODING_GZIP: &str = "gzip";
+pub const CONTENT_ENCODING_ZSTD: &str = "zstd";
 
-const MIN_GZIP_SAVINGS_PERCENT: usize = 10;
+const MIN_COMPRESSION_SAVINGS_PERCENT: usize = 10;
 const MAX_LOGICAL_OBJECT_BYTES: u64 = 50 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -96,8 +97,8 @@ impl CasStore {
     /// Store a tool result under the canonical session/message/part CAS path.
     ///
     /// CAS owns the storage representation: callers provide logical UTF-8
-    /// bytes, and this method decides whether to gzip them before writing the
-    /// object and recording the corresponding metadata.
+    /// bytes, and this method decides whether to compress them before writing
+    /// the object and recording the corresponding metadata.
     pub async fn put_tool_result(
         &self,
         ns: &str,
@@ -308,15 +309,18 @@ pub fn object_ref_from_stored_object(key: &str, object: &StoredObject) -> data_p
 /// This is the internal counterpart to the public CAS RPC, which intentionally
 /// returns stored bytes so SDK callers can use signed URLs directly.
 pub fn decode_stored_object_bytes(object: &StoredObject, key: &str) -> Result<Vec<u8>> {
-    if object
+    let encoding = object
         .metadata
         .metadata
         .get(METADATA_CONTENT_ENCODING)
-        .is_some_and(|value| value.eq_ignore_ascii_case(CONTENT_ENCODING_GZIP))
-    {
-        gunzip(&object.bytes, key)
-    } else {
-        Ok(object.bytes.clone())
+        .map(|value| value.to_ascii_lowercase());
+    match encoding.as_deref() {
+        Some(CONTENT_ENCODING_ZSTD) => unzstd(&object.bytes, key),
+        Some(CONTENT_ENCODING_GZIP) => gunzip(&object.bytes, key),
+        Some(other) => Err(anyhow!(
+            "CAS object '{key}' uses unsupported content encoding '{other}'"
+        )),
+        None => Ok(object.bytes.clone()),
     }
 }
 
@@ -431,14 +435,25 @@ fn tool_result_metadata(
 }
 
 fn compressed_object_bytes(raw_bytes: &[u8]) -> Result<(Vec<u8>, Option<&'static str>)> {
+    let zstd = zstd(raw_bytes)?;
+    if compression_saves_meaningfully(raw_bytes.len(), zstd.len()) {
+        return Ok((zstd, Some(CONTENT_ENCODING_ZSTD)));
+    }
     let gzipped = gzip(raw_bytes)?;
-    if (gzipped.len() as u64) * 100
-        < (raw_bytes.len() as u64) * (100 - MIN_GZIP_SAVINGS_PERCENT) as u64
-    {
+    if compression_saves_meaningfully(raw_bytes.len(), gzipped.len()) {
         Ok((gzipped, Some(CONTENT_ENCODING_GZIP)))
     } else {
         Ok((raw_bytes.to_vec(), None))
     }
+}
+
+fn compression_saves_meaningfully(raw_len: usize, compressed_len: usize) -> bool {
+    (compressed_len as u64) * 100
+        < (raw_len as u64) * (100 - MIN_COMPRESSION_SAVINGS_PERCENT) as u64
+}
+
+fn zstd(raw_bytes: &[u8]) -> Result<Vec<u8>> {
+    Ok(zstd::stream::encode_all(Cursor::new(raw_bytes), 0)?)
 }
 
 fn gzip(raw_bytes: &[u8]) -> Result<Vec<u8>> {
@@ -447,12 +462,22 @@ fn gzip(raw_bytes: &[u8]) -> Result<Vec<u8>> {
     Ok(encoder.finish()?)
 }
 
+fn unzstd(bytes: &[u8], key: &str) -> Result<Vec<u8>> {
+    let decoder = zstd::stream::read::Decoder::new(Cursor::new(bytes))
+        .map_err(|err| anyhow!("CAS object '{key}' has invalid zstd bytes: {err}"))?;
+    read_limited(decoder, key, "zstd")
+}
+
 fn gunzip(bytes: &[u8], key: &str) -> Result<Vec<u8>> {
-    let mut decoder = GzDecoder::new(bytes).take(MAX_LOGICAL_OBJECT_BYTES + 1);
+    read_limited(GzDecoder::new(bytes), key, "gzip")
+}
+
+fn read_limited(reader: impl Read, key: &str, encoding: &str) -> Result<Vec<u8>> {
+    let mut decoder = reader.take(MAX_LOGICAL_OBJECT_BYTES + 1);
     let mut out = Vec::new();
     decoder
         .read_to_end(&mut out)
-        .map_err(|err| anyhow!("CAS object '{key}' has invalid gzip bytes: {err}"))?;
+        .map_err(|err| anyhow!("CAS object '{key}' has invalid {encoding} bytes: {err}"))?;
     if out.len() > MAX_LOGICAL_OBJECT_BYTES as usize {
         return Err(anyhow!(
             "CAS object '{key}' expands beyond the maximum supported size"
@@ -493,11 +518,13 @@ fn sha256_hex(bytes: &[u8]) -> String {
 mod tests {
     use super::{
         parse_session_object_key, CasStore, SessionCasScope, SessionObjectIdentity,
-        CONTENT_ENCODING_GZIP, METADATA_AGENT, METADATA_CONTENT_ENCODING, METADATA_NAMESPACE,
-        METADATA_SESSION_ID,
+        CONTENT_ENCODING_GZIP, CONTENT_ENCODING_ZSTD, METADATA_AGENT, METADATA_CONTENT_ENCODING,
+        METADATA_NAMESPACE, METADATA_SESSION_ID,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
+    use flate2::{write::GzEncoder, Compression};
     use rand::{Rng, SeedableRng};
+    use std::io::Write;
     use std::sync::Arc;
 
     #[test]
@@ -633,7 +660,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn compresses_tool_result_when_gzip_saves_meaningfully() {
+    async fn compresses_tool_result_with_zstd_when_it_saves_meaningfully() {
         let objects = Arc::new(InMemoryObjectStore::default());
         let store = CasStore::new(objects.clone());
         let raw = "x".repeat(3 * 1024);
@@ -655,7 +682,7 @@ mod tests {
         assert!(object.size_bytes < raw.len() as u64);
         assert_eq!(
             object.metadata[METADATA_CONTENT_ENCODING],
-            CONTENT_ENCODING_GZIP
+            CONTENT_ENCODING_ZSTD
         );
         let stored = store
             .get_session_object_decoded(
@@ -701,18 +728,57 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn corrupt_gzip_object_returns_decode_error() {
+    async fn legacy_gzip_object_decodes() {
         let objects = Arc::new(InMemoryObjectStore::default());
         let store = CasStore::new(objects.clone());
+        let raw = b"legacy gzip payload";
+        let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+        encoder.write_all(raw).unwrap();
+        let gzip_bytes = encoder.finish().unwrap();
         let object = objects
             .put(
                 "cas/acme/sessions/session-1/messages/message-1/000001.txt",
-                b"not gzip",
+                &gzip_bytes,
                 ObjectMetadata {
                     metadata: std::collections::HashMap::from([
                         (
                             METADATA_CONTENT_ENCODING.to_string(),
                             CONTENT_ENCODING_GZIP.to_string(),
+                        ),
+                        (METADATA_NAMESPACE.to_string(), "acme".to_string()),
+                        (METADATA_AGENT.to_string(), "agent".to_string()),
+                        (METADATA_SESSION_ID.to_string(), "session-1".to_string()),
+                    ]),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+
+        let stored = store
+            .get_session_object_decoded(
+                &SessionCasScope::new("acme", "agent", "session-1"),
+                &object.key,
+            )
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(stored.bytes, raw);
+    }
+
+    #[tokio::test]
+    async fn corrupt_zstd_object_returns_decode_error() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let store = CasStore::new(objects.clone());
+        let object = objects
+            .put(
+                "cas/acme/sessions/session-1/messages/message-1/000001.txt",
+                b"not zstd",
+                ObjectMetadata {
+                    metadata: std::collections::HashMap::from([
+                        (
+                            METADATA_CONTENT_ENCODING.to_string(),
+                            CONTENT_ENCODING_ZSTD.to_string(),
                         ),
                         (METADATA_NAMESPACE.to_string(), "acme".to_string()),
                         (METADATA_AGENT.to_string(), "agent".to_string()),
@@ -731,6 +797,6 @@ mod tests {
             )
             .await
             .unwrap_err();
-        assert!(err.to_string().contains("invalid gzip bytes"));
+        assert!(err.to_string().contains("invalid zstd bytes"));
     }
 }

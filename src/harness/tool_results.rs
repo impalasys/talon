@@ -110,7 +110,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn large_compressible_tool_result_is_written_to_gzip_object() {
+    async fn large_compressible_tool_result_is_written_to_zstd_object() {
         let store = Arc::new(InMemoryObjectStore::default());
         let cas = CasStore::new(store.clone());
         let raw = "x".repeat(3 * 1024);
@@ -140,7 +140,7 @@ mod tests {
         assert_eq!(object.metadata["message_id"], "message-1");
         assert_eq!(object.metadata["part_id"], "000001");
         assert_eq!(object.metadata["tool_call_id"], "call-1");
-        assert_eq!(object.metadata["content_encoding"], "gzip");
+        assert_eq!(object.metadata["content_encoding"], "zstd");
         assert_eq!(
             object.metadata["uncompressed_size_bytes"],
             raw.len().to_string()

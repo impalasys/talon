@@ -412,11 +412,11 @@ function withToolResultContent(part: any, output: string) {
   return nextPart;
 }
 
-async function gunzipCasObjectData(data: Uint8Array): Promise<Uint8Array> {
+async function decompressCasObjectData(data: Uint8Array, encoding: string): Promise<Uint8Array> {
   if (typeof DecompressionStream === "undefined") {
-    throw new Error("gzip CAS object requires DecompressionStream support");
+    throw new Error(`${encoding} CAS object requires DecompressionStream support`);
   }
-  const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream("gzip"));
+  const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream(encoding as any));
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
@@ -440,8 +440,9 @@ async function toolResultObjectData(response: any, fallbackObject?: TalonChatObj
   const bytes = await casObjectData(response);
   const responseEncoding = response?.metadata?.content_encoding ?? response?.metadata?.contentEncoding;
   const encoding = typeof responseEncoding === "string" ? responseEncoding : objectRefContentEncoding(fallbackObject);
-  return encoding.toLowerCase() === "gzip"
-    ? gunzipCasObjectData(bytes)
+  const normalized = encoding.toLowerCase();
+  return normalized === "zstd" || normalized === "gzip"
+    ? decompressCasObjectData(bytes, normalized)
     : bytes;
 }
 

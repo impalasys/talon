@@ -8,6 +8,7 @@ import uuid
 import boto3
 import grpc
 import requests
+import zstandard
 
 from e2e.blackbox import (
     create_agent_resource,
@@ -48,7 +49,10 @@ def _cas_response_bytes(response) -> bytes:
 
 def _cas_tool_result_text(response) -> str:
     data = _cas_response_bytes(response)
-    if response.metadata.get("content_encoding", "").lower() == "gzip":
+    encoding = response.metadata.get("content_encoding", "").lower()
+    if encoding == "zstd":
+        data = zstandard.ZstdDecompressor().decompress(data)
+    elif encoding == "gzip":
         data = gzip.decompress(data)
     return data.decode("utf-8")
 
