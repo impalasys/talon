@@ -544,11 +544,11 @@ test.describe('Chat Streaming', () => {
       expect(payload.output_object_key).toBe(toolResultPart.object.key);
     }).toPass({ timeout: 30000 });
 
-    const fetched = await client.cas.getObject({
-      ...target,
-      key: toolResultPart.object.key,
-    });
-    const hydrated = new TextDecoder().decode(fetched.data);
+    const fetched = await client.cas.getObject({ key: toolResultPart.object.key });
+    const fetchedBytes = fetched.signedUrl
+      ? new Uint8Array(await (await fetch(fetched.signedUrl)).arrayBuffer())
+      : fetched.data;
+    const hydrated = new TextDecoder().decode(fetchedBytes);
     expect(hydrated).toContain('blocking_lookup result for docs.example.com');
     expect(hydrated).toContain('reference section 079');
 

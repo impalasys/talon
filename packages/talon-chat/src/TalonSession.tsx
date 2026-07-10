@@ -408,9 +408,24 @@ function withToolResultContent(part: any, output: string) {
   return nextPart;
 }
 
+async function casObjectData(response: any): Promise<Uint8Array> {
+  const signedUrl = typeof response?.signedUrl === "string"
+    ? response.signedUrl
+    : typeof response?.signed_url === "string"
+      ? response.signed_url
+      : "";
+  if (signedUrl) {
+    const fetched = await fetch(signedUrl);
+    if (!fetched.ok) {
+      throw new Error(`Failed to fetch CAS object: HTTP ${fetched.status}`);
+    }
+    return new Uint8Array(await fetched.arrayBuffer());
+  }
+  return response.data ?? new Uint8Array();
+}
+
 async function hydrateCasToolResultObjects(
   messages: CopilotMessage[],
-  target: { ns: string; agent: string; sessionId: string },
   cas?: CasServiceClientLike,
 ): Promise<CopilotMessage[]> {
   if (!cas?.getObject) return messages;
@@ -423,14 +438,9 @@ async function hydrateCasToolResultObjects(
       if (typeof part.content === "string" && part.content.length > 0) return part;
       const key = objectRefKey(objectRefFromPart(part));
       if (!key) return part;
-      const response = await cas.getObject({
-        ns: target.ns,
-        agent: target.agent,
-        sessionId: target.sessionId,
-        key,
-      });
+      const response = await cas.getObject({ key });
       changed = true;
-      return withToolResultContent(part, decoder.decode(response.data));
+      return withToolResultContent(part, decoder.decode(await casObjectData(response)));
     }));
     return changed
       ? {
@@ -1643,7 +1653,7 @@ export function TalonSession({
       const res = normalizeHistoryPage(response);
       return {
         ...res,
-        messages: await hydrateCasToolResultObjects(res.messages, target, gatewayClient?.cas),
+        messages: await hydrateCasToolResultObjects(res.messages, gatewayClient?.cas),
       };
     },
     [gatewayClient],

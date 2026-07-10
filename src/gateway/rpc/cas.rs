@@ -3,8 +3,11 @@
 
 use super::{proto, GrpcGatewayHandler};
 use crate::control::cas::{
-    logical_object_bytes, object_ref_from_stored_object, CasStore, SessionCasScope,
+    logical_object_bytes, object_ref_from_stored_object, parse_session_object_key, CasStore,
 };
+use std::time::Duration;
+
+const CAS_SIGNED_URL_TTL: Duration = Duration::from_secs(5 * 60);
 
 impl GrpcGatewayHandler {
     pub async fn handle_get_cas_object(
@@ -12,38 +15,63 @@ impl GrpcGatewayHandler {
         req: tonic::Request<proto::GetCasObjectRequest>,
     ) -> std::result::Result<tonic::Response<proto::GetCasObjectResponse>, tonic::Status> {
         let body = req.get_ref();
-        crate::require_auth!(read, self, req, &body.ns, &body.agent, &body.session_id);
 
         if body.key.trim().is_empty() {
             return Err(tonic::Status::invalid_argument("key is required"));
         }
+        parse_session_object_key(&body.key)
+            .map_err(|err| tonic::Status::invalid_argument(format!("Invalid CAS key: {err}")))?;
 
-        let scope = SessionCasScope::new(&body.ns, &body.agent, &body.session_id);
         let cas = CasStore::new(self.gateway.objects.clone());
-        let object = cas
-            .get_session_object(&scope, &body.key)
+        let (scope, object) = cas
+            .get_session_object_by_key(&body.key)
             .await
             .map_err(|err| {
-                if err
-                    .to_string()
-                    .contains("outside the requested session scope")
-                    || err.to_string().contains("does not match requested scope")
+                if err.to_string().contains("does not match key scope")
+                    || err.to_string().contains("metadata is missing agent")
                 {
-                    tonic::Status::permission_denied("CAS object is outside the requested session")
+                    tonic::Status::permission_denied("CAS object is outside the authorized session")
                 } else {
                     tonic::Status::internal(format!("Failed to load CAS object: {err}"))
                 }
             })?
             .ok_or_else(|| tonic::Status::not_found("CAS object not found"))?;
+        crate::require_auth!(read, self, req, &scope.ns, &scope.agent, &scope.session_id);
 
-        let data = logical_object_bytes(&object, &body.key).map_err(|err| {
-            tonic::Status::internal(format!("Failed to decode CAS object: {err}"))
-        })?;
+        // Presigned URLs expose stored bytes directly, so only use them when
+        // the client can treat stored bytes as the logical object payload.
+        let signed = if is_direct_download_safe(&object) {
+            cas.signed_get_url(&body.key, CAS_SIGNED_URL_TTL)
+                .await
+                .map_err(|err| {
+                    tonic::Status::internal(format!("Failed to sign CAS object URL: {err}"))
+                })?
+        } else {
+            None
+        };
+        let (data, signed_url, signed_url_expires_at_unix_seconds) = if let Some(signed) = signed {
+            (Vec::new(), signed.url, signed.expires_at_unix_seconds)
+        } else {
+            let data = logical_object_bytes(&object, &body.key).map_err(|err| {
+                tonic::Status::internal(format!("Failed to decode CAS object: {err}"))
+            })?;
+            (data, String::new(), 0)
+        };
         Ok(tonic::Response::new(proto::GetCasObjectResponse {
             object: Some(object_ref_from_stored_object(&body.key, &object)),
             data,
+            signed_url,
+            signed_url_expires_at_unix_seconds,
         }))
     }
+}
+
+fn is_direct_download_safe(object: &crate::control::object_store::StoredObject) -> bool {
+    !object
+        .metadata
+        .metadata
+        .get("content_encoding")
+        .is_some_and(|value| !value.trim().is_empty())
 }
 
 #[cfg(test)]
@@ -84,9 +112,6 @@ mod tests {
 
         let response = handler(objects)
             .handle_get_cas_object(tonic::Request::new(proto::GetCasObjectRequest {
-                ns: "acme".to_string(),
-                agent: "agent".to_string(),
-                session_id: "session-1".to_string(),
                 key: object.key.clone(),
             }))
             .await
@@ -120,9 +145,6 @@ mod tests {
 
         let response = handler(objects)
             .handle_get_cas_object(tonic::Request::new(proto::GetCasObjectRequest {
-                ns: "acme".to_string(),
-                agent: "agent".to_string(),
-                session_id: "session-1".to_string(),
                 key: object.key,
             }))
             .await
@@ -133,33 +155,15 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_cas_object_rejects_cross_session_key() {
+    async fn get_cas_object_rejects_invalid_key() {
         let objects = Arc::new(InMemoryObjectStore::default());
-        let cas = CasStore::new(objects.clone());
-        let scope = SessionCasScope::new("acme", "agent", "session-1");
-        let object = cas
-            .put_tool_result(
-                &scope,
-                &SessionObjectIdentity::new("message-1", "000001"),
-                "call-1",
-                "search",
-                b"hello",
-                b"hello",
-                None,
-            )
-            .await
-            .unwrap();
-
         let err = handler(objects)
             .handle_get_cas_object(tonic::Request::new(proto::GetCasObjectRequest {
-                ns: "acme".to_string(),
-                agent: "agent".to_string(),
-                session_id: "session-2".to_string(),
-                key: object.key,
+                key: "../outside.txt".to_string(),
             }))
             .await
             .unwrap_err();
 
-        assert_eq!(err.code(), tonic::Code::PermissionDenied);
+        assert_eq!(err.code(), tonic::Code::InvalidArgument);
     }
 }

@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const GCS_STORAGE_SCOPE: &str = "https://www.googleapis.com/auth/devstorage.read_write";
 const GCS_API_BASE: &str = "https://storage.googleapis.com";
@@ -34,6 +34,12 @@ pub struct StoredObject {
     pub metadata: ObjectMetadata,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SignedObjectUrl {
+    pub url: String,
+    pub expires_at_unix_seconds: i64,
+}
+
 #[async_trait]
 pub trait ObjectStore: Send + Sync {
     async fn put(
@@ -44,6 +50,13 @@ pub trait ObjectStore: Send + Sync {
     ) -> Result<data_proto::ObjectRef>;
     async fn get(&self, key: &str) -> Result<Option<StoredObject>>;
     async fn delete(&self, key: &str) -> Result<()>;
+    async fn signed_get_url(
+        &self,
+        _key: &str,
+        _expires_in: Duration,
+    ) -> Result<Option<SignedObjectUrl>> {
+        Ok(None)
+    }
 }
 
 pub fn default_object_store() -> Arc<dyn ObjectStore + Send + Sync> {
@@ -428,6 +441,27 @@ impl ObjectStore for S3ObjectStore {
             .await?;
         Ok(())
     }
+
+    async fn signed_get_url(
+        &self,
+        key: &str,
+        expires_in: Duration,
+    ) -> Result<Option<SignedObjectUrl>> {
+        let object_key = self.object_key(key)?;
+        let presigned = self
+            .client
+            .get_object()
+            .bucket(&self.bucket)
+            .key(object_key)
+            .presigned(aws_sdk_s3::presigning::PresigningConfig::expires_in(
+                expires_in,
+            )?)
+            .await?;
+        Ok(Some(SignedObjectUrl {
+            url: presigned.uri().to_string(),
+            expires_at_unix_seconds: signed_url_expiry(expires_in),
+        }))
+    }
 }
 
 fn object_ref(key: &str, metadata: ObjectMetadata) -> data_proto::ObjectRef {
@@ -555,6 +589,14 @@ fn is_s3_not_found(
             .raw_response()
             .map(|response| response.status().as_u16() == 404)
             .unwrap_or(false)
+}
+
+fn signed_url_expiry(expires_in: Duration) -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .saturating_add(expires_in)
+        .as_secs() as i64
 }
 
 fn validate_key(key: &str) -> Result<()> {

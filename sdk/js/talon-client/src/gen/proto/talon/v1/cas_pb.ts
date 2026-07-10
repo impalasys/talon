@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 import { ObjectRef } from "../../data/data_pb.js";
 
 /**
@@ -12,22 +12,7 @@ import { ObjectRef } from "../../data/data_pb.js";
  */
 export class GetCasObjectRequest extends Message<GetCasObjectRequest> {
   /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string agent = 2;
-   */
-  agent = "";
-
-  /**
-   * @generated from field: string session_id = 3;
-   */
-  sessionId = "";
-
-  /**
-   * @generated from field: string key = 4;
+   * @generated from field: string key = 1;
    */
   key = "";
 
@@ -39,10 +24,7 @@ export class GetCasObjectRequest extends Message<GetCasObjectRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.v1.GetCasObjectRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCasObjectRequest {
@@ -76,6 +58,16 @@ export class GetCasObjectResponse extends Message<GetCasObjectResponse> {
    */
   data = new Uint8Array(0);
 
+  /**
+   * @generated from field: string signed_url = 3;
+   */
+  signedUrl = "";
+
+  /**
+   * @generated from field: int64 signed_url_expires_at_unix_seconds = 4;
+   */
+  signedUrlExpiresAtUnixSeconds = protoInt64.zero;
+
   constructor(data?: PartialMessage<GetCasObjectResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -86,6 +78,8 @@ export class GetCasObjectResponse extends Message<GetCasObjectResponse> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "object", kind: "message", T: ObjectRef },
     { no: 2, name: "data", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 3, name: "signed_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "signed_url_expires_at_unix_seconds", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCasObjectResponse {

@@ -394,9 +394,6 @@ def test_large_tool_result_is_fetched_from_cas(
 
     fetched = client.cas.GetObject(
         GetCasObjectRequest(
-            ns=namespace,
-            agent=agent_name,
-            session_id=session_id,
             key=tool_result.object.key,
         )
     )

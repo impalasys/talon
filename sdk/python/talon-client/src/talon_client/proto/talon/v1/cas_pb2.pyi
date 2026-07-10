@@ -7,21 +7,19 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class GetCasObjectRequest(_message.Message):
-    __slots__ = ("ns", "agent", "session_id", "key")
-    NS_FIELD_NUMBER: _ClassVar[int]
-    AGENT_FIELD_NUMBER: _ClassVar[int]
-    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("key",)
     KEY_FIELD_NUMBER: _ClassVar[int]
-    ns: str
-    agent: str
-    session_id: str
     key: str
-    def __init__(self, ns: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., key: _Optional[str] = ...) -> None: ...
+    def __init__(self, key: _Optional[str] = ...) -> None: ...
 
 class GetCasObjectResponse(_message.Message):
-    __slots__ = ("object", "data")
+    __slots__ = ("object", "data", "signed_url", "signed_url_expires_at_unix_seconds")
     OBJECT_FIELD_NUMBER: _ClassVar[int]
     DATA_FIELD_NUMBER: _ClassVar[int]
+    SIGNED_URL_FIELD_NUMBER: _ClassVar[int]
+    SIGNED_URL_EXPIRES_AT_UNIX_SECONDS_FIELD_NUMBER: _ClassVar[int]
     object: _data_pb2.ObjectRef
     data: bytes
-    def __init__(self, object: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ..., data: _Optional[bytes] = ...) -> None: ...
+    signed_url: str
+    signed_url_expires_at_unix_seconds: int
+    def __init__(self, object: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ..., data: _Optional[bytes] = ..., signed_url: _Optional[str] = ..., signed_url_expires_at_unix_seconds: _Optional[int] = ...) -> None: ...

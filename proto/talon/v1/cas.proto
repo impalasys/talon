@@ -9,13 +9,12 @@ service CasService {
 }
 
 message GetCasObjectRequest {
-  string ns = 1;
-  string agent = 2;
-  string session_id = 3;
-  string key = 4;
+  string key = 1;
 }
 
 message GetCasObjectResponse {
   talon.data.ObjectRef object = 1;
   bytes data = 2;
+  string signed_url = 3;
+  int64 signed_url_expires_at_unix_seconds = 4;
 }

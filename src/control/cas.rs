@@ -9,6 +9,7 @@ use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::io::Read;
 use std::sync::Arc;
+use std::time::Duration;
 
 const TOOL_RESULT_MEDIA_TYPE: &str = "text/plain; charset=utf-8";
 
@@ -42,6 +43,12 @@ impl SessionObjectIdentity {
             part_id: part_id.to_string(),
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SessionObjectKey {
+    pub scope: SessionCasScope,
+    pub identity: SessionObjectIdentity,
 }
 
 #[derive(Clone)]
@@ -119,6 +126,26 @@ impl CasStore {
         ensure_session_metadata_scope(scope, key, &object.metadata)?;
         Ok(Some(object))
     }
+
+    pub async fn get_session_object_by_key(
+        &self,
+        key: &str,
+    ) -> Result<Option<(SessionCasScope, StoredObject)>> {
+        let parsed = parse_session_object_key(key)?;
+        let Some(object) = self.objects.get(key).await? else {
+            return Ok(None);
+        };
+        let scope = session_scope_from_key_and_metadata(&parsed.scope, key, &object.metadata)?;
+        Ok(Some((scope, object)))
+    }
+
+    pub async fn signed_get_url(
+        &self,
+        key: &str,
+        expires_in: Duration,
+    ) -> Result<Option<crate::control::object_store::SignedObjectUrl>> {
+        self.objects.signed_get_url(key, expires_in).await
+    }
 }
 
 pub fn session_object_key(scope: &SessionCasScope, identity: &SessionObjectIdentity) -> String {
@@ -146,6 +173,39 @@ pub fn ensure_session_key_scope(scope: &SessionCasScope, key: &str) -> Result<()
         ));
     }
     Ok(())
+}
+
+pub fn parse_session_object_key(key: &str) -> Result<SessionObjectKey> {
+    let parts: Vec<&str> = key.split('/').collect();
+    let ["cas", encoded_ns, "sessions", session_id, "messages", message_id, filename] =
+        parts.as_slice()
+    else {
+        return Err(anyhow!("CAS object key is not a session object key"));
+    };
+    let ns = urlencoding::decode(encoded_ns)
+        .map_err(|err| anyhow!("CAS object key namespace is not valid percent-encoding: {err}"))?
+        .into_owned();
+    if encoded_object_key_segment(&ns) != *encoded_ns {
+        return Err(anyhow!("CAS object key namespace is not canonical"));
+    }
+    let part_id = filename
+        .strip_suffix(".txt")
+        .ok_or_else(|| anyhow!("CAS object key must end with .txt"))?;
+    for (field, value) in [
+        ("session_id", *session_id),
+        ("message_id", *message_id),
+        ("part_id", part_id),
+    ] {
+        if object_key_segment(value) != value {
+            return Err(anyhow!(
+                "CAS object key field '{field}' contains unsafe characters"
+            ));
+        }
+    }
+    Ok(SessionObjectKey {
+        scope: SessionCasScope::new(&ns, "", session_id),
+        identity: SessionObjectIdentity::new(message_id, part_id),
+    })
 }
 
 pub fn logical_object_bytes(object: &StoredObject, key: &str) -> Result<Vec<u8>> {
@@ -199,6 +259,35 @@ fn ensure_session_metadata_scope(
     Ok(())
 }
 
+fn session_scope_from_key_and_metadata(
+    key_scope: &SessionCasScope,
+    key: &str,
+    metadata: &ObjectMetadata,
+) -> Result<SessionCasScope> {
+    let meta = &metadata.metadata;
+    for (field, expected) in [
+        ("namespace", key_scope.ns.as_str()),
+        ("session_id", key_scope.session_id.as_str()),
+    ] {
+        if let Some(actual) = meta.get(field) {
+            if actual != expected {
+                return Err(anyhow!(
+                    "CAS object key '{key}' metadata field '{field}' does not match key scope"
+                ));
+            }
+        }
+    }
+    let agent = meta
+        .get("agent")
+        .filter(|value| !value.trim().is_empty())
+        .ok_or_else(|| anyhow!("CAS object key '{key}' metadata is missing agent"))?;
+    Ok(SessionCasScope::new(
+        &key_scope.ns,
+        agent,
+        &key_scope.session_id,
+    ))
+}
+
 fn session_object_metadata(
     scope: &SessionCasScope,
     identity: &SessionObjectIdentity,
@@ -242,8 +331,8 @@ fn sha256_hex(bytes: &[u8]) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{CasStore, SessionCasScope, SessionObjectIdentity};
-    use crate::control::object_store::InMemoryObjectStore;
+    use super::{parse_session_object_key, CasStore, SessionCasScope, SessionObjectIdentity};
+    use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use std::sync::Arc;
 
     #[test]
@@ -295,5 +384,80 @@ mod tests {
             .await
             .unwrap_err();
         assert!(err.to_string().contains("metadata field 'agent'"));
+    }
+
+    #[test]
+    fn parses_session_scope_from_cas_key() {
+        let parsed = parse_session_object_key(
+            "cas/team%2Falpha/sessions/session-1/messages/message-1/part.txt",
+        )
+        .unwrap();
+        assert_eq!(parsed.scope.ns, "team/alpha");
+        assert_eq!(parsed.scope.session_id, "session-1");
+        assert_eq!(parsed.identity.message_id, "message-1");
+        assert_eq!(parsed.identity.part_id, "part");
+    }
+
+    #[test]
+    fn rejects_non_canonical_cas_key_namespaces() {
+        let err = parse_session_object_key(
+            "cas/team%2falpha/sessions/session-1/messages/message-1/part.txt",
+        )
+        .unwrap_err();
+        assert!(err.to_string().contains("namespace is not canonical"));
+    }
+
+    #[tokio::test]
+    async fn derives_scope_from_key_and_stored_metadata() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let store = CasStore::new(objects.clone());
+        let writer = SessionCasScope::new("acme", "agent-a", "session-1");
+        let object = store
+            .put_tool_result(
+                &writer,
+                &SessionObjectIdentity::new("message-1", "000001"),
+                "call-1",
+                "search",
+                b"hello",
+                b"hello",
+                None,
+            )
+            .await
+            .unwrap();
+
+        let (scope, stored) = store
+            .get_session_object_by_key(&object.key)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(scope, writer);
+        assert_eq!(stored.bytes, b"hello");
+    }
+
+    #[tokio::test]
+    async fn rejects_stored_metadata_that_disagrees_with_key_scope() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let store = CasStore::new(objects.clone());
+        objects
+            .put(
+                "cas/acme/sessions/session-1/messages/message-1/000001.txt",
+                b"hello",
+                ObjectMetadata {
+                    metadata: std::collections::HashMap::from([
+                        ("namespace".to_string(), "acme".to_string()),
+                        ("agent".to_string(), "agent".to_string()),
+                        ("session_id".to_string(), "session-2".to_string()),
+                    ]),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+
+        let err = store
+            .get_session_object_by_key("cas/acme/sessions/session-1/messages/message-1/000001.txt")
+            .await
+            .unwrap_err();
+        assert!(err.to_string().contains("does not match key scope"));
     }
 }

@@ -31,48 +31,12 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string ns = 1;</code>
-     * @return The ns.
-     */
-    java.lang.String getNs();
-    /**
-     * <code>string ns = 1;</code>
-     * @return The bytes for ns.
-     */
-    com.google.protobuf.ByteString
-        getNsBytes();
-
-    /**
-     * <code>string agent = 2;</code>
-     * @return The agent.
-     */
-    java.lang.String getAgent();
-    /**
-     * <code>string agent = 2;</code>
-     * @return The bytes for agent.
-     */
-    com.google.protobuf.ByteString
-        getAgentBytes();
-
-    /**
-     * <code>string session_id = 3;</code>
-     * @return The sessionId.
-     */
-    java.lang.String getSessionId();
-    /**
-     * <code>string session_id = 3;</code>
-     * @return The bytes for sessionId.
-     */
-    com.google.protobuf.ByteString
-        getSessionIdBytes();
-
-    /**
-     * <code>string key = 4;</code>
+     * <code>string key = 1;</code>
      * @return The key.
      */
     java.lang.String getKey();
     /**
-     * <code>string key = 4;</code>
+     * <code>string key = 1;</code>
      * @return The bytes for key.
      */
     com.google.protobuf.ByteString
@@ -100,9 +64,6 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       super(builder);
     }
     private GetCasObjectRequest() {
-      ns_ = "";
-      agent_ = "";
-      sessionId_ = "";
       key_ = "";
     }
 
@@ -124,128 +85,11 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
               talon.v1.Cas.GetCasObjectRequest.class, talon.v1.Cas.GetCasObjectRequest.Builder.class);
     }
 
-    public static final int NS_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object ns_ = "";
-    /**
-     * <code>string ns = 1;</code>
-     * @return The ns.
-     */
-    @java.lang.Override
-    public java.lang.String getNs() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        ns_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string ns = 1;</code>
-     * @return The bytes for ns.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNsBytes() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        ns_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int AGENT_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object agent_ = "";
-    /**
-     * <code>string agent = 2;</code>
-     * @return The agent.
-     */
-    @java.lang.Override
-    public java.lang.String getAgent() {
-      java.lang.Object ref = agent_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        agent_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string agent = 2;</code>
-     * @return The bytes for agent.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getAgentBytes() {
-      java.lang.Object ref = agent_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        agent_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int SESSION_ID_FIELD_NUMBER = 3;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object sessionId_ = "";
-    /**
-     * <code>string session_id = 3;</code>
-     * @return The sessionId.
-     */
-    @java.lang.Override
-    public java.lang.String getSessionId() {
-      java.lang.Object ref = sessionId_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        sessionId_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string session_id = 3;</code>
-     * @return The bytes for sessionId.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getSessionIdBytes() {
-      java.lang.Object ref = sessionId_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        sessionId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int KEY_FIELD_NUMBER = 4;
+    public static final int KEY_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
     private volatile java.lang.Object key_ = "";
     /**
-     * <code>string key = 4;</code>
+     * <code>string key = 1;</code>
      * @return The key.
      */
     @java.lang.Override
@@ -262,7 +106,7 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
-     * <code>string key = 4;</code>
+     * <code>string key = 1;</code>
      * @return The bytes for key.
      */
     @java.lang.Override
@@ -294,17 +138,8 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, ns_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, agent_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, sessionId_);
-      }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(key_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 4, key_);
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, key_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -315,17 +150,8 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       if (size != -1) return size;
 
       size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, ns_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, agent_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, sessionId_);
-      }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(key_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, key_);
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, key_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -342,12 +168,6 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       }
       talon.v1.Cas.GetCasObjectRequest other = (talon.v1.Cas.GetCasObjectRequest) obj;
 
-      if (!getNs()
-          .equals(other.getNs())) return false;
-      if (!getAgent()
-          .equals(other.getAgent())) return false;
-      if (!getSessionId()
-          .equals(other.getSessionId())) return false;
       if (!getKey()
           .equals(other.getKey())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
@@ -361,12 +181,6 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + NS_FIELD_NUMBER;
-      hash = (53 * hash) + getNs().hashCode();
-      hash = (37 * hash) + AGENT_FIELD_NUMBER;
-      hash = (53 * hash) + getAgent().hashCode();
-      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
-      hash = (53 * hash) + getSessionId().hashCode();
       hash = (37 * hash) + KEY_FIELD_NUMBER;
       hash = (53 * hash) + getKey().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
@@ -500,9 +314,6 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        ns_ = "";
-        agent_ = "";
-        sessionId_ = "";
         key_ = "";
         return this;
       }
@@ -538,15 +349,6 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       private void buildPartial0(talon.v1.Cas.GetCasObjectRequest result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.ns_ = ns_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.agent_ = agent_;
-        }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.sessionId_ = sessionId_;
-        }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
           result.key_ = key_;
         }
       }
@@ -563,24 +365,9 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
 
       public Builder mergeFrom(talon.v1.Cas.GetCasObjectRequest other) {
         if (other == talon.v1.Cas.GetCasObjectRequest.getDefaultInstance()) return this;
-        if (!other.getNs().isEmpty()) {
-          ns_ = other.ns_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getAgent().isEmpty()) {
-          agent_ = other.agent_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        if (!other.getSessionId().isEmpty()) {
-          sessionId_ = other.sessionId_;
-          bitField0_ |= 0x00000004;
-          onChanged();
-        }
         if (!other.getKey().isEmpty()) {
           key_ = other.key_;
-          bitField0_ |= 0x00000008;
+          bitField0_ |= 0x00000001;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -610,25 +397,10 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
                 done = true;
                 break;
               case 10: {
-                ns_ = input.readStringRequireUtf8();
+                key_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
-              case 18: {
-                agent_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              case 26: {
-                sessionId_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
-              case 34: {
-                key_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 34
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -646,225 +418,9 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
-      private java.lang.Object ns_ = "";
-      /**
-       * <code>string ns = 1;</code>
-       * @return The ns.
-       */
-      public java.lang.String getNs() {
-        java.lang.Object ref = ns_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          ns_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @return The bytes for ns.
-       */
-      public com.google.protobuf.ByteString
-          getNsBytes() {
-        java.lang.Object ref = ns_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          ns_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @param value The ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNs(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        ns_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearNs() {
-        ns_ = getDefaultInstance().getNs();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @param value The bytes for ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNsBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        ns_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object agent_ = "";
-      /**
-       * <code>string agent = 2;</code>
-       * @return The agent.
-       */
-      public java.lang.String getAgent() {
-        java.lang.Object ref = agent_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          agent_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string agent = 2;</code>
-       * @return The bytes for agent.
-       */
-      public com.google.protobuf.ByteString
-          getAgentBytes() {
-        java.lang.Object ref = agent_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          agent_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string agent = 2;</code>
-       * @param value The agent to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAgent(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        agent_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string agent = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearAgent() {
-        agent_ = getDefaultInstance().getAgent();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string agent = 2;</code>
-       * @param value The bytes for agent to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAgentBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        agent_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object sessionId_ = "";
-      /**
-       * <code>string session_id = 3;</code>
-       * @return The sessionId.
-       */
-      public java.lang.String getSessionId() {
-        java.lang.Object ref = sessionId_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          sessionId_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string session_id = 3;</code>
-       * @return The bytes for sessionId.
-       */
-      public com.google.protobuf.ByteString
-          getSessionIdBytes() {
-        java.lang.Object ref = sessionId_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          sessionId_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string session_id = 3;</code>
-       * @param value The sessionId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSessionId(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        sessionId_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string session_id = 3;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearSessionId() {
-        sessionId_ = getDefaultInstance().getSessionId();
-        bitField0_ = (bitField0_ & ~0x00000004);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string session_id = 3;</code>
-       * @param value The bytes for sessionId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSessionIdBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        sessionId_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-
       private java.lang.Object key_ = "";
       /**
-       * <code>string key = 4;</code>
+       * <code>string key = 1;</code>
        * @return The key.
        */
       public java.lang.String getKey() {
@@ -880,7 +436,7 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>string key = 4;</code>
+       * <code>string key = 1;</code>
        * @return The bytes for key.
        */
       public com.google.protobuf.ByteString
@@ -897,7 +453,7 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>string key = 4;</code>
+       * <code>string key = 1;</code>
        * @param value The key to set.
        * @return This builder for chaining.
        */
@@ -905,22 +461,22 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         key_ = value;
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>string key = 4;</code>
+       * <code>string key = 1;</code>
        * @return This builder for chaining.
        */
       public Builder clearKey() {
         key_ = getDefaultInstance().getKey();
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
       /**
-       * <code>string key = 4;</code>
+       * <code>string key = 1;</code>
        * @param value The bytes for key to set.
        * @return This builder for chaining.
        */
@@ -929,7 +485,7 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         key_ = value;
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
@@ -1009,6 +565,24 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
      * @return The data.
      */
     com.google.protobuf.ByteString getData();
+
+    /**
+     * <code>string signed_url = 3;</code>
+     * @return The signedUrl.
+     */
+    java.lang.String getSignedUrl();
+    /**
+     * <code>string signed_url = 3;</code>
+     * @return The bytes for signedUrl.
+     */
+    com.google.protobuf.ByteString
+        getSignedUrlBytes();
+
+    /**
+     * <code>int64 signed_url_expires_at_unix_seconds = 4;</code>
+     * @return The signedUrlExpiresAtUnixSeconds.
+     */
+    long getSignedUrlExpiresAtUnixSeconds();
   }
   /**
    * Protobuf type {@code talon.v1.GetCasObjectResponse}
@@ -1033,6 +607,7 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
     }
     private GetCasObjectResponse() {
       data_ = com.google.protobuf.ByteString.EMPTY;
+      signedUrl_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -1091,6 +666,56 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       return data_;
     }
 
+    public static final int SIGNED_URL_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object signedUrl_ = "";
+    /**
+     * <code>string signed_url = 3;</code>
+     * @return The signedUrl.
+     */
+    @java.lang.Override
+    public java.lang.String getSignedUrl() {
+      java.lang.Object ref = signedUrl_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        signedUrl_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string signed_url = 3;</code>
+     * @return The bytes for signedUrl.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSignedUrlBytes() {
+      java.lang.Object ref = signedUrl_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        signedUrl_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SIGNED_URL_EXPIRES_AT_UNIX_SECONDS_FIELD_NUMBER = 4;
+    private long signedUrlExpiresAtUnixSeconds_ = 0L;
+    /**
+     * <code>int64 signed_url_expires_at_unix_seconds = 4;</code>
+     * @return The signedUrlExpiresAtUnixSeconds.
+     */
+    @java.lang.Override
+    public long getSignedUrlExpiresAtUnixSeconds() {
+      return signedUrlExpiresAtUnixSeconds_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -1111,6 +736,12 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       if (!data_.isEmpty()) {
         output.writeBytes(2, data_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(signedUrl_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, signedUrl_);
+      }
+      if (signedUrlExpiresAtUnixSeconds_ != 0L) {
+        output.writeInt64(4, signedUrlExpiresAtUnixSeconds_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -1127,6 +758,13 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       if (!data_.isEmpty()) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(2, data_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(signedUrl_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, signedUrl_);
+      }
+      if (signedUrlExpiresAtUnixSeconds_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, signedUrlExpiresAtUnixSeconds_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -1150,6 +788,10 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       }
       if (!getData()
           .equals(other.getData())) return false;
+      if (!getSignedUrl()
+          .equals(other.getSignedUrl())) return false;
+      if (getSignedUrlExpiresAtUnixSeconds()
+          != other.getSignedUrlExpiresAtUnixSeconds()) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1167,6 +809,11 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       }
       hash = (37 * hash) + DATA_FIELD_NUMBER;
       hash = (53 * hash) + getData().hashCode();
+      hash = (37 * hash) + SIGNED_URL_FIELD_NUMBER;
+      hash = (53 * hash) + getSignedUrl().hashCode();
+      hash = (37 * hash) + SIGNED_URL_EXPIRES_AT_UNIX_SECONDS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getSignedUrlExpiresAtUnixSeconds());
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1310,6 +957,8 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
           objectBuilder_ = null;
         }
         data_ = com.google.protobuf.ByteString.EMPTY;
+        signedUrl_ = "";
+        signedUrlExpiresAtUnixSeconds_ = 0L;
         return this;
       }
 
@@ -1353,6 +1002,12 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000002) != 0)) {
           result.data_ = data_;
         }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.signedUrl_ = signedUrl_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.signedUrlExpiresAtUnixSeconds_ = signedUrlExpiresAtUnixSeconds_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -1373,6 +1028,14 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         }
         if (!other.getData().isEmpty()) {
           setData(other.getData());
+        }
+        if (!other.getSignedUrl().isEmpty()) {
+          signedUrl_ = other.signedUrl_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (other.getSignedUrlExpiresAtUnixSeconds() != 0L) {
+          setSignedUrlExpiresAtUnixSeconds(other.getSignedUrlExpiresAtUnixSeconds());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -1412,6 +1075,16 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
+              case 26: {
+                signedUrl_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 32: {
+                signedUrlExpiresAtUnixSeconds_ = input.readInt64();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1582,6 +1255,110 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
+      private java.lang.Object signedUrl_ = "";
+      /**
+       * <code>string signed_url = 3;</code>
+       * @return The signedUrl.
+       */
+      public java.lang.String getSignedUrl() {
+        java.lang.Object ref = signedUrl_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          signedUrl_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string signed_url = 3;</code>
+       * @return The bytes for signedUrl.
+       */
+      public com.google.protobuf.ByteString
+          getSignedUrlBytes() {
+        java.lang.Object ref = signedUrl_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          signedUrl_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string signed_url = 3;</code>
+       * @param value The signedUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSignedUrl(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        signedUrl_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string signed_url = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSignedUrl() {
+        signedUrl_ = getDefaultInstance().getSignedUrl();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string signed_url = 3;</code>
+       * @param value The bytes for signedUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSignedUrlBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        signedUrl_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private long signedUrlExpiresAtUnixSeconds_ ;
+      /**
+       * <code>int64 signed_url_expires_at_unix_seconds = 4;</code>
+       * @return The signedUrlExpiresAtUnixSeconds.
+       */
+      @java.lang.Override
+      public long getSignedUrlExpiresAtUnixSeconds() {
+        return signedUrlExpiresAtUnixSeconds_;
+      }
+      /**
+       * <code>int64 signed_url_expires_at_unix_seconds = 4;</code>
+       * @param value The signedUrlExpiresAtUnixSeconds to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSignedUrlExpiresAtUnixSeconds(long value) {
+
+        signedUrlExpiresAtUnixSeconds_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 signed_url_expires_at_unix_seconds = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSignedUrlExpiresAtUnixSeconds() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        signedUrlExpiresAtUnixSeconds_ = 0L;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.v1.GetCasObjectResponse)
     }
 
@@ -1653,13 +1430,14 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
   static {
     java.lang.String[] descriptorData = {
       "\n\030proto/talon/v1/cas.proto\022\010talon.v1\032\025pr" +
-      "oto/data/data.proto\"Q\n\023GetCasObjectReque" +
-      "st\022\n\n\002ns\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\022\n\nsession" +
-      "_id\030\003 \001(\t\022\013\n\003key\030\004 \001(\t\"K\n\024GetCasObjectRe" +
-      "sponse\022%\n\006object\030\001 \001(\0132\025.talon.data.Obje" +
-      "ctRef\022\014\n\004data\030\002 \001(\0142X\n\nCasService\022J\n\tGet" +
-      "Object\022\035.talon.v1.GetCasObjectRequest\032\036." +
-      "talon.v1.GetCasObjectResponseb\006proto3"
+      "oto/data/data.proto\"\"\n\023GetCasObjectReque" +
+      "st\022\013\n\003key\030\001 \001(\t\"\213\001\n\024GetCasObjectResponse" +
+      "\022%\n\006object\030\001 \001(\0132\025.talon.data.ObjectRef\022" +
+      "\014\n\004data\030\002 \001(\014\022\022\n\nsigned_url\030\003 \001(\t\022*\n\"sig" +
+      "ned_url_expires_at_unix_seconds\030\004 \001(\0032X\n" +
+      "\nCasService\022J\n\tGetObject\022\035.talon.v1.GetC" +
+      "asObjectRequest\032\036.talon.v1.GetCasObjectR" +
+      "esponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -1671,13 +1449,13 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
     internal_static_talon_v1_GetCasObjectRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_GetCasObjectRequest_descriptor,
-        new java.lang.String[] { "Ns", "Agent", "SessionId", "Key", });
+        new java.lang.String[] { "Key", });
     internal_static_talon_v1_GetCasObjectResponse_descriptor =
       getDescriptor().getMessageType(1);
     internal_static_talon_v1_GetCasObjectResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_GetCasObjectResponse_descriptor,
-        new java.lang.String[] { "Object", "Data", });
+        new java.lang.String[] { "Object", "Data", "SignedUrl", "SignedUrlExpiresAtUnixSeconds", });
     descriptor.resolveAllFeaturesImmutable();
     talon.data.Data.getDescriptor();
   }

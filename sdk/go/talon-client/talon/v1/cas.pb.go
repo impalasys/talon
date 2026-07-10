@@ -24,10 +24,7 @@ const (
 
 type GetCasObjectRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ns            string                 `protobuf:"bytes,1,opt,name=ns,proto3" json:"ns,omitempty"`
-	Agent         string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
-	SessionId     string                 `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Key           string                 `protobuf:"bytes,4,opt,name=key,proto3" json:"key,omitempty"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -62,27 +59,6 @@ func (*GetCasObjectRequest) Descriptor() ([]byte, []int) {
 	return file_proto_talon_v1_cas_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *GetCasObjectRequest) GetNs() string {
-	if x != nil {
-		return x.Ns
-	}
-	return ""
-}
-
-func (x *GetCasObjectRequest) GetAgent() string {
-	if x != nil {
-		return x.Agent
-	}
-	return ""
-}
-
-func (x *GetCasObjectRequest) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
-}
-
 func (x *GetCasObjectRequest) GetKey() string {
 	if x != nil {
 		return x.Key
@@ -91,11 +67,13 @@ func (x *GetCasObjectRequest) GetKey() string {
 }
 
 type GetCasObjectResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Object        *data.ObjectRef        `protobuf:"bytes,1,opt,name=object,proto3" json:"object,omitempty"`
-	Data          []byte                 `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                         protoimpl.MessageState `protogen:"open.v1"`
+	Object                        *data.ObjectRef        `protobuf:"bytes,1,opt,name=object,proto3" json:"object,omitempty"`
+	Data                          []byte                 `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	SignedUrl                     string                 `protobuf:"bytes,3,opt,name=signed_url,json=signedUrl,proto3" json:"signed_url,omitempty"`
+	SignedUrlExpiresAtUnixSeconds int64                  `protobuf:"varint,4,opt,name=signed_url_expires_at_unix_seconds,json=signedUrlExpiresAtUnixSeconds,proto3" json:"signed_url_expires_at_unix_seconds,omitempty"`
+	unknownFields                 protoimpl.UnknownFields
+	sizeCache                     protoimpl.SizeCache
 }
 
 func (x *GetCasObjectResponse) Reset() {
@@ -142,20 +120,33 @@ func (x *GetCasObjectResponse) GetData() []byte {
 	return nil
 }
 
+func (x *GetCasObjectResponse) GetSignedUrl() string {
+	if x != nil {
+		return x.SignedUrl
+	}
+	return ""
+}
+
+func (x *GetCasObjectResponse) GetSignedUrlExpiresAtUnixSeconds() int64 {
+	if x != nil {
+		return x.SignedUrlExpiresAtUnixSeconds
+	}
+	return 0
+}
+
 var File_proto_talon_v1_cas_proto protoreflect.FileDescriptor
 
 const file_proto_talon_v1_cas_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/talon/v1/cas.proto\x12\btalon.v1\x1a\x15proto/data/data.proto\"l\n" +
-	"\x13GetCasObjectRequest\x12\x0e\n" +
-	"\x02ns\x18\x01 \x01(\tR\x02ns\x12\x14\n" +
-	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\x03 \x01(\tR\tsessionId\x12\x10\n" +
-	"\x03key\x18\x04 \x01(\tR\x03key\"Y\n" +
+	"\x18proto/talon/v1/cas.proto\x12\btalon.v1\x1a\x15proto/data/data.proto\"'\n" +
+	"\x13GetCasObjectRequest\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\"\xc3\x01\n" +
 	"\x14GetCasObjectResponse\x12-\n" +
 	"\x06object\x18\x01 \x01(\v2\x15.talon.data.ObjectRefR\x06object\x12\x12\n" +
-	"\x04data\x18\x02 \x01(\fR\x04data2X\n" +
+	"\x04data\x18\x02 \x01(\fR\x04data\x12\x1d\n" +
+	"\n" +
+	"signed_url\x18\x03 \x01(\tR\tsignedUrl\x12I\n" +
+	"\"signed_url_expires_at_unix_seconds\x18\x04 \x01(\x03R\x1dsignedUrlExpiresAtUnixSeconds2X\n" +
 	"\n" +
 	"CasService\x12J\n" +
 	"\tGetObject\x12\x1d.talon.v1.GetCasObjectRequest\x1a\x1e.talon.v1.GetCasObjectResponseb\x06proto3"

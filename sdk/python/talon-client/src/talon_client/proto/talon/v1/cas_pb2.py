@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from talon_client.proto.data import data_pb2 as proto_dot_data_dot_data__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18proto/talon/v1/cas.proto\x12\x08talon.v1\x1a\x15proto/data/data.proto\"Q\n\x13GetCasObjectRequest\x12\n\n\x02ns\x18\x01 \x01(\t\x12\r\n\x05\x61gent\x18\x02 \x01(\t\x12\x12\n\nsession_id\x18\x03 \x01(\t\x12\x0b\n\x03key\x18\x04 \x01(\t\"K\n\x14GetCasObjectResponse\x12%\n\x06object\x18\x01 \x01(\x0b\x32\x15.talon.data.ObjectRef\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x32X\n\nCasService\x12J\n\tGetObject\x12\x1d.talon.v1.GetCasObjectRequest\x1a\x1e.talon.v1.GetCasObjectResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18proto/talon/v1/cas.proto\x12\x08talon.v1\x1a\x15proto/data/data.proto\"\"\n\x13GetCasObjectRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"\x8b\x01\n\x14GetCasObjectResponse\x12%\n\x06object\x18\x01 \x01(\x0b\x32\x15.talon.data.ObjectRef\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x12\n\nsigned_url\x18\x03 \x01(\t\x12*\n\"signed_url_expires_at_unix_seconds\x18\x04 \x01(\x03\x32X\n\nCasService\x12J\n\tGetObject\x12\x1d.talon.v1.GetCasObjectRequest\x1a\x1e.talon.v1.GetCasObjectResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,9 +33,9 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.talon.v1.cas_pb2', _g
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_GETCASOBJECTREQUEST']._serialized_start=61
-  _globals['_GETCASOBJECTREQUEST']._serialized_end=142
-  _globals['_GETCASOBJECTRESPONSE']._serialized_start=144
-  _globals['_GETCASOBJECTRESPONSE']._serialized_end=219
-  _globals['_CASSERVICE']._serialized_start=221
-  _globals['_CASSERVICE']._serialized_end=309
+  _globals['_GETCASOBJECTREQUEST']._serialized_end=95
+  _globals['_GETCASOBJECTRESPONSE']._serialized_start=98
+  _globals['_GETCASOBJECTRESPONSE']._serialized_end=237
+  _globals['_CASSERVICE']._serialized_start=239
+  _globals['_CASSERVICE']._serialized_end=327
 # @@protoc_insertion_point(module_scope)
