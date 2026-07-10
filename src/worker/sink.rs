@@ -28,6 +28,130 @@ fn chat_usage_payload_json(usage: &ChatUsage) -> String {
     .unwrap_or_else(|_| "{}".to_string())
 }
 
+/// Shared buffering state for append-only streamed message parts.
+///
+/// This intentionally keeps the live fanout lifecycle separate from durable
+/// `SessionMessage.parts` assembly: `live_buffer` is drained often for small UI
+/// deltas, while `accumulated` is closed only at semantic transcript boundaries.
+struct StreamingPartBuffer {
+    /// The durable/live part kind represented by this buffer, currently text or reasoning.
+    part_type: data_proto::SessionMessagePartType,
+    /// Pending content for the next live delta event; drained without changing durable state.
+    live_buffer: String,
+    /// Full streamed content for the current semantic part segment.
+    accumulated: String,
+    /// Byte offset in `accumulated` that has already been committed durably.
+    durable_bytes: usize,
+    /// Stable ID for the in-progress projection part so repeated writes update the same logical part.
+    active_part_id: Option<String>,
+    /// Last live publish timestamp used to throttle fanout batching.
+    last_publish: Instant,
+    /// Whether the terminal durable close has already consumed this buffer.
+    final_closed: bool,
+}
+
+impl StreamingPartBuffer {
+    fn new(part_type: data_proto::SessionMessagePartType) -> Self {
+        Self {
+            part_type,
+            live_buffer: String::new(),
+            accumulated: String::new(),
+            durable_bytes: 0,
+            active_part_id: None,
+            last_publish: Instant::now(),
+            final_closed: false,
+        }
+    }
+
+    fn push(&mut self, chunk: &str) {
+        debug_assert!(
+            !self.final_closed,
+            "cannot append to a stream buffer after final close"
+        );
+        self.accumulated.push_str(chunk);
+        self.live_buffer.push_str(chunk);
+    }
+
+    fn should_publish(&self, now: Instant, interval: Duration) -> bool {
+        !self.live_buffer.is_empty() && now.saturating_duration_since(self.last_publish) >= interval
+    }
+
+    fn take_live_batch(&mut self, now: Instant) -> Option<String> {
+        if self.live_buffer.is_empty() {
+            return None;
+        }
+        self.last_publish = now;
+        Some(std::mem::take(&mut self.live_buffer))
+    }
+
+    fn projection_part<F>(&mut self, mut id_factory: F) -> Option<data_proto::SessionMessagePart>
+    where
+        F: FnMut() -> String,
+    {
+        let content = self.unclosed_content().to_string();
+        if content.is_empty() {
+            return None;
+        }
+        let id = self
+            .active_part_id
+            .get_or_insert_with(&mut id_factory)
+            .clone();
+        Some(self.part(id, content))
+    }
+
+    fn close_durable_part<F>(&mut self, mut id_factory: F) -> Option<data_proto::SessionMessagePart>
+    where
+        F: FnMut() -> String,
+    {
+        let content = self.unclosed_content().to_string();
+        if content.is_empty() {
+            return None;
+        }
+        self.durable_bytes = self.accumulated.len();
+        let id = self.active_part_id.take().unwrap_or_else(&mut id_factory);
+        Some(self.part(id, content))
+    }
+
+    fn final_part<F>(
+        &mut self,
+        mut id_factory: F,
+    ) -> anyhow::Result<Option<data_proto::SessionMessagePart>>
+    where
+        F: FnMut() -> String,
+    {
+        anyhow::ensure!(
+            !self.final_closed,
+            "streaming part buffer was finalized more than once"
+        );
+        let content = self.unclosed_content().to_string();
+        if content.is_empty() {
+            self.final_closed = true;
+            return Ok(None);
+        }
+        self.durable_bytes = self.accumulated.len();
+        self.final_closed = true;
+        let id = self.active_part_id.take().unwrap_or_else(&mut id_factory);
+        Ok(Some(self.part(id, content)))
+    }
+
+    fn unclosed_content(&self) -> &str {
+        let start = self.durable_bytes.min(self.accumulated.len());
+        &self.accumulated[start..]
+    }
+
+    fn part(&self, id: String, content: String) -> data_proto::SessionMessagePart {
+        data_proto::SessionMessagePart {
+            id,
+            part_type: self.part_type as i32,
+            content,
+            name: String::new(),
+            payload_json: String::new(),
+            created_at: chrono::Utc::now().timestamp_micros(),
+            object: None,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct SessionRunSummary {
     pub duration_ms: u128,
@@ -73,23 +197,18 @@ pub struct PubSubSessionSink {
     // Live UI event batching.
     token_publish_interval: Duration,
     started_at: Instant,
-    pending_token_event_buffer: Mutex<String>,
-    pending_reasoning_event_buffer: Mutex<String>,
-    last_token_publish: Mutex<Instant>,
-    last_reasoning_publish: Mutex<Instant>,
+    // At most one streamed semantic part can be open. Switching between text
+    // and reasoning closes the previous buffer before opening the next.
+    active_stream_buffer: Mutex<Option<StreamingPartBuffer>>,
 
     // Canonical assistant message assembly. `durable_parts` holds non-streaming
-    // parts and text segments already closed by a tool/reasoning boundary.
-    // `accumulated` is the full streamed assistant text seen so far.
-    accumulated: Mutex<String>,
+    // parts and streaming segments already closed by a semantic boundary.
     durable_parts: Mutex<Vec<data_proto::SessionMessagePart>>,
-    durable_text_bytes: Mutex<usize>,
     next_part_index: Mutex<u64>,
 
     // Mutable projection state. Projection writes are UI-only and fenced by the
     // current submission attempt; journal entries remain the backend authority.
     last_flush: Mutex<Instant>, // Last time the UI projection was considered for persistence.
-    active_text_part_id: Mutex<Option<String>>, // Stable id for the currently streaming text part.
     latest_journal_entry_id: Mutex<Option<String>>, // Latest durable boundary reflected in projection labels.
     persist_lock: Arc<AsyncMutex<()>>, // Serializes projection writes with final message commit.
 
@@ -233,18 +352,12 @@ impl PubSubSessionSink {
             attempt_id,
             token_publish_interval,
             started_at: Instant::now(),
-            accumulated: Mutex::new(String::new()),
-            pending_token_event_buffer: Mutex::new(String::new()),
-            pending_reasoning_event_buffer: Mutex::new(String::new()),
+            active_stream_buffer: Mutex::new(None),
             durable_parts: Mutex::new(Vec::new()),
-            durable_text_bytes: Mutex::new(0),
             next_part_index: Mutex::new(0),
             last_flush: Mutex::new(Instant::now()),
-            active_text_part_id: Mutex::new(None),
             latest_journal_entry_id: Mutex::new(None),
             persist_lock: Arc::new(AsyncMutex::new(())),
-            last_token_publish: Mutex::new(Instant::now()),
-            last_reasoning_publish: Mutex::new(Instant::now()),
             input_token_chunks: Mutex::new(0),
             input_token_chars: Mutex::new(0),
             published_token_batches: Mutex::new(0),
@@ -271,24 +384,11 @@ impl PubSubSessionSink {
         content: String,
         payload_json: String,
     ) {
-        self.record_part_with_id(self.next_part_id(), part_type, name, content, payload_json);
-    }
-
-    // Used when provisional stream chunks have already reserved the logical
-    // final SessionMessagePart id for a text segment.
-    fn record_part_with_id(
-        &self,
-        id: String,
-        part_type: data_proto::SessionMessagePartType,
-        name: String,
-        content: String,
-        payload_json: String,
-    ) {
         self.durable_parts
             .lock()
             .unwrap()
             .push(data_proto::SessionMessagePart {
-                id,
+                id: self.next_part_id(),
                 part_type: part_type as i32,
                 content,
                 name,
@@ -296,6 +396,10 @@ impl PubSubSessionSink {
                 created_at: chrono::Utc::now().timestamp_micros(),
                 object: None,
             });
+    }
+
+    fn record_durable_stream_part(&self, part: data_proto::SessionMessagePart) {
+        self.durable_parts.lock().unwrap().push(part);
     }
 
     pub(crate) fn seed_recovered_text_part(&self, content: &str) {
@@ -338,119 +442,95 @@ impl PubSubSessionSink {
         );
     }
 
-    fn final_message_parts(&self, reply: &str) -> Vec<data_proto::SessionMessagePart> {
+    fn final_message_parts(&self) -> anyhow::Result<Vec<data_proto::SessionMessagePart>> {
         let mut parts = self.durable_parts.lock().unwrap().clone();
-        let accumulated = self.accumulated.lock().unwrap().clone();
-        let effective_reply = if reply.is_empty() {
-            accumulated.as_str()
-        } else {
-            reply
-        };
-        let text = {
-            if accumulated.is_empty() {
-                effective_reply.to_string()
-            } else if effective_reply.starts_with(accumulated.as_str()) {
-                self.text_since_last_durable_part(effective_reply)
-            } else {
-                effective_reply.to_string()
+        let active = self.active_stream_buffer.lock().unwrap().take();
+        if let Some(mut buffer) = active {
+            if let Some(part) = buffer.final_part(|| self.next_part_id())? {
+                parts.push(part);
             }
-        };
-        if !text.is_empty() {
-            parts.push(data_proto::SessionMessagePart {
-                id: self.take_or_next_text_part_id(),
-                part_type: data_proto::SessionMessagePartType::Text as i32,
-                content: text,
-                name: String::new(),
-                payload_json: String::new(),
-                created_at: chrono::Utc::now().timestamp_micros(),
-                object: None,
-            });
         }
-        parts
+        Ok(parts)
     }
 
-    // Reserve the logical final text part id before persisting an in-progress
-    // projection. All projections for the same text segment share this id.
-    fn ensure_active_text_part_id(&self) -> String {
-        let mut active = self.active_text_part_id.lock().unwrap();
-        if let Some(id) = active.as_ref() {
-            return id.clone();
-        }
-        let id = self.next_part_id();
-        *active = Some(id.clone());
-        id
-    }
-
-    // Close the active text segment and return the id that provisional chunks
-    // used for it. If no chunks were persisted, allocate the final id here.
-    fn take_or_next_text_part_id(&self) -> String {
-        self.active_text_part_id
+    fn close_active_stream_part(&self) {
+        let part = self
+            .active_stream_buffer
             .lock()
             .unwrap()
             .take()
-            .unwrap_or_else(|| self.next_part_id())
-    }
-
-    // Return only the text not already closed into a durable final-message part.
-    fn text_since_last_durable_part(&self, current_text: &str) -> String {
-        let durable_bytes = *self.durable_text_bytes.lock().unwrap();
-        let start = durable_bytes.min(current_text.len());
-        current_text[start..].to_string()
-    }
-
-    // Tool calls close the current assistant text segment before tool-call parts
-    // are appended, preserving final SessionMessagePart ordering.
-    fn record_accumulated_text_part(&self) {
-        let pending_text = {
-            let accumulated = self.accumulated.lock().unwrap();
-            let mut durable_bytes = self.durable_text_bytes.lock().unwrap();
-            let start = (*durable_bytes).min(accumulated.len());
-            let pending_text = accumulated[start..].to_string();
-            *durable_bytes = accumulated.len();
-            pending_text
-        };
-        if !pending_text.is_empty() {
-            self.record_part_with_id(
-                self.take_or_next_text_part_id(),
-                data_proto::SessionMessagePartType::Text,
-                String::new(),
-                pending_text,
-                String::new(),
-            );
+            .and_then(|mut buffer| buffer.close_durable_part(|| self.next_part_id()));
+        if let Some(part) = part {
+            self.record_durable_stream_part(part);
         }
     }
 
-    async fn flush_token_event_buffer(&self) {
-        let content = {
-            let mut buffer = self.pending_token_event_buffer.lock().unwrap();
-            if buffer.is_empty() {
-                return;
+    fn push_active_stream_part(&self, part_type: data_proto::SessionMessagePartType, chunk: &str) {
+        let closed_part = {
+            let mut active = self.active_stream_buffer.lock().unwrap();
+            if active
+                .as_ref()
+                .is_some_and(|buffer| buffer.part_type != part_type)
+            {
+                active
+                    .take()
+                    .and_then(|mut buffer| buffer.close_durable_part(|| self.next_part_id()))
+            } else {
+                None
             }
-            std::mem::take(&mut *buffer)
         };
+        if let Some(part) = closed_part {
+            self.record_durable_stream_part(part);
+        }
 
-        *self.last_token_publish.lock().unwrap() = Instant::now();
-        *self.published_token_batches.lock().unwrap() += 1;
-        *self.published_token_chars.lock().unwrap() += content.len();
-        self.publish_event(AgentEvent::Token(content)).await;
+        let mut active = self.active_stream_buffer.lock().unwrap();
+        let buffer = active.get_or_insert_with(|| StreamingPartBuffer::new(part_type));
+        buffer.push(chunk);
     }
 
-    async fn flush_reasoning_part_and_event(&self) {
-        let content = {
-            let mut buffer = self.pending_reasoning_event_buffer.lock().unwrap();
-            if buffer.is_empty() {
-                return;
-            }
-            std::mem::take(&mut *buffer)
-        };
+    fn should_flush_active_stream_event(&self) -> bool {
+        self.active_stream_buffer
+            .lock()
+            .unwrap()
+            .as_ref()
+            .is_some_and(|buffer| {
+                buffer.should_publish(Instant::now(), self.token_publish_interval)
+            })
+    }
 
-        self.record_part(
-            data_proto::SessionMessagePartType::Reasoning,
-            String::new(),
-            content.clone(),
-            String::new(),
-        );
-        self.publish_event(AgentEvent::Reasoning(content)).await;
+    fn active_stream_type(&self) -> Option<data_proto::SessionMessagePartType> {
+        self.active_stream_buffer
+            .lock()
+            .unwrap()
+            .as_ref()
+            .map(|buffer| buffer.part_type)
+    }
+
+    async fn flush_active_stream_event_buffer(&self) {
+        let event = self
+            .active_stream_buffer
+            .lock()
+            .unwrap()
+            .as_mut()
+            .and_then(|buffer| {
+                let part_type = buffer.part_type;
+                buffer
+                    .take_live_batch(Instant::now())
+                    .map(|content| (part_type, content))
+            });
+        if let Some((part_type, content)) = event {
+            match part_type {
+                data_proto::SessionMessagePartType::Text => {
+                    *self.published_token_batches.lock().unwrap() += 1;
+                    *self.published_token_chars.lock().unwrap() += content.len();
+                    self.publish_event(AgentEvent::Token(content)).await;
+                }
+                data_proto::SessionMessagePartType::Reasoning => {
+                    self.publish_event(AgentEvent::Reasoning(content)).await;
+                }
+                _ => {}
+            }
+        }
     }
 
     async fn publish_event(&self, event: AgentEvent) {
@@ -529,11 +609,11 @@ impl PubSubSessionSink {
                 String::new(),
                 chat_usage_payload_json(&usage),
             ),
-            AgentEvent::Done(reply) => (
+            AgentEvent::Done => (
                 SessionMessagePartEventKind::Done,
                 data_proto::SessionMessagePartType::Text,
                 String::new(),
-                reply,
+                String::new(),
                 String::new(),
             ),
             AgentEvent::Error(err) => (
@@ -601,42 +681,27 @@ impl PubSubSessionSink {
         labels
     }
 
-    fn projection_message_parts(&self, reply: &str) -> Vec<data_proto::SessionMessagePart> {
+    fn projection_message_parts(&self) -> Vec<data_proto::SessionMessagePart> {
         let mut parts = self.durable_parts.lock().unwrap().clone();
-        let accumulated = self.accumulated.lock().unwrap().clone();
-        let effective_reply = if reply.is_empty() {
-            accumulated.as_str()
-        } else {
-            reply
+        let active_part = {
+            let mut active = self.active_stream_buffer.lock().unwrap();
+            active
+                .as_mut()
+                .and_then(|buffer| buffer.projection_part(|| self.next_part_id()))
         };
-        let text = if accumulated.is_empty() {
-            effective_reply.to_string()
-        } else if effective_reply.starts_with(accumulated.as_str()) {
-            self.text_since_last_durable_part(effective_reply)
-        } else {
-            effective_reply.to_string()
-        };
-        if !text.is_empty() {
-            parts.push(data_proto::SessionMessagePart {
-                id: self.ensure_active_text_part_id(),
-                part_type: data_proto::SessionMessagePartType::Text as i32,
-                content: text,
-                name: String::new(),
-                payload_json: String::new(),
-                created_at: chrono::Utc::now().timestamp_micros(),
-                object: None,
-            });
+        if let Some(part) = active_part {
+            parts.push(part);
         }
         parts
     }
 
-    fn projection_message(&self, state: &str, reply: &str) -> data_proto::SessionMessage {
+    fn projection_message(&self, state: &str) -> data_proto::SessionMessage {
         data_proto::SessionMessage {
             id: self.reply_msg_id.clone(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: self.projection_labels(state),
-            parts: self.projection_message_parts(reply),
+            parts: self.projection_message_parts(),
         }
     }
 
@@ -673,7 +738,7 @@ impl PubSubSessionSink {
             }
         };
         if should_flush {
-            let msg = self.projection_message(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS, "");
+            let msg = self.projection_message(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS);
             let span = tracing::info_span!(
                 "PubSubSessionSink.persist_projection_message",
                 namespace = %self.ns,
@@ -792,16 +857,6 @@ impl PubSubSessionSink {
         }
     }
 
-    fn should_flush_token_event(&self) -> bool {
-        let last = self.last_token_publish.lock().unwrap();
-        last.elapsed() >= self.token_publish_interval
-    }
-
-    fn should_flush_reasoning_event(&self) -> bool {
-        let last = self.last_reasoning_publish.lock().unwrap();
-        last.elapsed() >= self.token_publish_interval
-    }
-
     pub fn summary(&self) -> SessionRunSummary {
         SessionRunSummary {
             duration_ms: self.started_at.elapsed().as_millis(),
@@ -839,37 +894,39 @@ impl ExecutionSink for PubSubSessionSink {
     async fn on_token(&self, token: &str) {
         *self.input_token_chunks.lock().unwrap() += 1;
         *self.input_token_chars.lock().unwrap() += token.len();
+        if self
+            .active_stream_type()
+            .is_some_and(|part_type| part_type != data_proto::SessionMessagePartType::Text)
         {
-            let mut acc = self.accumulated.lock().unwrap();
-            acc.push_str(token);
+            self.flush_active_stream_event_buffer().await;
         }
-        self.pending_token_event_buffer
-            .lock()
-            .unwrap()
-            .push_str(token);
+        self.push_active_stream_part(data_proto::SessionMessagePartType::Text, token);
         self.maybe_flush_kv().await;
-        if self.should_flush_token_event() {
-            self.flush_token_event_buffer().await;
+        if self.should_flush_active_stream_event() {
+            self.flush_active_stream_event_buffer().await;
         }
     }
 
     async fn on_reasoning(&self, reasoning: &str) {
         *self.reasoning_chunks.lock().unwrap() += 1;
         *self.reasoning_chars.lock().unwrap() += reasoning.len();
-        self.pending_reasoning_event_buffer
-            .lock()
-            .unwrap()
-            .push_str(reasoning);
-        if self.should_flush_reasoning_event() {
-            self.flush_reasoning_part_and_event().await;
+        if self
+            .active_stream_type()
+            .is_some_and(|part_type| part_type != data_proto::SessionMessagePartType::Reasoning)
+        {
+            self.flush_active_stream_event_buffer().await;
+        }
+        self.push_active_stream_part(data_proto::SessionMessagePartType::Reasoning, reasoning);
+        self.maybe_flush_kv().await;
+        if self.should_flush_active_stream_event() {
+            self.flush_active_stream_event_buffer().await;
         }
     }
 
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value) {
         *self.tool_calls.lock().unwrap() += 1;
-        self.flush_token_event_buffer().await;
-        self.record_accumulated_text_part();
-        self.flush_reasoning_part_and_event().await;
+        self.flush_active_stream_event_buffer().await;
+        self.close_active_stream_part();
         self.record_part(
             data_proto::SessionMessagePartType::ToolCall,
             name.to_string(),
@@ -908,7 +965,8 @@ impl ExecutionSink for PubSubSessionSink {
 
     async fn on_tool_result(&self, id: &str, name: &str, result: &str) {
         *self.tool_results.lock().unwrap() += 1;
-        self.flush_reasoning_part_and_event().await;
+        self.flush_active_stream_event_buffer().await;
+        self.close_active_stream_part();
         let preview = tool_result_preview(result);
         self.record_part(
             data_proto::SessionMessagePartType::ToolResult,
@@ -930,9 +988,8 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_request_permission(&self, id: &str, action: &str, payload: &Value) {
-        self.flush_token_event_buffer().await;
-        self.record_accumulated_text_part();
-        self.flush_reasoning_part_and_event().await;
+        self.flush_active_stream_event_buffer().await;
+        self.close_active_stream_part();
         self.record_part(
             data_proto::SessionMessagePartType::RequestPermission,
             action.to_string(),
@@ -954,7 +1011,8 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_permission_result(&self, id: &str, outcome: &Value) {
-        self.flush_reasoning_part_and_event().await;
+        self.flush_active_stream_event_buffer().await;
+        self.close_active_stream_part();
         self.record_part(
             data_proto::SessionMessagePartType::PermissionResult,
             String::new(),
@@ -979,7 +1037,8 @@ impl ExecutionSink for PubSubSessionSink {
 
     async fn on_usage(&self, usage: &ChatUsage) {
         *self.usage_events.lock().unwrap() += 1;
-        self.flush_reasoning_part_and_event().await;
+        self.flush_active_stream_event_buffer().await;
+        self.close_active_stream_part();
         self.record_part(
             data_proto::SessionMessagePartType::Usage,
             String::new(),
@@ -989,25 +1048,26 @@ impl ExecutionSink for PubSubSessionSink {
         self.publish_event(AgentEvent::Usage(usage.clone())).await;
     }
 
-    async fn on_done(&self, reply: &str) {
-        self.flush_token_event_buffer().await;
-        self.flush_reasoning_part_and_event().await;
+    async fn on_done(&self) {
+        self.flush_active_stream_event_buffer().await;
         // Final KV write (complete message)
-        let accumulated = self.accumulated.lock().unwrap().clone();
-        let reply = if accumulated.is_empty() {
-            reply.to_string()
-        } else if reply.is_empty() || accumulated.ends_with(reply) {
-            accumulated
-        } else {
-            reply.to_string()
+        let parts = match self.final_message_parts() {
+            Ok(parts) => parts,
+            Err(err) => {
+                tracing::error!(error = %err, "Failed to assemble final assistant message parts");
+                self.publish_event(AgentEvent::Error(
+                    "Error: failed to assemble final assistant message".to_string(),
+                ))
+                .await;
+                return;
+            }
         };
-        let reply_for_event = reply.clone();
         let msg = data_proto::SessionMessage {
             id: self.reply_msg_id.clone(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED),
-            parts: self.final_message_parts(&reply),
+            parts,
         };
         let result = async {
             let _guard = self.persist_lock.lock().await;
@@ -1055,7 +1115,7 @@ impl ExecutionSink for PubSubSessionSink {
                         return;
                     }
                     self.publish_reply_index_event().await;
-                    self.publish_event(AgentEvent::Done(reply_for_event)).await;
+                    self.publish_event(AgentEvent::Done).await;
                 } else {
                     self.publish_event(AgentEvent::Error(
                         "Error: failed to mark session submission terminal".to_string(),
@@ -1074,10 +1134,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_error(&self, err: &str) {
-        self.flush_token_event_buffer().await;
-        self.flush_reasoning_part_and_event().await;
+        self.flush_active_stream_event_buffer().await;
+        self.close_active_stream_part();
 
-        self.record_accumulated_text_part();
         self.record_part(
             data_proto::SessionMessagePartType::Error,
             String::new(),
@@ -1136,7 +1195,7 @@ fn token_publish_interval() -> Duration {
 
 #[cfg(test)]
 mod tests {
-    use super::{token_publish_interval, PubSubSessionSink};
+    use super::{token_publish_interval, PubSubSessionSink, StreamingPartBuffer};
     use crate::control::events::{
         IndexEvent, SessionMessagePartEvent, SessionMessagePartEventKind,
     };
@@ -1144,6 +1203,7 @@ mod tests {
     use crate::control::{KeyValueStore, MessagePublisher};
     use crate::gateway::rpc::data_proto;
     use crate::harness::executor::ExecutionSink;
+    use crate::harness::llm::ChatUsage;
     use crate::harness::sessions;
     use async_trait::async_trait;
     use futures::StreamExt;
@@ -1228,6 +1288,17 @@ mod tests {
 
     fn event_part(event: &SessionMessagePartEvent) -> &data_proto::SessionMessagePart {
         event.part.as_ref().expect("event part")
+    }
+
+    async fn latest_reply_message(kv: &MockKvStore) -> data_proto::SessionMessage {
+        kv.entries
+            .lock()
+            .await
+            .iter()
+            .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
+            .rev()
+            .find(|message| message.id == "reply-1")
+            .expect("reply message should be persisted")
     }
 
     type TestFanoutStream = std::pin::Pin<
@@ -1321,6 +1392,17 @@ mod tests {
     async fn token_events_are_batched_by_time_window() {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        crate::control::ProtoKeyValueStoreExt::set_msg(
+            kv.as_ref(),
+            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &submission,
+        )
+        .await
+        .unwrap();
         let sink = PubSubSessionSink::new_with_token_publish_interval(
             kv.clone(),
             Arc::new(MockPubSub {
@@ -1340,7 +1422,7 @@ mod tests {
         sink.on_token("hello").await;
         tokio::time::sleep(Duration::from_millis(10)).await;
         sink.on_token(" world").await;
-        sink.on_done("hello world").await;
+        sink.on_done().await;
 
         let events = fanout_events_until_terminal(&mut fanout).await;
         let token_events = events
@@ -1353,6 +1435,20 @@ mod tests {
             .collect::<Vec<_>>();
 
         assert_eq!(token_events, vec!["hello world".to_string()]);
+        let done_event = events
+            .iter()
+            .find(|event| event.kind == SessionMessagePartEventKind::Done as i32)
+            .expect("done event should be published");
+        assert_eq!(event_part(done_event).content, "");
+
+        let final_message = latest_reply_message(kv.as_ref()).await;
+        let persisted_text = final_message
+            .parts
+            .iter()
+            .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .map(|part| part.content.clone())
+            .collect::<Vec<_>>();
+        assert_eq!(persisted_text, vec!["hello world".to_string()]);
     }
 
     #[tokio::test]
@@ -1374,7 +1470,7 @@ mod tests {
 
         sink.on_token("The answer is ").await;
         sink.on_token("12.").await;
-        sink.on_done("").await;
+        sink.on_done().await;
 
         let entries = kv.entries.lock().await.clone();
         let reply = entries
@@ -1393,7 +1489,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn final_message_persists_accumulated_streamed_text_when_done_reply_is_tail() {
+    async fn final_message_uses_streamed_text_before_done() {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
         let sink = PubSubSessionSink::new_with_token_publish_interval(
@@ -1409,9 +1505,9 @@ mod tests {
             Duration::from_secs(10),
         );
 
-        sink.on_token("Hello! I am a mock LLM. How can ").await;
-        sink.on_token("I assist you today?").await;
-        sink.on_done("I assist you today?").await;
+        sink.on_token("streamed ").await;
+        sink.on_token("answer").await;
+        sink.on_done().await;
 
         let entries = kv.entries.lock().await.clone();
         let reply = entries
@@ -1426,10 +1522,7 @@ mod tests {
             .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
             .map(|part| part.content.as_str())
             .collect::<String>();
-        assert_eq!(
-            reply_text,
-            "Hello! I am a mock LLM. How can I assist you today?"
-        );
+        assert_eq!(reply_text, "streamed answer");
     }
 
     #[tokio::test]
@@ -1460,7 +1553,8 @@ mod tests {
             Duration::from_secs(10),
         );
 
-        sink.on_done("assistant searchable reply").await;
+        sink.on_token("final").await;
+        sink.on_done().await;
 
         let published = pubsub.published.lock().await.clone();
         let index_event = published
@@ -1514,7 +1608,8 @@ mod tests {
         );
         assert_eq!(event_part(&events[1]).name, "create_prompt");
 
-        sink.on_done("drafting requestfinal").await;
+        sink.on_token("final").await;
+        sink.on_done().await;
         let entries = kv.entries.lock().await.clone();
         let reply = entries
             .iter()
@@ -1556,7 +1651,7 @@ mod tests {
         sink.on_reasoning("first").await;
         tokio::time::sleep(Duration::from_millis(10)).await;
         sink.on_reasoning(" second").await;
-        sink.on_done("final reply").await;
+        sink.on_done().await;
 
         let events = fanout_events_until_terminal(&mut fanout).await;
         let reasoning_events = events
@@ -1577,6 +1672,124 @@ mod tests {
             .map(|part| part.content)
             .collect::<Vec<_>>();
         assert_eq!(persisted_reasoning, vec!["first second".to_string()]);
+    }
+
+    #[tokio::test]
+    async fn reasoning_live_batches_do_not_become_durable_parts() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub {
+                events: events.clone(),
+            }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_millis(5),
+        );
+
+        let mut fanout = fanout_stream(&sink).await;
+        sink.on_reasoning("first").await;
+        tokio::time::sleep(Duration::from_millis(10)).await;
+        sink.on_reasoning(" second").await;
+        tokio::time::sleep(Duration::from_millis(10)).await;
+        sink.on_reasoning(" third").await;
+        sink.on_done().await;
+
+        let events = fanout_events_until_terminal(&mut fanout).await;
+        let reasoning_events = events
+            .iter()
+            .filter(|event| {
+                event_part(event).part_type == data_proto::SessionMessagePartType::Reasoning as i32
+            })
+            .map(|event| event_part(event).content.clone())
+            .collect::<Vec<_>>();
+        assert_eq!(
+            reasoning_events,
+            vec!["first second".to_string(), " third".to_string()]
+        );
+
+        let entries = kv.entries.lock().await.clone();
+        let persisted_reasoning = entries
+            .iter()
+            .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
+            .flat_map(|message| message.parts)
+            .filter(|part| part.part_type == data_proto::SessionMessagePartType::Reasoning as i32)
+            .map(|part| part.content)
+            .collect::<Vec<_>>();
+        assert_eq!(persisted_reasoning, vec!["first second third".to_string()]);
+    }
+
+    #[tokio::test]
+    async fn streaming_part_boundaries_preserve_mixed_order() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub {
+                events: events.clone(),
+            }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        sink.on_reasoning("planning ").await;
+        sink.on_token("drafting ").await;
+        sink.on_tool_call("tool-1", "create_prompt", &json!({"content": "x"}))
+            .await;
+        sink.on_tool_result("tool-1", "create_prompt", "created")
+            .await;
+        sink.on_reasoning("checking ").await;
+        sink.on_token("final").await;
+        sink.on_usage(&ChatUsage {
+            input_tokens: 10,
+            output_tokens: 5,
+            reasoning_tokens: 2,
+            total_tokens: 17,
+        })
+        .await;
+        sink.on_done().await;
+
+        let entries = kv.entries.lock().await.clone();
+        let reply = entries
+            .iter()
+            .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
+            .rev()
+            .find(|message| message.id == "reply-1")
+            .expect("reply message should be persisted");
+        let reply_parts = reply
+            .parts
+            .iter()
+            .map(|part| {
+                (
+                    data_proto::SessionMessagePartType::try_from(part.part_type).unwrap(),
+                    part.content.as_str(),
+                )
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(
+            reply_parts,
+            vec![
+                (data_proto::SessionMessagePartType::Reasoning, "planning "),
+                (data_proto::SessionMessagePartType::Text, "drafting "),
+                (data_proto::SessionMessagePartType::ToolCall, "Tool call"),
+                (data_proto::SessionMessagePartType::ToolResult, "created"),
+                (data_proto::SessionMessagePartType::Reasoning, "checking "),
+                (data_proto::SessionMessagePartType::Text, "final"),
+                (data_proto::SessionMessagePartType::Usage, ""),
+            ]
+        );
     }
 
     #[tokio::test]
@@ -1604,7 +1817,7 @@ mod tests {
 
         sink.on_tool_result("tool-1", "mcp_github_get_file_contents", &raw_output)
             .await;
-        sink.on_done("final").await;
+        sink.on_done().await;
 
         let entries = kv.entries.lock().await.clone();
         let persisted = entries
@@ -1680,7 +1893,7 @@ mod tests {
             .collect::<String>();
         assert_eq!(projection_text, "partial response");
 
-        sink.on_done("partial response").await;
+        sink.on_done().await;
         let entries = kv.entries.lock().await.clone();
         let reply = entries
             .iter()
@@ -1694,6 +1907,123 @@ mod tests {
             .find(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
             .expect("final text part should exist");
         assert_eq!(final_text_part.content, "partial response");
+    }
+
+    #[tokio::test]
+    async fn projection_uses_stable_streaming_part_ids() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        crate::control::ProtoKeyValueStoreExt::set_msg(
+            kv.as_ref(),
+            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &submission,
+        )
+        .await
+        .unwrap();
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub {
+                events: events.clone(),
+            }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        *sink.last_flush.lock().unwrap() = Instant::now() - Duration::from_secs(2);
+        sink.on_reasoning("thinking").await;
+        let first_reasoning = latest_reply_message(kv.as_ref())
+            .await
+            .parts
+            .into_iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Reasoning as i32)
+            .expect("projection should include reasoning");
+
+        *sink.last_flush.lock().unwrap() = Instant::now() - Duration::from_secs(2);
+        sink.on_reasoning(" more").await;
+        let second_reasoning = latest_reply_message(kv.as_ref())
+            .await
+            .parts
+            .into_iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Reasoning as i32)
+            .expect("projection should include updated reasoning");
+        assert_eq!(second_reasoning.id, first_reasoning.id);
+        assert_eq!(second_reasoning.content, "thinking more");
+
+        *sink.last_flush.lock().unwrap() = Instant::now() - Duration::from_secs(2);
+        sink.on_token("answer").await;
+        let projection = latest_reply_message(kv.as_ref()).await;
+        let closed_reasoning = projection
+            .parts
+            .iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Reasoning as i32)
+            .expect("projection should keep closed reasoning");
+        let first_text = projection
+            .parts
+            .iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .expect("projection should include text");
+        assert_eq!(closed_reasoning.id, first_reasoning.id);
+
+        *sink.last_flush.lock().unwrap() = Instant::now() - Duration::from_secs(2);
+        sink.on_token(" now").await;
+        let second_text = latest_reply_message(kv.as_ref())
+            .await
+            .parts
+            .into_iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .expect("projection should include updated text");
+        assert_eq!(second_text.id, first_text.id);
+        assert_eq!(second_text.content, "answer now");
+    }
+
+    #[tokio::test]
+    async fn final_reply_projection_does_not_commit_streaming_text() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub {
+                events: events.clone(),
+            }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        sink.on_token("hello").await;
+        let projection = sink.projection_message(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS);
+        let projection_text = projection
+            .parts
+            .iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .expect("projection should include streamed text");
+        assert_eq!(projection_text.content, "hello");
+
+        sink.on_token(" world").await;
+        sink.on_done().await;
+
+        let final_message = latest_reply_message(kv.as_ref()).await;
+        let final_text = final_message
+            .parts
+            .iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .expect("final message should include text");
+        assert_eq!(final_text.content, "hello world");
     }
 
     #[tokio::test]
@@ -1757,7 +2087,7 @@ mod tests {
         })
         .await
         .unwrap();
-        sink.on_done("final").await;
+        sink.on_done().await;
 
         let entry_keys = kv
             .list_keys(&keys::session_journal_entry_prefix(
@@ -1864,7 +2194,8 @@ mod tests {
         let mut fanout = fanout_stream(&sink).await;
         sink.on_token("partial ").await;
         sink.on_error("tool failed").await;
-        sink.on_done("final reply").await;
+        sink.on_token("final reply").await;
+        sink.on_done().await;
         tokio::time::sleep(Duration::from_millis(25)).await;
 
         let events = fanout_events_until_terminal(&mut fanout).await;
@@ -1933,7 +2264,7 @@ mod tests {
         );
 
         let mut fanout = fanout_stream(&sink).await;
-        sink.on_done("final reply").await;
+        sink.on_done().await;
 
         let events = fanout_events_until_terminal(&mut fanout).await;
         assert!(events.iter().any(
@@ -1979,7 +2310,7 @@ mod tests {
         );
 
         let mut fanout = fanout_stream(&sink).await;
-        sink.on_done("final reply").await;
+        sink.on_done().await;
 
         let events = fanout_events_until_terminal(&mut fanout).await;
         assert!(events.iter().any(
@@ -2017,7 +2348,7 @@ mod tests {
         sink.on_tool_call("tool-1", "search", &json!({"q": "talon"}))
             .await;
         sink.on_tool_result("tool-1", "search", "result body").await;
-        sink.on_done("hi there").await;
+        sink.on_done().await;
 
         let summary = sink.summary();
         assert_eq!(summary.input_token_chunks, 2);
@@ -2045,5 +2376,19 @@ mod tests {
         assert_eq!(token_publish_interval(), Duration::from_millis(250));
 
         std::env::remove_var("TALON_TOKEN_BATCH_MS");
+    }
+
+    #[test]
+    fn streaming_part_buffer_rejects_repeated_final_close() {
+        let mut buffer = StreamingPartBuffer::new(data_proto::SessionMessagePartType::Text);
+        buffer.push("hello");
+
+        let first = buffer
+            .final_part(|| "part-1".to_string())
+            .expect("first final close should succeed");
+        assert!(first.is_some());
+
+        let second = buffer.final_part(|| "part-2".to_string());
+        assert!(second.is_err());
     }
 }

@@ -673,7 +673,8 @@ impl WorkerEventHandler {
             if let PreparedSubmissionState::FinalResponseReady { content } =
                 prepared_submission.state
             {
-                sink.on_done(&content).await;
+                sink.seed_recovered_text_part(&content);
+                sink.on_done().await;
                 return Ok((SessionCompletionStatus::Completed, sink.summary()));
             }
 
@@ -1068,7 +1069,7 @@ mod tests {
         async fn on_tool_call(&self, _: &str, _: &str, _: &Value) {}
         async fn on_tool_result(&self, _: &str, _: &str, _: &str) {}
         async fn on_usage(&self, _: &crate::harness::llm::ChatUsage) {}
-        async fn on_done(&self, _: &str) {}
+        async fn on_done(&self) {}
         async fn on_error(&self, err: &str) {
             self.errors.lock().unwrap().push(err.to_string());
         }

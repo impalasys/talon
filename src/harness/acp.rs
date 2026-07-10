@@ -370,7 +370,7 @@ impl AcpAgentRuntime {
                 .await?;
             return Err(anyhow!(message));
         }
-        sink.on_done(&reply).await;
+        sink.on_done().await;
         lease_service
             .release(&leased.sandbox, &leased.token)
             .await?;

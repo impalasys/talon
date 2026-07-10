@@ -187,3 +187,118 @@ def test_streaming_chat(
     assert "received" in streamed_text
     usage_payload = json.loads(usage_events[0].part.payload_json)
     assert usage_payload["reasoning_tokens"] == 6
+
+
+def test_streaming_chat_persists_coarse_session_message_parts(
+    stack: E2EStack,
+    client: TalonClient,
+) -> None:
+    # Regression coverage for streamed durable assembly: live reasoning/text
+    # deltas may be emitted in several batches, but the committed assistant
+    # message should retain coarse semantic parts.
+    namespace = f"talon-stream-parts-{stack.name}-{uuid.uuid4().hex[:8]}"
+    ensure_namespace(client, namespace)
+    create_agent_resource(
+        client,
+        namespace,
+        "stream-parts-agent",
+        AgentSpec(
+            model_policy={
+                "profiles": [
+                    {
+                        "name": "default",
+                        "model": Model(
+                            provider="mock",
+                            name="minimax",
+                            temperature=0.7,
+                        ),
+                    }
+                ]
+            },
+            system_prompt="Stream durable parts.",
+        ),
+    )
+
+    session_id = client.sessions.Create(
+        CreateSessionRequest(agent="stream-parts-agent", ns=namespace)
+    ).session_id
+
+    def send_msg() -> None:
+        time.sleep(2.0)
+        client.sessions.SendMessage(
+            SendMessageRequest(
+                agent="stream-parts-agent",
+                session_id=session_id,
+                ns=namespace,
+                message="hello",
+            )
+        )
+
+    sender = threading.Thread(target=send_msg)
+    sender.start()
+
+    stream_req = StreamSessionPartsRequest(
+        agent="stream-parts-agent",
+        session_id=session_id,
+        ns=namespace,
+    )
+    live_reasoning_events = []
+    live_text_events = []
+    try:
+        for idx, event in enumerate(
+            client.sessions.StreamParts(stream_req, timeout=STREAM_TIMEOUT_SECONDS)
+        ):
+            if event.part.part_type == PART_TYPE_REASONING:
+                live_reasoning_events.append(event)
+            if event.part.part_type == PART_TYPE_TEXT:
+                live_text_events.append(event)
+            if event.part.part_type == PART_TYPE_USAGE:
+                break
+            if idx > 30:
+                break
+    except grpc.RpcError as err:
+        logger.debug("stream ended: %s", err)
+    sender.join()
+
+    assert len(live_reasoning_events) >= 1
+    assert len(live_text_events) >= 1
+
+    response = None
+    for _ in range(30):
+        response = client.sessions.Get(
+            GetSessionRequest(
+                agent="stream-parts-agent",
+                session_id=session_id,
+                ns=namespace,
+            )
+        )
+        if response.state == "IDLE" and last_assistant_message(response.messages):
+            break
+        time.sleep(1)
+
+    assert response is not None
+    assert response.state == "IDLE"
+    assistant = last_assistant_message(response.messages)
+    assert assistant is not None
+
+    reasoning_parts = [
+        part for part in assistant.parts if part.part_type == PART_TYPE_REASONING
+    ]
+    text_parts = [part for part in assistant.parts if part.part_type == PART_TYPE_TEXT]
+    usage_parts = [part for part in assistant.parts if part.part_type == PART_TYPE_USAGE]
+
+    assert [part.part_type for part in assistant.parts] == [
+        PART_TYPE_REASONING,
+        PART_TYPE_TEXT,
+        PART_TYPE_USAGE,
+    ]
+    assert len(reasoning_parts) == 1
+    assert reasoning_parts[0].content == (
+        "Inspecting the request. Planning a concise answer. "
+    )
+    assert len(text_parts) == 1
+    assert text_parts[0].content == (
+        "Hello! I am a mock LLM. How can I assist you today?"
+    )
+    assert len(usage_parts) == 1
+    assert json.loads(usage_parts[0].payload_json)["reasoning_tokens"] == 6

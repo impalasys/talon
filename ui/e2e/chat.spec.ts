@@ -140,6 +140,25 @@ function hasReasoningPart(message: any): boolean {
   });
 }
 
+function sessionPartType(part: any): unknown {
+  return part?.partType ?? part?.part_type ?? part?.type;
+}
+
+function sessionPartContent(part: any): string {
+  return typeof part?.content === 'string' ? part.content : typeof part?.text === 'string' ? part.text : '';
+}
+
+function sessionPartsOfType(message: any, expectedType: 'text' | 'reasoning' | 'usage') {
+  const typeValues = {
+    text: new Set([1, 'SESSION_MESSAGE_PART_TYPE_TEXT', 'text']),
+    reasoning: new Set([2, 'SESSION_MESSAGE_PART_TYPE_REASONING', 'reasoning']),
+    usage: new Set([5, 'SESSION_MESSAGE_PART_TYPE_USAGE', 'usage']),
+  }[expectedType];
+  return Array.isArray(message?.parts)
+    ? message.parts.filter((part: any) => typeValues.has(sessionPartType(part) as any))
+    : [];
+}
+
 async function rootCssVar(page: Page, name: string) {
   return page.evaluate((variableName) => {
     return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
@@ -358,6 +377,49 @@ test.describe('Chat Streaming', () => {
     await expect(replayedWorkToggle).toBeVisible({ timeout: 30000 });
     await replayedWorkToggle.click();
     await expect(page.getByText('Inspecting the request.', { exact: false })).toBeVisible({ timeout: 10000 });
+  });
+
+  test('should persist streamed reasoning and text as coarse session message parts', async ({ page }) => {
+    const { client, sessionId, testNs, testAgent } = await provisionSession(page);
+    const target = { ns: testNs, agent: testAgent, sessionId };
+    const expectedText = 'Hello! I am a mock LLM. How can I assist you today?';
+    const expectedReasoning = 'Inspecting the request. Planning a concise answer. ';
+
+    await client.sessions.sendMessage({
+      ...target,
+      message: 'hello',
+      labels: {},
+    });
+
+    await expect(async () => {
+      const history = await client.sessions.listMessages({
+        ...target,
+        pageSize: 50,
+      }) as any;
+      const message = (history.items ?? [])
+        .map((item: any) => item.message)
+        .find((candidate: any) => sessionMessageText(candidate) === expectedText);
+
+      expect(message).toBeTruthy();
+      expect(sessionMessageProjectionState(message)).toBe('committed');
+      expect(history.state).toBe('IDLE');
+
+      const reasoningParts = sessionPartsOfType(message, 'reasoning');
+      const textParts = sessionPartsOfType(message, 'text');
+      const usageParts = sessionPartsOfType(message, 'usage');
+
+      expect(reasoningParts.map(sessionPartContent).join('')).toBe(expectedReasoning);
+      expect(reasoningParts).toHaveLength(1);
+      expect(textParts.map(sessionPartContent).join('')).toBe(expectedText);
+      expect(textParts).toHaveLength(1);
+      expect(usageParts).toHaveLength(1);
+      expect(message.parts.indexOf(reasoningParts[0])).toBeLessThan(message.parts.indexOf(textParts[0]));
+      expect(message.parts.map(sessionPartType).map(String)).toEqual(expect.arrayContaining([
+        expect.stringMatching(/REASONING|^2$/),
+        expect.stringMatching(/TEXT|^1$/),
+        expect.stringMatching(/USAGE|^5$/),
+      ]));
+    }).toPass({ timeout: 30000 });
   });
 
   test('should render tool calls interleaved with the answer live', async ({ page }) => {
