@@ -4,6 +4,7 @@ package systems.impala.talon.client;
 
 import io.grpc.Channel;
 import talon.v1.AuthServiceGrpc;
+import talon.v1.CasServiceGrpc;
 import talon.v1.ChannelServiceGrpc;
 import talon.v1.ConnectorServiceGrpc;
 import talon.v1.KnowledgeServiceGrpc;
@@ -18,6 +19,9 @@ public final class TalonClientset {
     private final AuthServiceGrpc.AuthServiceBlockingStub auth;
     private final AuthServiceGrpc.AuthServiceStub authAsync;
     private final AuthServiceGrpc.AuthServiceFutureStub authFuture;
+    private final CasServiceGrpc.CasServiceBlockingStub cas;
+    private final CasServiceGrpc.CasServiceStub casAsync;
+    private final CasServiceGrpc.CasServiceFutureStub casFuture;
     private final ChannelServiceGrpc.ChannelServiceBlockingStub channels;
     private final ChannelServiceGrpc.ChannelServiceStub channelsAsync;
     private final ChannelServiceGrpc.ChannelServiceFutureStub channelsFuture;
@@ -52,6 +56,9 @@ public final class TalonClientset {
         this.auth = AuthServiceGrpc.newBlockingStub(channel);
         this.authAsync = AuthServiceGrpc.newStub(channel);
         this.authFuture = AuthServiceGrpc.newFutureStub(channel);
+        this.cas = CasServiceGrpc.newBlockingStub(channel);
+        this.casAsync = CasServiceGrpc.newStub(channel);
+        this.casFuture = CasServiceGrpc.newFutureStub(channel);
         this.channels = ChannelServiceGrpc.newBlockingStub(channel);
         this.channelsAsync = ChannelServiceGrpc.newStub(channel);
         this.channelsFuture = ChannelServiceGrpc.newFutureStub(channel);
@@ -92,6 +99,18 @@ public final class TalonClientset {
 
     public AuthServiceGrpc.AuthServiceFutureStub authFuture() {
         return authFuture;
+    }
+
+    public CasServiceGrpc.CasServiceBlockingStub cas() {
+        return cas;
+    }
+
+    public CasServiceGrpc.CasServiceStub casAsync() {
+        return casAsync;
+    }
+
+    public CasServiceGrpc.CasServiceFutureStub casFuture() {
+        return casFuture;
     }
 
     public ChannelServiceGrpc.ChannelServiceBlockingStub channels() {

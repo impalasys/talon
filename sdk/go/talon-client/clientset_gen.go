@@ -9,6 +9,7 @@ import (
 
 type Clientset struct {
 	auth       talonv1.AuthServiceClient
+	cas        talonv1.CasServiceClient
 	channels   talonv1.ChannelServiceClient
 	connectors talonv1.ConnectorServiceClient
 	knowledge  talonv1.KnowledgeServiceClient
@@ -22,6 +23,10 @@ type Clientset struct {
 
 func (c *Clientset) Auth() talonv1.AuthServiceClient {
 	return c.auth
+}
+
+func (c *Clientset) Cas() talonv1.CasServiceClient {
+	return c.cas
 }
 
 func (c *Clientset) Channels() talonv1.ChannelServiceClient {
@@ -59,6 +64,7 @@ func (c *Clientset) Workflows() talonv1.WorkflowServiceClient {
 func newClientset(conn grpc.ClientConnInterface, close func() error) *Clientset {
 	return &Clientset{
 		auth:       talonv1.NewAuthServiceClient(conn),
+		cas:        talonv1.NewCasServiceClient(conn),
 		channels:   talonv1.NewChannelServiceClient(conn),
 		connectors: talonv1.NewConnectorServiceClient(conn),
 		knowledge:  talonv1.NewKnowledgeServiceClient(conn),

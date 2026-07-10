@@ -15,6 +15,13 @@ BLOCKING_TOOL_CALL_ID = "call_blocking_lookup_1"
 BLOCKING_TOOL_NAME = "mcp_durable_slow_blocking_lookup"
 MCP_REMOTE_TOOL_NAME = "blocking_lookup"
 TOOL_PREFACE = "Let me check that. "
+LARGE_MCP_TOOL_RESULT = (
+    "blocking_lookup result for docs.example.com\n"
+    + "\n".join(
+        f"docs.example.com reference section {idx:03d}: deterministic content for CAS hydration."
+        for idx in range(80)
+    )
+)
 DEFAULT_REASONING = [
     "Inspecting the request.",
     "Planning a concise answer.",
@@ -496,7 +503,7 @@ async def mcp_endpoint(request: Request):
                     "content": [
                         {
                             "type": "text",
-                            "text": "blocking_lookup result for docs.example.com",
+                            "text": LARGE_MCP_TOOL_RESULT,
                         }
                     ],
                     "isError": False,

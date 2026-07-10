@@ -813,6 +813,21 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
      */
     com.google.protobuf.ByteString
         getOutputBytes();
+
+    /**
+     * <code>.talon.data.ObjectRef object = 4;</code>
+     * @return Whether the object field is set.
+     */
+    boolean hasObject();
+    /**
+     * <code>.talon.data.ObjectRef object = 4;</code>
+     * @return The object.
+     */
+    talon.data.Data.ObjectRef getObject();
+    /**
+     * <code>.talon.data.ObjectRef object = 4;</code>
+     */
+    talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder();
   }
   /**
    * Protobuf type {@code talon.data.SessionJournalEntryPayloadToolResult}
@@ -859,6 +874,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
               talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadToolResult.class, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadToolResult.Builder.class);
     }
 
+    private int bitField0_;
     public static final int TOOL_CALL_ID_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
     private volatile java.lang.Object toolCallId_ = "";
@@ -976,6 +992,32 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       }
     }
 
+    public static final int OBJECT_FIELD_NUMBER = 4;
+    private talon.data.Data.ObjectRef object_;
+    /**
+     * <code>.talon.data.ObjectRef object = 4;</code>
+     * @return Whether the object field is set.
+     */
+    @java.lang.Override
+    public boolean hasObject() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.data.ObjectRef object = 4;</code>
+     * @return The object.
+     */
+    @java.lang.Override
+    public talon.data.Data.ObjectRef getObject() {
+      return object_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : object_;
+    }
+    /**
+     * <code>.talon.data.ObjectRef object = 4;</code>
+     */
+    @java.lang.Override
+    public talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder() {
+      return object_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : object_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -999,6 +1041,9 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(output_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 3, output_);
       }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(4, getObject());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -1016,6 +1061,10 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(output_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(3, output_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, getObject());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -1038,6 +1087,11 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
           .equals(other.getName())) return false;
       if (!getOutput()
           .equals(other.getOutput())) return false;
+      if (hasObject() != other.hasObject()) return false;
+      if (hasObject()) {
+        if (!getObject()
+            .equals(other.getObject())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1055,6 +1109,10 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       hash = (53 * hash) + getName().hashCode();
       hash = (37 * hash) + OUTPUT_FIELD_NUMBER;
       hash = (53 * hash) + getOutput().hashCode();
+      if (hasObject()) {
+        hash = (37 * hash) + OBJECT_FIELD_NUMBER;
+        hash = (53 * hash) + getObject().hashCode();
+      }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1174,13 +1232,19 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
 
       // Construct using talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadToolResult.newBuilder()
       private Builder() {
-
+        maybeForceBuilderInitialization();
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetObjectFieldBuilder();
+        }
       }
       @java.lang.Override
       public Builder clear() {
@@ -1189,6 +1253,11 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         toolCallId_ = "";
         name_ = "";
         output_ = "";
+        object_ = null;
+        if (objectBuilder_ != null) {
+          objectBuilder_.dispose();
+          objectBuilder_ = null;
+        }
         return this;
       }
 
@@ -1231,6 +1300,14 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         if (((from_bitField0_ & 0x00000004) != 0)) {
           result.output_ = output_;
         }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.object_ = objectBuilder_ == null
+              ? object_
+              : objectBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
       }
 
       @java.lang.Override
@@ -1259,6 +1336,9 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
           output_ = other.output_;
           bitField0_ |= 0x00000004;
           onChanged();
+        }
+        if (other.hasObject()) {
+          mergeObject(other.getObject());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -1301,6 +1381,13 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
+              case 34: {
+                input.readMessage(
+                    internalGetObjectFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1532,6 +1619,127 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         bitField0_ |= 0x00000004;
         onChanged();
         return this;
+      }
+
+      private talon.data.Data.ObjectRef object_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder> objectBuilder_;
+      /**
+       * <code>.talon.data.ObjectRef object = 4;</code>
+       * @return Whether the object field is set.
+       */
+      public boolean hasObject() {
+        return ((bitField0_ & 0x00000008) != 0);
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 4;</code>
+       * @return The object.
+       */
+      public talon.data.Data.ObjectRef getObject() {
+        if (objectBuilder_ == null) {
+          return object_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : object_;
+        } else {
+          return objectBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 4;</code>
+       */
+      public Builder setObject(talon.data.Data.ObjectRef value) {
+        if (objectBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          object_ = value;
+        } else {
+          objectBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 4;</code>
+       */
+      public Builder setObject(
+          talon.data.Data.ObjectRef.Builder builderForValue) {
+        if (objectBuilder_ == null) {
+          object_ = builderForValue.build();
+        } else {
+          objectBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 4;</code>
+       */
+      public Builder mergeObject(talon.data.Data.ObjectRef value) {
+        if (objectBuilder_ == null) {
+          if (((bitField0_ & 0x00000008) != 0) &&
+            object_ != null &&
+            object_ != talon.data.Data.ObjectRef.getDefaultInstance()) {
+            getObjectBuilder().mergeFrom(value);
+          } else {
+            object_ = value;
+          }
+        } else {
+          objectBuilder_.mergeFrom(value);
+        }
+        if (object_ != null) {
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 4;</code>
+       */
+      public Builder clearObject() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        object_ = null;
+        if (objectBuilder_ != null) {
+          objectBuilder_.dispose();
+          objectBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 4;</code>
+       */
+      public talon.data.Data.ObjectRef.Builder getObjectBuilder() {
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return internalGetObjectFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 4;</code>
+       */
+      public talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder() {
+        if (objectBuilder_ != null) {
+          return objectBuilder_.getMessageOrBuilder();
+        } else {
+          return object_ == null ?
+              talon.data.Data.ObjectRef.getDefaultInstance() : object_;
+        }
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>
+          internalGetObjectFieldBuilder() {
+        if (objectBuilder_ == null) {
+          objectBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>(
+                  getObject(),
+                  getParentForChildren(),
+                  isClean());
+          object_ = null;
+        }
+        return objectBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.data.SessionJournalEntryPayloadToolResult)
@@ -4863,37 +5071,40 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
   static {
     java.lang.String[] descriptorData = {
       "\n&proto/data/session_journal_entry.proto" +
-      "\022\ntalon.data\032\027proto/harness/llm.proto\"V\n" +
-      "%SessionJournalEntryPayloadLlmResponse\022-" +
-      "\n\010response\030\001 \001(\0132\033.talon.harness.ChatRes" +
-      "ponse\"Z\n$SessionJournalEntryPayloadToolR" +
-      "esult\022\024\n\014tool_call_id\030\001 \001(\t\022\014\n\004name\030\002 \001(" +
-      "\t\022\016\n\006output\030\003 \001(\t\"@\n SessionJournalEntry" +
-      "PayloadCommit\022\034\n\024committed_message_id\030\001 " +
-      "\001(\t\"\373\001\n\032SessionJournalEntryPayload\022I\n\014ll" +
-      "m_response\030\001 \001(\01321.talon.data.SessionJou" +
-      "rnalEntryPayloadLlmResponseH\000\022G\n\013tool_re" +
-      "sult\030\002 \001(\01320.talon.data.SessionJournalEn" +
-      "tryPayloadToolResultH\000\022>\n\006commit\030\003 \001(\0132," +
-      ".talon.data.SessionJournalEntryPayloadCo" +
-      "mmitH\000B\t\n\007payload\"\325\002\n\023SessionJournalEntr" +
-      "y\022\025\n\rsubmission_id\030\001 \001(\t\022\030\n\020journal_entr" +
-      "y_id\030\002 \001(\t\022\022\n\nattempt_id\030\003 \001(\t\0220\n\005phase\030" +
-      "\004 \001(\0162!.talon.data.SessionExecutionPhase" +
-      "\0227\n\007payload\030\005 \001(\0132&.talon.data.SessionJo" +
-      "urnalEntryPayload\022\022\n\ncreated_at\030\006 \001(\003\022\022\n" +
-      "\nupdated_at\030\007 \001(\003\022\031\n\014committed_at\030\010 \001(\003H" +
-      "\000\210\001\001\022!\n\024committed_message_id\030\t \001(\tH\001\210\001\001B" +
-      "\017\n\r_committed_atB\027\n\025_committed_message_i" +
-      "d*\272\001\n\025SessionExecutionPhase\022\'\n#SESSION_E" +
-      "XECUTION_PHASE_UNSPECIFIED\020\000\022(\n$SESSION_" +
-      "EXECUTION_PHASE_LLM_RESPONSE\020\001\022\'\n#SESSIO" +
-      "N_EXECUTION_PHASE_TOOL_RESULT\020\002\022%\n!SESSI" +
-      "ON_EXECUTION_PHASE_COMMITTED\020\003b\006proto3"
+      "\022\ntalon.data\032\025proto/data/data.proto\032\027pro" +
+      "to/harness/llm.proto\"V\n%SessionJournalEn" +
+      "tryPayloadLlmResponse\022-\n\010response\030\001 \001(\0132" +
+      "\033.talon.harness.ChatResponse\"\201\001\n$Session" +
+      "JournalEntryPayloadToolResult\022\024\n\014tool_ca" +
+      "ll_id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\016\n\006output\030\003 \001(" +
+      "\t\022%\n\006object\030\004 \001(\0132\025.talon.data.ObjectRef" +
+      "\"@\n SessionJournalEntryPayloadCommit\022\034\n\024" +
+      "committed_message_id\030\001 \001(\t\"\373\001\n\032SessionJo" +
+      "urnalEntryPayload\022I\n\014llm_response\030\001 \001(\0132" +
+      "1.talon.data.SessionJournalEntryPayloadL" +
+      "lmResponseH\000\022G\n\013tool_result\030\002 \001(\01320.talo" +
+      "n.data.SessionJournalEntryPayloadToolRes" +
+      "ultH\000\022>\n\006commit\030\003 \001(\0132,.talon.data.Sessi" +
+      "onJournalEntryPayloadCommitH\000B\t\n\007payload" +
+      "\"\325\002\n\023SessionJournalEntry\022\025\n\rsubmission_i" +
+      "d\030\001 \001(\t\022\030\n\020journal_entry_id\030\002 \001(\t\022\022\n\natt" +
+      "empt_id\030\003 \001(\t\0220\n\005phase\030\004 \001(\0162!.talon.dat" +
+      "a.SessionExecutionPhase\0227\n\007payload\030\005 \001(\013" +
+      "2&.talon.data.SessionJournalEntryPayload" +
+      "\022\022\n\ncreated_at\030\006 \001(\003\022\022\n\nupdated_at\030\007 \001(\003" +
+      "\022\031\n\014committed_at\030\010 \001(\003H\000\210\001\001\022!\n\024committed" +
+      "_message_id\030\t \001(\tH\001\210\001\001B\017\n\r_committed_atB" +
+      "\027\n\025_committed_message_id*\272\001\n\025SessionExec" +
+      "utionPhase\022\'\n#SESSION_EXECUTION_PHASE_UN" +
+      "SPECIFIED\020\000\022(\n$SESSION_EXECUTION_PHASE_L" +
+      "LM_RESPONSE\020\001\022\'\n#SESSION_EXECUTION_PHASE" +
+      "_TOOL_RESULT\020\002\022%\n!SESSION_EXECUTION_PHAS" +
+      "E_COMMITTED\020\003b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
+          talon.data.Data.getDescriptor(),
           talon.harness.Llm.getDescriptor(),
         });
     internal_static_talon_data_SessionJournalEntryPayloadLlmResponse_descriptor =
@@ -4907,7 +5118,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
     internal_static_talon_data_SessionJournalEntryPayloadToolResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntryPayloadToolResult_descriptor,
-        new java.lang.String[] { "ToolCallId", "Name", "Output", });
+        new java.lang.String[] { "ToolCallId", "Name", "Output", "Object", });
     internal_static_talon_data_SessionJournalEntryPayloadCommit_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_data_SessionJournalEntryPayloadCommit_fieldAccessorTable = new
@@ -4927,6 +5138,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         internal_static_talon_data_SessionJournalEntry_descriptor,
         new java.lang.String[] { "SubmissionId", "JournalEntryId", "AttemptId", "Phase", "Payload", "CreatedAt", "UpdatedAt", "CommittedAt", "CommittedMessageId", });
     descriptor.resolveAllFeaturesImmutable();
+    talon.data.Data.getDescriptor();
     talon.harness.Llm.getDescriptor();
   }
 

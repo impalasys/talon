@@ -508,6 +508,8 @@ pub struct SessionJournalEntryPayloadToolResult {
     pub name: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub output: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "4")]
+    pub object: ::core::option::Option<ObjectRef>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionJournalEntryPayloadCommit {
