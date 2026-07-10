@@ -458,6 +458,18 @@ impl PubSubSessionSink {
         );
     }
 
+    pub(crate) fn seed_recovered_final_text_part(&self, content: &str) {
+        if content.is_empty() {
+            return;
+        }
+        self.record_part(
+            data_proto::SessionMessagePartType::Text,
+            String::new(),
+            content.to_string(),
+            String::new(),
+        );
+    }
+
     pub(crate) fn seed_recovered_tool_call_part(
         &self,
         part_id: &str,

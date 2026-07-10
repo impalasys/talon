@@ -265,7 +265,8 @@ fn collect_tool_result_object_key(
         .metadata
         .get("kind")
         .is_some_and(|kind| kind == "tool_result")
-        || object.key.contains("/tool-results/");
+        || object.key.contains("/tool-results/")
+        || object.key.starts_with("cas/");
     if is_tool_result && !object.key.trim().is_empty() {
         keys_to_delete.insert(object.key.clone());
     }
@@ -1940,8 +1941,7 @@ mod tests {
         let session_id = "session-1";
         let message_id = "message-1";
         let tool_call_id = "tool-1";
-        let object_key =
-            "sessions/conic/coding/session-1/messages/message-1/tool-results/tool-1.txt";
+        let object_key = "cas/conic/sessions/session-1/messages/message-1/part-1.txt";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
         let object = handler
             .gateway
@@ -2008,8 +2008,7 @@ mod tests {
         let message_id = "message-1";
         let submission_id = "submission-1";
         let tool_call_id = "tool-1";
-        let object_key =
-            "sessions/conic/coding/session-1/messages/message-1/tool-results/tool-1.txt";
+        let object_key = "cas/conic/sessions/session-1/messages/message-1/part-1.txt";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
         let object = handler
             .gateway
@@ -2086,8 +2085,7 @@ mod tests {
         let session_id = "session-1";
         let message_id = "message-1";
         let tool_call_id = "tool-1";
-        let object_key =
-            "sessions/conic/coding/session-1/messages/message-1/tool-results/tool-1.txt";
+        let object_key = "cas/conic/sessions/session-1/messages/message-1/part-1.txt";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
         let object = objects
             .put(

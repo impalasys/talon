@@ -17,6 +17,7 @@ const TOOL_RESULT_MEDIA_TYPE: &str = "text/plain; charset=utf-8";
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct StoredToolResult {
+    pub part_id: String,
     pub output: String,
     pub preview: String,
     pub object: Option<data_proto::ObjectRef>,
@@ -43,6 +44,7 @@ pub async fn store_tool_result(
     agent: &str,
     session_id: &str,
     message_id: &str,
+    part_id: &str,
     tool_call_id: &str,
     tool_name: &str,
     result: &str,
@@ -50,13 +52,14 @@ pub async fn store_tool_result(
     let preview = tool_result_preview(result);
     if result.len() < tool_result_object_threshold_bytes() {
         return Ok(StoredToolResult {
+            part_id: part_id.to_string(),
             output: result.to_string(),
             preview,
             object: None,
         });
     }
 
-    let key = tool_result_object_key(ns, agent, session_id, message_id, tool_call_id);
+    let key = tool_result_object_key(ns, session_id, message_id, part_id);
     let raw_bytes = result.as_bytes();
     let (bytes, content_encoding) = compressed_object_bytes(raw_bytes)?;
     let mut metadata = HashMap::new();
@@ -65,6 +68,7 @@ pub async fn store_tool_result(
     metadata.insert("agent".to_string(), agent.to_string());
     metadata.insert("session_id".to_string(), session_id.to_string());
     metadata.insert("message_id".to_string(), message_id.to_string());
+    metadata.insert("part_id".to_string(), part_id.to_string());
     metadata.insert("tool_call_id".to_string(), tool_call_id.to_string());
     metadata.insert("tool_name".to_string(), tool_name.to_string());
     metadata.insert(
@@ -91,6 +95,7 @@ pub async fn store_tool_result(
         .await?;
 
     Ok(StoredToolResult {
+        part_id: part_id.to_string(),
         output: preview.clone(),
         preview,
         object: Some(object),
@@ -154,21 +159,18 @@ fn parse_tool_result_object_threshold_bytes() -> usize {
     }
 }
 
-fn tool_result_object_key(
-    ns: &str,
-    agent: &str,
-    session_id: &str,
-    message_id: &str,
-    tool_call_id: &str,
-) -> String {
+fn tool_result_object_key(ns: &str, session_id: &str, message_id: &str, part_id: &str) -> String {
     format!(
-        "sessions/{}/{}/{}/messages/{}/tool-results/{}.txt",
-        object_key_segment(ns),
-        object_key_segment(agent),
+        "cas/{}/sessions/{}/messages/{}/{}.txt",
+        encoded_object_key_segment(ns),
         object_key_segment(session_id),
         object_key_segment(message_id),
-        object_key_segment(tool_call_id)
+        object_key_segment(part_id)
     )
+}
+
+fn encoded_object_key_segment(value: &str) -> String {
+    urlencoding::encode(value).into_owned()
 }
 
 fn object_key_segment(value: &str) -> String {
@@ -236,6 +238,7 @@ mod tests {
             "support",
             "session-1",
             "message-1",
+            "000001",
             "call-1",
             "search",
             "small result",
@@ -258,6 +261,7 @@ mod tests {
             "support",
             "session-1",
             "message-1",
+            "000001",
             "call-1",
             "search",
             &raw,
@@ -268,12 +272,13 @@ mod tests {
         let object = result.object.expect("large result should have object ref");
         assert_eq!(
             object.key,
-            "sessions/acme/support/session-1/messages/message-1/tool-results/call-1.txt"
+            "cas/acme/sessions/session-1/messages/message-1/000001.txt"
         );
         assert_eq!(object.media_type, "text/plain; charset=utf-8");
         assert!(object.size_bytes < raw.len() as u64);
         assert_eq!(object.metadata["kind"], "tool_result");
         assert_eq!(object.metadata["message_id"], "message-1");
+        assert_eq!(object.metadata["part_id"], "000001");
         assert_eq!(object.metadata["tool_call_id"], "call-1");
         assert_eq!(object.metadata["content_encoding"], "gzip");
         assert_eq!(
@@ -304,14 +309,8 @@ mod tests {
     #[test]
     fn object_key_segments_are_sanitized_deterministically() {
         assert_eq!(
-            super::tool_result_object_key(
-                "team/alpha",
-                "agent:codex",
-                "session one",
-                "message#1",
-                "../tool call"
-            ),
-            "sessions/team_alpha/agent_codex/session_one/messages/message_1/tool-results/.._tool_call.txt"
+            super::tool_result_object_key("team/alpha", "session one", "message#1", "../part id"),
+            "cas/team%2Falpha/sessions/session_one/messages/message_1/.._part_id.txt"
         );
     }
 
@@ -324,6 +323,7 @@ mod tests {
             "support",
             "session-1",
             "message-1",
+            "000001",
             "../tool call",
             "search",
             &"x".repeat(3 * 1024),
@@ -340,7 +340,7 @@ mod tests {
         let store = InMemoryObjectStore::default();
         let object = store
             .put(
-                "sessions/acme/support/session-1/messages/message-1/tool-results/call-1.txt",
+                "cas/acme/sessions/session-1/messages/message-1/000001.txt",
                 b"not gzip",
                 crate::control::object_store::ObjectMetadata {
                     metadata: std::collections::HashMap::from([(
