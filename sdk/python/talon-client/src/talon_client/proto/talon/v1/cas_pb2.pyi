@@ -13,7 +13,7 @@ class GetCasObjectRequest(_message.Message):
     def __init__(self, key: _Optional[str] = ...) -> None: ...
 
 class GetCasObjectResponse(_message.Message):
-    __slots__ = ("data", "signed_url", "signed_url_expires_at_unix_seconds", "metadata", "media_type", "size_bytes", "sha256", "filename")
+    __slots__ = ("data", "signed_url", "signed_url_expires_at_unix_seconds", "metadata", "media_type", "size_bytes", "sha256", "filename", "content_encoding")
     class MetadataEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -29,6 +29,7 @@ class GetCasObjectResponse(_message.Message):
     SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
     SHA256_FIELD_NUMBER: _ClassVar[int]
     FILENAME_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_ENCODING_FIELD_NUMBER: _ClassVar[int]
     data: bytes
     signed_url: str
     signed_url_expires_at_unix_seconds: int
@@ -37,4 +38,5 @@ class GetCasObjectResponse(_message.Message):
     size_bytes: int
     sha256: str
     filename: str
-    def __init__(self, data: _Optional[bytes] = ..., signed_url: _Optional[str] = ..., signed_url_expires_at_unix_seconds: _Optional[int] = ..., metadata: _Optional[_Mapping[str, str]] = ..., media_type: _Optional[str] = ..., size_bytes: _Optional[int] = ..., sha256: _Optional[str] = ..., filename: _Optional[str] = ...) -> None: ...
+    content_encoding: str
+    def __init__(self, data: _Optional[bytes] = ..., signed_url: _Optional[str] = ..., signed_url_expires_at_unix_seconds: _Optional[int] = ..., metadata: _Optional[_Mapping[str, str]] = ..., media_type: _Optional[str] = ..., size_bytes: _Optional[int] = ..., sha256: _Optional[str] = ..., filename: _Optional[str] = ..., content_encoding: _Optional[str] = ...) -> None: ...

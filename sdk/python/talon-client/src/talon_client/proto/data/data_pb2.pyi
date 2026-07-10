@@ -48,7 +48,7 @@ SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION: SessionMessagePartType
 SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT: SessionMessagePartType
 
 class ObjectRef(_message.Message):
-    __slots__ = ("key", "media_type", "size_bytes", "sha256", "filename", "metadata")
+    __slots__ = ("key", "media_type", "size_bytes", "sha256", "filename", "metadata", "content_encoding")
     class MetadataEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -62,13 +62,15 @@ class ObjectRef(_message.Message):
     SHA256_FIELD_NUMBER: _ClassVar[int]
     FILENAME_FIELD_NUMBER: _ClassVar[int]
     METADATA_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_ENCODING_FIELD_NUMBER: _ClassVar[int]
     key: str
     media_type: str
     size_bytes: int
     sha256: str
     filename: str
     metadata: _containers.ScalarMap[str, str]
-    def __init__(self, key: _Optional[str] = ..., media_type: _Optional[str] = ..., size_bytes: _Optional[int] = ..., sha256: _Optional[str] = ..., filename: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    content_encoding: str
+    def __init__(self, key: _Optional[str] = ..., media_type: _Optional[str] = ..., size_bytes: _Optional[int] = ..., sha256: _Optional[str] = ..., filename: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ..., content_encoding: _Optional[str] = ...) -> None: ...
 
 class Principal(_message.Message):
     __slots__ = ("external_id", "address", "display_name", "kind", "metadata")

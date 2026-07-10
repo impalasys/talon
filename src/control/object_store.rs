@@ -18,6 +18,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const GCS_STORAGE_SCOPE: &str = "https://www.googleapis.com/auth/devstorage.read_write";
 const GCS_API_BASE: &str = "https://storage.googleapis.com";
+const LEGACY_CONTENT_ENCODING_METADATA: &str = "content_encoding";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ObjectMetadata {
@@ -25,6 +26,7 @@ pub struct ObjectMetadata {
     pub size_bytes: u64,
     pub sha256: String,
     pub filename: String,
+    pub content_encoding: String,
     pub metadata: HashMap<String, String>,
 }
 
@@ -96,6 +98,7 @@ impl ObjectStore for InMemoryObjectStore {
     ) -> Result<data_proto::ObjectRef> {
         validate_key(key)?;
         metadata.size_bytes = bytes.len() as u64;
+        let metadata = normalize_object_metadata(metadata);
         self.objects.write().await.insert(
             key.to_string(),
             StoredObject {
@@ -162,6 +165,7 @@ impl ObjectStore for LocalFsObjectStore {
     ) -> Result<data_proto::ObjectRef> {
         validate_key(key)?;
         metadata.size_bytes = bytes.len() as u64;
+        let metadata = normalize_object_metadata(metadata);
         let data_path = self.data_path(key)?;
         let metadata_path = self.metadata_path(key)?;
         let metadata_bytes = serde_json::to_vec(&metadata)?;
@@ -191,6 +195,7 @@ impl ObjectStore for LocalFsObjectStore {
             Err(err) => return Err(err.into()),
         };
         metadata.size_bytes = bytes.len() as u64;
+        let metadata = normalize_object_metadata(metadata);
         Ok(Some(StoredObject { bytes, metadata }))
     }
 
@@ -256,6 +261,7 @@ impl ObjectStore for GcsObjectStore {
         mut metadata: ObjectMetadata,
     ) -> Result<data_proto::ObjectRef> {
         metadata.size_bytes = bytes.len() as u64;
+        let metadata = normalize_object_metadata(metadata);
         let object_key = self.object_key(key)?;
         let upload_url = format!(
             "{}/upload/storage/v1/b/{}/o?uploadType=media&name={}",
@@ -278,6 +284,12 @@ impl ObjectStore for GcsObjectStore {
         }
         if !metadata.filename.is_empty() {
             request = request.header("x-goog-meta-talon-filename", metadata.filename.clone());
+        }
+        if !metadata.content_encoding.is_empty() {
+            request = request.header(
+                "x-goog-meta-talon-content-encoding",
+                metadata.content_encoding.clone(),
+            );
         }
         for (name, value) in &metadata.metadata {
             request = request.header(format!("x-goog-meta-talon-{name}"), value);
@@ -380,6 +392,7 @@ impl ObjectStore for S3ObjectStore {
         mut metadata: ObjectMetadata,
     ) -> Result<data_proto::ObjectRef> {
         metadata.size_bytes = bytes.len() as u64;
+        let metadata = normalize_object_metadata(metadata);
         let object_key = self.object_key(key)?;
         let mut s3_metadata = metadata.metadata.clone();
         if !metadata.media_type.is_empty() {
@@ -390,6 +403,12 @@ impl ObjectStore for S3ObjectStore {
         }
         if !metadata.filename.is_empty() {
             s3_metadata.insert("talon-filename".to_string(), metadata.filename.clone());
+        }
+        if !metadata.content_encoding.is_empty() {
+            s3_metadata.insert(
+                "talon-content-encoding".to_string(),
+                metadata.content_encoding.clone(),
+            );
         }
 
         let mut request = self
@@ -471,8 +490,20 @@ fn object_ref(key: &str, metadata: ObjectMetadata) -> data_proto::ObjectRef {
         size_bytes: metadata.size_bytes,
         sha256: metadata.sha256,
         filename: metadata.filename,
+        content_encoding: metadata.content_encoding,
         metadata: metadata.metadata,
     }
+}
+
+fn normalize_object_metadata(mut metadata: ObjectMetadata) -> ObjectMetadata {
+    if metadata.content_encoding.trim().is_empty() {
+        if let Some(content_encoding) = metadata.metadata.remove(LEGACY_CONTENT_ENCODING_METADATA) {
+            metadata.content_encoding = content_encoding;
+        }
+    } else {
+        metadata.metadata.remove(LEGACY_CONTENT_ENCODING_METADATA);
+    }
+    metadata
 }
 
 fn non_empty(value: &str) -> Option<String> {
@@ -524,11 +555,20 @@ fn metadata_from_headers(headers: &reqwest::header::HeaderMap) -> ObjectMetadata
         .and_then(|value| value.to_str().ok())
         .unwrap_or_default()
         .to_string();
+    let content_encoding = headers
+        .get("x-goog-meta-talon-content-encoding")
+        .or_else(|| headers.get("x-goog-meta-talon-content_encoding"))
+        .and_then(|value| value.to_str().ok())
+        .unwrap_or_default()
+        .to_string();
     let metadata = headers
         .iter()
         .filter_map(|(name, value)| {
             let name = name.as_str().strip_prefix("x-goog-meta-talon-")?;
-            if matches!(name, "media-type" | "sha256" | "filename") {
+            if matches!(
+                name,
+                "media-type" | "sha256" | "filename" | "content-encoding" | "content_encoding"
+            ) {
                 return None;
             }
             Some((name.to_string(), value.to_str().ok()?.to_string()))
@@ -539,6 +579,7 @@ fn metadata_from_headers(headers: &reqwest::header::HeaderMap) -> ObjectMetadata
         size_bytes: 0,
         sha256,
         filename,
+        content_encoding,
         metadata,
     }
 }
@@ -557,12 +598,21 @@ fn metadata_from_s3_response(
         .get("talon-filename")
         .cloned()
         .unwrap_or_default();
+    let content_encoding = s3_metadata
+        .get("talon-content-encoding")
+        .or_else(|| s3_metadata.get(LEGACY_CONTENT_ENCODING_METADATA))
+        .cloned()
+        .unwrap_or_default();
     let metadata = s3_metadata
         .iter()
         .filter_map(|(key, value)| {
             if matches!(
                 key.as_str(),
-                "talon-media-type" | "talon-sha256" | "talon-filename"
+                "talon-media-type"
+                    | "talon-sha256"
+                    | "talon-filename"
+                    | "talon-content-encoding"
+                    | LEGACY_CONTENT_ENCODING_METADATA
             ) {
                 None
             } else {
@@ -575,6 +625,7 @@ fn metadata_from_s3_response(
         size_bytes: 0,
         sha256,
         filename,
+        content_encoding,
         metadata,
     }
 }

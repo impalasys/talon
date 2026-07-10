@@ -153,15 +153,16 @@ func (SessionMessagePartType) EnumDescriptor() ([]byte, []int) {
 }
 
 type ObjectRef struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	MediaType     string                 `protobuf:"bytes,2,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
-	SizeBytes     uint64                 `protobuf:"varint,3,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
-	Sha256        string                 `protobuf:"bytes,4,opt,name=sha256,proto3" json:"sha256,omitempty"`
-	Filename      string                 `protobuf:"bytes,5,opt,name=filename,proto3" json:"filename,omitempty"`
-	Metadata      map[string]string      `protobuf:"bytes,6,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Key             string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	MediaType       string                 `protobuf:"bytes,2,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
+	SizeBytes       uint64                 `protobuf:"varint,3,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
+	Sha256          string                 `protobuf:"bytes,4,opt,name=sha256,proto3" json:"sha256,omitempty"`
+	Filename        string                 `protobuf:"bytes,5,opt,name=filename,proto3" json:"filename,omitempty"`
+	Metadata        map[string]string      `protobuf:"bytes,6,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	ContentEncoding string                 `protobuf:"bytes,7,opt,name=content_encoding,json=contentEncoding,proto3" json:"content_encoding,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *ObjectRef) Reset() {
@@ -234,6 +235,13 @@ func (x *ObjectRef) GetMetadata() map[string]string {
 		return x.Metadata
 	}
 	return nil
+}
+
+func (x *ObjectRef) GetContentEncoding() string {
+	if x != nil {
+		return x.ContentEncoding
+	}
+	return ""
 }
 
 type Principal struct {
@@ -1328,7 +1336,7 @@ var File_proto_data_data_proto protoreflect.FileDescriptor
 const file_proto_data_data_proto_rawDesc = "" +
 	"\n" +
 	"\x15proto/data/data.proto\x12\n" +
-	"talon.data\"\x8d\x02\n" +
+	"talon.data\"\xb8\x02\n" +
 	"\tObjectRef\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1d\n" +
 	"\n" +
@@ -1337,7 +1345,8 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"size_bytes\x18\x03 \x01(\x04R\tsizeBytes\x12\x16\n" +
 	"\x06sha256\x18\x04 \x01(\tR\x06sha256\x12\x1a\n" +
 	"\bfilename\x18\x05 \x01(\tR\bfilename\x12?\n" +
-	"\bmetadata\x18\x06 \x03(\v2#.talon.data.ObjectRef.MetadataEntryR\bmetadata\x1a;\n" +
+	"\bmetadata\x18\x06 \x03(\v2#.talon.data.ObjectRef.MetadataEntryR\bmetadata\x12)\n" +
+	"\x10content_encoding\x18\a \x01(\tR\x0fcontentEncoding\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xfb\x01\n" +

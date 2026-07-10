@@ -154,6 +154,8 @@ pub struct ObjectRef {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+    #[prost(string, tag = "7")]
+    pub content_encoding: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Principal {

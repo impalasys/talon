@@ -87,6 +87,11 @@ export class GetCasObjectResponse extends Message<GetCasObjectResponse> {
    */
   filename = "";
 
+  /**
+   * @generated from field: string content_encoding = 9;
+   */
+  contentEncoding = "";
+
   constructor(data?: PartialMessage<GetCasObjectResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -103,6 +108,7 @@ export class GetCasObjectResponse extends Message<GetCasObjectResponse> {
     { no: 6, name: "size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 7, name: "sha256", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 8, name: "filename", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "content_encoding", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCasObjectResponse {

@@ -392,7 +392,11 @@ function objectRefKey(object: TalonChatObjectRef | undefined): string {
 }
 
 function objectRefContentEncoding(object: TalonChatObjectRef | undefined): string {
-  return object?.metadata?.content_encoding ?? object?.metadata?.contentEncoding ?? "";
+  return (object as any)?.contentEncoding
+    ?? (object as any)?.content_encoding
+    ?? object?.metadata?.content_encoding
+    ?? object?.metadata?.contentEncoding
+    ?? "";
 }
 
 function isToolResultPart(part: any) {
@@ -438,7 +442,10 @@ async function casObjectData(response: any): Promise<Uint8Array> {
 
 async function toolResultObjectData(response: any, fallbackObject?: TalonChatObjectRef): Promise<Uint8Array> {
   const bytes = await casObjectData(response);
-  const responseEncoding = response?.metadata?.content_encoding ?? response?.metadata?.contentEncoding;
+  const responseEncoding = response?.contentEncoding
+    ?? response?.content_encoding
+    ?? response?.metadata?.content_encoding
+    ?? response?.metadata?.contentEncoding;
   const encoding = typeof responseEncoding === "string" ? responseEncoding : objectRefContentEncoding(fallbackObject);
   const normalized = encoding.toLowerCase();
   return normalized === "zstd" || normalized === "gzip"

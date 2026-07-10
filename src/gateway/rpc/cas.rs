@@ -56,6 +56,7 @@ impl GrpcGatewayHandler {
             size_bytes: object_ref.size_bytes,
             sha256: object_ref.sha256,
             filename: object_ref.filename,
+            content_encoding: object_ref.content_encoding,
         }))
     }
 }
@@ -135,7 +136,7 @@ mod tests {
             .await
             .unwrap()
             .expect("large result should be object-backed");
-        assert_eq!(object.metadata["content_encoding"], "zstd");
+        assert_eq!(object.content_encoding, "zstd");
 
         let response = handler(objects)
             .handle_get_cas_object(tonic::Request::new(proto::GetCasObjectRequest {
@@ -147,7 +148,7 @@ mod tests {
 
         assert_ne!(response.data, raw.as_bytes());
         assert_eq!(&response.data[..4], &[0x28, 0xb5, 0x2f, 0xfd]);
-        assert_eq!(response.metadata["content_encoding"], "zstd");
+        assert_eq!(response.content_encoding, "zstd");
     }
 
     #[tokio::test]

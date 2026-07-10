@@ -19,4 +19,5 @@ message GetCasObjectResponse {
   uint64 size_bytes = 6;
   string sha256 = 7;
   string filename = 8;
+  string content_encoding = 9;
 }

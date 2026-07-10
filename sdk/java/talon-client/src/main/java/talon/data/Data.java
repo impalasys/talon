@@ -468,6 +468,18 @@ java.lang.String defaultValue);
      */
     java.lang.String getMetadataOrThrow(
         java.lang.String key);
+
+    /**
+     * <code>string content_encoding = 7;</code>
+     * @return The contentEncoding.
+     */
+    java.lang.String getContentEncoding();
+    /**
+     * <code>string content_encoding = 7;</code>
+     * @return The bytes for contentEncoding.
+     */
+    com.google.protobuf.ByteString
+        getContentEncodingBytes();
   }
   /**
    * Protobuf type {@code talon.data.ObjectRef}
@@ -495,6 +507,7 @@ java.lang.String defaultValue);
       mediaType_ = "";
       sha256_ = "";
       filename_ = "";
+      contentEncoding_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -773,6 +786,45 @@ java.lang.String defaultValue) {
       return map.get(key);
     }
 
+    public static final int CONTENT_ENCODING_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object contentEncoding_ = "";
+    /**
+     * <code>string content_encoding = 7;</code>
+     * @return The contentEncoding.
+     */
+    @java.lang.Override
+    public java.lang.String getContentEncoding() {
+      java.lang.Object ref = contentEncoding_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        contentEncoding_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string content_encoding = 7;</code>
+     * @return The bytes for contentEncoding.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getContentEncodingBytes() {
+      java.lang.Object ref = contentEncoding_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        contentEncoding_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -808,6 +860,9 @@ java.lang.String defaultValue) {
           internalGetMetadata(),
           MetadataDefaultEntryHolder.defaultEntry,
           6);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(contentEncoding_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, contentEncoding_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -843,6 +898,9 @@ java.lang.String defaultValue) {
         size += com.google.protobuf.CodedOutputStream
             .computeMessageSize(6, metadata__);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(contentEncoding_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, contentEncoding_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -870,6 +928,8 @@ java.lang.String defaultValue) {
           .equals(other.getFilename())) return false;
       if (!internalGetMetadata().equals(
           other.internalGetMetadata())) return false;
+      if (!getContentEncoding()
+          .equals(other.getContentEncoding())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -896,6 +956,8 @@ java.lang.String defaultValue) {
         hash = (37 * hash) + METADATA_FIELD_NUMBER;
         hash = (53 * hash) + internalGetMetadata().hashCode();
       }
+      hash = (37 * hash) + CONTENT_ENCODING_FIELD_NUMBER;
+      hash = (53 * hash) + getContentEncoding().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1055,6 +1117,7 @@ java.lang.String defaultValue) {
         sha256_ = "";
         filename_ = "";
         internalGetMutableMetadata().clear();
+        contentEncoding_ = "";
         return this;
       }
 
@@ -1107,6 +1170,9 @@ java.lang.String defaultValue) {
           result.metadata_ = internalGetMetadata();
           result.metadata_.makeImmutable();
         }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.contentEncoding_ = contentEncoding_;
+        }
       }
 
       @java.lang.Override
@@ -1147,6 +1213,11 @@ java.lang.String defaultValue) {
         internalGetMutableMetadata().mergeFrom(
             other.internalGetMetadata());
         bitField0_ |= 0x00000020;
+        if (!other.getContentEncoding().isEmpty()) {
+          contentEncoding_ = other.contentEncoding_;
+          bitField0_ |= 0x00000040;
+          onChanged();
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -1207,6 +1278,11 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000020;
                 break;
               } // case 50
+              case 58: {
+                contentEncoding_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1668,6 +1744,78 @@ java.lang.String defaultValue) {
         internalGetMutableMetadata().getMutableMap()
             .putAll(values);
         bitField0_ |= 0x00000020;
+        return this;
+      }
+
+      private java.lang.Object contentEncoding_ = "";
+      /**
+       * <code>string content_encoding = 7;</code>
+       * @return The contentEncoding.
+       */
+      public java.lang.String getContentEncoding() {
+        java.lang.Object ref = contentEncoding_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          contentEncoding_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string content_encoding = 7;</code>
+       * @return The bytes for contentEncoding.
+       */
+      public com.google.protobuf.ByteString
+          getContentEncodingBytes() {
+        java.lang.Object ref = contentEncoding_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          contentEncoding_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string content_encoding = 7;</code>
+       * @param value The contentEncoding to set.
+       * @return This builder for chaining.
+       */
+      public Builder setContentEncoding(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        contentEncoding_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string content_encoding = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearContentEncoding() {
+        contentEncoding_ = getDefaultInstance().getContentEncoding();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string content_encoding = 7;</code>
+       * @param value The bytes for contentEncoding to set.
+       * @return This builder for chaining.
+       */
+      public Builder setContentEncodingBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        contentEncoding_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
         return this;
       }
 
@@ -18887,91 +19035,92 @@ java.lang.String defaultValue) {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\025proto/data/data.proto\022\ntalon.data\"\312\001\n\t" +
+      "\n\025proto/data/data.proto\022\ntalon.data\"\344\001\n\t" +
       "ObjectRef\022\013\n\003key\030\001 \001(\t\022\022\n\nmedia_type\030\002 \001" +
       "(\t\022\022\n\nsize_bytes\030\003 \001(\004\022\016\n\006sha256\030\004 \001(\t\022\020" +
       "\n\010filename\030\005 \001(\t\0225\n\010metadata\030\006 \003(\0132#.tal" +
-      "on.data.ObjectRef.MetadataEntry\032/\n\rMetad" +
-      "ataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001" +
-      "\"\275\001\n\tPrincipal\022\023\n\013external_id\030\001 \001(\t\022\017\n\007a" +
-      "ddress\030\002 \001(\t\022\024\n\014display_name\030\003 \001(\t\022\014\n\004ki" +
-      "nd\030\004 \001(\t\0225\n\010metadata\030\005 \003(\0132#.talon.data." +
-      "Principal.MetadataEntry\032/\n\rMetadataEntry" +
-      "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\307\001\n\022Ses" +
-      "sionMessagePart\022\n\n\002id\030\001 \001(\t\0225\n\tpart_type" +
-      "\030\002 \001(\0162\".talon.data.SessionMessagePartTy" +
-      "pe\022\017\n\007content\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024\n\014pay" +
-      "load_json\030\005 \001(\t\022\022\n\ncreated_at\030\006 \001(\003\022%\n\006o" +
-      "bject\030\007 \001(\0132\025.talon.data.ObjectRef\"\363\001\n\016S" +
-      "essionMessage\022\n\n\002id\030\001 \001(\t\022%\n\004role\030\002 \001(\0162" +
-      "\027.talon.data.MessageRole\022\022\n\ncreated_at\030\004" +
-      " \001(\003\0226\n\006labels\030\005 \003(\0132&.talon.data.Sessio" +
-      "nMessage.LabelsEntry\022-\n\005parts\030\006 \003(\0132\036.ta" +
-      "lon.data.SessionMessagePart\032-\n\013LabelsEnt" +
-      "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004" +
-      "\"\257\002\n\007Session\022\n\n\002id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022" +
-      "\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ncreated_a" +
-      "t\030\005 \001(\003\022\023\n\013last_active\030\006 \001(\003\0223\n\010metadata" +
-      "\030\007 \003(\0132!.talon.data.Session.MetadataEntr" +
-      "y\022/\n\006labels\030\010 \003(\0132\037.talon.data.Session.L" +
-      "abelsEntry\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t" +
-      "\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003ke" +
-      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\233\002\n\016ChannelMe" +
-      "ssage\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n\007channel" +
-      "\030\003 \001(\t\022\023\n\013author_kind\030\004 \001(\t\022\016\n\006author\030\005 " +
-      "\001(\t\022\017\n\007content\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003" +
-      "\022\024\n\014source_agent\030\010 \001(\t\022\031\n\021source_session" +
-      "_id\030\t \001(\t\0226\n\006labels\030\n \003(\0132&.talon.data.C" +
-      "hannelMessage.LabelsEntry\032-\n\013LabelsEntry" +
-      "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"_\n\tKnow" +
-      "ledge\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002 \001(\t\022\022\n\n" +
-      "updated_at\030\003 \001(\003\022\021\n\tnamespace\030\004 \001(\t\022\014\n\004n" +
-      "ame\030\005 \001(\t\"k\n\025KnowledgeSearchResult\022\014\n\004pa" +
-      "th\030\001 \001(\t\022\017\n\007snippet\030\002 \001(\t\022\r\n\005score\030\003 \001(\002" +
-      "\022\021\n\ttimestamp\030\004 \001(\003\022\021\n\tnamespace\030\005 \001(\t\"\313" +
-      "\003\n\013WorkflowRun\022\n\n\002id\030\001 \001(\t\022\020\n\010workflow\030\002" +
-      " \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ninpu" +
-      "t_json\030\005 \001(\t\022\022\n\nstate_json\030\006 \001(\t\022\023\n\013outp" +
-      "ut_json\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(\003\022\022\n\nupd" +
-      "ated_at\030\t \001(\003\0223\n\006labels\030\n \003(\0132#.talon.da" +
-      "ta.WorkflowRun.LabelsEntry\022\035\n\020claim_expi" +
-      "res_at\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014 \001(\t\022\021\n\tspec" +
-      "_json\030\r \001(\t\022\031\n\021workflow_revision\030\016 \001(\004\022\023" +
-      "\n\013claim_owner\030\017 \001(\t\022\025\n\rclaim_attempt\030\020 \001" +
-      "(\r\022\034\n\024last_dispatch_reason\030\021 \001(\t\032-\n\013Labe" +
-      "lsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B" +
-      "\023\n\021_claim_expires_at\"\263\003\n\017WorkflowStepRun" +
-      "\022\n\n\002id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017\n\007attempt" +
-      "\030\003 \001(\r\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001" +
-      "(\t\022\023\n\013output_json\030\006 \001(\t\022\r\n\005error\030\007 \001(\t\022\030" +
-      "\n\020child_session_id\030\010 \001(\t\022\035\n\025child_workfl" +
-      "ow_run_id\030\t \001(\t\022\023\n\013resume_json\030\n \001(\t\022\024\n\014" +
-      "suspend_json\030\013 \001(\t\022\022\n\ncreated_at\030\014 \001(\003\022\022" +
-      "\n\nupdated_at\030\r \001(\003\022\032\n\rnext_retry_at\030\016 \001(" +
-      "\003H\000\210\001\001\022\027\n\ntimeout_at\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_" +
-      "wakeup_handle\030\020 \001(\t\022\032\n\rwait_until_at\030\021 \001" +
-      "(\003H\002\210\001\001B\020\n\016_next_retry_atB\r\n\013_timeout_at" +
-      "B\020\n\016_wait_until_at\"\245\001\n\020WorkflowRunEvent\022" +
-      "\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010workflow\030\003 \001(" +
-      "\t\022\016\n\006run_id\030\004 \001(\t\022\014\n\004type\030\005 \001(\t\022\017\n\007step_" +
-      "id\030\006 \001(\t\022\017\n\007message\030\007 \001(\t\022\024\n\014payload_jso" +
-      "n\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013MessageRol" +
-      "e\022\024\n\020ROLE_UNSPECIFIED\020\000\022\r\n\tROLE_USER\020\001\022\022" +
-      "\n\016ROLE_ASSISTANT\020\002\022\017\n\013ROLE_SYSTEM\020\003*\244\004\n\026" +
-      "SessionMessagePartType\022)\n%SESSION_MESSAG" +
-      "E_PART_TYPE_UNSPECIFIED\020\000\022\"\n\036SESSION_MES" +
-      "SAGE_PART_TYPE_TEXT\020\001\022\'\n#SESSION_MESSAGE" +
-      "_PART_TYPE_REASONING\020\002\022\'\n#SESSION_MESSAG" +
-      "E_PART_TYPE_TOOL_CALL\020\003\022)\n%SESSION_MESSA" +
-      "GE_PART_TYPE_TOOL_RESULT\020\004\022#\n\037SESSION_ME" +
-      "SSAGE_PART_TYPE_USAGE\020\005\022#\n\037SESSION_MESSA" +
-      "GE_PART_TYPE_ERROR\020\006\022#\n\037SESSION_MESSAGE_" +
-      "PART_TYPE_IMAGE\020\007\022#\n\037SESSION_MESSAGE_PAR" +
-      "T_TYPE_AUDIO\020\010\022#\n\037SESSION_MESSAGE_PART_T" +
-      "YPE_VIDEO\020\t\022\"\n\036SESSION_MESSAGE_PART_TYPE" +
-      "_FILE\020\n\0220\n,SESSION_MESSAGE_PART_TYPE_REQ" +
-      "UEST_PERMISSION\020\013\022/\n+SESSION_MESSAGE_PAR" +
-      "T_TYPE_PERMISSION_RESULT\020\014b\006proto3"
+      "on.data.ObjectRef.MetadataEntry\022\030\n\020conte" +
+      "nt_encoding\030\007 \001(\t\032/\n\rMetadataEntry\022\013\n\003ke" +
+      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\275\001\n\tPrincipal" +
+      "\022\023\n\013external_id\030\001 \001(\t\022\017\n\007address\030\002 \001(\t\022\024" +
+      "\n\014display_name\030\003 \001(\t\022\014\n\004kind\030\004 \001(\t\0225\n\010me" +
+      "tadata\030\005 \003(\0132#.talon.data.Principal.Meta" +
+      "dataEntry\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022" +
+      "\r\n\005value\030\002 \001(\t:\0028\001\"\307\001\n\022SessionMessagePar" +
+      "t\022\n\n\002id\030\001 \001(\t\0225\n\tpart_type\030\002 \001(\0162\".talon" +
+      ".data.SessionMessagePartType\022\017\n\007content\030" +
+      "\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024\n\014payload_json\030\005 \001(" +
+      "\t\022\022\n\ncreated_at\030\006 \001(\003\022%\n\006object\030\007 \001(\0132\025." +
+      "talon.data.ObjectRef\"\363\001\n\016SessionMessage\022" +
+      "\n\n\002id\030\001 \001(\t\022%\n\004role\030\002 \001(\0162\027.talon.data.M" +
+      "essageRole\022\022\n\ncreated_at\030\004 \001(\003\0226\n\006labels" +
+      "\030\005 \003(\0132&.talon.data.SessionMessage.Label" +
+      "sEntry\022-\n\005parts\030\006 \003(\0132\036.talon.data.Sessi" +
+      "onMessagePart\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(" +
+      "\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004\"\257\002\n\007Session\022\n" +
+      "\n\002id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n" +
+      "\006status\030\004 \001(\t\022\022\n\ncreated_at\030\005 \001(\003\022\023\n\013las" +
+      "t_active\030\006 \001(\003\0223\n\010metadata\030\007 \003(\0132!.talon" +
+      ".data.Session.MetadataEntry\022/\n\006labels\030\010 " +
+      "\003(\0132\037.talon.data.Session.LabelsEntry\032/\n\r" +
+      "MetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
+      "\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
+      "ue\030\002 \001(\t:\0028\001\"\233\002\n\016ChannelMessage\022\n\n\002id\030\001 " +
+      "\001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n\007channel\030\003 \001(\t\022\023\n\013auth" +
+      "or_kind\030\004 \001(\t\022\016\n\006author\030\005 \001(\t\022\017\n\007content" +
+      "\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003\022\024\n\014source_age" +
+      "nt\030\010 \001(\t\022\031\n\021source_session_id\030\t \001(\t\0226\n\006l" +
+      "abels\030\n \003(\0132&.talon.data.ChannelMessage." +
+      "LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022" +
+      "\r\n\005value\030\002 \001(\t:\0028\001\"_\n\tKnowledge\022\014\n\004path\030" +
+      "\001 \001(\t\022\017\n\007content\030\002 \001(\t\022\022\n\nupdated_at\030\003 \001" +
+      "(\003\022\021\n\tnamespace\030\004 \001(\t\022\014\n\004name\030\005 \001(\t\"k\n\025K" +
+      "nowledgeSearchResult\022\014\n\004path\030\001 \001(\t\022\017\n\007sn" +
+      "ippet\030\002 \001(\t\022\r\n\005score\030\003 \001(\002\022\021\n\ttimestamp\030" +
+      "\004 \001(\003\022\021\n\tnamespace\030\005 \001(\t\"\313\003\n\013WorkflowRun" +
+      "\022\n\n\002id\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\n\n\002ns\030\003 \001" +
+      "(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\022" +
+      "\n\nstate_json\030\006 \001(\t\022\023\n\013output_json\030\007 \001(\t\022" +
+      "\022\n\ncreated_at\030\010 \001(\003\022\022\n\nupdated_at\030\t \001(\003\022" +
+      "3\n\006labels\030\n \003(\0132#.talon.data.WorkflowRun" +
+      ".LabelsEntry\022\035\n\020claim_expires_at\030\013 \001(\003H\000" +
+      "\210\001\001\022\r\n\005error\030\014 \001(\t\022\021\n\tspec_json\030\r \001(\t\022\031\n" +
+      "\021workflow_revision\030\016 \001(\004\022\023\n\013claim_owner\030" +
+      "\017 \001(\t\022\025\n\rclaim_attempt\030\020 \001(\r\022\034\n\024last_dis" +
+      "patch_reason\030\021 \001(\t\032-\n\013LabelsEntry\022\013\n\003key" +
+      "\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\023\n\021_claim_expi" +
+      "res_at\"\263\003\n\017WorkflowStepRun\022\n\n\002id\030\001 \001(\t\022\017" +
+      "\n\007step_id\030\002 \001(\t\022\017\n\007attempt\030\003 \001(\r\022\016\n\006stat" +
+      "us\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\023\n\013output_j" +
+      "son\030\006 \001(\t\022\r\n\005error\030\007 \001(\t\022\030\n\020child_sessio" +
+      "n_id\030\010 \001(\t\022\035\n\025child_workflow_run_id\030\t \001(" +
+      "\t\022\023\n\013resume_json\030\n \001(\t\022\024\n\014suspend_json\030\013" +
+      " \001(\t\022\022\n\ncreated_at\030\014 \001(\003\022\022\n\nupdated_at\030\r" +
+      " \001(\003\022\032\n\rnext_retry_at\030\016 \001(\003H\000\210\001\001\022\027\n\ntime" +
+      "out_at\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_wakeup_handle\030" +
+      "\020 \001(\t\022\032\n\rwait_until_at\030\021 \001(\003H\002\210\001\001B\020\n\016_ne" +
+      "xt_retry_atB\r\n\013_timeout_atB\020\n\016_wait_unti" +
+      "l_at\"\245\001\n\020WorkflowRunEvent\022\n\n\002id\030\001 \001(\t\022\n\n" +
+      "\002ns\030\002 \001(\t\022\020\n\010workflow\030\003 \001(\t\022\016\n\006run_id\030\004 " +
+      "\001(\t\022\014\n\004type\030\005 \001(\t\022\017\n\007step_id\030\006 \001(\t\022\017\n\007me" +
+      "ssage\030\007 \001(\t\022\024\n\014payload_json\030\010 \001(\t\022\021\n\ttim" +
+      "estamp\030\t \001(\003*W\n\013MessageRole\022\024\n\020ROLE_UNSP" +
+      "ECIFIED\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016ROLE_ASSISTA" +
+      "NT\020\002\022\017\n\013ROLE_SYSTEM\020\003*\244\004\n\026SessionMessage" +
+      "PartType\022)\n%SESSION_MESSAGE_PART_TYPE_UN" +
+      "SPECIFIED\020\000\022\"\n\036SESSION_MESSAGE_PART_TYPE" +
+      "_TEXT\020\001\022\'\n#SESSION_MESSAGE_PART_TYPE_REA" +
+      "SONING\020\002\022\'\n#SESSION_MESSAGE_PART_TYPE_TO" +
+      "OL_CALL\020\003\022)\n%SESSION_MESSAGE_PART_TYPE_T" +
+      "OOL_RESULT\020\004\022#\n\037SESSION_MESSAGE_PART_TYP" +
+      "E_USAGE\020\005\022#\n\037SESSION_MESSAGE_PART_TYPE_E" +
+      "RROR\020\006\022#\n\037SESSION_MESSAGE_PART_TYPE_IMAG" +
+      "E\020\007\022#\n\037SESSION_MESSAGE_PART_TYPE_AUDIO\020\010" +
+      "\022#\n\037SESSION_MESSAGE_PART_TYPE_VIDEO\020\t\022\"\n" +
+      "\036SESSION_MESSAGE_PART_TYPE_FILE\020\n\0220\n,SES" +
+      "SION_MESSAGE_PART_TYPE_REQUEST_PERMISSIO" +
+      "N\020\013\022/\n+SESSION_MESSAGE_PART_TYPE_PERMISS" +
+      "ION_RESULT\020\014b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -18982,7 +19131,7 @@ java.lang.String defaultValue) {
     internal_static_talon_data_ObjectRef_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ObjectRef_descriptor,
-        new java.lang.String[] { "Key", "MediaType", "SizeBytes", "Sha256", "Filename", "Metadata", });
+        new java.lang.String[] { "Key", "MediaType", "SizeBytes", "Sha256", "Filename", "Metadata", "ContentEncoding", });
     internal_static_talon_data_ObjectRef_MetadataEntry_descriptor =
       internal_static_talon_data_ObjectRef_descriptor.getNestedType(0);
     internal_static_talon_data_ObjectRef_MetadataEntry_fieldAccessorTable = new

@@ -75,6 +75,7 @@ type GetCasObjectResponse struct {
 	SizeBytes                     uint64                 `protobuf:"varint,6,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
 	Sha256                        string                 `protobuf:"bytes,7,opt,name=sha256,proto3" json:"sha256,omitempty"`
 	Filename                      string                 `protobuf:"bytes,8,opt,name=filename,proto3" json:"filename,omitempty"`
+	ContentEncoding               string                 `protobuf:"bytes,9,opt,name=content_encoding,json=contentEncoding,proto3" json:"content_encoding,omitempty"`
 	unknownFields                 protoimpl.UnknownFields
 	sizeCache                     protoimpl.SizeCache
 }
@@ -165,13 +166,20 @@ func (x *GetCasObjectResponse) GetFilename() string {
 	return ""
 }
 
+func (x *GetCasObjectResponse) GetContentEncoding() string {
+	if x != nil {
+		return x.ContentEncoding
+	}
+	return ""
+}
+
 var File_proto_talon_v1_cas_proto protoreflect.FileDescriptor
 
 const file_proto_talon_v1_cas_proto_rawDesc = "" +
 	"\n" +
 	"\x18proto/talon/v1/cas.proto\x12\btalon.v1\"'\n" +
 	"\x13GetCasObjectRequest\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\"\x8d\x03\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\"\xb8\x03\n" +
 	"\x14GetCasObjectResponse\x12\x12\n" +
 	"\x04data\x18\x01 \x01(\fR\x04data\x12\x1d\n" +
 	"\n" +
@@ -183,7 +191,8 @@ const file_proto_talon_v1_cas_proto_rawDesc = "" +
 	"\n" +
 	"size_bytes\x18\x06 \x01(\x04R\tsizeBytes\x12\x16\n" +
 	"\x06sha256\x18\a \x01(\tR\x06sha256\x12\x1a\n" +
-	"\bfilename\x18\b \x01(\tR\bfilename\x1a;\n" +
+	"\bfilename\x18\b \x01(\tR\bfilename\x12)\n" +
+	"\x10content_encoding\x18\t \x01(\tR\x0fcontentEncoding\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012X\n" +

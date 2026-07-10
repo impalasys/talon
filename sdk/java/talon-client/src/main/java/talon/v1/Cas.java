@@ -644,6 +644,18 @@ java.lang.String defaultValue);
      */
     com.google.protobuf.ByteString
         getFilenameBytes();
+
+    /**
+     * <code>string content_encoding = 9;</code>
+     * @return The contentEncoding.
+     */
+    java.lang.String getContentEncoding();
+    /**
+     * <code>string content_encoding = 9;</code>
+     * @return The bytes for contentEncoding.
+     */
+    com.google.protobuf.ByteString
+        getContentEncodingBytes();
   }
   /**
    * Protobuf type {@code talon.v1.GetCasObjectResponse}
@@ -672,6 +684,7 @@ java.lang.String defaultValue);
       mediaType_ = "";
       sha256_ = "";
       filename_ = "";
+      contentEncoding_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -972,6 +985,45 @@ java.lang.String defaultValue) {
       }
     }
 
+    public static final int CONTENT_ENCODING_FIELD_NUMBER = 9;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object contentEncoding_ = "";
+    /**
+     * <code>string content_encoding = 9;</code>
+     * @return The contentEncoding.
+     */
+    @java.lang.Override
+    public java.lang.String getContentEncoding() {
+      java.lang.Object ref = contentEncoding_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        contentEncoding_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string content_encoding = 9;</code>
+     * @return The bytes for contentEncoding.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getContentEncodingBytes() {
+      java.lang.Object ref = contentEncoding_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        contentEncoding_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -1012,6 +1064,9 @@ java.lang.String defaultValue) {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(filename_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 8, filename_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(contentEncoding_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 9, contentEncoding_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1056,6 +1111,9 @@ java.lang.String defaultValue) {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(filename_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(8, filename_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(contentEncoding_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(9, contentEncoding_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -1087,6 +1145,8 @@ java.lang.String defaultValue) {
           .equals(other.getSha256())) return false;
       if (!getFilename()
           .equals(other.getFilename())) return false;
+      if (!getContentEncoding()
+          .equals(other.getContentEncoding())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1118,6 +1178,8 @@ java.lang.String defaultValue) {
       hash = (53 * hash) + getSha256().hashCode();
       hash = (37 * hash) + FILENAME_FIELD_NUMBER;
       hash = (53 * hash) + getFilename().hashCode();
+      hash = (37 * hash) + CONTENT_ENCODING_FIELD_NUMBER;
+      hash = (53 * hash) + getContentEncoding().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1279,6 +1341,7 @@ java.lang.String defaultValue) {
         sizeBytes_ = 0L;
         sha256_ = "";
         filename_ = "";
+        contentEncoding_ = "";
         return this;
       }
 
@@ -1337,6 +1400,9 @@ java.lang.String defaultValue) {
         if (((from_bitField0_ & 0x00000080) != 0)) {
           result.filename_ = filename_;
         }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.contentEncoding_ = contentEncoding_;
+        }
       }
 
       @java.lang.Override
@@ -1381,6 +1447,11 @@ java.lang.String defaultValue) {
         if (!other.getFilename().isEmpty()) {
           filename_ = other.filename_;
           bitField0_ |= 0x00000080;
+          onChanged();
+        }
+        if (!other.getContentEncoding().isEmpty()) {
+          contentEncoding_ = other.contentEncoding_;
+          bitField0_ |= 0x00000100;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -1453,6 +1524,11 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000080;
                 break;
               } // case 66
+              case 74: {
+                contentEncoding_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 74
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1981,6 +2057,78 @@ java.lang.String defaultValue) {
         return this;
       }
 
+      private java.lang.Object contentEncoding_ = "";
+      /**
+       * <code>string content_encoding = 9;</code>
+       * @return The contentEncoding.
+       */
+      public java.lang.String getContentEncoding() {
+        java.lang.Object ref = contentEncoding_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          contentEncoding_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string content_encoding = 9;</code>
+       * @return The bytes for contentEncoding.
+       */
+      public com.google.protobuf.ByteString
+          getContentEncodingBytes() {
+        java.lang.Object ref = contentEncoding_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          contentEncoding_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string content_encoding = 9;</code>
+       * @param value The contentEncoding to set.
+       * @return This builder for chaining.
+       */
+      public Builder setContentEncoding(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        contentEncoding_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string content_encoding = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearContentEncoding() {
+        contentEncoding_ = getDefaultInstance().getContentEncoding();
+        bitField0_ = (bitField0_ & ~0x00000100);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string content_encoding = 9;</code>
+       * @param value The bytes for contentEncoding to set.
+       * @return This builder for chaining.
+       */
+      public Builder setContentEncodingBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        contentEncoding_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.v1.GetCasObjectResponse)
     }
 
@@ -2057,17 +2205,18 @@ java.lang.String defaultValue) {
   static {
     java.lang.String[] descriptorData = {
       "\n\030proto/talon/v1/cas.proto\022\010talon.v1\"\"\n\023" +
-      "GetCasObjectRequest\022\013\n\003key\030\001 \001(\t\"\237\002\n\024Get" +
+      "GetCasObjectRequest\022\013\n\003key\030\001 \001(\t\"\271\002\n\024Get" +
       "CasObjectResponse\022\014\n\004data\030\001 \001(\014\022\022\n\nsigne" +
       "d_url\030\002 \001(\t\022*\n\"signed_url_expires_at_uni" +
       "x_seconds\030\003 \001(\003\022>\n\010metadata\030\004 \003(\0132,.talo" +
       "n.v1.GetCasObjectResponse.MetadataEntry\022" +
       "\022\n\nmedia_type\030\005 \001(\t\022\022\n\nsize_bytes\030\006 \001(\004\022" +
-      "\016\n\006sha256\030\007 \001(\t\022\020\n\010filename\030\010 \001(\t\032/\n\rMet" +
-      "adataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\002" +
-      "8\0012X\n\nCasService\022J\n\tGetObject\022\035.talon.v1" +
-      ".GetCasObjectRequest\032\036.talon.v1.GetCasOb" +
-      "jectResponseb\006proto3"
+      "\016\n\006sha256\030\007 \001(\t\022\020\n\010filename\030\010 \001(\t\022\030\n\020con" +
+      "tent_encoding\030\t \001(\t\032/\n\rMetadataEntry\022\013\n\003" +
+      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\0012X\n\nCasServi" +
+      "ce\022J\n\tGetObject\022\035.talon.v1.GetCasObjectR" +
+      "equest\032\036.talon.v1.GetCasObjectResponseb\006" +
+      "proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -2084,7 +2233,7 @@ java.lang.String defaultValue) {
     internal_static_talon_v1_GetCasObjectResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_GetCasObjectResponse_descriptor,
-        new java.lang.String[] { "Data", "SignedUrl", "SignedUrlExpiresAtUnixSeconds", "Metadata", "MediaType", "SizeBytes", "Sha256", "Filename", });
+        new java.lang.String[] { "Data", "SignedUrl", "SignedUrlExpiresAtUnixSeconds", "Metadata", "MediaType", "SizeBytes", "Sha256", "Filename", "ContentEncoding", });
     internal_static_talon_v1_GetCasObjectResponse_MetadataEntry_descriptor =
       internal_static_talon_v1_GetCasObjectResponse_descriptor.getNestedType(0);
     internal_static_talon_v1_GetCasObjectResponse_MetadataEntry_fieldAccessorTable = new

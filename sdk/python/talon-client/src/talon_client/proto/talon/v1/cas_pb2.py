@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18proto/talon/v1/cas.proto\x12\x08talon.v1\"\"\n\x13GetCasObjectRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"\x9f\x02\n\x14GetCasObjectResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\x12\n\nsigned_url\x18\x02 \x01(\t\x12*\n\"signed_url_expires_at_unix_seconds\x18\x03 \x01(\x03\x12>\n\x08metadata\x18\x04 \x03(\x0b\x32,.talon.v1.GetCasObjectResponse.MetadataEntry\x12\x12\n\nmedia_type\x18\x05 \x01(\t\x12\x12\n\nsize_bytes\x18\x06 \x01(\x04\x12\x0e\n\x06sha256\x18\x07 \x01(\t\x12\x10\n\x08\x66ilename\x18\x08 \x01(\t\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x32X\n\nCasService\x12J\n\tGetObject\x12\x1d.talon.v1.GetCasObjectRequest\x1a\x1e.talon.v1.GetCasObjectResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18proto/talon/v1/cas.proto\x12\x08talon.v1\"\"\n\x13GetCasObjectRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"\xb9\x02\n\x14GetCasObjectResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\x12\n\nsigned_url\x18\x02 \x01(\t\x12*\n\"signed_url_expires_at_unix_seconds\x18\x03 \x01(\x03\x12>\n\x08metadata\x18\x04 \x03(\x0b\x32,.talon.v1.GetCasObjectResponse.MetadataEntry\x12\x12\n\nmedia_type\x18\x05 \x01(\t\x12\x12\n\nsize_bytes\x18\x06 \x01(\x04\x12\x0e\n\x06sha256\x18\x07 \x01(\t\x12\x10\n\x08\x66ilename\x18\x08 \x01(\t\x12\x18\n\x10\x63ontent_encoding\x18\t \x01(\t\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x32X\n\nCasService\x12J\n\tGetObject\x12\x1d.talon.v1.GetCasObjectRequest\x1a\x1e.talon.v1.GetCasObjectResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -36,9 +36,9 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETCASOBJECTREQUEST']._serialized_start=38
   _globals['_GETCASOBJECTREQUEST']._serialized_end=72
   _globals['_GETCASOBJECTRESPONSE']._serialized_start=75
-  _globals['_GETCASOBJECTRESPONSE']._serialized_end=362
-  _globals['_GETCASOBJECTRESPONSE_METADATAENTRY']._serialized_start=315
-  _globals['_GETCASOBJECTRESPONSE_METADATAENTRY']._serialized_end=362
-  _globals['_CASSERVICE']._serialized_start=364
-  _globals['_CASSERVICE']._serialized_end=452
+  _globals['_GETCASOBJECTRESPONSE']._serialized_end=388
+  _globals['_GETCASOBJECTRESPONSE_METADATAENTRY']._serialized_start=341
+  _globals['_GETCASOBJECTRESPONSE_METADATAENTRY']._serialized_end=388
+  _globals['_CASSERVICE']._serialized_start=390
+  _globals['_CASSERVICE']._serialized_end=478
 # @@protoc_insertion_point(module_scope)

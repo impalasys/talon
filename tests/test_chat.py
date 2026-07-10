@@ -49,7 +49,10 @@ def _cas_response_bytes(response) -> bytes:
 
 def _cas_tool_result_text(response) -> str:
     data = _cas_response_bytes(response)
-    encoding = response.metadata.get("content_encoding", "").lower()
+    encoding = (
+        response.content_encoding
+        or response.metadata.get("content_encoding", "")
+    ).lower()
     if encoding == "zstd":
         data = zstandard.ZstdDecompressor().decompress(data)
     elif encoding == "gzip":

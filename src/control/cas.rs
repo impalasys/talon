@@ -109,13 +109,7 @@ impl CasStore {
         let scope = SessionCasScope::new(ns, agent, session_id);
         let identity = SessionObjectIdentity::new(message_id, part_id);
         let (stored_bytes, content_encoding) = compressed_object_bytes(uncompressed_bytes)?;
-        let metadata = tool_result_metadata(
-            &scope,
-            tool_call_id,
-            tool_name,
-            uncompressed_bytes,
-            content_encoding,
-        );
+        let metadata = tool_result_metadata(&scope, tool_call_id, tool_name, uncompressed_bytes);
 
         self.objects
             .put(
@@ -126,6 +120,7 @@ impl CasStore {
                     size_bytes: stored_bytes.len() as u64,
                     sha256: sha256_hex(&stored_bytes),
                     filename: format!("{}.txt", object_key_segment(tool_call_id)),
+                    content_encoding: content_encoding.unwrap_or_default().to_string(),
                     metadata,
                 },
             )
@@ -295,6 +290,7 @@ pub fn object_ref_from_stored_object(key: &str, object: &StoredObject) -> data_p
         size_bytes: object.metadata.size_bytes,
         sha256: object.metadata.sha256.clone(),
         filename: object.metadata.filename.clone(),
+        content_encoding: object.metadata.content_encoding.clone(),
         metadata: object.metadata.metadata.clone(),
     }
 }
@@ -304,11 +300,15 @@ pub fn object_ref_from_stored_object(key: &str, object: &StoredObject) -> data_p
 /// This is the internal counterpart to the public CAS RPC, which intentionally
 /// returns stored bytes so SDK callers can use signed URLs directly.
 pub fn decode_stored_object_bytes(object: &StoredObject, key: &str) -> Result<Vec<u8>> {
-    let encoding = object
-        .metadata
-        .metadata
-        .get(METADATA_CONTENT_ENCODING)
-        .map(|value| value.to_ascii_lowercase());
+    let encoding = if object.metadata.content_encoding.trim().is_empty() {
+        object
+            .metadata
+            .metadata
+            .get(METADATA_CONTENT_ENCODING)
+            .map(|value| value.to_ascii_lowercase())
+    } else {
+        Some(object.metadata.content_encoding.to_ascii_lowercase())
+    };
     match encoding.as_deref() {
         Some(CONTENT_ENCODING_ZSTD) => unzstd(&object.bytes, key),
         Some(CONTENT_ENCODING_GZIP) => gunzip(&object.bytes, key),
@@ -321,6 +321,7 @@ pub fn decode_stored_object_bytes(object: &StoredObject, key: &str) -> Result<Ve
 
 fn decode_stored_object(mut object: StoredObject, key: &str) -> Result<StoredObject> {
     object.bytes = decode_stored_object_bytes(&object, key)?;
+    object.metadata.content_encoding.clear();
     object.metadata.metadata.remove(METADATA_CONTENT_ENCODING);
     object.metadata.size_bytes = object.bytes.len() as u64;
     object.metadata.sha256 = object
@@ -375,7 +376,6 @@ fn tool_result_metadata(
     tool_call_id: &str,
     tool_name: &str,
     uncompressed_bytes: &[u8],
-    content_encoding: Option<&str>,
 ) -> HashMap<String, String> {
     let mut metadata = session_object_metadata(scope);
     metadata.insert(
@@ -392,12 +392,6 @@ fn tool_result_metadata(
         METADATA_UNCOMPRESSED_SHA256.to_string(),
         sha256_hex(uncompressed_bytes),
     );
-    if let Some(content_encoding) = content_encoding {
-        metadata.insert(
-            METADATA_CONTENT_ENCODING.to_string(),
-            content_encoding.to_string(),
-        );
-    }
     metadata
 }
 
@@ -619,10 +613,7 @@ mod tests {
             .unwrap();
 
         assert!(object.size_bytes < raw.len() as u64);
-        assert_eq!(
-            object.metadata[METADATA_CONTENT_ENCODING],
-            CONTENT_ENCODING_ZSTD
-        );
+        assert_eq!(object.content_encoding, CONTENT_ENCODING_ZSTD);
         assert_eq!(object.metadata[METADATA_AGENT], "agent");
         for key_derived_field in ["namespace", "session_id", "message_id", "part_id"] {
             assert!(!object.metadata.contains_key(key_derived_field));
@@ -636,6 +627,7 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(stored.bytes, raw.as_bytes());
+        assert!(stored.metadata.content_encoding.is_empty());
         assert!(!stored
             .metadata
             .metadata
@@ -667,6 +659,7 @@ mod tests {
         let stored = objects.get(&object.key).await.unwrap().unwrap();
 
         assert_eq!(stored.bytes, raw);
+        assert!(stored.metadata.content_encoding.is_empty());
         assert!(!object.metadata.contains_key(METADATA_CONTENT_ENCODING));
     }
 
@@ -716,13 +709,11 @@ mod tests {
                 "cas/acme/sessions/session-1/messages/message-1/000001.txt",
                 b"not zstd",
                 ObjectMetadata {
-                    metadata: std::collections::HashMap::from([
-                        (
-                            METADATA_CONTENT_ENCODING.to_string(),
-                            CONTENT_ENCODING_ZSTD.to_string(),
-                        ),
-                        (METADATA_AGENT.to_string(), "agent".to_string()),
-                    ]),
+                    content_encoding: CONTENT_ENCODING_ZSTD.to_string(),
+                    metadata: std::collections::HashMap::from([(
+                        METADATA_AGENT.to_string(),
+                        "agent".to_string(),
+                    )]),
                     ..ObjectMetadata::default()
                 },
             )
