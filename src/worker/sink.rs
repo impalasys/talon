@@ -55,7 +55,7 @@ impl StreamingPartBuffer {
     }
 
     fn should_publish(&self, now: Instant, interval: Duration) -> bool {
-        !self.live_buffer.is_empty() && now.duration_since(self.last_publish) >= interval
+        !self.live_buffer.is_empty() && now.saturating_duration_since(self.last_publish) >= interval
     }
 
     fn take_live_batch(&mut self, now: Instant) -> Option<String> {
