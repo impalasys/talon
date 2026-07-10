@@ -4,7 +4,9 @@ import threading
 import time
 import uuid
 
+import boto3
 import grpc
+import requests
 
 from e2e.blackbox import (
     create_agent_resource,
@@ -33,6 +35,14 @@ STREAM_TIMEOUT_SECONDS = 30
 
 
 logger = logging.getLogger(__name__)
+
+
+def _cas_response_bytes(response) -> bytes:
+    if response.signed_url:
+        downloaded = requests.get(response.signed_url, timeout=30)
+        downloaded.raise_for_status()
+        return downloaded.content
+    return response.data
 
 
 def test_single_turn_chat(
@@ -307,10 +317,13 @@ def test_streaming_chat_persists_coarse_session_message_parts(
     assert json.loads(usage_parts[0].payload_json)["reasoning_tokens"] == 6
 
 
-def test_large_tool_result_is_fetched_from_cas(
+def _run_cas_tool_result_turn(
     stack: E2EStack,
     client: TalonClient,
-) -> None:
+    *,
+    message: str,
+    require_summary: bool = True,
+):
     namespace = f"talon-cas-tool-{stack.name}-{uuid.uuid4().hex[:8]}"
     agent_name = "cas-tool-agent"
     mcp_server = "durable-slow"
@@ -357,7 +370,7 @@ def test_large_tool_result_is_fetched_from_cas(
             agent=agent_name,
             session_id=session_id,
             ns=namespace,
-            message="Please run a blocking lookup docs.example.com and summarize what you found.",
+            message=message,
         )
     )
 
@@ -376,27 +389,85 @@ def test_large_tool_result_is_fetched_from_cas(
 
     assert response is not None
     assert assistant is not None
-    assert "I checked blocking_lookup for docs.example.com." in message_text(assistant)
+    if require_summary:
+        assert "I checked blocking_lookup for docs.example.com." in message_text(assistant)
 
     tool_results = [
         part for part in assistant.parts if part.part_type == PART_TYPE_TOOL_RESULT
     ]
     assert len(tool_results) == 1
-    tool_result = tool_results[0]
-    assert tool_result.content == ""
-    assert tool_result.object.key.startswith(
+    assert tool_results[0].content == ""
+    assert tool_results[0].object.key.startswith(
         f"cas/{namespace}/sessions/{session_id}/messages/"
     )
-    payload = json.loads(tool_result.payload_json)
+    payload = json.loads(tool_results[0].payload_json)
     assert "output" not in payload
     assert "output_preview" not in payload
-    assert payload["output_object_key"] == tool_result.object.key
+    assert payload["output_object_key"] == tool_results[0].object.key
+    return namespace, session_id, tool_results[0]
+
+
+def test_large_tool_result_is_fetched_from_cas(
+    stack: E2EStack,
+    client: TalonClient,
+) -> None:
+    _namespace, _session_id, tool_result = _run_cas_tool_result_turn(
+        stack,
+        client,
+        message="Please run a blocking lookup docs.example.com and summarize what you found.",
+    )
 
     fetched = client.cas.GetObject(
         GetCasObjectRequest(
             key=tool_result.object.key,
         )
     )
-    hydrated = fetched.data.decode("utf-8")
+    hydrated = _cas_response_bytes(fetched).decode("utf-8")
     assert hydrated.startswith("blocking_lookup result for docs.example.com")
     assert "reference section 079" in hydrated
+
+
+def test_super_large_tool_result_uses_s3_object_store_on_aws_stack(
+    aws_local_stack: E2EStack,
+) -> None:
+    raw_channel, channel = aws_local_stack.channel()
+    try:
+        client = TalonClient(channel)
+        _namespace, _session_id, tool_result = _run_cas_tool_result_turn(
+            aws_local_stack,
+            client,
+            message=(
+                "Please run a blocking lookup docs.example.com for a super large "
+                "super-large-docs.example.com result and summarize what you found."
+            ),
+            require_summary=False,
+        )
+
+        fetched = client.cas.GetObject(GetCasObjectRequest(key=tool_result.object.key))
+        hydrated = _cas_response_bytes(fetched).decode("utf-8")
+        assert hydrated.startswith(
+            "blocking_lookup result for super-large-docs.example.com"
+        )
+        assert "reference section 00000" in hydrated
+        assert "CONTENT TRUNCATED DUE TO LENGTH LIMIT" in hydrated
+        assert len(hydrated.encode("utf-8")) >= 1_000_000
+
+        s3 = boto3.client(
+            "s3",
+            endpoint_url=aws_local_stack.metadata["localstack_endpoint"],
+            region_name="us-east-1",
+            aws_access_key_id="test",
+            aws_secret_access_key="test",
+        )
+        stored = s3.get_object(
+            Bucket=aws_local_stack.metadata["s3_bucket"],
+            Key=f"{aws_local_stack.metadata['s3_prefix']}/{tool_result.object.key}",
+        )
+        assert stored["Body"].read()
+        assert stored["Metadata"]["kind"] == "tool_result"
+        assert stored["Metadata"]["session_id"] == _session_id
+        assert stored["Metadata"]["uncompressed_size_bytes"] == str(
+            len(hydrated.encode("utf-8"))
+        )
+    finally:
+        raw_channel.close()

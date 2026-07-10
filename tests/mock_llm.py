@@ -22,6 +22,14 @@ LARGE_MCP_TOOL_RESULT = (
         for idx in range(80)
     )
 )
+SUPER_LARGE_MCP_TOOL_RESULT = (
+    "blocking_lookup result for super-large-docs.example.com\n"
+    + "\n".join(
+        f"super-large-docs.example.com reference section {idx:05d}: "
+        f"{uuid.uuid5(uuid.NAMESPACE_DNS, f'super-large-docs.example.com:{idx}')}"
+        for idx in range(16_000)
+    )
+)
 DEFAULT_REASONING = [
     "Inspecting the request.",
     "Planning a concise answer.",
@@ -328,11 +336,16 @@ async def chat_completions(request: Request):
     if data.get("stream", False):
         async def stream_generator():
             if should_emit_blocking_tool_call(messages, tools):
+                query = (
+                    "super-large-docs.example.com"
+                    if "super large" in last_message.lower()
+                    else "docs.example.com"
+                )
                 async for chunk in stream_tool_call_response(
                     model,
                     tool_call_id=BLOCKING_TOOL_CALL_ID,
                     tool_name=BLOCKING_TOOL_NAME,
-                    arguments={"query": "docs.example.com"},
+                    arguments={"query": query},
                 ):
                     yield chunk
                 return
@@ -476,6 +489,7 @@ async def mcp_endpoint(request: Request):
 
     if method == "tools/call":
         params = message.get("params") or {}
+        arguments = params.get("arguments") or {}
         CONTROL_STATE["mcp_tool_call_count"] += 1
         if params.get("name") != MCP_REMOTE_TOOL_NAME:
             return JSONResponse(
@@ -503,7 +517,12 @@ async def mcp_endpoint(request: Request):
                     "content": [
                         {
                             "type": "text",
-                            "text": LARGE_MCP_TOOL_RESULT,
+                            "text": (
+                                SUPER_LARGE_MCP_TOOL_RESULT
+                                if arguments.get("query")
+                                == "super-large-docs.example.com"
+                                else LARGE_MCP_TOOL_RESULT
+                            ),
                         }
                     ],
                     "isError": False,
