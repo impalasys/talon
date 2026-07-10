@@ -71,12 +71,6 @@ pub struct SessionObjectKey {
     pub identity: SessionObjectIdentity,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct ConditionalSessionObject {
-    pub object: Option<data_proto::ObjectRef>,
-    pub stored_size_bytes: usize,
-}
-
 #[derive(Clone)]
 pub struct CasStore {
     objects: Arc<dyn ObjectStore + Send + Sync>,
@@ -155,64 +149,6 @@ impl CasStore {
         self.put_tool_result(scope, identity, tool_call_id, tool_name, uncompressed_bytes)
             .await
             .map(Some)
-    }
-
-    /// Store a session object only when the stored representation is still at
-    /// least `threshold_bytes` after optional gzip compression.
-    ///
-    /// When this returns `None`, CAS has not written anything; callers that
-    /// want inline fallback should keep their original logical bytes inline,
-    /// not the compressed storage representation.
-    pub async fn put_session_object_if_stored_at_least(
-        &self,
-        scope: &SessionCasScope,
-        identity: &SessionObjectIdentity,
-        media_type: &str,
-        filename: &str,
-        mut metadata: HashMap<String, String>,
-        uncompressed_bytes: &[u8],
-        threshold_bytes: usize,
-    ) -> Result<ConditionalSessionObject> {
-        let (stored_bytes, content_encoding) = compressed_object_bytes(uncompressed_bytes)?;
-        if stored_bytes.len() < threshold_bytes {
-            return Ok(ConditionalSessionObject {
-                object: None,
-                stored_size_bytes: stored_bytes.len(),
-            });
-        }
-        metadata.extend(session_object_metadata(scope, identity));
-        metadata.insert(
-            METADATA_UNCOMPRESSED_SIZE_BYTES.to_string(),
-            uncompressed_bytes.len().to_string(),
-        );
-        metadata.insert(
-            METADATA_UNCOMPRESSED_SHA256.to_string(),
-            sha256_hex(uncompressed_bytes),
-        );
-        if let Some(content_encoding) = content_encoding {
-            metadata.insert(
-                METADATA_CONTENT_ENCODING.to_string(),
-                content_encoding.to_string(),
-            );
-        }
-        let object = self
-            .objects
-            .put(
-                &self.session_object_key(scope, identity),
-                &stored_bytes,
-                ObjectMetadata {
-                    media_type: media_type.to_string(),
-                    size_bytes: stored_bytes.len() as u64,
-                    sha256: sha256_hex(&stored_bytes),
-                    filename: filename.to_string(),
-                    metadata,
-                },
-            )
-            .await?;
-        Ok(ConditionalSessionObject {
-            object: Some(object),
-            stored_size_bytes: stored_bytes.len(),
-        })
     }
 
     pub async fn get_session_object(
@@ -718,29 +654,6 @@ mod tests {
 
         assert_eq!(stored.bytes, raw);
         assert!(!object.metadata.contains_key(METADATA_CONTENT_ENCODING));
-    }
-
-    #[tokio::test]
-    async fn conditional_store_can_use_compressed_size_threshold() {
-        let store = CasStore::new(Arc::new(InMemoryObjectStore::default()));
-        let scope = SessionCasScope::new("acme", "agent", "session-1");
-        let identity = SessionObjectIdentity::new("message-1", "000001");
-
-        let outcome = store
-            .put_session_object_if_stored_at_least(
-                &scope,
-                &identity,
-                "text/plain; charset=utf-8",
-                "result.txt",
-                std::collections::HashMap::new(),
-                "x".repeat(10 * 1024).as_bytes(),
-                2 * 1024,
-            )
-            .await
-            .unwrap();
-
-        assert!(outcome.object.is_none());
-        assert!(outcome.stored_size_bytes < 2 * 1024);
     }
 
     #[tokio::test]
