@@ -158,8 +158,11 @@ impl CasStore {
     }
 
     /// Store a session object only when the stored representation is still at
-    /// least `threshold_bytes` after optional gzip compression. This is useful
-    /// for data paths where a small compressed payload can safely stay inline.
+    /// least `threshold_bytes` after optional gzip compression.
+    ///
+    /// When this returns `None`, CAS has not written anything; callers that
+    /// want inline fallback should keep their original logical bytes inline,
+    /// not the compressed storage representation.
     pub async fn put_session_object_if_stored_at_least(
         &self,
         scope: &SessionCasScope,
