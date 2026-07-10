@@ -112,29 +112,9 @@ impl StreamingPartBuffer {
         Some(self.part(id, content))
     }
 
-    fn peek_final_part<F>(
-        &mut self,
-        mut id_factory: F,
-        final_content_override: Option<&str>,
-    ) -> Option<data_proto::SessionMessagePart>
-    where
-        F: FnMut() -> String,
-    {
-        let content = self.final_content(final_content_override);
-        if content.is_empty() {
-            return None;
-        }
-        let id = self
-            .active_part_id
-            .get_or_insert_with(&mut id_factory)
-            .clone();
-        Some(self.part(id, content))
-    }
-
     fn final_part<F>(
         &mut self,
         mut id_factory: F,
-        final_content_override: Option<&str>,
     ) -> anyhow::Result<Option<data_proto::SessionMessagePart>>
     where
         F: FnMut() -> String,
@@ -143,7 +123,7 @@ impl StreamingPartBuffer {
             !self.final_closed,
             "streaming part buffer was finalized more than once"
         );
-        let content = self.final_content(final_content_override);
+        let content = self.unclosed_content().to_string();
         if content.is_empty() {
             self.final_closed = true;
             return Ok(None);
@@ -161,28 +141,6 @@ impl StreamingPartBuffer {
     fn unclosed_content(&self) -> &str {
         let start = self.durable_bytes.min(self.accumulated.len());
         &self.accumulated[start..]
-    }
-
-    fn final_content(&self, final_content_override: Option<&str>) -> String {
-        let content = self.unclosed_content();
-        if !content.is_empty() {
-            return content.to_string();
-        }
-        let Some(effective) = final_content_override else {
-            return String::new();
-        };
-        // `on_done(reply)` is shared by streaming LLM turns and producers that
-        // only emit a final reply. Active streamed text wins above. This fallback
-        // only fills an empty current segment; if earlier text was already
-        // durably closed, trim that prefix when the final reply is a whole-turn
-        // transcript rather than just the missing suffix.
-        if self.accumulated.is_empty() {
-            effective.to_string()
-        } else if effective.starts_with(self.accumulated.as_str()) {
-            effective[self.accumulated.len()..].to_string()
-        } else {
-            effective.to_string()
-        }
     }
 
     fn part(&self, id: String, content: String) -> data_proto::SessionMessagePart {
@@ -250,9 +208,6 @@ pub struct PubSubSessionSink {
     // Canonical assistant message assembly. `durable_parts` holds non-streaming
     // parts and streaming segments already closed by a semantic boundary.
     durable_parts: Mutex<Vec<data_proto::SessionMessagePart>>,
-    // Text prefix already committed into durable parts. Used only to trim
-    // whole-turn final replies after text was closed at a semantic boundary.
-    durable_text: Mutex<String>,
     next_part_index: Mutex<u64>,
 
     // Mutable projection state. Projection writes are UI-only and fenced by the
@@ -403,7 +358,6 @@ impl PubSubSessionSink {
             started_at: Instant::now(),
             active_stream_buffer: Mutex::new(None),
             durable_parts: Mutex::new(Vec::new()),
-            durable_text: Mutex::new(String::new()),
             next_part_index: Mutex::new(0),
             last_flush: Mutex::new(Instant::now()),
             latest_journal_entry_id: Mutex::new(None),
@@ -434,9 +388,6 @@ impl PubSubSessionSink {
         content: String,
         payload_json: String,
     ) {
-        if part_type == data_proto::SessionMessagePartType::Text {
-            self.durable_text.lock().unwrap().push_str(&content);
-        }
         self.durable_parts
             .lock()
             .unwrap()
@@ -452,25 +403,7 @@ impl PubSubSessionSink {
     }
 
     fn record_durable_stream_part(&self, part: data_proto::SessionMessagePart) {
-        if part.part_type == data_proto::SessionMessagePartType::Text as i32 {
-            self.durable_text.lock().unwrap().push_str(&part.content);
-        }
         self.durable_parts.lock().unwrap().push(part);
-    }
-
-    fn final_text_fallback(&self, reply: &str) -> Option<String> {
-        if reply.is_empty() {
-            return None;
-        }
-        let durable_text = self.durable_text.lock().unwrap().clone();
-        if durable_text.is_empty() {
-            Some(reply.to_string())
-        } else if reply.starts_with(&durable_text) {
-            let suffix = reply[durable_text.len()..].to_string();
-            (!suffix.is_empty()).then_some(suffix)
-        } else {
-            Some(reply.to_string())
-        }
     }
 
     fn done_event_text_fallback(&self) -> String {
@@ -481,22 +414,14 @@ impl PubSubSessionSink {
             .as_ref()
             .filter(|buffer| buffer.part_type == data_proto::SessionMessagePartType::Text)
             .map(|buffer| buffer.accumulated().to_string());
-        active_text.unwrap_or_else(|| self.durable_text.lock().unwrap().clone())
-    }
-
-    fn fallback_text_part(&self, content: Option<&str>) -> Option<data_proto::SessionMessagePart> {
-        let content = content?;
-        if content.is_empty() {
-            return None;
-        }
-        Some(data_proto::SessionMessagePart {
-            id: self.next_part_id(),
-            part_type: data_proto::SessionMessagePartType::Text as i32,
-            content: content.to_string(),
-            name: String::new(),
-            payload_json: String::new(),
-            created_at: chrono::Utc::now().timestamp_micros(),
-            object: None,
+        active_text.unwrap_or_else(|| {
+            self.durable_parts
+                .lock()
+                .unwrap()
+                .iter()
+                .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+                .map(|part| part.content.as_str())
+                .collect::<String>()
         })
     }
 
@@ -540,33 +465,12 @@ impl PubSubSessionSink {
         );
     }
 
-    fn final_message_parts(
-        &self,
-        reply: &str,
-    ) -> anyhow::Result<Vec<data_proto::SessionMessagePart>> {
+    fn final_message_parts(&self) -> anyhow::Result<Vec<data_proto::SessionMessagePart>> {
         let mut parts = self.durable_parts.lock().unwrap().clone();
-        let fallback = self.final_text_fallback(reply);
         let active = self.active_stream_buffer.lock().unwrap().take();
-        match active {
-            Some(mut buffer) if buffer.part_type == data_proto::SessionMessagePartType::Text => {
-                if let Some(part) =
-                    buffer.final_part(|| self.next_part_id(), fallback.as_deref())?
-                {
-                    parts.push(part);
-                }
-            }
-            Some(mut buffer) => {
-                if let Some(part) = buffer.close_durable_part(|| self.next_part_id()) {
-                    parts.push(part);
-                }
-                if let Some(part) = self.fallback_text_part(fallback.as_deref()) {
-                    parts.push(part);
-                }
-            }
-            None => {
-                if let Some(part) = self.fallback_text_part(fallback.as_deref()) {
-                    parts.push(part);
-                }
+        if let Some(mut buffer) = active {
+            if let Some(part) = buffer.final_part(|| self.next_part_id())? {
+                parts.push(part);
             }
         }
         Ok(parts)
@@ -800,39 +704,27 @@ impl PubSubSessionSink {
         labels
     }
 
-    fn projection_message_parts(&self, reply: &str) -> Vec<data_proto::SessionMessagePart> {
+    fn projection_message_parts(&self) -> Vec<data_proto::SessionMessagePart> {
         let mut parts = self.durable_parts.lock().unwrap().clone();
-        let fallback = self.final_text_fallback(reply);
-        let mut active_is_text = false;
         let active_part = {
             let mut active = self.active_stream_buffer.lock().unwrap();
-            active.as_mut().and_then(|buffer| {
-                active_is_text = buffer.part_type == data_proto::SessionMessagePartType::Text;
-                if active_is_text && !reply.is_empty() {
-                    buffer.peek_final_part(|| self.next_part_id(), fallback.as_deref())
-                } else {
-                    buffer.projection_part(|| self.next_part_id())
-                }
-            })
+            active
+                .as_mut()
+                .and_then(|buffer| buffer.projection_part(|| self.next_part_id()))
         };
         if let Some(part) = active_part {
             parts.push(part);
         }
-        if !reply.is_empty() && !active_is_text {
-            if let Some(part) = self.fallback_text_part(fallback.as_deref()) {
-                parts.push(part);
-            }
-        }
         parts
     }
 
-    fn projection_message(&self, state: &str, reply: &str) -> data_proto::SessionMessage {
+    fn projection_message(&self, state: &str) -> data_proto::SessionMessage {
         data_proto::SessionMessage {
             id: self.reply_msg_id.clone(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: self.projection_labels(state),
-            parts: self.projection_message_parts(reply),
+            parts: self.projection_message_parts(),
         }
     }
 
@@ -869,7 +761,7 @@ impl PubSubSessionSink {
             }
         };
         if should_flush {
-            let msg = self.projection_message(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS, "");
+            let msg = self.projection_message(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS);
             let span = tracing::info_span!(
                 "PubSubSessionSink.persist_projection_message",
                 namespace = %self.ns,
@@ -1179,16 +1071,11 @@ impl ExecutionSink for PubSubSessionSink {
         self.publish_event(AgentEvent::Usage(usage.clone())).await;
     }
 
-    async fn on_done(&self, reply: &str) {
+    async fn on_done(&self) {
         self.flush_active_stream_event_buffer().await;
         // Final KV write (complete message)
-        let accumulated_text = self.done_event_text_fallback();
-        let reply_for_event = if reply.is_empty() && !accumulated_text.is_empty() {
-            accumulated_text
-        } else {
-            reply.to_string()
-        };
-        let parts = match self.final_message_parts(reply) {
+        let reply_for_event = self.done_event_text_fallback();
+        let parts = match self.final_message_parts() {
             Ok(parts) => parts,
             Err(err) => {
                 tracing::error!(error = %err, "Failed to assemble final assistant message parts");
@@ -1548,7 +1435,7 @@ mod tests {
         sink.on_token("hello").await;
         tokio::time::sleep(Duration::from_millis(10)).await;
         sink.on_token(" world").await;
-        sink.on_done("hello world").await;
+        sink.on_done().await;
 
         let events = fanout_events_until_terminal(&mut fanout).await;
         let token_events = events
@@ -1592,7 +1479,7 @@ mod tests {
 
         sink.on_token("The answer is ").await;
         sink.on_token("12.").await;
-        sink.on_done("").await;
+        sink.on_done().await;
 
         let entries = kv.entries.lock().await.clone();
         let reply = entries
@@ -1611,7 +1498,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn final_message_uses_streamed_text_when_done_reply_differs() {
+    async fn final_message_uses_streamed_text_before_done() {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
         let sink = PubSubSessionSink::new_with_token_publish_interval(
@@ -1629,7 +1516,7 @@ mod tests {
 
         sink.on_token("streamed ").await;
         sink.on_token("answer").await;
-        sink.on_done("replacement answer").await;
+        sink.on_done().await;
 
         let entries = kv.entries.lock().await.clone();
         let reply = entries
@@ -1675,7 +1562,8 @@ mod tests {
             Duration::from_secs(10),
         );
 
-        sink.on_done("assistant searchable reply").await;
+        sink.on_token("final").await;
+        sink.on_done().await;
 
         let published = pubsub.published.lock().await.clone();
         let index_event = published
@@ -1729,7 +1617,8 @@ mod tests {
         );
         assert_eq!(event_part(&events[1]).name, "create_prompt");
 
-        sink.on_done("drafting requestfinal").await;
+        sink.on_token("final").await;
+        sink.on_done().await;
         let entries = kv.entries.lock().await.clone();
         let reply = entries
             .iter()
@@ -1771,7 +1660,7 @@ mod tests {
         sink.on_reasoning("first").await;
         tokio::time::sleep(Duration::from_millis(10)).await;
         sink.on_reasoning(" second").await;
-        sink.on_done("final reply").await;
+        sink.on_done().await;
 
         let events = fanout_events_until_terminal(&mut fanout).await;
         let reasoning_events = events
@@ -1819,7 +1708,7 @@ mod tests {
         sink.on_reasoning(" second").await;
         tokio::time::sleep(Duration::from_millis(10)).await;
         sink.on_reasoning(" third").await;
-        sink.on_done("final reply").await;
+        sink.on_done().await;
 
         let events = fanout_events_until_terminal(&mut fanout).await;
         let reasoning_events = events
@@ -1879,7 +1768,7 @@ mod tests {
             total_tokens: 17,
         })
         .await;
-        sink.on_done("drafting final").await;
+        sink.on_done().await;
 
         let entries = kv.entries.lock().await.clone();
         let reply = entries
@@ -1937,7 +1826,7 @@ mod tests {
 
         sink.on_tool_result("tool-1", "mcp_github_get_file_contents", &raw_output)
             .await;
-        sink.on_done("final").await;
+        sink.on_done().await;
 
         let entries = kv.entries.lock().await.clone();
         let persisted = entries
@@ -2013,7 +1902,7 @@ mod tests {
             .collect::<String>();
         assert_eq!(projection_text, "partial response");
 
-        sink.on_done("partial response").await;
+        sink.on_done().await;
         let entries = kv.entries.lock().await.clone();
         let reply = entries
             .iter()
@@ -2126,10 +2015,7 @@ mod tests {
         );
 
         sink.on_token("hello").await;
-        let projection = sink.projection_message(
-            sessions::SESSION_PROJECTION_STATE_IN_PROGRESS,
-            "hello world",
-        );
+        let projection = sink.projection_message(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS);
         let projection_text = projection
             .parts
             .iter()
@@ -2138,7 +2024,7 @@ mod tests {
         assert_eq!(projection_text.content, "hello");
 
         sink.on_token(" world").await;
-        sink.on_done("hello world").await;
+        sink.on_done().await;
 
         let final_message = latest_reply_message(kv.as_ref()).await;
         let final_text = final_message
@@ -2210,7 +2096,7 @@ mod tests {
         })
         .await
         .unwrap();
-        sink.on_done("final").await;
+        sink.on_done().await;
 
         let entry_keys = kv
             .list_keys(&keys::session_journal_entry_prefix(
@@ -2317,7 +2203,8 @@ mod tests {
         let mut fanout = fanout_stream(&sink).await;
         sink.on_token("partial ").await;
         sink.on_error("tool failed").await;
-        sink.on_done("final reply").await;
+        sink.on_token("final reply").await;
+        sink.on_done().await;
         tokio::time::sleep(Duration::from_millis(25)).await;
 
         let events = fanout_events_until_terminal(&mut fanout).await;
@@ -2386,7 +2273,7 @@ mod tests {
         );
 
         let mut fanout = fanout_stream(&sink).await;
-        sink.on_done("final reply").await;
+        sink.on_done().await;
 
         let events = fanout_events_until_terminal(&mut fanout).await;
         assert!(events.iter().any(
@@ -2432,7 +2319,7 @@ mod tests {
         );
 
         let mut fanout = fanout_stream(&sink).await;
-        sink.on_done("final reply").await;
+        sink.on_done().await;
 
         let events = fanout_events_until_terminal(&mut fanout).await;
         assert!(events.iter().any(
@@ -2470,7 +2357,7 @@ mod tests {
         sink.on_tool_call("tool-1", "search", &json!({"q": "talon"}))
             .await;
         sink.on_tool_result("tool-1", "search", "result body").await;
-        sink.on_done("hi there").await;
+        sink.on_done().await;
 
         let summary = sink.summary();
         assert_eq!(summary.input_token_chunks, 2);
@@ -2506,11 +2393,11 @@ mod tests {
         buffer.push("hello");
 
         let first = buffer
-            .final_part(|| "part-1".to_string(), Some("hello"))
+            .final_part(|| "part-1".to_string())
             .expect("first final close should succeed");
         assert!(first.is_some());
 
-        let second = buffer.final_part(|| "part-2".to_string(), Some("hello"));
+        let second = buffer.final_part(|| "part-2".to_string());
         assert!(second.is_err());
     }
 }

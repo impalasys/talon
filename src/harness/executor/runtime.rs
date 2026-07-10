@@ -206,8 +206,8 @@ pub trait ExecutionSink: Send + Sync {
     async fn on_permission_result(&self, _: &str, _: &Value) {}
     /// Usage metadata for the completed model turn.
     async fn on_usage(&self, usage: &ChatUsage);
-    /// The execution completed successfully with a final reply.
-    async fn on_done(&self, reply: &str);
+    /// The execution completed successfully.
+    async fn on_done(&self);
     /// The execution failed.
     async fn on_error(&self, err: &str);
 }
@@ -230,7 +230,7 @@ impl ExecutionSink for NullSink {
     async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
     async fn on_permission_result(&self, _: &str, _: &Value) {}
     async fn on_usage(&self, _: &ChatUsage) {}
-    async fn on_done(&self, _: &str) {}
+    async fn on_done(&self) {}
     async fn on_error(&self, _: &str) {}
 }
 
@@ -307,11 +307,11 @@ impl ExecutionSink for CaptureSink {
             .unwrap()
             .push(AgentEvent::Usage(usage.clone()));
     }
-    async fn on_done(&self, reply: &str) {
+    async fn on_done(&self) {
         self.events
             .lock()
             .unwrap()
-            .push(AgentEvent::Done(reply.to_string()));
+            .push(AgentEvent::Done(String::new()));
     }
     async fn on_error(&self, err: &str) {
         self.events
@@ -622,7 +622,7 @@ impl AgentExecutor {
                             tracing::info!(agent_id = %context.agent_id, "Generation interrupted by user");
                             telemetry::record_chat_output(&llm_span, &final_reply, &[]);
                             context.push(LoopMessage::text("assistant", final_reply.clone()));
-                            sink.on_done(&final_reply).await;
+                            sink.on_done().await;
                             return Ok(final_reply);
                         }
                         chunk = stream.next() => chunk,
@@ -772,7 +772,7 @@ impl AgentExecutor {
                 continue;
             }
 
-            sink.on_done(&final_reply).await;
+            sink.on_done().await;
             return Ok(final_reply);
         }
     }
@@ -1705,7 +1705,7 @@ mod tests {
         );
         assert!(matches!(
             sink.events().last(),
-            Some(AgentEvent::Done(content)) if content == "Hello"
+            Some(AgentEvent::Done(content)) if content.is_empty()
         ));
     }
 
@@ -1734,7 +1734,7 @@ mod tests {
         sink.on_token("tok").await;
         sink.on_tool_call("id-1", "tool", &json!({"x": 1})).await;
         sink.on_tool_result("id-1", "tool", "result").await;
-        sink.on_done("done").await;
+        sink.on_done().await;
         sink.on_error("boom").await;
 
         assert_eq!(
@@ -1751,7 +1751,7 @@ mod tests {
                     name: "tool".to_string(),
                     output: "result".to_string(),
                 },
-                AgentEvent::Done("done".to_string()),
+                AgentEvent::Done(String::new()),
                 AgentEvent::Error("boom".to_string()),
             ]
         );
