@@ -285,6 +285,46 @@ spec:
     }
 
     #[test]
+    fn connector_manifest_maps_session_consumer_reply_mode() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Connector
+metadata:
+  name: nimbus-shukant
+  namespace: Tenant:conic:Nimbus
+spec:
+  classRef:
+    name: nimbus-imessage
+  enabled: true
+  matchFields:
+    lineId: shared
+    participantId: "+16146863949"
+  consumer:
+    session:
+      agent:
+        name: nimbus
+      continuity: reuse
+      replyMode: hold_for_review
+"#,
+        )
+        .expect("connector manifest parses");
+
+        let Some(resource_spec::Kind::Connector(spec)) =
+            manifest.spec.clone().and_then(|spec| spec.kind)
+        else {
+            panic!("expected Connector spec");
+        };
+        let consumer = spec.consumer.expect("consumer");
+        assert!(consumer.channel.is_none());
+        assert!(consumer.workflow.is_none());
+        let session = consumer.session.expect("session consumer");
+        assert_eq!(session.agent.unwrap().name, "nimbus");
+        assert_eq!(session.continuity, "reuse");
+        assert_eq!(session.reply_mode, "hold_for_review");
+    }
+
+    #[test]
     fn agent_manifest_maps_a2a_target_payload_shape() {
         let manifest = parse_resource_manifest(
             r#"

@@ -41,6 +41,15 @@ const CONNECTOR_DELIVERY_DELIVERED: &str = "delivered";
 const CONNECTOR_DELIVERY_FAILED: &str = "failed";
 const CONNECTOR_DELIVERY_SKIPPED: &str = "skipped";
 
+#[derive(Clone, Debug)]
+struct ConnectorDeliveryContext {
+    registration_id: String,
+    connector_name: String,
+    connector_class: String,
+    match_fields: HashMap<String, String>,
+    reply_mode: Option<String>,
+}
+
 struct ConnectorClassRegistration {
     namespace: String,
     name: String,
@@ -420,7 +429,9 @@ pub async fn maybe_deliver_connector_session_message(
         .get_msg::<data_proto::Session>(&keys::session(ns, agent, session_id))
         .await?
         .ok_or_else(|| anyhow::anyhow!("session not found"))?;
-    if !session.labels.contains_key(LABEL_CONNECTOR_REGISTRATION) {
+    if !session.labels.contains_key(LABEL_CONNECTOR)
+        && !session.labels.contains_key(LABEL_CONNECTOR_REGISTRATION)
+    {
         return Ok(());
     }
     if session
@@ -430,7 +441,8 @@ pub async fn maybe_deliver_connector_session_message(
     {
         return Ok(());
     }
-    let hold_for_review = connector_reply_mode_from_labels(&session.labels).as_deref()
+    let connector_context = connector_delivery_context_from_session(cp, &session).await?;
+    let hold_for_review = connector_context.reply_mode.as_deref()
         == Some(CONNECTOR_REPLY_MODE_HOLD_FOR_REVIEW)
         || connector_channel_reply_mode_from_labels(&session.labels).as_deref()
             == Some(CONNECTOR_REPLY_MODE_HOLD_FOR_REVIEW);
@@ -588,19 +600,14 @@ async fn deliver_connector_session_message_with_labels(
     text: &str,
     labels: &HashMap<String, String>,
 ) -> anyhow::Result<()> {
-    let registration_id = required_label(labels, LABEL_CONNECTOR_REGISTRATION)?;
-    let connector_name = required_label(labels, LABEL_CONNECTOR)?;
-    let connector_class = required_label(labels, LABEL_CONNECTOR_CLASS)?;
+    let connector_context = connector_delivery_context_from_labels(cp, &session.ns, labels).await?;
     let external_conversation_id = required_label(labels, LABEL_EXTERNAL_CONVERSATION)?;
-    let (runtime_endpoint, api_key) =
-        connector_runtime_endpoint_and_api_key(cp, registration_id, connector_class).await?;
-
-    let mut match_fields = HashMap::new();
-    for (key, value) in labels {
-        if let Some(field) = key.strip_prefix(LABEL_CONNECTOR_MATCH_PREFIX) {
-            match_fields.insert(field.to_string(), value.clone());
-        }
-    }
+    let (runtime_endpoint, api_key) = connector_runtime_endpoint_and_api_key(
+        cp,
+        &connector_context.registration_id,
+        &connector_context.connector_class,
+    )
+    .await?;
 
     let mut delivery_labels = HashMap::new();
     delivery_labels.insert("talon.session".to_string(), session.id.clone());
@@ -616,11 +623,11 @@ async fn deliver_connector_session_message_with_labels(
         .bearer_auth(api_key)
         .json(&external_proto::ConnectorDeliveryRequest {
             delivery_id: message.id.clone(),
-            registration_id: registration_id.to_string(),
-            connector_class: connector_class.to_string(),
+            registration_id: connector_context.registration_id,
+            connector_class: connector_context.connector_class,
             namespace: session.ns.clone(),
-            connector_name: connector_name.to_string(),
-            match_fields,
+            connector_name: connector_context.connector_name,
+            match_fields: connector_context.match_fields,
             external_conversation_id: external_conversation_id.to_string(),
             external_thread_id: labels
                 .get(LABEL_EXTERNAL_THREAD)
@@ -647,6 +654,122 @@ async fn deliver_connector_session_message_with_labels(
         );
     }
     Ok(())
+}
+
+async fn connector_delivery_context_from_session(
+    cp: &ControlPlane,
+    session: &data_proto::Session,
+) -> anyhow::Result<ConnectorDeliveryContext> {
+    connector_delivery_context_from_labels(cp, &session.ns, &session.labels).await
+}
+
+async fn connector_delivery_context_from_labels(
+    cp: &ControlPlane,
+    namespace: &str,
+    labels: &HashMap<String, String>,
+) -> anyhow::Result<ConnectorDeliveryContext> {
+    if let Some(connector_name) = labels
+        .get(LABEL_CONNECTOR)
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+    {
+        let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+        if let Some(connector) = store.get(namespace, "Connector", connector_name).await? {
+            match connector_delivery_context_from_resource(namespace, &connector) {
+                Ok(Some(context)) => return Ok(context),
+                Ok(None) => {}
+                Err(error) => {
+                    tracing::warn!(
+                        error = %error,
+                        namespace = %namespace,
+                        connector = %connector_name,
+                        "falling back to legacy connector session labels"
+                    );
+                }
+            }
+        }
+    }
+    connector_delivery_context_from_legacy_labels(labels)
+}
+
+fn connector_delivery_context_from_resource(
+    namespace: &str,
+    connector: &resources_proto::Resource,
+) -> anyhow::Result<Option<ConnectorDeliveryContext>> {
+    let meta = connector
+        .metadata
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("Connector metadata is required"))?;
+    let spec = match connector.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
+        Some(resources_proto::resource_spec::Kind::Connector(spec)) => spec,
+        _ => anyhow::bail!("Connector resource is missing Connector spec"),
+    };
+    let Some(class_ref) = spec.class_ref.as_ref() else {
+        return Ok(None);
+    };
+    let (class_namespace, class_name) =
+        resolve_connector_class_ref(namespace, class_ref).map_err(anyhow::Error::msg)?;
+    let Some(session_consumer) = spec
+        .consumer
+        .as_ref()
+        .and_then(|consumer| consumer.session.as_ref())
+    else {
+        return Ok(None);
+    };
+    let reply_mode = {
+        let reply_mode = normalize_connector_reply_mode(&session_consumer.reply_mode);
+        (!reply_mode.is_empty()).then_some(reply_mode)
+    };
+    let registration_id = keys::connector_registration_id(&class_namespace, &class_name);
+    Ok(Some(ConnectorDeliveryContext {
+        registration_id,
+        connector_name: meta.name.clone(),
+        connector_class: class_name,
+        match_fields: spec.match_fields.clone(),
+        reply_mode,
+    }))
+}
+
+fn connector_delivery_context_from_legacy_labels(
+    labels: &HashMap<String, String>,
+) -> anyhow::Result<ConnectorDeliveryContext> {
+    let mut match_fields = HashMap::new();
+    for (key, value) in labels {
+        if let Some(field) = key.strip_prefix(LABEL_CONNECTOR_MATCH_PREFIX) {
+            match_fields.insert(field.to_string(), value.clone());
+        }
+    }
+    Ok(ConnectorDeliveryContext {
+        registration_id: required_label(labels, LABEL_CONNECTOR_REGISTRATION)?.to_string(),
+        connector_name: required_label(labels, LABEL_CONNECTOR)?.to_string(),
+        connector_class: required_label(labels, LABEL_CONNECTOR_CLASS)?.to_string(),
+        match_fields,
+        reply_mode: connector_reply_mode_from_labels(labels),
+    })
+}
+
+fn resolve_connector_class_ref(
+    connector_namespace: &str,
+    class_ref: &resources_proto::ResourceRef,
+) -> Result<(String, String), String> {
+    if class_ref.name.trim().is_empty() {
+        return Err("Connector spec.classRef.name is required".to_string());
+    }
+    let class_namespace = class_ref.namespace.trim();
+    if class_namespace.is_empty() {
+        return Ok((connector_namespace.to_string(), class_ref.name.clone()));
+    }
+    if namespace_is_self_or_ancestor(connector_namespace, class_namespace) {
+        return Ok((class_namespace.to_string(), class_ref.name.clone()));
+    }
+    Err("Connector spec.classRef.namespace must be empty, match Connector namespace, or name an ancestor namespace".to_string())
+}
+
+fn namespace_is_self_or_ancestor(namespace: &str, candidate_ancestor: &str) -> bool {
+    namespace == candidate_ancestor
+        || namespace
+            .strip_prefix(candidate_ancestor)
+            .is_some_and(|suffix| suffix.starts_with(':'))
 }
 
 fn connector_reply_mode_from_labels(labels: &HashMap<String, String>) -> Option<String> {
@@ -774,19 +897,14 @@ pub async fn send_connector_session_activity(
     phase: &str,
     status_text: &str,
 ) -> anyhow::Result<()> {
-    let registration_id = required_label(&session.labels, LABEL_CONNECTOR_REGISTRATION)?;
-    let connector_name = required_label(&session.labels, LABEL_CONNECTOR)?;
-    let connector_class = required_label(&session.labels, LABEL_CONNECTOR_CLASS)?;
+    let connector_context = connector_delivery_context_from_session(cp, session).await?;
     let external_conversation_id = required_label(&session.labels, LABEL_EXTERNAL_CONVERSATION)?;
-    let (runtime_endpoint, api_key) =
-        connector_runtime_endpoint_and_api_key(cp, registration_id, connector_class).await?;
-
-    let mut match_fields = HashMap::new();
-    for (key, value) in &session.labels {
-        if let Some(field) = key.strip_prefix(LABEL_CONNECTOR_MATCH_PREFIX) {
-            match_fields.insert(field.to_string(), value.clone());
-        }
-    }
+    let (runtime_endpoint, api_key) = connector_runtime_endpoint_and_api_key(
+        cp,
+        &connector_context.registration_id,
+        &connector_context.connector_class,
+    )
+    .await?;
 
     let mut labels = HashMap::new();
     labels.insert("talon.session".to_string(), session.id.clone());
@@ -800,11 +918,11 @@ pub async fn send_connector_session_activity(
         .bearer_auth(api_key)
         .json(&external_proto::ConnectorActivityRequest {
             activity_id: activity_id.to_string(),
-            registration_id: registration_id.to_string(),
-            connector_class: connector_class.to_string(),
+            registration_id: connector_context.registration_id,
+            connector_class: connector_context.connector_class,
             namespace: session.ns.clone(),
-            connector_name: connector_name.to_string(),
-            match_fields,
+            connector_name: connector_context.connector_name,
+            match_fields: connector_context.match_fields,
             external_conversation_id: external_conversation_id.to_string(),
             external_thread_id: session
                 .labels
