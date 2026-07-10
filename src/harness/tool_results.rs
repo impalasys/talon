@@ -12,6 +12,7 @@ use std::sync::OnceLock;
 
 const DEFAULT_TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
 const MIN_GZIP_SAVINGS_PERCENT: usize = 10;
+const MAX_TOOL_RESULT_OBJECT_BYTES: u64 = 50 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct StoredToolResult {
@@ -98,10 +99,6 @@ pub async fn hydrate_tool_result(
         .metadata
         .get("content_encoding")
         .is_some_and(|value| value.eq_ignore_ascii_case("gzip"))
-        || object
-            .metadata
-            .get("content_encoding")
-            .is_some_and(|value| value.eq_ignore_ascii_case("gzip"))
     {
         gunzip(&stored.bytes, &object.key)?
     } else {
@@ -156,11 +153,16 @@ fn gzip(raw_bytes: &[u8]) -> Result<Vec<u8>> {
 }
 
 fn gunzip(bytes: &[u8], key: &str) -> Result<Vec<u8>> {
-    let mut decoder = GzDecoder::new(bytes);
+    let mut decoder = GzDecoder::new(bytes).take(MAX_TOOL_RESULT_OBJECT_BYTES + 1);
     let mut out = Vec::new();
     decoder
         .read_to_end(&mut out)
         .map_err(|err| anyhow!("tool result object '{key}' has invalid gzip bytes: {err}"))?;
+    if out.len() > MAX_TOOL_RESULT_OBJECT_BYTES as usize {
+        return Err(anyhow!(
+            "tool result object '{key}' expands beyond the maximum supported size"
+        ));
+    }
     Ok(out)
 }
 

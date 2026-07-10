@@ -62,6 +62,7 @@ pub async fn append_tool_result(
     result: &str,
     now_micros: i64,
 ) -> Result<SessionJournalEntry> {
+    ensure_submission_attempt_current(kv, ns, agent, session_id, submission_id, attempt_id).await?;
     let stored = store_tool_result(
         cas,
         ns,

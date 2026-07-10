@@ -388,6 +388,13 @@ impl PubSubSessionSink {
         format!("{:06}", *next)
     }
 
+    pub(crate) fn advance_next_part_id_past(&self, part_id: &str) {
+        if let Ok(index) = part_id.parse::<u64>() {
+            let mut next = self.next_part_index.lock().unwrap();
+            *next = (*next).max(index);
+        }
+    }
+
     // Record a canonical part for the final assistant SessionMessage.
     fn record_part(
         &self,
@@ -2141,6 +2148,32 @@ mod tests {
             .expect("projection should include updated text");
         assert_eq!(second_text.id, first_text.id);
         assert_eq!(second_text.content, "answer now");
+    }
+
+    #[tokio::test]
+    async fn live_parts_advance_past_recovered_part_ids() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv,
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        sink.seed_recovered_text_part("000003", "recovered");
+        sink.advance_next_part_id_past("000003");
+        sink.on_token(" live").await;
+
+        let parts = sink.final_message_parts().unwrap();
+        assert_eq!(parts[0].id, "000003");
+        assert_eq!(parts[1].id, "000004");
     }
 
     #[tokio::test]

@@ -685,6 +685,7 @@ impl WorkerEventHandler {
                 match part {
                     RecoveredProjectionPart::Text { part_id, content } => {
                         sink.seed_recovered_text_part(part_id, content);
+                        sink.advance_next_part_id_past(part_id);
                     }
                     RecoveredProjectionPart::ToolCall {
                         part_id,
@@ -693,6 +694,7 @@ impl WorkerEventHandler {
                         input,
                     } => {
                         sink.seed_recovered_tool_call_part(part_id, id, name, input);
+                        sink.advance_next_part_id_past(part_id);
                     }
                     RecoveredProjectionPart::ToolResult {
                         part_id,
@@ -702,6 +704,7 @@ impl WorkerEventHandler {
                     } => {
                         sink.seed_recovered_tool_result_part(part_id, id, name, result)
                             .await?;
+                        sink.advance_next_part_id_past(part_id);
                     }
                 }
             }

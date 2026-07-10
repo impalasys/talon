@@ -438,9 +438,15 @@ async function hydrateCasToolResultObjects(
       if (typeof part.content === "string" && part.content.length > 0) return part;
       const key = objectRefKey(objectRefFromPart(part));
       if (!key) return part;
-      const response = await cas.getObject({ key });
-      changed = true;
-      return withToolResultContent(part, decoder.decode(await casObjectData(response)));
+      try {
+        const response = await cas.getObject({ key });
+        const data = await casObjectData(response);
+        changed = true;
+        return withToolResultContent(part, decoder.decode(data));
+      } catch (err) {
+        console.warn("Could not hydrate CAS tool-result object", key, err);
+        return part;
+      }
     }));
     return changed
       ? {

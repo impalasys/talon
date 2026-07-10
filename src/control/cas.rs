@@ -12,6 +12,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 const TOOL_RESULT_MEDIA_TYPE: &str = "text/plain; charset=utf-8";
+const MAX_LOGICAL_OBJECT_BYTES: u64 = 50 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SessionCasScope {
@@ -215,11 +216,17 @@ pub fn logical_object_bytes(object: &StoredObject, key: &str) -> Result<Vec<u8>>
         .get("content_encoding")
         .is_some_and(|value| value.eq_ignore_ascii_case("gzip"))
     {
-        let mut decoder = GzDecoder::new(object.bytes.as_slice());
+        let mut decoder =
+            GzDecoder::new(object.bytes.as_slice()).take(MAX_LOGICAL_OBJECT_BYTES + 1);
         let mut out = Vec::new();
         decoder
             .read_to_end(&mut out)
             .map_err(|err| anyhow!("CAS object '{key}' has invalid gzip bytes: {err}"))?;
+        if out.len() > MAX_LOGICAL_OBJECT_BYTES as usize {
+            return Err(anyhow!(
+                "CAS object '{key}' expands beyond the maximum supported size"
+            ));
+        }
         Ok(out)
     } else {
         Ok(object.bytes.clone())
@@ -248,8 +255,9 @@ fn ensure_session_metadata_scope(
         ("agent", scope.agent.as_str()),
         ("session_id", scope.session_id.as_str()),
     ] {
-        if let Some(actual) = meta.get(field) {
-            if actual != expected {
+        match meta.get(field) {
+            Some(actual) if actual == expected => {}
+            _ => {
                 return Err(anyhow!(
                     "CAS object key '{key}' metadata field '{field}' does not match requested scope"
                 ));
