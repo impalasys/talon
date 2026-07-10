@@ -1032,6 +1032,8 @@ impl ExecutionSink for PubSubSessionSink {
 
     async fn on_usage(&self, usage: &ChatUsage) {
         *self.usage_events.lock().unwrap() += 1;
+        self.flush_token_event_buffer().await;
+        self.close_text_part();
         self.flush_reasoning_event_buffer().await;
         self.close_reasoning_part();
         self.record_part(
@@ -1199,6 +1201,7 @@ mod tests {
     use crate::control::{KeyValueStore, MessagePublisher};
     use crate::gateway::rpc::data_proto;
     use crate::harness::executor::ExecutionSink;
+    use crate::harness::llm::ChatUsage;
     use crate::harness::sessions;
     use async_trait::async_trait;
     use futures::StreamExt;
@@ -1732,6 +1735,14 @@ mod tests {
         sink.on_tool_result("tool-1", "create_prompt", "created")
             .await;
         sink.on_reasoning("checking ").await;
+        sink.on_token("final").await;
+        sink.on_usage(&ChatUsage {
+            input_tokens: 10,
+            output_tokens: 5,
+            reasoning_tokens: 2,
+            total_tokens: 17,
+        })
+        .await;
         sink.on_done("drafting final").await;
 
         let entries = kv.entries.lock().await.clone();
@@ -1760,6 +1771,7 @@ mod tests {
                 (data_proto::SessionMessagePartType::ToolResult, "created"),
                 (data_proto::SessionMessagePartType::Reasoning, "checking "),
                 (data_proto::SessionMessagePartType::Text, "final"),
+                (data_proto::SessionMessagePartType::Usage, ""),
             ]
         );
     }
