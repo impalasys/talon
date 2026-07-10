@@ -475,10 +475,9 @@ mod tests {
             .await
             .unwrap();
         let mut part = tool_result_part(
-            "preview".to_string(),
+            String::new(),
             serde_json::json!({
                 "tool_call_id": "tool-1",
-                "output_preview": "preview",
                 "output_object_key": object.key,
             })
             .to_string(),
@@ -497,10 +496,9 @@ mod tests {
     async fn tool_result_message_errors_when_object_is_missing() {
         let store = InMemoryObjectStore::default();
         let mut part = tool_result_part(
-            "preview".to_string(),
+            String::new(),
             serde_json::json!({
                 "tool_call_id": "tool-1",
-                "output_preview": "preview",
                 "output_object_key": "missing.txt",
             })
             .to_string(),

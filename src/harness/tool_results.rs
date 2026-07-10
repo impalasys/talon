@@ -27,11 +27,11 @@ impl StoredToolResult {
     pub fn payload_json(&self, tool_call_id: &str) -> String {
         let mut value = serde_json::json!({
             "tool_call_id": tool_call_id,
-            "output_preview": self.preview,
         });
         if let Some(object) = self.object.as_ref() {
             value["output_object_key"] = serde_json::Value::String(object.key.clone());
         } else {
+            value["output_preview"] = serde_json::Value::String(self.preview.clone());
             value["output"] = serde_json::Value::String(self.output.clone());
         }
         serde_json::to_string(&value).unwrap_or_else(|_| "{}".to_string())
@@ -49,8 +49,8 @@ pub async fn store_tool_result(
     tool_name: &str,
     result: &str,
 ) -> Result<StoredToolResult> {
-    let preview = tool_result_preview(result);
     if result.len() < tool_result_object_threshold_bytes() {
+        let preview = tool_result_preview(result);
         return Ok(StoredToolResult {
             part_id: part_id.to_string(),
             output: result.to_string(),
@@ -96,8 +96,8 @@ pub async fn store_tool_result(
 
     Ok(StoredToolResult {
         part_id: part_id.to_string(),
-        output: preview.clone(),
-        preview,
+        output: String::new(),
+        preview: String::new(),
         object: Some(object),
     })
 }
@@ -249,6 +249,11 @@ mod tests {
         assert_eq!(result.output, "small result");
         assert_eq!(result.preview, "small result");
         assert!(result.object.is_none());
+        let payload: serde_json::Value =
+            serde_json::from_str(&result.payload_json("call-1")).unwrap();
+        assert_eq!(payload["output"], "small result");
+        assert_eq!(payload["output_preview"], "small result");
+        assert!(payload.get("output_object_key").is_none());
     }
 
     #[tokio::test]
@@ -269,7 +274,10 @@ mod tests {
         .await
         .unwrap();
 
-        let object = result.object.expect("large result should have object ref");
+        let object = result
+            .object
+            .as_ref()
+            .expect("large result should have object ref");
         assert_eq!(
             object.key,
             "cas/acme/sessions/session-1/messages/message-1/000001.txt"
@@ -287,11 +295,17 @@ mod tests {
         );
         let stored = store.get(&object.key).await.unwrap().unwrap();
         assert!(stored.bytes.len() < raw.len());
-        let hydrated = super::hydrate_tool_result(&store, Some(&object), "")
+        let hydrated = super::hydrate_tool_result(&store, Some(object), "")
             .await
             .unwrap();
         assert_eq!(hydrated, raw);
-        assert_eq!(result.output, result.preview);
+        assert_eq!(result.output, "");
+        assert_eq!(result.preview, "");
+        let payload: serde_json::Value =
+            serde_json::from_str(&result.payload_json("call-1")).unwrap();
+        assert!(payload.get("output").is_none());
+        assert!(payload.get("output_preview").is_none());
+        assert_eq!(payload["output_object_key"], object.key);
     }
 
     #[test]

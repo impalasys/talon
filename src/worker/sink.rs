@@ -1053,12 +1053,17 @@ impl ExecutionSink for PubSubSessionSink {
                 _ => None,
             })
         {
+            let is_offloaded = payload.object.is_some();
             self.recorded_tool_results.lock().unwrap().insert(
                 id.to_string(),
                 StoredToolResult {
                     part_id: part_id.clone(),
                     output: payload.output.clone(),
-                    preview: tool_result_preview(result),
+                    preview: if is_offloaded {
+                        String::new()
+                    } else {
+                        tool_result_preview(result)
+                    },
                     object: payload.object.clone(),
                 },
             );
@@ -1931,7 +1936,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn large_tool_results_store_preview_in_content_and_object_in_payload() {
+    async fn large_tool_results_store_empty_content_and_object_in_payload() {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
         let sink = PubSubSessionSink::new_with_token_publish_interval(
@@ -1966,9 +1971,9 @@ mod tests {
             .unwrap();
         let payload: serde_json::Value = serde_json::from_str(&persisted.payload_json).unwrap();
 
-        assert!(persisted.content.len() < raw_output.len());
+        assert_eq!(persisted.content, "");
         assert!(payload.get("output").is_none());
-        assert_eq!(payload["output_preview"], persisted.content);
+        assert!(payload.get("output_preview").is_none());
         assert_eq!(
             payload["output_object_key"],
             persisted.object.as_ref().unwrap().key
