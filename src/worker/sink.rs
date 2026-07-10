@@ -28,12 +28,23 @@ fn chat_usage_payload_json(usage: &ChatUsage) -> String {
     .unwrap_or_else(|_| "{}".to_string())
 }
 
+/// Shared buffering state for append-only streamed message parts.
+///
+/// This intentionally keeps the live fanout lifecycle separate from durable
+/// `SessionMessage.parts` assembly: `live_buffer` is drained often for small UI
+/// deltas, while `accumulated` is closed only at semantic transcript boundaries.
 struct StreamingPartBuffer {
+    /// The durable/live part kind represented by this buffer, currently text or reasoning.
     part_type: data_proto::SessionMessagePartType,
+    /// Pending content for the next live delta event; drained without changing durable state.
     live_buffer: String,
+    /// Full streamed content for the current semantic part segment.
     accumulated: String,
+    /// Byte offset in `accumulated` that has already been committed durably.
     durable_bytes: usize,
+    /// Stable ID for the in-progress projection part so repeated writes update the same logical part.
     active_part_id: Option<String>,
+    /// Last live publish timestamp used to throttle fanout batching.
     last_publish: Instant,
 }
 
