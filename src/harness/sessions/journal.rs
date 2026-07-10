@@ -14,7 +14,7 @@ use crate::gateway::rpc::data_proto::{
     SessionJournalEntryPayloadToolResult,
 };
 use crate::harness::llm::ChatResponse;
-use crate::harness::tool_results::store_tool_result;
+use crate::harness::tool_results::tool_result_object_threshold_bytes;
 
 pub async fn append_llm_response(
     kv: &dyn KeyValueStore,
@@ -63,18 +63,24 @@ pub async fn append_tool_result(
     now_micros: i64,
 ) -> Result<SessionJournalEntry> {
     ensure_submission_attempt_current(kv, ns, agent, session_id, submission_id, attempt_id).await?;
-    let stored = store_tool_result(
-        cas,
-        ns,
-        agent,
-        session_id,
-        message_id,
-        part_id,
-        tool_call_id,
-        name,
-        result,
-    )
-    .await?;
+    let object = cas
+        .put_tool_result_if_raw_at_least(
+            ns,
+            agent,
+            session_id,
+            message_id,
+            part_id,
+            tool_call_id,
+            name,
+            result.as_bytes(),
+            tool_result_object_threshold_bytes(),
+        )
+        .await?;
+    let output = if object.is_some() {
+        String::new()
+    } else {
+        result.to_string()
+    };
     append_journal_entry(
         kv,
         ns,
@@ -88,8 +94,8 @@ pub async fn append_tool_result(
                 SessionJournalEntryPayloadToolResult {
                     tool_call_id: tool_call_id.to_string(),
                     name: name.to_string(),
-                    output: stored.output,
-                    object: stored.object,
+                    output,
+                    object,
                 },
             )),
         }),

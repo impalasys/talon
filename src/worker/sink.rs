@@ -13,11 +13,10 @@ use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKin
 use crate::control::object_store::{default_object_store, ObjectStore};
 use crate::control::{keys::ResourceKey, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::data_proto::{self, SessionSubmissionStatus};
-use crate::harness::executor::compaction::tool_result_preview;
 use crate::harness::executor::{AgentEvent, ExecutionSink};
 use crate::harness::llm::{ChatResponse, ChatUsage};
 use crate::harness::sessions::{self, SessionSubmission};
-use crate::harness::tool_results::{store_tool_result, StoredToolResult};
+use crate::harness::tool_results::{tool_result_object_threshold_bytes, tool_result_payload_json};
 use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
 use tracing::Instrument;
 
@@ -29,6 +28,13 @@ fn chat_usage_payload_json(usage: &ChatUsage) -> String {
         "total_tokens": usage.total_tokens,
     }))
     .unwrap_or_else(|_| "{}".to_string())
+}
+
+#[derive(Debug, Clone, PartialEq)]
+struct RecordedToolResult {
+    part_id: String,
+    output: String,
+    object: Option<data_proto::ObjectRef>,
 }
 
 /// Shared buffering state for append-only streamed message parts.
@@ -214,7 +220,7 @@ pub struct PubSubSessionSink {
     // current submission attempt; journal entries remain the backend authority.
     last_flush: Mutex<Instant>, // Last time the UI projection was considered for persistence.
     latest_journal_entry_id: Mutex<Option<String>>, // Latest durable boundary reflected in projection labels.
-    recorded_tool_results: Mutex<std::collections::HashMap<String, StoredToolResult>>,
+    recorded_tool_results: Mutex<std::collections::HashMap<String, RecordedToolResult>>,
     persist_lock: Arc<AsyncMutex<()>>, // Serializes projection writes with final message commit.
 
     // Run summary counters for logs/telemetry.
@@ -505,26 +511,28 @@ impl PubSubSessionSink {
         name: &str,
         result: &str,
     ) -> Result<()> {
-        let stored = store_tool_result(
-            &CasStore::new(self.objects.clone()),
-            &self.ns,
-            &self.agent_id,
-            &self.session_id,
-            &self.reply_msg_id,
-            part_id,
-            id,
-            name,
-            result,
-        )
-        .await?;
-        let payload_json = stored.payload_json(id);
+        let object = CasStore::new(self.objects.clone())
+            .put_tool_result_if_raw_at_least(
+                &self.ns,
+                &self.agent_id,
+                &self.session_id,
+                &self.reply_msg_id,
+                part_id,
+                id,
+                name,
+                result.as_bytes(),
+                tool_result_object_threshold_bytes(),
+            )
+            .await?;
+        let payload_json =
+            tool_result_payload_json(id, object.is_none().then_some(result), object.as_ref());
         self.record_part_with_id_and_object(
-            stored.part_id,
+            part_id.to_string(),
             data_proto::SessionMessagePartType::ToolResult,
             name.to_string(),
-            stored.preview.clone(),
+            String::new(),
             payload_json,
-            stored.object,
+            object,
         );
         Ok(())
     }
@@ -1062,17 +1070,11 @@ impl ExecutionSink for PubSubSessionSink {
                 _ => None,
             })
         {
-            let is_offloaded = payload.object.is_some();
             self.recorded_tool_results.lock().unwrap().insert(
                 id.to_string(),
-                StoredToolResult {
+                RecordedToolResult {
                     part_id: part_id.clone(),
                     output: payload.output.clone(),
-                    preview: if is_offloaded {
-                        String::new()
-                    } else {
-                        tool_result_preview(result)
-                    },
                     object: payload.object.clone(),
                 },
             );
@@ -1090,20 +1092,21 @@ impl ExecutionSink for PubSubSessionSink {
             Some(stored) => stored,
             None => {
                 let part_id = self.next_part_id();
-                match store_tool_result(
-                    &CasStore::new(self.objects.clone()),
-                    &self.ns,
-                    &self.agent_id,
-                    &self.session_id,
-                    &self.reply_msg_id,
-                    &part_id,
-                    id,
-                    name,
-                    result,
-                )
-                .await
+                let object = match CasStore::new(self.objects.clone())
+                    .put_tool_result_if_raw_at_least(
+                        &self.ns,
+                        &self.agent_id,
+                        &self.session_id,
+                        &self.reply_msg_id,
+                        &part_id,
+                        id,
+                        name,
+                        result.as_bytes(),
+                        tool_result_object_threshold_bytes(),
+                    )
+                    .await
                 {
-                    Ok(stored) => stored,
+                    Ok(object) => object,
                     Err(err) => {
                         tracing::error!(
                             error = %err,
@@ -1119,15 +1122,27 @@ impl ExecutionSink for PubSubSessionSink {
                         .await;
                         return;
                     }
+                };
+                RecordedToolResult {
+                    part_id,
+                    output: object
+                        .is_none()
+                        .then(|| result.to_string())
+                        .unwrap_or_default(),
+                    object,
                 }
             }
         };
-        let payload_json = stored.payload_json(id);
+        let payload_json = tool_result_payload_json(
+            id,
+            stored.object.is_none().then_some(stored.output.as_str()),
+            stored.object.as_ref(),
+        );
         self.record_part_with_id_and_object(
             stored.part_id,
             data_proto::SessionMessagePartType::ToolResult,
             name.to_string(),
-            stored.preview.clone(),
+            String::new(),
             payload_json,
             stored.object,
         );
@@ -1936,12 +1951,20 @@ mod tests {
                 (data_proto::SessionMessagePartType::Reasoning, "planning "),
                 (data_proto::SessionMessagePartType::Text, "drafting "),
                 (data_proto::SessionMessagePartType::ToolCall, "Tool call"),
-                (data_proto::SessionMessagePartType::ToolResult, "created"),
+                (data_proto::SessionMessagePartType::ToolResult, ""),
                 (data_proto::SessionMessagePartType::Reasoning, "checking "),
                 (data_proto::SessionMessagePartType::Text, "final"),
                 (data_proto::SessionMessagePartType::Usage, ""),
             ]
         );
+        let tool_result_payload = reply
+            .parts
+            .iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::ToolResult as i32)
+            .and_then(|part| serde_json::from_str::<serde_json::Value>(&part.payload_json).ok())
+            .expect("tool result payload should parse");
+        assert_eq!(tool_result_payload["output"], "created");
+        assert!(tool_result_payload.get("output_preview").is_none());
     }
 
     #[tokio::test]

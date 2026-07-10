@@ -1,80 +1,28 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::cas::{
-    decode_stored_object_bytes, CasStore, SessionCasScope, SessionObjectIdentity,
-};
+use crate::control::cas::decode_stored_object_bytes;
 use crate::control::object_store::ObjectStore;
 use crate::gateway::rpc::data_proto;
-use crate::harness::executor::compaction::tool_result_preview;
 use anyhow::{anyhow, Result};
 use std::sync::OnceLock;
 
 const DEFAULT_TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct StoredToolResult {
-    pub part_id: String,
-    pub output: String,
-    pub preview: String,
-    pub object: Option<data_proto::ObjectRef>,
-}
-
-impl StoredToolResult {
-    pub fn payload_json(&self, tool_call_id: &str) -> String {
-        let mut value = serde_json::json!({
-            "tool_call_id": tool_call_id,
-        });
-        if let Some(object) = self.object.as_ref() {
-            value["output_object_key"] = serde_json::Value::String(object.key.clone());
-        } else {
-            value["output_preview"] = serde_json::Value::String(self.preview.clone());
-            value["output"] = serde_json::Value::String(self.output.clone());
-        }
-        serde_json::to_string(&value).unwrap_or_else(|_| "{}".to_string())
-    }
-}
-
-pub async fn store_tool_result(
-    cas: &CasStore,
-    ns: &str,
-    agent: &str,
-    session_id: &str,
-    message_id: &str,
-    part_id: &str,
+pub fn tool_result_payload_json(
     tool_call_id: &str,
-    tool_name: &str,
-    result: &str,
-) -> Result<StoredToolResult> {
-    let scope = SessionCasScope::new(ns, agent, session_id);
-    let identity = SessionObjectIdentity::new(message_id, part_id);
-    let raw_bytes = result.as_bytes();
-    let object = cas
-        .put_tool_result_if_raw_at_least(
-            &scope,
-            &identity,
-            tool_call_id,
-            tool_name,
-            raw_bytes,
-            tool_result_object_threshold_bytes(),
-        )
-        .await?;
-    let Some(object) = object else {
-        let preview = tool_result_preview(result);
-        return Ok(StoredToolResult {
-            part_id: part_id.to_string(),
-            output: result.to_string(),
-            preview,
-            object: None,
-        });
-    };
-
-    Ok(StoredToolResult {
-        part_id: part_id.to_string(),
-        output: String::new(),
-        preview: String::new(),
-        object: Some(object),
-    })
+    inline_output: Option<&str>,
+    object: Option<&data_proto::ObjectRef>,
+) -> String {
+    let mut value = serde_json::json!({
+        "tool_call_id": tool_call_id,
+    });
+    if let Some(object) = object {
+        value["output_object_key"] = serde_json::Value::String(object.key.clone());
+    } else if let Some(output) = inline_output {
+        value["output"] = serde_json::Value::String(output.to_string());
+    }
+    serde_json::to_string(&value).unwrap_or_else(|_| "{}".to_string())
 }
 
 pub async fn hydrate_tool_result(
@@ -98,7 +46,7 @@ pub async fn hydrate_tool_result(
     })
 }
 
-fn tool_result_object_threshold_bytes() -> usize {
+pub fn tool_result_object_threshold_bytes() -> usize {
     static CACHE: OnceLock<usize> = OnceLock::new();
     *CACHE.get_or_init(parse_tool_result_object_threshold_bytes)
 }
@@ -123,7 +71,9 @@ fn parse_tool_result_object_threshold_bytes() -> usize {
 
 #[cfg(test)]
 mod tests {
-    use super::store_tool_result;
+    use super::{
+        hydrate_tool_result, tool_result_object_threshold_bytes, tool_result_payload_json,
+    };
     use crate::control::cas::CasStore;
     use crate::control::object_store::{InMemoryObjectStore, ObjectStore};
     use std::sync::Arc;
@@ -132,27 +82,30 @@ mod tests {
     async fn small_tool_result_stays_inline() {
         let store = Arc::new(InMemoryObjectStore::default());
         let cas = CasStore::new(store.clone());
-        let result = store_tool_result(
-            &cas,
-            "acme",
-            "support",
-            "session-1",
-            "message-1",
-            "000001",
-            "call-1",
-            "search",
-            "small result",
-        )
-        .await
-        .unwrap();
+        let object = cas
+            .put_tool_result_if_raw_at_least(
+                "acme",
+                "support",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                b"small result",
+                tool_result_object_threshold_bytes(),
+            )
+            .await
+            .unwrap();
 
-        assert_eq!(result.output, "small result");
-        assert_eq!(result.preview, "small result");
-        assert!(result.object.is_none());
-        let payload: serde_json::Value =
-            serde_json::from_str(&result.payload_json("call-1")).unwrap();
+        assert!(object.is_none());
+        let payload: serde_json::Value = serde_json::from_str(&tool_result_payload_json(
+            "call-1",
+            Some("small result"),
+            None,
+        ))
+        .unwrap();
         assert_eq!(payload["output"], "small result");
-        assert_eq!(payload["output_preview"], "small result");
+        assert!(payload.get("output_preview").is_none());
         assert!(payload.get("output_object_key").is_none());
     }
 
@@ -161,24 +114,22 @@ mod tests {
         let store = Arc::new(InMemoryObjectStore::default());
         let cas = CasStore::new(store.clone());
         let raw = "x".repeat(3 * 1024);
-        let result = store_tool_result(
-            &cas,
-            "acme",
-            "support",
-            "session-1",
-            "message-1",
-            "000001",
-            "call-1",
-            "search",
-            &raw,
-        )
-        .await
-        .unwrap();
-
-        let object = result
-            .object
-            .as_ref()
+        let object = cas
+            .put_tool_result_if_raw_at_least(
+                "acme",
+                "support",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                raw.as_bytes(),
+                tool_result_object_threshold_bytes(),
+            )
+            .await
+            .unwrap()
             .expect("large result should have object ref");
+
         assert_eq!(
             object.key,
             "cas/acme/sessions/session-1/messages/message-1/000001.txt"
@@ -196,14 +147,12 @@ mod tests {
         );
         let stored = store.get(&object.key).await.unwrap().unwrap();
         assert!(stored.bytes.len() < raw.len());
-        let hydrated = super::hydrate_tool_result(store.as_ref(), Some(object), "")
+        let hydrated = hydrate_tool_result(store.as_ref(), Some(&object), "")
             .await
             .unwrap();
         assert_eq!(hydrated, raw);
-        assert_eq!(result.output, "");
-        assert_eq!(result.preview, "");
         let payload: serde_json::Value =
-            serde_json::from_str(&result.payload_json("call-1")).unwrap();
+            serde_json::from_str(&tool_result_payload_json("call-1", None, Some(&object))).unwrap();
         assert!(payload.get("output").is_none());
         assert!(payload.get("output_preview").is_none());
         assert_eq!(payload["output_object_key"], object.key);
@@ -225,21 +174,22 @@ mod tests {
     async fn object_metadata_filename_uses_sanitized_tool_call_id() {
         let store = Arc::new(InMemoryObjectStore::default());
         let cas = CasStore::new(store);
-        let result = store_tool_result(
-            &cas,
-            "acme",
-            "support",
-            "session-1",
-            "message-1",
-            "000001",
-            "../tool call",
-            "search",
-            &"x".repeat(3 * 1024),
-        )
-        .await
-        .unwrap();
+        let object = cas
+            .put_tool_result_if_raw_at_least(
+                "acme",
+                "support",
+                "session-1",
+                "message-1",
+                "000001",
+                "../tool call",
+                "search",
+                "x".repeat(3 * 1024).as_bytes(),
+                tool_result_object_threshold_bytes(),
+            )
+            .await
+            .unwrap()
+            .expect("large result should have object ref");
 
-        let object = result.object.expect("large result should have object ref");
         assert_eq!(object.filename, ".._tool_call.txt");
     }
 }

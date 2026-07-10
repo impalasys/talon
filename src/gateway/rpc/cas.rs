@@ -65,11 +65,10 @@ impl GrpcGatewayHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::cas::{CasStore, SessionCasScope, SessionObjectIdentity};
+    use crate::control::cas::CasStore;
     use crate::control::object_store::InMemoryObjectStore;
     use crate::control::ControlPlane;
     use crate::gateway::Gateway;
-    use crate::harness::tool_results::store_tool_result;
     use crate::test_support::{MockKvStore, RecordingPubSub};
     use std::sync::Arc;
 
@@ -89,10 +88,17 @@ mod tests {
     async fn get_cas_object_returns_session_scoped_bytes() {
         let objects = Arc::new(InMemoryObjectStore::default());
         let cas = CasStore::new(objects.clone());
-        let scope = SessionCasScope::new("acme", "agent", "session-1");
-        let identity = SessionObjectIdentity::new("message-1", "000001");
         let object = cas
-            .put_tool_result(&scope, &identity, "call-1", "search", b"hello")
+            .put_tool_result(
+                "acme",
+                "agent",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                b"hello",
+            )
             .await
             .unwrap();
 
@@ -114,20 +120,21 @@ mod tests {
         let objects = Arc::new(InMemoryObjectStore::default());
         let cas = CasStore::new(objects.clone());
         let raw = "large-result".repeat(1024);
-        let stored = store_tool_result(
-            &cas,
-            "acme",
-            "agent",
-            "session-1",
-            "message-1",
-            "000001",
-            "call-1",
-            "search",
-            &raw,
-        )
-        .await
-        .unwrap();
-        let object = stored.object.expect("large result should be object-backed");
+        let object = cas
+            .put_tool_result_if_raw_at_least(
+                "acme",
+                "agent",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                raw.as_bytes(),
+                crate::harness::tool_results::tool_result_object_threshold_bytes(),
+            )
+            .await
+            .unwrap()
+            .expect("large result should be object-backed");
         assert_eq!(object.metadata["content_encoding"], "gzip");
 
         let response = handler(objects)

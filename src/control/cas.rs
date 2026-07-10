@@ -100,16 +100,21 @@ impl CasStore {
     /// object and recording the corresponding metadata.
     pub async fn put_tool_result(
         &self,
-        scope: &SessionCasScope,
-        identity: &SessionObjectIdentity,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        message_id: &str,
+        part_id: &str,
         tool_call_id: &str,
         tool_name: &str,
         uncompressed_bytes: &[u8],
     ) -> Result<data_proto::ObjectRef> {
+        let scope = SessionCasScope::new(ns, agent, session_id);
+        let identity = SessionObjectIdentity::new(message_id, part_id);
         let (stored_bytes, content_encoding) = compressed_object_bytes(uncompressed_bytes)?;
         let metadata = tool_result_metadata(
-            scope,
-            identity,
+            &scope,
+            &identity,
             tool_call_id,
             tool_name,
             uncompressed_bytes,
@@ -118,7 +123,7 @@ impl CasStore {
 
         self.objects
             .put(
-                &self.session_object_key(scope, identity),
+                &self.session_object_key(&scope, &identity),
                 &stored_bytes,
                 ObjectMetadata {
                     media_type: TOOL_RESULT_MEDIA_TYPE.to_string(),
@@ -136,8 +141,11 @@ impl CasStore {
     /// back in session rows just because they compress well.
     pub async fn put_tool_result_if_raw_at_least(
         &self,
-        scope: &SessionCasScope,
-        identity: &SessionObjectIdentity,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        message_id: &str,
+        part_id: &str,
         tool_call_id: &str,
         tool_name: &str,
         uncompressed_bytes: &[u8],
@@ -146,9 +154,18 @@ impl CasStore {
         if uncompressed_bytes.len() < threshold_bytes {
             return Ok(None);
         }
-        self.put_tool_result(scope, identity, tool_call_id, tool_name, uncompressed_bytes)
-            .await
-            .map(Some)
+        self.put_tool_result(
+            ns,
+            agent,
+            session_id,
+            message_id,
+            part_id,
+            tool_call_id,
+            tool_name,
+            uncompressed_bytes,
+        )
+        .await
+        .map(Some)
     }
 
     pub async fn get_session_object(
@@ -515,10 +532,17 @@ mod tests {
     async fn rejects_metadata_from_different_agent() {
         let objects = Arc::new(InMemoryObjectStore::default());
         let store = CasStore::new(objects);
-        let writer = SessionCasScope::new("acme", "agent-a", "session-1");
-        let identity = SessionObjectIdentity::new("message-1", "000001");
         let object = store
-            .put_tool_result(&writer, &identity, "call-1", "search", b"hello")
+            .put_tool_result(
+                "acme",
+                "agent-a",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                b"hello",
+            )
             .await
             .unwrap();
 
@@ -555,13 +579,16 @@ mod tests {
 
     #[tokio::test]
     async fn derives_scope_from_key_and_stored_metadata() {
+        let writer = SessionCasScope::new("acme", "agent-a", "session-1");
         let objects = Arc::new(InMemoryObjectStore::default());
         let store = CasStore::new(objects.clone());
-        let writer = SessionCasScope::new("acme", "agent-a", "session-1");
         let object = store
             .put_tool_result(
-                &writer,
-                &SessionObjectIdentity::new("message-1", "000001"),
+                "acme",
+                "agent-a",
+                "session-1",
+                "message-1",
+                "000001",
                 "call-1",
                 "search",
                 b"hello",
@@ -609,12 +636,19 @@ mod tests {
     async fn compresses_tool_result_when_gzip_saves_meaningfully() {
         let objects = Arc::new(InMemoryObjectStore::default());
         let store = CasStore::new(objects.clone());
-        let scope = SessionCasScope::new("acme", "agent", "session-1");
-        let identity = SessionObjectIdentity::new("message-1", "000001");
         let raw = "x".repeat(3 * 1024);
 
         let object = store
-            .put_tool_result(&scope, &identity, "call-1", "search", raw.as_bytes())
+            .put_tool_result(
+                "acme",
+                "agent",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                raw.as_bytes(),
+            )
             .await
             .unwrap();
 
@@ -624,7 +658,10 @@ mod tests {
             CONTENT_ENCODING_GZIP
         );
         let stored = store
-            .get_session_object_decoded(&scope, &object.key)
+            .get_session_object_decoded(
+                &SessionCasScope::new("acme", "agent", "session-1"),
+                &object.key,
+            )
             .await
             .unwrap()
             .unwrap();
@@ -639,15 +676,22 @@ mod tests {
     async fn keeps_incompressible_tool_result_raw() {
         let objects = Arc::new(InMemoryObjectStore::default());
         let store = CasStore::new(objects.clone());
-        let scope = SessionCasScope::new("acme", "agent", "session-1");
-        let identity = SessionObjectIdentity::new("message-1", "000001");
         let mut rng = rand::rngs::StdRng::seed_from_u64(42);
         let raw = (0..2 * 1024)
             .map(|_| rng.gen_range(0u8..=0xff))
             .collect::<Vec<_>>();
 
         let object = store
-            .put_tool_result(&scope, &identity, "call-1", "search", &raw)
+            .put_tool_result(
+                "acme",
+                "agent",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                &raw,
+            )
             .await
             .unwrap();
         let stored = objects.get(&object.key).await.unwrap().unwrap();
