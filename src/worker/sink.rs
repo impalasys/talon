@@ -46,6 +46,8 @@ struct StreamingPartBuffer {
     active_part_id: Option<String>,
     /// Last live publish timestamp used to throttle fanout batching.
     last_publish: Instant,
+    /// Whether the terminal durable close has already consumed this buffer.
+    final_closed: bool,
 }
 
 impl StreamingPartBuffer {
@@ -57,10 +59,15 @@ impl StreamingPartBuffer {
             durable_bytes: 0,
             active_part_id: None,
             last_publish: Instant::now(),
+            final_closed: false,
         }
     }
 
     fn push(&mut self, chunk: &str) {
+        debug_assert!(
+            !self.final_closed,
+            "cannot append to a stream buffer after final close"
+        );
         self.accumulated.push_str(chunk);
         self.live_buffer.push_str(chunk);
     }
@@ -105,7 +112,7 @@ impl StreamingPartBuffer {
         Some(self.part(id, content))
     }
 
-    fn final_part<F>(
+    fn peek_final_part<F>(
         &mut self,
         mut id_factory: F,
         final_content_override: Option<&str>,
@@ -113,21 +120,38 @@ impl StreamingPartBuffer {
     where
         F: FnMut() -> String,
     {
-        let effective = final_content_override.unwrap_or(self.accumulated.as_str());
-        let content = if self.accumulated.is_empty() {
-            effective.to_string()
-        } else if effective.starts_with(self.accumulated.as_str()) {
-            let start = self.durable_bytes.min(effective.len());
-            effective[start..].to_string()
-        } else {
-            effective.to_string()
-        };
+        let content = self.final_content(final_content_override);
         if content.is_empty() {
             return None;
         }
-        self.durable_bytes = self.accumulated.len();
-        let id = self.active_part_id.take().unwrap_or_else(&mut id_factory);
+        let id = self
+            .active_part_id
+            .get_or_insert_with(&mut id_factory)
+            .clone();
         Some(self.part(id, content))
+    }
+
+    fn final_part<F>(
+        &mut self,
+        mut id_factory: F,
+        final_content_override: Option<&str>,
+    ) -> anyhow::Result<Option<data_proto::SessionMessagePart>>
+    where
+        F: FnMut() -> String,
+    {
+        anyhow::ensure!(
+            !self.final_closed,
+            "streaming part buffer was finalized more than once"
+        );
+        let content = self.final_content(final_content_override);
+        if content.is_empty() {
+            self.final_closed = true;
+            return Ok(None);
+        }
+        self.durable_bytes = self.accumulated.len();
+        self.final_closed = true;
+        let id = self.active_part_id.take().unwrap_or_else(&mut id_factory);
+        Ok(Some(self.part(id, content)))
     }
 
     fn accumulated(&self) -> &str {
@@ -137,6 +161,18 @@ impl StreamingPartBuffer {
     fn unclosed_content(&self) -> &str {
         let start = self.durable_bytes.min(self.accumulated.len());
         &self.accumulated[start..]
+    }
+
+    fn final_content(&self, final_content_override: Option<&str>) -> String {
+        let effective = final_content_override.unwrap_or(self.accumulated.as_str());
+        if self.accumulated.is_empty() {
+            effective.to_string()
+        } else if effective.starts_with(self.accumulated.as_str()) {
+            let start = self.durable_bytes.min(effective.len());
+            effective[start..].to_string()
+        } else {
+            effective.to_string()
+        }
     }
 
     fn part(&self, id: String, content: String) -> data_proto::SessionMessagePart {
@@ -442,7 +478,10 @@ impl PubSubSessionSink {
         );
     }
 
-    fn final_message_parts(&self, reply: &str) -> Vec<data_proto::SessionMessagePart> {
+    fn final_message_parts(
+        &self,
+        reply: &str,
+    ) -> anyhow::Result<Vec<data_proto::SessionMessagePart>> {
         let mut parts = self.durable_parts.lock().unwrap().clone();
         if let Some(part) = self
             .reasoning_buffer
@@ -456,11 +495,11 @@ impl PubSubSessionSink {
             .text_buffer
             .lock()
             .unwrap()
-            .final_part(|| self.next_part_id(), Some(reply))
+            .final_part(|| self.next_part_id(), Some(reply))?
         {
             parts.push(part);
         }
-        parts
+        Ok(parts)
     }
 
     fn close_text_part(&self) {
@@ -678,7 +717,7 @@ impl PubSubSessionSink {
             .text_buffer
             .lock()
             .unwrap()
-            .final_part(|| self.next_part_id(), Some(reply))
+            .peek_final_part(|| self.next_part_id(), Some(reply))
         {
             parts.push(part);
         }
@@ -1069,12 +1108,23 @@ impl ExecutionSink for PubSubSessionSink {
             reply.to_string()
         };
         let reply_for_event = reply.clone();
+        let parts = match self.final_message_parts(&reply) {
+            Ok(parts) => parts,
+            Err(err) => {
+                tracing::error!(error = %err, "Failed to assemble final assistant message parts");
+                self.publish_event(AgentEvent::Error(
+                    "Error: failed to assemble final assistant message".to_string(),
+                ))
+                .await;
+                return;
+            }
+        };
         let msg = data_proto::SessionMessage {
             id: self.reply_msg_id.clone(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED),
-            parts: self.final_message_parts(&reply),
+            parts,
         };
         let result = async {
             let _guard = self.persist_lock.lock().await;
@@ -1204,7 +1254,7 @@ fn token_publish_interval() -> Duration {
 
 #[cfg(test)]
 mod tests {
-    use super::{token_publish_interval, PubSubSessionSink};
+    use super::{token_publish_interval, PubSubSessionSink, StreamingPartBuffer};
     use crate::control::events::{
         IndexEvent, SessionMessagePartEvent, SessionMessagePartEventKind,
     };
@@ -1982,6 +2032,49 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn final_reply_projection_does_not_commit_streaming_text() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub {
+                events: events.clone(),
+            }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        sink.on_token("hello").await;
+        let projection = sink.projection_message(
+            sessions::SESSION_PROJECTION_STATE_IN_PROGRESS,
+            "hello world",
+        );
+        let projection_text = projection
+            .parts
+            .iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .expect("projection should include final reply preview");
+        assert_eq!(projection_text.content, "hello world");
+
+        sink.on_token(" world").await;
+        sink.on_done("hello world").await;
+
+        let final_message = latest_reply_message(kv.as_ref()).await;
+        let final_text = final_message
+            .parts
+            .iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .expect("final message should include text");
+        assert_eq!(final_text.content, "hello world");
+    }
+
+    #[tokio::test]
     async fn journal_boundaries_record_stable_llm_responses_and_tool_results() {
         use crate::control::ProtoKeyValueStoreExt;
         use crate::harness::llm::{ChatResponse, ToolCall};
@@ -2330,5 +2423,19 @@ mod tests {
         assert_eq!(token_publish_interval(), Duration::from_millis(250));
 
         std::env::remove_var("TALON_TOKEN_BATCH_MS");
+    }
+
+    #[test]
+    fn streaming_part_buffer_rejects_repeated_final_close() {
+        let mut buffer = StreamingPartBuffer::new(data_proto::SessionMessagePartType::Text);
+        buffer.push("hello");
+
+        let first = buffer
+            .final_part(|| "part-1".to_string(), Some("hello"))
+            .expect("first final close should succeed");
+        assert!(first.is_some());
+
+        let second = buffer.final_part(|| "part-2".to_string(), Some("hello"));
+        assert!(second.is_err());
     }
 }
