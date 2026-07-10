@@ -164,16 +164,22 @@ impl StreamingPartBuffer {
     }
 
     fn final_content(&self, final_content_override: Option<&str>) -> String {
-        let effective = final_content_override.unwrap_or(self.accumulated.as_str());
-        // Final replies usually duplicate the streamed text we already saw.
-        // In that common case, only commit the unclosed suffix. If there was no
-        // streamed text, or the provider returns a replacement final reply that
-        // does not extend the stream, treat the effective reply as authoritative.
+        let content = self.unclosed_content();
+        if !content.is_empty() {
+            return content.to_string();
+        }
+        let Some(effective) = final_content_override else {
+            return String::new();
+        };
+        // `on_done(reply)` is shared by streaming LLM turns and producers that
+        // only emit a final reply. Active streamed text wins above. This fallback
+        // only fills an empty current segment; if earlier text was already
+        // durably closed, trim that prefix when the final reply is a whole-turn
+        // transcript rather than just the missing suffix.
         if self.accumulated.is_empty() {
             effective.to_string()
         } else if effective.starts_with(self.accumulated.as_str()) {
-            let start = self.durable_bytes.min(effective.len());
-            effective[start..].to_string()
+            effective[self.accumulated.len()..].to_string()
         } else {
             effective.to_string()
         }
@@ -1103,16 +1109,13 @@ impl ExecutionSink for PubSubSessionSink {
         self.flush_token_event_buffer().await;
         self.flush_reasoning_event_buffer().await;
         // Final KV write (complete message)
-        let accumulated = self.text_buffer.lock().unwrap().accumulated().to_string();
-        let reply = if accumulated.is_empty() {
-            reply.to_string()
-        } else if reply.is_empty() || accumulated.ends_with(reply) {
-            accumulated
+        let accumulated_text = self.text_buffer.lock().unwrap().accumulated().to_string();
+        let reply_for_event = if reply.is_empty() && !accumulated_text.is_empty() {
+            accumulated_text
         } else {
             reply.to_string()
         };
-        let reply_for_event = reply.clone();
-        let parts = match self.final_message_parts(&reply) {
+        let parts = match self.final_message_parts(reply) {
             Ok(parts) => parts,
             Err(err) => {
                 tracing::error!(error = %err, "Failed to assemble final assistant message parts");
@@ -1537,7 +1540,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn final_message_persists_accumulated_streamed_text_when_done_reply_is_tail() {
+    async fn final_message_uses_streamed_text_when_done_reply_differs() {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
         let sink = PubSubSessionSink::new_with_token_publish_interval(
@@ -1553,9 +1556,9 @@ mod tests {
             Duration::from_secs(10),
         );
 
-        sink.on_token("Hello! I am a mock LLM. How can ").await;
-        sink.on_token("I assist you today?").await;
-        sink.on_done("I assist you today?").await;
+        sink.on_token("streamed ").await;
+        sink.on_token("answer").await;
+        sink.on_done("replacement answer").await;
 
         let entries = kv.entries.lock().await.clone();
         let reply = entries
@@ -1570,10 +1573,7 @@ mod tests {
             .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
             .map(|part| part.content.as_str())
             .collect::<String>();
-        assert_eq!(
-            reply_text,
-            "Hello! I am a mock LLM. How can I assist you today?"
-        );
+        assert_eq!(reply_text, "streamed answer");
     }
 
     #[tokio::test]
@@ -2063,8 +2063,8 @@ mod tests {
             .parts
             .iter()
             .find(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
-            .expect("projection should include final reply preview");
-        assert_eq!(projection_text.content, "hello world");
+            .expect("projection should include streamed text");
+        assert_eq!(projection_text.content, "hello");
 
         sink.on_token(" world").await;
         sink.on_done("hello world").await;
