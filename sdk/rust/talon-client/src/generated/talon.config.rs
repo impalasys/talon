@@ -330,8 +330,27 @@ pub struct CloudTasksSchedulerConfig {
     pub callback_auth: ::core::option::Option<SchedulerCallbackAuthConfig>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AwsEventBridgeSchedulerConfig {
+    #[prost(string, tag = "1")]
+    pub group_name: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub queue_url: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub execution_role_arn: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub schedule_name_prefix: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub dlq_arn: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "6")]
+    pub maximum_event_age_seconds: u32,
+    #[prost(uint32, optional, tag = "7")]
+    pub maximum_retry_attempts: ::core::option::Option<u32>,
+    #[prost(string, tag = "8")]
+    pub endpoint_url: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SchedulerConfig {
-    #[prost(oneof = "scheduler_config::Backend", tags = "1")]
+    #[prost(oneof = "scheduler_config::Backend", tags = "1, 2")]
     pub backend: ::core::option::Option<scheduler_config::Backend>,
 }
 /// Nested message and enum types in `SchedulerConfig`.
@@ -340,6 +359,8 @@ pub mod scheduler_config {
     pub enum Backend {
         #[prost(message, tag = "1")]
         CloudTasks(super::CloudTasksSchedulerConfig),
+        #[prost(message, tag = "2")]
+        AwsEventbridgeScheduler(super::AwsEventBridgeSchedulerConfig),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]

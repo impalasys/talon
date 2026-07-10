@@ -177,11 +177,25 @@ This page summarizes the major configuration messages exposed by Talon's runtime
 | `target_url` | `string` | - |
 | `callback_auth` | `SchedulerCallbackAuthConfig` | - |
 
+## `AwsEventBridgeSchedulerConfig`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `group_name` | `string` | - |
+| `queue_url` | `string` | - |
+| `execution_role_arn` | `string` | - |
+| `schedule_name_prefix` | `string` | - |
+| `dlq_arn` | `string` | - |
+| `maximum_event_age_seconds` | `uint32` | - |
+| `maximum_retry_attempts` | `uint32` | optional |
+| `endpoint_url` | `string` | - |
+
 ## `SchedulerConfig`
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `cloud_tasks` | `CloudTasksSchedulerConfig` | oneof (backend) |
+| `aws_eventbridge_scheduler` | `AwsEventBridgeSchedulerConfig` | oneof (backend) |
 
 ## `ControlPlaneConfig`
 

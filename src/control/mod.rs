@@ -402,7 +402,7 @@ pub async fn build_control_plane(
             kv = Arc::new(kv::SqliteKvStore::new(&sqlite_url, "talon_kv_store").await?);
             scheduler_database_url = Some(sqlite_url);
         }
-        #[cfg(feature = "dynamodb")]
+        #[cfg(feature = "aws")]
         "dynamodb" => {
             let table = dynamodb_table_name(db_config).await?;
             tracing::info!(table = %table, "Connecting to DynamoDbKvStore");
@@ -410,7 +410,7 @@ pub async fn build_control_plane(
             kv = Arc::new(store);
             scheduler_database_url = None;
         }
-        #[cfg(not(feature = "dynamodb"))]
+        #[cfg(not(feature = "aws"))]
         "dynamodb" => {
             return Err(anyhow::anyhow!(
                 "DynamoDB database driver is not enabled in this build"
@@ -459,12 +459,12 @@ pub async fn build_control_plane(
             );
             Arc::new(pubsub::LocalSocketMessagePublisher::new(socket_path).await?)
         }
-        #[cfg(feature = "sqs")]
+        #[cfg(feature = "aws")]
         "sqs" => {
             tracing::info!("Initializing SqsMessagePublisher");
             Arc::new(pubsub::SqsMessagePublisher::from_env().await?)
         }
-        #[cfg(not(feature = "sqs"))]
+        #[cfg(not(feature = "aws"))]
         "sqs" => {
             return Err(anyhow::anyhow!(
                 "SQS message broker driver is not enabled in this build"
@@ -542,6 +542,33 @@ pub async fn build_control_plane(
             Some(crate::control::config::proto::SchedulerConfig { backend: None }) => {
                 Arc::new(scheduler::NoopSchedulerBackend)
             }
+            Some(crate::control::config::proto::SchedulerConfig {
+                backend:
+                    Some(
+                        crate::control::config::proto::scheduler_config::Backend::AwsEventbridgeScheduler(
+                            cfg,
+                        ),
+                    ),
+            }) => {
+                #[cfg(feature = "aws")]
+                {
+                    match scheduler::AwsEventBridgeSchedulerBackend::new(&cfg).await {
+                        Ok(backend) => Arc::new(backend),
+                        Err(err) => {
+                            return Err(anyhow::anyhow!(
+                                "Failed to initialize EventBridge Scheduler backend: {err}"
+                            ));
+                        }
+                    }
+                }
+                #[cfg(not(feature = "aws"))]
+                {
+                    let _ = cfg;
+                    return Err(anyhow::anyhow!(
+                        "EventBridge Scheduler backend is not enabled in this build"
+                    ));
+                }
+            }
             None => Arc::new(scheduler::NoopSchedulerBackend),
         },
     };
@@ -576,6 +603,37 @@ fn configured_scheduler(
                         queue: std::env::var("TALON_SCHEDULER_QUEUE").unwrap_or_default(),
                         target_url: std::env::var("TALON_SCHEDULER_TARGET_URL").unwrap_or_default(),
                         callback_auth: configured_scheduler_callback_auth_from_env(),
+                    },
+                ),
+            ),
+        }),
+        "aws_eventbridge_scheduler" => Some(crate::control::config::proto::SchedulerConfig {
+            backend: Some(
+                crate::control::config::proto::scheduler_config::Backend::AwsEventbridgeScheduler(
+                    crate::control::config::proto::AwsEventBridgeSchedulerConfig {
+                        group_name: std::env::var("TALON_AWS_SCHEDULER_GROUP_NAME")
+                            .unwrap_or_default(),
+                        queue_url: std::env::var("TALON_AWS_SCHEDULER_QUEUE_URL")
+                            .or_else(|_| std::env::var("TALON_SQS_QUEUE_URL"))
+                            .unwrap_or_default(),
+                        execution_role_arn: std::env::var("TALON_AWS_SCHEDULER_EXECUTION_ROLE_ARN")
+                            .unwrap_or_default(),
+                        schedule_name_prefix: std::env::var("TALON_AWS_SCHEDULER_NAME_PREFIX")
+                            .unwrap_or_default(),
+                        dlq_arn: std::env::var("TALON_AWS_SCHEDULER_DLQ_ARN").unwrap_or_default(),
+                        maximum_event_age_seconds: std::env::var(
+                            "TALON_AWS_SCHEDULER_MAX_EVENT_AGE_SECONDS",
+                        )
+                        .ok()
+                        .and_then(|value| value.parse::<u32>().ok())
+                        .unwrap_or_default(),
+                        maximum_retry_attempts: std::env::var(
+                            "TALON_AWS_SCHEDULER_MAX_RETRY_ATTEMPTS",
+                        )
+                        .ok()
+                        .and_then(|value| value.parse::<u32>().ok()),
+                        endpoint_url: std::env::var("TALON_AWS_SCHEDULER_ENDPOINT_URL")
+                            .unwrap_or_default(),
                     },
                 ),
             ),
@@ -646,7 +704,7 @@ async fn configured_document_store(
     }
 }
 
-#[cfg(feature = "dynamodb")]
+#[cfg(feature = "aws")]
 async fn dynamodb_table_name(
     db_config: &crate::control::config::proto::DatabaseConfig,
 ) -> anyhow::Result<String> {
@@ -840,6 +898,51 @@ mod tests {
                     other => panic!("expected google oidc auth, got {other:?}"),
                 }
             }
+            other => panic!("expected Cloud Tasks scheduler, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn configured_scheduler_reads_aws_eventbridge_from_env() {
+        let _lock = crate::test_support::env_lock();
+        let _driver = EnvGuard::set("TALON_SCHEDULER_DRIVER", "aws_eventbridge_scheduler");
+        let _group = EnvGuard::set("TALON_AWS_SCHEDULER_GROUP_NAME", "talon-group");
+        let _queue = EnvGuard::set(
+            "TALON_AWS_SCHEDULER_QUEUE_URL",
+            "https://sqs.us-east-1.amazonaws.com/123/talon",
+        );
+        let _role = EnvGuard::set(
+            "TALON_AWS_SCHEDULER_EXECUTION_ROLE_ARN",
+            "arn:aws:iam::123:role/talon-scheduler",
+        );
+        let _prefix = EnvGuard::set("TALON_AWS_SCHEDULER_NAME_PREFIX", "talon-dev");
+        let _dlq = EnvGuard::set(
+            "TALON_AWS_SCHEDULER_DLQ_ARN",
+            "arn:aws:sqs:us-east-1:123:dlq",
+        );
+        let _age = EnvGuard::set("TALON_AWS_SCHEDULER_MAX_EVENT_AGE_SECONDS", "600");
+        let _retries = EnvGuard::set("TALON_AWS_SCHEDULER_MAX_RETRY_ATTEMPTS", "2");
+        let _endpoint = EnvGuard::set("TALON_AWS_SCHEDULER_ENDPOINT_URL", "http://localhost:4566");
+
+        let scheduler = configured_scheduler(None).expect("expected scheduler config");
+        match scheduler.backend.expect("expected backend") {
+            scheduler_config::Backend::AwsEventbridgeScheduler(cfg) => {
+                assert_eq!(cfg.group_name, "talon-group");
+                assert_eq!(
+                    cfg.queue_url,
+                    "https://sqs.us-east-1.amazonaws.com/123/talon"
+                );
+                assert_eq!(
+                    cfg.execution_role_arn,
+                    "arn:aws:iam::123:role/talon-scheduler"
+                );
+                assert_eq!(cfg.schedule_name_prefix, "talon-dev");
+                assert_eq!(cfg.dlq_arn, "arn:aws:sqs:us-east-1:123:dlq");
+                assert_eq!(cfg.maximum_event_age_seconds, 600);
+                assert_eq!(cfg.maximum_retry_attempts, Some(2));
+                assert_eq!(cfg.endpoint_url, "http://localhost:4566");
+            }
+            other => panic!("expected EventBridge Scheduler config, got {other:?}"),
         }
     }
 
@@ -867,6 +970,7 @@ mod tests {
                 assert_eq!(cfg.queue, "configured-queue");
                 assert_eq!(cfg.target_url, "https://configured.example/fire");
             }
+            other => panic!("expected Cloud Tasks scheduler, got {other:?}"),
         }
     }
 
@@ -1289,6 +1393,7 @@ mod tests {
                     other => panic!("expected shared secret auth, got {other:?}"),
                 }
             }
+            other => panic!("expected Cloud Tasks scheduler, got {other:?}"),
         }
     }
 }

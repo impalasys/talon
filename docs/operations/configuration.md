@@ -110,11 +110,7 @@ control_plane:
 
 ### AWS control plane
 
-AWS backends are compiled behind crate features so local-only builds do not pull in every AWS service client:
-
-- `dynamodb` enables `control_plane.database.driver: dynamodb`
-- `sqs` enables `control_plane.message_broker.driver: sqs`
-- `aws-local-e2e` enables both and compiles the Docker-backed AWS local integration tests
+AWS backends are compiled behind the `aws` crate feature so local-only builds do not pull in every AWS service client. The feature enables DynamoDB, SQS, and EventBridge Scheduler support together.
 
 ```yaml
 control_plane:
@@ -125,16 +121,25 @@ control_plane:
       key: TALON_DYNAMODB_TABLE
   message_broker:
     driver: sqs
+  scheduler:
+    driver: aws_eventbridge_scheduler
+    group_name: talon
+    queue_url: ${TALON_AWS_SCHEDULER_QUEUE_URL}
+    execution_role_arn: ${TALON_AWS_SCHEDULER_EXECUTION_ROLE_ARN}
 ```
 
 Notes:
 
 - DynamoDB uses one shared table with namespace-isolated partition keys. Production deployments should provision this table in infra before Talon starts.
 - `TALON_DYNAMODB_ENDPOINT_URL` and `TALON_SQS_ENDPOINT_URL` point the AWS SDK clients at local emulators such as DynamoDB Local or LocalStack.
+- EventBridge Scheduler sends wakeups to SQS using `SendMessage`; workers consume those wakeups through the same SQS pull mode as other durable worker topics.
+- `TALON_AWS_SCHEDULER_GROUP_NAME`, `TALON_AWS_SCHEDULER_QUEUE_URL`, `TALON_AWS_SCHEDULER_EXECUTION_ROLE_ARN`, `TALON_AWS_SCHEDULER_NAME_PREFIX`, `TALON_AWS_SCHEDULER_DLQ_ARN`, `TALON_AWS_SCHEDULER_MAX_EVENT_AGE_SECONDS`, `TALON_AWS_SCHEDULER_MAX_RETRY_ATTEMPTS`, and `TALON_AWS_SCHEDULER_ENDPOINT_URL` configure the AWS scheduler when env-based config is used.
 - `TALON_SQS_QUEUE_NAME` defaults to `talon` and names the single SQS queue used for durable worker-delivered messages. `TALON_SQS_QUEUE_PREFIX` is still accepted as a compatibility fallback.
 - `TALON_SQS_WAIT_TIME_SECONDS` is clamped to the SQS `0..=20` range, and `TALON_SQS_VISIBILITY_TIMEOUT_SECONDS` is clamped to `0..=43200`. Worker pull mode extends visibility while a dispatch is in flight.
 - SQS provides durable work-queue semantics through worker pull mode. Talon writes worker messages to the same queue and stores the logical Talon routing key in SQS message attributes for dispatch routing. Messages are deleted only after the worker dispatch succeeds.
 - The generic Talon `subscribe` stream is not available for SQS because it cannot acknowledge messages after handler completion. Live session parts and workflow events are delivered through the worker `FanoutService`, not through SQS topics.
+- LocalStack can validate EventBridge Scheduler configuration and API wiring, but does not currently emulate timed Scheduler delivery to SQS.
+- Playwright's helper stack can be started with `TALON_E2E_STACK=aws` to run Talon against LocalStack DynamoDB, SQS, and EventBridge Scheduler wiring. LocalStack still does not fire scheduled targets into SQS, so schedule delivery assertions should use Talon's local scheduler backends or opt-in real AWS smoke tests.
 
 ## Local environment
 

@@ -142,6 +142,16 @@ pub enum SchedulerConfigWrapper {
         target_url: Option<String>,
         callback_auth: Option<SchedulerCallbackAuthConfigWrapper>,
     },
+    AwsEventBridgeScheduler {
+        group_name: Option<String>,
+        queue_url: Option<String>,
+        execution_role_arn: Option<String>,
+        schedule_name_prefix: Option<String>,
+        dlq_arn: Option<String>,
+        maximum_event_age_seconds: Option<u32>,
+        maximum_retry_attempts: Option<u32>,
+        endpoint_url: Option<String>,
+    },
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -599,6 +609,29 @@ impl From<SchedulerConfigWrapper> for proto::SchedulerConfig {
                         queue: queue.unwrap_or_default(),
                         target_url: target_url.unwrap_or_default(),
                         callback_auth: callback_auth.map(Into::into),
+                    },
+                )),
+            },
+            SchedulerConfigWrapper::AwsEventBridgeScheduler {
+                group_name,
+                queue_url,
+                execution_role_arn,
+                schedule_name_prefix,
+                dlq_arn,
+                maximum_event_age_seconds,
+                maximum_retry_attempts,
+                endpoint_url,
+            } => proto::SchedulerConfig {
+                backend: Some(proto::scheduler_config::Backend::AwsEventbridgeScheduler(
+                    proto::AwsEventBridgeSchedulerConfig {
+                        group_name: group_name.unwrap_or_default(),
+                        queue_url: queue_url.unwrap_or_default(),
+                        execution_role_arn: execution_role_arn.unwrap_or_default(),
+                        schedule_name_prefix: schedule_name_prefix.unwrap_or_default(),
+                        dlq_arn: dlq_arn.unwrap_or_default(),
+                        maximum_event_age_seconds: maximum_event_age_seconds.unwrap_or_default(),
+                        maximum_retry_attempts,
+                        endpoint_url: endpoint_url.unwrap_or_default(),
                     },
                 )),
             },

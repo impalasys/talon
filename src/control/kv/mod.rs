@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-#[cfg(feature = "dynamodb")]
+#[cfg(feature = "aws")]
 mod dynamodb;
 mod legacy;
 mod postgres;
@@ -11,7 +11,7 @@ mod shared;
 mod sqlite;
 mod sqlite_sql;
 
-#[cfg(feature = "dynamodb")]
+#[cfg(feature = "aws")]
 pub use dynamodb::DynamoDbKvStore;
 pub use postgres::PostgresKvStore;
 #[cfg(feature = "rocksdb")]

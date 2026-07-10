@@ -511,7 +511,7 @@ jobs:
         run: docker info
 
       - name: Build Talon binaries
-        run: cargo build --locked --features aws-local-e2e --bins
+        run: cargo build --locked --features aws --bins
 
       - name: Install Python test dependencies
         run: python -m pip install -r tests/requirements.txt
