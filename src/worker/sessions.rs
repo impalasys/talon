@@ -1255,6 +1255,68 @@ mod tests {
             .unwrap();
     }
 
+    async fn put_connector_resource(
+        kv: Arc<MockKvStore>,
+        reply_mode: &str,
+        match_fields: impl IntoIterator<Item = (&'static str, &'static str)>,
+    ) {
+        let store = crate::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
+        store
+            .upsert(
+                "conic:test",
+                resources_proto::Resource {
+                    api_version: "talon.impalasys.com/v1".to_string(),
+                    kind: "Connector".to_string(),
+                    metadata: Some(resources_proto::ResourceMeta {
+                        name: "slack-main".to_string(),
+                        namespace: "conic:test".to_string(),
+                        uid: "connector-uid-1".to_string(),
+                        ..Default::default()
+                    }),
+                    spec: Some(resources_proto::ResourceSpec {
+                        kind: Some(resources_proto::resource_spec::Kind::Connector(
+                            resources_proto::ConnectorSpec {
+                                class_ref: Some(resources_proto::ResourceRef {
+                                    name: "slack".to_string(),
+                                    namespace: String::new(),
+                                }),
+                                enabled: true,
+                                match_fields: match_fields
+                                    .into_iter()
+                                    .map(|(key, value)| (key.to_string(), value.to_string()))
+                                    .collect(),
+                                consumer: Some(data_proto::MessageConsumer {
+                                    session: Some(data_proto::SessionMessageConsumer {
+                                        agent: Some(data_proto::ResourceRef {
+                                            name: "assistant".to_string(),
+                                            namespace: String::new(),
+                                        }),
+                                        continuity: "reuse".to_string(),
+                                        session_id: String::new(),
+                                        reply_mode: reply_mode.to_string(),
+                                    }),
+                                    channel: None,
+                                    workflow: None,
+                                }),
+                            },
+                        )),
+                    }),
+                    status: Some(resources_proto::ResourceStatus {
+                        kind: Some(resources_proto::resource_status::Kind::Connector(
+                            resources_proto::ConnectorStatus {
+                                observed_generation: 1,
+                                phase: "Ready".to_string(),
+                                conditions: Vec::new(),
+                                compiled_route_ids: Vec::new(),
+                            },
+                        )),
+                    }),
+                },
+            )
+            .await
+            .unwrap();
+    }
+
     fn connector_session_labels(
         extra: impl IntoIterator<Item = (&'static str, &'static str)>,
     ) -> HashMap<String, String> {
@@ -2158,6 +2220,149 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn maybe_deliver_connector_session_message_derives_delivery_request_from_connector() {
+        let kv = Arc::new(MockKvStore::default());
+        let deliveries: Arc<Mutex<Vec<Value>>> = Arc::new(Mutex::new(Vec::new()));
+        let app = Router::new()
+            .route(
+                "/v1/deliveries",
+                post(
+                    |State(deliveries): State<Arc<Mutex<Vec<Value>>>>,
+                     Json(payload): Json<Value>| async move {
+                        deliveries.lock().unwrap().push(payload);
+                        Json(json!({
+                            "accepted": true,
+                            "disposition": "accepted",
+                            "error": ""
+                        }))
+                    },
+                ),
+            )
+            .with_state(deliveries.clone());
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let endpoint = format!("http://{}", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        put_connector_class_resource(kv.clone(), endpoint).await;
+        put_connector_resource(
+            kv.clone(),
+            "",
+            [("teamId", "fresh-team"), ("channelId", "fresh-channel")],
+        )
+        .await;
+        put_connector_session_and_assistant_message(
+            kv.clone(),
+            connector_session_labels([
+                (
+                    "talon.impalasys.com/connector-registration",
+                    "Namespace/conic%3Atest/ConnectorClass/stale-class",
+                ),
+                ("talon.impalasys.com/connector-class", "stale-class"),
+                ("talon.impalasys.com/connector-match/teamId", "stale-team"),
+            ]),
+            HashMap::new(),
+            "freshly routed reply",
+        )
+        .await;
+
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+            &cp,
+            "conic:test",
+            "assistant",
+            "session-1",
+            "assistant-1",
+        )
+        .await
+        .expect("delivery should use current Connector context");
+
+        let deliveries = deliveries.lock().unwrap().clone();
+        assert_eq!(deliveries.len(), 1);
+        let delivery = &deliveries[0];
+        assert_eq!(
+            delivery["registrationId"],
+            "Namespace/conic%3Atest/ConnectorClass/slack"
+        );
+        assert_eq!(delivery["connectorClass"], "slack");
+        assert_eq!(delivery["connectorName"], "slack-main");
+        assert_eq!(delivery["matchFields"]["teamId"], "fresh-team");
+        assert_eq!(delivery["matchFields"]["channelId"], "fresh-channel");
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn send_connector_session_activity_derives_request_from_connector() {
+        let kv = Arc::new(MockKvStore::default());
+        let activities: Arc<Mutex<Vec<Value>>> = Arc::new(Mutex::new(Vec::new()));
+        let app = Router::new()
+            .route(
+                "/v1/activities",
+                post(
+                    |State(activities): State<Arc<Mutex<Vec<Value>>>>,
+                     Json(payload): Json<Value>| async move {
+                        activities.lock().unwrap().push(payload);
+                        Json(json!({
+                            "accepted": true,
+                            "disposition": "accepted",
+                            "error": ""
+                        }))
+                    },
+                ),
+            )
+            .with_state(activities.clone());
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let endpoint = format!("http://{}", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        put_connector_class_resource(kv.clone(), endpoint).await;
+        put_connector_resource(kv.clone(), "", [("teamId", "fresh-team")]).await;
+        let session = data_proto::Session {
+            id: "session-1".to_string(),
+            agent: "assistant".to_string(),
+            ns: "conic:test".to_string(),
+            status: "PROCESSING".to_string(),
+            created_at: 0,
+            last_active: 123,
+            metadata: HashMap::new(),
+            labels: connector_session_labels([
+                (
+                    "talon.impalasys.com/connector-registration",
+                    "Namespace/conic%3Atest/ConnectorClass/stale-class",
+                ),
+                ("talon.impalasys.com/connector-class", "stale-class"),
+                ("talon.impalasys.com/connector-match/teamId", "stale-team"),
+            ]),
+        };
+
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        crate::gateway::rpc::connectors::send_connector_session_activity(
+            &cp,
+            &session,
+            "activity-1",
+            "started",
+            "typing",
+        )
+        .await
+        .expect("activity should use current Connector context");
+
+        let activities = activities.lock().unwrap().clone();
+        assert_eq!(activities.len(), 1);
+        let activity = &activities[0];
+        assert_eq!(
+            activity["registrationId"],
+            "Namespace/conic%3Atest/ConnectorClass/slack"
+        );
+        assert_eq!(activity["connectorClass"], "slack");
+        assert_eq!(activity["connectorName"], "slack-main");
+        assert_eq!(activity["matchFields"]["teamId"], "fresh-team");
+
+        server.abort();
+    }
+
+    #[tokio::test]
     async fn maybe_deliver_connector_session_message_marks_hold_for_review_pending() {
         let kv = Arc::new(MockKvStore::default());
         put_connector_session_and_assistant_message(
@@ -2203,6 +2408,127 @@ mod tests {
                 .map(String::as_str),
             Some("slack-main")
         );
+    }
+
+    #[tokio::test]
+    async fn maybe_deliver_connector_session_message_uses_connector_reply_mode_over_stale_label() {
+        let kv = Arc::new(MockKvStore::default());
+        put_connector_resource(
+            kv.clone(),
+            "hold_for_review",
+            [("teamId", "fresh-team"), ("channelId", "fresh-channel")],
+        )
+        .await;
+        put_connector_session_and_assistant_message(
+            kv.clone(),
+            connector_session_labels([("talon.impalasys.com/connector-reply-mode", "")]),
+            HashMap::new(),
+            "draft reply",
+        )
+        .await;
+
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+            &cp,
+            "conic:test",
+            "assistant",
+            "session-1",
+            "assistant-1",
+        )
+        .await
+        .expect("current Connector replyMode should require review");
+
+        let message = kv
+            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "assistant-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            message
+                .labels
+                .get("talon.impalasys.com/connector-delivery-status")
+                .map(String::as_str),
+            Some("pending_review")
+        );
+    }
+
+    #[tokio::test]
+    async fn maybe_deliver_connector_session_message_uses_connector_to_disable_stale_review_label()
+    {
+        let kv = Arc::new(MockKvStore::default());
+        let deliveries: Arc<Mutex<Vec<Value>>> = Arc::new(Mutex::new(Vec::new()));
+        let app = Router::new()
+            .route(
+                "/v1/deliveries",
+                post(
+                    |State(deliveries): State<Arc<Mutex<Vec<Value>>>>,
+                     Json(payload): Json<Value>| async move {
+                        deliveries.lock().unwrap().push(payload);
+                        Json(json!({
+                            "accepted": true,
+                            "disposition": "accepted",
+                            "error": ""
+                        }))
+                    },
+                ),
+            )
+            .with_state(deliveries.clone());
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let endpoint = format!("http://{}", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        put_connector_class_resource(kv.clone(), endpoint).await;
+        put_connector_resource(kv.clone(), "", [("teamId", "fresh-team")]).await;
+        put_connector_session_and_assistant_message(
+            kv.clone(),
+            connector_session_labels([(
+                "talon.impalasys.com/connector-reply-mode",
+                "hold_for_review",
+            )]),
+            HashMap::new(),
+            "send now",
+        )
+        .await;
+
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+            &cp,
+            "conic:test",
+            "assistant",
+            "session-1",
+            "assistant-1",
+        )
+        .await
+        .expect("current Connector should disable stale review label");
+
+        let deliveries = deliveries.lock().unwrap().clone();
+        assert_eq!(deliveries.len(), 1);
+        assert_eq!(deliveries[0]["text"], "send now");
+        let message = kv
+            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "assistant-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            message
+                .labels
+                .get("talon.impalasys.com/connector-delivery-status")
+                .map(String::as_str),
+            None
+        );
+
+        server.abort();
     }
 
     #[tokio::test]
