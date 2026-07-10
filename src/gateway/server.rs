@@ -148,6 +148,12 @@ impl Gateway {
                 interceptor.clone(),
             ),
         );
+        let cas_service = tonic_web::enable(
+            crate::gateway::rpc::proto::cas_service_server::CasServiceServer::with_interceptor(
+                handler.clone(),
+                interceptor.clone(),
+            ),
+        );
         let channel_service = tonic_web::enable(
             crate::gateway::rpc::proto::channel_service_server::ChannelServiceServer::with_interceptor(
                 handler.clone(),
@@ -187,6 +193,7 @@ impl Gateway {
             .add_service(namespace_service)
             .add_service(resource_service)
             .add_service(session_service)
+            .add_service(cas_service)
             .add_service(channel_service)
             .add_service(workflow_service)
             .add_service(knowledge_service)

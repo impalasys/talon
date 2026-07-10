@@ -6,7 +6,7 @@ use prost::Message;
 
 use super::submission::{ensure_submission_attempt_current, update_submission_from_entry};
 use super::SessionJournalEntry;
-use crate::control::object_store::ObjectStore;
+use crate::control::cas::CasStore;
 use crate::control::{keys, KeyValueStore};
 use crate::gateway::rpc::data_proto::{
     session_journal_entry_payload, SessionExecutionPhase, SessionJournalEntryPayload,
@@ -49,7 +49,7 @@ pub async fn append_llm_response(
 
 pub async fn append_tool_result(
     kv: &dyn KeyValueStore,
-    objects: &(dyn ObjectStore + Send + Sync),
+    cas: &CasStore,
     ns: &str,
     agent: &str,
     session_id: &str,
@@ -63,7 +63,7 @@ pub async fn append_tool_result(
     now_micros: i64,
 ) -> Result<SessionJournalEntry> {
     let stored = store_tool_result(
-        objects,
+        cas,
         ns,
         agent,
         session_id,
@@ -401,7 +401,9 @@ mod tests {
     #[tokio::test]
     async fn journal_entries_append_in_order_and_update_submission_pointer() {
         let kv = crate::test_support::MockKvStore::default();
-        let objects = crate::control::object_store::InMemoryObjectStore::default();
+        let objects =
+            std::sync::Arc::new(crate::control::object_store::InMemoryObjectStore::default());
+        let cas = crate::control::cas::CasStore::new(objects);
         seed_claimed_submission(&kv).await;
 
         let response = ChatResponse {
@@ -423,7 +425,7 @@ mod tests {
         .unwrap();
         let second = append_tool_result(
             &kv,
-            &objects,
+            &cas,
             "ns",
             "agent",
             "session-1",

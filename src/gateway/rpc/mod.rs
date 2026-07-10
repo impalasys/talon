@@ -7,6 +7,7 @@ use std::sync::Arc;
 use std::pin::Pin;
 
 pub mod auth;
+pub mod cas;
 pub mod channels;
 pub mod connectors;
 pub mod knowledge;
@@ -269,6 +270,16 @@ impl proto::connector_service_server::ConnectorService for GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<external_proto::ConnectorAckResponse>, tonic::Status>
     {
         self.handle_report_connector_status(req).await
+    }
+}
+
+#[tonic::async_trait]
+impl proto::cas_service_server::CasService for GrpcGatewayHandler {
+    async fn get_object(
+        &self,
+        req: tonic::Request<proto::GetCasObjectRequest>,
+    ) -> std::result::Result<tonic::Response<proto::GetCasObjectResponse>, tonic::Status> {
+        self.handle_get_cas_object(req).await
     }
 }
 

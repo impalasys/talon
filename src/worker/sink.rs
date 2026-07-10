@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::Mutex as AsyncMutex;
 
+use crate::control::cas::CasStore;
 use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
 use crate::control::object_store::{default_object_store, ObjectStore};
 use crate::control::{keys::ResourceKey, KeyValueStore, MessagePublisher};
@@ -498,7 +499,7 @@ impl PubSubSessionSink {
         result: &str,
     ) -> Result<()> {
         let stored = store_tool_result(
-            self.objects.as_ref(),
+            &CasStore::new(self.objects.clone()),
             &self.ns,
             &self.agent_id,
             &self.session_id,
@@ -1026,9 +1027,10 @@ impl ExecutionSink for PubSubSessionSink {
 
     async fn on_tool_result_recorded(&self, id: &str, name: &str, result: &str) -> Result<()> {
         let part_id = self.next_part_id();
+        let cas = CasStore::new(self.objects.clone());
         let entry = sessions::append_tool_result(
             self.kv.as_ref(),
-            self.objects.as_ref(),
+            &cas,
             &self.ns,
             &self.agent_id,
             &self.session_id,
@@ -1082,7 +1084,7 @@ impl ExecutionSink for PubSubSessionSink {
             None => {
                 let part_id = self.next_part_id();
                 match store_tool_result(
-                    self.objects.as_ref(),
+                    &CasStore::new(self.objects.clone()),
                     &self.ns,
                     &self.agent_id,
                     &self.session_id,

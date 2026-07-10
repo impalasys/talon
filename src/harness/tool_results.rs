@@ -1,19 +1,17 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::object_store::{ObjectMetadata, ObjectStore};
+use crate::control::cas::{CasStore, SessionCasScope, SessionObjectIdentity};
+use crate::control::object_store::ObjectStore;
 use crate::gateway::rpc::data_proto;
 use crate::harness::executor::compaction::tool_result_preview;
 use anyhow::{anyhow, Result};
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
-use sha2::{Digest, Sha256};
-use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::sync::OnceLock;
 
 const DEFAULT_TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
 const MIN_GZIP_SAVINGS_PERCENT: usize = 10;
-const TOOL_RESULT_MEDIA_TYPE: &str = "text/plain; charset=utf-8";
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct StoredToolResult {
@@ -39,7 +37,7 @@ impl StoredToolResult {
 }
 
 pub async fn store_tool_result(
-    objects: &(dyn ObjectStore + Send + Sync),
+    cas: &CasStore,
     ns: &str,
     agent: &str,
     session_id: &str,
@@ -59,38 +57,19 @@ pub async fn store_tool_result(
         });
     }
 
-    let key = tool_result_object_key(ns, session_id, message_id, part_id);
+    let scope = SessionCasScope::new(ns, agent, session_id);
+    let identity = SessionObjectIdentity::new(message_id, part_id);
     let raw_bytes = result.as_bytes();
     let (bytes, content_encoding) = compressed_object_bytes(raw_bytes)?;
-    let mut metadata = HashMap::new();
-    metadata.insert("kind".to_string(), "tool_result".to_string());
-    metadata.insert("namespace".to_string(), ns.to_string());
-    metadata.insert("agent".to_string(), agent.to_string());
-    metadata.insert("session_id".to_string(), session_id.to_string());
-    metadata.insert("message_id".to_string(), message_id.to_string());
-    metadata.insert("part_id".to_string(), part_id.to_string());
-    metadata.insert("tool_call_id".to_string(), tool_call_id.to_string());
-    metadata.insert("tool_name".to_string(), tool_name.to_string());
-    metadata.insert(
-        "uncompressed_size_bytes".to_string(),
-        raw_bytes.len().to_string(),
-    );
-    metadata.insert("uncompressed_sha256".to_string(), sha256_hex(raw_bytes));
-    if let Some(content_encoding) = content_encoding {
-        metadata.insert("content_encoding".to_string(), content_encoding.to_string());
-    }
-
-    let object = objects
-        .put(
-            &key,
+    let object = cas
+        .put_tool_result(
+            &scope,
+            &identity,
+            tool_call_id,
+            tool_name,
             &bytes,
-            ObjectMetadata {
-                media_type: TOOL_RESULT_MEDIA_TYPE.to_string(),
-                size_bytes: bytes.len() as u64,
-                sha256: sha256_hex(&bytes),
-                filename: format!("{}.txt", object_key_segment(tool_call_id)),
-                metadata,
-            },
+            raw_bytes,
+            content_encoding,
         )
         .await?;
 
@@ -159,44 +138,6 @@ fn parse_tool_result_object_threshold_bytes() -> usize {
     }
 }
 
-fn tool_result_object_key(ns: &str, session_id: &str, message_id: &str, part_id: &str) -> String {
-    format!(
-        "cas/{}/sessions/{}/messages/{}/{}.txt",
-        encoded_object_key_segment(ns),
-        object_key_segment(session_id),
-        object_key_segment(message_id),
-        object_key_segment(part_id)
-    )
-}
-
-fn encoded_object_key_segment(value: &str) -> String {
-    urlencoding::encode(value).into_owned()
-}
-
-fn object_key_segment(value: &str) -> String {
-    value
-        .chars()
-        .map(|ch| {
-            if ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.') {
-                ch
-            } else {
-                '_'
-            }
-        })
-        .collect()
-}
-
-fn sha256_hex(bytes: &[u8]) -> String {
-    use std::fmt::Write as _;
-
-    let digest = Sha256::digest(bytes);
-    let mut out = String::with_capacity(digest.len() * 2);
-    for byte in digest {
-        let _ = write!(&mut out, "{byte:02x}");
-    }
-    out
-}
-
 fn compressed_object_bytes(raw_bytes: &[u8]) -> Result<(Vec<u8>, Option<&'static str>)> {
     let gzipped = gzip(raw_bytes)?;
     if (gzipped.len() as u64) * 100
@@ -226,14 +167,17 @@ fn gunzip(bytes: &[u8], key: &str) -> Result<Vec<u8>> {
 #[cfg(test)]
 mod tests {
     use super::store_tool_result;
+    use crate::control::cas::CasStore;
     use crate::control::object_store::{InMemoryObjectStore, ObjectStore};
     use rand::{Rng, SeedableRng};
+    use std::sync::Arc;
 
     #[tokio::test]
     async fn small_tool_result_stays_inline() {
-        let store = InMemoryObjectStore::default();
+        let store = Arc::new(InMemoryObjectStore::default());
+        let cas = CasStore::new(store.clone());
         let result = store_tool_result(
-            &store,
+            &cas,
             "acme",
             "support",
             "session-1",
@@ -258,10 +202,11 @@ mod tests {
 
     #[tokio::test]
     async fn large_compressible_tool_result_is_written_to_gzip_object() {
-        let store = InMemoryObjectStore::default();
+        let store = Arc::new(InMemoryObjectStore::default());
+        let cas = CasStore::new(store.clone());
         let raw = "x".repeat(3 * 1024);
         let result = store_tool_result(
-            &store,
+            &cas,
             "acme",
             "support",
             "session-1",
@@ -295,7 +240,7 @@ mod tests {
         );
         let stored = store.get(&object.key).await.unwrap().unwrap();
         assert!(stored.bytes.len() < raw.len());
-        let hydrated = super::hydrate_tool_result(&store, Some(object), "")
+        let hydrated = super::hydrate_tool_result(store.as_ref(), Some(object), "")
             .await
             .unwrap();
         assert_eq!(hydrated, raw);
@@ -322,17 +267,22 @@ mod tests {
 
     #[test]
     fn object_key_segments_are_sanitized_deterministically() {
+        let store = CasStore::new(Arc::new(InMemoryObjectStore::default()));
         assert_eq!(
-            super::tool_result_object_key("team/alpha", "session one", "message#1", "../part id"),
+            store.session_object_key(
+                &crate::control::cas::SessionCasScope::new("team/alpha", "agent", "session one"),
+                &crate::control::cas::SessionObjectIdentity::new("message#1", "../part id"),
+            ),
             "cas/team%2Falpha/sessions/session_one/messages/message_1/.._part_id.txt"
         );
     }
 
     #[tokio::test]
     async fn object_metadata_filename_uses_sanitized_tool_call_id() {
-        let store = InMemoryObjectStore::default();
+        let store = Arc::new(InMemoryObjectStore::default());
+        let cas = CasStore::new(store);
         let result = store_tool_result(
-            &store,
+            &cas,
             "acme",
             "support",
             "session-1",

@@ -13,6 +13,7 @@ describe("@impalasys/talon-client", () => {
     const client = createTalonClient("http://localhost:50051");
     assert.equal(typeof client.namespaces.list, "function");
     assert.equal(typeof client.resources.list, "function");
+    assert.equal(typeof client.cas.getObject, "function");
     assert.equal(typeof client.sessions.submitTurn, "function");
     assert.equal(typeof client.channels.streamEvents, "function");
     assert.equal(typeof client.workflows.createRun, "function");

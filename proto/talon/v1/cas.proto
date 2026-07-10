@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package talon.v1;
+
+import "proto/data/data.proto";
+
+service CasService {
+  rpc GetObject(GetCasObjectRequest) returns (GetCasObjectResponse);
+}
+
+message GetCasObjectRequest {
+  string ns = 1;
+  string agent = 2;
+  string session_id = 3;
+  string key = 4;
+}
+
+message GetCasObjectResponse {
+  talon.data.ObjectRef object = 1;
+  bytes data = 2;
+}

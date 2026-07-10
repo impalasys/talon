@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use std::{pin::Pin, sync::Arc};
+pub mod cas;
 pub mod config;
 pub mod events;
 pub mod keys;

@@ -11,6 +11,7 @@ use std::panic::AssertUnwindSafe;
 use super::runtime::AgentRuntime;
 use super::sink::PubSubSessionSink;
 use super::WorkerEventHandler;
+use crate::control::cas::CasStore;
 use crate::control::{events::SessionMessageEvent, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::connectors as connector_rpc;
 use crate::gateway::rpc::data_proto::{
@@ -260,9 +261,10 @@ async fn prepare_context_for_claimed_submission(
                 .await?
             } else {
                 let (_input, result) = runtime.executor.execute_tool_call(tool).await;
+                let cas = CasStore::new(cp.objects.clone());
                 sessions::append_tool_result(
                     cp.kv.as_ref(),
-                    cp.objects.as_ref(),
+                    &cas,
                     ns,
                     agent,
                     session_id,

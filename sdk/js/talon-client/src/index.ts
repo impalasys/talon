@@ -24,6 +24,8 @@ import * as workers from "./gen/proto/resources/workers_pb.js";
 import * as workflows from "./gen/proto/resources/workflows_pb.js";
 import * as v1Auth from "./gen/proto/talon/v1/auth_pb.js";
 import * as v1AuthConnect from "./gen/proto/talon/v1/auth_connect.js";
+import * as v1Cas from "./gen/proto/talon/v1/cas_pb.js";
+import * as v1CasConnect from "./gen/proto/talon/v1/cas_connect.js";
 import * as v1Channels from "./gen/proto/talon/v1/channels_pb.js";
 import * as v1ChannelsConnect from "./gen/proto/talon/v1/channels_connect.js";
 import * as v1Knowledge from "./gen/proto/talon/v1/knowledge_pb.js";
@@ -61,6 +63,8 @@ export {
   workflows,
   v1Auth,
   v1AuthConnect,
+  v1Cas,
+  v1CasConnect,
   v1Channels,
   v1ChannelsConnect,
   v1Knowledge,

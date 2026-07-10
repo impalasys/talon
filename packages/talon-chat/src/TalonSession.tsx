@@ -33,8 +33,11 @@ export type SessionServiceClientLike = {
   > & Partial<Pick<TalonClient["sessions"], "appendMessage" | "updateMessage">>;
 }["sessions"];
 
+export type CasServiceClientLike = Pick<TalonClient["cas"], "getObject">;
+
 export type GatewayClientLike = {
   sessions: SessionServiceClientLike;
+  cas?: CasServiceClientLike;
 };
 
 export type TalonSessionCommandTarget = {
@@ -382,6 +385,62 @@ function parsePayloadJson(payloadJson: unknown): Record<string, unknown> {
 function objectRefFromPart(part: any): TalonChatObjectRef | undefined {
   const object = part?.object ?? part?.objectRef ?? part?.object_ref;
   return object && typeof object === "object" ? object as TalonChatObjectRef : undefined;
+}
+
+function objectRefKey(object: TalonChatObjectRef | undefined): string {
+  return typeof object?.key === "string" ? object.key : "";
+}
+
+function isToolResultPart(part: any) {
+  const type = part?.type ?? part?.partType ?? part?.part_type;
+  return type === data.SessionMessagePartType.TOOL_RESULT || type === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT";
+}
+
+function withToolResultContent(part: any, output: string) {
+  const nextPart = { ...part, content: output };
+  const payload = parsePayloadJson(part?.payloadJson ?? part?.payload_json);
+  const nextPayload = { ...payload, output };
+  if ("payload_json" in nextPart && !("payloadJson" in nextPart)) {
+    nextPart.payload_json = JSON.stringify(nextPayload);
+  } else {
+    nextPart.payloadJson = JSON.stringify(nextPayload);
+  }
+  return nextPart;
+}
+
+async function hydrateCasToolResultObjects(
+  messages: CopilotMessage[],
+  target: { ns: string; agent: string; sessionId: string },
+  cas?: CasServiceClientLike,
+): Promise<CopilotMessage[]> {
+  if (!cas?.getObject) return messages;
+  const decoder = new TextDecoder();
+  return Promise.all(messages.map(async (message) => {
+    if (!Array.isArray(message.parts)) return message;
+    let changed = false;
+    const parts = await Promise.all(message.parts.map(async (part: any) => {
+      if (!part || typeof part !== "object" || !isToolResultPart(part)) return part;
+      if (typeof part.content === "string" && part.content.length > 0) return part;
+      const key = objectRefKey(objectRefFromPart(part));
+      if (!key) return part;
+      const response = await cas.getObject({
+        ns: target.ns,
+        agent: target.agent,
+        sessionId: target.sessionId,
+        key,
+      });
+      changed = true;
+      return withToolResultContent(part, decoder.decode(response.data));
+    }));
+    return changed
+      ? {
+          ...message,
+          parts,
+          content: getMessageContent({ ...message, parts }),
+          timeline: getMessageAssistantTimeline({ ...message, parts }),
+        }
+      : message;
+  }));
 }
 
 function messageImageParts(
@@ -1576,9 +1635,23 @@ export function TalonSession({
     [gatewayClient],
   );
 
+  const hydrateSessionHistoryPage = useCallback(
+    async (
+      response: any,
+      target: { ns: string; agent: string; sessionId: string },
+    ): Promise<SessionHistoryPage> => {
+      const res = normalizeHistoryPage(response);
+      return {
+        ...res,
+        messages: await hydrateCasToolResultObjects(res.messages, target, gatewayClient?.cas),
+      };
+    },
+    [gatewayClient],
+  );
+
   const loadInitialSessionPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
-      const res = normalizeHistoryPage(await getSessionMessagesPage(target));
+      const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target), target);
       autoScrollPinnedRef.current = true;
       setMessages(res.messages);
       setHasMoreHistory(res.hasMore);
@@ -1587,7 +1660,7 @@ export function TalonSession({
       setCurrentSession(target);
       return res;
     },
-    [getSessionMessagesPage],
+    [getSessionMessagesPage, hydrateSessionHistoryPage],
   );
 
   const loadOlderHistoryPage = useCallback(
@@ -1605,7 +1678,10 @@ export function TalonSession({
       isLoadingOlderHistoryRef.current = true;
       setIsLoadingOlderHistory(true);
       try {
-        const res = normalizeHistoryPage(await getSessionMessagesPage(target, nextBeforeMessageId));
+        const res = await hydrateSessionHistoryPage(
+          await getSessionMessagesPage(target, nextBeforeMessageId),
+          target,
+        );
         const existingIds = new Set(messagesRef.current.map((message) => message.id));
         const olderMessages = res.messages.filter((message) => !existingIds.has(message.id));
         if (olderMessages.length === 0) {
@@ -1632,12 +1708,12 @@ export function TalonSession({
         setIsLoadingOlderHistory(false);
       }
     },
-    [getSessionMessagesPage, nextBeforeMessageId],
+    [getSessionMessagesPage, hydrateSessionHistoryPage, nextBeforeMessageId],
   );
 
   const refreshNewestSessionPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
-      const res = normalizeHistoryPage(await getSessionMessagesPage(target));
+      const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target), target);
       const newestPageIds = new Set(res.messages.map((message) => message.id));
       const oldestPageMessage = res.messages[0];
       const oldestPageId = oldestPageMessage?.id;
@@ -1664,7 +1740,7 @@ export function TalonSession({
       setCurrentSession(target);
       return res;
     },
-    [getSessionMessagesPage],
+    [getSessionMessagesPage, hydrateSessionHistoryPage],
   );
 
   const resumeStream = useCallback(
@@ -1734,7 +1810,7 @@ export function TalonSession({
   const waitForCanonicalAssistantUpdate = useCallback(
     async (session: { ns: string; agent: string; sessionId: string }, baselineSignature: string) => {
       for (let attempt = 0; attempt < 40; attempt += 1) {
-        const sessionState = normalizeHistoryPage(await getSessionMessagesPage(session));
+        const sessionState = await hydrateSessionHistoryPage(await getSessionMessagesPage(session), session);
         const nextSignature = getAssistantSignature(sessionState.messages);
         if (nextSignature && nextSignature !== baselineSignature) {
           await refreshNewestSessionPage(session);
@@ -1744,7 +1820,7 @@ export function TalonSession({
       }
       return false;
     },
-    [getSessionMessagesPage, refreshNewestSessionPage],
+    [getSessionMessagesPage, hydrateSessionHistoryPage, refreshNewestSessionPage],
   );
 
   const clearLocalSession = useCallback(() => {
