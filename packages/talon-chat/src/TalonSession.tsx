@@ -420,7 +420,9 @@ async function decompressCasObjectData(data: Uint8Array, encoding: string): Prom
   if (typeof DecompressionStream === "undefined") {
     throw new Error(`${encoding} CAS object requires DecompressionStream support`);
   }
-  const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream(encoding as any));
+  const bytes = new ArrayBuffer(data.byteLength);
+  new Uint8Array(bytes).set(data);
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream(encoding as any));
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
