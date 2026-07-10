@@ -165,6 +165,10 @@ impl StreamingPartBuffer {
 
     fn final_content(&self, final_content_override: Option<&str>) -> String {
         let effective = final_content_override.unwrap_or(self.accumulated.as_str());
+        // Final replies usually duplicate the streamed text we already saw.
+        // In that common case, only commit the unclosed suffix. If there was no
+        // streamed text, or the provider returns a replacement final reply that
+        // does not extend the stream, treat the effective reply as authoritative.
         if self.accumulated.is_empty() {
             effective.to_string()
         } else if effective.starts_with(self.accumulated.as_str()) {
