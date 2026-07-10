@@ -18,11 +18,7 @@ pub const TOOL_RESULT_MEDIA_TYPE: &str = "text/plain; charset=utf-8";
 // do not drift into almost-the-same string literals.
 pub const METADATA_KIND: &str = "kind";
 pub const METADATA_KIND_TOOL_RESULT: &str = "tool_result";
-pub const METADATA_NAMESPACE: &str = "namespace";
 pub const METADATA_AGENT: &str = "agent";
-pub const METADATA_SESSION_ID: &str = "session_id";
-pub const METADATA_MESSAGE_ID: &str = "message_id";
-pub const METADATA_PART_ID: &str = "part_id";
 pub const METADATA_TOOL_CALL_ID: &str = "tool_call_id";
 pub const METADATA_TOOL_NAME: &str = "tool_name";
 pub const METADATA_CONTENT_ENCODING: &str = "content_encoding";
@@ -115,7 +111,6 @@ impl CasStore {
         let (stored_bytes, content_encoding) = compressed_object_bytes(uncompressed_bytes)?;
         let metadata = tool_result_metadata(
             &scope,
-            &identity,
             tool_call_id,
             tool_name,
             uncompressed_bytes,
@@ -343,18 +338,12 @@ fn ensure_session_metadata_scope(
     metadata: &ObjectMetadata,
 ) -> Result<()> {
     let meta = &metadata.metadata;
-    for (field, expected) in [
-        (METADATA_NAMESPACE, scope.ns.as_str()),
-        (METADATA_AGENT, scope.agent.as_str()),
-        (METADATA_SESSION_ID, scope.session_id.as_str()),
-    ] {
-        match meta.get(field) {
-            Some(actual) if actual == expected => {}
-            _ => {
-                return Err(anyhow!(
-                    "CAS object key '{key}' metadata field '{field}' does not match requested scope"
-                ));
-            }
+    match meta.get(METADATA_AGENT) {
+        Some(actual) if actual == &scope.agent => {}
+        _ => {
+            return Err(anyhow!(
+                "CAS object key '{key}' metadata field '{METADATA_AGENT}' does not match requested scope"
+            ));
         }
     }
     Ok(())
@@ -366,18 +355,6 @@ fn session_scope_from_key_and_metadata(
     metadata: &ObjectMetadata,
 ) -> Result<SessionCasScope> {
     let meta = &metadata.metadata;
-    for (field, expected) in [
-        (METADATA_NAMESPACE, key_scope.ns.as_str()),
-        (METADATA_SESSION_ID, key_scope.session_id.as_str()),
-    ] {
-        if let Some(actual) = meta.get(field) {
-            if actual != expected {
-                return Err(anyhow!(
-                    "CAS object key '{key}' metadata field '{field}' does not match key scope"
-                ));
-            }
-        }
-    }
     let agent = meta
         .get(METADATA_AGENT)
         .filter(|value| !value.trim().is_empty())
@@ -389,28 +366,18 @@ fn session_scope_from_key_and_metadata(
     ))
 }
 
-fn session_object_metadata(
-    scope: &SessionCasScope,
-    identity: &SessionObjectIdentity,
-) -> HashMap<String, String> {
-    HashMap::from([
-        (METADATA_NAMESPACE.to_string(), scope.ns.clone()),
-        (METADATA_AGENT.to_string(), scope.agent.clone()),
-        (METADATA_SESSION_ID.to_string(), scope.session_id.clone()),
-        (METADATA_MESSAGE_ID.to_string(), identity.message_id.clone()),
-        (METADATA_PART_ID.to_string(), identity.part_id.clone()),
-    ])
+fn session_object_metadata(scope: &SessionCasScope) -> HashMap<String, String> {
+    HashMap::from([(METADATA_AGENT.to_string(), scope.agent.clone())])
 }
 
 fn tool_result_metadata(
     scope: &SessionCasScope,
-    identity: &SessionObjectIdentity,
     tool_call_id: &str,
     tool_name: &str,
     uncompressed_bytes: &[u8],
     content_encoding: Option<&str>,
 ) -> HashMap<String, String> {
-    let mut metadata = session_object_metadata(scope, identity);
+    let mut metadata = session_object_metadata(scope);
     metadata.insert(
         METADATA_KIND.to_string(),
         METADATA_KIND_TOOL_RESULT.to_string(),
@@ -519,7 +486,6 @@ mod tests {
     use super::{
         parse_session_object_key, CasStore, SessionCasScope, SessionObjectIdentity,
         CONTENT_ENCODING_GZIP, CONTENT_ENCODING_ZSTD, METADATA_AGENT, METADATA_CONTENT_ENCODING,
-        METADATA_NAMESPACE, METADATA_SESSION_ID,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use flate2::{write::GzEncoder, Compression};
@@ -633,33 +599,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn rejects_stored_metadata_that_disagrees_with_key_scope() {
-        let objects = Arc::new(InMemoryObjectStore::default());
-        let store = CasStore::new(objects.clone());
-        objects
-            .put(
-                "cas/acme/sessions/session-1/messages/message-1/000001.txt",
-                b"hello",
-                ObjectMetadata {
-                    metadata: std::collections::HashMap::from([
-                        ("namespace".to_string(), "acme".to_string()),
-                        ("agent".to_string(), "agent".to_string()),
-                        ("session_id".to_string(), "session-2".to_string()),
-                    ]),
-                    ..ObjectMetadata::default()
-                },
-            )
-            .await
-            .unwrap();
-
-        let err = store
-            .get_session_object_by_key("cas/acme/sessions/session-1/messages/message-1/000001.txt")
-            .await
-            .unwrap_err();
-        assert!(err.to_string().contains("does not match key scope"));
-    }
-
-    #[tokio::test]
     async fn compresses_tool_result_with_zstd_when_it_saves_meaningfully() {
         let objects = Arc::new(InMemoryObjectStore::default());
         let store = CasStore::new(objects.clone());
@@ -684,6 +623,10 @@ mod tests {
             object.metadata[METADATA_CONTENT_ENCODING],
             CONTENT_ENCODING_ZSTD
         );
+        assert_eq!(object.metadata[METADATA_AGENT], "agent");
+        for key_derived_field in ["namespace", "session_id", "message_id", "part_id"] {
+            assert!(!object.metadata.contains_key(key_derived_field));
+        }
         let stored = store
             .get_session_object_decoded(
                 &SessionCasScope::new("acme", "agent", "session-1"),
@@ -745,9 +688,7 @@ mod tests {
                             METADATA_CONTENT_ENCODING.to_string(),
                             CONTENT_ENCODING_GZIP.to_string(),
                         ),
-                        (METADATA_NAMESPACE.to_string(), "acme".to_string()),
                         (METADATA_AGENT.to_string(), "agent".to_string()),
-                        (METADATA_SESSION_ID.to_string(), "session-1".to_string()),
                     ]),
                     ..ObjectMetadata::default()
                 },
@@ -780,9 +721,7 @@ mod tests {
                             METADATA_CONTENT_ENCODING.to_string(),
                             CONTENT_ENCODING_ZSTD.to_string(),
                         ),
-                        (METADATA_NAMESPACE.to_string(), "acme".to_string()),
                         (METADATA_AGENT.to_string(), "agent".to_string()),
-                        (METADATA_SESSION_ID.to_string(), "session-1".to_string()),
                     ]),
                     ..ObjectMetadata::default()
                 },

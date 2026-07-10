@@ -26,9 +26,7 @@ impl GrpcGatewayHandler {
             .get_session_object_by_key(&body.key)
             .await
             .map_err(|err| {
-                if err.to_string().contains("does not match key scope")
-                    || err.to_string().contains("metadata is missing agent")
-                {
+                if err.to_string().contains("metadata is missing agent") {
                     tonic::Status::permission_denied("CAS object is outside the authorized session")
                 } else {
                     tonic::Status::internal(format!("Failed to load CAS object: {err}"))
