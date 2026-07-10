@@ -548,6 +548,7 @@ pub async fn maybe_deliver_connector_session_message(
         &message,
         &text,
         &delivery_context_labels,
+        Some(connector_context),
     )
     .await;
     if status == Some(CONNECTOR_DELIVERY_REQUESTED) {
@@ -590,7 +591,8 @@ pub async fn deliver_connector_session_message(
     message: &data_proto::SessionMessage,
     text: &str,
 ) -> anyhow::Result<()> {
-    deliver_connector_session_message_with_labels(cp, session, message, text, &session.labels).await
+    deliver_connector_session_message_with_labels(cp, session, message, text, &session.labels, None)
+        .await
 }
 
 async fn deliver_connector_session_message_with_labels(
@@ -599,8 +601,12 @@ async fn deliver_connector_session_message_with_labels(
     message: &data_proto::SessionMessage,
     text: &str,
     labels: &HashMap<String, String>,
+    connector_context: Option<ConnectorDeliveryContext>,
 ) -> anyhow::Result<()> {
-    let connector_context = connector_delivery_context_from_labels(cp, &session.ns, labels).await?;
+    let connector_context = match connector_context {
+        Some(context) => context,
+        None => connector_delivery_context_from_labels(cp, &session.ns, labels).await?,
+    };
     let external_conversation_id = required_label(labels, LABEL_EXTERNAL_CONVERSATION)?;
     let (runtime_endpoint, api_key) = connector_runtime_endpoint_and_api_key(
         cp,
@@ -752,15 +758,16 @@ fn resolve_connector_class_ref(
     connector_namespace: &str,
     class_ref: &resources_proto::ResourceRef,
 ) -> Result<(String, String), String> {
-    if class_ref.name.trim().is_empty() {
+    let class_name = class_ref.name.trim();
+    if class_name.is_empty() {
         return Err("Connector spec.classRef.name is required".to_string());
     }
     let class_namespace = class_ref.namespace.trim();
     if class_namespace.is_empty() {
-        return Ok((connector_namespace.to_string(), class_ref.name.clone()));
+        return Ok((connector_namespace.to_string(), class_name.to_string()));
     }
     if namespace_is_self_or_ancestor(connector_namespace, class_namespace) {
-        return Ok((class_namespace.to_string(), class_ref.name.clone()));
+        return Ok((class_namespace.to_string(), class_name.to_string()));
     }
     Err("Connector spec.classRef.namespace must be empty, match Connector namespace, or name an ancestor namespace".to_string())
 }
