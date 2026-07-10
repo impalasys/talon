@@ -1,3 +1,4 @@
+import gzip
 import json
 import logging
 import threading
@@ -43,6 +44,13 @@ def _cas_response_bytes(response) -> bytes:
         downloaded.raise_for_status()
         return downloaded.content
     return response.data
+
+
+def _cas_tool_result_text(response) -> str:
+    data = _cas_response_bytes(response)
+    if response.object.metadata.get("content_encoding", "").lower() == "gzip":
+        data = gzip.decompress(data)
+    return data.decode("utf-8")
 
 
 def test_single_turn_chat(
@@ -422,7 +430,7 @@ def test_large_tool_result_is_fetched_from_cas(
             key=tool_result.object.key,
         )
     )
-    hydrated = _cas_response_bytes(fetched).decode("utf-8")
+    hydrated = _cas_tool_result_text(fetched)
     assert hydrated.startswith("blocking_lookup result for docs.example.com")
     assert "reference section 079" in hydrated
 
@@ -444,7 +452,7 @@ def test_super_large_tool_result_uses_s3_object_store_on_aws_stack(
         )
 
         fetched = client.cas.GetObject(GetCasObjectRequest(key=tool_result.object.key))
-        hydrated = _cas_response_bytes(fetched).decode("utf-8")
+        hydrated = _cas_tool_result_text(fetched)
         assert hydrated.startswith(
             "blocking_lookup result for super-large-docs.example.com"
         )

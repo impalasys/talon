@@ -391,6 +391,10 @@ function objectRefKey(object: TalonChatObjectRef | undefined): string {
   return typeof object?.key === "string" ? object.key : "";
 }
 
+function objectRefContentEncoding(object: TalonChatObjectRef | undefined): string {
+  return object?.metadata?.content_encoding ?? object?.metadata?.contentEncoding ?? "";
+}
+
 function isToolResultPart(part: any) {
   const type = part?.type ?? part?.partType ?? part?.part_type;
   return type === data.SessionMessagePartType.TOOL_RESULT || type === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT";
@@ -406,6 +410,14 @@ function withToolResultContent(part: any, output: string) {
     nextPart.payloadJson = JSON.stringify(nextPayload);
   }
   return nextPart;
+}
+
+async function gunzipCasObjectData(data: Uint8Array): Promise<Uint8Array> {
+  if (typeof DecompressionStream === "undefined") {
+    throw new Error("gzip CAS object requires DecompressionStream support");
+  }
+  const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream("gzip"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
 async function casObjectData(response: any): Promise<Uint8Array> {
@@ -424,6 +436,14 @@ async function casObjectData(response: any): Promise<Uint8Array> {
   return response.data ?? new Uint8Array();
 }
 
+async function toolResultObjectData(response: any, fallbackObject?: TalonChatObjectRef): Promise<Uint8Array> {
+  const bytes = await casObjectData(response);
+  const object = response?.object ?? response?.objectRef ?? response?.object_ref ?? fallbackObject;
+  return objectRefContentEncoding(object).toLowerCase() === "gzip"
+    ? gunzipCasObjectData(bytes)
+    : bytes;
+}
+
 async function hydrateCasToolResultObjects(
   messages: CopilotMessage[],
   cas?: CasServiceClientLike,
@@ -440,7 +460,7 @@ async function hydrateCasToolResultObjects(
       if (!key) return part;
       try {
         const response = await cas.getObject({ key });
-        const data = await casObjectData(response);
+        const data = await toolResultObjectData(response, objectRefFromPart(part));
         changed = true;
         return withToolResultContent(part, decoder.decode(data));
       } catch (err) {

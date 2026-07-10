@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::{proto, GrpcGatewayHandler};
-use crate::control::cas::{
-    logical_object_bytes, object_ref_from_stored_object, parse_session_object_key, CasStore,
-};
+use crate::control::cas::{object_ref_from_stored_object, parse_session_object_key, CasStore};
 use std::time::Duration;
 
 const CAS_SIGNED_URL_TTL: Duration = Duration::from_secs(5 * 60);
@@ -38,24 +36,16 @@ impl GrpcGatewayHandler {
             .ok_or_else(|| tonic::Status::not_found("CAS object not found"))?;
         crate::require_auth!(read, self, req, &scope.ns, &scope.agent, &scope.session_id);
 
-        // Presigned URLs expose stored bytes directly, so only use them when
-        // the client can treat stored bytes as the logical object payload.
-        let signed = if is_direct_download_safe(&object) {
-            cas.signed_get_url(&body.key, CAS_SIGNED_URL_TTL)
-                .await
-                .map_err(|err| {
-                    tonic::Status::internal(format!("Failed to sign CAS object URL: {err}"))
-                })?
-        } else {
-            None
-        };
+        let signed = cas
+            .signed_get_url(&body.key, CAS_SIGNED_URL_TTL)
+            .await
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to sign CAS object URL: {err}"))
+            })?;
         let (data, signed_url, signed_url_expires_at_unix_seconds) = if let Some(signed) = signed {
             (Vec::new(), signed.url, signed.expires_at_unix_seconds)
         } else {
-            let data = logical_object_bytes(&object, &body.key).map_err(|err| {
-                tonic::Status::internal(format!("Failed to decode CAS object: {err}"))
-            })?;
-            (data, String::new(), 0)
+            (object.bytes.clone(), String::new(), 0)
         };
         Ok(tonic::Response::new(proto::GetCasObjectResponse {
             object: Some(object_ref_from_stored_object(&body.key, &object)),
@@ -64,14 +54,6 @@ impl GrpcGatewayHandler {
             signed_url_expires_at_unix_seconds,
         }))
     }
-}
-
-fn is_direct_download_safe(object: &crate::control::object_store::StoredObject) -> bool {
-    !object
-        .metadata
-        .metadata
-        .get("content_encoding")
-        .is_some_and(|value| !value.trim().is_empty())
 }
 
 #[cfg(test)]
@@ -123,7 +105,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_cas_object_returns_decompressed_tool_result_bytes() {
+    async fn get_cas_object_returns_stored_tool_result_bytes() {
         let objects = Arc::new(InMemoryObjectStore::default());
         let cas = CasStore::new(objects.clone());
         let raw = "large-result".repeat(1024);
@@ -151,7 +133,12 @@ mod tests {
             .unwrap()
             .into_inner();
 
-        assert_eq!(String::from_utf8(response.data).unwrap(), raw);
+        assert_ne!(response.data, raw.as_bytes());
+        assert_eq!(&response.data[..2], &[0x1f, 0x8b]);
+        assert_eq!(
+            response.object.unwrap().metadata["content_encoding"],
+            "gzip"
+        );
     }
 
     #[tokio::test]

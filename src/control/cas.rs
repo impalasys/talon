@@ -4,15 +4,12 @@
 use crate::control::object_store::{ObjectMetadata, ObjectStore, StoredObject};
 use crate::gateway::rpc::data_proto;
 use anyhow::{anyhow, Result};
-use flate2::read::GzDecoder;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
-use std::io::Read;
 use std::sync::Arc;
 use std::time::Duration;
 
 const TOOL_RESULT_MEDIA_TYPE: &str = "text/plain; charset=utf-8";
-const MAX_LOGICAL_OBJECT_BYTES: u64 = 50 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SessionCasScope {
@@ -207,30 +204,6 @@ pub fn parse_session_object_key(key: &str) -> Result<SessionObjectKey> {
         scope: SessionCasScope::new(&ns, "", session_id),
         identity: SessionObjectIdentity::new(message_id, part_id),
     })
-}
-
-pub fn logical_object_bytes(object: &StoredObject, key: &str) -> Result<Vec<u8>> {
-    if object
-        .metadata
-        .metadata
-        .get("content_encoding")
-        .is_some_and(|value| value.eq_ignore_ascii_case("gzip"))
-    {
-        let mut decoder =
-            GzDecoder::new(object.bytes.as_slice()).take(MAX_LOGICAL_OBJECT_BYTES + 1);
-        let mut out = Vec::new();
-        decoder
-            .read_to_end(&mut out)
-            .map_err(|err| anyhow!("CAS object '{key}' has invalid gzip bytes: {err}"))?;
-        if out.len() > MAX_LOGICAL_OBJECT_BYTES as usize {
-            return Err(anyhow!(
-                "CAS object '{key}' expands beyond the maximum supported size"
-            ));
-        }
-        Ok(out)
-    } else {
-        Ok(object.bytes.clone())
-    }
 }
 
 pub fn object_ref_from_stored_object(key: &str, object: &StoredObject) -> data_proto::ObjectRef {
