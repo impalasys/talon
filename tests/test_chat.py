@@ -48,7 +48,8 @@ def _cas_response_bytes(response) -> bytes:
 
 def _cas_tool_result_text(response) -> str:
     data = _cas_response_bytes(response)
-    if response.object.metadata.get("content_encoding", "").lower() == "gzip":
+    metadata = response.metadata or response.object.metadata
+    if metadata.get("content_encoding", "").lower() == "gzip":
         data = gzip.decompress(data)
     return data.decode("utf-8")
 

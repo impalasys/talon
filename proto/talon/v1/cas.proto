@@ -13,8 +13,16 @@ message GetCasObjectRequest {
 }
 
 message GetCasObjectResponse {
-  talon.data.ObjectRef object = 1;
+  // Deprecated: retained for old clients. CAS retrieval returns stored bytes
+  // plus best-effort object attributes; callers already supplied the key and
+  // should not treat this as a newly minted durable ObjectRef.
+  talon.data.ObjectRef object = 1 [deprecated = true];
   bytes data = 2;
   string signed_url = 3;
   int64 signed_url_expires_at_unix_seconds = 4;
+  map<string, string> metadata = 5;
+  string media_type = 6;
+  uint64 size_bytes = 7;
+  string sha256 = 8;
+  string filename = 9;
 }

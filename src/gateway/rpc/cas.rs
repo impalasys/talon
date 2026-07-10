@@ -8,6 +8,7 @@ use std::time::Duration;
 const CAS_SIGNED_URL_TTL: Duration = Duration::from_secs(5 * 60);
 
 impl GrpcGatewayHandler {
+    #[allow(deprecated)]
     pub async fn handle_get_cas_object(
         &self,
         req: tonic::Request<proto::GetCasObjectRequest>,
@@ -47,11 +48,17 @@ impl GrpcGatewayHandler {
         } else {
             (object.bytes.clone(), String::new(), 0)
         };
+        let object_ref = object_ref_from_stored_object(&body.key, &object);
         Ok(tonic::Response::new(proto::GetCasObjectResponse {
-            object: Some(object_ref_from_stored_object(&body.key, &object)),
+            object: Some(object_ref.clone()),
             data,
             signed_url,
             signed_url_expires_at_unix_seconds,
+            metadata: object_ref.metadata,
+            media_type: object_ref.media_type,
+            size_bytes: object_ref.size_bytes,
+            sha256: object_ref.sha256,
+            filename: object_ref.filename,
         }))
     }
 }
@@ -101,7 +108,8 @@ mod tests {
             .into_inner();
 
         assert_eq!(response.data, b"hello");
-        assert_eq!(response.object.as_ref().unwrap().key, object.key);
+        assert_eq!(response.media_type, object.media_type);
+        assert_eq!(response.size_bytes, object.size_bytes);
     }
 
     #[tokio::test]
@@ -135,10 +143,7 @@ mod tests {
 
         assert_ne!(response.data, raw.as_bytes());
         assert_eq!(&response.data[..2], &[0x1f, 0x8b]);
-        assert_eq!(
-            response.object.unwrap().metadata["content_encoding"],
-            "gzip"
-        );
+        assert_eq!(response.metadata["content_encoding"], "gzip");
     }
 
     #[tokio::test]

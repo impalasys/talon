@@ -546,19 +546,41 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.data.ObjectRef object = 1;</code>
+     * <pre>
+     * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+     * plus best-effort object attributes; callers already supplied the key and
+     * should not treat this as a newly minted durable ObjectRef.
+     * </pre>
+     *
+     * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
+     * @deprecated talon.v1.GetCasObjectResponse.object is deprecated.
+     *     See proto/talon/v1/cas.proto;l=18
      * @return Whether the object field is set.
      */
-    boolean hasObject();
+    @java.lang.Deprecated boolean hasObject();
     /**
-     * <code>.talon.data.ObjectRef object = 1;</code>
+     * <pre>
+     * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+     * plus best-effort object attributes; callers already supplied the key and
+     * should not treat this as a newly minted durable ObjectRef.
+     * </pre>
+     *
+     * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
+     * @deprecated talon.v1.GetCasObjectResponse.object is deprecated.
+     *     See proto/talon/v1/cas.proto;l=18
      * @return The object.
      */
-    talon.data.Data.ObjectRef getObject();
+    @java.lang.Deprecated talon.data.Data.ObjectRef getObject();
     /**
-     * <code>.talon.data.ObjectRef object = 1;</code>
+     * <pre>
+     * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+     * plus best-effort object attributes; callers already supplied the key and
+     * should not treat this as a newly minted durable ObjectRef.
+     * </pre>
+     *
+     * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
      */
-    talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder();
+    @java.lang.Deprecated talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder();
 
     /**
      * <code>bytes data = 2;</code>
@@ -583,6 +605,82 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
      * @return The signedUrlExpiresAtUnixSeconds.
      */
     long getSignedUrlExpiresAtUnixSeconds();
+
+    /**
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    int getMetadataCount();
+    /**
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    boolean containsMetadata(
+        java.lang.String key);
+    /**
+     * Use {@link #getMetadataMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getMetadata();
+    /**
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getMetadataMap();
+    /**
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    /* nullable */
+java.lang.String getMetadataOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue);
+    /**
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    java.lang.String getMetadataOrThrow(
+        java.lang.String key);
+
+    /**
+     * <code>string media_type = 6;</code>
+     * @return The mediaType.
+     */
+    java.lang.String getMediaType();
+    /**
+     * <code>string media_type = 6;</code>
+     * @return The bytes for mediaType.
+     */
+    com.google.protobuf.ByteString
+        getMediaTypeBytes();
+
+    /**
+     * <code>uint64 size_bytes = 7;</code>
+     * @return The sizeBytes.
+     */
+    long getSizeBytes();
+
+    /**
+     * <code>string sha256 = 8;</code>
+     * @return The sha256.
+     */
+    java.lang.String getSha256();
+    /**
+     * <code>string sha256 = 8;</code>
+     * @return The bytes for sha256.
+     */
+    com.google.protobuf.ByteString
+        getSha256Bytes();
+
+    /**
+     * <code>string filename = 9;</code>
+     * @return The filename.
+     */
+    java.lang.String getFilename();
+    /**
+     * <code>string filename = 9;</code>
+     * @return The bytes for filename.
+     */
+    com.google.protobuf.ByteString
+        getFilenameBytes();
   }
   /**
    * Protobuf type {@code talon.v1.GetCasObjectResponse}
@@ -608,6 +706,9 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
     private GetCasObjectResponse() {
       data_ = com.google.protobuf.ByteString.EMPTY;
       signedUrl_ = "";
+      mediaType_ = "";
+      sha256_ = "";
+      filename_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -620,6 +721,18 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       return talon.v1.Cas.internal_static_talon_v1_GetCasObjectResponse_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
+    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+        int number) {
+      switch (number) {
+        case 5:
+          return internalGetMetadata();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
@@ -632,26 +745,48 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
     public static final int OBJECT_FIELD_NUMBER = 1;
     private talon.data.Data.ObjectRef object_;
     /**
-     * <code>.talon.data.ObjectRef object = 1;</code>
+     * <pre>
+     * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+     * plus best-effort object attributes; callers already supplied the key and
+     * should not treat this as a newly minted durable ObjectRef.
+     * </pre>
+     *
+     * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
+     * @deprecated talon.v1.GetCasObjectResponse.object is deprecated.
+     *     See proto/talon/v1/cas.proto;l=18
      * @return Whether the object field is set.
      */
     @java.lang.Override
-    public boolean hasObject() {
+    @java.lang.Deprecated public boolean hasObject() {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.data.ObjectRef object = 1;</code>
+     * <pre>
+     * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+     * plus best-effort object attributes; callers already supplied the key and
+     * should not treat this as a newly minted durable ObjectRef.
+     * </pre>
+     *
+     * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
+     * @deprecated talon.v1.GetCasObjectResponse.object is deprecated.
+     *     See proto/talon/v1/cas.proto;l=18
      * @return The object.
      */
     @java.lang.Override
-    public talon.data.Data.ObjectRef getObject() {
+    @java.lang.Deprecated public talon.data.Data.ObjectRef getObject() {
       return object_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : object_;
     }
     /**
-     * <code>.talon.data.ObjectRef object = 1;</code>
+     * <pre>
+     * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+     * plus best-effort object attributes; callers already supplied the key and
+     * should not treat this as a newly minted durable ObjectRef.
+     * </pre>
+     *
+     * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
      */
     @java.lang.Override
-    public talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder() {
+    @java.lang.Deprecated public talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder() {
       return object_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : object_;
     }
 
@@ -716,6 +851,213 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       return signedUrlExpiresAtUnixSeconds_;
     }
 
+    public static final int METADATA_FIELD_NUMBER = 5;
+    private static final class MetadataDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  talon.v1.Cas.internal_static_talon_v1_GetCasObjectResponse_MetadataEntry_descriptor,
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    @SuppressWarnings("serial")
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> metadata_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetMetadata() {
+      if (metadata_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            MetadataDefaultEntryHolder.defaultEntry);
+      }
+      return metadata_;
+    }
+    public int getMetadataCount() {
+      return internalGetMetadata().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    @java.lang.Override
+    public boolean containsMetadata(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetMetadata().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getMetadataMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getMetadata() {
+      return getMetadataMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
+      return internalGetMetadata().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+java.lang.String getMetadataOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetMetadata().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     */
+    @java.lang.Override
+    public java.lang.String getMetadataOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetMetadata().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public static final int MEDIA_TYPE_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object mediaType_ = "";
+    /**
+     * <code>string media_type = 6;</code>
+     * @return The mediaType.
+     */
+    @java.lang.Override
+    public java.lang.String getMediaType() {
+      java.lang.Object ref = mediaType_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        mediaType_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string media_type = 6;</code>
+     * @return The bytes for mediaType.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getMediaTypeBytes() {
+      java.lang.Object ref = mediaType_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        mediaType_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SIZE_BYTES_FIELD_NUMBER = 7;
+    private long sizeBytes_ = 0L;
+    /**
+     * <code>uint64 size_bytes = 7;</code>
+     * @return The sizeBytes.
+     */
+    @java.lang.Override
+    public long getSizeBytes() {
+      return sizeBytes_;
+    }
+
+    public static final int SHA256_FIELD_NUMBER = 8;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sha256_ = "";
+    /**
+     * <code>string sha256 = 8;</code>
+     * @return The sha256.
+     */
+    @java.lang.Override
+    public java.lang.String getSha256() {
+      java.lang.Object ref = sha256_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sha256_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string sha256 = 8;</code>
+     * @return The bytes for sha256.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSha256Bytes() {
+      java.lang.Object ref = sha256_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sha256_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int FILENAME_FIELD_NUMBER = 9;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object filename_ = "";
+    /**
+     * <code>string filename = 9;</code>
+     * @return The filename.
+     */
+    @java.lang.Override
+    public java.lang.String getFilename() {
+      java.lang.Object ref = filename_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        filename_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string filename = 9;</code>
+     * @return The bytes for filename.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getFilenameBytes() {
+      java.lang.Object ref = filename_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        filename_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -742,6 +1084,24 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       if (signedUrlExpiresAtUnixSeconds_ != 0L) {
         output.writeInt64(4, signedUrlExpiresAtUnixSeconds_);
       }
+      com.google.protobuf.GeneratedMessage
+        .serializeStringMapTo(
+          output,
+          internalGetMetadata(),
+          MetadataDefaultEntryHolder.defaultEntry,
+          5);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, mediaType_);
+      }
+      if (sizeBytes_ != 0L) {
+        output.writeUInt64(7, sizeBytes_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sha256_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, sha256_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(filename_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 9, filename_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -765,6 +1125,29 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       if (signedUrlExpiresAtUnixSeconds_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(4, signedUrlExpiresAtUnixSeconds_);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetMetadata().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        metadata__ = MetadataDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .buildPartial();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(5, metadata__);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, mediaType_);
+      }
+      if (sizeBytes_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(7, sizeBytes_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sha256_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, sha256_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(filename_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(9, filename_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -792,6 +1175,16 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
           .equals(other.getSignedUrl())) return false;
       if (getSignedUrlExpiresAtUnixSeconds()
           != other.getSignedUrlExpiresAtUnixSeconds()) return false;
+      if (!internalGetMetadata().equals(
+          other.internalGetMetadata())) return false;
+      if (!getMediaType()
+          .equals(other.getMediaType())) return false;
+      if (getSizeBytes()
+          != other.getSizeBytes()) return false;
+      if (!getSha256()
+          .equals(other.getSha256())) return false;
+      if (!getFilename()
+          .equals(other.getFilename())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -814,6 +1207,19 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       hash = (37 * hash) + SIGNED_URL_EXPIRES_AT_UNIX_SECONDS_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getSignedUrlExpiresAtUnixSeconds());
+      if (!internalGetMetadata().getMap().isEmpty()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetMetadata().hashCode();
+      }
+      hash = (37 * hash) + MEDIA_TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getMediaType().hashCode();
+      hash = (37 * hash) + SIZE_BYTES_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getSizeBytes());
+      hash = (37 * hash) + SHA256_FIELD_NUMBER;
+      hash = (53 * hash) + getSha256().hashCode();
+      hash = (37 * hash) + FILENAME_FIELD_NUMBER;
+      hash = (53 * hash) + getFilename().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -923,6 +1329,28 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         return talon.v1.Cas.internal_static_talon_v1_GetCasObjectResponse_descriptor;
       }
 
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 5:
+            return internalGetMetadata();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 5:
+            return internalGetMutableMetadata();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
@@ -959,6 +1387,11 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         data_ = com.google.protobuf.ByteString.EMPTY;
         signedUrl_ = "";
         signedUrlExpiresAtUnixSeconds_ = 0L;
+        internalGetMutableMetadata().clear();
+        mediaType_ = "";
+        sizeBytes_ = 0L;
+        sha256_ = "";
+        filename_ = "";
         return this;
       }
 
@@ -1008,6 +1441,22 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000008) != 0)) {
           result.signedUrlExpiresAtUnixSeconds_ = signedUrlExpiresAtUnixSeconds_;
         }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.metadata_ = internalGetMetadata();
+          result.metadata_.makeImmutable();
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.mediaType_ = mediaType_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.sizeBytes_ = sizeBytes_;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.sha256_ = sha256_;
+        }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.filename_ = filename_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -1036,6 +1485,27 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         }
         if (other.getSignedUrlExpiresAtUnixSeconds() != 0L) {
           setSignedUrlExpiresAtUnixSeconds(other.getSignedUrlExpiresAtUnixSeconds());
+        }
+        internalGetMutableMetadata().mergeFrom(
+            other.internalGetMetadata());
+        bitField0_ |= 0x00000010;
+        if (!other.getMediaType().isEmpty()) {
+          mediaType_ = other.mediaType_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        if (other.getSizeBytes() != 0L) {
+          setSizeBytes(other.getSizeBytes());
+        }
+        if (!other.getSha256().isEmpty()) {
+          sha256_ = other.sha256_;
+          bitField0_ |= 0x00000080;
+          onChanged();
+        }
+        if (!other.getFilename().isEmpty()) {
+          filename_ = other.filename_;
+          bitField0_ |= 0x00000100;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -1085,6 +1555,35 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000008;
                 break;
               } // case 32
+              case 42: {
+                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                metadata__ = input.readMessage(
+                    MetadataDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                internalGetMutableMetadata().getMutableMap().put(
+                    metadata__.getKey(), metadata__.getValue());
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 50: {
+                mediaType_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
+              case 56: {
+                sizeBytes_ = input.readUInt64();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 56
+              case 66: {
+                sha256_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 66
+              case 74: {
+                filename_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 74
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1106,17 +1605,33 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
       private com.google.protobuf.SingleFieldBuilder<
           talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder> objectBuilder_;
       /**
-       * <code>.talon.data.ObjectRef object = 1;</code>
+       * <pre>
+       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+       * plus best-effort object attributes; callers already supplied the key and
+       * should not treat this as a newly minted durable ObjectRef.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
+       * @deprecated talon.v1.GetCasObjectResponse.object is deprecated.
+       *     See proto/talon/v1/cas.proto;l=18
        * @return Whether the object field is set.
        */
-      public boolean hasObject() {
+      @java.lang.Deprecated public boolean hasObject() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.data.ObjectRef object = 1;</code>
+       * <pre>
+       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+       * plus best-effort object attributes; callers already supplied the key and
+       * should not treat this as a newly minted durable ObjectRef.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
+       * @deprecated talon.v1.GetCasObjectResponse.object is deprecated.
+       *     See proto/talon/v1/cas.proto;l=18
        * @return The object.
        */
-      public talon.data.Data.ObjectRef getObject() {
+      @java.lang.Deprecated public talon.data.Data.ObjectRef getObject() {
         if (objectBuilder_ == null) {
           return object_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : object_;
         } else {
@@ -1124,9 +1639,15 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>.talon.data.ObjectRef object = 1;</code>
+       * <pre>
+       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+       * plus best-effort object attributes; callers already supplied the key and
+       * should not treat this as a newly minted durable ObjectRef.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
        */
-      public Builder setObject(talon.data.Data.ObjectRef value) {
+      @java.lang.Deprecated public Builder setObject(talon.data.Data.ObjectRef value) {
         if (objectBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -1140,9 +1661,15 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.data.ObjectRef object = 1;</code>
+       * <pre>
+       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+       * plus best-effort object attributes; callers already supplied the key and
+       * should not treat this as a newly minted durable ObjectRef.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
        */
-      public Builder setObject(
+      @java.lang.Deprecated public Builder setObject(
           talon.data.Data.ObjectRef.Builder builderForValue) {
         if (objectBuilder_ == null) {
           object_ = builderForValue.build();
@@ -1154,9 +1681,15 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.data.ObjectRef object = 1;</code>
+       * <pre>
+       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+       * plus best-effort object attributes; callers already supplied the key and
+       * should not treat this as a newly minted durable ObjectRef.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
        */
-      public Builder mergeObject(talon.data.Data.ObjectRef value) {
+      @java.lang.Deprecated public Builder mergeObject(talon.data.Data.ObjectRef value) {
         if (objectBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             object_ != null &&
@@ -1175,9 +1708,15 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.data.ObjectRef object = 1;</code>
+       * <pre>
+       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+       * plus best-effort object attributes; callers already supplied the key and
+       * should not treat this as a newly minted durable ObjectRef.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
        */
-      public Builder clearObject() {
+      @java.lang.Deprecated public Builder clearObject() {
         bitField0_ = (bitField0_ & ~0x00000001);
         object_ = null;
         if (objectBuilder_ != null) {
@@ -1188,17 +1727,29 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.data.ObjectRef object = 1;</code>
+       * <pre>
+       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+       * plus best-effort object attributes; callers already supplied the key and
+       * should not treat this as a newly minted durable ObjectRef.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
        */
-      public talon.data.Data.ObjectRef.Builder getObjectBuilder() {
+      @java.lang.Deprecated public talon.data.Data.ObjectRef.Builder getObjectBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetObjectFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.data.ObjectRef object = 1;</code>
+       * <pre>
+       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+       * plus best-effort object attributes; callers already supplied the key and
+       * should not treat this as a newly minted durable ObjectRef.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
        */
-      public talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder() {
+      @java.lang.Deprecated public talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder() {
         if (objectBuilder_ != null) {
           return objectBuilder_.getMessageOrBuilder();
         } else {
@@ -1207,7 +1758,13 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>.talon.data.ObjectRef object = 1;</code>
+       * <pre>
+       * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+       * plus best-effort object attributes; callers already supplied the key and
+       * should not treat this as a newly minted durable ObjectRef.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object = 1 [deprecated = true];</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>
@@ -1359,6 +1916,381 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> metadata_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMetadata() {
+        if (metadata_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              MetadataDefaultEntryHolder.defaultEntry);
+        }
+        return metadata_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMutableMetadata() {
+        if (metadata_ == null) {
+          metadata_ = com.google.protobuf.MapField.newMapField(
+              MetadataDefaultEntryHolder.defaultEntry);
+        }
+        if (!metadata_.isMutable()) {
+          metadata_ = metadata_.copy();
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return metadata_;
+      }
+      public int getMetadataCount() {
+        return internalGetMetadata().getMap().size();
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      @java.lang.Override
+      public boolean containsMetadata(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        return internalGetMetadata().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getMetadataMap()} instead.
+       */
+      @java.lang.Override
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getMetadata() {
+        return getMetadataMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      @java.lang.Override
+      public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
+        return internalGetMetadata().getMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      @java.lang.Override
+      public /* nullable */
+java.lang.String getMetadataOrDefault(
+          java.lang.String key,
+          /* nullable */
+java.lang.String defaultValue) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetMetadata().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      @java.lang.Override
+      public java.lang.String getMetadataOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetMetadata().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+      public Builder clearMetadata() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        internalGetMutableMetadata().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      public Builder removeMetadata(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        internalGetMutableMetadata().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+          getMutableMetadata() {
+        bitField0_ |= 0x00000010;
+        return internalGetMutableMetadata().getMutableMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      public Builder putMetadata(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        if (value == null) { throw new NullPointerException("map value"); }
+        internalGetMutableMetadata().getMutableMap()
+            .put(key, value);
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 5;</code>
+       */
+      public Builder putAllMetadata(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableMetadata().getMutableMap()
+            .putAll(values);
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+
+      private java.lang.Object mediaType_ = "";
+      /**
+       * <code>string media_type = 6;</code>
+       * @return The mediaType.
+       */
+      public java.lang.String getMediaType() {
+        java.lang.Object ref = mediaType_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          mediaType_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string media_type = 6;</code>
+       * @return The bytes for mediaType.
+       */
+      public com.google.protobuf.ByteString
+          getMediaTypeBytes() {
+        java.lang.Object ref = mediaType_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          mediaType_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string media_type = 6;</code>
+       * @param value The mediaType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMediaType(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        mediaType_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string media_type = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMediaType() {
+        mediaType_ = getDefaultInstance().getMediaType();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string media_type = 6;</code>
+       * @param value The bytes for mediaType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMediaTypeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        mediaType_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private long sizeBytes_ ;
+      /**
+       * <code>uint64 size_bytes = 7;</code>
+       * @return The sizeBytes.
+       */
+      @java.lang.Override
+      public long getSizeBytes() {
+        return sizeBytes_;
+      }
+      /**
+       * <code>uint64 size_bytes = 7;</code>
+       * @param value The sizeBytes to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSizeBytes(long value) {
+
+        sizeBytes_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 size_bytes = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSizeBytes() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        sizeBytes_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object sha256_ = "";
+      /**
+       * <code>string sha256 = 8;</code>
+       * @return The sha256.
+       */
+      public java.lang.String getSha256() {
+        java.lang.Object ref = sha256_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sha256_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string sha256 = 8;</code>
+       * @return The bytes for sha256.
+       */
+      public com.google.protobuf.ByteString
+          getSha256Bytes() {
+        java.lang.Object ref = sha256_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sha256_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string sha256 = 8;</code>
+       * @param value The sha256 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSha256(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sha256_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string sha256 = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSha256() {
+        sha256_ = getDefaultInstance().getSha256();
+        bitField0_ = (bitField0_ & ~0x00000080);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string sha256 = 8;</code>
+       * @param value The bytes for sha256 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSha256Bytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sha256_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object filename_ = "";
+      /**
+       * <code>string filename = 9;</code>
+       * @return The filename.
+       */
+      public java.lang.String getFilename() {
+        java.lang.Object ref = filename_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          filename_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string filename = 9;</code>
+       * @return The bytes for filename.
+       */
+      public com.google.protobuf.ByteString
+          getFilenameBytes() {
+        java.lang.Object ref = filename_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          filename_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string filename = 9;</code>
+       * @param value The filename to set.
+       * @return This builder for chaining.
+       */
+      public Builder setFilename(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        filename_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string filename = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearFilename() {
+        filename_ = getDefaultInstance().getFilename();
+        bitField0_ = (bitField0_ & ~0x00000100);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string filename = 9;</code>
+       * @param value The bytes for filename to set.
+       * @return This builder for chaining.
+       */
+      public Builder setFilenameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        filename_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.v1.GetCasObjectResponse)
     }
 
@@ -1420,6 +2352,11 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_v1_GetCasObjectResponse_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_GetCasObjectResponse_MetadataEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_GetCasObjectResponse_MetadataEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -1431,13 +2368,18 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
     java.lang.String[] descriptorData = {
       "\n\030proto/talon/v1/cas.proto\022\010talon.v1\032\025pr" +
       "oto/data/data.proto\"\"\n\023GetCasObjectReque" +
-      "st\022\013\n\003key\030\001 \001(\t\"\213\001\n\024GetCasObjectResponse" +
-      "\022%\n\006object\030\001 \001(\0132\025.talon.data.ObjectRef\022" +
-      "\014\n\004data\030\002 \001(\014\022\022\n\nsigned_url\030\003 \001(\t\022*\n\"sig" +
-      "ned_url_expires_at_unix_seconds\030\004 \001(\0032X\n" +
-      "\nCasService\022J\n\tGetObject\022\035.talon.v1.GetC" +
-      "asObjectRequest\032\036.talon.v1.GetCasObjectR" +
-      "esponseb\006proto3"
+      "st\022\013\n\003key\030\001 \001(\t\"\312\002\n\024GetCasObjectResponse" +
+      "\022)\n\006object\030\001 \001(\0132\025.talon.data.ObjectRefB" +
+      "\002\030\001\022\014\n\004data\030\002 \001(\014\022\022\n\nsigned_url\030\003 \001(\t\022*\n" +
+      "\"signed_url_expires_at_unix_seconds\030\004 \001(" +
+      "\003\022>\n\010metadata\030\005 \003(\0132,.talon.v1.GetCasObj" +
+      "ectResponse.MetadataEntry\022\022\n\nmedia_type\030" +
+      "\006 \001(\t\022\022\n\nsize_bytes\030\007 \001(\004\022\016\n\006sha256\030\010 \001(" +
+      "\t\022\020\n\010filename\030\t \001(\t\032/\n\rMetadataEntry\022\013\n\003" +
+      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\0012X\n\nCasServi" +
+      "ce\022J\n\tGetObject\022\035.talon.v1.GetCasObjectR" +
+      "equest\032\036.talon.v1.GetCasObjectResponseb\006" +
+      "proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -1455,7 +2397,13 @@ public final class Cas extends com.google.protobuf.GeneratedFile {
     internal_static_talon_v1_GetCasObjectResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_GetCasObjectResponse_descriptor,
-        new java.lang.String[] { "Object", "Data", "SignedUrl", "SignedUrlExpiresAtUnixSeconds", });
+        new java.lang.String[] { "Object", "Data", "SignedUrl", "SignedUrlExpiresAtUnixSeconds", "Metadata", "MediaType", "SizeBytes", "Sha256", "Filename", });
+    internal_static_talon_v1_GetCasObjectResponse_MetadataEntry_descriptor =
+      internal_static_talon_v1_GetCasObjectResponse_descriptor.getNestedType(0);
+    internal_static_talon_v1_GetCasObjectResponse_MetadataEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_GetCasObjectResponse_MetadataEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
     descriptor.resolveAllFeaturesImmutable();
     talon.data.Data.getDescriptor();
   }

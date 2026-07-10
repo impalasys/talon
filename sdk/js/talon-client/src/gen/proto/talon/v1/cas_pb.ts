@@ -49,7 +49,12 @@ export class GetCasObjectRequest extends Message<GetCasObjectRequest> {
  */
 export class GetCasObjectResponse extends Message<GetCasObjectResponse> {
   /**
-   * @generated from field: talon.data.ObjectRef object = 1;
+   * Deprecated: retained for old clients. CAS retrieval returns stored bytes
+   * plus best-effort object attributes; callers already supplied the key and
+   * should not treat this as a newly minted durable ObjectRef.
+   *
+   * @generated from field: talon.data.ObjectRef object = 1 [deprecated = true];
+   * @deprecated
    */
   object?: ObjectRef;
 
@@ -68,6 +73,31 @@ export class GetCasObjectResponse extends Message<GetCasObjectResponse> {
    */
   signedUrlExpiresAtUnixSeconds = protoInt64.zero;
 
+  /**
+   * @generated from field: map<string, string> metadata = 5;
+   */
+  metadata: { [key: string]: string } = {};
+
+  /**
+   * @generated from field: string media_type = 6;
+   */
+  mediaType = "";
+
+  /**
+   * @generated from field: uint64 size_bytes = 7;
+   */
+  sizeBytes = protoInt64.zero;
+
+  /**
+   * @generated from field: string sha256 = 8;
+   */
+  sha256 = "";
+
+  /**
+   * @generated from field: string filename = 9;
+   */
+  filename = "";
+
   constructor(data?: PartialMessage<GetCasObjectResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -80,6 +110,11 @@ export class GetCasObjectResponse extends Message<GetCasObjectResponse> {
     { no: 2, name: "data", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
     { no: 3, name: "signed_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "signed_url_expires_at_unix_seconds", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 5, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 6, name: "media_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 8, name: "sha256", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "filename", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCasObjectResponse {

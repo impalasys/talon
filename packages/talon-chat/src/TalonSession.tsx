@@ -438,8 +438,11 @@ async function casObjectData(response: any): Promise<Uint8Array> {
 
 async function toolResultObjectData(response: any, fallbackObject?: TalonChatObjectRef): Promise<Uint8Array> {
   const bytes = await casObjectData(response);
-  const object = response?.object ?? response?.objectRef ?? response?.object_ref ?? fallbackObject;
-  return objectRefContentEncoding(object).toLowerCase() === "gzip"
+  const responseEncoding = response?.metadata?.content_encoding ?? response?.metadata?.contentEncoding;
+  const encoding = typeof responseEncoding === "string"
+    ? responseEncoding
+    : objectRefContentEncoding(response?.object ?? response?.objectRef ?? response?.object_ref ?? fallbackObject);
+  return encoding.toLowerCase() === "gzip"
     ? gunzipCasObjectData(bytes)
     : bytes;
 }

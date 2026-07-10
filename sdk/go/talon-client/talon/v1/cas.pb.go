@@ -67,11 +67,21 @@ func (x *GetCasObjectRequest) GetKey() string {
 }
 
 type GetCasObjectResponse struct {
-	state                         protoimpl.MessageState `protogen:"open.v1"`
-	Object                        *data.ObjectRef        `protobuf:"bytes,1,opt,name=object,proto3" json:"object,omitempty"`
-	Data                          []byte                 `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
-	SignedUrl                     string                 `protobuf:"bytes,3,opt,name=signed_url,json=signedUrl,proto3" json:"signed_url,omitempty"`
-	SignedUrlExpiresAtUnixSeconds int64                  `protobuf:"varint,4,opt,name=signed_url_expires_at_unix_seconds,json=signedUrlExpiresAtUnixSeconds,proto3" json:"signed_url_expires_at_unix_seconds,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Deprecated: retained for old clients. CAS retrieval returns stored bytes
+	// plus best-effort object attributes; callers already supplied the key and
+	// should not treat this as a newly minted durable ObjectRef.
+	//
+	// Deprecated: Marked as deprecated in proto/talon/v1/cas.proto.
+	Object                        *data.ObjectRef   `protobuf:"bytes,1,opt,name=object,proto3" json:"object,omitempty"`
+	Data                          []byte            `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	SignedUrl                     string            `protobuf:"bytes,3,opt,name=signed_url,json=signedUrl,proto3" json:"signed_url,omitempty"`
+	SignedUrlExpiresAtUnixSeconds int64             `protobuf:"varint,4,opt,name=signed_url_expires_at_unix_seconds,json=signedUrlExpiresAtUnixSeconds,proto3" json:"signed_url_expires_at_unix_seconds,omitempty"`
+	Metadata                      map[string]string `protobuf:"bytes,5,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	MediaType                     string            `protobuf:"bytes,6,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
+	SizeBytes                     uint64            `protobuf:"varint,7,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
+	Sha256                        string            `protobuf:"bytes,8,opt,name=sha256,proto3" json:"sha256,omitempty"`
+	Filename                      string            `protobuf:"bytes,9,opt,name=filename,proto3" json:"filename,omitempty"`
 	unknownFields                 protoimpl.UnknownFields
 	sizeCache                     protoimpl.SizeCache
 }
@@ -106,6 +116,7 @@ func (*GetCasObjectResponse) Descriptor() ([]byte, []int) {
 	return file_proto_talon_v1_cas_proto_rawDescGZIP(), []int{1}
 }
 
+// Deprecated: Marked as deprecated in proto/talon/v1/cas.proto.
 func (x *GetCasObjectResponse) GetObject() *data.ObjectRef {
 	if x != nil {
 		return x.Object
@@ -134,19 +145,64 @@ func (x *GetCasObjectResponse) GetSignedUrlExpiresAtUnixSeconds() int64 {
 	return 0
 }
 
+func (x *GetCasObjectResponse) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *GetCasObjectResponse) GetMediaType() string {
+	if x != nil {
+		return x.MediaType
+	}
+	return ""
+}
+
+func (x *GetCasObjectResponse) GetSizeBytes() uint64 {
+	if x != nil {
+		return x.SizeBytes
+	}
+	return 0
+}
+
+func (x *GetCasObjectResponse) GetSha256() string {
+	if x != nil {
+		return x.Sha256
+	}
+	return ""
+}
+
+func (x *GetCasObjectResponse) GetFilename() string {
+	if x != nil {
+		return x.Filename
+	}
+	return ""
+}
+
 var File_proto_talon_v1_cas_proto protoreflect.FileDescriptor
 
 const file_proto_talon_v1_cas_proto_rawDesc = "" +
 	"\n" +
 	"\x18proto/talon/v1/cas.proto\x12\btalon.v1\x1a\x15proto/data/data.proto\"'\n" +
 	"\x13GetCasObjectRequest\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\"\xc3\x01\n" +
-	"\x14GetCasObjectResponse\x12-\n" +
-	"\x06object\x18\x01 \x01(\v2\x15.talon.data.ObjectRefR\x06object\x12\x12\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\"\xc0\x03\n" +
+	"\x14GetCasObjectResponse\x121\n" +
+	"\x06object\x18\x01 \x01(\v2\x15.talon.data.ObjectRefB\x02\x18\x01R\x06object\x12\x12\n" +
 	"\x04data\x18\x02 \x01(\fR\x04data\x12\x1d\n" +
 	"\n" +
 	"signed_url\x18\x03 \x01(\tR\tsignedUrl\x12I\n" +
-	"\"signed_url_expires_at_unix_seconds\x18\x04 \x01(\x03R\x1dsignedUrlExpiresAtUnixSeconds2X\n" +
+	"\"signed_url_expires_at_unix_seconds\x18\x04 \x01(\x03R\x1dsignedUrlExpiresAtUnixSeconds\x12H\n" +
+	"\bmetadata\x18\x05 \x03(\v2,.talon.v1.GetCasObjectResponse.MetadataEntryR\bmetadata\x12\x1d\n" +
+	"\n" +
+	"media_type\x18\x06 \x01(\tR\tmediaType\x12\x1d\n" +
+	"\n" +
+	"size_bytes\x18\a \x01(\x04R\tsizeBytes\x12\x16\n" +
+	"\x06sha256\x18\b \x01(\tR\x06sha256\x12\x1a\n" +
+	"\bfilename\x18\t \x01(\tR\bfilename\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012X\n" +
 	"\n" +
 	"CasService\x12J\n" +
 	"\tGetObject\x12\x1d.talon.v1.GetCasObjectRequest\x1a\x1e.talon.v1.GetCasObjectResponseb\x06proto3"
@@ -163,21 +219,23 @@ func file_proto_talon_v1_cas_proto_rawDescGZIP() []byte {
 	return file_proto_talon_v1_cas_proto_rawDescData
 }
 
-var file_proto_talon_v1_cas_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_proto_talon_v1_cas_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_proto_talon_v1_cas_proto_goTypes = []any{
 	(*GetCasObjectRequest)(nil),  // 0: talon.v1.GetCasObjectRequest
 	(*GetCasObjectResponse)(nil), // 1: talon.v1.GetCasObjectResponse
-	(*data.ObjectRef)(nil),       // 2: talon.data.ObjectRef
+	nil,                          // 2: talon.v1.GetCasObjectResponse.MetadataEntry
+	(*data.ObjectRef)(nil),       // 3: talon.data.ObjectRef
 }
 var file_proto_talon_v1_cas_proto_depIdxs = []int32{
-	2, // 0: talon.v1.GetCasObjectResponse.object:type_name -> talon.data.ObjectRef
-	0, // 1: talon.v1.CasService.GetObject:input_type -> talon.v1.GetCasObjectRequest
-	1, // 2: talon.v1.CasService.GetObject:output_type -> talon.v1.GetCasObjectResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	3, // 0: talon.v1.GetCasObjectResponse.object:type_name -> talon.data.ObjectRef
+	2, // 1: talon.v1.GetCasObjectResponse.metadata:type_name -> talon.v1.GetCasObjectResponse.MetadataEntry
+	0, // 2: talon.v1.CasService.GetObject:input_type -> talon.v1.GetCasObjectRequest
+	1, // 3: talon.v1.CasService.GetObject:output_type -> talon.v1.GetCasObjectResponse
+	3, // [3:4] is the sub-list for method output_type
+	2, // [2:3] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_proto_talon_v1_cas_proto_init() }
@@ -191,7 +249,7 @@ func file_proto_talon_v1_cas_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_talon_v1_cas_proto_rawDesc), len(file_proto_talon_v1_cas_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
