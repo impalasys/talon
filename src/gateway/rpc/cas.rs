@@ -93,9 +93,7 @@ mod tests {
         let scope = SessionCasScope::new("acme", "agent", "session-1");
         let identity = SessionObjectIdentity::new("message-1", "000001");
         let object = cas
-            .put_tool_result(
-                &scope, &identity, "call-1", "search", b"hello", b"hello", None,
-            )
+            .put_tool_result(&scope, &identity, "call-1", "search", b"hello")
             .await
             .unwrap();
 

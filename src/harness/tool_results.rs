@@ -1,18 +1,16 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::cas::{CasStore, SessionCasScope, SessionObjectIdentity};
+use crate::control::cas::{
+    decode_stored_object_bytes, CasStore, SessionCasScope, SessionObjectIdentity,
+};
 use crate::control::object_store::ObjectStore;
 use crate::gateway::rpc::data_proto;
 use crate::harness::executor::compaction::tool_result_preview;
 use anyhow::{anyhow, Result};
-use flate2::{read::GzDecoder, write::GzEncoder, Compression};
-use std::io::{Read, Write};
 use std::sync::OnceLock;
 
 const DEFAULT_TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
-const MIN_GZIP_SAVINGS_PERCENT: usize = 10;
-const MAX_TOOL_RESULT_OBJECT_BYTES: u64 = 50 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct StoredToolResult {
@@ -48,7 +46,20 @@ pub async fn store_tool_result(
     tool_name: &str,
     result: &str,
 ) -> Result<StoredToolResult> {
-    if result.len() < tool_result_object_threshold_bytes() {
+    let scope = SessionCasScope::new(ns, agent, session_id);
+    let identity = SessionObjectIdentity::new(message_id, part_id);
+    let raw_bytes = result.as_bytes();
+    let object = cas
+        .put_tool_result_if_raw_at_least(
+            &scope,
+            &identity,
+            tool_call_id,
+            tool_name,
+            raw_bytes,
+            tool_result_object_threshold_bytes(),
+        )
+        .await?;
+    let Some(object) = object else {
         let preview = tool_result_preview(result);
         return Ok(StoredToolResult {
             part_id: part_id.to_string(),
@@ -56,23 +67,7 @@ pub async fn store_tool_result(
             preview,
             object: None,
         });
-    }
-
-    let scope = SessionCasScope::new(ns, agent, session_id);
-    let identity = SessionObjectIdentity::new(message_id, part_id);
-    let raw_bytes = result.as_bytes();
-    let (bytes, content_encoding) = compressed_object_bytes(raw_bytes)?;
-    let object = cas
-        .put_tool_result(
-            &scope,
-            &identity,
-            tool_call_id,
-            tool_name,
-            &bytes,
-            raw_bytes,
-            content_encoding,
-        )
-        .await?;
+    };
 
     Ok(StoredToolResult {
         part_id: part_id.to_string(),
@@ -94,16 +89,7 @@ pub async fn hydrate_tool_result(
         .get(&object.key)
         .await?
         .ok_or_else(|| anyhow!("tool result object '{}' is missing", object.key))?;
-    let bytes = if stored
-        .metadata
-        .metadata
-        .get("content_encoding")
-        .is_some_and(|value| value.eq_ignore_ascii_case("gzip"))
-    {
-        gunzip(&stored.bytes, &object.key)?
-    } else {
-        stored.bytes
-    };
+    let bytes = decode_stored_object_bytes(&stored, &object.key)?;
     String::from_utf8(bytes).map_err(|err| {
         anyhow!(
             "tool result object '{}' is not valid UTF-8: {err}",
@@ -135,43 +121,11 @@ fn parse_tool_result_object_threshold_bytes() -> usize {
     }
 }
 
-fn compressed_object_bytes(raw_bytes: &[u8]) -> Result<(Vec<u8>, Option<&'static str>)> {
-    let gzipped = gzip(raw_bytes)?;
-    if (gzipped.len() as u64) * 100
-        < (raw_bytes.len() as u64) * (100 - MIN_GZIP_SAVINGS_PERCENT) as u64
-    {
-        Ok((gzipped, Some("gzip")))
-    } else {
-        Ok((raw_bytes.to_vec(), None))
-    }
-}
-
-fn gzip(raw_bytes: &[u8]) -> Result<Vec<u8>> {
-    let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
-    encoder.write_all(raw_bytes)?;
-    Ok(encoder.finish()?)
-}
-
-fn gunzip(bytes: &[u8], key: &str) -> Result<Vec<u8>> {
-    let mut decoder = GzDecoder::new(bytes).take(MAX_TOOL_RESULT_OBJECT_BYTES + 1);
-    let mut out = Vec::new();
-    decoder
-        .read_to_end(&mut out)
-        .map_err(|err| anyhow!("tool result object '{key}' has invalid gzip bytes: {err}"))?;
-    if out.len() > MAX_TOOL_RESULT_OBJECT_BYTES as usize {
-        return Err(anyhow!(
-            "tool result object '{key}' expands beyond the maximum supported size"
-        ));
-    }
-    Ok(out)
-}
-
 #[cfg(test)]
 mod tests {
     use super::store_tool_result;
     use crate::control::cas::CasStore;
     use crate::control::object_store::{InMemoryObjectStore, ObjectStore};
-    use rand::{Rng, SeedableRng};
     use std::sync::Arc;
 
     #[tokio::test]
@@ -256,18 +210,6 @@ mod tests {
     }
 
     #[test]
-    fn incompressible_bytes_are_kept_raw() {
-        let mut rng = rand::rngs::StdRng::seed_from_u64(42);
-        let raw = (0..2 * 1024)
-            .map(|_| rng.gen_range(0u8..=0xff))
-            .collect::<Vec<_>>();
-        let (bytes, encoding) = super::compressed_object_bytes(&raw).unwrap();
-
-        assert_eq!(bytes, raw);
-        assert!(encoding.is_none());
-    }
-
-    #[test]
     fn object_key_segments_are_sanitized_deterministically() {
         let store = CasStore::new(Arc::new(InMemoryObjectStore::default()));
         assert_eq!(
@@ -299,29 +241,5 @@ mod tests {
 
         let object = result.object.expect("large result should have object ref");
         assert_eq!(object.filename, ".._tool_call.txt");
-    }
-
-    #[tokio::test]
-    async fn corrupt_gzip_object_returns_error() {
-        let store = InMemoryObjectStore::default();
-        let object = store
-            .put(
-                "cas/acme/sessions/session-1/messages/message-1/000001.txt",
-                b"not gzip",
-                crate::control::object_store::ObjectMetadata {
-                    metadata: std::collections::HashMap::from([(
-                        "content_encoding".to_string(),
-                        "gzip".to_string(),
-                    )]),
-                    ..Default::default()
-                },
-            )
-            .await
-            .unwrap();
-
-        let err = super::hydrate_tool_result(&store, Some(&object), "")
-            .await
-            .unwrap_err();
-        assert!(err.to_string().contains("invalid gzip bytes"));
     }
 }
