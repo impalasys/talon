@@ -134,10 +134,6 @@ impl StreamingPartBuffer {
         Ok(Some(self.part(id, content)))
     }
 
-    fn accumulated(&self) -> &str {
-        self.accumulated.as_str()
-    }
-
     fn unclosed_content(&self) -> &str {
         let start = self.durable_bytes.min(self.accumulated.len());
         &self.accumulated[start..]
@@ -406,25 +402,6 @@ impl PubSubSessionSink {
         self.durable_parts.lock().unwrap().push(part);
     }
 
-    fn done_event_text_fallback(&self) -> String {
-        let active_text = self
-            .active_stream_buffer
-            .lock()
-            .unwrap()
-            .as_ref()
-            .filter(|buffer| buffer.part_type == data_proto::SessionMessagePartType::Text)
-            .map(|buffer| buffer.accumulated().to_string());
-        active_text.unwrap_or_else(|| {
-            self.durable_parts
-                .lock()
-                .unwrap()
-                .iter()
-                .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
-                .map(|part| part.content.as_str())
-                .collect::<String>()
-        })
-    }
-
     pub(crate) fn seed_recovered_text_part(&self, content: &str) {
         if content.is_empty() {
             return;
@@ -632,11 +609,11 @@ impl PubSubSessionSink {
                 String::new(),
                 chat_usage_payload_json(&usage),
             ),
-            AgentEvent::Done(reply) => (
+            AgentEvent::Done => (
                 SessionMessagePartEventKind::Done,
                 data_proto::SessionMessagePartType::Text,
                 String::new(),
-                reply,
+                String::new(),
                 String::new(),
             ),
             AgentEvent::Error(err) => (
@@ -1074,7 +1051,6 @@ impl ExecutionSink for PubSubSessionSink {
     async fn on_done(&self) {
         self.flush_active_stream_event_buffer().await;
         // Final KV write (complete message)
-        let reply_for_event = self.done_event_text_fallback();
         let parts = match self.final_message_parts() {
             Ok(parts) => parts,
             Err(err) => {
@@ -1139,7 +1115,7 @@ impl ExecutionSink for PubSubSessionSink {
                         return;
                     }
                     self.publish_reply_index_event().await;
-                    self.publish_event(AgentEvent::Done(reply_for_event)).await;
+                    self.publish_event(AgentEvent::Done).await;
                 } else {
                     self.publish_event(AgentEvent::Error(
                         "Error: failed to mark session submission terminal".to_string(),
@@ -1416,6 +1392,17 @@ mod tests {
     async fn token_events_are_batched_by_time_window() {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        crate::control::ProtoKeyValueStoreExt::set_msg(
+            kv.as_ref(),
+            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &submission,
+        )
+        .await
+        .unwrap();
         let sink = PubSubSessionSink::new_with_token_publish_interval(
             kv.clone(),
             Arc::new(MockPubSub {
@@ -1448,14 +1435,18 @@ mod tests {
             .collect::<Vec<_>>();
 
         assert_eq!(token_events, vec!["hello world".to_string()]);
-
-        let entries = kv.entries.lock().await.clone();
-        let persisted_text = entries
+        let done_event = events
             .iter()
-            .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
-            .flat_map(|message| message.parts)
+            .find(|event| event.kind == SessionMessagePartEventKind::Done as i32)
+            .expect("done event should be published");
+        assert_eq!(event_part(done_event).content, "");
+
+        let final_message = latest_reply_message(kv.as_ref()).await;
+        let persisted_text = final_message
+            .parts
+            .iter()
             .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
-            .map(|part| part.content)
+            .map(|part| part.content.clone())
             .collect::<Vec<_>>();
         assert_eq!(persisted_text, vec!["hello world".to_string()]);
     }

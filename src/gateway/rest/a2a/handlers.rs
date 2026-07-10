@@ -287,14 +287,6 @@ async fn stream_message(
                     let part_type = part.map(|part| part.part_type).unwrap_or_default();
                     let content = part.map(|part| part.content.as_str()).unwrap_or_default();
                     if event.kind == SessionMessagePartEventKind::Done as i32 {
-                        if !stream_artifact_started
-                            && part_type == data_proto::SessionMessagePartType::Text as i32
-                            && !content.is_empty()
-                            && (pending_artifact_text.is_empty()
-                                || content.ends_with(&pending_artifact_text))
-                        {
-                            pending_artifact_text = content.to_string();
-                        }
                         break;
                     } else if event.kind == SessionMessagePartEventKind::Error as i32 {
                         if !pending_artifact_text.is_empty() {

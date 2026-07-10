@@ -109,7 +109,7 @@ pub enum AgentEvent {
     },
     Token(String),
     Usage(ChatUsage),
-    Done(String),
+    Done,
     Error(String),
 }
 
@@ -308,10 +308,7 @@ impl ExecutionSink for CaptureSink {
             .push(AgentEvent::Usage(usage.clone()));
     }
     async fn on_done(&self) {
-        self.events
-            .lock()
-            .unwrap()
-            .push(AgentEvent::Done(String::new()));
+        self.events.lock().unwrap().push(AgentEvent::Done);
     }
     async fn on_error(&self, err: &str) {
         self.events
@@ -1703,10 +1700,7 @@ mod tests {
                 .count(),
             1
         );
-        assert!(matches!(
-            sink.events().last(),
-            Some(AgentEvent::Done(content)) if content.is_empty()
-        ));
+        assert!(matches!(sink.events().last(), Some(AgentEvent::Done)));
     }
 
     #[tokio::test]
@@ -1751,7 +1745,7 @@ mod tests {
                     name: "tool".to_string(),
                     output: "result".to_string(),
                 },
-                AgentEvent::Done(String::new()),
+                AgentEvent::Done,
                 AgentEvent::Error("boom".to_string()),
             ]
         );
