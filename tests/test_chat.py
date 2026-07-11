@@ -1,4 +1,5 @@
 import gzip
+import io
 import json
 import logging
 import threading
@@ -54,7 +55,8 @@ def _cas_tool_result_text(response) -> str:
         or response.metadata.get("content_encoding", "")
     ).lower()
     if encoding == "zstd":
-        data = zstandard.ZstdDecompressor().decompress(data)
+        with zstandard.ZstdDecompressor().stream_reader(io.BytesIO(data)) as reader:
+            data = reader.read()
     elif encoding == "gzip":
         data = gzip.decompress(data)
     return data.decode("utf-8")
@@ -480,7 +482,8 @@ def test_super_large_tool_result_uses_s3_object_store_on_aws_stack(
         )
         assert stored["Body"].read()
         assert stored["Metadata"]["kind"] == "tool_result"
-        assert stored["Metadata"]["session_id"] == _session_id
+        assert f"/sessions/{_session_id}/" in tool_result.object.key
+        assert "session_id" not in stored["Metadata"]
         assert stored["Metadata"]["uncompressed_size_bytes"] == str(
             len(hydrated.encode("utf-8"))
         )

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::{connectors as connector_rpc, data_proto, proto, GrpcGatewayHandler};
-use crate::control::cas::{session_object_key_prefix, SessionCasScope};
+use crate::control::cas::{session_object_key_prefix, SessionCasScope, METADATA_AGENT};
 use crate::control::scheduling;
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
@@ -210,6 +210,7 @@ async fn collect_session_tool_result_object_keys(
                 collect_tool_result_object_key(
                     part.object.as_ref(),
                     &expected_prefix,
+                    agent,
                     &mut keys_to_delete,
                 );
             }
@@ -253,7 +254,7 @@ async fn collect_session_tool_result_object_keys(
                     }
                     _ => None,
                 });
-            collect_tool_result_object_key(object, &expected_prefix, &mut keys_to_delete);
+            collect_tool_result_object_key(object, &expected_prefix, agent, &mut keys_to_delete);
         }
     }
 
@@ -263,6 +264,7 @@ async fn collect_session_tool_result_object_keys(
 fn collect_tool_result_object_key(
     object: Option<&data_proto::ObjectRef>,
     expected_prefix: &str,
+    expected_agent: &str,
     keys_to_delete: &mut HashSet<String>,
 ) {
     let Some(object) = object else {
@@ -274,7 +276,15 @@ fn collect_tool_result_object_key(
         .is_some_and(|kind| kind == "tool_result")
         || object.key.contains("/tool-results/")
         || object.key.starts_with("cas/");
-    if is_tool_result && object.key.starts_with(expected_prefix) && !object.key.trim().is_empty() {
+    let agent_matches = object
+        .metadata
+        .get(METADATA_AGENT)
+        .is_some_and(|agent| agent == expected_agent);
+    if is_tool_result
+        && agent_matches
+        && object.key.starts_with(expected_prefix)
+        && !object.key.trim().is_empty()
+    {
         keys_to_delete.insert(object.key.clone());
     }
 }
@@ -1792,6 +1802,10 @@ mod tests {
             self.inner.get(key).await
         }
 
+        async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
+            self.inner.head(key).await
+        }
+
         async fn delete(&self, _key: &str) -> Result<()> {
             Err(anyhow::anyhow!("delete failed"))
         }
@@ -2064,6 +2078,72 @@ mod tests {
             .gateway
             .objects
             .get(foreign_object_key)
+            .await
+            .unwrap()
+            .is_some());
+    }
+
+    #[tokio::test]
+    async fn delete_session_does_not_remove_tool_result_objects_for_other_agents() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub);
+        let ns = "conic";
+        let agent = "coding";
+        let other_agent = "research";
+        let session_id = "session-1";
+        let message_id = "message-1";
+        let tool_call_id = "tool-1";
+        let object_key = "cas/conic/sessions/session-1/messages/message-1/part-1.txt";
+        seed_session(kv.as_ref(), ns, agent, session_id).await;
+        let object = handler
+            .gateway
+            .objects
+            .put(
+                object_key,
+                b"large tool output",
+                tool_result_metadata(ns, other_agent, session_id, message_id, tool_call_id),
+            )
+            .await
+            .unwrap();
+        kv.set_msg(
+            &keys::session_message(ns, agent, session_id, message_id),
+            &data_proto::SessionMessage {
+                id: message_id.to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 1,
+                labels: Default::default(),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: "part-1".to_string(),
+                    part_type: data_proto::SessionMessagePartType::ToolResult as i32,
+                    content: String::new(),
+                    name: "shell".to_string(),
+                    payload_json: json!({
+                        "tool_call_id": tool_call_id,
+                        "output_object_key": object.key,
+                    })
+                    .to_string(),
+                    created_at: 1,
+                    object: Some(object),
+                }],
+            },
+        )
+        .await
+        .unwrap();
+
+        handler
+            .handle_delete_session(tonic::Request::new(proto::DeleteSessionRequest {
+                ns: ns.to_string(),
+                agent: agent.to_string(),
+                session_id: session_id.to_string(),
+            }))
+            .await
+            .unwrap();
+
+        assert!(handler
+            .gateway
+            .objects
+            .get(object_key)
             .await
             .unwrap()
             .is_some());

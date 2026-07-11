@@ -51,6 +51,7 @@ pub trait ObjectStore: Send + Sync {
         metadata: ObjectMetadata,
     ) -> Result<data_proto::ObjectRef>;
     async fn get(&self, key: &str) -> Result<Option<StoredObject>>;
+    async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>>;
     async fn delete(&self, key: &str) -> Result<()>;
     async fn signed_get_url(
         &self,
@@ -112,6 +113,16 @@ impl ObjectStore for InMemoryObjectStore {
     async fn get(&self, key: &str) -> Result<Option<StoredObject>> {
         validate_key(key)?;
         Ok(self.objects.read().await.get(key).cloned())
+    }
+
+    async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
+        validate_key(key)?;
+        Ok(self
+            .objects
+            .read()
+            .await
+            .get(key)
+            .map(|object| object.metadata.clone()))
     }
 
     async fn delete(&self, key: &str) -> Result<()> {
@@ -197,6 +208,24 @@ impl ObjectStore for LocalFsObjectStore {
         metadata.size_bytes = bytes.len() as u64;
         let metadata = normalize_object_metadata(metadata);
         Ok(Some(StoredObject { bytes, metadata }))
+    }
+
+    async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
+        validate_key(key)?;
+        let data_path = self.data_path(key)?;
+        let metadata_path = self.metadata_path(key)?;
+        let size_bytes = match tokio::fs::metadata(&data_path).await {
+            Ok(metadata) => metadata.len(),
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(err) => return Err(err.into()),
+        };
+        let mut metadata = match tokio::fs::read(&metadata_path).await {
+            Ok(bytes) => serde_json::from_slice::<ObjectMetadata>(&bytes)?,
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => ObjectMetadata::default(),
+            Err(err) => return Err(err.into()),
+        };
+        metadata.size_bytes = size_bytes;
+        Ok(Some(normalize_object_metadata(metadata)))
     }
 
     async fn delete(&self, key: &str) -> Result<()> {
@@ -327,6 +356,29 @@ impl ObjectStore for GcsObjectStore {
         }))
     }
 
+    async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
+        let object_key = self.object_key(key)?;
+        let url = format!(
+            "{}/storage/v1/b/{}/o/{}?alt=media",
+            self.api_base.trim_end_matches('/'),
+            urlencoding::encode(&self.bucket),
+            urlencoding::encode(&object_key)
+        );
+        let response = self
+            .client
+            .head(url)
+            .bearer_auth(self.bearer_token().await?)
+            .send()
+            .await?;
+        if response.status() == StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
+        let response = ensure_success(response, "GCS object metadata fetch").await?;
+        let mut metadata = metadata_from_headers(response.headers());
+        metadata.size_bytes = response.content_length().unwrap_or_default();
+        Ok(Some(metadata))
+    }
+
     async fn delete(&self, key: &str) -> Result<()> {
         let object_key = self.object_key(key)?;
         let url = format!(
@@ -448,6 +500,25 @@ impl ObjectStore for S3ObjectStore {
             },
             bytes,
         }))
+    }
+
+    async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
+        let object_key = self.object_key(key)?;
+        let response = self
+            .client
+            .head_object()
+            .bucket(&self.bucket)
+            .key(object_key)
+            .send()
+            .await;
+        let response = match response {
+            Ok(response) => response,
+            Err(err) if is_s3_head_not_found(&err) => return Ok(None),
+            Err(err) => return Err(err.into()),
+        };
+        let mut metadata = metadata_from_s3_head_response(&response);
+        metadata.size_bytes = response.content_length().unwrap_or_default().max(0) as u64;
+        Ok(Some(metadata))
     }
 
     async fn delete(&self, key: &str) -> Result<()> {
@@ -630,6 +701,52 @@ fn metadata_from_s3_response(
     }
 }
 
+fn metadata_from_s3_head_response(
+    response: &aws_sdk_s3::operation::head_object::HeadObjectOutput,
+) -> ObjectMetadata {
+    let s3_metadata = response.metadata().cloned().unwrap_or_default();
+    let media_type = s3_metadata
+        .get("talon-media-type")
+        .cloned()
+        .or_else(|| response.content_type().map(ToString::to_string))
+        .unwrap_or_default();
+    let sha256 = s3_metadata.get("talon-sha256").cloned().unwrap_or_default();
+    let filename = s3_metadata
+        .get("talon-filename")
+        .cloned()
+        .unwrap_or_default();
+    let content_encoding = s3_metadata
+        .get("talon-content-encoding")
+        .or_else(|| s3_metadata.get(LEGACY_CONTENT_ENCODING_METADATA))
+        .cloned()
+        .unwrap_or_default();
+    let metadata = s3_metadata
+        .iter()
+        .filter_map(|(key, value)| {
+            if matches!(
+                key.as_str(),
+                "talon-media-type"
+                    | "talon-sha256"
+                    | "talon-filename"
+                    | "talon-content-encoding"
+                    | LEGACY_CONTENT_ENCODING_METADATA
+            ) {
+                None
+            } else {
+                Some((key.clone(), value.clone()))
+            }
+        })
+        .collect();
+    ObjectMetadata {
+        media_type,
+        size_bytes: 0,
+        sha256,
+        filename,
+        content_encoding,
+        metadata,
+    }
+}
+
 fn is_s3_not_found(
     err: &aws_sdk_s3::error::SdkError<aws_sdk_s3::operation::get_object::GetObjectError>,
 ) -> bool {
@@ -640,6 +757,14 @@ fn is_s3_not_found(
             .raw_response()
             .map(|response| response.status().as_u16() == 404)
             .unwrap_or(false)
+}
+
+fn is_s3_head_not_found(
+    err: &aws_sdk_s3::error::SdkError<aws_sdk_s3::operation::head_object::HeadObjectError>,
+) -> bool {
+    err.raw_response()
+        .map(|response| response.status().as_u16() == 404)
+        .unwrap_or(false)
 }
 
 fn signed_url_expiry(expires_in: Duration) -> i64 {

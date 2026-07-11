@@ -199,6 +199,18 @@ impl CasStore {
         Ok(Some((scope, object)))
     }
 
+    pub async fn head_session_object_by_key(
+        &self,
+        key: &str,
+    ) -> Result<Option<(SessionCasScope, ObjectMetadata)>> {
+        let parsed = parse_session_object_key(key)?;
+        let Some(metadata) = self.objects.head(key).await? else {
+            return Ok(None);
+        };
+        let scope = session_scope_from_key_and_metadata(&parsed.scope, key, &metadata)?;
+        Ok(Some((scope, metadata)))
+    }
+
     /// Parse, authorize-by-metadata, and load a session object as logical bytes.
     ///
     /// Use this for internal replay/recovery paths that receive only a CAS key.
@@ -284,14 +296,18 @@ pub fn parse_session_object_key(key: &str) -> Result<SessionObjectKey> {
 }
 
 pub fn object_ref_from_stored_object(key: &str, object: &StoredObject) -> data_proto::ObjectRef {
+    object_ref_from_metadata(key, &object.metadata)
+}
+
+pub fn object_ref_from_metadata(key: &str, metadata: &ObjectMetadata) -> data_proto::ObjectRef {
     data_proto::ObjectRef {
         key: key.to_string(),
-        media_type: object.metadata.media_type.clone(),
-        size_bytes: object.metadata.size_bytes,
-        sha256: object.metadata.sha256.clone(),
-        filename: object.metadata.filename.clone(),
-        content_encoding: object.metadata.content_encoding.clone(),
-        metadata: object.metadata.metadata.clone(),
+        media_type: metadata.media_type.clone(),
+        size_bytes: metadata.size_bytes,
+        sha256: metadata.sha256.clone(),
+        filename: metadata.filename.clone(),
+        content_encoding: metadata.content_encoding.clone(),
+        metadata: metadata.metadata.clone(),
     }
 }
 
@@ -315,8 +331,17 @@ pub fn decode_stored_object_bytes(object: &StoredObject, key: &str) -> Result<Ve
         Some(other) => Err(anyhow!(
             "CAS object '{key}' uses unsupported content encoding '{other}'"
         )),
-        None => Ok(object.bytes.clone()),
+        None => raw_object_bytes(object, key),
     }
+}
+
+fn raw_object_bytes(object: &StoredObject, key: &str) -> Result<Vec<u8>> {
+    if object.bytes.len() > MAX_LOGICAL_OBJECT_BYTES as usize {
+        return Err(anyhow!(
+            "CAS object '{key}' exceeds the maximum supported size"
+        ));
+    }
+    Ok(object.bytes.clone())
 }
 
 fn decode_stored_object(mut object: StoredObject, key: &str) -> Result<StoredObject> {

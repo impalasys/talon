@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::{proto, GrpcGatewayHandler};
-use crate::control::cas::{object_ref_from_stored_object, parse_session_object_key, CasStore};
+use crate::control::cas::{
+    object_ref_from_metadata, object_ref_from_stored_object, parse_session_object_key, CasStore,
+};
 use std::time::Duration;
 
 const CAS_SIGNED_URL_TTL: Duration = Duration::from_secs(5 * 60);
@@ -22,14 +24,14 @@ impl GrpcGatewayHandler {
             .map_err(|err| tonic::Status::invalid_argument(format!("Invalid CAS key: {err}")))?;
 
         let cas = CasStore::new(self.gateway.objects.clone());
-        let (scope, object) = cas
-            .get_session_object_by_key(&body.key)
+        let (scope, metadata) = cas
+            .head_session_object_by_key(&body.key)
             .await
             .map_err(|err| {
                 if err.to_string().contains("metadata is missing agent") {
                     tonic::Status::permission_denied("CAS object is outside the authorized session")
                 } else {
-                    tonic::Status::internal(format!("Failed to load CAS object: {err}"))
+                    tonic::Status::internal(format!("Failed to load CAS object metadata: {err}"))
                 }
             })?
             .ok_or_else(|| tonic::Status::not_found("CAS object not found"))?;
@@ -41,12 +43,29 @@ impl GrpcGatewayHandler {
             .map_err(|err| {
                 tonic::Status::internal(format!("Failed to sign CAS object URL: {err}"))
             })?;
-        let (data, signed_url, signed_url_expires_at_unix_seconds) = if let Some(signed) = signed {
-            (Vec::new(), signed.url, signed.expires_at_unix_seconds)
-        } else {
-            (object.bytes.clone(), String::new(), 0)
-        };
-        let object_ref = object_ref_from_stored_object(&body.key, &object);
+        let (data, signed_url, signed_url_expires_at_unix_seconds, object_ref) =
+            if let Some(signed) = signed {
+                (
+                    Vec::new(),
+                    signed.url,
+                    signed.expires_at_unix_seconds,
+                    object_ref_from_metadata(&body.key, &metadata),
+                )
+            } else {
+                let object = cas
+                    .get_session_object(&scope, &body.key)
+                    .await
+                    .map_err(|err| {
+                        tonic::Status::internal(format!("Failed to load CAS object: {err}"))
+                    })?
+                    .ok_or_else(|| tonic::Status::not_found("CAS object not found"))?;
+                (
+                    object.bytes.clone(),
+                    String::new(),
+                    0,
+                    object_ref_from_stored_object(&body.key, &object),
+                )
+            };
         Ok(tonic::Response::new(proto::GetCasObjectResponse {
             data,
             signed_url,
