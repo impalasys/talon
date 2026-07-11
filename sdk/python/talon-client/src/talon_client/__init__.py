@@ -3,6 +3,7 @@
 from . import auth, config, data, events, harness, resources, v1
 from .clientset import TalonClient
 from .proto.talon.v1 import auth_pb2, auth_pb2_grpc
+from .proto.talon.v1 import cas_pb2, cas_pb2_grpc
 from .proto.talon.v1 import channels_pb2, channels_pb2_grpc
 from .proto.talon.v1 import connectors_pb2, connectors_pb2_grpc
 from .proto.talon.v1 import knowledge_pb2, knowledge_pb2_grpc
@@ -27,6 +28,8 @@ from .v1 import (
     RevokeApiKeyResponse,
     ExchangeApiKeyRequest,
     ExchangeApiKeyResponse,
+    GetCasObjectRequest,
+    GetCasObjectResponse,
     PostChannelMessageRequest,
     RoutedChannelSession,
     PostChannelMessageResponse,
@@ -114,6 +117,8 @@ __all__ = [
     "v1",
     "auth_pb2",
     "auth_pb2_grpc",
+    "cas_pb2",
+    "cas_pb2_grpc",
     "channels_pb2",
     "channels_pb2_grpc",
     "connectors_pb2",
@@ -145,6 +150,8 @@ __all__ = [
     "RevokeApiKeyResponse",
     "ExchangeApiKeyRequest",
     "ExchangeApiKeyResponse",
+    "GetCasObjectRequest",
+    "GetCasObjectResponse",
     "PostChannelMessageRequest",
     "RoutedChannelSession",
     "PostChannelMessageResponse",

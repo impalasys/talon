@@ -1,3 +1,4 @@
+from talon_client.proto.data import data_pb2 as _data_pb2
 from talon_client.proto.harness import llm_pb2 as _llm_pb2
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
@@ -25,14 +26,16 @@ class SessionJournalEntryPayloadLlmResponse(_message.Message):
     def __init__(self, response: _Optional[_Union[_llm_pb2.ChatResponse, _Mapping]] = ...) -> None: ...
 
 class SessionJournalEntryPayloadToolResult(_message.Message):
-    __slots__ = ("tool_call_id", "name", "output")
+    __slots__ = ("tool_call_id", "name", "output", "object")
     TOOL_CALL_ID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     OUTPUT_FIELD_NUMBER: _ClassVar[int]
+    OBJECT_FIELD_NUMBER: _ClassVar[int]
     tool_call_id: str
     name: str
     output: str
-    def __init__(self, tool_call_id: _Optional[str] = ..., name: _Optional[str] = ..., output: _Optional[str] = ...) -> None: ...
+    object: _data_pb2.ObjectRef
+    def __init__(self, tool_call_id: _Optional[str] = ..., name: _Optional[str] = ..., output: _Optional[str] = ..., object: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
 
 class SessionJournalEntryPayloadCommit(_message.Message):
     __slots__ = ("committed_message_id",)

@@ -427,6 +427,8 @@ def generate_java(services: list[Service]) -> None:
 def service_field_name(domain: str) -> str:
     if domain == "Auth":
         return "auth"
+    if domain == "Cas":
+        return "cas"
     if domain == "Knowledge":
         return "knowledge"
     return pluralize(to_camel_case(domain))

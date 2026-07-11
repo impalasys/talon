@@ -675,7 +675,12 @@ control_plane:
         raise
 
 
-def _provision_localstack(endpoint: str, table_name: str, queue_name: str) -> str:
+def _provision_localstack(
+    endpoint: str,
+    table_name: str,
+    queue_name: str,
+    bucket_name: str | None = None,
+) -> str:
     dynamodb = boto3.client(
         "dynamodb",
         endpoint_url=endpoint,
@@ -690,11 +695,20 @@ def _provision_localstack(endpoint: str, table_name: str, queue_name: str) -> st
         aws_access_key_id="test",
         aws_secret_access_key="test",
     )
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=endpoint,
+        region_name="us-east-1",
+        aws_access_key_id="test",
+        aws_secret_access_key="test",
+    )
     deadline = time.time() + 60
     while True:
         try:
             dynamodb.list_tables()
             sqs.list_queues()
+            if bucket_name is not None:
+                s3.list_buckets()
             break
         except Exception:
             if time.time() > deadline:
@@ -714,6 +728,12 @@ def _provision_localstack(endpoint: str, table_name: str, queue_name: str) -> st
         ],
     )
     dynamodb.get_waiter("table_exists").wait(TableName=table_name)
+    if bucket_name is not None:
+        existing_buckets = {
+            bucket["Name"] for bucket in s3.list_buckets().get("Buckets", [])
+        }
+        if bucket_name not in existing_buckets:
+            s3.create_bucket(Bucket=bucket_name)
     return sqs.create_queue(QueueName=queue_name)["QueueUrl"]
 
 
@@ -737,6 +757,7 @@ def start_aws_local_stack(
     socket_path = temp_dir / "worker.sock"
     table_name = f"talon_state_e2e_{suffix}"
     queue_name = f"talon-e2e-{suffix}"
+    bucket_name = f"talon-e2e-objects-{suffix}"
     env = _base_env(grpc_port)
 
     localstack: DockerContainer | None = None
@@ -744,14 +765,14 @@ def start_aws_local_stack(
     worker_proc: subprocess.Popen[Any] | None = None
     try:
         localstack = DockerContainer("localstack/localstack:3")
-        localstack.with_env("SERVICES", "dynamodb,sqs,scheduler")
+        localstack.with_env("SERVICES", "dynamodb,sqs,scheduler,s3")
         localstack.with_exposed_ports(4566)
         localstack.start()
         endpoint = (
             f"http://{localstack.get_container_host_ip()}:"
             f"{localstack.get_exposed_port(4566)}"
         )
-        queue_url = _provision_localstack(endpoint, table_name, queue_name)
+        queue_url = _provision_localstack(endpoint, table_name, queue_name, bucket_name)
         scheduler_role_arn = f"arn:aws:iam::{AWS_ACCOUNT_ID}:role/talon-e2e-scheduler"
         env.update(
             {
@@ -805,6 +826,13 @@ control_plane:
   documents:
     driver: sqlite
     data_dir: ./documents
+  object_store:
+    driver: s3
+    bucket: "{bucket_name}"
+    prefix: e2e
+    region: us-east-1
+    endpoint_url: "{endpoint}"
+    force_path_style: true
 """.strip()
             + "\n"
         )
@@ -847,6 +875,8 @@ control_plane:
                 "socket_path": str(socket_path),
                 "worker_endpoint_url": f"unix://{socket_path}",
                 "localstack_endpoint": endpoint,
+                "s3_bucket": bucket_name,
+                "s3_prefix": "e2e",
                 "sqs_queue_url": queue_url,
             },
             _resources=[localstack],

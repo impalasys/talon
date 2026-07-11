@@ -6,7 +6,10 @@ export type GatewayClientLike = {
     TalonClient["sessions"],
     "create" | "clear" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
   > & Partial<Pick<TalonClient["sessions"], "appendMessage" | "updateMessage">>;
+  cas?: CasServiceClientLike;
 };
+
+export type CasServiceClientLike = Pick<TalonClient["cas"], "getObject">;
 
 export type ToolInvocationItem = {
   toolCallId: string;

@@ -11,6 +11,7 @@ use std::panic::AssertUnwindSafe;
 use super::runtime::AgentRuntime;
 use super::sink::PubSubSessionSink;
 use super::WorkerEventHandler;
+use crate::control::cas::{decode_stored_object_bytes, CasStore};
 use crate::control::{events::SessionMessageEvent, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::connectors as connector_rpc;
 use crate::gateway::rpc::data_proto::{
@@ -100,14 +101,17 @@ enum PreparedSubmissionState {
 #[derive(Debug, Clone, PartialEq)]
 enum RecoveredProjectionPart {
     Text {
+        part_id: String,
         content: String,
     },
     ToolCall {
+        part_id: String,
         id: String,
         name: String,
         input: Value,
     },
     ToolResult {
+        part_id: String,
         id: String,
         name: String,
         result: String,
@@ -125,6 +129,7 @@ async fn prepare_context_for_claimed_submission(
     ns: &str,
     agent: &str,
     session_id: &str,
+    message_id: &str,
     submission_id: &str,
     attempt_id: &str,
     journal_entries: &[sessions::SessionJournalEntry],
@@ -132,6 +137,7 @@ async fn prepare_context_for_claimed_submission(
 ) -> Result<PreparedSubmission> {
     let mut latest_final_response = None;
     let mut projection_parts = Vec::new();
+    let mut next_projection_part_index = 0usize;
     let mut index = 0;
     while index < journal_entries.len() {
         let entry = &journal_entries[index];
@@ -188,7 +194,9 @@ async fn prepare_context_for_claimed_submission(
         assistant_message.tool_calls = Some(tool_calls.clone());
         runtime.context.push(assistant_message);
         if !response.content.is_empty() {
+            let part_id = next_recovered_part_id(&mut next_projection_part_index);
             projection_parts.push(RecoveredProjectionPart::Text {
+                part_id,
                 content: response.content.clone(),
             });
         }
@@ -234,21 +242,42 @@ async fn prepare_context_for_claimed_submission(
 
         for tool in &tool_calls {
             let input_json: Value = serde_json::from_str(&tool.arguments).unwrap_or(Value::Null);
+            let tool_call_part_id = next_recovered_part_id(&mut next_projection_part_index);
             projection_parts.push(RecoveredProjectionPart::ToolCall {
+                part_id: tool_call_part_id,
                 id: tool.id.clone(),
                 name: tool.name.clone(),
                 input: input_json,
             });
+            let tool_result_part_id = next_recovered_part_id(&mut next_projection_part_index);
 
             let result = if let Some(recorded) = results_by_call_id.get(&tool.id) {
-                recorded.output.clone()
+                if let Some(object) = recorded.object.as_ref() {
+                    let stored =
+                        cp.objects.get(&object.key).await?.ok_or_else(|| {
+                            anyhow!("tool result object '{}' is missing", object.key)
+                        })?;
+                    let bytes = decode_stored_object_bytes(&stored, &object.key)?;
+                    String::from_utf8(bytes).map_err(|err| {
+                        anyhow!(
+                            "tool result object '{}' is not valid UTF-8: {err}",
+                            object.key
+                        )
+                    })?
+                } else {
+                    recorded.output.clone()
+                }
             } else {
                 let (_input, result) = runtime.executor.execute_tool_call(tool).await;
+                let cas = CasStore::new(cp.objects.clone());
                 sessions::append_tool_result(
                     cp.kv.as_ref(),
+                    &cas,
                     ns,
                     agent,
                     session_id,
+                    message_id,
+                    &tool_result_part_id,
                     submission_id,
                     attempt_id,
                     &tool.id,
@@ -261,6 +290,7 @@ async fn prepare_context_for_claimed_submission(
             };
 
             projection_parts.push(RecoveredProjectionPart::ToolResult {
+                part_id: tool_result_part_id,
                 id: tool.id.clone(),
                 name: tool.name.clone(),
                 result: result.clone(),
@@ -429,12 +459,13 @@ impl WorkerEventHandler {
         let sink = PubSubSessionSink::new_with_fanout(
             self.cp.kv.clone(),
             self.cp.pubsub.clone(),
+            self.cp.objects.clone(),
             self.fanout_hub.clone(),
             fanout_key,
             event.ns.clone(),
             event.session_id.clone(),
             event.agent.clone(),
-            reply_msg_id,
+            reply_msg_id.clone(),
             reply_msg_key,
             submission.submission_id.clone(),
             submission.attempt_id.clone(),
@@ -651,6 +682,7 @@ impl WorkerEventHandler {
                 ns,
                 &event.agent,
                 &event.session_id,
+                &reply_msg_id,
                 &submission.submission_id,
                 &submission.attempt_id,
                 &journal_entries,
@@ -659,21 +691,35 @@ impl WorkerEventHandler {
             .await?;
             for part in &prepared_submission.projection_parts {
                 match part {
-                    RecoveredProjectionPart::Text { content } => {
-                        sink.seed_recovered_text_part(content);
+                    RecoveredProjectionPart::Text { part_id, content } => {
+                        sink.seed_recovered_text_part(part_id, content);
+                        sink.advance_next_part_id_past(part_id);
                     }
-                    RecoveredProjectionPart::ToolCall { id, name, input } => {
-                        sink.seed_recovered_tool_call_part(id, name, input);
+                    RecoveredProjectionPart::ToolCall {
+                        part_id,
+                        id,
+                        name,
+                        input,
+                    } => {
+                        sink.seed_recovered_tool_call_part(part_id, id, name, input);
+                        sink.advance_next_part_id_past(part_id);
                     }
-                    RecoveredProjectionPart::ToolResult { id, name, result } => {
-                        sink.seed_recovered_tool_result_part(id, name, result);
+                    RecoveredProjectionPart::ToolResult {
+                        part_id,
+                        id,
+                        name,
+                        result,
+                    } => {
+                        sink.seed_recovered_tool_result_part(part_id, id, name, result)
+                            .await?;
+                        sink.advance_next_part_id_past(part_id);
                     }
                 }
             }
             if let PreparedSubmissionState::FinalResponseReady { content } =
                 prepared_submission.state
             {
-                sink.seed_recovered_text_part(&content);
+                sink.seed_recovered_final_text_part(&content);
                 sink.on_done().await;
                 return Ok((SessionCompletionStatus::Completed, sink.summary()));
             }
@@ -1012,6 +1058,11 @@ impl WorkerEventHandler {
             );
         }
     }
+}
+
+fn next_recovered_part_id(next_projection_part_index: &mut usize) -> String {
+    *next_projection_part_index += 1;
+    format!("{:06}", *next_projection_part_index)
 }
 
 #[cfg(test)]

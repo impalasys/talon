@@ -6,6 +6,7 @@ use prost::Message;
 
 use super::submission::{ensure_submission_attempt_current, update_submission_from_entry};
 use super::SessionJournalEntry;
+use crate::control::cas::CasStore;
 use crate::control::{keys, KeyValueStore};
 use crate::gateway::rpc::data_proto::{
     session_journal_entry_payload, SessionExecutionPhase, SessionJournalEntryPayload,
@@ -13,6 +14,8 @@ use crate::gateway::rpc::data_proto::{
     SessionJournalEntryPayloadToolResult,
 };
 use crate::harness::llm::ChatResponse;
+
+const TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
 
 pub async fn append_llm_response(
     kv: &dyn KeyValueStore,
@@ -47,9 +50,12 @@ pub async fn append_llm_response(
 
 pub async fn append_tool_result(
     kv: &dyn KeyValueStore,
+    cas: &CasStore,
     ns: &str,
     agent: &str,
     session_id: &str,
+    message_id: &str,
+    part_id: &str,
     submission_id: &str,
     attempt_id: &str,
     tool_call_id: &str,
@@ -57,6 +63,26 @@ pub async fn append_tool_result(
     result: &str,
     now_micros: i64,
 ) -> Result<SessionJournalEntry> {
+    ensure_submission_attempt_current(kv, ns, agent, session_id, submission_id, attempt_id).await?;
+    let object = cas
+        .put_tool_result_if_raw_at_least(
+            ns,
+            agent,
+            session_id,
+            message_id,
+            part_id,
+            tool_call_id,
+            name,
+            result.as_bytes(),
+            TOOL_RESULT_OBJECT_THRESHOLD_BYTES,
+        )
+        .await?;
+    ensure_submission_attempt_current(kv, ns, agent, session_id, submission_id, attempt_id).await?;
+    let output = if object.is_some() {
+        String::new()
+    } else {
+        result.to_string()
+    };
     append_journal_entry(
         kv,
         ns,
@@ -70,7 +96,8 @@ pub async fn append_tool_result(
                 SessionJournalEntryPayloadToolResult {
                     tool_call_id: tool_call_id.to_string(),
                     name: name.to_string(),
-                    output: result.to_string(),
+                    output,
+                    object,
                 },
             )),
         }),
@@ -383,6 +410,9 @@ mod tests {
     #[tokio::test]
     async fn journal_entries_append_in_order_and_update_submission_pointer() {
         let kv = crate::test_support::MockKvStore::default();
+        let objects =
+            std::sync::Arc::new(crate::control::object_store::InMemoryObjectStore::default());
+        let cas = crate::control::cas::CasStore::new(objects);
         seed_claimed_submission(&kv).await;
 
         let response = ChatResponse {
@@ -404,9 +434,12 @@ mod tests {
         .unwrap();
         let second = append_tool_result(
             &kv,
+            &cas,
             "ns",
             "agent",
             "session-1",
+            "message-1",
+            "000002",
             "submission-1",
             "attempt-1",
             "call-1",

@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createE2ETalonClient, e2eGatewayUrl, installBrowserAuth } from './talonAuth';
 
-async function createTestSession() {
+async function createTestSession(options: { mcpServerRefs?: string[] } = {}) {
   const gatewayUrl = e2eGatewayUrl();
   const runId = `${Date.now()}-${randomUUID().slice(0, 8)}`;
   const testNs = `e2e-ns-${runId}`;
@@ -35,7 +35,7 @@ async function createTestSession() {
               ],
             },
             systemPrompt: "Stream me",
-            mcpServerRefs: [],
+            mcpServerRefs: options.mcpServerRefs ?? [],
           },
         },
       },
@@ -50,11 +50,68 @@ async function createTestSession() {
   return { sessionId: sessionRes.sessionId, gatewayUrl, client, testNs, testAgent };
 }
 
+async function createMcpTestSession() {
+  const mcpServer = 'durable-slow';
+  const session = await createTestSession({ mcpServerRefs: [mcpServer] });
+  const mockLlmPort = process.env.MOCK_LLM_PORT || '8000';
+
+  await session.client.resources.create({
+    ns: session.testNs,
+    manifest: {
+      apiVersion: "talon.impalasys.com/v1",
+      kind: "McpServer",
+      metadata: { name: mcpServer, namespace: session.testNs, labels: {}, annotations: {}, ownerReferences: [], finalizers: [], generation: BigInt(0), resourceVersion: "", uid: "" },
+      spec: {
+        kind: {
+          case: "mcpServer",
+          value: {
+            transport: "http",
+            target: `http://127.0.0.1:${mockLlmPort}/mcp`,
+            args: [],
+            headers: {},
+            disabled: false,
+          },
+        },
+      },
+    },
+  });
+
+  return session;
+}
+
 async function provisionSession(page: Page) {
   page.on('console', msg => console.log(`BROWSER CONSOLE: ${msg.text()}`));
   page.on('pageerror', error => console.log(`BROWSER ERROR: ${error.message}`));
 
   const { sessionId, gatewayUrl, client, testNs, testAgent } = await createTestSession();
+
+  await installBrowserAuth(page, gatewayUrl);
+  await page.goto('/?connected=true');
+
+  const nsNode = page.locator('.truncate', { hasText: testNs }).first();
+  await expect(nsNode).toBeVisible({ timeout: 15000 });
+  await nsNode.click();
+
+  const agentNode = page.locator('.truncate', { hasText: testAgent }).first();
+  await expect(agentNode).toBeVisible({ timeout: 5000 });
+  await agentNode.click();
+
+  const sessionLink = page.locator('.truncate', { hasText: /AM|PM|Mins|Secs/i }).first();
+  await expect(sessionLink).toBeVisible({ timeout: 5000 });
+  await sessionLink.click();
+
+  const chatInput = page.locator('textarea[placeholder="Ask Talon to perform a task..."]');
+  const sendButton = page.locator('form').filter({ has: chatInput }).getByRole('button', { name: 'Send message' });
+  await expect(chatInput).toBeVisible({ timeout: 5000 });
+
+  return { chatInput, sendButton, sessionId, gatewayUrl, client, testNs, testAgent };
+}
+
+async function provisionMcpSession(page: Page) {
+  page.on('console', msg => console.log(`BROWSER CONSOLE: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`BROWSER ERROR: ${error.message}`));
+
+  const { sessionId, gatewayUrl, client, testNs, testAgent } = await createMcpTestSession();
 
   await installBrowserAuth(page, gatewayUrl);
   await page.goto('/?connected=true');
@@ -148,15 +205,21 @@ function sessionPartContent(part: any): string {
   return typeof part?.content === 'string' ? part.content : typeof part?.text === 'string' ? part.text : '';
 }
 
-function sessionPartsOfType(message: any, expectedType: 'text' | 'reasoning' | 'usage') {
+function sessionPartsOfType(message: any, expectedType: 'text' | 'reasoning' | 'usage' | 'toolResult') {
   const typeValues = {
     text: new Set([1, 'SESSION_MESSAGE_PART_TYPE_TEXT', 'text']),
     reasoning: new Set([2, 'SESSION_MESSAGE_PART_TYPE_REASONING', 'reasoning']),
     usage: new Set([5, 'SESSION_MESSAGE_PART_TYPE_USAGE', 'usage']),
+    toolResult: new Set([4, 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT', 'tool_result']),
   }[expectedType];
   return Array.isArray(message?.parts)
     ? message.parts.filter((part: any) => typeValues.has(sessionPartType(part) as any))
     : [];
+}
+
+function sessionPartPayload(part: any): Record<string, any> {
+  const payload = part?.payloadJson ?? part?.payload_json ?? '';
+  return typeof payload === 'string' && payload.length > 0 ? JSON.parse(payload) : {};
 }
 
 async function rootCssVar(page: Page, name: string) {
@@ -443,6 +506,60 @@ test.describe('Chat Streaming', () => {
     expect(transcript).toContain('Let me check that.');
     expect(transcript).toContain('Called knowledge_search');
     expect(transcript).toContain('I checked knowledge_search for docs.example.com.');
+  });
+
+  test('should hydrate object-backed tool results through CAS on replay', async ({ page }) => {
+    const { chatInput, sendButton, client, sessionId, testNs, testAgent } = await provisionMcpSession(page);
+    const target = { ns: testNs, agent: testAgent, sessionId };
+
+    await chatInput.click();
+    await chatInput.fill('Please run a blocking lookup docs.example.com and summarize what you found.');
+    await expect(sendButton).toBeEnabled({ timeout: 5000 });
+    await sendButton.click();
+
+    await expect(page.getByText('I checked blocking_lookup for docs.example.com.', { exact: true })).toBeVisible({ timeout: 30000 });
+
+    let toolResultPart: any;
+    await expect(async () => {
+      const history = await client.sessions.listMessages({
+        ...target,
+        pageSize: 50,
+      }) as any;
+      const message = (history.items ?? [])
+        .map((item: any) => item.message)
+        .find((candidate: any) => sessionMessageText(candidate).includes('I checked blocking_lookup for docs.example.com.'));
+
+      expect(message).toBeTruthy();
+      expect(sessionMessageProjectionState(message)).toBe('committed');
+
+      const toolResults = sessionPartsOfType(message, 'toolResult');
+      expect(toolResults).toHaveLength(1);
+      toolResultPart = toolResults[0];
+      expect(sessionPartContent(toolResultPart)).toBe('');
+      expect(toolResultPart.object?.key).toMatch(new RegExp(`^cas/${testNs}/sessions/${sessionId}/messages/`));
+
+      const payload = sessionPartPayload(toolResultPart);
+      expect(payload.output).toBeUndefined();
+      expect(payload.output_preview).toBeUndefined();
+      expect(payload.output_object_key).toBe(toolResultPart.object.key);
+    }).toPass({ timeout: 30000 });
+
+    const fetched = await client.cas.getObject({ key: toolResultPart.object.key });
+    const fetchedBytes = fetched.signedUrl
+      ? new Uint8Array(await (await fetch(fetched.signedUrl)).arrayBuffer())
+      : fetched.data;
+    const hydrated = new TextDecoder().decode(fetchedBytes);
+    expect(hydrated).toContain('blocking_lookup result for docs.example.com');
+    expect(hydrated).toContain('reference section 079');
+
+    await page.reload();
+    const workToggle = page.getByRole('button', { name: /Worked for \d+s/ }).last();
+    await expect(workToggle).toBeVisible({ timeout: 30000 });
+    await workToggle.click();
+    const toolToggle = page.getByRole('button', { name: /Called\s+mcp_durable_slow_blocking_lookup/ }).last();
+    await expect(toolToggle).toBeVisible({ timeout: 10000 });
+    await toolToggle.click();
+    await expect(page.locator('code').filter({ hasText: 'reference section 079' }).last()).toBeVisible({ timeout: 10000 });
   });
 });
 

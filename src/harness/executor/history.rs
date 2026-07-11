@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::runtime::LoopMessage;
+use crate::control::cas::decode_stored_object_bytes;
 use crate::control::object_store::ObjectStore;
 use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{image_data_part, image_url_part, text_part, ChatContentPart, ToolCall};
@@ -159,7 +160,7 @@ async fn assistant_session_message_to_loop_messages(
             if tool_calls.is_empty() {
                 continue;
             }
-            if let Some(message) = tool_result_message_from_part(part) {
+            if let Some(message) = tool_result_message_from_part(part, objects).await? {
                 let Some(tool_call_id) = message.tool_call_id.as_deref() else {
                     continue;
                 };
@@ -267,19 +268,39 @@ fn tool_call_from_part(part: &data_proto::SessionMessagePart) -> Option<ToolCall
     })
 }
 
-fn tool_result_message_from_part(part: &data_proto::SessionMessagePart) -> Option<LoopMessage> {
+async fn tool_result_message_from_part(
+    part: &data_proto::SessionMessagePart,
+    objects: &(dyn ObjectStore + Send + Sync),
+) -> Result<Option<LoopMessage>> {
     let payload: serde_json::Value =
         serde_json::from_str(&part.payload_json).unwrap_or(serde_json::Value::Null);
-    let tool_call_id = payload.get("tool_call_id").and_then(|v| v.as_str())?;
-    let output = payload
+    let Some(tool_call_id) = payload.get("tool_call_id").and_then(|v| v.as_str()) else {
+        return Ok(None);
+    };
+    let inline_output = payload
         .get("output")
         .and_then(|v| v.as_str())
         .or_else(|| payload.get("output_preview").and_then(|v| v.as_str()))
         .map(str::to_string)
         .unwrap_or_else(|| part.content.clone());
+    let output = if let Some(object) = part.object.as_ref() {
+        let stored = objects
+            .get(&object.key)
+            .await?
+            .ok_or_else(|| anyhow!("tool result object '{}' is missing", object.key))?;
+        let bytes = decode_stored_object_bytes(&stored, &object.key)?;
+        String::from_utf8(bytes).map_err(|err| {
+            anyhow!(
+                "tool result object '{}' is not valid UTF-8: {err}",
+                object.key
+            )
+        })?
+    } else {
+        inline_output
+    };
     let mut message = LoopMessage::text("tool", output);
     message.tool_call_id = Some(tool_call_id.to_string());
-    Some(message)
+    Ok(Some(message))
 }
 
 #[cfg(test)]
@@ -367,8 +388,9 @@ mod tests {
         }
     }
 
-    #[test]
-    fn tool_result_message_prefers_raw_output_when_present() {
+    #[tokio::test]
+    async fn tool_result_message_prefers_raw_output_when_present() {
+        let store = InMemoryObjectStore::default();
         let raw_output = format!("{{\"payload\":\"{}\"}}", "x".repeat(10_000));
         let part = tool_result_part(
             "preview".to_string(),
@@ -380,14 +402,18 @@ mod tests {
             .to_string(),
         );
 
-        let message = tool_result_message_from_part(&part).unwrap();
+        let message = tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap()
+            .unwrap();
 
         assert_eq!(message.tool_call_id.as_deref(), Some("tool-1"));
         assert_eq!(message.text_content(), raw_output);
     }
 
-    #[test]
-    fn tool_result_message_keeps_legacy_raw_output() {
+    #[tokio::test]
+    async fn tool_result_message_keeps_legacy_raw_output() {
+        let store = InMemoryObjectStore::default();
         let raw_output = format!(
             "{{\"payload\":\"{}\",\"items\":[\"{}\",\"{}\"]}}",
             "x".repeat(20_000),
@@ -403,13 +429,17 @@ mod tests {
             .to_string(),
         );
 
-        let message = tool_result_message_from_part(&part).unwrap();
+        let message = tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap()
+            .unwrap();
 
         assert_eq!(message.text_content(), raw_output);
     }
 
-    #[test]
-    fn tool_result_message_requires_tool_call_id() {
+    #[tokio::test]
+    async fn tool_result_message_requires_tool_call_id() {
+        let store = InMemoryObjectStore::default();
         let part = tool_result_part(
             "preview".to_string(),
             serde_json::json!({
@@ -418,11 +448,15 @@ mod tests {
             .to_string(),
         );
 
-        assert!(tool_result_message_from_part(&part).is_none());
+        assert!(tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap()
+            .is_none());
     }
 
-    #[test]
-    fn tool_result_message_falls_back_to_step_content_when_payload_has_no_output() {
+    #[tokio::test]
+    async fn tool_result_message_falls_back_to_step_content_when_payload_has_no_output() {
+        let store = InMemoryObjectStore::default();
         let part = tool_result_part(
             "fallback output".to_string(),
             serde_json::json!({
@@ -431,8 +465,68 @@ mod tests {
             .to_string(),
         );
 
-        let message = tool_result_message_from_part(&part).unwrap();
+        let message = tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(message.text_content(), "fallback output");
+    }
+
+    #[tokio::test]
+    async fn tool_result_message_hydrates_object_output() {
+        let store = InMemoryObjectStore::default();
+        let raw_output = "full object output".repeat(100);
+        let object = store
+            .put(
+                "sessions/acme/support/session-1/tool-results/tool-1.txt",
+                raw_output.as_bytes(),
+                ObjectMetadata {
+                    media_type: "text/plain; charset=utf-8".to_string(),
+                    size_bytes: raw_output.len() as u64,
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let mut part = tool_result_part(
+            String::new(),
+            serde_json::json!({
+                "tool_call_id": "tool-1",
+                "output_object_key": object.key,
+            })
+            .to_string(),
+        );
+        part.object = Some(object);
+
+        let message = tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(message.text_content(), raw_output);
+    }
+
+    #[tokio::test]
+    async fn tool_result_message_errors_when_object_is_missing() {
+        let store = InMemoryObjectStore::default();
+        let mut part = tool_result_part(
+            String::new(),
+            serde_json::json!({
+                "tool_call_id": "tool-1",
+                "output_object_key": "missing.txt",
+            })
+            .to_string(),
+        );
+        part.object = Some(data_proto::ObjectRef {
+            key: "missing.txt".to_string(),
+            ..Default::default()
+        });
+
+        let err = tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap_err();
+
+        assert!(err.to_string().contains("missing"));
     }
 
     #[tokio::test]

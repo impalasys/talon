@@ -32,6 +32,7 @@ message ObjectRef {
   string sha256 = 4;
   string filename = 5;
   map<string, string> metadata = 6;
+  string content_encoding = 7;
 }
 
 message Principal {

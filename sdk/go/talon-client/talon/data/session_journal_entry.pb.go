@@ -130,6 +130,7 @@ type SessionJournalEntryPayloadToolResult struct {
 	ToolCallId    string                 `protobuf:"bytes,1,opt,name=tool_call_id,json=toolCallId,proto3" json:"tool_call_id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Output        string                 `protobuf:"bytes,3,opt,name=output,proto3" json:"output,omitempty"`
+	Object        *ObjectRef             `protobuf:"bytes,4,opt,name=object,proto3" json:"object,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -183,6 +184,13 @@ func (x *SessionJournalEntryPayloadToolResult) GetOutput() string {
 		return x.Output
 	}
 	return ""
+}
+
+func (x *SessionJournalEntryPayloadToolResult) GetObject() *ObjectRef {
+	if x != nil {
+		return x.Object
+	}
+	return nil
 }
 
 type SessionJournalEntryPayloadCommit struct {
@@ -443,14 +451,15 @@ var File_proto_data_session_journal_entry_proto protoreflect.FileDescriptor
 const file_proto_data_session_journal_entry_proto_rawDesc = "" +
 	"\n" +
 	"&proto/data/session_journal_entry.proto\x12\n" +
-	"talon.data\x1a\x17proto/harness/llm.proto\"`\n" +
+	"talon.data\x1a\x15proto/data/data.proto\x1a\x17proto/harness/llm.proto\"`\n" +
 	"%SessionJournalEntryPayloadLlmResponse\x127\n" +
-	"\bresponse\x18\x01 \x01(\v2\x1b.talon.harness.ChatResponseR\bresponse\"t\n" +
+	"\bresponse\x18\x01 \x01(\v2\x1b.talon.harness.ChatResponseR\bresponse\"\xa3\x01\n" +
 	"$SessionJournalEntryPayloadToolResult\x12 \n" +
 	"\ftool_call_id\x18\x01 \x01(\tR\n" +
 	"toolCallId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
-	"\x06output\x18\x03 \x01(\tR\x06output\"T\n" +
+	"\x06output\x18\x03 \x01(\tR\x06output\x12-\n" +
+	"\x06object\x18\x04 \x01(\v2\x15.talon.data.ObjectRefR\x06object\"T\n" +
 	" SessionJournalEntryPayloadCommit\x120\n" +
 	"\x14committed_message_id\x18\x01 \x01(\tR\x12committedMessageId\"\x9c\x02\n" +
 	"\x1aSessionJournalEntryPayload\x12V\n" +
@@ -502,19 +511,21 @@ var file_proto_data_session_journal_entry_proto_goTypes = []any{
 	(*SessionJournalEntryPayload)(nil),            // 4: talon.data.SessionJournalEntryPayload
 	(*SessionJournalEntry)(nil),                   // 5: talon.data.SessionJournalEntry
 	(*harness.ChatResponse)(nil),                  // 6: talon.harness.ChatResponse
+	(*ObjectRef)(nil),                             // 7: talon.data.ObjectRef
 }
 var file_proto_data_session_journal_entry_proto_depIdxs = []int32{
 	6, // 0: talon.data.SessionJournalEntryPayloadLlmResponse.response:type_name -> talon.harness.ChatResponse
-	1, // 1: talon.data.SessionJournalEntryPayload.llm_response:type_name -> talon.data.SessionJournalEntryPayloadLlmResponse
-	2, // 2: talon.data.SessionJournalEntryPayload.tool_result:type_name -> talon.data.SessionJournalEntryPayloadToolResult
-	3, // 3: talon.data.SessionJournalEntryPayload.commit:type_name -> talon.data.SessionJournalEntryPayloadCommit
-	0, // 4: talon.data.SessionJournalEntry.phase:type_name -> talon.data.SessionExecutionPhase
-	4, // 5: talon.data.SessionJournalEntry.payload:type_name -> talon.data.SessionJournalEntryPayload
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	7, // 1: talon.data.SessionJournalEntryPayloadToolResult.object:type_name -> talon.data.ObjectRef
+	1, // 2: talon.data.SessionJournalEntryPayload.llm_response:type_name -> talon.data.SessionJournalEntryPayloadLlmResponse
+	2, // 3: talon.data.SessionJournalEntryPayload.tool_result:type_name -> talon.data.SessionJournalEntryPayloadToolResult
+	3, // 4: talon.data.SessionJournalEntryPayload.commit:type_name -> talon.data.SessionJournalEntryPayloadCommit
+	0, // 5: talon.data.SessionJournalEntry.phase:type_name -> talon.data.SessionExecutionPhase
+	4, // 6: talon.data.SessionJournalEntry.payload:type_name -> talon.data.SessionJournalEntryPayload
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_proto_data_session_journal_entry_proto_init() }
@@ -522,6 +533,7 @@ func file_proto_data_session_journal_entry_proto_init() {
 	if File_proto_data_session_journal_entry_proto != nil {
 		return
 	}
+	file_proto_data_data_proto_init()
 	file_proto_data_session_journal_entry_proto_msgTypes[3].OneofWrappers = []any{
 		(*SessionJournalEntryPayload_LlmResponse)(nil),
 		(*SessionJournalEntryPayload_ToolResult)(nil),

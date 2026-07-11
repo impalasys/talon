@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package talon.v1;
+
+service CasService {
+  rpc GetObject(GetCasObjectRequest) returns (GetCasObjectResponse);
+}
+
+message GetCasObjectRequest {
+  string key = 1;
+}
+
+message GetCasObjectResponse {
+  bytes data = 1;
+  string signed_url = 2;
+  int64 signed_url_expires_at_unix_seconds = 3;
+  map<string, string> metadata = 4;
+  string media_type = 5;
+  uint64 size_bytes = 6;
+  string sha256 = 7;
+  string filename = 8;
+  string content_encoding = 9;
+}

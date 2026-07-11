@@ -239,6 +239,7 @@ fn main() -> std::io::Result<()> {
             "proto/events.proto",
             "proto/external/connectors.proto",
             "proto/talon/v1/auth.proto",
+            "proto/talon/v1/cas.proto",
             "proto/talon/v1/channels.proto",
             "proto/talon/v1/connectors.proto",
             "proto/talon/v1/knowledge.proto",

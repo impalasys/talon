@@ -158,6 +158,11 @@ export class ObjectRef extends Message<ObjectRef> {
    */
   metadata: { [key: string]: string } = {};
 
+  /**
+   * @generated from field: string content_encoding = 7;
+   */
+  contentEncoding = "";
+
   constructor(data?: PartialMessage<ObjectRef>) {
     super();
     proto3.util.initPartial(data, this);
@@ -172,6 +177,7 @@ export class ObjectRef extends Message<ObjectRef> {
     { no: 4, name: "sha256", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "filename", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 7, name: "content_encoding", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ObjectRef {

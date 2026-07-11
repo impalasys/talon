@@ -9,6 +9,7 @@ uvicorn
 httpx
 pytest-httpserver
 requests
+zstandard
 testcontainers[postgres]
 psycopg2-binary
 boto3
